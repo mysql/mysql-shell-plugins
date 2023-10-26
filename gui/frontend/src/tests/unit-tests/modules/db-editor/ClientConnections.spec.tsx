@@ -23,9 +23,9 @@
 
 import { mount } from "enzyme";
 
-import { nextRunLoop } from "../../test-helpers";
-import { ClientConnections } from "../../../../modules/db-editor/ClientConnections";
-import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { nextRunLoop } from "../../test-helpers.js";
+import { ClientConnections } from "../../../../modules/db-editor/ClientConnections.js";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 
 describe("Client connections module tests", (): void => {
 

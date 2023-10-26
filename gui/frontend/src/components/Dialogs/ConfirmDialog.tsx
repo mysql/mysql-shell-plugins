@@ -25,14 +25,14 @@ import "./ConfirmDialog.css";
 
 import { ComponentChild, createRef, VNode } from "preact";
 
-import { DialogResponseClosure, IDictionary } from "../../app-logic/Types";
-import { Codicon } from "../ui/Codicon";
-import { IComponentProperties, IComponentState, ComponentBase } from "../ui/Component/ComponentBase";
-import { Container, Orientation } from "../ui/Container/Container";
-import { Dialog } from "../ui/Dialog/Dialog";
-import { Icon } from "../ui/Icon/Icon";
-import { Label } from "../ui/Label/Label";
-import { Button } from "../ui/Button/Button";
+import { DialogResponseClosure, IDictionary } from "../../app-logic/Types.js";
+import { Codicon } from "../ui/Codicon.js";
+import { IComponentProperties, IComponentState, ComponentBase } from "../ui/Component/ComponentBase.js";
+import { Container, Orientation } from "../ui/Container/Container.js";
+import { Dialog } from "../ui/Dialog/Dialog.js";
+import { Icon } from "../ui/Icon/Icon.js";
+import { Label } from "../ui/Label/Label.js";
+import { Button } from "../ui/Button/Button.js";
 
 interface IConfirmDialogButtons {
     accept?: string;      // Default: "Yes".

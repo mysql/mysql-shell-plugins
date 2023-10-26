@@ -27,37 +27,37 @@ import { SymbolTable } from "antlr4-c3";
 import { ComponentChild, createRef } from "preact";
 import Color from "color";
 
-import "./userWorker";
+import "./userWorker.js";
 
 import {
     ICodeEditorViewState, IDisposable, ICodeEditorOptions, IExecutionContextState, KeyCode, KeyMod,
     languages, Monaco, Position, Range, IPosition, Selection, IScriptExecutionOptions, CodeEditorMode,
     IProviderEditorModel,
-} from ".";
+} from "./index.js";
 
-import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
-import { PresentationInterface } from "../../../script-execution/PresentationInterface";
-import { EditorLanguage, ITextRange } from "../../../supplement";
-import { IEditorExecutionOptions, requisitions } from "../../../supplement/Requisitions";
-import { Settings } from "../../../supplement/Settings/Settings";
-import { editorRangeToTextRange } from "../../../utilities/ts-helpers";
+import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
+import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
+import { EditorLanguage, ITextRange } from "../../../supplement/index.js";
+import { IEditorExecutionOptions, requisitions } from "../../../supplement/Requisitions.js";
+import { Settings } from "../../../supplement/Settings/Settings.js";
+import { editorRangeToTextRange } from "../../../utilities/ts-helpers.js";
 
-import { IThemeChangeData, IThemeObject, ITokenEntry } from "../../Theming/ThemeManager";
+import { IThemeChangeData, IThemeObject, ITokenEntry } from "../../Theming/ThemeManager.js";
 
-import { CodeCompletionProvider } from "./CodeCompletionProvider";
-import { DefinitionProvider } from "./DefinitionProvider";
-import { DocumentHighlightProvider } from "./DocumentHighlightProvider";
-import { FormattingProvider } from "./FormattingProvider";
-import { HoverProvider } from "./HoverProvider";
-import { ILanguageDefinition, msg } from "./languages/msg/msg.contribution";
-import { ReferencesProvider } from "./ReferencesProvider";
-import { RenameProvider } from "./RenameProvider";
-import { SignatureHelpProvider } from "./SignatureHelpProvider";
-import { MessageType } from "../../../app-logic/Types";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
-import { ExecutionContext } from "../../../script-execution/ExecutionContext";
-import { MsgSemanticTokensProvider } from "./MsgSemanticTokensProvider";
-import { splitTextToLines } from "../../../utilities/string-helpers";
+import { CodeCompletionProvider } from "./CodeCompletionProvider.js";
+import { DefinitionProvider } from "./DefinitionProvider.js";
+import { DocumentHighlightProvider } from "./DocumentHighlightProvider.js";
+import { FormattingProvider } from "./FormattingProvider.js";
+import { HoverProvider } from "./HoverProvider.js";
+import { ILanguageDefinition, msg } from "./languages/msg/msg.contribution.js";
+import { ReferencesProvider } from "./ReferencesProvider.js";
+import { RenameProvider } from "./RenameProvider.js";
+import { SignatureHelpProvider } from "./SignatureHelpProvider.js";
+import { MessageType } from "../../../app-logic/Types.js";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { ExecutionContext } from "../../../script-execution/ExecutionContext.js";
+import { MsgSemanticTokensProvider } from "./MsgSemanticTokensProvider.js";
+import { splitTextToLines } from "../../../utilities/string-helpers.js";
 
 /** Used when splitting pasted text to find the individual language blocks. */
 interface ITextBlockEntry {
@@ -1599,7 +1599,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 }
 
                 firstContext.endLine = first.endLine + offset;
-                model.executionContexts?.switchContextLanguage(firstIndex, first.language);
+                model.executionContexts.switchContextLanguage(firstIndex, first.language);
 
                 // Create new contexts for the remaining blocks.
                 if (createResultPresentation) {

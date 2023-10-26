@@ -25,13 +25,13 @@ import "./Accordion.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { AccordionItem } from "./AccordionItem";
-import { Container, ContentAlignment, Orientation } from "../Container/Container";
-import { Codicon } from "../Codicon";
-import { AccordionSection, IAccordionSectionProperties } from "./AccordionSection";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
-import { Label } from "../Label/Label";
-import { ISplitterPane, SplitContainer, ISplitterPaneSizeInfo } from "../SplitContainer/SplitContainer";
+import { AccordionItem } from "./AccordionItem.js";
+import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
+import { Codicon } from "../Codicon.js";
+import { AccordionSection, IAccordionSectionProperties } from "./AccordionSection.js";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { Label } from "../Label/Label.js";
+import { ISplitterPane, SplitContainer, ISplitterPaneSizeInfo } from "../SplitContainer/SplitContainer.js";
 
 export interface IAccordionActionChoice {
     id: string;

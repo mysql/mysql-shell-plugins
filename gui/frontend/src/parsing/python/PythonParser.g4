@@ -35,7 +35,7 @@ options {
 @header {
 /* eslint-disable @typescript-eslint/no-unused-vars, no-useless-escape */
 
-import { PythonParserBase } from "../PythonParserBase";
+import { PythonParserBase } from "../PythonParserBase.js";
 }
 
 root: (single_input | file_input | eval_input)? EOF;

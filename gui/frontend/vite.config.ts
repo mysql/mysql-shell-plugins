@@ -59,6 +59,7 @@ const determineBuildNumber = (): string => {
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [
+        // @ts-ignore, because TS does not correctly type this plugin.
         preact({
             babel: {
                 // Avoids repacking of chunks > 500KB.

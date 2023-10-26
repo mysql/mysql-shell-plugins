@@ -1,4 +1,4 @@
-import { IShellDictionary } from "./Protocol";
-import { IDictionary } from "../app-logic/Types";
+import { IShellDictionary } from "./Protocol.js";
+import { IDictionary } from "../app-logic/Types.js";
 
 /* eslint-disable max-len */

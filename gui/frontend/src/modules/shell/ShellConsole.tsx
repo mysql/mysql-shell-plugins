@@ -24,16 +24,16 @@
 import { ComponentChild, createRef } from "preact";
 import { Position } from "monaco-editor";
 
-import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
-import { requisitions } from "../../supplement/Requisitions";
-import { IEditorStatusInfo } from "../db-editor";
-import { EmbeddedPresentationInterface } from "../db-editor/execution/EmbeddedPresentationInterface";
-import { EditorLanguage } from "../../supplement";
-import { Settings } from "../../supplement/Settings/Settings";
-import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
-import { IComponentProperties, ComponentBase } from "../../components/ui/Component/ComponentBase";
-import { ExecutionContext } from "../../script-execution/ExecutionContext";
-import { PresentationInterface } from "../../script-execution/PresentationInterface";
+import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { IEditorStatusInfo } from "../db-editor/index.js";
+import { EmbeddedPresentationInterface } from "../db-editor/execution/EmbeddedPresentationInterface.js";
+import { EditorLanguage } from "../../supplement/index.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
+import { IComponentProperties, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
+import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
+import { PresentationInterface } from "../../script-execution/PresentationInterface.js";
 
 interface IShellConsoleProperties extends IComponentProperties {
     editorState: IEditorPersistentState;

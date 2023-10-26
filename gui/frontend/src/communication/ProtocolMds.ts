@@ -26,8 +26,8 @@
 import {
     ICompartment, IComputeInstance, IMySQLDbSystemShapeSummary, IMySQLDbSystem, ILoadBalancer, IBastionSummary,
     IBastionSession, IComputeShape,
-} from "./Oci";
-import { IShellDictionary } from "./Protocol";
+} from "./Oci.js";
+import { IShellDictionary } from "./Protocol.js";
 
 
 export enum ShellAPIMds {

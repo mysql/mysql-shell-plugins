@@ -22,10 +22,11 @@
  */
 
 import { mount, shallow } from "enzyme";
-import { ComponentSize } from "../../../../components/ui/Component/ComponentBase";
-import { Label, TextAlignment, ILabelProperties } from "../../../../components/ui/Label/Label";
 
-import { loremIpsum } from "../../test-helpers";
+import { ComponentSize } from "../../../../components/ui/Component/ComponentBase.js";
+import { Label, TextAlignment, ILabelProperties } from "../../../../components/ui/Label/Label.js";
+
+import { loremIpsum } from "../../test-helpers.js";
 
 describe("Label component test", (): void => {
 

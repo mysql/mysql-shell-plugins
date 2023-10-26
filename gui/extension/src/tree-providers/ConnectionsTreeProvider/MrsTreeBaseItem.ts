@@ -25,7 +25,7 @@ import * as path from "path";
 
 import { TreeItem, TreeItemCollapsibleState } from "vscode";
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 
 export class MrsTreeBaseItem extends TreeItem {
 

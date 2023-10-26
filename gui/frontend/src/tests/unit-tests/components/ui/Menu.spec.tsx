@@ -26,11 +26,11 @@ import cloneIcon from "../../../../assets/images/clone.svg";
 import { mount, shallow } from "enzyme";
 import { act } from "@testing-library/preact";
 
-import { mouseEventMock } from "../../__mocks__/MockEvents";
-import { ComponentPlacement } from "../../../../components/ui/Component/ComponentBase";
-import { Menu, IMenuProperties } from "../../../../components/ui/Menu/Menu";
-import { MenuBar } from "../../../../components/ui/Menu/MenuBar";
-import { MenuItem } from "../../../../components/ui/Menu/MenuItem";
+import { mouseEventMock } from "../../__mocks__/MockEvents.js";
+import { ComponentPlacement } from "../../../../components/ui/Component/ComponentBase.js";
+import { Menu, IMenuProperties } from "../../../../components/ui/Menu/Menu.js";
+import { MenuBar } from "../../../../components/ui/Menu/MenuBar.js";
+import { MenuItem } from "../../../../components/ui/Menu/MenuItem.js";
 
 describe("Menu component tests", (): void => {
     it("Test menu callbacks", async () => {

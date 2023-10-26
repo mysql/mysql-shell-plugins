@@ -27,34 +27,34 @@ import removeProperty from "../../assets/images/remove.svg";
 
 import { cloneElement, ComponentChild, createRef, VNode } from "preact";
 import { ColumnDefinition, RowComponent } from "tabulator-tables";
-
-import { DialogResponseClosure, IDictionary, MessageType } from "../../app-logic/Types";
-import { ParamDialog } from "./ParamDialog";
-import { IOpenDialogFilters } from "../../supplement/Requisitions";
 import { Children } from "preact/compat";
-import { Button, IButtonProperties } from "../ui/Button/Button";
-import { Checkbox, CheckState, ICheckboxProperties } from "../ui/Checkbox/Checkbox";
-import { Codicon } from "../ui/Codicon";
-import { IComponentProperties, IComponentState, ComponentBase, SelectionType } from "../ui/Component/ComponentBase";
-import { Container, Orientation, ContentAlignment } from "../ui/Container/Container";
-import { Dialog } from "../ui/Dialog/Dialog";
-import { Dropdown, IDropdownProperties } from "../ui/Dropdown/Dropdown";
-import { FileSelector, IFileSelectorProperties } from "../ui/FileSelector/FileSelector";
-import { Grid } from "../ui/Grid/Grid";
-import { GridCell } from "../ui/Grid/GridCell";
-import { Icon } from "../ui/Icon/Icon";
-import { Input, IInputChangeProperties, IInputProperties } from "../ui/Input/Input";
-import { Label } from "../ui/Label/Label";
-import { DynamicList } from "../ui/List/DynamicList";
-import { Menu } from "../ui/Menu/Menu";
-import { MenuItem, IMenuItemProperties } from "../ui/Menu/MenuItem";
-import { Message } from "../ui/Message/Message";
-import { IPortalOptions } from "../ui/Portal/Portal";
-import { ProgressIndicator } from "../ui/ProgressIndicator/ProgressIndicator";
-import { ITabviewPage, Tabview } from "../ui/Tabview/Tabview";
-import { ITreeGridOptions, TreeGrid } from "../ui/TreeGrid/TreeGrid";
-import { UpDown, IUpDownProperties } from "../ui/UpDown/UpDown";
-import { IValueEditCustomProperties, ValueEditCustom } from "./ValueEditCustom";
+
+import { DialogResponseClosure, IDictionary, MessageType } from "../../app-logic/Types.js";
+import { ParamDialog } from "./ParamDialog.js";
+import { IOpenDialogFilters } from "../../supplement/Requisitions.js";
+import { Button, IButtonProperties } from "../ui/Button/Button.js";
+import { Checkbox, CheckState, ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
+import { Codicon } from "../ui/Codicon.js";
+import { IComponentProperties, IComponentState, ComponentBase, SelectionType } from "../ui/Component/ComponentBase.js";
+import { Container, Orientation, ContentAlignment } from "../ui/Container/Container.js";
+import { Dialog } from "../ui/Dialog/Dialog.js";
+import { Dropdown, IDropdownProperties } from "../ui/Dropdown/Dropdown.js";
+import { FileSelector, IFileSelectorProperties } from "../ui/FileSelector/FileSelector.js";
+import { Grid } from "../ui/Grid/Grid.js";
+import { GridCell } from "../ui/Grid/GridCell.js";
+import { Icon } from "../ui/Icon/Icon.js";
+import { Input, IInputChangeProperties, IInputProperties } from "../ui/Input/Input.js";
+import { Label } from "../ui/Label/Label.js";
+import { DynamicList } from "../ui/List/DynamicList.js";
+import { Menu } from "../ui/Menu/Menu.js";
+import { MenuItem, IMenuItemProperties } from "../ui/Menu/MenuItem.js";
+import { Message } from "../ui/Message/Message.js";
+import { IPortalOptions } from "../ui/Portal/Portal.js";
+import { ProgressIndicator } from "../ui/ProgressIndicator/ProgressIndicator.js";
+import { ITabviewPage, Tabview } from "../ui/Tabview/Tabview.js";
+import { ITreeGridOptions, TreeGrid } from "../ui/TreeGrid/TreeGrid.js";
+import { UpDown, IUpDownProperties } from "../ui/UpDown/UpDown.js";
+import { IValueEditCustomProperties, ValueEditCustom } from "./ValueEditCustom.js";
 
 interface IContextUpdateData {
     add?: string[];
@@ -596,7 +596,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
      * @param dialogOptions Details for the appearance of the dialog.
      * @param data Anything that should be passed to the validation and close functions.
      */
-    public show = (values: IDialogValues, dialogOptions?: IValueEditDialogShowOptions, data?: IDictionary): void => {
+    public show = (values?: IDialogValues, dialogOptions?: IValueEditDialogShowOptions, data?: IDictionary): void => {
         const activeContexts = new Set(dialogOptions?.contexts);
 
         // Keep the advanced state/context if it was set before.

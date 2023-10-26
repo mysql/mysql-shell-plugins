@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { Calendar } from "../../../../components/ui/Calendar/Calendar";
+import { Calendar } from "../../../../components/ui/Calendar/Calendar.js";
 
 describe("Calendar render testing", (): void => {
 

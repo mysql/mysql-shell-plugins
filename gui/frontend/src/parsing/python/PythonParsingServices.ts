@@ -30,12 +30,12 @@ import {
     ParseTree, PredictionMode,
 } from "antlr4ng";
 
-import { PythonLexer } from "./generated/PythonLexer";
-import { PythonParser } from "./generated/PythonParser";
-import { PythonErrorListener } from "./PythonErrorListener";
+import { PythonLexer } from "./generated/PythonLexer.js";
+import { PythonParser } from "./generated/PythonParser.js";
+import { PythonErrorListener } from "./PythonErrorListener.js";
 
-import { IParserErrorInfo } from "../parser-common";
-import { unquote } from "../../utilities/string-helpers";
+import { IParserErrorInfo } from "../parser-common.js";
+import { unquote } from "../../utilities/string-helpers.js";
 
 export enum PythonParseUnit {
     Generic

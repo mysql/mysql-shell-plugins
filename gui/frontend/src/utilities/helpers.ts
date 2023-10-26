@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../app-logic/Types";
-import { convertHexToBase64 } from "./string-helpers";
+import { IDictionary } from "../app-logic/Types.js";
+import { convertHexToBase64 } from "./string-helpers.js";
 
 /**
  * Allows the user to select a local file.

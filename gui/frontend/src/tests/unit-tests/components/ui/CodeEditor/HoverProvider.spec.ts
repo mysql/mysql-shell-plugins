@@ -21,11 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { HoverProvider } from "../../../../../components/ui/CodeEditor/HoverProvider";
-import { ExecutionContext } from "../../../../../script-execution/ExecutionContext";
-import { PresentationInterface } from "../../../../../script-execution/PresentationInterface";
-import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices";
-import { mockModel, position } from "../../../__mocks__/CodeEditorMocks";
+import { HoverProvider } from "../../../../../components/ui/CodeEditor/HoverProvider.js";
+import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
+import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
+import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices.js";
+import { mockModel, position } from "../../../__mocks__/CodeEditorMocks.js";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
 

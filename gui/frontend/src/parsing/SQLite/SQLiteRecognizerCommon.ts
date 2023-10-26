@@ -25,8 +25,8 @@
 
 import { CommonTokenStream, Token } from "antlr4ng";
 
-import { QueryType, Scanner } from "../parser-common";
-import { SQLiteLexer } from "./generated/SQLiteLexer";
+import { QueryType, Scanner } from "../parser-common.js";
+import { SQLiteLexer } from "./generated/SQLiteLexer.js";
 
 const keywordsMap = new Map<SQLiteVersion, Set<string>>();
 const reservedKeywordsMap = new Map<SQLiteVersion, Set<string>>();

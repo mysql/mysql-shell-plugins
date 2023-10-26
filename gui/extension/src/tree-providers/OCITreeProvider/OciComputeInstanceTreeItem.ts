@@ -23,12 +23,12 @@
 
 import { /*Command,*/ TreeItemCollapsibleState } from "vscode";
 
-import { ICompartment, IComputeInstance } from "../../../../frontend/src/communication";
-import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds";
+import { ICompartment, IComputeInstance } from "../../../../frontend/src/communication/index.js";
+import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds.js";
 import {
     ShellInterfaceShellSession,
-} from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession";
-import { OciBaseTreeItem } from "./OciBaseTreeItem";
+} from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession.js";
+import { OciBaseTreeItem } from "./OciBaseTreeItem.js";
 
 export class OciComputeInstanceTreeItem extends OciBaseTreeItem {
     public contextValue = "mdsComputeInstance";

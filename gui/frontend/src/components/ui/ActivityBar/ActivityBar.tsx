@@ -24,9 +24,10 @@
 import "./ActivityBar.css";
 
 import { ComponentChild } from "preact";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
-import { Orientation } from "../Container/Container";
-import { Selector } from "../Selector/Selector";
+
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { Orientation } from "../Container/Container.js";
+import { Selector } from "../Selector/Selector.js";
 
 interface IActivityBarProperties extends IComponentProperties {
     borderWidth?: number;

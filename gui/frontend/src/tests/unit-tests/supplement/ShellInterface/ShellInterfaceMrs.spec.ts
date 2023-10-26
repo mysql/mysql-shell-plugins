@@ -24,12 +24,13 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { MessageScheduler } from "../../../../communication/MessageScheduler";
 import { WebSocketServer } from "ws";
 import { createServer, Server } from "http";
-import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
-import { ShellAPIMrs } from "../../../../communication/ProtocolMrs";
-import { ShellInterfaceMrs } from "../../../../supplement/ShellInterface/ShellInterfaceMrs";
+
+import { MessageScheduler } from "../../../../communication/MessageScheduler.js";
+import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
+import { ShellAPIMrs } from "../../../../communication/ProtocolMrs.js";
+import { ShellInterfaceMrs } from "../../../../supplement/ShellInterface/ShellInterfaceMrs.js";
 
 describe("ShellInterfaceMrs Tests", (): void => {
     let webServer: Server;

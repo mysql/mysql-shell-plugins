@@ -25,12 +25,12 @@ import emptyHatch from "./assets/empty-hatch.svg";
 
 import { ComponentChild } from "preact";
 import { CSSProperties } from "preact/compat";
-
 import Color from "color";
-import { ColorPopup } from "./ColorPopup";
-import { Image } from "../Image/Image";
-import { IComponentProperties, IComponentState, ComponentBase, DragEventType } from "../Component/ComponentBase";
-import { deepEqual } from "../../../utilities/helpers";
+
+import { ColorPopup } from "./ColorPopup.js";
+import { Image } from "../Image/Image.js";
+import { IComponentProperties, IComponentState, ComponentBase, DragEventType } from "../Component/ComponentBase.js";
+import { deepEqual } from "../../../utilities/helpers.js";
 
 export interface IColorFieldProperties extends IComponentProperties {
     initialColor?: Color; // The color to show. If not given a hatch pattern is shown instead.

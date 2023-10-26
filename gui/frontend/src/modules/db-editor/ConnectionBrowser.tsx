@@ -31,31 +31,31 @@ import cloneIcon from "../../assets/images/clone.svg";
 import { ComponentChild, createRef } from "preact";
 import { Children } from "preact/compat";
 
-import { requisitions } from "../../supplement/Requisitions";
+import { requisitions } from "../../supplement/Requisitions.js";
 
-import { MySQLConnectionScheme } from "../../communication/MySQL";
-import { Settings } from "../../supplement/Settings/Settings";
-import { IMySQLDbSystem } from "../../communication";
+import { MySQLConnectionScheme } from "../../communication/MySQL.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { IMySQLDbSystem } from "../../communication/index.js";
 import {
     DialogResponseClosure, DialogType, IDialogResponse, IDictionary, IServicePasswordRequest,
-} from "../../app-logic/Types";
-import { IToolbarItems } from ".";
+} from "../../app-logic/Types.js";
+import { IToolbarItems } from "./index.js";
 import {
     BrowserTileType, IBrowserTileProperties, ITileActionOptions,
-} from "../../components/ui/BrowserTile/BrowserTile";
+} from "../../components/ui/BrowserTile/BrowserTile.js";
 import {
     IComponentProperties, ComponentBase, ComponentPlacement,
-} from "../../components/ui/Component/ComponentBase";
-import { ConnectionTile, IConnectionTileProperties } from "../../components/ui/ConnectionTile/ConnectionTile";
-import { Container, Orientation, ContentWrap } from "../../components/ui/Container/Container";
-import { FrontPage } from "../../components/ui/FrontPage/FrontPage";
-import { Label } from "../../components/ui/Label/Label";
-import { Menu } from "../../components/ui/Menu/Menu";
-import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem";
-import { Toolbar } from "../../components/ui/Toolbar/Toolbar";
-import { IConnectionDetails, DBType } from "../../supplement/ShellInterface";
-import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
-import { ConnectionEditor } from "./ConnectionEditor";
+} from "../../components/ui/Component/ComponentBase.js";
+import { ConnectionTile, IConnectionTileProperties } from "../../components/ui/ConnectionTile/ConnectionTile.js";
+import { Container, Orientation, ContentWrap } from "../../components/ui/Container/Container.js";
+import { FrontPage } from "../../components/ui/FrontPage/FrontPage.js";
+import { Label } from "../../components/ui/Label/Label.js";
+import { Menu } from "../../components/ui/Menu/Menu.js";
+import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem.js";
+import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
+import { IConnectionDetails, DBType } from "../../supplement/ShellInterface/index.js";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
+import { ConnectionEditor } from "./ConnectionEditor.js";
 
 interface IConnectionBrowserProperties extends IComponentProperties {
     connections: IConnectionDetails[];

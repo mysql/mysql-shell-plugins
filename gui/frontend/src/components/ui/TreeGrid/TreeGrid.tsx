@@ -32,9 +32,9 @@ import {
 
 import { ComponentChild, createRef } from "preact";
 
-import { waitFor } from "../../../utilities/helpers";
-import { appParameters } from "../../../supplement/Requisitions";
-import { SelectionType, IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { waitFor } from "../../../utilities/helpers.js";
+import { appParameters } from "../../../supplement/Requisitions.js";
+import { SelectionType, IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
 
 /** This type excludes methods from the Tabulator type, which are implemented in the TreeGrid. */
 export type TabulatorProxy = Omit<Tabulator, "setData" | "setColumns" | "getSelectedRows">;

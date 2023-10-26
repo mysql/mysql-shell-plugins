@@ -26,13 +26,13 @@
 import { CandidatesCollection, CodeCompletionCore } from "antlr4-c3";
 import { BufferedTokenStream, CharStreams, CommonTokenStream } from "antlr4ng";
 
-import { SQLiteLexer } from "./generated/SQLiteLexer";
-import { SQLiteParser } from "./generated/SQLiteParser";
+import { SQLiteLexer } from "./generated/SQLiteLexer.js";
+import { SQLiteParser } from "./generated/SQLiteParser.js";
 
-import { Stack } from "../../supplement/Stack";
-import { ICompletionData, ICompletionObjectDetails, LanguageCompletionKind, Scanner } from "../parser-common";
-import { unquote } from "../../utilities/string-helpers";
-import { isReservedKeyword, SQLiteVersion } from "./SQLiteRecognizerCommon";
+import { Stack } from "../../supplement/Stack.js";
+import { ICompletionData, ICompletionObjectDetails, LanguageCompletionKind, Scanner } from "../parser-common.js";
+import { unquote } from "../../utilities/string-helpers.js";
+import { isReservedKeyword, SQLiteVersion } from "./SQLiteRecognizerCommon.js";
 
 interface ITableReference {
     schema: string;

@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { EntityType } from ".";
-import { DropdownItem, IDropdownItemProperties } from "../../components/ui/Dropdown/DropdownItem";
+import { EntityType } from "./index.js";
+import { DropdownItem, IDropdownItemProperties } from "../../components/ui/Dropdown/DropdownItem.js";
 
 export interface IDocumentDropdownItemProperties extends IDropdownItemProperties {
     page: string;

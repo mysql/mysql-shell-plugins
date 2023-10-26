@@ -27,10 +27,10 @@ import path from "path";
 import * as net from "net";
 import os from "os";
 
-import { appParameters, requisitions } from "../supplement/Requisitions";
-import { uuid } from "./helpers";
-import { MessageScheduler } from "../communication/MessageScheduler";
-import { findExecutable } from "./file-utilities";
+import { appParameters, requisitions } from "../supplement/Requisitions.js";
+import { uuid } from "./helpers.js";
+import { MessageScheduler } from "../communication/MessageScheduler.js";
+import { findExecutable } from "./file-utilities.js";
 
 type ShellOutputCallback = (output: string) => void;
 type ShellErrorCallback = (error: Error) => void;

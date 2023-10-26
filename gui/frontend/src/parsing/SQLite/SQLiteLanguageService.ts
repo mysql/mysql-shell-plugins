@@ -21,14 +21,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IRdbmsDataTypeInfo, ServiceLanguage } from "../parser-common";
+import { IRdbmsDataTypeInfo, ServiceLanguage } from "../parser-common.js";
 
-import { CharsetSymbol, DBSymbolTable, SystemFunctionSymbol } from "../DBSymbolTable";
-import { RdbmsLanguageService } from "../worker/RdbmsLanguageService";
-import { LanguageWorkerPool } from "../worker/LanguageWorkerPool";
-import { sqliteInfo } from "../../app-logic/RdbmsInfo";
-import { DBDataType, ParameterFormatType } from "../../app-logic/Types";
-import { convertCamelToTitleCase } from "../../utilities/string-helpers";
+import { CharsetSymbol, DBSymbolTable, SystemFunctionSymbol } from "../DBSymbolTable.js";
+import { RdbmsLanguageService } from "../worker/RdbmsLanguageService.js";
+import { LanguageWorkerPool } from "../worker/LanguageWorkerPool.js";
+import { sqliteInfo } from "../../app-logic/RdbmsInfo.js";
+import { DBDataType, ParameterFormatType } from "../../app-logic/Types.js";
+import { convertCamelToTitleCase } from "../../utilities/string-helpers.js";
 
 // The SQLite specialization of the RDBMS worker class.
 export class SQLiteLanguageService extends RdbmsLanguageService {
@@ -41,14 +41,14 @@ export class SQLiteLanguageService extends RdbmsLanguageService {
 
     public static init(): void {
         void import("./data/builtin-functions.json").then((systemFunctions) => {
-            Object.keys(systemFunctions.default).forEach((name: string) => {
-                SQLiteLanguageService.globalSymbols
-                    .addNewSymbolOfType(SystemFunctionSymbol, undefined, name, systemFunctions[name] as string[]);
-            });
+            const functions = systemFunctions.default as { [key: string]: string[]; };
+            for (const [key, value] of Object.entries(functions)) {
+                SQLiteLanguageService.globalSymbols.addNewSymbolOfType(SystemFunctionSymbol, undefined, key, value);
+            }
         });
 
         void import("./data/rdbms-info.json").then((rdbmsInfo) => {
-            Object.entries(rdbmsInfo.characterSets).forEach(([key, value]) => {
+            Object.entries(rdbmsInfo.default.characterSets).forEach(([key, value]) => {
                 SQLiteLanguageService.globalSymbols.addNewSymbolOfType(CharsetSymbol, undefined, key);
 
                 sqliteInfo.characterSets.set(key.toLowerCase(), {
@@ -58,7 +58,7 @@ export class SQLiteLanguageService extends RdbmsLanguageService {
                 });
             });
 
-            Object.entries(rdbmsInfo.dataTypes).forEach(([key, value]: [string, IRdbmsDataTypeInfo]) => {
+            Object.entries(rdbmsInfo.default.dataTypes).forEach(([key, value]: [string, IRdbmsDataTypeInfo]) => {
                 sqliteInfo.dataTypes.set(key.toLowerCase(), {
                     type: (DBDataType as never)[convertCamelToTitleCase(key)],
 

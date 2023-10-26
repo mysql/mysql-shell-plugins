@@ -24,7 +24,7 @@
 import * as path from "path";
 import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
 
-import { ShellTask } from "../../../../frontend/src/shell-tasks/ShellTask";
+import { ShellTask } from "../../../../frontend/src/shell-tasks/ShellTask.js";
 
 export class ShellTaskTreeItem extends TreeItem {
     public contextValue = "shellTask";

@@ -32,26 +32,26 @@ import nextPageIcon from "../../assets/images/toolbar/toolbar-page_next.svg";
 
 import { ComponentChild, createRef } from "preact";
 
-import { IResultSet, IResultSetRows, IResultSets } from "../../script-execution";
-import { IColumnInfo, MessageType } from "../../app-logic/Types";
-import { ResultView } from "./ResultView";
-import { ActionOutput } from "./ActionOutput";
+import { IResultSet, IResultSetRows, IResultSets } from "../../script-execution/index.js";
+import { IColumnInfo, MessageType } from "../../app-logic/Types.js";
+import { ResultView } from "./ResultView.js";
+import { ActionOutput } from "./ActionOutput.js";
 import {
     IComponentProperties, IComponentState, ComponentBase, ComponentPlacement,
-} from "../ui/Component/ComponentBase";
-import { Container, Orientation } from "../ui/Container/Container";
-import { Divider } from "../ui/Divider/Divider";
-import { Dropdown } from "../ui/Dropdown/Dropdown";
-import { Icon } from "../ui/Icon/Icon";
-import { Menu } from "../ui/Menu/Menu";
-import { MenuItem, IMenuItemProperties } from "../ui/Menu/MenuItem";
-import { ITabviewPage, Tabview, TabPosition } from "../ui/Tabview/Tabview";
-import { Toolbar } from "../ui/Toolbar/Toolbar";
-import { Button } from "../ui/Button/Button";
-import { ResultStatus } from "./ResultStatus";
-import { requisitions } from "../../supplement/Requisitions";
-import { IScriptRequest } from "../../supplement";
-import { uuid } from "../../utilities/helpers";
+} from "../ui/Component/ComponentBase.js";
+import { Container, Orientation } from "../ui/Container/Container.js";
+import { Divider } from "../ui/Divider/Divider.js";
+import { Dropdown } from "../ui/Dropdown/Dropdown.js";
+import { Icon } from "../ui/Icon/Icon.js";
+import { Menu } from "../ui/Menu/Menu.js";
+import { MenuItem, IMenuItemProperties } from "../ui/Menu/MenuItem.js";
+import { ITabviewPage, Tabview, TabPosition } from "../ui/Tabview/Tabview.js";
+import { Toolbar } from "../ui/Toolbar/Toolbar.js";
+import { Button } from "../ui/Button/Button.js";
+import { ResultStatus } from "./ResultStatus.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { IScriptRequest } from "../../supplement/index.js";
+import { uuid } from "../../utilities/helpers.js";
 
 interface IResultTabViewProperties extends IComponentProperties {
     /** One set per tab page. */

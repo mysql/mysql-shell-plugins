@@ -25,13 +25,13 @@ import "./Menu.css";
 
 import { cloneElement, ComponentChild, createRef } from "preact";
 
-import { IPortalOptions } from "../Portal/Portal";
-import { collectVNodes } from "../../../utilities/ts-helpers";
-import { IComponentState, ComponentBase, ComponentPlacement } from "../Component/ComponentBase";
-import { Orientation } from "../Container/Container";
-import { IPopupProperties, Popup } from "../Popup/Popup";
-import { IMenuItemProperties, MenuItem } from "./MenuItem";
-import { KeyboardKeys } from "../../../utilities/helpers";
+import { IPortalOptions } from "../Portal/Portal.js";
+import { collectVNodes } from "../../../utilities/preact-helpers.js";
+import { IComponentState, ComponentBase, ComponentPlacement } from "../Component/ComponentBase.js";
+import { Orientation } from "../Container/Container.js";
+import { IPopupProperties, Popup } from "../Popup/Popup.js";
+import { IMenuItemProperties, MenuItem } from "./MenuItem.js";
+import { KeyboardKeys } from "../../../utilities/helpers.js";
 
 export interface IMenuProperties extends IPopupProperties {
     /** Not used in the menu itself, but as the menu item title in a menu bar. */

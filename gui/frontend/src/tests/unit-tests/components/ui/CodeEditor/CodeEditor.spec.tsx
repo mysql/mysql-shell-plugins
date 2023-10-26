@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { CodeEditor } from "../../../../../components/ui/CodeEditor/CodeEditor";
+import { CodeEditor } from "../../../../../components/ui/CodeEditor/CodeEditor.js";
 
 describe("CodeEditor component tests", (): void => {
 

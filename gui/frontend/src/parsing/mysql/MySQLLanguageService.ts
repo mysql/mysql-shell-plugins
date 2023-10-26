@@ -21,14 +21,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IRdbmsDataTypeInfo, ServiceLanguage } from "../parser-common";
+import { IRdbmsDataTypeInfo, ServiceLanguage } from "../parser-common.js";
 
-import { CharsetSymbol, SystemVariableSymbol, SystemFunctionSymbol, DBSymbolTable } from "../DBSymbolTable";
-import { LanguageWorkerPool } from "../worker/LanguageWorkerPool";
-import { mysqlInfo } from "../../app-logic/RdbmsInfo";
-import { DBDataType, ParameterFormatType } from "../../app-logic/Types";
-import { convertCamelToTitleCase } from "../../utilities/string-helpers";
-import { RdbmsLanguageService } from "../worker/RdbmsLanguageService";
+import { CharsetSymbol, SystemVariableSymbol, SystemFunctionSymbol, DBSymbolTable } from "../DBSymbolTable.js";
+import { LanguageWorkerPool } from "../worker/LanguageWorkerPool.js";
+import { mysqlInfo } from "../../app-logic/RdbmsInfo.js";
+import { DBDataType, ParameterFormatType } from "../../app-logic/Types.js";
+import { convertCamelToTitleCase } from "../../utilities/string-helpers.js";
+import { RdbmsLanguageService } from "../worker/RdbmsLanguageService.js";
 
 /** The MySQL specialization of the RDBMS language service class. */
 export class MySQLLanguageService extends RdbmsLanguageService {
@@ -54,7 +54,7 @@ export class MySQLLanguageService extends RdbmsLanguageService {
         });
 
         void import("./data/rdbms-info.json").then((rdbmsInfo) => {
-            for (const [key, value] of Object.entries(rdbmsInfo.characterSets)) {
+            for (const [key, value] of Object.entries(rdbmsInfo.default.characterSets)) {
                 MySQLLanguageService.globalSymbols.addNewSymbolOfType(CharsetSymbol, undefined, key);
 
                 mysqlInfo.characterSets.set(key.toLowerCase(), {
@@ -64,7 +64,7 @@ export class MySQLLanguageService extends RdbmsLanguageService {
                 });
             }
 
-            Object.entries(rdbmsInfo.dataTypes).forEach(([key, value]: [string, IRdbmsDataTypeInfo]) => {
+            Object.entries(rdbmsInfo.default.dataTypes).forEach(([key, value]: [string, IRdbmsDataTypeInfo]) => {
                 mysqlInfo.dataTypes.set(key.toLowerCase(), {
                     type: (DBDataType as never)[convertCamelToTitleCase(key)],
 

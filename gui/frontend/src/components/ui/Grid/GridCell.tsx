@@ -23,9 +23,9 @@
 
 import { ComponentChild } from "preact";
 
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
-import { IDictionary } from "../../../app-logic/Types";
-import { Orientation, ContentAlignment, Container } from "../Container/Container";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { IDictionary } from "../../../app-logic/Types.js";
+import { Orientation, ContentAlignment, Container } from "../Container/Container.js";
 
 /**
  * Grid cells use a container as HTML element and hence support its content layout.

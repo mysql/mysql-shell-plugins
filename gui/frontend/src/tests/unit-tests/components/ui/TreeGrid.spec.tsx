@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { TreeGrid, SetDataAction } from "../../../../components/ui/TreeGrid/TreeGrid";
+import { TreeGrid, SetDataAction } from "../../../../components/ui/TreeGrid/TreeGrid.js";
 
 describe("TreeGrid tests", (): void => {
 

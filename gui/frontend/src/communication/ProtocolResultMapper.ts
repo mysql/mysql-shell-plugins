@@ -23,10 +23,10 @@
 
 /// <reference path="../components/CommunicationDebugger/debugger-runtime.d.ts"/>
 
-import { Protocol } from "./Protocol";
-import { IProtocolGuiResults, IShellProfile } from "./ProtocolGui";
-import { IProtocolMdsResults } from "./ProtocolMds";
-import { IProtocolMrsResults } from "./ProtocolMrs";
+import { Protocol } from "./Protocol.js";
+import { IProtocolGuiResults, IShellProfile } from "./ProtocolGui.js";
+import { IProtocolMdsResults } from "./ProtocolMds.js";
+import { IProtocolMrsResults } from "./ProtocolMrs.js";
 
 /** The mapping between an API name and the results sent by it (held in the `event.data` member). */
 export interface IProtocolResults extends IProtocolGuiResults, IProtocolMdsResults, IProtocolMrsResults {

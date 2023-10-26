@@ -21,11 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IConnectionDetails } from ".";
-import { IDictionary } from "../../app-logic/Types";
-import { MessageScheduler } from "../../communication/MessageScheduler";
-import { IShellDictionary } from "../../communication/Protocol";
-import { ShellAPIGui } from "../../communication/ProtocolGui";
+import { IConnectionDetails } from "./index.js";
+import { IDictionary } from "../../app-logic/Types.js";
+import { MessageScheduler } from "../../communication/MessageScheduler.js";
+import { IShellDictionary } from "../../communication/Protocol.js";
+import { ShellAPIGui } from "../../communication/ProtocolGui.js";
 
 /** Interface for connection management. */
 export class ShellInterfaceDbConnection {

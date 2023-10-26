@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { BarGraphRenderer } from "../../../../components/graphs/BarGraphRenderer";
-import { nextProcessTick, sendPointerMoveSequence } from "../../test-helpers";
+import { BarGraphRenderer } from "../../../../components/graphs/BarGraphRenderer.js";
+import { nextProcessTick, sendPointerMoveSequence } from "../../test-helpers.js";
 
 describe("BarGraphRenderer Tests", () => {
     it("Base Rendering", async () => {

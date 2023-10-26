@@ -25,8 +25,8 @@ import "./Checkbox.css";
 
 import { ComponentChild } from "preact";
 
-import { IComponentProperties, ComponentBase, MouseEventType } from "../Component/ComponentBase";
-import { KeyboardKeys } from "../../../utilities/helpers";
+import { IComponentProperties, ComponentBase, MouseEventType } from "../Component/ComponentBase.js";
+import { KeyboardKeys } from "../../../utilities/helpers.js";
 
 export enum CheckState {
     Unchecked,

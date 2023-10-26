@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { languages, Position, ProviderResult, Hover, IProviderEditorModel } from ".";
-import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
+import { languages, Position, ProviderResult, Hover, IProviderEditorModel } from "./index.js";
+import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices.js";
 
 export class HoverProvider implements languages.HoverProvider {
 

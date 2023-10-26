@@ -27,49 +27,49 @@ import { ComponentChild, createRef } from "preact";
 import ts, { ScriptTarget } from "typescript";
 import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from "set-interval-async/dynamic";
 
-import { Explorer, IExplorerSectionState } from "./Explorer";
-import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
-import { formatBase64ToHex, formatTime, formatWithNumber } from "../../utilities/string-helpers";
-import { Notebook } from "./Notebook";
+import { Explorer, IExplorerSectionState } from "./Explorer.js";
+import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
+import { formatBase64ToHex, formatTime, formatWithNumber } from "../../utilities/string-helpers.js";
+import { Notebook } from "./Notebook.js";
 import {
     IEntityBase, EntityType, ISchemaTreeEntry, IDBDataEntry, SchemaTreeType, IToolbarItems, ISavedGraphData,
-} from ".";
-import { ScriptEditor } from "./ScriptEditor";
-import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
+} from "./index.js";
+import { ScriptEditor } from "./ScriptEditor.js";
+import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
 import {
     IMrsDbObjectEditRequest, IMrsSchemaEditRequest, appParameters,
     requisitions,
-} from "../../supplement/Requisitions";
-import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types";
-import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
-import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices";
-import { QueryType } from "../../parsing/parser-common";
+} from "../../supplement/Requisitions.js";
+import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types.js";
+import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
+import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices.js";
+import { QueryType } from "../../parsing/parser-common.js";
 import {
     DBDataType, IColumnInfo, IDictionary, IExecutionInfo, IServicePasswordRequest, MessageType,
-} from "../../app-logic/Types";
-import { Settings } from "../../supplement/Settings/Settings";
-import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
+} from "../../app-logic/Types.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
 import {
     convertRows, EditorLanguage, generateColumnInfo, IRunQueryRequest, ISqlPageRequest, IScriptRequest,
-} from "../../supplement";
-import { ServerStatus } from "./ServerStatus";
-import { ClientConnections } from "./ClientConnections";
-import { PerformanceDashboard } from "./PerformanceDashboard";
-import { saveTextAsFile, selectFile, uuid } from "../../utilities/helpers";
-import { IDbEditorResultSetData } from "../../communication/ProtocolGui";
-import { ResponseError } from "../../communication/ResponseError";
-import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase";
-import { SplitContainer, ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer";
-import { DBType } from "../../supplement/ShellInterface";
-import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
+} from "../../supplement/index.js";
+import { ServerStatus } from "./ServerStatus.js";
+import { ClientConnections } from "./ClientConnections.js";
+import { PerformanceDashboard } from "./PerformanceDashboard.js";
+import { saveTextAsFile, selectFile, uuid } from "../../utilities/helpers.js";
+import { IDbEditorResultSetData } from "../../communication/ProtocolGui.js";
+import { ResponseError } from "../../communication/ResponseError.js";
+import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
+import { SplitContainer, ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer.js";
+import { DBType } from "../../supplement/ShellInterface/index.js";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import {
     currentNotebookVersion, IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry,
-} from "../../script-execution";
-import { ExecutionContext } from "../../script-execution/ExecutionContext";
-import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext";
-import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses";
-import { IMrsAuthRequestPayload } from "../mrs/types";
+} from "../../script-execution/index.js";
+import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
+import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
+import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses.js";
+import { IMrsAuthRequestPayload } from "../mrs/types.js";
 
 const errorRexExp = new RegExp(`(You have an error in your SQL syntax; check the manual that corresponds to your ` +
     `MySQL server version for the right syntax to use near '(.*)' at line )(\\d+)`);

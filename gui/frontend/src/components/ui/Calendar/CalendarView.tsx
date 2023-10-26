@@ -22,13 +22,13 @@
  */
 
 import { ComponentChild } from "preact";
-import { Button } from "../Button/Button";
 
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
-import { ContentAlignment } from "../Container/Container";
-import { Grid } from "../Grid/Grid";
-import { GridCell } from "../Grid/GridCell";
-import { Label } from "../Label/Label";
+import { Button } from "../Button/Button.js";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { ContentAlignment } from "../Container/Container.js";
+import { Grid } from "../Grid/Grid.js";
+import { GridCell } from "../Grid/GridCell.js";
+import { Label } from "../Label/Label.js";
 
 interface ICalendarViewProperties extends IComponentProperties {
     date: Date;

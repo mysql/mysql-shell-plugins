@@ -27,9 +27,9 @@ import defaultLight from "./assets/default-light-color-theme.json";
 
 import Color from "color";
 
-import { Settings } from "../../supplement/Settings/Settings";
-import { appParameters, requisitions } from "../../supplement/Requisitions";
-import { IDictionary } from "../../app-logic/Types";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { appParameters, requisitions } from "../../supplement/Requisitions.js";
+import { IDictionary } from "../../app-logic/Types.js";
 
 interface IColors {
     [key: string]: string;

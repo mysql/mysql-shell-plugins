@@ -23,10 +23,10 @@
 
 import { ComponentChild } from "preact";
 
-import { PresentationInterface } from "../../../script-execution/PresentationInterface";
-import { EditorLanguage } from "../../../supplement";
-import { ScriptEditor } from "../ScriptEditor";
-import { Monaco } from "../../../components/ui/CodeEditor";
+import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
+import { EditorLanguage } from "../../../supplement/index.js";
+import { ScriptEditor } from "../ScriptEditor.js";
+import { Monaco } from "../../../components/ui/CodeEditor/index.js";
 
 /** Handling of UI related tasks in a code editor for standalone contexts. */
 export class StandalonePresentationInterface extends PresentationInterface {

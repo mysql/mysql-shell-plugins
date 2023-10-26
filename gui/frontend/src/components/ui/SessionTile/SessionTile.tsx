@@ -24,10 +24,11 @@
 import "./SessionTile.css";
 import closeIcon from "../../../assets/images/close2.svg";
 
-import { BrowserTile, IBrowserTileProperties } from "../BrowserTile/BrowserTile";
-import { IShellSessionDetails } from "../../../supplement/ShellInterface";
 import { ComponentChild } from "preact";
-import { Icon } from "../Icon/Icon";
+
+import { BrowserTile, IBrowserTileProperties } from "../BrowserTile/BrowserTile.js";
+import { IShellSessionDetails } from "../../../supplement/ShellInterface/index.js";
+import { Icon } from "../Icon/Icon.js";
 
 export interface ISessionTileProperties extends IBrowserTileProperties {
     details: IShellSessionDetails;

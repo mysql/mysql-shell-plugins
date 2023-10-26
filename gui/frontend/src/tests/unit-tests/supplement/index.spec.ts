@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,10 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mysqlInfo } from "../../../app-logic/RdbmsInfo";
-import { DBDataType } from "../../../app-logic/Types";
-import { convertRows, generateColumnInfo } from "../../../supplement";
-import { DBType } from "../../../supplement/ShellInterface";
+import { mysqlInfo } from "../../../app-logic/RdbmsInfo.js";
+import { DBDataType } from "../../../app-logic/Types.js";
+import { convertRows, generateColumnInfo } from "../../../supplement/index.js";
+import { DBType } from "../../../supplement/ShellInterface/index.js";
 
 describe("General Supplement Tests", (): void => {
     beforeAll(() => {

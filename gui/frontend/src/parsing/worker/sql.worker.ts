@@ -23,13 +23,13 @@
 
 /* eslint-disable no-restricted-globals */
 
-import { ILanguageWorkerResultData, ILanguageWorkerTaskData, ServiceLanguage } from "../parser-common";
+import { ILanguageWorkerResultData, ILanguageWorkerTaskData, ServiceLanguage } from "../parser-common.js";
 
-import { MySQLParseUnit } from "../mysql/MySQLServiceTypes";
+import { MySQLParseUnit } from "../mysql/MySQLServiceTypes.js";
 
-import { MySQLParsingServices } from "../mysql/MySQLParsingServices";
-import { SQLiteParsingServices } from "../SQLite/SQLiteParsingServices";
-import { PrivateWorker } from "../../modules/db-editor/console.worker-types";
+import { MySQLParsingServices } from "../mysql/MySQLParsingServices.js";
+import { SQLiteParsingServices } from "../SQLite/SQLiteParsingServices.js";
+import { PrivateWorker } from "../../modules/db-editor/console.worker-types.js";
 
 const ctx = self as unknown as PrivateWorker;
 

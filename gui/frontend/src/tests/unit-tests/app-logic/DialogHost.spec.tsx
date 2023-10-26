@@ -23,11 +23,11 @@
 
 import { mount } from "enzyme";
 
-import { DialogHost } from "./../../../app-logic/DialogHost";
-import { JestReactWrapper, nextProcessTick, sendKeyPress } from "../test-helpers";
-import { DialogType, IDialogRequest } from "../../../app-logic/Types";
-import { requisitions } from "../../../supplement/Requisitions";
-import { KeyboardKeys } from "../../../utilities/helpers";
+import { DialogHost } from "./../../../app-logic/DialogHost.js";
+import { JestReactWrapper, nextProcessTick, sendKeyPress } from "../test-helpers.js";
+import { DialogType, IDialogRequest } from "../../../app-logic/Types.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
+import { KeyboardKeys } from "../../../utilities/helpers.js";
 
 describe("DialogHost Tests", () => {
     let host: JestReactWrapper;

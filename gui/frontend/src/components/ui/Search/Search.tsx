@@ -25,13 +25,13 @@ import "./Search.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
-import { Codicon } from "../Codicon";
-import { Container, Orientation } from "../Container/Container";
-import { Icon } from "../Icon/Icon";
-import { Input } from "../Input/Input";
-import { Label } from "../Label/Label";
-import { Button } from "../Button/Button";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { Codicon } from "../Codicon.js";
+import { Container, Orientation } from "../Container/Container.js";
+import { Icon } from "../Icon/Icon.js";
+import { Input } from "../Input/Input.js";
+import { Label } from "../Label/Label.js";
+import { Button } from "../Button/Button.js";
 
 // Input and output structure for search data.
 export interface ISearchValues {

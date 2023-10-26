@@ -23,10 +23,10 @@
 
 import fs from "fs";
 
-import { MySQLParsingServices } from "../../../../parsing/mysql/MySQLParsingServices";
-import { MySQLParseUnit } from "../../../../parsing/mysql/MySQLServiceTypes";
-import { StatementFinishState } from "../../../../parsing/parser-common";
-import { checkMinStatementVersion, fail } from "../../test-helpers";
+import { MySQLParsingServices } from "../../../../parsing/mysql/MySQLParsingServices.js";
+import { MySQLParseUnit } from "../../../../parsing/mysql/MySQLServiceTypes.js";
+import { StatementFinishState } from "../../../../parsing/parser-common.js";
+import { checkMinStatementVersion, fail } from "../../test-helpers.js";
 
 interface ITestFile {
     name: string;

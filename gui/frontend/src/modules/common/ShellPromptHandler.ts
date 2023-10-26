@@ -23,13 +23,13 @@
 
 import {
     IServicePasswordRequest, IDialogRequest, DialogType, IDictionary, IDialogResponse, DialogResponseClosure,
-} from "../../app-logic/Types";
-import { IPromptReplyBackend, ShellPromptResponseType } from "../../communication/Protocol";
+} from "../../app-logic/Types.js";
+import { IPromptReplyBackend, ShellPromptResponseType } from "../../communication/Protocol.js";
 import {
     IShellResultType, IShellPasswordFeedbackRequest, IShellFeedbackRequest,
-} from "../../communication/ProtocolGui";
+} from "../../communication/ProtocolGui.js";
 
-import { requisitions } from "../../supplement/Requisitions";
+import { requisitions } from "../../supplement/Requisitions.js";
 
 /**
  * A class to centrally deal with possible shell prompt requests. It triggers specific dialogs and sends back

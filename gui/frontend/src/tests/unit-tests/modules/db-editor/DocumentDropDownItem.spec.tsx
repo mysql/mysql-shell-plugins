@@ -22,9 +22,9 @@
  */
 
 import { mount } from "enzyme";
-import { EntityType } from "../../../../modules/db-editor";
+import { EntityType } from "../../../../modules/db-editor/index.js";
 
-import { DocumentDropdownItem } from "../../../../modules/db-editor/DocumentDropdownItem";
+import { DocumentDropdownItem } from "../../../../modules/db-editor/DocumentDropdownItem.js";
 
 describe("DocumentDropDownItem tests", (): void => {
 

@@ -24,8 +24,8 @@
 import { mount, shallow } from "enzyme";
 import { act, render } from "@testing-library/preact";
 
-import { IInputChangeProperties, Input } from "../../../../components/ui/Input/Input";
-import { inputEventMock } from "../../__mocks__/MockEvents";
+import { IInputChangeProperties, Input } from "../../../../components/ui/Input/Input.js";
+import { inputEventMock } from "../../__mocks__/MockEvents.js";
 
 let inputText = "initial text";
 const handleInput = (event: InputEvent, props: IInputChangeProperties): void => {

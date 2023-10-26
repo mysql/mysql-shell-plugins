@@ -21,12 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { models as coreModels } from "../oci-typings/oci-core";
-import * as  common from "../oci-typings/oci-common/index";
-import { models as bastionModels } from "../oci-typings/oci-bastion";
-import { models as mySQLModels } from "../oci-typings/oci-mysql";
-import { models as identityModels } from "../oci-typings/oci-identity";
-import { models as loadBalancerModels } from "../oci-typings/oci-loadbalancer";
+import { models as coreModels } from "../oci-typings/oci-core/index.js";
+import * as  common from "../oci-typings/oci-common/index.js";
+import { models as bastionModels } from "../oci-typings/oci-bastion/index.js";
+import { models as mySQLModels } from "../oci-typings/oci-mysql/index.js";
+import { models as identityModels } from "../oci-typings/oci-identity/index.js";
+import { models as loadBalancerModels } from "../oci-typings/oci-loadbalancer/index.js";
 
 export type IAuthenticationDetails = common.AuthenticationDetailsProvider;
 

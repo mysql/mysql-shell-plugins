@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { languages } from "../../";
+import { languages } from "../../index.js";
 
 export interface ILanguageDefinition {
     languageConfiguration: languages.LanguageConfiguration;
@@ -33,6 +33,6 @@ export const msg: languages.ILanguageExtensionPoint & { loader: () => Promise<IL
     aliases: ["MSG"],
     mimetypes: ["text/msg"],
     loader: (): Promise<ILanguageDefinition> => {
-        return import("./msg");
+        return import("./msg.js");
     },
 };

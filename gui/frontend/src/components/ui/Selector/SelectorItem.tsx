@@ -23,11 +23,11 @@
 
 import { ComponentChild } from "preact";
 
-import { ComponentBase, IComponentProperties, DragEventType } from "../Component/ComponentBase";
-import { Codicon } from "../Codicon";
-import { Orientation, Container, ContentAlignment } from "../Container/Container";
-import { Icon } from "../Icon/Icon";
-import { Label } from "../Label/Label";
+import { ComponentBase, IComponentProperties, DragEventType } from "../Component/ComponentBase.js";
+import { Codicon } from "../Codicon.js";
+import { Orientation, Container, ContentAlignment } from "../Container/Container.js";
+import { Icon } from "../Icon/Icon.js";
+import { Label } from "../Label/Label.js";
 
 export interface ISelectorItemProperties extends IComponentProperties {
     selected?: boolean;

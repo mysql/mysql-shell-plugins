@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { AwaitableValueEditDialog } from "../../../../components/Dialogs/AwaitableValueEditDialog";
+import { AwaitableValueEditDialog } from "../../../../components/Dialogs/AwaitableValueEditDialog.js";
 
 describe("Awaitable Value Edit Dialog Tests", (): void => {
     it("Render Test", () => {

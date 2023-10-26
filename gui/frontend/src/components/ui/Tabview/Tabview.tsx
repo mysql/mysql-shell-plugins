@@ -25,13 +25,13 @@ import "./Tabview.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { Codicon } from "../Codicon";
-import { convertPropValue } from "../../../utilities/string-helpers";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
-import { Orientation, Container } from "../Container/Container";
-import { Button, IButtonProperties } from "../Button/Button";
-import { Icon } from "../Icon/Icon";
-import { Label } from "../Label/Label";
+import { Codicon } from "../Codicon.js";
+import { convertPropValue } from "../../../utilities/string-helpers.js";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { Orientation, Container } from "../Container/Container.js";
+import { Button, IButtonProperties } from "../Button/Button.js";
+import { Icon } from "../Icon/Icon.js";
+import { Label } from "../Label/Label.js";
 
 export enum TabPosition {
     Top = "top",

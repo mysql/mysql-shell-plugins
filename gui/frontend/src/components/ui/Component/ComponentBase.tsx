@@ -26,7 +26,7 @@ import "./ComponentBase.css";
 import { Component, ComponentChildren } from "preact";
 import cx from "classnames";
 
-import { IDictionary } from "../../../app-logic/Types";
+import { IDictionary } from "../../../app-logic/Types.js";
 import { CSSProperties } from "preact/compat";
 
 /**

@@ -23,19 +23,19 @@
 
 /// <reference path="../components/CommunicationDebugger/debugger-runtime.d.ts"/>
 
-import { appParameters, requisitions } from "../supplement/Requisitions";
-import { webSession } from "../supplement/WebSession";
-import { convertCamelToSnakeCase, convertSnakeToCamelCase } from "../utilities/string-helpers";
-import { uuid } from "../utilities/helpers";
+import { appParameters, requisitions } from "../supplement/Requisitions.js";
+import { webSession } from "../supplement/WebSession.js";
+import { convertCamelToSnakeCase, convertSnakeToCamelCase } from "../utilities/string-helpers.js";
+import { uuid } from "../utilities/helpers.js";
 
-import { IProtocolParameters } from "./ProtocolParameterMapper";
-import { IProtocolResults } from "./ProtocolResultMapper";
-import { IDictionary } from "../app-logic/Types";
-import { IGenericResponse, Protocol, EventType } from "./Protocol";
-import { multiResultAPIs, ShellAPIGui, IErrorResult, IWebSessionData } from "./ProtocolGui";
-import { ShellAPIMds } from "./ProtocolMds";
-import { ShellAPIMrs } from "./ProtocolMrs";
-import { ResponseError } from "./ResponseError";
+import { IProtocolParameters } from "./ProtocolParameterMapper.js";
+import { IProtocolResults } from "./ProtocolResultMapper.js";
+import { IDictionary } from "../app-logic/Types.js";
+import { IGenericResponse, Protocol, EventType } from "./Protocol.js";
+import { multiResultAPIs, ShellAPIGui, IErrorResult, IWebSessionData } from "./ProtocolGui.js";
+import { ShellAPIMds } from "./ProtocolMds.js";
+import { ShellAPIMrs } from "./ProtocolMrs.js";
+import { ResponseError } from "./ResponseError.js";
 
 export interface IConnectionOptions {
     /** The http(s) URL to connect to. */

@@ -23,11 +23,11 @@
 
 import { ComponentChild } from "preact";
 
-import { ComponentBase } from "../../ui/Component/ComponentBase";
-import { Orientation } from "../../ui/Container/Container";
-import { Grid } from "../../ui/Grid/Grid";
-import { GridCell } from "../../ui/Grid/GridCell";
-import { Label } from "../../ui/Label/Label";
+import { ComponentBase } from "../../ui/Component/ComponentBase.js";
+import { Orientation } from "../../ui/Container/Container.js";
+import { Grid } from "../../ui/Grid/Grid.js";
+import { GridCell } from "../../ui/Grid/GridCell.js";
+import { Label } from "../../ui/Label/Label.js";
 
 export class SymbolGrid extends ComponentBase {
 

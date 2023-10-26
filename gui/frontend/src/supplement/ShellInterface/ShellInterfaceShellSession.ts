@@ -21,11 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { DataCallback, MessageScheduler } from "../../communication/MessageScheduler";
-import { IPromptReplyBackend, ShellPromptResponseType, Protocol } from "../../communication/Protocol";
-import { ShellAPIGui, IShellResultType } from "../../communication/ProtocolGui";
-import { webSession } from "../WebSession";
-import { ShellInterfaceMds } from "./ShellInterfaceMds";
+import { DataCallback, MessageScheduler } from "../../communication/MessageScheduler.js";
+import { IPromptReplyBackend, ShellPromptResponseType, Protocol } from "../../communication/Protocol.js";
+import { ShellAPIGui, IShellResultType } from "../../communication/ProtocolGui.js";
+import { webSession } from "../WebSession.js";
+import { ShellInterfaceMds } from "./ShellInterfaceMds.js";
 
 export class ShellInterfaceShellSession implements IPromptReplyBackend {
 

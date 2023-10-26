@@ -24,11 +24,11 @@
 import chevronRight from "../../../../assets/images/chevron-right.svg";
 import { mount } from "enzyme";
 
-import { Grid } from "../../../../components/ui/Grid/Grid";
-import { GridCell } from "../../../../components/ui/Grid/GridCell";
-import { Icon } from "../../../../components/ui/Icon/Icon";
-import { Input } from "../../../../components/ui/Input/Input";
-import { Button } from "../../../../components/ui/Button/Button";
+import { Grid } from "../../../../components/ui/Grid/Grid.js";
+import { GridCell } from "../../../../components/ui/Grid/GridCell.js";
+import { Icon } from "../../../../components/ui/Icon/Icon.js";
+import { Input } from "../../../../components/ui/Input/Input.js";
+import { Button } from "../../../../components/ui/Button/Button.js";
 
 describe("Grid component test", (): void => {
 

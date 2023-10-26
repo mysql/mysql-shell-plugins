@@ -23,11 +23,14 @@
 
 import { platform } from "os";
 import fs from "fs/promises";
-import { By, until, Key, WebElement, Builder, WebDriver, error, Logs, logging } from "selenium-webdriver";
-import { Options } from "selenium-webdriver/chrome";
-import { DBConnection } from "./dbConnection";
-import { execFullBlockJs, execFullBlockSql } from "./dbNotebooks";
 import { join } from "path";
+
+import { By, until, Key, WebElement, Builder, WebDriver, error, Logs, logging } from "selenium-webdriver";
+import { Options } from "selenium-webdriver/chrome.js";
+
+import { DBConnection } from "./dbConnection.js";
+import { execFullBlockJs, execFullBlockSql } from "./dbNotebooks.js";
+
 export let driver: WebDriver;
 export const explicitWait = 5000;
 export const feLog = "fe.log";

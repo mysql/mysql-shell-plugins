@@ -22,9 +22,9 @@
  */
 
 import { By, until } from "selenium-webdriver";
-import { DBConnection } from "../../lib/dbConnection";
-import { DBNotebooks, execCaret, execFullScript } from "../../lib/dbNotebooks";
-import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
+import { DBConnection } from "../../lib/dbConnection.js";
+import { DBNotebooks, execCaret, execFullScript } from "../../lib/dbNotebooks.js";
+import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc.js";
 import { basename } from "path";
 
 describe("Scripts", () => {

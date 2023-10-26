@@ -25,8 +25,8 @@ import "./Container.css";
 
 import { cloneElement, ComponentChild, VNode } from "preact";
 
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
-import { collectVNodes } from "../../../utilities/ts-helpers";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { collectVNodes } from "../../../utilities/preact-helpers.js";
 
 /** Content alignment on both the main axis and the cross axis. */
 export enum ContentAlignment {

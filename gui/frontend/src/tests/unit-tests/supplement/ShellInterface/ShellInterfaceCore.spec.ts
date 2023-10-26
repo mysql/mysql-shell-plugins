@@ -24,12 +24,12 @@
 import { existsSync, mkdirSync, rmSync } from "fs";
 import { platform, arch, homedir } from "os";
 
-import { ResponseError } from "../../../../communication/ResponseError";
-import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface";
-import { ShellInterfaceCore } from "../../../../supplement/ShellInterface/ShellInterfaceCore";
+import { ResponseError } from "../../../../communication/ResponseError.js";
+import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
+import { ShellInterfaceCore } from "../../../../supplement/ShellInterface/ShellInterfaceCore.js";
 
-import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
-import { setupShellForTests } from "../../test-helpers";
+import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
+import { setupShellForTests } from "../../test-helpers.js";
 
 describe("ShellInterfaceCore Tests", () => {
     let launcher: MySQLShellLauncher;

@@ -27,18 +27,18 @@ import os from "os";
 import { ComponentChild } from "preact";
 
 
-import { IToolbarItems } from ".";
-import { StatusMark } from "../../components/ui/StatusMark/StatusMark";
-import { CheckState } from "../../components/ui/Checkbox/Checkbox";
-import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase";
-import { Container, Orientation, ContentAlignment, ContentWrap } from "../../components/ui/Container/Container";
-import { Divider } from "../../components/ui/Divider/Divider";
-import { Grid } from "../../components/ui/Grid/Grid";
-import { GridCell } from "../../components/ui/Grid/GridCell";
-import { Icon } from "../../components/ui/Icon/Icon";
-import { Label } from "../../components/ui/Label/Label";
-import { Toolbar } from "../../components/ui/Toolbar/Toolbar";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { IToolbarItems } from "./index.js";
+import { StatusMark } from "../../components/ui/StatusMark/StatusMark.js";
+import { CheckState } from "../../components/ui/Checkbox/Checkbox.js";
+import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
+import { Container, Orientation, ContentAlignment, ContentWrap } from "../../components/ui/Container/Container.js";
+import { Divider } from "../../components/ui/Divider/Divider.js";
+import { Grid } from "../../components/ui/Grid/Grid.js";
+import { GridCell } from "../../components/ui/Grid/GridCell.js";
+import { Icon } from "../../components/ui/Icon/Icon.js";
+import { Label } from "../../components/ui/Label/Label.js";
+import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 
 type TriState = true | false | undefined;
 

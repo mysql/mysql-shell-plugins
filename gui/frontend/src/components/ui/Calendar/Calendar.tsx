@@ -25,9 +25,11 @@ import "./Calendar.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { CalendarView } from "./CalendarView";
-import { IComponentProperties, IComponentState, ComponentBase, ComponentPlacement } from "../Component/ComponentBase";
-import { Popup } from "../Popup/Popup";
+import { CalendarView } from "./CalendarView.js";
+import {
+    IComponentProperties, IComponentState, ComponentBase, ComponentPlacement,
+} from "../Component/ComponentBase.js";
+import { Popup } from "../Popup/Popup.js";
 
 interface ICalendarProperties extends IComponentProperties {
     initialDate?: Date;

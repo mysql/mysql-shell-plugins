@@ -28,10 +28,10 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 
-import { appParameters, requisitions } from "../../supplement/Requisitions";
-import { webSession } from "../../supplement/WebSession";
-import { LogLevel, MySQLShellLauncher } from "../../utilities/MySQLShellLauncher";
-import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
+import { appParameters, requisitions } from "../../supplement/Requisitions.js";
+import { webSession } from "../../supplement/WebSession.js";
+import { LogLevel, MySQLShellLauncher } from "../../utilities/MySQLShellLauncher.js";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 
 export const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipisci elit, " +
     "sed eiusmod tempor incidunt ut labore et dolore magna aliqua.";
@@ -433,14 +433,18 @@ export const setupShellForTests = (showOutput: boolean, handleEvents = true,
             fs.symlinkSync(path.resolve("../../../../../mrs_plugin"), targetDir + "/plugins/mrs_plugin");
             fs.symlinkSync(path.resolve("../../../../../mds_plugin"), targetDir + "/plugins/mds_plugin");
 
-            // And create a web root link in the gui_plugin, if not yet done.
-            if (!fs.existsSync(targetDir + "/plugins/gui_plugin/core/webroot")) {
-                fs.symlinkSync(path.resolve("../../../build"), targetDir + "/plugins/gui_plugin/core/webroot");
+            // And create a web root link in the gui_plugin.
+            const symlinkDir = targetDir + "/plugins/gui_plugin/core/webroot";
+            const symlinkTarget = path.resolve("../../../build");
+            try {
+                fs.symlinkSync(symlinkTarget, symlinkDir);
+            } catch (error) {
+                // Ignore the error if the link already exists.
             }
 
             appParameters.set("shellUserConfigDir", path.resolve(targetDir));
         } catch (error) {
-            fs.rmdirSync(targetDir, { recursive: true });
+            fs.rmSync(targetDir, { recursive: true });
             reject(error);
 
             return;

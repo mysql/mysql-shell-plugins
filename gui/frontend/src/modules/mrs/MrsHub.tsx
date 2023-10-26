@@ -22,28 +22,30 @@
  */
 
 import { ComponentChild, createRef, RefObject } from "preact";
-import { DialogResponseClosure, DialogType, IDialogRequest, IDictionary, MrsDialogType } from "../../app-logic/Types";
+import {
+    DialogResponseClosure, DialogType, IDialogRequest, IDictionary, MrsDialogType,
+} from "../../app-logic/Types.js";
 
-import { IShellDictionary } from "../../communication/Protocol";
+import { IShellDictionary } from "../../communication/Protocol.js";
 
 import {
     IMrsAuthAppData, IMrsContentSetData, IMrsObject, IMrsSchemaData, IMrsServiceData, IMrsUserData,
     IMrsUserRoleData,
-} from "../../communication/ProtocolMrs";
-import { AwaitableValueEditDialog } from "../../components/Dialogs/AwaitableValueEditDialog";
-import { ComponentBase } from "../../components/ui/Component/ComponentBase";
-import { IMrsDbObjectEditRequest, requisitions } from "../../supplement/Requisitions";
+} from "../../communication/ProtocolMrs.js";
+import { AwaitableValueEditDialog } from "../../components/Dialogs/AwaitableValueEditDialog.js";
+import { ComponentBase } from "../../components/ui/Component/ComponentBase.js";
+import { IMrsDbObjectEditRequest, requisitions } from "../../supplement/Requisitions.js";
 
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { MrsDbObjectDialog } from "./dialogs/MrsDbObjectDialog";
-import { IMrsSchemaDialogData, MrsSchemaDialog } from "./dialogs/MrsSchemaDialog";
-import { IMrsContentSetDialogData, MrsContentSetDialog } from "./dialogs/MrsContentSetDialog";
-import { IMrsAuthenticationAppDialogData, MrsAuthenticationAppDialog } from "./dialogs/MrsAuthenticationAppDialog";
-import { IMrsUserDialogData, MrsUserDialog } from "./dialogs/MrsUserDialog";
-import { IMrsServiceDialogData, MrsServiceDialog } from "./dialogs/MrsServiceDialog";
-import { uuid } from "../../utilities/helpers";
-import { DialogHost } from "../../app-logic/DialogHost";
-import { snakeToCamelCase } from "../../utilities/string-helpers";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { MrsDbObjectDialog } from "./dialogs/MrsDbObjectDialog.js";
+import { IMrsSchemaDialogData, MrsSchemaDialog } from "./dialogs/MrsSchemaDialog.js";
+import { IMrsContentSetDialogData, MrsContentSetDialog } from "./dialogs/MrsContentSetDialog.js";
+import { IMrsAuthenticationAppDialogData, MrsAuthenticationAppDialog } from "./dialogs/MrsAuthenticationAppDialog.js";
+import { IMrsUserDialogData, MrsUserDialog } from "./dialogs/MrsUserDialog.js";
+import { IMrsServiceDialogData, MrsServiceDialog } from "./dialogs/MrsServiceDialog.js";
+import { uuid } from "../../utilities/helpers.js";
+import { DialogHost } from "../../app-logic/DialogHost.js";
+import { snakeToCamelCase } from "../../utilities/string-helpers.js";
 
 type DialogConstructor = new (props: {}) => AwaitableValueEditDialog;
 
@@ -117,7 +119,8 @@ export class MrsHub extends ComponentBase {
      * @param backend The interface for sending the requests.
      * @param service If not assigned then a new service must be created otherwise this contains the existing values.
      *
-     * @returns A promise resolving to true if the dialog was closed with OK, false otherwise.
+     * @returns A promise resolving when the dialog was closed. Always resolves to true to indicate the request
+     *          was handled.
      */
     public showMrsServiceDialog = async (backend: ShellInterfaceSqlEditor,
         service?: IMrsServiceData): Promise<boolean> => {
@@ -313,7 +316,8 @@ export class MrsHub extends ComponentBase {
      * @param schemaName The name of the database schema.
      * @param schema If not assigned then a new schema must be created otherwise this contains the existing values.
      *
-     * @returns A promise resolving to true if the dialog was closed with OK, false otherwise.
+     * @returns A promise resolving when the dialog was closed. Always resolves to true to indicate the request
+     *          was handled.
      */
     public showMrsSchemaDialog = async (backend: ShellInterfaceSqlEditor, schemaName?: string,
         schema?: IMrsSchemaData): Promise<boolean> => {
@@ -396,7 +400,8 @@ export class MrsHub extends ComponentBase {
      * @param backend The interface for sending the requests.
      * @param request Details about the object to edit.
      *
-     * @returns A promise resolving to true if the dialog was closed with OK, false otherwise.
+     * @returns A promise resolving when the dialog was closed. Always resolves to true to indicate the request
+     *          was handled.
      */
     public async showMrsDbObjectDialog(backend: ShellInterfaceSqlEditor,
         request: IMrsDbObjectEditRequest): Promise<boolean> {
@@ -567,7 +572,8 @@ export class MrsHub extends ComponentBase {
      * @param directory The directory to upload as content set
      * @param contentSet If not assigned then a new schema must be created otherwise this contains the existing values.
      *
-     * @returns A promise resolving to true if the dialog was closed with OK, false otherwise.
+     * @returns A promise resolving when the dialog was closed. Always resolves to true to indicate the request
+     *          was handled.
      */
     public showMrsContentSetDialog = async (backend: ShellInterfaceSqlEditor, directory?: string,
         contentSet?: IMrsContentSetData): Promise<boolean> => {
@@ -727,7 +733,8 @@ export class MrsHub extends ComponentBase {
      * @param service If the authApp is not assigned, the service must be available, so that we can create
      *                a new authApp for this service.
      *
-     * @returns A promise resolving to true if the dialog was closed with OK, false otherwise.
+     * @returns A promise resolving when the dialog was closed. Always resolves to true to indicate the request
+     *          was handled.
      */
     public showMrsAuthAppDialog = async (backend: ShellInterfaceSqlEditor,
         authApp?: IMrsAuthAppData, service?: IMrsServiceData): Promise<boolean> => {
@@ -844,7 +851,8 @@ export class MrsHub extends ComponentBase {
      * @param user If not assigned then a new user must be created otherwise this contains the existing values.
      * a new authApp for this service.
      *
-     * @returns true if the dialog was closed correctly
+     * @returns A promise resolving when the dialog was closed. Always resolves to true to indicate the request
+     *          was handled.
      */
     public showMrsUserDialog = async (backend: ShellInterfaceSqlEditor,
         authApp: IMrsAuthAppData, user?: IMrsUserData): Promise<boolean> => {

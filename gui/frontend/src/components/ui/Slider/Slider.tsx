@@ -25,9 +25,9 @@ import "./Slider.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { clampValue } from "../../../utilities/helpers";
-import { IComponentProperties, ComponentBase, PointerEventType } from "../Component/ComponentBase";
-import { Container, Orientation } from "../Container/Container";
+import { clampValue } from "../../../utilities/helpers.js";
+import { IComponentProperties, ComponentBase, PointerEventType } from "../Component/ComponentBase.js";
+import { Container, Orientation } from "../Container/Container.js";
 
 interface ISliderProperties extends IComponentProperties {
     value: number;

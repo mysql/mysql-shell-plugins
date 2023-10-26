@@ -24,9 +24,9 @@
 // Common data structures/types used in all parser implementations.
 
 import { BufferedTokenStream, CommonTokenStream, Token } from "antlr4ng";
-import { IDictionary, ParameterFormatType } from "../app-logic/Types";
+import { IDictionary, ParameterFormatType } from "../app-logic/Types.js";
 
-import { Stack } from "../supplement";
+import { Stack } from "../supplement/index.js";
 
 /** Describes the type of an SQL query. Not all SQL flavours support all types. */
 export enum QueryType {

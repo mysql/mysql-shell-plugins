@@ -21,19 +21,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { languages, editor, IPosition } from "monaco-editor/esm/vs/editor/editor.api";
-import { IStatementSpan } from "../../../parsing/parser-common";
+import { languages, editor, IPosition } from "monaco-editor/esm/vs/editor/editor.api.js";
+import { IStatementSpan } from "../../../parsing/parser-common.js";
 
-import { IContextProvider, IExecuteResultReference } from "../../../script-execution";
-import { EditorLanguage } from "../../../supplement";
+import { IContextProvider, IExecuteResultReference } from "../../../script-execution/index.js";
+import { EditorLanguage } from "../../../supplement/index.js";
 
 export type {
     IMarkdownString, IRange, IPosition, IDisposable, CancellationToken, Thenable,
-} from "monaco-editor/esm/vs/editor/editor.api";
+} from "monaco-editor/esm/vs/editor/editor.api.js";
 
 export {
     editor as Monaco, languages, KeyMod, KeyCode, Selection, Range, Position, Uri,
-} from "monaco-editor/esm/vs/editor/editor.api";
+} from "monaco-editor/esm/vs/editor/editor.api.js";
 
 export type ProviderResult<T> = languages.ProviderResult<T>;
 

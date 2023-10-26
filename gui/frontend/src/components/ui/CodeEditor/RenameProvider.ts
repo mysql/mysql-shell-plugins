@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { languages, Position, ProviderResult, WorkspaceEdit, Rejection, IProviderEditorModel } from ".";
+import { languages, Position, ProviderResult, WorkspaceEdit, Rejection, IProviderEditorModel } from "./index.js";
 
-import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
+import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices.js";
 
 export class RenameProvider implements languages.RenameProvider {
 

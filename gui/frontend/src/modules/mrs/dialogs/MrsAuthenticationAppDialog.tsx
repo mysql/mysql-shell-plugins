@@ -21,12 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-import { IMrsAuthAppData, IMrsAuthVendorData, IMrsRoleData } from "../../../communication/ProtocolMrs";
-import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog";
+import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types.js";
+import { IMrsAuthAppData, IMrsAuthVendorData, IMrsRoleData } from "../../../communication/ProtocolMrs.js";
+import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog.js";
 import {
     CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues,
-} from "../../../components/Dialogs/ValueEditDialog";
+} from "../../../components/Dialogs/ValueEditDialog.js";
 
 export interface IMrsAuthenticationAppDialogData extends IDictionary {
     authVendorName: string;

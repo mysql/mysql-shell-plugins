@@ -31,17 +31,17 @@ import { existsSync, rmSync } from "fs";
 import { join } from "path";
 import { platform, arch } from "os";
 
-import { appParameters, requisitions } from "../../frontend/src/supplement/Requisitions";
+import { appParameters, requisitions } from "../../frontend/src/supplement/Requisitions.js";
 
 import {
     IShellLaunchConfiguration, LogLevel, MySQLShellLauncher,
-} from "../../frontend/src/utilities/MySQLShellLauncher";
+} from "../../frontend/src/utilities/MySQLShellLauncher.js";
 
-import { ExtensionHost } from "./ExtensionHost";
-import { webSession } from "../../frontend/src/supplement/WebSession";
-import { setupInitialWelcomeWebview } from "./web-views/WelcomeWebviewProvider";
-import { waitFor } from "../../frontend/src/utilities/helpers";
-import { MessageScheduler } from "../../frontend/src/communication/MessageScheduler";
+import { ExtensionHost } from "./ExtensionHost.js";
+import { webSession } from "../../frontend/src/supplement/WebSession.js";
+import { setupInitialWelcomeWebview } from "./WebviewProviders/WelcomeWebviewProvider.js";
+import { waitFor } from "../../frontend/src/utilities/helpers.js";
+import { MessageScheduler } from "../../frontend/src/communication/MessageScheduler.js";
 
 export let taskOutputChannel: OutputChannel;
 export let statusBarItem: StatusBarItem;

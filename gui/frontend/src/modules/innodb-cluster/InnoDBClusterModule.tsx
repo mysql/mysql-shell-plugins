@@ -21,10 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ModuleBase, IModuleInfo } from "../ModuleBase";
-
 import Icon from "./../../assets/images/modules/module-cluster.svg";
-import { InnoDBClusterModuleId } from "../ModuleInfo";
+
+import { ModuleBase, IModuleInfo } from "../ModuleBase.js";
+import { InnoDBClusterModuleId } from "../ModuleInfo.js";
 
 export class InnoDBClusterModule extends ModuleBase {
 

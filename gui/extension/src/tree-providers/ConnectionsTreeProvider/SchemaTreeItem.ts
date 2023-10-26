@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
+import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
 
 export class SchemaTreeItem extends ConnectionsTreeBaseItem {
     public contextValue = "schemaItem";

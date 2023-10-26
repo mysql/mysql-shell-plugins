@@ -25,7 +25,8 @@
     "activationEvents": [
         "onStartupFinished"
     ],
-    "main": "./out/main.js",
+    "main": "./out/main.cjs",
+    "type": "module",
     "contributes": {
         "languages": [
             {
@@ -1641,7 +1642,7 @@
         "build-packages-win": "scripts/package_extension.ps1",
         "publish-packages": "scripts/publish_packages.sh",
         "vscode:prepublish": "npm run esbuild -- --minify",
-        "esbuild": "esbuild ./src/extension.ts --main-fields=module,main --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+        "esbuild": "esbuild ./src/extension.ts --main-fields=module,main --bundle --outfile=out/main.cjs --external:vscode --format=cjs --platform=node",
         "esbuild-watch": "npm run esbuild -- --sourcemap --watch",
         "unit-tests": "mkdir -p .vscode-test/vscode-dummy/ && touch .vscode-test/vscode-dummy/dummy.txt"
     }

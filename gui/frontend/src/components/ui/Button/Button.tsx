@@ -25,9 +25,9 @@ import "./Button.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { ComponentBase, DragEventType, IComponentProperties, MouseEventType } from "../Component/ComponentBase";
-import { Orientation } from "../Container/Container";
-import { IRequestTypeMap, requisitions } from "../../../supplement/Requisitions";
+import { ComponentBase, DragEventType, IComponentProperties, MouseEventType } from "../Component/ComponentBase.js";
+import { Orientation } from "../Container/Container.js";
+import { IRequestTypeMap, requisitions } from "../../../supplement/Requisitions.js";
 
 export interface IButtonProperties extends IComponentProperties {
     innerRef?: preact.RefObject<HTMLDivElement>;

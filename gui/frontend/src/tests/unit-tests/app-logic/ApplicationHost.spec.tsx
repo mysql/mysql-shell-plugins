@@ -26,20 +26,20 @@
 import { mount, shallow } from "enzyme";
 import { act } from "preact/test-utils";
 
-import { ApplicationHost } from "../../../app-logic/ApplicationHost";
-import { DialogResponseClosure, DialogType, IDialogResponse } from "../../../app-logic/Types";
-import { DBEditorModuleId, ShellModuleId } from "../../../modules/ModuleInfo";
-import { ModuleRegistry } from "../../../modules/ModuleRegistry";
-import { DBEditorModule } from "../../../modules/db-editor/DBEditorModule";
-import { ShellModule } from "../../../modules/shell/ShellModule";
-import { appParameters, requisitions } from "../../../supplement/Requisitions";
-import { webSession } from "../../../supplement/WebSession";
+import { ApplicationHost } from "../../../app-logic/ApplicationHost.js";
+import { DialogResponseClosure, DialogType, IDialogResponse } from "../../../app-logic/Types.js";
+import { DBEditorModuleId, ShellModuleId } from "../../../modules/ModuleInfo.js";
+import { ModuleRegistry } from "../../../modules/ModuleRegistry.js";
+import { DBEditorModule } from "../../../modules/db-editor/DBEditorModule.js";
+import { ShellModule } from "../../../modules/shell/ShellModule.js";
+import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
+import { webSession } from "../../../supplement/WebSession.js";
 
-import { nextRunLoop, stateChange } from "../test-helpers";
-import { CommunicationDebugger } from "../../../components/CommunicationDebugger/CommunicationDebugger";
-import { mouseEventMock } from "../__mocks__/MockEvents";
-import { IActivityBarItemProperties } from "../../../components/ui/ActivityBar/ActivityBarItem";
-import { IButtonProperties } from "../../../components/ui/Button/Button";
+import { nextRunLoop, stateChange } from "../test-helpers.js";
+import { CommunicationDebugger } from "../../../components/CommunicationDebugger/CommunicationDebugger.js";
+import { mouseEventMock } from "../__mocks__/MockEvents.js";
+import { IActivityBarItemProperties } from "../../../components/ui/ActivityBar/ActivityBarItem.js";
+import { IButtonProperties } from "../../../components/ui/Button/Button.js";
 
 const toggleOptions = (): void => { };
 

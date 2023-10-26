@@ -23,21 +23,21 @@
 
 import { ComponentChild, createRef } from "preact";
 
-import { ComponentBase } from "../components/ui/Component/ComponentBase";
-import { requisitions } from "../supplement/Requisitions";
+import { ComponentBase } from "../components/ui/Component/ComponentBase.js";
+import { requisitions } from "../supplement/Requisitions.js";
 import {
     DialogResponseClosure, DialogType, IDialogRequest, IDialogResponse, IDictionary, MdsDialogType,
-} from "./Types";
-import { ConfirmDialog } from "../components/Dialogs/ConfirmDialog";
-import { PasswordDialog } from "../components/Dialogs/PasswordDialog";
-import { MrsAuthDialog } from "../modules/mrs/dialogs/MrsAuthDialog";
+} from "./Types.js";
+import { ConfirmDialog } from "../components/Dialogs/ConfirmDialog.js";
+import { PasswordDialog } from "../components/Dialogs/PasswordDialog.js";
+import { MrsAuthDialog } from "../modules/mrs/dialogs/MrsAuthDialog.js";
 import {
     ValueEditDialog, IDialogSection, CommonDialogValueOption, IDialogValues, IChoiceDialogValue,
-} from "../components/Dialogs/ValueEditDialog";
-import { Semaphore } from "../supplement/Semaphore";
-import { MdsHWClusterDialog } from "../modules/mds/dialogs/MdsHWClusterDialog";
-import { MdsHWLoadDataDialog } from "../modules/mds/dialogs/MdsHWLoadDataDialog";
-import { MdsEndpointDialog } from "../modules/mds/dialogs/MdsEndpointDialog";
+} from "../components/Dialogs/ValueEditDialog.js";
+import { Semaphore } from "../supplement/Semaphore.js";
+import { MdsHWClusterDialog } from "../modules/mds/dialogs/MdsHWClusterDialog.js";
+import { MdsHWLoadDataDialog } from "../modules/mds/dialogs/MdsHWLoadDataDialog.js";
+import { MdsEndpointDialog } from "../modules/mds/dialogs/MdsEndpointDialog.js";
 
 /**
  * A component to host certain application wide common dialogs in a central place.

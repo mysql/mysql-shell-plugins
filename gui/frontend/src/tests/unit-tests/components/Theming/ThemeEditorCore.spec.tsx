@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { ThemeEditorCore } from "../../../../components/Theming/ThemeEditorCore";
+import { ThemeEditorCore } from "../../../../components/Theming/ThemeEditorCore.js";
 
 describe("Theme editor core testing", () => {
 

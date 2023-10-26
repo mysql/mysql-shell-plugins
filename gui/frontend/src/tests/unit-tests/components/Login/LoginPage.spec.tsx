@@ -25,14 +25,14 @@ import { mount } from "enzyme";
 
 import {
     changeInputValue, nextRunLoop, sendKeyPress, setupShellForTests, stateChange,
-} from "../../test-helpers";
-import { LoginPage } from "../../../../components/Login/LoginPage";
-import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
-import { MessageScheduler } from "../../../../communication/MessageScheduler";
-import { IShellProfile } from "../../../../communication/ProtocolGui";
-import { ResponseError } from "../../../../communication/ResponseError";
-import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface";
-import { KeyboardKeys } from "../../../../utilities/helpers";
+} from "../../test-helpers.js";
+import { LoginPage } from "../../../../components/Login/LoginPage.js";
+import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
+import { MessageScheduler } from "../../../../communication/MessageScheduler.js";
+import { IShellProfile } from "../../../../communication/ProtocolGui.js";
+import { ResponseError } from "../../../../communication/ResponseError.js";
+import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
+import { KeyboardKeys } from "../../../../utilities/helpers.js";
 
 describe("Login Page Tests", (): void => {
     let launcher: MySQLShellLauncher;

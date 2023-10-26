@@ -24,7 +24,7 @@
 import fs from "fs/promises";
 import { join, basename } from "path";
 import { By, Condition, Key, error, until } from "selenium-webdriver";
-import { DBConnection } from "../../lib/dbConnection";
+import { DBConnection } from "../../lib/dbConnection.js";
 import {
     DBNotebooks,
     autoCommit,
@@ -34,9 +34,9 @@ import {
     find,
     rollback,
     saveNotebook,
-} from "../../lib/dbNotebooks";
-import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
-import { ShellSession } from "../../lib/shellSession";
+} from "../../lib/dbNotebooks.js";
+import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc.js";
+import { ShellSession } from "../../lib/shellSession.js";
 
 describe("Notebook", () => {
 
@@ -237,7 +237,7 @@ describe("Notebook", () => {
             expect(result2).toBeDefined();
 
             await driver.wait(async () => {
-                await result1!.click();
+                await result1?.click();
 
                 return DBConnection.getResultColumnName("actor_id");
             }, explicitWait, "actor_id column was not found");
@@ -249,7 +249,7 @@ describe("Notebook", () => {
             }, explicitWait, "address_id column was not found");
 
             await driver.wait(async () => {
-                await result1!.click();
+                await result1?.click();
 
                 return DBConnection.getResultColumnName("actor_id");
             }, explicitWait, "actor_id column was not found");
@@ -1088,4 +1088,3 @@ Graph.render(options);
     });
 
 });
-

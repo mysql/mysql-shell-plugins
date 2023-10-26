@@ -25,57 +25,56 @@ import { Event, EventEmitter, TreeDataProvider, TreeItem, window } from "vscode"
 
 import {
     IEditorCloseChangeData, IEditorOpenChangeData, IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
-} from "../../../../frontend/src/supplement/Requisitions";
+} from "../../../../frontend/src/supplement/Requisitions.js";
 
-import { DBType, IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { webSession } from "../../../../frontend/src/supplement/WebSession";
+import { DBType, IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface/index.js";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { webSession } from "../../../../frontend/src/supplement/WebSession.js";
 
-import { ISqliteConnectionOptions } from "../../../../frontend/src/communication/Sqlite";
-import { SchemaGroupTreeItem } from "./SchemaGroupTreeItem";
-import { SchemaItemGroupType } from "./SchemaIndex";
-import { SchemaMySQLTreeItem } from "./SchemaMySQLTreeItem";
+import { ISqliteConnectionOptions } from "../../../../frontend/src/communication/Sqlite.js";
+import { SchemaGroupTreeItem } from "./SchemaGroupTreeItem.js";
+import { SchemaItemGroupType } from "./SchemaIndex.js";
+import { SchemaMySQLTreeItem } from "./SchemaMySQLTreeItem.js";
 
-import { IDictionary } from "../../../../frontend/src/app-logic/Types";
-import { ShellInterface } from "../../../../frontend/src/supplement/ShellInterface/ShellInterface";
-import { uuid } from "../../../../frontend/src/utilities/helpers";
-import { compareVersionStrings, formatBytes } from "../../../../frontend/src/utilities/string-helpers";
-import { showStatusText } from "../../extension";
-import { showMessageWithTimeout } from "../../utilities";
-import { openSqlEditorConnection } from "../../utilitiesShellGui";
-import { AdminSectionTreeItem } from "./AdminSectionTreeItem";
-import { AdminTreeItem } from "./AdminTreeItem";
-import { ConnectionMySQLTreeItem } from "./ConnectionMySQLTreeItem";
-import { ConnectionSqliteTreeItem } from "./ConnectionSqliteTreeItem";
+import { IDictionary } from "../../../../frontend/src/app-logic/Types.js";
+import { ShellInterface } from "../../../../frontend/src/supplement/ShellInterface/ShellInterface.js";
+import { uuid } from "../../../../frontend/src/utilities/helpers.js";
+import { compareVersionStrings, formatBytes } from "../../../../frontend/src/utilities/string-helpers.js";
+import { showStatusText } from "../../extension.js";
+import { showMessageWithTimeout } from "../../utilities.js";
+import { openSqlEditorConnection } from "../../utilitiesShellGui.js";
+import { AdminSectionTreeItem } from "./AdminSectionTreeItem.js";
+import { AdminTreeItem } from "./AdminTreeItem.js";
+import { ConnectionMySQLTreeItem } from "./ConnectionMySQLTreeItem.js";
+import { ConnectionSqliteTreeItem } from "./ConnectionSqliteTreeItem.js";
 import {
     ConnectionsTreeDataModelEntry, ICdmConnectionEntry, ICdmRestAuthAppEntry, ICdmRestContentSetEntry,
     ICdmRestRootEntry, ICdmRestSchemaEntry, ICdmRestServiceEntry, ICdmSchemaEntry, ICdmSchemaGroupEntry,
     ICdmTableGroupEntry,
-} from "./ConnectionsTreeDataModel";
-import { MrsAuthAppTreeItem } from "./MrsAuthAppTreeItem";
-import { MrsContentFileTreeItem } from "./MrsContentFileTreeItem";
-import { MrsContentSetTreeItem } from "./MrsContentSetTreeItem";
-import { MrsDbObjectTreeItem } from "./MrsDbObjectTreeItem";
-import { MrsRouterTreeItem } from "./MrsRouterTreeItem";
-import { MrsSchemaTreeItem } from "./MrsSchemaTreeItem";
-import { MrsServiceTreeItem } from "./MrsServiceTreeItem";
-import { MrsTreeItem } from "./MrsTreeItem";
-import { MrsUserTreeItem } from "./MrsUserTreeItem";
-import { SchemaEventTreeItem } from "./SchemaEventTreeItem";
-import { SchemaRoutineMySQLTreeItem } from "./SchemaRoutineMySQLTreeItem";
-import { SchemaRoutineTreeItem } from "./SchemaRoutineTreeItem";
-import { SchemaSqliteTreeItem } from "./SchemaSqliteTreeItem";
-import { SchemaTableColumnTreeItem } from "./SchemaTableColumnTreeItem";
-import { SchemaTableForeignKeyTreeItem } from "./SchemaTableForeignKeyTreeItem";
-import { TableGroupTreeItem } from "./SchemaTableGroupTreeItem";
-import { SchemaTableIndexTreeItem } from "./SchemaTableIndexTreeItem";
-import { SchemaTableMySQLTreeItem } from "./SchemaTableMySQLTreeItem";
-import { SchemaTableSqliteTreeItem } from "./SchemaTableSqliteTreeItem";
-import { SchemaTableTriggerTreeItem } from "./SchemaTableTriggerTreeItem";
-import { SchemaViewMySQLTreeItem } from "./SchemaViewMySQLTreeItem";
-import { SchemaViewSqliteTreeItem } from "./SchemaViewSqliteTreeItem";
-import { DBConnectionViewProvider } from "../../web-views/DBConnectionViewProvider";
-import { resolve } from "path";
+} from "./ConnectionsTreeDataModel.js";
+import { MrsAuthAppTreeItem } from "./MrsAuthAppTreeItem.js";
+import { MrsContentFileTreeItem } from "./MrsContentFileTreeItem.js";
+import { MrsContentSetTreeItem } from "./MrsContentSetTreeItem.js";
+import { MrsDbObjectTreeItem } from "./MrsDbObjectTreeItem.js";
+import { MrsRouterTreeItem } from "./MrsRouterTreeItem.js";
+import { MrsSchemaTreeItem } from "./MrsSchemaTreeItem.js";
+import { MrsServiceTreeItem } from "./MrsServiceTreeItem.js";
+import { MrsTreeItem } from "./MrsTreeItem.js";
+import { MrsUserTreeItem } from "./MrsUserTreeItem.js";
+import { SchemaEventTreeItem } from "./SchemaEventTreeItem.js";
+import { SchemaRoutineMySQLTreeItem } from "./SchemaRoutineMySQLTreeItem.js";
+import { SchemaRoutineTreeItem } from "./SchemaRoutineTreeItem.js";
+import { SchemaSqliteTreeItem } from "./SchemaSqliteTreeItem.js";
+import { SchemaTableColumnTreeItem } from "./SchemaTableColumnTreeItem.js";
+import { SchemaTableForeignKeyTreeItem } from "./SchemaTableForeignKeyTreeItem.js";
+import { TableGroupTreeItem } from "./SchemaTableGroupTreeItem.js";
+import { SchemaTableIndexTreeItem } from "./SchemaTableIndexTreeItem.js";
+import { SchemaTableMySQLTreeItem } from "./SchemaTableMySQLTreeItem.js";
+import { SchemaTableSqliteTreeItem } from "./SchemaTableSqliteTreeItem.js";
+import { SchemaTableTriggerTreeItem } from "./SchemaTableTriggerTreeItem.js";
+import { SchemaViewMySQLTreeItem } from "./SchemaViewMySQLTreeItem.js";
+import { SchemaViewSqliteTreeItem } from "./SchemaViewSqliteTreeItem.js";
+import { DBConnectionViewProvider } from "../../WebviewProviders/DBConnectionViewProvider.js";
 
 /** A class to provide the entire tree structure for DB editor connections and the DB objects from them. */
 export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionsTreeDataModelEntry> {

@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../../app-logic/Types";
-import { IMySQLConnectionOptions } from "../../communication/MySQL";
-import { ISqliteConnectionOptions } from "../../communication/Sqlite";
+import { IDictionary } from "../../app-logic/Types.js";
+import { IMySQLConnectionOptions } from "../../communication/MySQL.js";
+import { ISqliteConnectionOptions } from "../../communication/Sqlite.js";
 
 /** Database types we can handle. */
 export enum DBType {

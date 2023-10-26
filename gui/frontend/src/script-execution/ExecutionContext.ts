@@ -25,16 +25,16 @@ import { IPosition } from "monaco-editor";
 
 import {
     IExecutionContextState, IRange, Monaco, Position, tokenModifiers, tokenTypes,
-} from "../components/ui/CodeEditor";
-import { isTextSpan } from "../utilities/ts-helpers";
-import { ScriptingLanguageServices } from "./ScriptingLanguageServices";
-import { IDiagnosticEntry, IStatementSpan, TextSpan } from "../parsing/parser-common";
-import { PresentationInterface } from "./PresentationInterface";
+} from "../components/ui/CodeEditor/index.js";
+import { isTextSpan } from "../utilities/ts-helpers.js";
+import { ScriptingLanguageServices } from "./ScriptingLanguageServices.js";
+import { IDiagnosticEntry, IStatementSpan, TextSpan } from "../parsing/parser-common.js";
+import { PresentationInterface } from "./PresentationInterface.js";
 import {
     IExecuteResultReference, IExecutionResult, IGraphResult, IPresentationOptions, IResponseDataOptions, IResultSets,
     ITextResult, LoadingState,
-} from ".";
-import { EditorLanguage, IExecutionContext, ITextRange } from "../supplement";
+} from "./index.js";
+import { EditorLanguage, IExecutionContext, ITextRange } from "../supplement/index.js";
 
 /**
  * This class is the base building block for code management in a code editor.

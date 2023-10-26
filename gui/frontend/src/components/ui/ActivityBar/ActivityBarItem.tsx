@@ -23,11 +23,11 @@
 
 import { ComponentChild } from "preact";
 
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
-import { Orientation, ContentAlignment, Container } from "../Container/Container";
-import { Codicon } from "../Codicon";
-import { Icon } from "../Icon/Icon";
-import { Label } from "../Label/Label";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { Orientation, ContentAlignment, Container } from "../Container/Container.js";
+import { Codicon } from "../Codicon.js";
+import { Icon } from "../Icon/Icon.js";
+import { Label } from "../Label/Label.js";
 
 export interface IActivityBarItemProperties extends IComponentProperties {
     active?: boolean;

@@ -25,8 +25,8 @@
 
 import { Lexer, Token } from "antlr4ng";
 
-import { SQLiteLexer } from "./generated/SQLiteLexer";
-import { isReservedKeyword, SQLiteVersion } from "./SQLiteRecognizerCommon";
+import { SQLiteLexer } from "./generated/SQLiteLexer.js";
+import { isReservedKeyword, SQLiteVersion } from "./SQLiteRecognizerCommon.js";
 
 // The base lexer class provides a number of functions needed in actions in the lexer (grammar).
 export abstract class SQLiteBaseLexer extends Lexer {

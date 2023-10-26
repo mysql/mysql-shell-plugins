@@ -24,7 +24,8 @@
 import * as path from "path";
 
 import { TreeItem, TreeItemCollapsibleState } from "vscode";
-import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds";
+
+import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds.js";
 
 export class OciBaseTreeItem extends TreeItem {
     public constructor(

@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ICodeEditorModel } from "../../components/ui/CodeEditor/CodeEditor";
-import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession";
+import { ICodeEditorModel } from "../../components/ui/CodeEditor/CodeEditor.js";
+import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
 
 export interface IShellEditorModel extends ICodeEditorModel {
     session: ShellInterfaceShellSession;

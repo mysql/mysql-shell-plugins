@@ -24,9 +24,9 @@
 import * as path from "path";
 
 import { TreeItemCollapsibleState } from "vscode";
-import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds";
 
-import { OciBaseTreeItem } from "./OciBaseTreeItem";
+import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds.js";
+import { OciBaseTreeItem } from "./OciBaseTreeItem.js";
 
 export class OciConfigProfileTreeItem extends OciBaseTreeItem {
     public contextValue = "mdsConfigProfile";

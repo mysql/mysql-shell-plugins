@@ -25,12 +25,12 @@ import { act } from "@testing-library/preact";
 import { mount } from "enzyme";
 import { createRef } from "preact";
 
-import { ProfileSelector } from "../../../app-logic/ProfileSelector";
-import { Button } from "../../../components/ui/Button/Button";
-import { requisitions } from "../../../supplement/Requisitions";
+import { ProfileSelector } from "../../../app-logic/ProfileSelector.js";
+import { Button } from "../../../components/ui/Button/Button.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
 
-import { setupShellForTests } from "../test-helpers";
-import { mouseEventMock } from "../__mocks__/MockEvents";
+import { setupShellForTests } from "../test-helpers.js";
+import { mouseEventMock } from "../__mocks__/MockEvents.js";
 
 let clicked = false;
 const buttonClick = (): void => {

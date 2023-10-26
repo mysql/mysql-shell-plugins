@@ -23,11 +23,11 @@
 
 import { ComponentChild } from "preact";
 
-import { IExecutionInfo, MessageType } from "../../app-logic/Types";
-import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase";
-import { Container, Orientation } from "../ui/Container/Container";
-import { Label } from "../ui/Label/Label";
-import { Message } from "../ui/Message/Message";
+import { IExecutionInfo, MessageType } from "../../app-logic/Types.js";
+import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase.js";
+import { Container, Orientation } from "../ui/Container/Container.js";
+import { Label } from "../ui/Label/Label.js";
+import { Message } from "../ui/Message/Message.js";
 
 interface IResultStatusProperties extends IComponentProperties {
     executionInfo: IExecutionInfo;

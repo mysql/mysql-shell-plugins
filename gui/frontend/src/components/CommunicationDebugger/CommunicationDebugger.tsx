@@ -31,31 +31,31 @@ import typings from "./debugger-runtime.d.ts?raw";
 import { ComponentChild, createRef, render } from "preact";
 import { CellComponent } from "tabulator-tables";
 
-import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase";
+import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase.js";
 
-import { CodeEditorMode, ICodeEditorOptions, Monaco } from "../ui/CodeEditor";
-import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
-import { strictEval } from "../../utilities/helpers";
-import { IDebuggerData, requisitions } from "../../supplement/Requisitions";
-import { CodeEditor, ICodeEditorModel, IEditorPersistentState } from "../ui/CodeEditor/CodeEditor";
-import { IDictionary } from "../../app-logic/Types";
-import { EditorLanguage } from "../../supplement";
-import { CommunicationDebuggerEnvironment } from "./CommunicationDebuggerEnvironment";
+import { CodeEditorMode, ICodeEditorOptions, Monaco } from "../ui/CodeEditor/index.js";
+import { ExecutionContexts } from "../../script-execution/ExecutionContexts.js";
+import { strictEval } from "../../utilities/helpers.js";
+import { IDebuggerData, requisitions } from "../../supplement/Requisitions.js";
+import { CodeEditor, ICodeEditorModel, IEditorPersistentState } from "../ui/CodeEditor/CodeEditor.js";
+import { IDictionary } from "../../app-logic/Types.js";
+import { EditorLanguage } from "../../supplement/index.js";
+import { CommunicationDebuggerEnvironment } from "./CommunicationDebuggerEnvironment.js";
 
-import { MessageScheduler } from "../../communication/MessageScheduler";
-import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
-import { Accordion } from "../ui/Accordion/Accordion";
-import { Codicon } from "../ui/Codicon";
-import { Orientation, Container } from "../ui/Container/Container";
-import { Divider } from "../ui/Divider/Divider";
-import { Icon } from "../ui/Icon/Icon";
-import { Label } from "../ui/Label/Label";
-import { SplitContainer, ISplitterPaneSizeInfo, ISplitterPane } from "../ui/SplitContainer/SplitContainer";
-import { ITabviewPage, Tabview } from "../ui/Tabview/Tabview";
-import { Toolbar } from "../ui/Toolbar/Toolbar";
-import { TreeGrid, ITreeGridOptions, SetDataAction } from "../ui/TreeGrid/TreeGrid";
-import { Button } from "../ui/Button/Button";
-import { Checkbox, CheckState } from "../ui/Checkbox/Checkbox";
+import { MessageScheduler } from "../../communication/MessageScheduler.js";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
+import { Accordion } from "../ui/Accordion/Accordion.js";
+import { Codicon } from "../ui/Codicon.js";
+import { Orientation, Container } from "../ui/Container/Container.js";
+import { Divider } from "../ui/Divider/Divider.js";
+import { Icon } from "../ui/Icon/Icon.js";
+import { Label } from "../ui/Label/Label.js";
+import { SplitContainer, ISplitterPaneSizeInfo, ISplitterPane } from "../ui/SplitContainer/SplitContainer.js";
+import { ITabviewPage, Tabview } from "../ui/Tabview/Tabview.js";
+import { Toolbar } from "../ui/Toolbar/Toolbar.js";
+import { TreeGrid, ITreeGridOptions, SetDataAction } from "../ui/TreeGrid/TreeGrid.js";
+import { Button } from "../ui/Button/Button.js";
+import { Checkbox, CheckState } from "../ui/Checkbox/Checkbox.js";
 
 const defaultEditorOptions: ICodeEditorOptions = {
     tabSize: 4,

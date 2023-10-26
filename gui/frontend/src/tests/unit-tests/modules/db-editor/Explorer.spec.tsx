@@ -23,9 +23,9 @@
 
 import { mount } from "enzyme";
 
-import { Explorer } from "../../../../modules/db-editor/Explorer";
-import { DBType } from "../../../../supplement/ShellInterface";
-import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { Explorer } from "../../../../modules/db-editor/Explorer.js";
+import { DBType } from "../../../../supplement/ShellInterface/index.js";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 
 describe("Explorer tests", (): void => {
 

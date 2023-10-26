@@ -25,7 +25,7 @@ import "./List.css";
 
 import { cloneElement, ComponentChild, VNode } from "preact";
 
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 
 interface IListProperties extends IComponentProperties {
     /** The UI structure to render for each element. */

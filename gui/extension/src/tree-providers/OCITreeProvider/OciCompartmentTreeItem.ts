@@ -24,9 +24,9 @@
 import * as path from "path";
 import { TreeItemCollapsibleState } from "vscode";
 
-import { ICompartment } from "../../../../frontend/src/communication";
-import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds";
-import { OciBaseTreeItem } from "./OciBaseTreeItem";
+import { ICompartment } from "../../../../frontend/src/communication/index.js";
+import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds.js";
+import { OciBaseTreeItem } from "./OciBaseTreeItem.js";
 
 export class OciCompartmentTreeItem extends OciBaseTreeItem {
     public contextValue = "mdsCompartment";
@@ -35,7 +35,6 @@ export class OciCompartmentTreeItem extends OciBaseTreeItem {
         profile: IMdsProfileData,
         public compartment: ICompartment,
         collapsibleState: TreeItemCollapsibleState = TreeItemCollapsibleState.Collapsed) {
-        // Call super constructor
         super(compartment.isCurrent ? `${compartment.name} (Default)` : compartment.name, profile, collapsibleState);
 
         const iconName = compartment.isCurrent ? "folderCurrent.svg" : "folder.svg";

@@ -25,7 +25,7 @@
 
 import { ATNSimulator, BaseErrorListener, RecognitionException, Recognizer, Token } from "antlr4ng";
 
-import { ErrorReportCallback } from "../parser-common";
+import { ErrorReportCallback } from "../parser-common.js";
 
 export class PythonErrorListener extends BaseErrorListener<ATNSimulator> {
 

@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { CalendarView } from "../../../../components/ui/Calendar/CalendarView";
+import { CalendarView } from "../../../../components/ui/Calendar/CalendarView.js";
 
 describe("CalendarView testing", () => {
 

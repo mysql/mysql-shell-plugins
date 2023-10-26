@@ -21,10 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Misc, driver, explicitWait } from "../../lib/misc";
 import { By, until } from "selenium-webdriver";
-import { ThemeEditor } from "../../lib/themeEditor";
 import { basename } from "path";
+
+import { Misc, driver, explicitWait } from "../../lib/misc.js";
+import { ThemeEditor } from "../../lib/themeEditor.js";
 
 describe("Main pages", () => {
     let testFailed = false;

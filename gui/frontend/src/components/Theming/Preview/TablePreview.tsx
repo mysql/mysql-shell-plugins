@@ -26,8 +26,8 @@ import employees from "./assets/employees.json";
 import { ComponentChild, createRef } from "preact";
 import { ColumnDefinition } from "tabulator-tables";
 
-import { ITreeGridOptions, TreeGrid } from "../../ui/TreeGrid/TreeGrid";
-import { ComponentBase, SelectionType } from "../../ui/Component/ComponentBase";
+import { ITreeGridOptions, TreeGrid } from "../../ui/TreeGrid/TreeGrid.js";
+import { ComponentBase, SelectionType } from "../../ui/Component/ComponentBase.js";
 
 interface ITablePreviewState {
     data: unknown[];

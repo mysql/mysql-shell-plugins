@@ -23,9 +23,9 @@
 
 import { mount } from "enzyme";
 
-import { nextRunLoop } from "../../test-helpers";
-import { ServerStatus } from "../../../../modules/db-editor/ServerStatus";
-import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { nextRunLoop } from "../../test-helpers.js";
+import { ServerStatus } from "../../../../modules/db-editor/ServerStatus.js";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 
 describe("Server status module tests", (): void => {
 

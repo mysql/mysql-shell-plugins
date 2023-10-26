@@ -20,7 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { Misc, explicitWait, driver } from "../../lib/misc";
+import { Misc, explicitWait, driver } from "../../lib/misc.js";
 import { By, until } from "selenium-webdriver";
 import { basename } from "path";
 

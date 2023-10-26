@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
 
 export class AdminTreeItem extends ConnectionsTreeBaseItem {
     public contextValue = "admin";

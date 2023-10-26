@@ -24,8 +24,8 @@
 import {
     CancellationToken, DocumentSemanticTokensProvider, IDisposable, SemanticTokens, SemanticTokensLegend,
     tokenModifiers, tokenTypes,
-} from ".";
-import { ICodeEditorModel } from "./CodeEditor";
+} from "./index.js";
+import { ICodeEditorModel } from "./CodeEditor.js";
 
 /** A record holding start + end line of changes and other info for a specific model. */
 interface IModelDetails {

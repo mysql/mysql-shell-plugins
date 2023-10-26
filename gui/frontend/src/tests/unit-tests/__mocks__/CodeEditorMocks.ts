@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
@@ -21,11 +20,13 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 import { SymbolTable } from "antlr4-c3";
-import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor";
-import { StoreType } from "../../../app-logic/ApplicationDB";
-import { CodeEditorMode, Monaco, Position, Uri } from "../../../components/ui/CodeEditor";
-import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
+
+import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor.js";
+import { StoreType } from "../../../app-logic/ApplicationDB.js";
+import { CodeEditorMode, Monaco, Position, Uri } from "../../../components/ui/CodeEditor/index.js";
+import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
 
 const ec = new ExecutionContexts(StoreType.DbEditor, 1, "", "");
 export const mockModel: ICodeEditorModel = {

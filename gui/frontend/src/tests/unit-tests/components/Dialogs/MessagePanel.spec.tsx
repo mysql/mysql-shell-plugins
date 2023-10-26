@@ -23,10 +23,10 @@
 
 import { mount } from "enzyme";
 
-import { nextProcessTick, sendKeyPress } from "../../test-helpers";
-import { requisitions } from "../../../../supplement/Requisitions";
-import { MessagePanel } from "../../../../components/Dialogs/MessagePanel";
-import { KeyboardKeys } from "../../../../utilities/helpers";
+import { nextProcessTick, sendKeyPress } from "../../test-helpers.js";
+import { requisitions } from "../../../../supplement/Requisitions.js";
+import { MessagePanel } from "../../../../components/Dialogs/MessagePanel.js";
+import { KeyboardKeys } from "../../../../utilities/helpers.js";
 
 describe("Message Panel Tests", (): void => {
     it("Render Test", () => {

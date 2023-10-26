@@ -23,9 +23,9 @@
 
 import { mount } from "enzyme";
 
-import { changeInputValue, nextProcessTick, sendKeyPress } from "../../test-helpers";
-import { ParamDialog } from "../../../../components/Dialogs/ParamDialog";
-import { KeyboardKeys } from "../../../../utilities/helpers";
+import { changeInputValue, nextProcessTick, sendKeyPress } from "../../test-helpers.js";
+import { ParamDialog } from "../../../../components/Dialogs/ParamDialog.js";
+import { KeyboardKeys } from "../../../../utilities/helpers.js";
 
 describe("Param Dialog Tests", (): void => {
     it("Render Test", () => {

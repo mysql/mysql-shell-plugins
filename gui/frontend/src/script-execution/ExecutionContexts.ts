@@ -21,15 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IResultSets, IResultSet, IContextProvider, IExecutionContextDetails } from ".";
-import { ApplicationDB, IDbModuleResultData, StoreType } from "../app-logic/ApplicationDB";
-import { IExecutionContextState, IPosition, Monaco } from "../components/ui/CodeEditor";
-import { CodeEditor, ResultPresentationFactory } from "../components/ui/CodeEditor/CodeEditor";
-import { IStatementSpan } from "../parsing/parser-common";
-import { EditorLanguage, IExecutionContext, ITextRange } from "../supplement";
-import { ExecutionContext } from "./ExecutionContext";
-import { PresentationInterface } from "./PresentationInterface";
-import { SQLExecutionContext } from "./SQLExecutionContext";
+import { IResultSets, IResultSet, IContextProvider, IExecutionContextDetails } from "./index.js";
+import { ApplicationDB, IDbModuleResultData, StoreType } from "../app-logic/ApplicationDB.js";
+import { IExecutionContextState, IPosition, Monaco } from "../components/ui/CodeEditor/index.js";
+import { CodeEditor, ResultPresentationFactory } from "../components/ui/CodeEditor/CodeEditor.js";
+import { IStatementSpan } from "../parsing/parser-common.js";
+import { EditorLanguage, IExecutionContext, ITextRange } from "../supplement/index.js";
+import { ExecutionContext } from "./ExecutionContext.js";
+import { PresentationInterface } from "./PresentationInterface.js";
+import { SQLExecutionContext } from "./SQLExecutionContext.js";
 
 /** A helper class to keep editor blocks that belong to a single text model together. */
 export class ExecutionContexts implements IContextProvider {

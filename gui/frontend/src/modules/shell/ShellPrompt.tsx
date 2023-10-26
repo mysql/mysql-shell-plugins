@@ -22,14 +22,15 @@
  */
 
 import { ComponentChild, createRef } from "preact";
-import { IShellPromptValues } from "../../communication/ProtocolGui";
-import { Breadcrumb } from "../../components/ui/Breadcrumb/Breadcrumb";
-import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase";
-import { Label } from "../../components/ui/Label/Label";
-import { Menu } from "../../components/ui/Menu/Menu";
-import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem";
 
-import { requisitions } from "../../supplement/Requisitions";
+import { IShellPromptValues } from "../../communication/ProtocolGui.js";
+import { Breadcrumb } from "../../components/ui/Breadcrumb/Breadcrumb.js";
+import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
+import { Label } from "../../components/ui/Label/Label.js";
+import { Menu } from "../../components/ui/Menu/Menu.js";
+import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem.js";
+
+import { requisitions } from "../../supplement/Requisitions.js";
 
 interface IShellPromptProperties extends IComponentProperties {
     values: IShellPromptValues;

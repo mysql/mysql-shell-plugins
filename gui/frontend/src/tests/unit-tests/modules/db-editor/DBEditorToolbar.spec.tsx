@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { DBEditorToolbar } from "../../../../modules/db-editor/DBEditorToolbar";
+import { DBEditorToolbar } from "../../../../modules/db-editor/DBEditorToolbar.js";
 
 describe("DBEditorToolbar tests", (): void => {
     it("Test DBEditorToolbar instantiation", () => {

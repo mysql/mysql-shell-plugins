@@ -25,16 +25,17 @@ import paramIcon from "../../assets/images/parameters.svg";
 import "./ParamDialog.css";
 
 import { ComponentChild, createRef } from "preact";
-import { Button, IButtonProperties } from "../ui/Button/Button";
-import { Codicon } from "../ui/Codicon";
-import { IComponentProperties, IComponentState, ComponentBase } from "../ui/Component/ComponentBase";
-import { ContentAlignment } from "../ui/Container/Container";
-import { Dialog } from "../ui/Dialog/Dialog";
-import { Grid } from "../ui/Grid/Grid";
-import { GridCell } from "../ui/Grid/GridCell";
-import { Icon } from "../ui/Icon/Icon";
-import { Input, IInputChangeProperties } from "../ui/Input/Input";
-import { Label } from "../ui/Label/Label";
+
+import { Button, IButtonProperties } from "../ui/Button/Button.js";
+import { Codicon } from "../ui/Codicon.js";
+import { IComponentProperties, IComponentState, ComponentBase } from "../ui/Component/ComponentBase.js";
+import { ContentAlignment } from "../ui/Container/Container.js";
+import { Dialog } from "../ui/Dialog/Dialog.js";
+import { Grid } from "../ui/Grid/Grid.js";
+import { GridCell } from "../ui/Grid/GridCell.js";
+import { Icon } from "../ui/Icon/Icon.js";
+import { Input, IInputChangeProperties } from "../ui/Input/Input.js";
+import { Label } from "../ui/Label/Label.js";
 
 interface IParamDialogProperties extends IComponentProperties {
     caption?: string;

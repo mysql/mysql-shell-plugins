@@ -24,9 +24,9 @@
 import * as path from "path";
 import { TreeItemCollapsibleState } from "vscode";
 
-import { ICompartment, IMySQLDbSystem } from "../../../../frontend/src/communication";
-import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds";
-import { OciBaseTreeItem } from "./OciBaseTreeItem";
+import { ICompartment, IMySQLDbSystem } from "../../../../frontend/src/communication/index.js";
+import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds.js";
+import { OciBaseTreeItem } from "./OciBaseTreeItem.js";
 
 export class OciHWClusterTreeItem extends OciBaseTreeItem {
     public contextValue = "mdsHWCluster";

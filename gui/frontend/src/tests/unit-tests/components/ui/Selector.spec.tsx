@@ -26,9 +26,9 @@ import overviewPageIcon from "../../../../assets/images/overviewPage.svg";
 import { mount, shallow } from "enzyme";
 
 import { act } from "preact/test-utils";
-import { Orientation } from "../../../../components/ui/Container/Container";
-import { Label } from "../../../../components/ui/Label/Label";
-import { Selector } from "../../../../components/ui/Selector/Selector";
+import { Orientation } from "../../../../components/ui/Container/Container.js";
+import { Label } from "../../../../components/ui/Label/Label.js";
+import { Selector } from "../../../../components/ui/Selector/Selector.js";
 
 describe("Selector component tests", (): void => {
 

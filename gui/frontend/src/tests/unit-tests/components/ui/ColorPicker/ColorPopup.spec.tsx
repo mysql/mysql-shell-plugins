@@ -22,7 +22,7 @@
  */
 
 import { mount } from "enzyme";
-import { ColorPopup } from "../../../../../components/ui/ColorPicker/ColorPopup";
+import { ColorPopup } from "../../../../../components/ui/ColorPicker/ColorPopup.js";
 
 
 describe("ColorPopup component tests", (): void => {

@@ -27,24 +27,24 @@ import saveNotebookIcon from "../../assets/images/toolbar/toolbar-save-editor.sv
 import { Position } from "monaco-editor";
 import { ComponentChild, createRef } from "preact";
 
-import { IEditorStatusInfo, ISchemaTreeEntry, IToolbarItems } from ".";
-import { Button } from "../../components/ui/Button/Button";
-import { ICodeEditorViewState, IScriptExecutionOptions } from "../../components/ui/CodeEditor";
-import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
-import { ComponentBase, IComponentProperties } from "../../components/ui/Component/ComponentBase";
-import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container";
-import { Icon } from "../../components/ui/Icon/Icon";
-import { INotebookFileFormat } from "../../script-execution";
-import { ExecutionContext } from "../../script-execution/ExecutionContext";
-import { PresentationInterface } from "../../script-execution/PresentationInterface";
-import { EditorLanguage } from "../../supplement";
-import { requisitions } from "../../supplement/Requisitions";
-import { Settings } from "../../supplement/Settings/Settings";
-import { DBType } from "../../supplement/ShellInterface";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { IOpenEditorState, ISavedEditorState } from "./DBConnectionTab";
-import { DBEditorToolbar } from "./DBEditorToolbar";
-import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface";
+import { IEditorStatusInfo, ISchemaTreeEntry, IToolbarItems } from "./index.js";
+import { Button } from "../../components/ui/Button/Button.js";
+import { ICodeEditorViewState, IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
+import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
+import { ComponentBase, IComponentProperties } from "../../components/ui/Component/ComponentBase.js";
+import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
+import { Icon } from "../../components/ui/Icon/Icon.js";
+import { INotebookFileFormat } from "../../script-execution/index.js";
+import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
+import { PresentationInterface } from "../../script-execution/PresentationInterface.js";
+import { EditorLanguage } from "../../supplement/index.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { DBType } from "../../supplement/ShellInterface/index.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { IOpenEditorState, ISavedEditorState } from "./DBConnectionTab.js";
+import { DBEditorToolbar } from "./DBEditorToolbar.js";
+import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface.js";
 
 interface INotebookProperties extends IComponentProperties {
     standaloneMode: boolean;

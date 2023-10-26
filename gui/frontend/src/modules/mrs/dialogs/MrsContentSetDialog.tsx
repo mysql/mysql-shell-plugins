@@ -21,12 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-import { IMrsServiceData } from "../../../communication/ProtocolMrs";
-import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog";
+import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types.js";
+import { IMrsServiceData } from "../../../communication/ProtocolMrs.js";
+import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog.js";
 import {
     IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
-} from "../../../components/Dialogs/ValueEditDialog";
+} from "../../../components/Dialogs/ValueEditDialog.js";
 
 export interface IMrsContentSetDialogData extends IDictionary {
     serviceId: string;

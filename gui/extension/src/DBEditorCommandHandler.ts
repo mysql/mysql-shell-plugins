@@ -28,38 +28,40 @@ import { commands, ConfigurationTarget, TextEditor, Uri, window, workspace } fro
 
 import {
     IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
-} from "../../frontend/src/supplement/Requisitions";
+} from "../../frontend/src/supplement/Requisitions.js";
 
-import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider";
-import { ScriptTreeItem } from "./tree-providers/ScriptTreeItem";
+import { ScriptTreeItem } from "./tree-providers/ScriptTreeItem.js";
 
-import { EntityType, IDBEditorScriptState } from "../../frontend/src/modules/db-editor";
-import { EditorLanguage, INewEditorRequest, IRunQueryRequest, IScriptRequest } from "../../frontend/src/supplement";
-import { DBConnectionViewProvider } from "./web-views/DBConnectionViewProvider";
+import { EntityType, IDBEditorScriptState } from "../../frontend/src/modules/db-editor/index.js";
+import {
+    EditorLanguage, INewEditorRequest, IRunQueryRequest, IScriptRequest,
+} from "../../frontend/src/supplement/index.js";
+import { DBConnectionViewProvider } from "./WebviewProviders/DBConnectionViewProvider.js";
 
-import { IMrsDbObjectData } from "../../frontend/src/communication/ProtocolMrs";
-import { DBType } from "../../frontend/src/supplement/ShellInterface";
-import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { uuid } from "../../frontend/src/utilities/helpers";
-import { CodeBlocks } from "./CodeBlocks";
-import { WebviewProvider } from "./web-views/WebviewProvider";
-import { ExtensionHost } from "./ExtensionHost";
-import { ConnectionsTreeBaseItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeBaseItem";
+import { IMrsDbObjectData } from "../../frontend/src/communication/ProtocolMrs.js";
+import { DBType } from "../../frontend/src/supplement/ShellInterface/index.js";
+import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { uuid } from "../../frontend/src/utilities/helpers.js";
+import { CodeBlocks } from "./CodeBlocks.js";
+import { WebviewProvider } from "./WebviewProviders/WebviewProvider.js";
+import { ExtensionHost } from "./ExtensionHost.js";
+import { ConnectionsTreeBaseItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeBaseItem.js";
 import {
     CdmSchemaGroupMember,
     ConnectionsTreeDataModelEntry, ICdmConnectionEntry, ICdmRestDbObjectEntry, ICdmRoutineEntry, ICdmSchemaEntry,
     ICdmTableEntry, ICdmTriggerEntry,
-} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel";
+} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel.js";
 import {
     ConnectionsTreeDataProvider,
-} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider";
-import { ConnectionTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionTreeItem";
-import { SchemaEventTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaEventTreeItem";
+} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider.js";
+import { ConnectionTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionTreeItem.js";
+import { SchemaEventTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaEventTreeItem.js";
 import {
     IEditorConnectionEntry, IOpenEditorBaseEntry, IOpenEditorEntry, OpenEditorsTreeDataProvider,
-} from "./tree-providers/OpenEditorsTreeProvider/OpenEditorsTreeProvider";
-import { showMessageWithTimeout } from "./utilities";
-import { snakeToCamelCase } from "../../frontend/src/utilities/string-helpers";
+} from "./tree-providers/OpenEditorsTreeProvider/OpenEditorsTreeProvider.js";
+import { showMessageWithTimeout } from "./utilities.js";
+import { snakeToCamelCase } from "../../frontend/src/utilities/string-helpers.js";
+import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider/OciDbSystemTreeItem.js";
 
 /** A class to handle all DB editor related commands and jobs. */
 export class DBEditorCommandHandler {
@@ -387,18 +389,18 @@ export class DBEditorCommandHandler {
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.copyCreateScriptWithDelimitersToClipboard",
-        (entry?: ConnectionsTreeDataModelEntry) => {
-            if (entry && entry.treeItem instanceof ConnectionsTreeBaseItem) {
-                entry.treeItem.copyCreateScriptToClipboard(true);
-            }
-        }));
+            (entry?: ConnectionsTreeDataModelEntry) => {
+                if (entry && entry.treeItem instanceof ConnectionsTreeBaseItem) {
+                    entry.treeItem.copyCreateScriptToClipboard(true);
+                }
+            }));
 
         context.subscriptions.push(commands.registerCommand("msg.copyDropCreateScriptWithDelimitersToClipboard",
-        (entry?: ConnectionsTreeDataModelEntry) => {
-            if (entry && entry.treeItem instanceof ConnectionsTreeBaseItem) {
-                entry.treeItem.copyCreateScriptToClipboard(true, true);
-            }
-        }));
+            (entry?: ConnectionsTreeDataModelEntry) => {
+                if (entry && entry.treeItem instanceof ConnectionsTreeBaseItem) {
+                    entry.treeItem.copyCreateScriptToClipboard(true, true);
+                }
+            }));
 
         context.subscriptions.push(commands.registerCommand("msg.editInScriptEditor", async (uri?: Uri) => {
             if (uri?.scheme === "file") {

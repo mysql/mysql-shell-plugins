@@ -26,19 +26,19 @@ import debuggerIcon from "../assets/images/debugger.svg";
 
 import { ComponentChild, createElement, createRef } from "preact";
 
-import { webSession } from "../supplement/WebSession";
-import { appParameters, requisitions } from "../supplement/Requisitions";
+import { webSession } from "../supplement/WebSession.js";
+import { appParameters, requisitions } from "../supplement/Requisitions.js";
 
-import { ModuleRegistry } from "../modules/ModuleRegistry";
-import { SettingsEditor } from "../components/SettingsEditor/SettingsEditor";
-import { DialogHost } from "./DialogHost";
+import { ModuleRegistry } from "../modules/ModuleRegistry.js";
+import { SettingsEditor } from "../components/SettingsEditor/SettingsEditor.js";
+import { DialogHost } from "./DialogHost.js";
 
-import { CommunicationDebugger } from "../components/CommunicationDebugger/CommunicationDebugger";
-import { ActivityBar } from "../components/ui/ActivityBar/ActivityBar";
-import { ActivityBarItem, IActivityBarItemProperties } from "../components/ui/ActivityBar/ActivityBarItem";
-import { IComponentProperties, ComponentBase } from "../components/ui/Component/ComponentBase";
-import { Orientation, Container } from "../components/ui/Container/Container";
-import { SplitContainer, ISplitterPaneSizeInfo } from "../components/ui/SplitContainer/SplitContainer";
+import { CommunicationDebugger } from "../components/CommunicationDebugger/CommunicationDebugger.js";
+import { ActivityBar } from "../components/ui/ActivityBar/ActivityBar.js";
+import { ActivityBarItem, IActivityBarItemProperties } from "../components/ui/ActivityBar/ActivityBarItem.js";
+import { IComponentProperties, ComponentBase } from "../components/ui/Component/ComponentBase.js";
+import { Orientation, Container } from "../components/ui/Container/Container.js";
+import { SplitContainer, ISplitterPaneSizeInfo } from "../components/ui/SplitContainer/SplitContainer.js";
 
 interface IApplicationHostProperties extends IComponentProperties {
     toggleOptions: () => void;

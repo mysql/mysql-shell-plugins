@@ -23,8 +23,8 @@
 
 import { mount } from "enzyme";
 
-import { CheckState } from "../../../../components/ui/Checkbox/Checkbox";
-import { StatusMark } from "../../../../components/ui/StatusMark/StatusMark";
+import { CheckState } from "../../../../components/ui/Checkbox/Checkbox.js";
+import { StatusMark } from "../../../../components/ui/StatusMark/StatusMark.js";
 
 describe("StatusMark component tests", (): void => {
     it("Test StatusMark render", () => {

@@ -25,7 +25,7 @@ import "./Divider.css";
 
 import { ComponentChild } from "preact";
 
-import { ComponentBase, IComponentProperties, MouseEventType } from "../Component/ComponentBase";
+import { ComponentBase, IComponentProperties, MouseEventType } from "../Component/ComponentBase.js";
 
 interface IDividerProperties extends IComponentProperties {
     vertical?: boolean;

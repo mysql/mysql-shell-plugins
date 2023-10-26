@@ -27,20 +27,20 @@ import innodb from "../../assets/images/databaseEngine.svg";
 
 import { ComponentChild } from "preact";
 
-import { ColorScheme, ISavedGraphData, IToolbarItems } from ".";
-import { GraphHost } from "../../components/graphs/GraphHost";
+import { ColorScheme, ISavedGraphData, IToolbarItems } from "./index.js";
+import { GraphHost } from "../../components/graphs/GraphHost.js";
 
-import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem";
-import { formatBytes } from "../../utilities/string-helpers";
-import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase";
-import { Container, Orientation, ContentAlignment } from "../../components/ui/Container/Container";
-import { Dropdown } from "../../components/ui/Dropdown/Dropdown";
-import { Grid } from "../../components/ui/Grid/Grid";
-import { GridCell } from "../../components/ui/Grid/GridCell";
-import { Icon } from "../../components/ui/Icon/Icon";
-import { Label } from "../../components/ui/Label/Label";
-import { Toolbar } from "../../components/ui/Toolbar/Toolbar";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem.js";
+import { formatBytes } from "../../utilities/string-helpers.js";
+import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
+import { Container, Orientation, ContentAlignment } from "../../components/ui/Container/Container.js";
+import { Dropdown } from "../../components/ui/Dropdown/Dropdown.js";
+import { Grid } from "../../components/ui/Grid/Grid.js";
+import { GridCell } from "../../components/ui/Grid/GridCell.js";
+import { Icon } from "../../components/ui/Icon/Icon.js";
+import { Label } from "../../components/ui/Label/Label.js";
+import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 
 enum MarkerType {
     None,

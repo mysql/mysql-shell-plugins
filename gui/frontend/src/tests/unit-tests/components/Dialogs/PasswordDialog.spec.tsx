@@ -23,11 +23,11 @@
 
 import { mount } from "enzyme";
 
-import { changeInputValue, nextProcessTick, sendKeyPress } from "../../test-helpers";
-import { requisitions } from "../../../../supplement/Requisitions";
-import { IServicePasswordRequest } from "../../../../app-logic/Types";
-import { PasswordDialog } from "../../../../components/Dialogs/PasswordDialog";
-import { KeyboardKeys } from "../../../../utilities/helpers";
+import { changeInputValue, nextProcessTick, sendKeyPress } from "../../test-helpers.js";
+import { requisitions } from "../../../../supplement/Requisitions.js";
+import { IServicePasswordRequest } from "../../../../app-logic/Types.js";
+import { PasswordDialog } from "../../../../components/Dialogs/PasswordDialog.js";
+import { KeyboardKeys } from "../../../../utilities/helpers.js";
 
 describe("Password Dialog Tests", (): void => {
     it("Render Test", () => {

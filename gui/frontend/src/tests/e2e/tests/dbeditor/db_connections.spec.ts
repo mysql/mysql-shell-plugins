@@ -22,9 +22,9 @@
  */
 
 import { By, Key, WebElement, until } from "selenium-webdriver";
-import { DBConnection } from "../../lib/dbConnection";
-import { DBNotebooks } from "../../lib/dbNotebooks";
-import { IDBConnection, Misc, driver, explicitWait, shellServers } from "../../lib/misc";
+import { DBConnection } from "../../lib/dbConnection.js";
+import { DBNotebooks } from "../../lib/dbNotebooks.js";
+import { IDBConnection, Misc, driver, explicitWait, shellServers } from "../../lib/misc.js";
 import { basename, join } from "path";
 
 describe("Database Connections", () => {

@@ -25,8 +25,8 @@ import "./ProgressIndicator.css";
 
 import { ComponentChild } from "preact";
 
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
-import { Container, Orientation, ContentAlignment } from "../Container/Container";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { Container, Orientation, ContentAlignment } from "../Container/Container.js";
 
 interface IProgressIndicatorProperties extends IComponentProperties {
     // The opacity of the indicator host container (default: 1).

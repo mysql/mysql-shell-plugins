@@ -25,11 +25,11 @@ import "./assets/ThemeEditor.css";
 
 import { ComponentChild } from "preact";
 
-import { ThemeManager } from "./ThemeManager";
-import { ThemePreview } from "./Preview/ThemePreview";
-import { ThemeEditorCore } from "./ThemeEditorCore";
-import { ComponentBase } from "../ui/Component/ComponentBase";
-import { Container, Orientation } from "../ui/Container/Container";
+import { ThemeManager } from "./ThemeManager.js";
+import { ThemePreview } from "./Preview/ThemePreview.js";
+import { ThemeEditorCore } from "./ThemeEditorCore.js";
+import { ComponentBase } from "../ui/Component/ComponentBase.js";
+import { Container, Orientation } from "../ui/Container/Container.js";
 
 export class ThemeEditor extends ComponentBase {
 

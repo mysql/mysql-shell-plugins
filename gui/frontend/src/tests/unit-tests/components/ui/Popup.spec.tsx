@@ -24,8 +24,8 @@
 import { mount } from "enzyme";
 import { createRef } from "preact";
 
-import { IPopupProperties, Popup } from "../../../../components/ui/Popup/Popup";
-import { nextRunLoop } from "../../test-helpers";
+import { IPopupProperties, Popup } from "../../../../components/ui/Popup/Popup.js";
+import { nextRunLoop } from "../../test-helpers.js";
 
 describe("Popup component tests", (): void => {
     const popupRef = createRef<Popup>();

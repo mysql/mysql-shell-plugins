@@ -26,10 +26,12 @@ import "./Tooltip.css";
 import { ComponentChild, createRef } from "preact";
 import { createPortal, CSSProperties } from "preact/compat";
 
-import { computeContentPosition } from "../html-helpers";
-import { ComponentBase, ComponentPlacement, IComponentProperties, IComponentState } from "../Component/ComponentBase";
-import { Container } from "../Container/Container";
-import { KeyboardKeys } from "../../../utilities/helpers";
+import { computeContentPosition } from "../html-helpers.js";
+import {
+    ComponentBase, ComponentPlacement, IComponentProperties, IComponentState,
+} from "../Component/ComponentBase.js";
+import { Container } from "../Container/Container.js";
+import { KeyboardKeys } from "../../../utilities/helpers.js";
 
 interface ITooltipProviderProperties extends IComponentProperties {
     /** Time to wait until the tooltip is shown, in milliseconds. */

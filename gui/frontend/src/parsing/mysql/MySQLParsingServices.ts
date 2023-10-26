@@ -30,23 +30,23 @@ import {
     ParseTree, PredictionMode, TokenStreamRewriter, XPath, Token,
 } from "antlr4ng";
 
-import { MySQLMRSLexer } from "./generated/MySQLMRSLexer";
+import { MySQLMRSLexer } from "./generated/MySQLMRSLexer.js";
 import {
     MySQLMRSParser, QueryContext, QueryExpressionContext, QuerySpecificationContext, SubqueryContext,
-} from "./generated/MySQLMRSParser";
+} from "./generated/MySQLMRSParser.js";
 
-import { MySQLErrorListener } from "./MySQLErrorListener";
-import { MySQLParseUnit } from "./MySQLServiceTypes";
+import { MySQLErrorListener } from "./MySQLErrorListener.js";
+import { MySQLParseUnit } from "./MySQLServiceTypes.js";
 import {
     ICompletionData, IParserErrorInfo, IStatementSpan, ISymbolInfo, ITokenInfo, QueryType, StatementFinishState,
     TextSpan, tokenFromPosition,
-} from "../parser-common";
+} from "../parser-common.js";
 
-import { SystemVariableSymbol, SystemFunctionSymbol, DBSymbolTable } from "../DBSymbolTable";
-import { getCodeCompletionItems } from "./MySQLCodeCompletion";
-import { unquote } from "../../utilities/string-helpers";
-import { isKeyword, numberToVersion } from "./MySQLRecognizerCommon";
-import { MySQLVersion } from "./mysql-keywords";
+import { SystemVariableSymbol, SystemFunctionSymbol, DBSymbolTable } from "../DBSymbolTable.js";
+import { getCodeCompletionItems } from "./MySQLCodeCompletion.js";
+import { unquote } from "../../utilities/string-helpers.js";
+import { isKeyword, numberToVersion } from "./MySQLRecognizerCommon.js";
+import { MySQLVersion } from "./mysql-keywords.js";
 
 export class MySQLParsingServices {
 
@@ -95,7 +95,7 @@ export class MySQLParsingServices {
         });
 
         void import("./data/rdbms-info.json").then((rdbmsInfo) => {
-            Object.keys(rdbmsInfo.characterSets).forEach((set: string) => {
+            Object.keys(rdbmsInfo.default.characterSets).forEach((set: string) => {
                 this.lexer.charsets.add("_" + set.toLowerCase());
             });
         });

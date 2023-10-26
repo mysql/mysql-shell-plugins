@@ -27,12 +27,12 @@ import { cloneElement, ComponentChild, createRef, VNode } from "preact";
 
 import {
     ComponentBase, IComponentProperties, DragEventType, ClickEventCallback, DragEventCallback,
-} from "../Component/ComponentBase";
+} from "../Component/ComponentBase.js";
 
-import { ISelectorItemProperties, SelectorItem } from "./SelectorItem";
-import { Codicon } from "../Codicon";
-import { collectVNodes } from "../../../utilities/ts-helpers";
-import { Orientation, Container } from "../Container/Container";
+import { ISelectorItemProperties, SelectorItem } from "./SelectorItem.js";
+import { Codicon } from "../Codicon.js";
+import { collectVNodes } from "../../../utilities/preact-helpers.js";
+import { Orientation, Container } from "../Container/Container.js";
 
 export interface ISelectorDef {
     id?: string;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,8 +22,9 @@
  */
 
 import { IRange } from "monaco-editor";
-import { ITextRange } from "../../../supplement";
-import { editorRangeToTextRange, isTextSpan, textRangeToEditorRange } from "../../../utilities/ts-helpers";
+
+import { ITextRange } from "../../../supplement/index.js";
+import { editorRangeToTextRange, isTextSpan, textRangeToEditorRange } from "../../../utilities/ts-helpers.js";
 
 describe("TS Helper Tests", () => {
     it("Text Span", () => {

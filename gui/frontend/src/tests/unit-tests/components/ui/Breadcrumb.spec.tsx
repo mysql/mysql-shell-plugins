@@ -24,11 +24,11 @@
 import { mount } from "enzyme";
 import { act } from "preact/test-utils";
 
-import { Breadcrumb, IBreadcrumbProperties } from "../../../../components/ui/Breadcrumb/Breadcrumb";
-import { Button } from "../../../../components/ui/Button/Button";
-import { Label } from "../../../../components/ui/Label/Label";
+import { Breadcrumb, IBreadcrumbProperties } from "../../../../components/ui/Breadcrumb/Breadcrumb.js";
+import { Button } from "../../../../components/ui/Button/Button.js";
+import { Label } from "../../../../components/ui/Label/Label.js";
 
-import { mouseEventMock } from "../../__mocks__/MockEvents";
+import { mouseEventMock } from "../../__mocks__/MockEvents.js";
 
 describe("Breadcrumb render testing", (): void => {
 

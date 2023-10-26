@@ -25,15 +25,15 @@ import "./UpDown.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { convertPropValue } from "../../../utilities/string-helpers";
-import { Container, ContentAlignment, Orientation } from "../Container/Container";
-import { IInputChangeProperties, Input } from "../Input/Input";
-import { clampValue } from "../../../utilities/helpers";
-import { IComponentProperties, IComponentState, ComponentBase } from "../Component/ComponentBase";
-import { Grid } from "../Grid/Grid";
-import { GridCell } from "../Grid/GridCell";
-import { TextAlignment } from "../Label/Label";
-import { Button } from "../Button/Button";
+import { convertPropValue } from "../../../utilities/string-helpers.js";
+import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
+import { IInputChangeProperties, Input } from "../Input/Input.js";
+import { clampValue } from "../../../utilities/helpers.js";
+import { IComponentProperties, IComponentState, ComponentBase } from "../Component/ComponentBase.js";
+import { Grid } from "../Grid/Grid.js";
+import { GridCell } from "../Grid/GridCell.js";
+import { TextAlignment } from "../Label/Label.js";
+import { Button } from "../Button/Button.js";
 
 export interface IUpDownProperties extends IComponentProperties {
     items?: string[];    // For any type of values, but limited to only those given here.

@@ -25,9 +25,9 @@ import overviewPageIcon from "../../../../assets/images/overviewPage.svg";
 
 import { mount } from "enzyme";
 
-import { Container, Orientation } from "../../../../components/ui/Container/Container";
-import { Icon } from "../../../../components/ui/Icon/Icon";
-import { Button } from "../../../../components/ui/Button/Button";
+import { Container, Orientation } from "../../../../components/ui/Container/Container.js";
+import { Icon } from "../../../../components/ui/Icon/Icon.js";
+import { Button } from "../../../../components/ui/Button/Button.js";
 
 describe("Container component tests", (): void => {
 

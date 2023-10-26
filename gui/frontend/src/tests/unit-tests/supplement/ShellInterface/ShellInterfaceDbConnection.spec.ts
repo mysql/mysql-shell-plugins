@@ -21,12 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../communication/MySQL";
-import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface";
-import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface";
-import { webSession } from "../../../../supplement/WebSession";
-import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
-import { getDbCredentials, setupShellForTests } from "../../test-helpers";
+import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../communication/MySQL.js";
+import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
+import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
+import { webSession } from "../../../../supplement/WebSession.js";
+import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
+import { getDbCredentials, setupShellForTests } from "../../test-helpers.js";
 
 describe("ShellInterfaceDbConnection Tests", () => {
     let launcher: MySQLShellLauncher;

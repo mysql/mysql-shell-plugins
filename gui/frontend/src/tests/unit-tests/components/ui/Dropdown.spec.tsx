@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { Dropdown } from "../../../../components/ui/Dropdown/Dropdown";
+import { Dropdown } from "../../../../components/ui/Dropdown/Dropdown.js";
 
 describe("Dropdown render testing", (): void => {
 

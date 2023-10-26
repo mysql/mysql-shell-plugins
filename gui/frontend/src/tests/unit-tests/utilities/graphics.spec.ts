@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { inflateRect, pointInRect, rectsAreEqual } from "../../../utilities/graphics";
+import { inflateRect, pointInRect, rectsAreEqual } from "../../../utilities/graphics.js";
 
 describe("Graphics Tests", () => {
     it("Rectangles", () => {

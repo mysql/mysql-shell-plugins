@@ -136,9 +136,9 @@ const config: Config = {
         "tabulator-tables$": "tabulator-tables/dist/js/tabulator_esm.js",
         ".+\\.worker\\?worker$": "<rootDir>/src/tests/unit-tests/__mocks__/workerMock.ts",
         "^react$": "preact/compat",
-        //"^react-dom$": "preact/compat",
         '^react/jsx-runtime$': 'preact/jsx-runtime',
-        ".*\\?raw": "@glen/jest-raw-loader"
+        ".*\\?raw": "@glen/jest-raw-loader",
+        "^(\\.\\.?\\/.+)\\.js$": "$1", // For imports with the .js extension.
     },
 
     // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader

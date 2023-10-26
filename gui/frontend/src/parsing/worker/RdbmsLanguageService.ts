@@ -24,24 +24,24 @@
 import { IPosition, IRange, languages } from "monaco-editor";
 import { ScopedSymbol, BaseSymbol, SymbolTable } from "antlr4-c3";
 
-import { ICodeEditorModel } from "../../components/ui/CodeEditor/CodeEditor";
-import { CompletionItem, CompletionList } from "../../components/ui/CodeEditor";
-import { mapCompletionKind } from "../../script-execution";
+import { ICodeEditorModel } from "../../components/ui/CodeEditor/CodeEditor.js";
+import { CompletionItem, CompletionList } from "../../components/ui/CodeEditor/index.js";
+import { mapCompletionKind } from "../../script-execution/index.js";
 import {
     ICompletionData, ICompletionObjectDetails, ILanguageWorkerResultData, ILanguageWorkerSuggestionData,
     ILanguageWorkerTaskData, LanguageCompletionKind, ServiceLanguage,
-} from "../parser-common";
+} from "../parser-common.js";
 
 import {
     CharsetSymbol, SystemVariableSymbol, SystemFunctionSymbol, CollationSymbol, ColumnSymbol, EngineSymbol, EventSymbol,
     IndexSymbol, LabelSymbol, LogfileGroupSymbol, PluginSymbol, SchemaSymbol, StoredFunctionSymbol, ViewSymbol,
     StoredProcedureSymbol, TablespaceSymbol, TableSymbol, TriggerSymbol, UdfSymbol, UserSymbol, UserVariableSymbol,
     DBSymbolTable,
-} from "../DBSymbolTable";
-import { WorkerPool } from "../../supplement/WorkerPool";
-import { Settings } from "../../supplement/Settings/Settings";
-import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext";
-import { deepEqual } from "../../utilities/helpers";
+} from "../DBSymbolTable.js";
+import { WorkerPool } from "../../supplement/WorkerPool.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
+import { deepEqual } from "../../utilities/helpers.js";
 
 // A string for lookup if schemas have been loaded already.
 const schemaKey = "\u0010schemas\u0010";

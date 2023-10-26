@@ -27,13 +27,13 @@ import { commands, ConfigurationTarget, Uri, ViewColumn, WebviewPanel, window, w
 
 import {
     IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider, RequisitionHub, requisitions, SimpleCallback,
-} from "../../../frontend/src/supplement/Requisitions";
+} from "../../../frontend/src/supplement/Requisitions.js";
 
-import { IEmbeddedMessage } from "../../../frontend/src/communication";
-import { IDialogResponse, IStatusbarInfo } from "../../../frontend/src/app-logic/Types";
+import { IEmbeddedMessage } from "../../../frontend/src/communication/index.js";
+import { IDialogResponse, IStatusbarInfo } from "../../../frontend/src/app-logic/Types.js";
 
-import { printChannelOutput } from "../extension";
-import { prepareWebviewContent } from "./webview";
+import { printChannelOutput } from "../extension.js";
+import { prepareWebviewContent } from "./webview-helpers.js";
 
 type WebviewDisposeHandler = (view: WebviewProvider) => void;
 type WebviewChangeStateHandler = (view: WebviewProvider, active: boolean) => void;

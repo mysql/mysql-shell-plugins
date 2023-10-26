@@ -23,18 +23,18 @@
 
 import { mount } from "enzyme";
 
-import { setupShellForTests } from "../../test-helpers";
+import { setupShellForTests } from "../../test-helpers.js";
 import {
     DBConnectionTab, IOpenEditorState, IDBConnectionTabPersistentState,
-} from "../../../../modules/db-editor/DBConnectionTab";
-import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { ExecutionWorkerPool } from "../../../../modules/db-editor/execution/ExecutionWorkerPool";
-import { DBType } from "../../../../supplement/ShellInterface";
-import { ICodeEditorModel, IEditorPersistentState } from "../../../../components/ui/CodeEditor/CodeEditor";
-import { EntityType } from "../../../../modules/db-editor";
-import { ExecutionContexts } from "../../../../script-execution/ExecutionContexts";
-import { CodeEditorMode, Monaco } from "../../../../components/ui/CodeEditor";
-import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
+} from "../../../../modules/db-editor/DBConnectionTab.js";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { ExecutionWorkerPool } from "../../../../modules/db-editor/execution/ExecutionWorkerPool.js";
+import { DBType } from "../../../../supplement/ShellInterface/index.js";
+import { ICodeEditorModel, IEditorPersistentState } from "../../../../components/ui/CodeEditor/CodeEditor.js";
+import { EntityType } from "../../../../modules/db-editor/index.js";
+import { ExecutionContexts } from "../../../../script-execution/ExecutionContexts.js";
+import { CodeEditorMode, Monaco } from "../../../../components/ui/CodeEditor/index.js";
+import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
 
 jest.mock("../../../../components/ui/CodeEditor/CodeEditor");
 

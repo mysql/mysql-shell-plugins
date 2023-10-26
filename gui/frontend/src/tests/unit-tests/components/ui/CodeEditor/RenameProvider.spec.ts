@@ -21,12 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { RenameProvider } from "../../../../../components/ui/CodeEditor/RenameProvider";
-import { ExecutionContext } from "../../../../../script-execution/ExecutionContext";
-import { PresentationInterface } from "../../../../../script-execution/PresentationInterface";
-import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices";
+import { RenameProvider } from "../../../../../components/ui/CodeEditor/RenameProvider.js";
+import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
+import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
+import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices.js";
 
-import { mockModel, position } from "../../../__mocks__/CodeEditorMocks";
+import { mockModel, position } from "../../../__mocks__/CodeEditorMocks.js";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
 

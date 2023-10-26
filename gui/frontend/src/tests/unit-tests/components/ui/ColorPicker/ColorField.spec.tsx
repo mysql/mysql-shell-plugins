@@ -24,10 +24,10 @@
 import { mount } from "enzyme";
 import Color from "color";
 
-import { nextProcessTick } from "../../../test-helpers";
-import { ColorField } from "../../../../../components/ui/ColorPicker/ColorField";
-import { ColorPopup } from "../../../../../components/ui/ColorPicker/ColorPopup";
-import { Container } from "../../../../../components/ui/Container/Container";
+import { nextProcessTick } from "../../../test-helpers.js";
+import { ColorField } from "../../../../../components/ui/ColorPicker/ColorField.js";
+import { ColorPopup } from "../../../../../components/ui/ColorPicker/ColorPopup.js";
+import { Container } from "../../../../../components/ui/Container/Container.js";
 
 describe("ColorField component tests", (): void => {
 

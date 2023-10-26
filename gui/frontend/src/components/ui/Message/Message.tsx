@@ -25,8 +25,8 @@ import "./Message.css";
 
 import { ComponentChild } from "preact";
 
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
-import { MessageType } from "../../../app-logic/Types";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { MessageType } from "../../../app-logic/Types.js";
 
 interface IMessageProperties extends IComponentProperties {
     type: MessageType;

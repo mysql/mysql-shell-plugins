@@ -27,10 +27,10 @@ import toolbarMenuIcon from "../../../assets/images/toolbar/toolbar-menu.svg";
 import newNotebookIcon from "../../../assets/images/newNotebook.svg";
 import newScriptIcon from "../../../assets/images/newScript.svg";
 
-import { IConnectionDetails } from "../../../supplement/ShellInterface";
-import { BrowserTile, IBrowserTileProperties } from "../BrowserTile/BrowserTile";
-import { Button } from "../Button/Button";
-import { Icon } from "../Icon/Icon";
+import { IConnectionDetails } from "../../../supplement/ShellInterface/index.js";
+import { BrowserTile, IBrowserTileProperties } from "../BrowserTile/BrowserTile.js";
+import { Button } from "../Button/Button.js";
+import { Icon } from "../Icon/Icon.js";
 
 export interface IConnectionTileProperties extends IBrowserTileProperties {
     details: IConnectionDetails;

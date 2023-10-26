@@ -24,7 +24,7 @@
 /* eslint-disable max-classes-per-file */
 
 import { CellComponent, ColumnComponent, ColumnDefinition, PopupPosition } from "tabulator-tables";
-import { DBDataType } from "../../../app-logic/Types";
+import { DBDataType } from "../../../app-logic/Types.js";
 
 export class MockColumnComponent implements ColumnComponent {
     public getElement = jest.fn();
@@ -52,8 +52,10 @@ export class MockColumnComponent implements ColumnComponent {
     public validate = jest.fn();
     public popup = jest.fn();
     public getDefinition = (): ColumnDefinition => {
-        return { title: "",
-            formatterParams: { dbDataType: DBDataType.Varchar } };
+        return {
+            title: "",
+            formatterParams: { dbDataType: DBDataType.Varchar },
+        };
     };
 }
 

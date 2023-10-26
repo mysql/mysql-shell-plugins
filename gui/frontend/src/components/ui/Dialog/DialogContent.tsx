@@ -25,11 +25,11 @@ import closeButton from "../../../assets/images/close2.svg";
 
 import { ComponentChild, createRef } from "preact";
 
-import { IComponentProperties, ComponentBase, IComponentSnapshot } from "../Component/ComponentBase";
-import { Container, Orientation } from "../Container/Container";
-import { Icon } from "../Icon/Icon";
-import { IDialogActions } from "./Dialog";
-import { Button } from "../Button/Button";
+import { IComponentProperties, ComponentBase, IComponentSnapshot } from "../Component/ComponentBase.js";
+import { Container, Orientation } from "../Container/Container.js";
+import { Icon } from "../Icon/Icon.js";
+import { IDialogActions } from "./Dialog.js";
+import { Button } from "../Button/Button.js";
 
 interface IDialogContentProperties extends IComponentProperties {
     content?: ComponentChild;

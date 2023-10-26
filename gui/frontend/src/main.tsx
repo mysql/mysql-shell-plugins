@@ -23,7 +23,7 @@
 
 import { render } from "preact";
 
-import { App } from "./app-logic/App";
+import { App } from "./app-logic/App.js";
 
 /* istanbul ignore next */
 render(

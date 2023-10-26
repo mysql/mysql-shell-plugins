@@ -23,8 +23,8 @@
 
 import { mount } from "enzyme";
 
-import { Orientation } from "../../../../components/ui/Container/Container";
-import { TagInput, ITagInputProperties } from "../../../../components/ui/TagInput/TagInput";
+import { Orientation } from "../../../../components/ui/Container/Container.js";
+import { TagInput, ITagInputProperties } from "../../../../components/ui/TagInput/TagInput.js";
 
 describe("TagInput testing", () => {
 

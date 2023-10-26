@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { MessageScheduler } from "../../communication/MessageScheduler";
-import { IShellDbConnection, ShellAPIGui } from "../../communication/ProtocolGui";
-import { webSession } from "../WebSession";
+import { MessageScheduler } from "../../communication/MessageScheduler.js";
+import { IShellDbConnection, ShellAPIGui } from "../../communication/ProtocolGui.js";
+import { webSession } from "../WebSession.js";
 
 export type RoutineType = "function" | "procedure";
 

@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ScriptingApi } from "../console.worker-types";
+import { ScriptingApi } from "../console.worker-types.js";
 
-import { currentWorker } from "./execute";
+import { currentWorker } from "./execute.js";
 
 /**
  * Converts a given value to a string and triggers an output action in the execution block.

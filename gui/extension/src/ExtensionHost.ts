@@ -26,36 +26,36 @@ import {
     WorkspaceConfiguration,
 } from "vscode";
 
-import { ShellTask } from "../../frontend/src/shell-tasks/ShellTask";
-import { Settings } from "../../frontend/src/supplement/Settings/Settings";
-import { ISettingCategory, settingCategories } from "../../frontend/src/supplement/Settings/SettingsRegistry";
-import { DBType } from "../../frontend/src/supplement/ShellInterface";
-import { webSession } from "../../frontend/src/supplement/WebSession";
+import { ShellTask } from "../../frontend/src/shell-tasks/ShellTask.js";
+import { Settings } from "../../frontend/src/supplement/Settings/Settings.js";
+import { ISettingCategory, settingCategories } from "../../frontend/src/supplement/Settings/SettingsRegistry.js";
+import { DBType } from "../../frontend/src/supplement/ShellInterface/index.js";
+import { webSession } from "../../frontend/src/supplement/WebSession.js";
 
-import { printChannelOutput, taskOutputChannel } from "./extension";
-import { ScriptsTreeDataProvider } from "./tree-providers/ScriptsTreeProvider";
-import { ShellTasksTreeDataProvider } from "./tree-providers/ShellTreeProvider/ShellTasksTreeProvider";
+import { printChannelOutput, taskOutputChannel } from "./extension.js";
+import { ScriptsTreeDataProvider } from "./tree-providers/ScriptsTreeProvider.js";
+import { ShellTasksTreeDataProvider } from "./tree-providers/ShellTreeProvider/ShellTasksTreeProvider.js";
 
-import { IStatusbarInfo } from "../../frontend/src/app-logic/Types";
-import { IShellModuleDataCategoriesEntry, IShellProfile } from "../../frontend/src/communication/ProtocolGui";
+import { IStatusbarInfo } from "../../frontend/src/app-logic/Types.js";
+import { IShellModuleDataCategoriesEntry, IShellProfile } from "../../frontend/src/communication/ProtocolGui.js";
 import {
     IRequestListEntry, IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider, requisitions,
-} from "../../frontend/src/supplement/Requisitions";
-import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface";
-import { NodeMessageScheduler } from "./communication/NodeMessageScheduler";
-import { DBEditorCommandHandler } from "./DBEditorCommandHandler";
-import { NotebookEditorProvider } from "./editor-providers/NotebookEditorProvider";
-import { MDSCommandHandler } from "./MDSCommandHandler";
-import { MRSCommandHandler } from "./MRSCommandHandler";
-import { ShellConsoleCommandHandler } from "./ShellConsoleCommandHandler";
+} from "../../frontend/src/supplement/Requisitions.js";
+import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
+import { NodeMessageScheduler } from "./communication/NodeMessageScheduler.js";
+import { DBEditorCommandHandler } from "./DBEditorCommandHandler.js";
+import { NotebookEditorProvider } from "./editor-providers/NotebookEditorProvider.js";
+import { MDSCommandHandler } from "./MDSCommandHandler.js";
+import { MRSCommandHandler } from "./MRSCommandHandler.js";
+import { ShellConsoleCommandHandler } from "./ShellConsoleCommandHandler.js";
 import {
     ICdmConnectionEntry, ICdmSchemaEntry,
-} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel";
+} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel.js";
 import {
     ConnectionsTreeDataProvider,
-} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider";
-import { DBConnectionViewProvider } from "./web-views/DBConnectionViewProvider";
-import { WebviewProvider } from "./web-views/WebviewProvider";
+} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider.js";
+import { DBConnectionViewProvider } from "./WebviewProviders/DBConnectionViewProvider.js";
+import { WebviewProvider } from "./WebviewProviders/WebviewProvider.js";
 
 /** This class manages some extension wide things like authentication handling etc. */
 export class ExtensionHost {

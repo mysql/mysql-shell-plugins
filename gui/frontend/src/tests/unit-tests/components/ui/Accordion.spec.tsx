@@ -25,8 +25,8 @@ import overviewPageIcon from "../../../../assets/images/overviewPage.svg";
 
 import { act } from "preact/test-utils";
 import { mount } from "enzyme";
-import { Accordion, IAccordionProperties } from "../../../../components/ui/Accordion/Accordion";
-import { Codicon } from "../../../../components/ui/Codicon";
+import { Accordion, IAccordionProperties } from "../../../../components/ui/Accordion/Accordion.js";
+import { Codicon } from "../../../../components/ui/Codicon.js";
 
 describe("Accordion component tests", (): void => {
 

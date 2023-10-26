@@ -25,7 +25,7 @@ import "./Image.css";
 
 import { ComponentChild } from "preact";
 
-import { ComponentBase, IComponentProperties, IComponentState } from "../Component/ComponentBase";
+import { ComponentBase, IComponentProperties, IComponentState } from "../Component/ComponentBase.js";
 
 export interface IImageProperties extends IComponentProperties {
     disabled?: boolean;

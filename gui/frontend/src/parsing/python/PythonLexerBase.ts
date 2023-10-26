@@ -25,7 +25,7 @@
 
 import { CharStream, CommonToken, Lexer, Token } from "antlr4ng";
 
-import { PythonLexer } from "./generated/PythonLexer";
+import { PythonLexer } from "./generated/PythonLexer.js";
 
 export abstract class PythonLexerBase extends Lexer {
     public static tabSize = 8;

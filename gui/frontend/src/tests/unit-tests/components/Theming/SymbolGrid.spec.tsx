@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { SymbolGrid } from "../../../../components/Theming/Preview/SymbolGrid";
+import { SymbolGrid } from "../../../../components/Theming/Preview/SymbolGrid.js";
 
 
 describe("SymbolGrid testing", () => {

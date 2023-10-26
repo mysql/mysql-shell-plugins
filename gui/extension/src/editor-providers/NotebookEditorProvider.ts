@@ -26,15 +26,16 @@ import {
     WorkspaceEdit, Range, OpenDialogOptions,
 } from "vscode";
 
-import { IEmbeddedMessage } from "../../../frontend/src/communication";
-import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
-import { RequisitionHub, requisitions } from "../../../frontend/src/supplement/Requisitions";
-import { DBType } from "../../../frontend/src/supplement/ShellInterface";
-import { ExtensionHost } from "../ExtensionHost";
-import { prepareWebviewContent } from "../web-views/webview";
-
-import { Semaphore } from "../../../frontend/src/supplement/Semaphore";
 import { readFile } from "fs/promises";
+
+import { IEmbeddedMessage } from "../../../frontend/src/communication/index.js";
+import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo.js";
+import { RequisitionHub, requisitions } from "../../../frontend/src/supplement/Requisitions.js";
+import { DBType } from "../../../frontend/src/supplement/ShellInterface/index.js";
+import { ExtensionHost } from "../ExtensionHost.js";
+import { prepareWebviewContent } from "../WebviewProviders/webview-helpers.js";
+
+import { Semaphore } from "../../../frontend/src/supplement/Semaphore.js";
 
 /** This provider manages a MySQL notebook document. */
 export class NotebookEditorProvider implements CustomTextEditorProvider {

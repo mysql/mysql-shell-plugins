@@ -22,38 +22,6 @@
  */
 
 import "./MrsObjectFieldEditor.css";
-
-import { ComponentChild, createRef, render } from "preact";
-
-import { IValueEditCustomProperties, ValueEditCustom } from "../../../components/Dialogs/ValueEditCustom";
-import { Label } from "../../../components/ui/Label/Label";
-import { ITreeGridOptions, TreeGrid } from "../../../components/ui/TreeGrid/TreeGrid";
-import {
-    IComponentProperties,
-    IComponentState,
-    SelectionType,
-} from "../../../components/ui/Component/ComponentBase";
-import {
-    CellComponent, ColumnDefinition, EmptyCallback, RowComponent,
-    ValueBooleanCallback, ValueVoidCallback,
-} from "tabulator-tables";
-import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { Dropdown } from "../../../components/ui/Dropdown/Dropdown";
-import { Container, ContentAlignment, Orientation } from "../../../components/ui/Container/Container";
-import { CheckState, Checkbox } from "../../../components/ui/Checkbox/Checkbox";
-import {
-    IMrsDbObjectData, IMrsObject, IMrsObjectFieldWithReference, IMrsObjectReference,
-} from "../../../communication/ProtocolMrs";
-import { uuidBinary16Base64 } from "../../../utilities/helpers";
-import {
-    camelToSnakeCase, convertCamelToTitleCase, convertToPascalCase, snakeToCamelCase,
-} from "../../../utilities/string-helpers";
-import { IInputChangeProperties, Input } from "../../../components/ui/Input/Input";
-import { Icon } from "../../../components/ui/Icon/Icon";
-import { Button } from "../../../components/ui/Button/Button";
-import { CodeEditor } from "../../../components/ui/CodeEditor/CodeEditor";
-import { IDictionary } from "../../../app-logic/Types";
-
 import tableIcon from "../../../assets/images/schemaTable.svg";
 import columnIcon from "../../../assets/images/schemaTableColumn.svg";
 import columnNnIcon from "../../../assets/images/schemaTableColumnNN.svg";
@@ -76,8 +44,37 @@ import inIcon from "../../../assets/images/in.svg";
 import outIcon from "../../../assets/images/out.svg";
 import inOutIcon from "../../../assets/images/inOut.svg";
 import closeIcon from "../../../assets/images/close2.svg";
-import { Codicon } from "../../../components/ui/Codicon";
-import { requisitions } from "../../../supplement/Requisitions";
+
+import { ComponentChild, createRef, render } from "preact";
+import {
+    CellComponent, ColumnDefinition, EmptyCallback, RowComponent,
+    ValueBooleanCallback, ValueVoidCallback,
+} from "tabulator-tables";
+
+import { IValueEditCustomProperties, ValueEditCustom } from "../../../components/Dialogs/ValueEditCustom.js";
+import { Label } from "../../../components/ui/Label/Label.js";
+import { ITreeGridOptions, TreeGrid } from "../../../components/ui/TreeGrid/TreeGrid.js";
+import {
+    IComponentProperties, IComponentState, SelectionType,
+} from "../../../components/ui/Component/ComponentBase.js";
+import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { Dropdown } from "../../../components/ui/Dropdown/Dropdown.js";
+import { Container, ContentAlignment, Orientation } from "../../../components/ui/Container/Container.js";
+import { CheckState, Checkbox } from "../../../components/ui/Checkbox/Checkbox.js";
+import {
+    IMrsDbObjectData, IMrsObject, IMrsObjectFieldWithReference, IMrsObjectReference,
+} from "../../../communication/ProtocolMrs.js";
+import { uuidBinary16Base64 } from "../../../utilities/helpers.js";
+import {
+    camelToSnakeCase, convertCamelToTitleCase, convertToPascalCase, snakeToCamelCase,
+} from "../../../utilities/string-helpers.js";
+import { IInputChangeProperties, Input } from "../../../components/ui/Input/Input.js";
+import { Icon } from "../../../components/ui/Icon/Icon.js";
+import { Button } from "../../../components/ui/Button/Button.js";
+import { CodeEditor } from "../../../components/ui/CodeEditor/CodeEditor.js";
+import { IDictionary } from "../../../app-logic/Types.js";
+import { Codicon } from "../../../components/ui/Codicon.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
 
 export enum MrsSdkLanguage {
     TypeScript = "TypeScript"

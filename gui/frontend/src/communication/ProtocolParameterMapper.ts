@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,10 +25,10 @@
 
 /* eslint-disable max-len */
 
-import { Protocol, ShellPromptResponseType } from "./Protocol";
-import { IProtocolGuiParameters } from "./ProtocolGui";
-import { IProtocolMdsParameters } from "./ProtocolMds";
-import { IProtocolMrsParameters } from "./ProtocolMrs";
+import { Protocol, ShellPromptResponseType } from "./Protocol.js";
+import { IProtocolGuiParameters } from "./ProtocolGui.js";
+import { IProtocolMdsParameters } from "./ProtocolMds.js";
+import { IProtocolMrsParameters } from "./ProtocolMrs.js";
 
 // This file contains all interfaces describing response types for the various shell APIs.
 
@@ -37,6 +37,6 @@ export interface IProtocolParameters extends IProtocolGuiParameters, IProtocolMd
     // For debugging only.
     "native": INativeShellRequest;
 
-    [Protocol.UserAuthenticate]: { username: string; password: string };
-    [Protocol.PromptReply]: { requestId: string; type: ShellPromptResponseType; reply: string; moduleSessionId: string };
+    [Protocol.UserAuthenticate]: { username: string; password: string; };
+    [Protocol.PromptReply]: { requestId: string; type: ShellPromptResponseType; reply: string; moduleSessionId: string; };
 }

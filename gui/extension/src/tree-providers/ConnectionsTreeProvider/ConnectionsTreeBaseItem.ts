@@ -24,9 +24,9 @@
 import * as path from "path";
 
 import { Command, TreeItem, TreeItemCollapsibleState, env, window, commands } from "vscode";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 
-import { showMessageWithTimeout, showModalDialog } from "../../utilities";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { showMessageWithTimeout, showModalDialog } from "../../utilities.js";
 
 export class ConnectionsTreeBaseItem extends TreeItem {
 

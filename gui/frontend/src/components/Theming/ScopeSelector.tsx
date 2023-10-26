@@ -23,17 +23,17 @@
 
 import { ComponentChild, createRef } from "preact";
 
-import { ValueEditDialog, IDialogValues, IDialogValidations, IDialogSection } from "../Dialogs/ValueEditDialog";
-import { ThemeEditorLists } from "./ThemeEditorLists";
-import { DialogResponseClosure } from "../../app-logic/Types";
+import { ValueEditDialog, IDialogValues, IDialogValidations, IDialogSection } from "../Dialogs/ValueEditDialog.js";
+import { ThemeEditorLists } from "./ThemeEditorLists.js";
+import { DialogResponseClosure } from "../../app-logic/Types.js";
 import {
     IComponentProperties, IComponentState, ComponentBase, ComponentPlacement,
-} from "../ui/Component/ComponentBase";
-import { Orientation } from "../ui/Container/Container";
-import { Label } from "../ui/Label/Label";
-import { Popup } from "../ui/Popup/Popup";
-import { ITag, TagInput } from "../ui/TagInput/TagInput";
-import { Button } from "../ui/Button/Button";
+} from "../ui/Component/ComponentBase.js";
+import { Orientation } from "../ui/Container/Container.js";
+import { Label } from "../ui/Label/Label.js";
+import { Popup } from "../ui/Popup/Popup.js";
+import { ITag, TagInput } from "../ui/TagInput/TagInput.js";
+import { Button } from "../ui/Button/Button.js";
 
 interface IScopeSelectorProperties extends IComponentProperties {
     defaultScopes: string[];

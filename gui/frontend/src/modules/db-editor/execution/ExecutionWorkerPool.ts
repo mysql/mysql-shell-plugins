@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IdentifiedWorker, WorkerPool } from "../../../supplement/WorkerPool";
-import { IConsoleWorkerTaskData, IConsoleWorkerResultData } from "../console.worker-types";
+import { IdentifiedWorker, WorkerPool } from "../../../supplement/WorkerPool.js";
+import { IConsoleWorkerTaskData, IConsoleWorkerResultData } from "../console.worker-types.js";
 
 import ConsoleWorker from "./console.worker?worker";
 

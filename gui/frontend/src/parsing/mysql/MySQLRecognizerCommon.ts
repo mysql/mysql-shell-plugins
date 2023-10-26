@@ -22,8 +22,9 @@
  */
 
 import { ErrorNode, ParserRuleContext, ParseTree, RuleContext, TerminalNode, Token, Vocabulary } from "antlr4ng";
-import { MySQLMRSParser, TextLiteralContext } from "./generated/MySQLMRSParser";
-import { reservedMySQLKeywords, mysqlKeywords, MySQLVersion } from "./mysql-keywords";
+
+import { MySQLMRSParser, TextLiteralContext } from "./generated/MySQLMRSParser.js";
+import { reservedMySQLKeywords, mysqlKeywords, MySQLVersion } from "./mysql-keywords.js";
 
 // This interface describes functionality found in both, lexer and parser classes.
 export interface IMySQLRecognizerCommon {

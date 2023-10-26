@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMrsLoginResult } from "./sdk/MrsBaseClasses";
+import { IMrsLoginResult } from "./sdk/MrsBaseClasses.js";
 
 /**
  * Defines the payload structure for the IServicePasswordRequest

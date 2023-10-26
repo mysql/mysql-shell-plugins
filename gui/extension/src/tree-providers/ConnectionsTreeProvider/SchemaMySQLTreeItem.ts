@@ -23,9 +23,8 @@
 
 import { Command } from "vscode";
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
-
-import { SchemaTreeItem } from "./SchemaTreeItem";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { SchemaTreeItem } from "./SchemaTreeItem.js";
 
 export class SchemaMySQLTreeItem extends SchemaTreeItem {
     public contextValue = "schemaItemMySQL";

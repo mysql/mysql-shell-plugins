@@ -24,9 +24,9 @@
 import Anser from "anser";
 import { window } from "vscode";
 
-import { IGenericResponse, ShellPromptResponseType } from "../../frontend/src/communication/Protocol";
-import { IShellFeedbackRequest } from "../../frontend/src/communication/ProtocolGui";
-import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { IGenericResponse, ShellPromptResponseType } from "../../frontend/src/communication/Protocol.js";
+import { IShellFeedbackRequest } from "../../frontend/src/communication/ProtocolGui.js";
+import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 
 const isShellPromptResult = (response?: unknown): response is IShellFeedbackRequest => {
     const candidate = response as IShellFeedbackRequest;

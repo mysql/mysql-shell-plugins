@@ -43,18 +43,18 @@ import wordWrapInactiveIcon from "../../assets/images/toolbar/toolbar-word_wrap-
 
 import { ComponentChild } from "preact";
 
-import { Settings } from "../../supplement/Settings/Settings";
-import { IOpenEditorState } from "./DBConnectionTab";
-import { requisitions } from "../../supplement/Requisitions";
-import { LoadingState } from "../../script-execution";
-import { IToolbarItems } from ".";
-import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase";
-import { Divider } from "../../components/ui/Divider/Divider";
-import { Icon } from "../../components/ui/Icon/Icon";
-import { Toolbar } from "../../components/ui/Toolbar/Toolbar";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { Button } from "../../components/ui/Button/Button";
-import { ExecutionContext } from "../../script-execution/ExecutionContext";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { IOpenEditorState } from "./DBConnectionTab.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { LoadingState } from "../../script-execution/index.js";
+import { IToolbarItems } from "./index.js";
+import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
+import { Divider } from "../../components/ui/Divider/Divider.js";
+import { Icon } from "../../components/ui/Icon/Icon.js";
+import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { Button } from "../../components/ui/Button/Button.js";
+import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
 
 interface IDBEditorToolbarProperties extends IComponentProperties {
     /**

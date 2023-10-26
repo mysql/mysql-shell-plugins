@@ -25,11 +25,11 @@ import "./Menu.css";
 
 import { cloneElement, ComponentChild, createRef } from "preact";
 
-import { collectVNodes } from "../../../utilities/ts-helpers";
-import { IComponentState, ComponentBase, ComponentPlacement, MouseEventType } from "../Component/ComponentBase";
-import { Orientation, Container, ContentAlignment } from "../Container/Container";
-import { IPopupProperties } from "../Popup/Popup";
-import { IMenuItemProperties, MenuItem } from "./MenuItem";
+import { collectVNodes } from "../../../utilities/preact-helpers.js";
+import { IComponentState, ComponentBase, ComponentPlacement, MouseEventType } from "../Component/ComponentBase.js";
+import { Orientation, Container, ContentAlignment } from "../Container/Container.js";
+import { IPopupProperties } from "../Popup/Popup.js";
+import { IMenuItemProperties, MenuItem } from "./MenuItem.js";
 
 interface IMenuBarProperties extends IPopupProperties {
     // Called for all menu item clicks (even for nested items).

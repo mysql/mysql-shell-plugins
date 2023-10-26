@@ -28,9 +28,9 @@ import {
     IndexSymbol, LogfileGroupSymbol, PluginSymbol, PrimaryKeySymbol, SchemaSymbol, StoredFunctionSymbol,
     StoredProcedureSymbol, TableSymbol, TablespaceSymbol, TriggerSymbol, UdfSymbol, UserSymbol, UserVariableSymbol,
     ViewSymbol,
-} from "../parsing/DBSymbolTable";
-import { SymbolKind } from "../parsing/parser-common";
-import { ShellInterfaceDb } from "../supplement/ShellInterface/ShellInterfaceDb";
+} from "../parsing/DBSymbolTable.js";
+import { SymbolKind } from "../parsing/parser-common.js";
+import { ShellInterfaceDb } from "../supplement/ShellInterface/ShellInterfaceDb.js";
 
 /** An enhanced database symbol table, which is able to retrieve their content from a shell DB connection on demand. */
 export class DynamicSymbolTable extends DBSymbolTable {

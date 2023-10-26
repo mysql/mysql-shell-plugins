@@ -23,7 +23,7 @@
 
 /* spell-checker: disable */
 
-import { languages } from "monaco-editor/esm/vs/editor/editor.api";
+import { languages } from "monaco-editor/esm/vs/editor/editor.api.js";
 
 export const languageConfiguration: languages.LanguageConfiguration = {
     // No configuration for the language. It's solely defined by its sub languages.

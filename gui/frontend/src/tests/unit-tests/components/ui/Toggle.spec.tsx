@@ -24,8 +24,8 @@
 import Color from "color";
 import { mount } from "enzyme";
 
-import { CheckState } from "../../../../components/ui/Checkbox/Checkbox";
-import { Toggle, IToggleProperties } from "../../../../components/ui/Toggle/Toggle";
+import { CheckState } from "../../../../components/ui/Checkbox/Checkbox.js";
+import { Toggle, IToggleProperties } from "../../../../components/ui/Toggle/Toggle.js";
 
 describe("Toggle testing", () => {
 

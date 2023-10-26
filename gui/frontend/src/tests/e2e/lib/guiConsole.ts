@@ -22,7 +22,7 @@
  */
 
 import { By, until, WebElement } from "selenium-webdriver";
-import { driver } from "./misc";
+import { driver } from "./misc.js";
 
 export class GuiConsole {
 
@@ -38,7 +38,7 @@ export class GuiConsole {
         if (id) {
             const buttons = await driver.findElements(By.css("#shellModuleHost #tilesHost button"));
             for (const button of buttons) {
-                if ( (await button.getAttribute("id")) === String(id) ) {
+                if ((await button.getAttribute("id")) === String(id)) {
                     await button.click();
                     break;
                 }

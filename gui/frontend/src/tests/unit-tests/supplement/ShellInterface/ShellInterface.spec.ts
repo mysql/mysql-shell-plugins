@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface";
+import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 
 describe("ShellInterface Tests", () => {
     it("Base Tests", () => {

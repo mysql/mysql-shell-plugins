@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { ShellPrompt } from "../../../../modules/shell/ShellPrompt";
+import { ShellPrompt } from "../../../../modules/shell/ShellPrompt.js";
 
 describe("Shell prompt tests", (): void => {
 

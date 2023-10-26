@@ -62,29 +62,31 @@ import typescriptIcon from "../../assets/images/file-icons/scriptTs.svg";
 import { ComponentChild, createRef, render } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
-import { EntityType, IDBDataEntry, IDBEditorScriptState, IEntityBase, ISchemaTreeEntry, SchemaTreeType } from ".";
-import { Codicon } from "../../components/ui/Codicon";
-import { IOpenEditorState } from "./DBConnectionTab";
-import { requisitions } from "../../supplement/Requisitions";
-import { EditorLanguage } from "../../supplement";
-import { Accordion, IAccordionProperties } from "../../components/ui/Accordion/Accordion";
-import { IAccordionItemProperties } from "../../components/ui/Accordion/AccordionItem";
+import {
+    EntityType, IDBDataEntry, IDBEditorScriptState, IEntityBase, ISchemaTreeEntry, SchemaTreeType,
+} from "./index.js";
+import { Codicon } from "../../components/ui/Codicon.js";
+import { IOpenEditorState } from "./DBConnectionTab.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { EditorLanguage } from "../../supplement/index.js";
+import { Accordion, IAccordionProperties } from "../../components/ui/Accordion/Accordion.js";
+import { IAccordionItemProperties } from "../../components/ui/Accordion/AccordionItem.js";
 import {
     IComponentProperties, IComponentState, ComponentBase, SelectionType, ComponentPlacement,
-} from "../../components/ui/Component/ComponentBase";
-import { Icon } from "../../components/ui/Icon/Icon";
-import { Input } from "../../components/ui/Input/Input";
-import { Label } from "../../components/ui/Label/Label";
-import { Menu } from "../../components/ui/Menu/Menu";
-import { Image } from "../../components/ui/Image/Image";
-import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem";
-import { TreeGrid, ITreeGridOptions, TabulatorProxy } from "../../components/ui/TreeGrid/TreeGrid";
-import { DBType } from "../../supplement/ShellInterface";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer";
-import { KeyboardKeys, uuid } from "../../utilities/helpers";
-import { quote } from "../../utilities/string-helpers";
-import { Settings } from "../../supplement/Settings/Settings";
+} from "../../components/ui/Component/ComponentBase.js";
+import { Icon } from "../../components/ui/Icon/Icon.js";
+import { Input } from "../../components/ui/Input/Input.js";
+import { Label } from "../../components/ui/Label/Label.js";
+import { Menu } from "../../components/ui/Menu/Menu.js";
+import { Image } from "../../components/ui/Image/Image.js";
+import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem.js";
+import { TreeGrid, ITreeGridOptions, TabulatorProxy } from "../../components/ui/TreeGrid/TreeGrid.js";
+import { DBType } from "../../supplement/ShellInterface/index.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer.js";
+import { KeyboardKeys, uuid } from "../../utilities/helpers.js";
+import { quote } from "../../utilities/string-helpers.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
 
 /** Lookup for icons for a specific document type. */
 export const documentTypeToIcon: Map<EditorLanguage, string> = new Map([

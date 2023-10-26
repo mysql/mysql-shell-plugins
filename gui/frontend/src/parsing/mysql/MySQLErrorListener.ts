@@ -28,10 +28,10 @@ import {
     NoViableAltException, ParserATNSimulator, RecognitionException, Recognizer, Token, Vocabulary,
 } from "antlr4ng";
 
-import { MySQLMRSParser } from "./generated/MySQLMRSParser";
-import { MySQLMRSLexer } from "./generated/MySQLMRSLexer";
-import { MySQLBaseLexer } from "./MySQLBaseLexer";
-import { ErrorReportCallback } from "../parser-common";
+import { MySQLMRSParser } from "./generated/MySQLMRSParser.js";
+import { MySQLMRSLexer } from "./generated/MySQLMRSLexer.js";
+import { MySQLBaseLexer } from "./MySQLBaseLexer.js";
+import { ErrorReportCallback } from "../parser-common.js";
 
 export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | ParserATNSimulator> {
 

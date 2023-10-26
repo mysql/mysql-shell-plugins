@@ -24,19 +24,19 @@
 import { ComponentChild, createRef, render } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
-import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase";
-import { ThemeManager } from "../Theming/ThemeManager";
-import { Settings } from "../../supplement/Settings/Settings";
-import { requisitions } from "../../supplement/Requisitions";
-import { ISettingCategory, ISettingValue } from "../../supplement/Settings/SettingsRegistry";
-import { IDictionary } from "../../app-logic/Types";
-import { CheckState, Checkbox, ICheckboxProperties } from "../ui/Checkbox/Checkbox";
-import { Dropdown, IDropdownProperties } from "../ui/Dropdown/Dropdown";
-import { Input, IInputChangeProperties } from "../ui/Input/Input";
-import { Label } from "../ui/Label/Label";
-import { TreeGrid, ITreeGridOptions } from "../ui/TreeGrid/TreeGrid";
-import { UpDown, IUpDownProperties } from "../ui/UpDown/UpDown";
-import { Button } from "../ui/Button/Button";
+import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase.js";
+import { ThemeManager } from "../Theming/ThemeManager.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { ISettingCategory, ISettingValue } from "../../supplement/Settings/SettingsRegistry.js";
+import { IDictionary } from "../../app-logic/Types.js";
+import { CheckState, Checkbox, ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
+import { Dropdown, IDropdownProperties } from "../ui/Dropdown/Dropdown.js";
+import { Input, IInputChangeProperties } from "../ui/Input/Input.js";
+import { Label } from "../ui/Label/Label.js";
+import { TreeGrid, ITreeGridOptions } from "../ui/TreeGrid/TreeGrid.js";
+import { UpDown, IUpDownProperties } from "../ui/UpDown/UpDown.js";
+import { Button } from "../ui/Button/Button.js";
 
 interface ISettingsEditorListProperties extends IComponentProperties {
     settingsTree: ISettingCategory[];

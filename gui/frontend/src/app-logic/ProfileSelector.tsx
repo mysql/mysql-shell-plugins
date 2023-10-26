@@ -30,23 +30,23 @@ import addIcon from "../assets/images/add.svg";
 import defaultIcon from "../assets/images/chevron-right.svg";
 import currentIcon from "../assets/images/overviewPage.svg";
 
-import { webSession } from "../supplement/WebSession";
-import { requisitions } from "../supplement/Requisitions";
-import { DialogResponseClosure } from "./Types";
-import { IShellProfile } from "../communication/ProtocolGui";
-import { ICheckboxProperties, CheckState } from "../components/ui/Checkbox/Checkbox";
-import { IComponentState, ComponentBase, ComponentPlacement } from "../components/ui/Component/ComponentBase";
-import { Container, Orientation } from "../components/ui/Container/Container";
-import { Label, ILabelProperties } from "../components/ui/Label/Label";
-import { List } from "../components/ui/List/List";
-import { Menu } from "../components/ui/Menu/Menu";
-import { MenuItem, IMenuItemProperties } from "../components/ui/Menu/MenuItem";
-import { ShellInterface } from "../supplement/ShellInterface/ShellInterface";
+import { webSession } from "../supplement/WebSession.js";
+import { requisitions } from "../supplement/Requisitions.js";
+import { DialogResponseClosure } from "./Types.js";
+import { IShellProfile } from "../communication/ProtocolGui.js";
+import { ICheckboxProperties, CheckState } from "../components/ui/Checkbox/Checkbox.js";
+import { IComponentState, ComponentBase, ComponentPlacement } from "../components/ui/Component/ComponentBase.js";
+import { Container, Orientation } from "../components/ui/Container/Container.js";
+import { Label, ILabelProperties } from "../components/ui/Label/Label.js";
+import { List } from "../components/ui/List/List.js";
+import { Menu } from "../components/ui/Menu/Menu.js";
+import { MenuItem, IMenuItemProperties } from "../components/ui/Menu/MenuItem.js";
+import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
 import {
     CommonDialogValueOption, ICheckListDialogValue, IDialogSection, IDialogValidations, IDialogValues,
     ValueEditDialog,
-} from "../components/Dialogs/ValueEditDialog";
-import { ConfirmDialog } from "../components/Dialogs/ConfirmDialog";
+} from "../components/Dialogs/ValueEditDialog.js";
+import { ConfirmDialog } from "../components/Dialogs/ConfirmDialog.js";
 
 interface IProfileSelectorState extends IComponentState {
     menuItems: ComponentChild[];

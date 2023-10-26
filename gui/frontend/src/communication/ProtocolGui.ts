@@ -21,10 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IConnectionDetails } from "../supplement/ShellInterface";
-import { IShellDictionary } from "./Protocol";
+import { IConnectionDetails } from "../supplement/ShellInterface/index.js";
+import { IShellDictionary } from "./Protocol.js";
 
 /* eslint-disable max-len */
+
 
 export enum ShellAPIGui {
     /** Indicates whether this module is a GUI backend module */

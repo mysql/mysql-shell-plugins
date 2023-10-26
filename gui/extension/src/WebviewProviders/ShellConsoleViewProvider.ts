@@ -21,12 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { requisitions } from "../../../frontend/src/supplement/Requisitions";
-
-import { ShellModuleId } from "../../../frontend/src/modules/ModuleInfo";
-
-import { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface";
-import { WebviewProvider } from "./WebviewProvider";
+import { requisitions } from "../../../frontend/src/supplement/Requisitions.js";
+import { ShellModuleId } from "../../../frontend/src/modules/ModuleInfo.js";
+import { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface/index.js";
+import { WebviewProvider } from "./WebviewProvider.js";
 
 export class ShellConsoleViewProvider extends WebviewProvider {
 

@@ -25,7 +25,7 @@ import image from "../../../../assets/images/close.svg";
 
 import { mount } from "enzyme";
 
-import { Image } from "../../../../components/ui/Image/Image";
+import { Image } from "../../../../components/ui/Image/Image.js";
 
 describe("Image component tests", (): void => {
 

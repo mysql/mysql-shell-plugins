@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IThenableCallback, WorkerExecutorType } from ".";
+import { IThenableCallback, WorkerExecutorType } from "./index.js";
 
 /**
  * The handler that manages callbacks for results and errors for a scheduled task. Modelled after promises, but

@@ -28,9 +28,9 @@ import {
     NoViableAltException, ParserATNSimulator, RecognitionException, Recognizer, Token,
 } from "antlr4ng";
 
-import { ErrorReportCallback } from "../parser-common";
-import { SQLiteParser } from "./generated/SQLiteParser";
-import { SQLiteLexer } from "./generated/SQLiteLexer";
+import { ErrorReportCallback } from "../parser-common.js";
+import { SQLiteParser } from "./generated/SQLiteParser.js";
+import { SQLiteLexer } from "./generated/SQLiteLexer.js";
 
 export class SQLiteErrorListener extends BaseErrorListener<LexerATNSimulator | ParserATNSimulator> {
 
