@@ -21,15 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../../../../app-logic/Types";
-import { MySQLConnectionScheme } from "../../../../communication/MySQL";
-import { IShellPromptValues } from "../../../../communication/ProtocolGui";
-import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface";
-import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface";
-import { ShellInterfaceShellSession } from "../../../../supplement/ShellInterface/ShellInterfaceShellSession";
-import { webSession } from "../../../../supplement/WebSession";
-import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
-import { getDbCredentials, ITestDbCredentials, setupShellForTests } from "../../test-helpers";
+import { IDictionary } from "../../../../app-logic/Types.js";
+import { MySQLConnectionScheme } from "../../../../communication/MySQL.js";
+import { IShellPromptValues } from "../../../../communication/ProtocolGui.js";
+import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
+import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
+import { ShellInterfaceShellSession } from "../../../../supplement/ShellInterface/ShellInterfaceShellSession.js";
+import { webSession } from "../../../../supplement/WebSession.js";
+import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
+import { getDbCredentials, ITestDbCredentials, setupShellForTests } from "../../test-helpers.js";
 
 describe("ShellInterfaceShellSession Tests", () => {
     let launcher: MySQLShellLauncher;

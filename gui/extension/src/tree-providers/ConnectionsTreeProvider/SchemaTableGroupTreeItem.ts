@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { SchemaItemGroupType } from "./SchemaIndex";
-import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { SchemaItemGroupType } from "./SchemaIndex.js";
+import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 
 export class TableGroupTreeItem extends ConnectionsTreeBaseItem {
 

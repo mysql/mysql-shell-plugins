@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { mysqlInfo, sqliteInfo } from "../app-logic/RdbmsInfo";
-import { DBDataType, IColumnInfo, IDictionary } from "../app-logic/Types";
-import { DBType } from "./ShellInterface";
+import { mysqlInfo, sqliteInfo } from "../app-logic/RdbmsInfo.js";
+import { DBDataType, IColumnInfo, IDictionary } from "../app-logic/Types.js";
+import { DBType } from "./ShellInterface/index.js";
 
 // Commonly used data types and functions.
 
@@ -134,7 +134,7 @@ export interface INewEditorRequest {
     content?: string;
 }
 
-export { Stack } from "./Stack";
+export { Stack } from "./Stack.js";
 
 export type WorkerExecutorType<T> = (
     onResult?: ((taskId: number, value: T) => void),

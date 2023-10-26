@@ -25,9 +25,9 @@ import mysqlIcon from "../../../../../assets/images/file-icons/scriptMysql.svg";
 
 import { mount } from "enzyme";
 
-import { DBType, IConnectionDetails } from "../../../../../supplement/ShellInterface";
-import { BrowserTileType } from "../../../../../components/ui/BrowserTile/BrowserTile";
-import { ConnectionTile } from "../../../../../components/ui/ConnectionTile/ConnectionTile";
+import { DBType, IConnectionDetails } from "../../../../../supplement/ShellInterface/index.js";
+import { BrowserTileType } from "../../../../../components/ui/BrowserTile/BrowserTile.js";
+import { ConnectionTile } from "../../../../../components/ui/ConnectionTile/ConnectionTile.js";
 
 describe("ConnectionTile component tests", (): void => {
 

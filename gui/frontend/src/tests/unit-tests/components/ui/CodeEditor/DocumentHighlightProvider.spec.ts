@@ -23,11 +23,11 @@
 
 import { IPosition } from "monaco-editor";
 
-import { DocumentHighlightProvider } from "../../../../../components/ui/CodeEditor/DocumentHighlightProvider";
-import { ExecutionContext } from "../../../../../script-execution/ExecutionContext";
-import { PresentationInterface } from "../../../../../script-execution/PresentationInterface";
-import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices";
-import { mockModel, position } from "../../../__mocks__/CodeEditorMocks";
+import { DocumentHighlightProvider } from "../../../../../components/ui/CodeEditor/DocumentHighlightProvider.js";
+import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
+import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
+import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices.js";
+import { mockModel, position } from "../../../__mocks__/CodeEditorMocks.js";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
 

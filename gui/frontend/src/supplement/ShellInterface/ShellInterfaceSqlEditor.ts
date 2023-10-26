@@ -21,16 +21,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { webSession } from "../WebSession";
-import { Settings } from "../Settings/Settings";
-import { MessageScheduler, DataCallback } from "../../communication/MessageScheduler";
-import { IPromptReplyBackend, ShellPromptResponseType, Protocol } from "../../communication/Protocol";
+import { webSession } from "../WebSession.js";
+import { Settings } from "../Settings/Settings.js";
+import { MessageScheduler, DataCallback } from "../../communication/MessageScheduler.js";
+import { IPromptReplyBackend, ShellPromptResponseType, Protocol } from "../../communication/Protocol.js";
 import {
     ShellAPIGui, IOpenConnectionData, IDbEditorResultSetData, IShellPasswordFeedbackRequest,
-} from "../../communication/ProtocolGui";
-import { ShellInterfaceDb } from "./ShellInterfaceDb";
-import { ShellInterfaceMds } from "./ShellInterfaceMds";
-import { ShellInterfaceMrs } from "./ShellInterfaceMrs";
+} from "../../communication/ProtocolGui.js";
+import { ShellInterfaceDb } from "./ShellInterfaceDb.js";
+import { ShellInterfaceMds } from "./ShellInterfaceMds.js";
+import { ShellInterfaceMrs } from "./ShellInterfaceMrs.js";
 
 export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPromptReplyBackend {
 

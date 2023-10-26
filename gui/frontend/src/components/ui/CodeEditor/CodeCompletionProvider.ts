@@ -23,8 +23,8 @@
 
 import {
     languages, Position, ProviderResult, CompletionList, CompletionItem, IRange, IProviderEditorModel, CodeEditorMode,
-} from ".";
-import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
+} from "./index.js";
+import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices.js";
 
 export class CodeCompletionProvider implements languages.CompletionItemProvider {
 

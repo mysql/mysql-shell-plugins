@@ -23,14 +23,14 @@
 
 import { mount } from "enzyme";
 
-import { ScriptEditor } from "../../../../../modules/db-editor/ScriptEditor";
-import { CodeEditorMode, Monaco } from "../../../../../components/ui/CodeEditor";
+import { ScriptEditor } from "../../../../../modules/db-editor/ScriptEditor.js";
+import { CodeEditorMode, Monaco } from "../../../../../components/ui/CodeEditor/index.js";
 import {
     ICodeEditorModel, IEditorPersistentState,
-} from "../../../../../components/ui/CodeEditor/CodeEditor";
-import { ExecutionContexts } from "../../../../../script-execution/ExecutionContexts";
-import { EntityType } from "../../../../../modules/db-editor";
-import { ISavedEditorState } from "../../../../../modules/db-editor/DBConnectionTab";
+} from "../../../../../components/ui/CodeEditor/CodeEditor.js";
+import { ExecutionContexts } from "../../../../../script-execution/ExecutionContexts.js";
+import { EntityType } from "../../../../../modules/db-editor/index.js";
+import { ISavedEditorState } from "../../../../../modules/db-editor/DBConnectionTab.js";
 
 describe("Standalone presentation interface tests", (): void => {
 

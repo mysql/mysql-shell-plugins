@@ -22,7 +22,8 @@
  */
 
 import { Component, ComponentChild, ComponentChildren, Ref } from "preact";
-import { IDictionary } from "../app-logic/Types";
+
+import { IDictionary } from "../app-logic/Types.js";
 
 export interface IModuleInfo {
     id: string;

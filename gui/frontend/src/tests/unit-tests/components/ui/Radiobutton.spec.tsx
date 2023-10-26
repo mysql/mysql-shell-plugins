@@ -24,12 +24,12 @@
 import { mount } from "enzyme";
 import { act } from "preact/test-utils";
 
-import { CheckState } from "../../../../components/ui/Checkbox/Checkbox";
-import { Radiobutton, IRadiobuttonProperties } from "../../../../components/ui/Radiobutton/Radiobutton";
-import { KeyboardKeys } from "../../../../utilities/helpers";
+import { CheckState } from "../../../../components/ui/Checkbox/Checkbox.js";
+import { Radiobutton, IRadiobuttonProperties } from "../../../../components/ui/Radiobutton/Radiobutton.js";
+import { KeyboardKeys } from "../../../../utilities/helpers.js";
 
-import { nextProcessTick, sendKeyPress } from "../../test-helpers";
-import { mouseEventMock } from "../../__mocks__/MockEvents";
+import { nextProcessTick, sendKeyPress } from "../../test-helpers.js";
+import { mouseEventMock } from "../../__mocks__/MockEvents.js";
 
 describe("Radiobutton component tests", (): void => {
 

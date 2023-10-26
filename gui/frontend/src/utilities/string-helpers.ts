@@ -22,7 +22,7 @@
  */
 
 import { Buffer } from "buffer";
-import { deepMapKeys } from "./helpers";
+import { deepMapKeys } from "./helpers.js";
 
 // A web worker friendly module for specific string handling.
 

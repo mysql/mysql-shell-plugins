@@ -24,8 +24,9 @@
 import * as path from "path";
 
 import { TreeItem, TreeItemCollapsibleState } from "vscode";
-import { IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
+
+import { IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface/index.js";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 
 export class ConnectionTreeItem extends TreeItem {
 

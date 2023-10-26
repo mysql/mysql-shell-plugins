@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,7 +22,7 @@
  */
 
 import { By, Key, WebElement } from "selenium-webdriver";
-import { driver } from "../lib/misc";
+import { driver } from "../lib/misc.js";
 
 export class ThemeEditor {
 
@@ -116,7 +116,7 @@ export class ThemeEditor {
      * @param scroll True to scroll down (menu is invisible)
      * @returns A promise resolving to true if it's expanded, false otherwise. Undefined if the menu is not found
      */
-    public static isUiColorsMenuExpanded = async(
+    public static isUiColorsMenuExpanded = async (
         menuName: string, scroll?: boolean): Promise<boolean | undefined> => {
         const isTabOpened = async (tab: WebElement) => {
             return (await tab.getAttribute("class")).includes("expanded");
@@ -220,4 +220,3 @@ export class ThemeEditor {
     };
 
 }
-

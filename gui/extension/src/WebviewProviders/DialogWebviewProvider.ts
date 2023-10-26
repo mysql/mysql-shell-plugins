@@ -23,10 +23,10 @@
 
 import {
     IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
-} from "../../../frontend/src/supplement/Requisitions";
+} from "../../../frontend/src/supplement/Requisitions.js";
 
-import { IDialogRequest, IDialogResponse } from "../../../frontend/src/app-logic/Types";
-import { WebviewProvider } from "./WebviewProvider";
+import { IDialogRequest, IDialogResponse } from "../../../frontend/src/app-logic/Types.js";
+import { WebviewProvider } from "./WebviewProvider.js";
 
 /** Creates and handles web views for dialog requests. */
 export class DialogWebviewManager {

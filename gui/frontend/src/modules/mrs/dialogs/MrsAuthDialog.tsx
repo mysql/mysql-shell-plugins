@@ -25,21 +25,21 @@ import "./MrsAuthDialog.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { requisitions } from "../../../supplement/Requisitions";
-import { IServicePasswordRequest } from "../../../app-logic/Types";
-import { Button, IButtonProperties } from "../../../components/ui/Button/Button";
-import { Codicon } from "../../../components/ui/Codicon";
-import { IComponentState, ComponentBase } from "../../../components/ui/Component/ComponentBase";
-import { ContentAlignment } from "../../../components/ui/Container/Container";
-import { Dialog } from "../../../components/ui/Dialog/Dialog";
-import { Grid } from "../../../components/ui/Grid/Grid";
-import { GridCell } from "../../../components/ui/Grid/GridCell";
-import { Icon } from "../../../components/ui/Icon/Icon";
-import { Input, IInputChangeProperties } from "../../../components/ui/Input/Input";
-import { Label } from "../../../components/ui/Label/Label";
-import { IMrsAuthApp, IMrsLoginResult, MrsBaseService } from "../sdk/MrsBaseClasses";
-import { IMrsAuthRequestPayload } from "../types";
-import { Dropdown } from "../../../components/ui/Dropdown/Dropdown";
+import { requisitions } from "../../../supplement/Requisitions.js";
+import { IServicePasswordRequest } from "../../../app-logic/Types.js";
+import { Button, IButtonProperties } from "../../../components/ui/Button/Button.js";
+import { Codicon } from "../../../components/ui/Codicon.js";
+import { IComponentState, ComponentBase } from "../../../components/ui/Component/ComponentBase.js";
+import { ContentAlignment } from "../../../components/ui/Container/Container.js";
+import { Dialog } from "../../../components/ui/Dialog/Dialog.js";
+import { Grid } from "../../../components/ui/Grid/Grid.js";
+import { GridCell } from "../../../components/ui/Grid/GridCell.js";
+import { Icon } from "../../../components/ui/Icon/Icon.js";
+import { Input, IInputChangeProperties } from "../../../components/ui/Input/Input.js";
+import { Label } from "../../../components/ui/Label/Label.js";
+import { IMrsAuthApp, IMrsLoginResult, MrsBaseService } from "../sdk/MrsBaseClasses.js";
+import { IMrsAuthRequestPayload } from "../types.js";
+import { Dropdown } from "../../../components/ui/Dropdown/Dropdown.js";
 
 interface IMrsAuthDialogState extends IComponentState {
     request?: IServicePasswordRequest,
@@ -189,7 +189,7 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
                         key="ok"
                         caption="OK"
                         onClick={this.handleButtonClick}
-                        disabled={error !== undefined || userName === "" || password === "" || authenticating }
+                        disabled={error !== undefined || userName === "" || password === "" || authenticating}
                     />,
                     <Button
                         id="cancel"

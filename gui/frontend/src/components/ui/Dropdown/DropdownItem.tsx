@@ -25,12 +25,12 @@ import "./Dropdown.css";
 
 import { ComponentChild, VNode } from "preact";
 
-import { Container, ContentAlignment, Orientation } from "../Container/Container";
-import { Checkbox, CheckState } from "../Checkbox/Checkbox";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
-import { IIconProperties } from "../Icon/Icon";
-import { IImageProperties } from "../Image/Image";
-import { Label } from "../Label/Label";
+import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
+import { Checkbox, CheckState } from "../Checkbox/Checkbox.js";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { IIconProperties } from "../Icon/Icon.js";
+import { IImageProperties } from "../Image/Image.js";
+import { Label } from "../Label/Label.js";
 
 export interface IDropdownItemProperties extends IComponentProperties {
     caption?: string;

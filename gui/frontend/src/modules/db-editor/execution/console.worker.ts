@@ -23,12 +23,12 @@
 
 /* eslint-disable no-restricted-globals */
 
-import { IDictionary } from "../../../app-logic/Types";
+import { IDictionary } from "../../../app-logic/Types.js";
 import {
     PrivateWorker, ScriptingApi, IConsoleWorkerResultData, IConsoleWorkerTaskData,
-} from "../console.worker-types";
+} from "../console.worker-types.js";
 
-import { execute } from "../runtime/execute";
+import { execute } from "../runtime/execute.js";
 
 import { Buffer } from "buffer";
 

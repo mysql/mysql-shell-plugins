@@ -25,8 +25,8 @@ import "./Grid.css";
 
 import { ComponentChild } from "preact";
 
-import { convertPropValue } from "../../../utilities/string-helpers";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
+import { convertPropValue } from "../../../utilities/string-helpers.js";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
 
 interface IGridProperties extends IComponentProperties {
     rowGap?: string | number;    // Spacing between rows in the grid.

@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { Slider } from "../../../../components/ui/Slider/Slider";
+import { Slider } from "../../../../components/ui/Slider/Slider.js";
 
 describe("Slider component tests", (): void => {
 

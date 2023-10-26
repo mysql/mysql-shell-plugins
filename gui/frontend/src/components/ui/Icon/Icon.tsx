@@ -25,9 +25,9 @@ import "./Icon.css";
 
 import { ComponentChild } from "preact";
 
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
-import { convertPropValue } from "../../../utilities/string-helpers";
-import { Codicon, iconNameMap } from "../Codicon";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { convertPropValue } from "../../../utilities/string-helpers.js";
+import { Codicon, iconNameMap } from "../Codicon.js";
 
 // Icons are images whose color can be set. Colors in the image itself are ignored.
 export interface IIconProperties extends IComponentProperties {

@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { ITokenEditorProperties, TokenEditor } from "../../../../components/Theming/TokenEditor";
+import { ITokenEditorProperties, TokenEditor } from "../../../../components/Theming/TokenEditor.js";
 
 describe("Token editor testing", () => {
 

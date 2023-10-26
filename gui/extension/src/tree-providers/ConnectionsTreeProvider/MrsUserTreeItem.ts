@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMrsUserData } from "../../../../frontend/src/communication/ProtocolMrs";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { MrsTreeBaseItem } from "./MrsTreeBaseItem";
+import { IMrsUserData } from "../../../../frontend/src/communication/ProtocolMrs.js";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
 export class MrsUserTreeItem extends MrsTreeBaseItem {
     public contextValue = "mrsUser";

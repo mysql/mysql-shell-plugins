@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,10 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../../app-logic/Types";
-import { deepEqual, strictEval, uuid } from "../../utilities/helpers";
-import { MessageScheduler } from "../../communication/MessageScheduler";
-import { requisitions } from "../../supplement/Requisitions";
+import { IDictionary } from "../../app-logic/Types.js";
+import { deepEqual, strictEval, uuid } from "../../utilities/helpers.js";
+import { MessageScheduler } from "../../communication/MessageScheduler.js";
+import { requisitions } from "../../supplement/Requisitions.js";
 
 /** The environment injected as global in the debugger scripts. */
 export class CommunicationDebuggerEnvironment {

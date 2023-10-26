@@ -27,19 +27,19 @@ import chevronRight from "../../assets/images/chevron-right.svg";
 
 import { ComponentChild } from "preact";
 
-import { MessageType } from "../../app-logic/Types";
-import { requisitions } from "../../supplement/Requisitions";
-import { ResponseError } from "../../communication/ResponseError";
-import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
-import { IComponentState, ComponentBase } from "../ui/Component/ComponentBase";
-import { Container, Orientation, ContentAlignment, ContentWrap } from "../ui/Container/Container";
-import { Grid } from "../ui/Grid/Grid";
-import { GridCell } from "../ui/Grid/GridCell";
-import { Icon } from "../ui/Icon/Icon";
-import { Input, IInputChangeProperties } from "../ui/Input/Input";
-import { Label } from "../ui/Label/Label";
-import { Message } from "../ui/Message/Message";
-import { Button } from "../ui/Button/Button";
+import { MessageType } from "../../app-logic/Types.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { ResponseError } from "../../communication/ResponseError.js";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
+import { IComponentState, ComponentBase } from "../ui/Component/ComponentBase.js";
+import { Container, Orientation, ContentAlignment, ContentWrap } from "../ui/Container/Container.js";
+import { Grid } from "../ui/Grid/Grid.js";
+import { GridCell } from "../ui/Grid/GridCell.js";
+import { Icon } from "../ui/Icon/Icon.js";
+import { Input, IInputChangeProperties } from "../ui/Input/Input.js";
+import { Label } from "../ui/Label/Label.js";
+import { Message } from "../ui/Message/Message.js";
+import { Button } from "../ui/Button/Button.js";
 
 interface ILoginPageState extends IComponentState {
     userName: string;

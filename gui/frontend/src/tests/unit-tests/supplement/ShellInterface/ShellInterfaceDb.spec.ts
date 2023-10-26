@@ -21,16 +21,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { MySQLConnectionScheme } from "../../../../communication/MySQL";
-import { IShellDbConnection } from "../../../../communication/ProtocolGui";
-import { ResponseError } from "../../../../communication/ResponseError";
-import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface";
-import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface";
-import { ShellInterfaceDb } from "../../../../supplement/ShellInterface/ShellInterfaceDb";
-import { webSession } from "../../../../supplement/WebSession";
-import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
+import { MySQLConnectionScheme } from "../../../../communication/MySQL.js";
+import { IShellDbConnection } from "../../../../communication/ProtocolGui.js";
+import { ResponseError } from "../../../../communication/ResponseError.js";
+import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
+import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
+import { ShellInterfaceDb } from "../../../../supplement/ShellInterface/ShellInterfaceDb.js";
+import { webSession } from "../../../../supplement/WebSession.js";
+import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
 
-import { getDbCredentials, ITestDbCredentials, setupShellForTests } from "../../test-helpers";
+import { getDbCredentials, ITestDbCredentials, setupShellForTests } from "../../test-helpers.js";
 
 describe("ShellInterfaceDb Tests", () => {
     let launcher: MySQLShellLauncher;

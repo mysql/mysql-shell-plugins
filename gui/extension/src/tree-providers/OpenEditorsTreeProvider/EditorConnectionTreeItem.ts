@@ -24,7 +24,8 @@
 import * as path from "path";
 
 import { TreeItem, TreeItemCollapsibleState } from "vscode";
-import { DBType } from "../../../../frontend/src/supplement/ShellInterface";
+
+import { DBType } from "../../../../frontend/src/supplement/ShellInterface/index.js";
 
 export class EditorConnectionTreeItem extends TreeItem {
 

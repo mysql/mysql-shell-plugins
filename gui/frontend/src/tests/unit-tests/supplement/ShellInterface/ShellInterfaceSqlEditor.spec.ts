@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
-import { nextRunLoop, setupShellForTests } from "../../test-helpers";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
+import { nextRunLoop, setupShellForTests } from "../../test-helpers.js";
 
 describe("ShellInterfaceSqlEditor Tests", () => {
     let launcher: MySQLShellLauncher;

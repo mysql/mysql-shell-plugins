@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { languages, Position, ProviderResult, Location, IProviderEditorModel } from ".";
-import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
+import { languages, Position, ProviderResult, Location, IProviderEditorModel } from "./index.js";
+import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices.js";
 
 export class ReferencesProvider implements languages.ReferenceProvider {
     public provideReferences(model: IProviderEditorModel, position: Position): ProviderResult<Location[]> {

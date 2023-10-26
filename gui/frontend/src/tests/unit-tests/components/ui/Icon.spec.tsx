@@ -27,7 +27,7 @@ import closeButton from "../../../../assets/images/close.svg";
 import React from "react";
 import { mount } from "enzyme";
 
-import { Icon } from "../../../../components/ui/Icon/Icon";
+import { Icon } from "../../../../components/ui/Icon/Icon.js";
 
 describe("Icon component tests", (): void => {
 

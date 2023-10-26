@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { Group, IGroupProperties } from "../../../../components/ui/Group/Group";
+import { Group, IGroupProperties } from "../../../../components/ui/Group/Group.js";
 
 describe("Group component tests", (): void => {
 

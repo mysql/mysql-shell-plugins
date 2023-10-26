@@ -30,13 +30,13 @@ import {
 
 import { CharStreams, CommonTokenStream } from "antlr4ng";
 
-import { PythonLexer } from "../../frontend/src/parsing/python/generated/PythonLexer";
+import { PythonLexer } from "../../frontend/src/parsing/python/generated/PythonLexer.js";
 
 import {
     IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
-} from "../../frontend/src/supplement/Requisitions";
-import { printChannelOutput } from "./extension";
-import { IDictionary } from "../../frontend/src/app-logic/Types";
+} from "../../frontend/src/supplement/Requisitions.js";
+import { printChannelOutput } from "./extension.js";
+import { IDictionary } from "../../frontend/src/app-logic/Types.js";
 
 /** A record of white spaces in a code block, which must be re-applied when replacing the original block. */
 interface IWhiteSpaces {

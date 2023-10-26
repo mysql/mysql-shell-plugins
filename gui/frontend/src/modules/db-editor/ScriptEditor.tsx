@@ -28,24 +28,24 @@ import loadIcon from "../../assets/images/toolbar/toolbar-load.svg";
 import { ComponentChild, createRef } from "preact";
 import { Position } from "monaco-editor";
 
-import { IEditorStatusInfo, ISchemaTreeEntry, IToolbarItems } from ".";
-import { StandalonePresentationInterface } from "./execution/StandalonePresentationInterface";
-import { requisitions } from "../../supplement/Requisitions";
-import { CodeEditor } from "../../components/ui/CodeEditor/CodeEditor";
-import { EditorLanguage, IScriptRequest } from "../../supplement";
-import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
-import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase";
-import { Orientation, Container, ContentAlignment } from "../../components/ui/Container/Container";
-import { SplitContainer, ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer";
-import { ExecutionContext } from "../../script-execution/ExecutionContext";
-import { PresentationInterface } from "../../script-execution/PresentationInterface";
-import { DBEditorToolbar } from "./DBEditorToolbar";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { IOpenEditorState, ISavedEditorState } from "./DBConnectionTab";
-import { Toolbar } from "../../components/ui/Toolbar/Toolbar";
-import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext";
-import { Button } from "../../components/ui/Button/Button";
-import { Icon } from "../../components/ui/Icon/Icon";
+import { IEditorStatusInfo, ISchemaTreeEntry, IToolbarItems } from "./index.js";
+import { StandalonePresentationInterface } from "./execution/StandalonePresentationInterface.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { CodeEditor } from "../../components/ui/CodeEditor/CodeEditor.js";
+import { EditorLanguage, IScriptRequest } from "../../supplement/index.js";
+import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
+import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
+import { Orientation, Container, ContentAlignment } from "../../components/ui/Container/Container.js";
+import { SplitContainer, ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer.js";
+import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
+import { PresentationInterface } from "../../script-execution/PresentationInterface.js";
+import { DBEditorToolbar } from "./DBEditorToolbar.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { IOpenEditorState, ISavedEditorState } from "./DBConnectionTab.js";
+import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
+import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
+import { Button } from "../../components/ui/Button/Button.js";
+import { Icon } from "../../components/ui/Icon/Icon.js";
 
 interface IScriptEditorProperties extends IComponentProperties {
     /** When true some adjustments are made to the UI to represent the editor in a way needed for pure notebooks. */

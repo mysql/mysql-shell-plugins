@@ -21,10 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IShellDictionary } from "./Protocol";
-import { IDictionary } from "../app-logic/Types";
+import { IShellDictionary } from "./Protocol.js";
+import { IDictionary } from "../app-logic/Types.js";
 
 /* eslint-disable max-len */
+
 
 export enum ShellAPIMrs {
     /** Returns basic information about this plugin. */

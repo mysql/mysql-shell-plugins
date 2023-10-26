@@ -23,11 +23,11 @@
 
 import { ComponentChild, createRef } from "preact";
 
-import { CodeEditorMode, Monaco, Range } from "../../../components/ui/CodeEditor";
-import { PresentationInterface } from "../../../script-execution/PresentationInterface";
-import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor";
-import { Divider } from "../../../components/ui/Divider/Divider";
-import { EditorLanguage } from "../../../supplement";
+import { CodeEditorMode, Monaco, Range } from "../../../components/ui/CodeEditor/index.js";
+import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
+import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor.js";
+import { Divider } from "../../../components/ui/Divider/Divider.js";
+import { EditorLanguage } from "../../../supplement/index.js";
 
 /** Handling of UI related tasks in a code editor for embedded contexts. */
 export class EmbeddedPresentationInterface extends PresentationInterface {

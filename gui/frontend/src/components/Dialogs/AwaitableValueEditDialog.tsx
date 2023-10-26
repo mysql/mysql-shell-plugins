@@ -23,10 +23,10 @@
 
 import { ComponentChild, createRef } from "preact";
 
-import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../app-logic/Types";
-import { Semaphore } from "../../supplement/Semaphore";
-import { ComponentBase } from "../ui/Component/ComponentBase";
-import { IDialogValidations, IDialogValues, IValueEditDialogShowOptions, ValueEditDialog } from "./ValueEditDialog";
+import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../app-logic/Types.js";
+import { Semaphore } from "../../supplement/Semaphore.js";
+import { ComponentBase } from "../ui/Component/ComponentBase.js";
+import { IDialogValidations, IDialogValues, IValueEditDialogShowOptions, ValueEditDialog } from "./ValueEditDialog.js";
 
 export interface IAwaitableDialogResult {
     values: IDialogValues;
@@ -69,7 +69,7 @@ export abstract class AwaitableValueEditDialog extends ComponentBase {
         return Promise.resolve(DialogResponseClosure.Cancel);
     }
 
-    protected async doShow(valueFactory: () => IDialogValues,
+    protected async doShow(valueFactory: () => IDialogValues | undefined,
         options?: IValueEditDialogShowOptions): Promise<IAwaitableDialogResult> {
         this.#signal = new Semaphore();
         this.#dialogRef.current?.show(valueFactory(), options);

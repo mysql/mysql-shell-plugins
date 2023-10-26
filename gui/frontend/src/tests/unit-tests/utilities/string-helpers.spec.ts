@@ -24,8 +24,8 @@
 import {
     convertCamelToSnakeCase, convertCamelToTitleCase, convertPropValue, convertSnakeToCamelCase,
     convertTitleToCamelCase, filterInt, formatTime, formatWithNumber, isWhitespaceOnly, quote, unquote,
-} from "../../../utilities/string-helpers";
-import { loremIpsum } from "../test-helpers";
+} from "../../../utilities/string-helpers.js";
+import { loremIpsum } from "../test-helpers.js";
 
 describe("String Helpers Tests", () => {
     it("Quoting and Unquoting", () => {

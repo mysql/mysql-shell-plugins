@@ -23,15 +23,15 @@
 
 import { ComponentChild, createRef } from "preact";
 
-import { ITextResultEntry } from "../../script-execution";
-import { requisitions } from "../../supplement/Requisitions";
-import { Button } from "../ui/Button/Button";
-import { Codicon } from "../ui/Codicon";
-import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase";
-import { Container, Orientation } from "../ui/Container/Container";
-import { Icon } from "../ui/Icon/Icon";
-import { JsonView } from "../ui/JsonView/JsonView";
-import { Label } from "../ui/Label/Label";
+import { ITextResultEntry } from "../../script-execution/index.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { Button } from "../ui/Button/Button.js";
+import { Codicon } from "../ui/Codicon.js";
+import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase.js";
+import { Container, Orientation } from "../ui/Container/Container.js";
+import { Icon } from "../ui/Icon/Icon.js";
+import { JsonView } from "../ui/JsonView/JsonView.js";
+import { Label } from "../ui/Label/Label.js";
 
 interface IActionOutputProperties extends IComponentProperties {
     /** The output to display. */

@@ -22,11 +22,11 @@
  */
 
 import { IPosition } from "monaco-editor";
-import { FormattingProvider } from "../../../../../components/ui/CodeEditor/FormattingProvider";
-import { ExecutionContext } from "../../../../../script-execution/ExecutionContext";
-import { PresentationInterface } from "../../../../../script-execution/PresentationInterface";
-import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices";
-import { mockTextModel, mockModel } from "../../../__mocks__/CodeEditorMocks";
+import { FormattingProvider } from "../../../../../components/ui/CodeEditor/FormattingProvider.js";
+import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
+import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
+import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices.js";
+import { mockTextModel, mockModel } from "../../../__mocks__/CodeEditorMocks.js";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
 

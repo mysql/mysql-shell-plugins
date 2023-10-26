@@ -25,11 +25,11 @@
 
 import { ComponentChild, createRef } from "preact";
 
-import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase";
+import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase.js";
 
-import { BarGraphRenderer } from "./BarGraphRenderer";
-import { LineGraphRenderer } from "./LineGraphRenderer";
-import { PieGraphRenderer } from "./PieGraphRenderer";
+import { BarGraphRenderer } from "./BarGraphRenderer.js";
+import { LineGraphRenderer } from "./LineGraphRenderer.js";
+import { PieGraphRenderer } from "./PieGraphRenderer.js";
 
 interface IGraphHostProps extends IComponentProperties {
     options: IGraphOptions;

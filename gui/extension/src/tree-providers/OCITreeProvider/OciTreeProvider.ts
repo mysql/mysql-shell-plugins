@@ -25,22 +25,22 @@ import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, window
 
 import {
     IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
-} from "../../../../frontend/src/supplement/Requisitions";
+} from "../../../../frontend/src/supplement/Requisitions.js";
 
-import { ICompartment } from "../../../../frontend/src/communication";
+import { ICompartment } from "../../../../frontend/src/communication/index.js";
 
 import {
     OciConfigProfileTreeItem, OciCompartmentTreeItem, OciDbSystemTreeItem, OciComputeInstanceTreeItem,
     OciBastionTreeItem, OciLoadBalancerTreeItem,
-} from ".";
-import { OciDbSystemHWTreeItem } from "./OciDbSystemHWTreeItem";
-import { OciDbSystemStandaloneTreeItem } from "./OciDbSystemStandaloneTreeItem";
-import { OciHWClusterTreeItem } from "./OciHWClusterTreeItem";
-import { MessageScheduler } from "../../../../frontend/src/communication/MessageScheduler";
-import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds";
+} from "./index.js";
+import { OciDbSystemHWTreeItem } from "./OciDbSystemHWTreeItem.js";
+import { OciDbSystemStandaloneTreeItem } from "./OciDbSystemStandaloneTreeItem.js";
+import { OciHWClusterTreeItem } from "./OciHWClusterTreeItem.js";
+import { MessageScheduler } from "../../../../frontend/src/communication/MessageScheduler.js";
+import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds.js";
 import {
     ShellInterfaceShellSession,
-} from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession";
+} from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession.js";
 
 // An interface for the compartment cache
 interface IConfigProfileCompartments {

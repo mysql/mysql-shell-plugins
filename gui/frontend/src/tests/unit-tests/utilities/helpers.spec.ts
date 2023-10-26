@@ -25,8 +25,8 @@
 
 import {
     binarySearch, clampValue, flattenObject, selectFile, sleep, strictEval, uuid, waitFor, deepEqual,
-} from "../../../utilities/helpers";
-import { nextProcessTick, uuidPattern } from "../test-helpers";
+} from "../../../utilities/helpers.js";
+import { nextProcessTick, uuidPattern } from "../test-helpers.js";
 
 describe("Utilities Tests", (): void => {
     it("flattenObject", (): void => {

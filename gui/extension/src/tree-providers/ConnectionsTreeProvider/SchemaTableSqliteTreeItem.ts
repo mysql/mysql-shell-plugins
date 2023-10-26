@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { SchemaTableTreeItem } from "./SchemaTableTreeItem";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { SchemaTableTreeItem } from "./SchemaTableTreeItem.js";
 
 export class SchemaTableSqliteTreeItem extends SchemaTableTreeItem {
     public contextValue = "schemaTableItem";

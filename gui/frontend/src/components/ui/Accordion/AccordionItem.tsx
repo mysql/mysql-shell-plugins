@@ -23,14 +23,14 @@
 
 import { ComponentChild, VNode } from "preact";
 
-import { Container, ContentAlignment } from "../Container/Container";
-import { IDictionary } from "../../../app-logic/Types";
-import { Codicon } from "../Codicon";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
-import { Icon } from "../Icon/Icon";
-import { Label } from "../Label/Label";
-import { Image } from "../Image/Image";
-import { KeyboardKeys } from "../../../utilities/helpers";
+import { Container, ContentAlignment } from "../Container/Container.js";
+import { IDictionary } from "../../../app-logic/Types.js";
+import { Codicon } from "../Codicon.js";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { Icon } from "../Icon/Icon.js";
+import { Label } from "../Label/Label.js";
+import { Image } from "../Image/Image.js";
+import { KeyboardKeys } from "../../../utilities/helpers.js";
 
 export interface IAccordionItemProperties extends IComponentProperties {
     caption: string;

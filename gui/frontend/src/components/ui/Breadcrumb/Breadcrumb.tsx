@@ -24,10 +24,11 @@
 import "./Breadcrumb.css";
 
 import { ComponentChild, Fragment } from "preact";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
-import { Container, Orientation } from "../Container/Container";
-import { Label } from "../Label/Label";
-import { Button } from "../Button/Button";
+
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { Container, Orientation } from "../Container/Container.js";
+import { Label } from "../Label/Label.js";
+import { Button } from "../Button/Button.js";
 
 // TODO: breadcrumb picker popup for a breadcrumb item.
 export interface IBreadcrumbProperties extends IComponentProperties {

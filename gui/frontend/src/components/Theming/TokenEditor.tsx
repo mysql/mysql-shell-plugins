@@ -27,18 +27,18 @@ import cloneButton from "../../assets/images/clone.svg";
 import { ComponentChild } from "preact";
 import Color from "color";
 
-import { ITokenEntry } from "./ThemeManager";
-import { CheckState, Checkbox, ICheckboxProperties } from "../ui/Checkbox/Checkbox";
-import { ColorField, IColorFieldProperties } from "../ui/ColorPicker/ColorField";
-import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase";
-import { Container, Orientation } from "../ui/Container/Container";
-import { Grid } from "../ui/Grid/Grid";
-import { GridCell } from "../ui/Grid/GridCell";
-import { Icon } from "../ui/Icon/Icon";
-import { Input, IInputChangeProperties } from "../ui/Input/Input";
-import { Label } from "../ui/Label/Label";
-import { ITag, TagInput } from "../ui/TagInput/TagInput";
-import { Button } from "../ui/Button/Button";
+import { ITokenEntry } from "./ThemeManager.js";
+import { CheckState, Checkbox, ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
+import { ColorField, IColorFieldProperties } from "../ui/ColorPicker/ColorField.js";
+import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase.js";
+import { Container, Orientation } from "../ui/Container/Container.js";
+import { Grid } from "../ui/Grid/Grid.js";
+import { GridCell } from "../ui/Grid/GridCell.js";
+import { Icon } from "../ui/Icon/Icon.js";
+import { Input, IInputChangeProperties } from "../ui/Input/Input.js";
+import { Label } from "../ui/Label/Label.js";
+import { ITag, TagInput } from "../ui/TagInput/TagInput.js";
+import { Button } from "../ui/Button/Button.js";
 
 export interface ITokenEditorProperties extends IComponentProperties {
     token: ITokenEntry;

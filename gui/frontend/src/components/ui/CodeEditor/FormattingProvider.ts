@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Monaco, languages, ProviderResult, FormattingOptions, TextEdit, IProviderEditorModel } from ".";
-import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
+import { Monaco, languages, ProviderResult, FormattingOptions, TextEdit, IProviderEditorModel } from "./index.js";
+import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices.js";
 
 /** A formatter which can only format entire commands (with their sub models). */
 export class FormattingProvider implements languages.DocumentFormattingEditProvider {

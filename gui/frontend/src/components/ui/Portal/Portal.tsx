@@ -25,9 +25,9 @@ import "./Portal.css";
 
 import { ComponentChild, render } from "preact";
 
-import { ComponentBase, IComponentProperties, IComponentState } from "../Component/ComponentBase";
-import { Stack } from "../../../supplement";
-import { KeyboardKeys } from "../../../utilities/helpers";
+import { ComponentBase, IComponentProperties, IComponentState } from "../Component/ComponentBase.js";
+import { Stack } from "../../../supplement/index.js";
+import { KeyboardKeys } from "../../../utilities/helpers.js";
 
 /** Options that can change on every show action. */
 export interface IPortalOptions {

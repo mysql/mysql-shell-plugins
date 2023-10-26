@@ -29,6 +29,7 @@ import { exit } from "process";
 import Enzyme from "enzyme";
 import Adapter from "enzyme-adapter-preact-pure";
 
+// @ts-ignore, because TS does not infer the correct use of the `Adapter` type.
 Enzyme.configure({ adapter: new Adapter() });
 
 jest.setTimeout(80000);

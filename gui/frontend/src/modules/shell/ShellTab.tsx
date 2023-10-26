@@ -21,38 +21,38 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ApplicationDB } from "../../app-logic/ApplicationDB";
+import { ComponentChild, createRef } from "preact";
+import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from "set-interval-async/dynamic";
+
+import { ApplicationDB } from "../../app-logic/ApplicationDB.js";
 import {
     IColumnInfo, MessageType, IDictionary, IServicePasswordRequest, IExecutionInfo, uriPattern,
-} from "../../app-logic/Types";
+} from "../../app-logic/Types.js";
 
-import { ComponentChild, createRef } from "preact";
-
-import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor";
-import { IExecutionResult, ITextResultEntry, ResultTextLanguage } from "../../script-execution";
-import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices";
-import { convertRows, EditorLanguage, generateColumnInfo } from "../../supplement";
-import { requisitions } from "../../supplement/Requisitions";
-import { Settings } from "../../supplement/Settings/Settings";
-import { flattenObject, uuid } from "../../utilities/helpers";
-import { ShellConsole } from "./ShellConsole";
-import { ShellPrompt } from "./ShellPrompt";
-import { unquote } from "../../utilities/string-helpers";
-import { MySQLConnectionScheme } from "../../communication/MySQL";
-import { ShellPromptHandler } from "../common/ShellPromptHandler";
-import { IScriptExecutionOptions } from "../../components/ui/CodeEditor";
-import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from "set-interval-async/dynamic";
+import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
+import { IExecutionResult, ITextResultEntry, ResultTextLanguage } from "../../script-execution/index.js";
+import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices.js";
+import { convertRows, EditorLanguage, generateColumnInfo } from "../../supplement/index.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { flattenObject, uuid } from "../../utilities/helpers.js";
+import { ShellConsole } from "./ShellConsole.js";
+import { ShellPrompt } from "./ShellPrompt.js";
+import { unquote } from "../../utilities/string-helpers.js";
+import { MySQLConnectionScheme } from "../../communication/MySQL.js";
+import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
+import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
 import {
     IShellPromptValues, IShellResultType, IShellObjectResult, IShellValueResult, IShellSimpleResult, IShellDocumentData,
     IShellColumnsMetaData, IShellRowData,
-} from "../../communication/ProtocolGui";
-import { IComponentProperties, ComponentBase } from "../../components/ui/Component/ComponentBase";
-import { Container, Orientation, ContentAlignment } from "../../components/ui/Container/Container";
-import { DBType } from "../../supplement/ShellInterface";
-import { ShellInterfaceDb } from "../../supplement/ShellInterface/ShellInterfaceDb";
-import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession";
-import { ExecutionContext } from "../../script-execution/ExecutionContext";
-import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext";
+} from "../../communication/ProtocolGui.js";
+import { IComponentProperties, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
+import { Container, Orientation, ContentAlignment } from "../../components/ui/Container/Container.js";
+import { DBType } from "../../supplement/ShellInterface/index.js";
+import { ShellInterfaceDb } from "../../supplement/ShellInterface/ShellInterfaceDb.js";
+import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
+import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
+import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
 
 interface IResultTimer {
     timer: SetIntervalAsyncTimer<unknown[]>;

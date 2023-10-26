@@ -31,28 +31,28 @@ import {
     CompletionItem, CompletionList, Definition, DocumentHighlight, FormattingOptions, Hover, IRange,
     languages, Location, Monaco, ParameterInformation, Range, SignatureHelp, SignatureHelpResult, SignatureInformation,
     TextEdit, TypeScriptWorker, Uri, WorkspaceEdit, IWorkspaceTextEdit, CodeEditorMode,
-} from "../components/ui/CodeEditor";
-import { ICodeEditorModel } from "../components/ui/CodeEditor/CodeEditor";
-import { ExecutionContext } from "./ExecutionContext";
-import { SQLExecutionContext } from "./SQLExecutionContext";
+} from "../components/ui/CodeEditor/index.js";
+import { ICodeEditorModel } from "../components/ui/CodeEditor/CodeEditor.js";
+import { ExecutionContext } from "./ExecutionContext.js";
+import { SQLExecutionContext } from "./SQLExecutionContext.js";
 import {
     DiagnosticSeverity, IDiagnosticEntry, ILanguageWorkerQueryPreprocessData, ILanguageWorkerApplySemicolonData,
     ILanguageWorkerInfoData, ILanguageWorkerParameterData, ILanguageWorkerQueryTypeData, ILanguageWorkerResultData,
     ILanguageWorkerSplitData, ILanguageWorkerValidateData, IParserErrorInfo, IStatementSpan, QueryType,
     ServiceLanguage, StatementFinishState, ILanguageWorkerTokenizeData,
-} from "../parsing/parser-common";
+} from "../parsing/parser-common.js";
 
-import { MySQLLanguageService } from "../parsing/mysql/MySQLLanguageService";
-import { SQLiteLanguageService } from "../parsing/SQLite/SQLiteLanguageService";
-import { PythonLanguageService } from "../parsing/python/PythonLanguageServices";
+import { MySQLLanguageService } from "../parsing/mysql/MySQLLanguageService.js";
+import { SQLiteLanguageService } from "../parsing/SQLite/SQLiteLanguageService.js";
+import { PythonLanguageService } from "../parsing/python/PythonLanguageServices.js";
 
-import { isWhitespaceOnly } from "../utilities/string-helpers";
+import { isWhitespaceOnly } from "../utilities/string-helpers.js";
 
-import { LanguageWorkerPool } from "../parsing/worker/LanguageWorkerPool";
-import { IShellEditorModel } from "../modules/shell";
-import { IDictionary } from "../app-logic/Types";
-import { IExecutionContext } from "../supplement";
-import { ITextToken } from ".";
+import { LanguageWorkerPool } from "../parsing/worker/LanguageWorkerPool.js";
+import { IShellEditorModel } from "../modules/shell/index.js";
+import { IDictionary } from "../app-logic/Types.js";
+import { IExecutionContext } from "../supplement/index.js";
+import { ITextToken } from "./index.js";
 
 /** Provides language services like code completion, by reaching out to built-in or other sources. */
 export class ScriptingLanguageServices {

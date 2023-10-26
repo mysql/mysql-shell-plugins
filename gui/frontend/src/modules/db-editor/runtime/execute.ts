@@ -22,8 +22,8 @@
  */
 
 
-import { PrivateWorker } from "../console.worker-types";
-import { IDictionary } from "../../../app-logic/Types";
+import { PrivateWorker } from "../console.worker-types.js";
+import { IDictionary } from "../../../app-logic/Types.js";
 
 /** This is a global var only in the current worker and used for all user-visible APIs. */
 export let currentWorker: PrivateWorker;
@@ -57,22 +57,22 @@ export const execute = async (worker: PrivateWorker, code: string,
     //       "unused" imports.
 
     // APIs which are directly available in user code.
-    const { runSql, runSqlIterative, runSqlWithCallback } = await import("./query");
-    const { print, setGlobalScriptingObjectProperty } = await import("./simple-functions");
+    const { runSql, runSqlIterative, runSqlWithCallback } = await import("./query.js");
+    const { print, setGlobalScriptingObjectProperty } = await import("./simple-functions.js");
 
-    const { webFetch: fetch } = await import("./web-functions");
+    const { webFetch: fetch } = await import("./web-functions.js");
     const { mrsPrintSdkCode, mrsSetCurrentService, mrsEditService, mrsSetServiceUrl,
         mrsAuthenticate, mrsEditSchema, mrsEditDbObject,
-    } = await import("./web-functions");
+    } = await import("./web-functions.js");
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    const { GraphProxy: Graph } = await import("./GraphProxy");
+    const { GraphProxy: Graph } = await import("./GraphProxy.js");
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    const { PieGraphProxy: PieGraph } = await import("./PieGraphProxy");
+    const { PieGraphProxy: PieGraph } = await import("./PieGraphProxy.js");
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    const { PieGraphLayout } = await import("../console.worker-types");
+    const { PieGraphLayout } = await import("../console.worker-types.js");
 
     /* Define the variable $ as a proxy to the globalObject. This triggers the get/set functions of the proxy whenever
     a property of $ set or read. Use the set function to update the globalObject property.*/

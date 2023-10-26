@@ -23,8 +23,8 @@
 
 import { ComponentChild } from "preact";
 
-import { DialogResponseClosure, IDictionary } from "../../app-logic/Types";
-import { IComponentProperties, IComponentState, ComponentBase } from "../ui/Component/ComponentBase";
+import { DialogResponseClosure, IDictionary } from "../../app-logic/Types.js";
+import { IComponentProperties, IComponentState, ComponentBase } from "../ui/Component/ComponentBase.js";
 
 interface IValueDialogBaseProperties extends IComponentProperties {
     onClose: (closure: DialogResponseClosure, values?: IDictionary) => void;

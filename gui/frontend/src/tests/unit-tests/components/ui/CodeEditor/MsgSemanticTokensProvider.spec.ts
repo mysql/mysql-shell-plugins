@@ -21,15 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { CodeEditorMode, Monaco, tokenModifiers, tokenTypes } from "../../../../../components/ui/CodeEditor";
-import { ICodeEditorModel } from "../../../../../components/ui/CodeEditor/CodeEditor";
-import { MsgSemanticTokensProvider } from "../../../../../components/ui/CodeEditor/MsgSemanticTokensProvider";
+import { CodeEditorMode, Monaco, tokenModifiers, tokenTypes } from "../../../../../components/ui/CodeEditor/index.js";
+import { ICodeEditorModel } from "../../../../../components/ui/CodeEditor/CodeEditor.js";
+import { MsgSemanticTokensProvider } from "../../../../../components/ui/CodeEditor/MsgSemanticTokensProvider.js";
 import {
     EmbeddedPresentationInterface,
-} from "../../../../../modules/db-editor/execution/EmbeddedPresentationInterface";
-import { ExecutionContexts } from "../../../../../script-execution/ExecutionContexts";
-import { PresentationInterface } from "../../../../../script-execution/PresentationInterface";
-import { nextProcessTick } from "../../../test-helpers";
+} from "../../../../../modules/db-editor/execution/EmbeddedPresentationInterface.js";
+import { ExecutionContexts } from "../../../../../script-execution/ExecutionContexts.js";
+import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
+import { nextProcessTick } from "../../../test-helpers.js";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
 

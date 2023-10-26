@@ -25,15 +25,15 @@ import "./MessagePanel.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { appParameters, requisitions } from "../../supplement/Requisitions";
-import { Codicon } from "../ui/Codicon";
-import { IComponentState, ComponentBase } from "../ui/Component/ComponentBase";
-import { Container, Orientation } from "../ui/Container/Container";
-import { Dialog } from "../ui/Dialog/Dialog";
-import { Icon } from "../ui/Icon/Icon";
-import { Label } from "../ui/Label/Label";
-import { Button } from "../ui/Button/Button";
-import { Semaphore } from "../../supplement/Semaphore";
+import { appParameters, requisitions } from "../../supplement/Requisitions.js";
+import { Codicon } from "../ui/Codicon.js";
+import { IComponentState, ComponentBase } from "../ui/Component/ComponentBase.js";
+import { Container, Orientation } from "../ui/Container/Container.js";
+import { Dialog } from "../ui/Dialog/Dialog.js";
+import { Icon } from "../ui/Icon/Icon.js";
+import { Label } from "../ui/Label/Label.js";
+import { Button } from "../ui/Button/Button.js";
+import { Semaphore } from "../../supplement/Semaphore.js";
 
 interface IMessagePanelState extends IComponentState {
     isError: boolean;

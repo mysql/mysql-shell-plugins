@@ -21,13 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { CodeEditorMode, Monaco } from "../../../components/ui/CodeEditor";
+import { CodeEditorMode, Monaco } from "../../../components/ui/CodeEditor/index.js";
 
-import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor";
-import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
-import { PresentationInterface } from "../../../script-execution/PresentationInterface";
-import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
-import { sleep } from "../../../utilities/helpers";
+import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor.js";
+import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
+import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
+import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices.js";
+import { sleep } from "../../../utilities/helpers.js";
 
 describe("ScriptingLanguageServices Tests", () => {
     const services = ScriptingLanguageServices.instance;

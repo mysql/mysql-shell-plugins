@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ICodeEditorOptions } from "./CodeEditor";
+import { ICodeEditorOptions } from "./CodeEditor/index.js";
 
 export const defaultEditorOptions: ICodeEditorOptions = {
     tabSize: 4,

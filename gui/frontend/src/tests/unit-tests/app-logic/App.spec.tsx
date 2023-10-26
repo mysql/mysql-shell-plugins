@@ -23,15 +23,15 @@
 
 import { mount } from "enzyme";
 
-import { App } from "../../../app-logic/App";
-import { IStatusbarInfo } from "../../../app-logic/Types";
-import { MessageScheduler } from "../../../communication/MessageScheduler";
-import { IEditorStatusInfo } from "../../../modules/db-editor";
-import { appParameters, requisitions } from "../../../supplement/Requisitions";
-import { waitFor } from "../../../utilities/helpers";
-import { MySQLShellLauncher } from "../../../utilities/MySQLShellLauncher";
-import { setupShellForTests } from "../test-helpers";
-import { mouseEventMock } from "../__mocks__/MockEvents";
+import { App } from "../../../app-logic/App.js";
+import { IStatusbarInfo } from "../../../app-logic/Types.js";
+import { MessageScheduler } from "../../../communication/MessageScheduler.js";
+import { IEditorStatusInfo } from "../../../modules/db-editor/index.js";
+import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
+import { waitFor } from "../../../utilities/helpers.js";
+import { MySQLShellLauncher } from "../../../utilities/MySQLShellLauncher.js";
+import { setupShellForTests } from "../test-helpers.js";
+import { mouseEventMock } from "../__mocks__/MockEvents.js";
 
 describe("Application tests", () => {
     let app: ReturnType<typeof mount>;

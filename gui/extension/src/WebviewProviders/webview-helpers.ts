@@ -255,6 +255,5 @@ export const prepareWebviewContent = (panel: WebviewPanel, url: URL): void => {
     }
 </script>
 
-</body></html>
-                    `;
+</body></html>`;
 };

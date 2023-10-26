@@ -24,14 +24,15 @@
 import "./Label.css";
 
 import { ComponentChild, ComponentChildren, createRef } from "preact";
-import Anser from "anser";
-import { editor as Monaco } from "monaco-editor/esm/vs/editor/editor.api";
-
-import { IComponentProperties, ComponentBase, IComponentState } from "../Component/ComponentBase";
-import { EditorLanguage } from "../../../supplement";
-import { MessageType } from "../../../app-logic/Types";
-import { ThemeManager } from "../../Theming/ThemeManager";
 import { CSSProperties } from "preact/compat";
+
+import Anser from "anser";
+import { editor as Monaco } from "monaco-editor/esm/vs/editor/editor.api.js";
+
+import { IComponentProperties, ComponentBase, IComponentState } from "../Component/ComponentBase.js";
+import { EditorLanguage } from "../../../supplement/index.js";
+import { MessageType } from "../../../app-logic/Types.js";
+import { ThemeManager } from "../../Theming/ThemeManager.js";
 
 /** Semantically the same as ContentAlignment, but needs different values. */
 export enum TextAlignment {

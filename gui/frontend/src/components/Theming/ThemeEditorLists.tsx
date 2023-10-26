@@ -29,18 +29,18 @@ import { ComponentChild, createRef, render } from "preact";
 import Color from "color";
 import { CellComponent, ColumnDefinition } from "tabulator-tables";
 
-import { ITokenEntry, ThemeManager } from "./ThemeManager";
-import { TokenEditor } from "./TokenEditor";
-import { ScopeSelector } from "./ScopeSelector";
-import { IDictionary } from "../../app-logic/Types";
-import { ColorField, IColorFieldProperties } from "../ui/ColorPicker/ColorField";
-import { IComponentProperties, IComponentState, ComponentBase, SelectionType } from "../ui/Component/ComponentBase";
-import { Container, Orientation } from "../ui/Container/Container";
-import { Icon } from "../ui/Icon/Icon";
-import { Label } from "../ui/Label/Label";
-import { ITabviewPage, Tabview, TabPosition } from "../ui/Tabview/Tabview";
-import { ITreeGridOptions, TreeGrid } from "../ui/TreeGrid/TreeGrid";
-import { deepClone } from "../../utilities/helpers";
+import { ITokenEntry, ThemeManager } from "./ThemeManager.js";
+import { TokenEditor } from "./TokenEditor.js";
+import { ScopeSelector } from "./ScopeSelector.js";
+import { IDictionary } from "../../app-logic/Types.js";
+import { ColorField, IColorFieldProperties } from "../ui/ColorPicker/ColorField.js";
+import { IComponentProperties, IComponentState, ComponentBase, SelectionType } from "../ui/Component/ComponentBase.js";
+import { Container, Orientation } from "../ui/Container/Container.js";
+import { Icon } from "../ui/Icon/Icon.js";
+import { Label } from "../ui/Label/Label.js";
+import { ITabviewPage, Tabview, TabPosition } from "../ui/Tabview/Tabview.js";
+import { ITreeGridOptions, TreeGrid } from "../ui/TreeGrid/TreeGrid.js";
+import { deepClone } from "../../utilities/helpers.js";
 
 const noPreviewText = "No preview is available for this color. It's not used in this application.";
 

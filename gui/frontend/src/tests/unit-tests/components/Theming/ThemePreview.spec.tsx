@@ -23,7 +23,7 @@
 
 import { shallow } from "enzyme";
 
-import { ThemePreview } from "../../../../components/Theming/Preview/ThemePreview";
+import { ThemePreview } from "../../../../components/Theming/Preview/ThemePreview.js";
 
 describe("ThemePreview testing", () => {
 

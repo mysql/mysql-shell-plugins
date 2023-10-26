@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { SchemaRoutineTreeItem } from "./SchemaRoutineTreeItem";
+import { SchemaRoutineTreeItem } from "./SchemaRoutineTreeItem.js";
 
 export class SchemaRoutineMySQLTreeItem extends SchemaRoutineTreeItem {
     public contextValue = "schemaRoutineItemMySQL";

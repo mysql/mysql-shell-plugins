@@ -22,7 +22,7 @@
  */
 
 import { By, until, WebElement, error } from "selenium-webdriver";
-import { driver, explicitWait } from "./misc";
+import { driver, explicitWait } from "./misc.js";
 
 export class ShellSession {
 

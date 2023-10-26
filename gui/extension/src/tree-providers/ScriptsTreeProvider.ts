@@ -23,9 +23,9 @@
 
 import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event } from "vscode";
 
-import { IDBDataEntry } from "../../../frontend/src/modules/db-editor";
-import { ShellInterface } from "../../../frontend/src/supplement/ShellInterface/ShellInterface";
-import { ScriptTreeItem } from "./ScriptTreeItem";
+import { IDBDataEntry } from "../../../frontend/src/modules/db-editor/index.js";
+import { ShellInterface } from "../../../frontend/src/supplement/ShellInterface/ShellInterface.js";
+import { ScriptTreeItem } from "./ScriptTreeItem.js";
 
 /** A class to provide the script files tree structure. */
 export class ScriptsTreeDataProvider implements TreeDataProvider<TreeItem> {

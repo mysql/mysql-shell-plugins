@@ -23,9 +23,9 @@
 
 import { CharStreams } from "antlr4ng";
 
-import { MySQLMRSLexer } from "../../../../parsing/mysql/generated/MySQLMRSLexer";
-import { SqlMode } from "../../../../parsing/mysql/MySQLRecognizerCommon";
-import { QueryType } from "../../../../parsing/parser-common";
+import { MySQLMRSLexer } from "../../../../parsing/mysql/generated/MySQLMRSLexer.js";
+import { SqlMode } from "../../../../parsing/mysql/MySQLRecognizerCommon.js";
+import { QueryType } from "../../../../parsing/parser-common.js";
 
 describe("MySQLBaseLexer Tests", (): void => {
     // Note: do not create a base lexer as such (which is abstract) but instead use the MySQLMRSLexer (for which

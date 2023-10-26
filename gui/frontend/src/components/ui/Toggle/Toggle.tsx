@@ -26,9 +26,9 @@ import "./Toggle.css";
 import { ComponentChild, createRef } from "preact";
 import Color from "color";
 
-import { convertPropValue } from "../../../utilities/string-helpers";
-import { CheckState } from "../Checkbox/Checkbox";
-import { IComponentProperties, ComponentBase, MouseEventType } from "../Component/ComponentBase";
+import { convertPropValue } from "../../../utilities/string-helpers.js";
+import { CheckState } from "../Checkbox/Checkbox.js";
+import { IComponentProperties, ComponentBase, MouseEventType } from "../Component/ComponentBase.js";
 
 export interface IToggleProperties extends IComponentProperties {
     checkState?: CheckState;

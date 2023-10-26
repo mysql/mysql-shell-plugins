@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { IThemeEditorListsProperties, ThemeEditorLists } from "../../../../components/Theming/ThemeEditorLists";
+import { IThemeEditorListsProperties, ThemeEditorLists } from "../../../../components/Theming/ThemeEditorLists.js";
 
 describe("Theme editor lists testing", () => {
 

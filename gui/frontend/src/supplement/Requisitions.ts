@@ -23,21 +23,21 @@
 
 import {
     EditorLanguage, IExecutionContext, INewEditorRequest, IRunQueryRequest, IScriptRequest, ISqlPageRequest,
-} from ".";
+} from "./index.js";
 
 import {
     IDialogRequest, IDialogResponse, IDictionary, IServicePasswordRequest, IStatusbarInfo,
-} from "../app-logic/Types";
-import type { IEmbeddedMessage, IEmbeddedSourceType, IMySQLDbSystem } from "../communication";
-import { IShellProfile, IShellPromptValues, IWebSessionData } from "../communication/ProtocolGui";
+} from "../app-logic/Types.js";
+import type { IEmbeddedMessage, IEmbeddedSourceType, IMySQLDbSystem } from "../communication/index.js";
+import { IShellProfile, IShellPromptValues, IWebSessionData } from "../communication/ProtocolGui.js";
 import type {
     IMrsAuthAppData, IMrsContentSetData, IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsUserData,
-} from "../communication/ProtocolMrs";
+} from "../communication/ProtocolMrs.js";
 
-import { IThemeChangeData } from "../components/Theming/ThemeManager";
-import { EntityType, IEditorStatusInfo, ISchemaTreeEntry } from "../modules/db-editor";
-import { RequisitionPipeline } from "./RequisitionPipeline";
-import { DBType, IConnectionDetails, IShellSessionDetails } from "./ShellInterface";
+import { IThemeChangeData } from "../components/Theming/ThemeManager.js";
+import { EntityType, IEditorStatusInfo, ISchemaTreeEntry } from "../modules/db-editor/index.js";
+import { RequisitionPipeline } from "./RequisitionPipeline.js";
+import { DBType, IConnectionDetails, IShellSessionDetails } from "./ShellInterface/index.js";
 
 export const appParameters: Map<string, string> & IAppParameters = new Map<string, string>();
 

@@ -26,8 +26,8 @@ import icon from "../../../../assets/images/modules/module-cluster.svg";
 import { createRef } from "preact";
 import { mount } from "enzyme";
 
-import { InnoDBClusterModule } from "../../../../modules/innodb-cluster/InnoDBClusterModule";
-import { InnoDBClusterModuleId } from "../../../../modules/ModuleInfo";
+import { InnoDBClusterModule } from "../../../../modules/innodb-cluster/InnoDBClusterModule.js";
+import { InnoDBClusterModuleId } from "../../../../modules/ModuleInfo.js";
 
 describe("InnoDb cluster module tests", (): void => {
 

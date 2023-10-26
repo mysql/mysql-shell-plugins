@@ -23,13 +23,13 @@
 
 import { mount } from "enzyme";
 
-import { DBDataType, IColumnInfo, MessageType } from "../../../../../app-logic/Types";
-import { ResultView } from "../../../../../components/ResultView/ResultView";
-import { Menu } from "../../../../../components/ui/Menu/Menu";
-import { TreeGrid } from "../../../../../components/ui/TreeGrid/TreeGrid";
-import { requisitions } from "../../../../../supplement/Requisitions";
-import { nextProcessTick } from "../../../test-helpers";
-import { MockCellComponent } from "../../../__mocks__/MockCellComponent";
+import { DBDataType, IColumnInfo, MessageType } from "../../../../../app-logic/Types.js";
+import { ResultView } from "../../../../../components/ResultView/ResultView.js";
+import { Menu } from "../../../../../components/ui/Menu/Menu.js";
+import { TreeGrid } from "../../../../../components/ui/TreeGrid/TreeGrid.js";
+import { requisitions } from "../../../../../supplement/Requisitions.js";
+import { nextProcessTick } from "../../../test-helpers.js";
+import { MockCellComponent } from "../../../__mocks__/MockCellComponent.js";
 
 describe("Result View Tests", (): void => {
 

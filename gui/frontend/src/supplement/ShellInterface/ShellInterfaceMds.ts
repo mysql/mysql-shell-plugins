@@ -24,11 +24,11 @@
 import {
     IBastionSession, IBastionSummary, ICompartment, IComputeInstance, ILoadBalancer, IMySQLDbSystem,
     IMySQLDbSystemShapeSummary, IComputeShape,
-} from "../../communication";
-import { MessageScheduler, DataCallback } from "../../communication/MessageScheduler";
+} from "../../communication/index.js";
+import { MessageScheduler, DataCallback } from "../../communication/MessageScheduler.js";
 import {
     IMdsProfileData, ShellAPIMds, IShellMdsSetCurrentCompartmentKwargs, IShellMdsSetCurrentBastionKwargs,
-} from "../../communication/ProtocolMds";
+} from "../../communication/ProtocolMds.js";
 
 export class ShellInterfaceMds {
 

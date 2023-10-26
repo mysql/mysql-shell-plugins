@@ -21,11 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IPosition } from "../../../../../components/ui/CodeEditor";
-import { CodeCompletionProvider } from "../../../../../components/ui/CodeEditor/CodeCompletionProvider";
-import { ExecutionContext } from "../../../../../script-execution/ExecutionContext";
-import { PresentationInterface } from "../../../../../script-execution/PresentationInterface";
-import { mockModel, position } from "../../../__mocks__/CodeEditorMocks";
+import { IPosition } from "../../../../../components/ui/CodeEditor/index.js";
+import { CodeCompletionProvider } from "../../../../../components/ui/CodeEditor/CodeCompletionProvider.js";
+import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
+import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
+import { mockModel, position } from "../../../__mocks__/CodeEditorMocks.js";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
 

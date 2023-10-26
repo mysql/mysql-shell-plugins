@@ -27,17 +27,17 @@ import closeButton from "../../../assets/images/close2.svg";
 
 import { ComponentChild } from "preact";
 
-import { appParameters, IMrsDbObjectEditRequest, requisitions } from "../../../supplement/Requisitions";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
-import { Container, Orientation, ContentAlignment, ContentWrap } from "../Container/Container";
-import { Icon } from "../Icon/Icon";
-import { Label, TextAlignment } from "../Label/Label";
-import { Button } from "../Button/Button";
-import { DBEditorModuleId } from "../../../modules/ModuleInfo";
-import { ShellInterface } from "../../../supplement/ShellInterface/ShellInterface";
-import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { webSession } from "../../../supplement/WebSession";
-import { uuid } from "../../../utilities/helpers";
+import { appParameters, IMrsDbObjectEditRequest, requisitions } from "../../../supplement/Requisitions.js";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { Container, Orientation, ContentAlignment, ContentWrap } from "../Container/Container.js";
+import { Icon } from "../Icon/Icon.js";
+import { Label, TextAlignment } from "../Label/Label.js";
+import { Button } from "../Button/Button.js";
+import { DBEditorModuleId } from "../../../modules/ModuleInfo.js";
+import { ShellInterface } from "../../../supplement/ShellInterface/ShellInterface.js";
+import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { webSession } from "../../../supplement/WebSession.js";
+import { uuid } from "../../../utilities/helpers.js";
 
 interface IFrontPageProperties extends IComponentProperties {
     showGreeting: boolean;

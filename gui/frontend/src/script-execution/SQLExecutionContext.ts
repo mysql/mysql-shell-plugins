@@ -23,13 +23,13 @@
 
 import { IPosition } from "monaco-editor";
 
-import { IStatement, Monaco } from "../components/ui/CodeEditor";
-import { ScriptingLanguageServices } from "./ScriptingLanguageServices";
-import { IDiagnosticEntry, IStatementSpan, StatementFinishState } from "../parsing/parser-common";
-import { ExecutionContext } from "./ExecutionContext";
-import { PresentationInterface } from "./PresentationInterface";
-import { binarySearch } from "../utilities/helpers";
-import { requisitions } from "../supplement/Requisitions";
+import { IStatement, Monaco } from "../components/ui/CodeEditor/index.js";
+import { ScriptingLanguageServices } from "./ScriptingLanguageServices.js";
+import { IDiagnosticEntry, IStatementSpan, StatementFinishState } from "../parsing/parser-common.js";
+import { ExecutionContext } from "./ExecutionContext.js";
+import { PresentationInterface } from "./PresentationInterface.js";
+import { binarySearch } from "../utilities/helpers.js";
+import { requisitions } from "../supplement/Requisitions.js";
 
 interface IStatementDetails extends IStatementSpan {
     diagnosticDecorationIDs: string[];

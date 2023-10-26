@@ -25,8 +25,8 @@ import "./JsonView.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
-import { ThemeManager } from "../../Theming/ThemeManager";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { ThemeManager } from "../../Theming/ThemeManager.js";
 
 export type JsonValue = string | number | boolean | null | JsonArray | JsonObject;
 export type JsonArray = JsonValue[];

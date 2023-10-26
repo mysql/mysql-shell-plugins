@@ -23,9 +23,9 @@
 
 import { mount } from "enzyme";
 
-import { ActionOutput } from "../../../../../components/ResultView/ActionOutput";
-import { MessageType } from "../../../../../app-logic/Types";
-import { nextRunLoop } from "../../../test-helpers";
+import { ActionOutput } from "../../../../../components/ResultView/ActionOutput.js";
+import { MessageType } from "../../../../../app-logic/Types.js";
+import { nextRunLoop } from "../../../test-helpers.js";
 
 describe("Action Output Tests", (): void => {
     it("Standard Rendering", () => {

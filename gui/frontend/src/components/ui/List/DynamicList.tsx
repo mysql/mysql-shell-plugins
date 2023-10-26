@@ -27,9 +27,9 @@ import { cloneElement, ComponentChild, render, VNode } from "preact";
 
 import { CellComponent, ColumnDefinition } from "tabulator-tables";
 
-import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../Component/ComponentBase";
-import { IDictionary } from "../../../app-logic/Types";
-import { ITreeGridOptions, TreeGrid } from "../TreeGrid/TreeGrid";
+import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../Component/ComponentBase.js";
+import { IDictionary } from "../../../app-logic/Types.js";
+import { ITreeGridOptions, TreeGrid } from "../TreeGrid/TreeGrid.js";
 
 interface IDynamicListProperties extends IComponentProperties {
     // This control requires a fixed height.

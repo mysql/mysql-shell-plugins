@@ -22,10 +22,10 @@
  */
 
 import * as path from "path";
-import { IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
 
-import { ConnectionTreeItem } from "./ConnectionTreeItem";
+import { IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface/index.js";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { ConnectionTreeItem } from "./ConnectionTreeItem.js";
 
 export class ConnectionSqliteTreeItem extends ConnectionTreeItem {
 

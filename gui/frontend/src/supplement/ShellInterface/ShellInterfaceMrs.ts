@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { MessageScheduler } from "../../communication/MessageScheduler";
-import { IShellDictionary } from "../../communication/Protocol";
+import { MessageScheduler } from "../../communication/MessageScheduler.js";
+import { IShellDictionary } from "../../communication/Protocol.js";
 import {
     ShellAPIMrs, IMrsStatusData, IMrsServiceData, IMrsAuthAppData, IMrsAuthVendorData, IMrsSchemaData,
     IShellMrsUpdateDbObjectKwargsValue, IMrsDbObjectData, IMrsAddContentSetData,
@@ -30,8 +30,8 @@ import {
     IShellMrsUpdateUserKwargsValue, IMrsRoleData, IMrsUserRoleData,
     IMrsRouterData, IMrsCurrentServiceMetadata, IMrsTableColumnWithReference, IMrsObjectFieldWithReference,
     IMrsObject, IMrsDbObjectParameterData,
-} from "../../communication/ProtocolMrs";
-import { webSession } from "../WebSession";
+} from "../../communication/ProtocolMrs.js";
+import { webSession } from "../WebSession.js";
 
 export class ShellInterfaceMrs {
 

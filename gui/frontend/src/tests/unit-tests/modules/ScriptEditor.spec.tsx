@@ -23,12 +23,12 @@
 
 import { mount } from "enzyme";
 
-import { ScriptEditor } from "../../../modules/db-editor/ScriptEditor";
-import { CodeEditorMode, Monaco } from "../../../components/ui/CodeEditor";
-import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor";
-import { ExecutionContexts } from "../../../script-execution/ExecutionContexts";
-import { ISavedEditorState } from "../../../modules/db-editor/DBConnectionTab";
-import { EntityType } from "../../../modules/db-editor";
+import { ScriptEditor } from "../../../modules/db-editor/ScriptEditor.js";
+import { CodeEditorMode, Monaco } from "../../../components/ui/CodeEditor/index.js";
+import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor.js";
+import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
+import { ISavedEditorState } from "../../../modules/db-editor/DBConnectionTab.js";
+import { EntityType } from "../../../modules/db-editor/index.js";
 
 describe("Script editor tests", (): void => {
 

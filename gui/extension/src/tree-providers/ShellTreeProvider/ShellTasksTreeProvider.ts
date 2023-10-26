@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,8 @@
 
 import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event } from "vscode";
 
-import { ShellTask, ShellTaskStatusType, StatusCallback } from "../../../../frontend/src/shell-tasks/ShellTask";
-import { ShellTaskTreeItem } from "./ShellTaskTreeItem";
+import { ShellTask, ShellTaskStatusType, StatusCallback } from "../../../../frontend/src/shell-tasks/ShellTask.js";
+import { ShellTaskTreeItem } from "./ShellTaskTreeItem.js";
 
 // A class to provide the entire tree structure for DB editor connections and the DB objects from them.
 export class ShellTasksTreeDataProvider implements TreeDataProvider<TreeItem> {

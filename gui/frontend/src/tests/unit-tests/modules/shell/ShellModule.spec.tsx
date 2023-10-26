@@ -26,9 +26,9 @@ import icon from "../../../../assets/images/modules/module-shell.svg";
 import { createRef } from "preact";
 import { mount } from "enzyme";
 
-import { IModuleProperties } from "../../../../modules/ModuleBase";
-import { ShellModule } from "../../../../modules/shell/ShellModule";
-import { ShellModuleId } from "../../../../modules/ModuleInfo";
+import { IModuleProperties } from "../../../../modules/ModuleBase.js";
+import { ShellModule } from "../../../../modules/shell/ShellModule.js";
+import { ShellModuleId } from "../../../../modules/ModuleInfo.js";
 
 
 describe("Shell module tests", (): void => {

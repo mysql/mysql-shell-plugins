@@ -23,8 +23,8 @@
 
 import { mount } from "enzyme";
 
-import { MessageType } from "../../../../app-logic/Types";
-import { Message } from "../../../../components/ui/Message/Message";
+import { MessageType } from "../../../../app-logic/Types.js";
+import { Message } from "../../../../components/ui/Message/Message.js";
 
 describe("Message render testing", (): void => {
     it("Test Message elements", () => {

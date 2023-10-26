@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ComponentPlacement } from "./Component/ComponentBase";
+import { ComponentPlacement } from "./Component/ComponentBase.js";
 
 // Helper functions required for direct work with HTML DOM elements.
 

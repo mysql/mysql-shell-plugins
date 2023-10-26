@@ -21,29 +21,29 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { AdminSectionTreeItem } from "./AdminSectionTreeItem";
-import { AdminTreeItem } from "./AdminTreeItem";
-import { ConnectionTreeItem } from "./ConnectionTreeItem";
-import { MrsAuthAppTreeItem } from "./MrsAuthAppTreeItem";
-import { MrsContentFileTreeItem } from "./MrsContentFileTreeItem";
-import { MrsContentSetTreeItem } from "./MrsContentSetTreeItem";
-import { MrsDbObjectTreeItem } from "./MrsDbObjectTreeItem";
-import { MrsRouterTreeItem } from "./MrsRouterTreeItem";
-import { MrsSchemaTreeItem } from "./MrsSchemaTreeItem";
-import { MrsServiceTreeItem } from "./MrsServiceTreeItem";
-import { MrsTreeItem } from "./MrsTreeItem";
-import { MrsUserTreeItem } from "./MrsUserTreeItem";
-import { SchemaEventTreeItem } from "./SchemaEventTreeItem";
-import { SchemaGroupTreeItem } from "./SchemaGroupTreeItem";
-import { SchemaRoutineTreeItem } from "./SchemaRoutineTreeItem";
-import { SchemaTableColumnTreeItem } from "./SchemaTableColumnTreeItem";
-import { SchemaTableForeignKeyTreeItem } from "./SchemaTableForeignKeyTreeItem";
-import { TableGroupTreeItem } from "./SchemaTableGroupTreeItem";
-import { SchemaTableIndexTreeItem } from "./SchemaTableIndexTreeItem";
-import { SchemaTableTreeItem } from "./SchemaTableTreeItem";
-import { SchemaTableTriggerTreeItem } from "./SchemaTableTriggerTreeItem";
-import { SchemaTreeItem } from "./SchemaTreeItem";
-import { SchemaViewMySQLTreeItem } from "./SchemaViewMySQLTreeItem";
+import { AdminSectionTreeItem } from "./AdminSectionTreeItem.js";
+import { AdminTreeItem } from "./AdminTreeItem.js";
+import { ConnectionTreeItem } from "./ConnectionTreeItem.js";
+import { MrsAuthAppTreeItem } from "./MrsAuthAppTreeItem.js";
+import { MrsContentFileTreeItem } from "./MrsContentFileTreeItem.js";
+import { MrsContentSetTreeItem } from "./MrsContentSetTreeItem.js";
+import { MrsDbObjectTreeItem } from "./MrsDbObjectTreeItem.js";
+import { MrsRouterTreeItem } from "./MrsRouterTreeItem.js";
+import { MrsSchemaTreeItem } from "./MrsSchemaTreeItem.js";
+import { MrsServiceTreeItem } from "./MrsServiceTreeItem.js";
+import { MrsTreeItem } from "./MrsTreeItem.js";
+import { MrsUserTreeItem } from "./MrsUserTreeItem.js";
+import { SchemaEventTreeItem } from "./SchemaEventTreeItem.js";
+import { SchemaGroupTreeItem } from "./SchemaGroupTreeItem.js";
+import { SchemaRoutineTreeItem } from "./SchemaRoutineTreeItem.js";
+import { SchemaTableColumnTreeItem } from "./SchemaTableColumnTreeItem.js";
+import { SchemaTableForeignKeyTreeItem } from "./SchemaTableForeignKeyTreeItem.js";
+import { TableGroupTreeItem } from "./SchemaTableGroupTreeItem.js";
+import { SchemaTableIndexTreeItem } from "./SchemaTableIndexTreeItem.js";
+import { SchemaTableTreeItem } from "./SchemaTableTreeItem.js";
+import { SchemaTableTriggerTreeItem } from "./SchemaTableTriggerTreeItem.js";
+import { SchemaTreeItem } from "./SchemaTreeItem.js";
+import { SchemaViewMySQLTreeItem } from "./SchemaViewMySQLTreeItem.js";
 
 /**
  * This file contains all interfaces which comprise the data model for the connections tree.

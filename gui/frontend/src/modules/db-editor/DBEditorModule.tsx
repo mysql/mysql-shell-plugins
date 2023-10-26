@@ -40,56 +40,58 @@ import newNotebookIcon from "../../assets/images/newNotebook.svg";
 
 import { ComponentChild, createRef, toChildArray, VNode } from "preact";
 
-import { ModuleBase, IModuleInfo, IModuleState, IModuleProperties } from "../ModuleBase";
+import { ModuleBase, IModuleInfo, IModuleState, IModuleProperties } from "../ModuleBase.js";
 
-import { ConnectionBrowser } from "./ConnectionBrowser";
+import { ConnectionBrowser } from "./ConnectionBrowser.js";
 import {
     DBConnectionTab, IDBConnectionTabPersistentState, IOpenEditorState, ISelectItemDetails,
-} from "./DBConnectionTab";
-import { ICodeEditorModel } from "../../components/ui/CodeEditor/CodeEditor";
-import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor";
-import { ExecutionContexts } from "../../script-execution/ExecutionContexts";
+} from "./DBConnectionTab.js";
+import { ICodeEditorModel } from "../../components/ui/CodeEditor/CodeEditor.js";
+import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor/index.js";
+import { ExecutionContexts } from "../../script-execution/ExecutionContexts.js";
 import {
     appParameters, IMrsAuthAppEditRequest, IMrsContentSetEditRequest, IMrsDbObjectEditRequest, IMrsSchemaEditRequest,
     IMrsUserEditRequest, InitialEditor, requisitions,
-} from "../../supplement/Requisitions";
-import { Settings } from "../../supplement/Settings/Settings";
-import { DBType, IConnectionDetails } from "../../supplement/ShellInterface";
-import { EntityType, IDBDataEntry, IDBEditorScriptState, ISavedGraphData, ISchemaTreeEntry, IToolbarItems } from ".";
-import { documentTypeToIcon, IExplorerSectionState, pageTypeToIcon } from "./Explorer";
+} from "../../supplement/Requisitions.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
+import {
+    EntityType, IDBDataEntry, IDBEditorScriptState, ISavedGraphData, ISchemaTreeEntry, IToolbarItems,
+} from "./index.js";
+import { documentTypeToIcon, IExplorerSectionState, pageTypeToIcon } from "./Explorer.js";
 
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable";
-import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool";
-import { ISqliteConnectionOptions } from "../../communication/Sqlite";
-import { IMySQLConnectionOptions } from "../../communication/MySQL";
-import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB";
-import { DBEditorModuleId } from "../ModuleInfo";
-import { EditorLanguage, IExecutionContext, INewEditorRequest } from "../../supplement";
-import { webSession } from "../../supplement/WebSession";
-import { ShellPromptHandler } from "../common/ShellPromptHandler";
-import { parseVersion } from "../../parsing/mysql/mysql-helpers";
-import { DocumentDropdownItem, IDocumentDropdownItemProperties } from "./DocumentDropdownItem";
-import { uuid } from "../../utilities/helpers";
-import { defaultEditorOptions } from "../../components/ui";
-import { ComponentPlacement, IComponentProperties } from "../../components/ui/Component/ComponentBase";
-import { Divider } from "../../components/ui/Divider/Divider";
-import { Dropdown, IDropdownProperties } from "../../components/ui/Dropdown/Dropdown";
-import { Icon } from "../../components/ui/Icon/Icon";
-import { Image } from "../../components/ui/Image/Image";
-import { Label } from "../../components/ui/Label/Label";
-import { Menu } from "../../components/ui/Menu/Menu";
-import { Button } from "../../components/ui/Button/Button";
-import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem";
-import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator";
-import { ITabviewPage, Tabview, TabPosition } from "../../components/ui/Tabview/Tabview";
-import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
-import { IOpenConnectionData, IShellPasswordFeedbackRequest } from "../../communication/ProtocolGui";
-import { MrsHub } from "../mrs/MrsHub";
-import { IMrsServiceData } from "../../communication/ProtocolMrs";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable.js";
+import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
+import { ISqliteConnectionOptions } from "../../communication/Sqlite.js";
+import { IMySQLConnectionOptions } from "../../communication/MySQL.js";
+import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
+import { DBEditorModuleId } from "../ModuleInfo.js";
+import { EditorLanguage, IExecutionContext, INewEditorRequest } from "../../supplement/index.js";
+import { webSession } from "../../supplement/WebSession.js";
+import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
+import { parseVersion } from "../../parsing/mysql/mysql-helpers.js";
+import { DocumentDropdownItem, IDocumentDropdownItemProperties } from "./DocumentDropdownItem.js";
+import { uuid } from "../../utilities/helpers.js";
+import { defaultEditorOptions } from "../../components/ui/index.js";
+import { ComponentPlacement, IComponentProperties } from "../../components/ui/Component/ComponentBase.js";
+import { Divider } from "../../components/ui/Divider/Divider.js";
+import { Dropdown, IDropdownProperties } from "../../components/ui/Dropdown/Dropdown.js";
+import { Icon } from "../../components/ui/Icon/Icon.js";
+import { Image } from "../../components/ui/Image/Image.js";
+import { Label } from "../../components/ui/Label/Label.js";
+import { Menu } from "../../components/ui/Menu/Menu.js";
+import { Button } from "../../components/ui/Button/Button.js";
+import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem.js";
+import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator.js";
+import { ITabviewPage, Tabview, TabPosition } from "../../components/ui/Tabview/Tabview.js";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
+import { IOpenConnectionData, IShellPasswordFeedbackRequest } from "../../communication/ProtocolGui.js";
+import { MrsHub } from "../mrs/MrsHub.js";
+import { IMrsServiceData } from "../../communication/ProtocolMrs.js";
+import { IGenericResponse } from "../../communication/Protocol.js";
 
 import scriptingRuntime from "./assets/typings/scripting-runtime.d.ts?raw";
-import { IGenericResponse } from "../../communication/Protocol";
 
 // Details generated while adding a new tab. These are used in the render method to fill the tab page details.
 interface IDBEditorTabInfo {
@@ -1431,7 +1433,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             });
         }
 
-        this.setState({ selectedPage: id, selectedItem: undefined });
+        this.setState({ selectedPage: id });
 
         if (id === "connections") {
             requisitions.executeRemote("selectConnectionTab", { connectionId: -1, page: "DB Connection Overview" });

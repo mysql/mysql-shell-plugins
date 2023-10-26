@@ -25,9 +25,9 @@ import "./Input.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
-import { TextAlignment } from "../Label/Label";
-import { KeyboardKeys } from "../../../utilities/helpers";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { TextAlignment } from "../Label/Label.js";
+import { KeyboardKeys } from "../../../utilities/helpers.js";
 
 export interface IInputProperties extends IComponentProperties {
     placeholder?: string;

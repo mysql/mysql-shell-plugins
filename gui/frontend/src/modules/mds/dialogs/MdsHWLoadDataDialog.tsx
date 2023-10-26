@@ -23,11 +23,11 @@
 
 import { ComponentChild, createRef } from "preact";
 
-import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
-import { ValueDialogBase } from "../../../components/Dialogs/ValueDialogBase";
+import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types.js";
+import { ValueDialogBase } from "../../../components/Dialogs/ValueDialogBase.js";
 import {
     ValueEditDialog, IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
-} from "../../../components/Dialogs/ValueEditDialog";
+} from "../../../components/Dialogs/ValueEditDialog.js";
 
 export class MdsHWLoadDataDialog extends ValueDialogBase {
     private dialogRef = createRef<ValueEditDialog>();

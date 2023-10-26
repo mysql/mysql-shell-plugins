@@ -21,11 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IThenableCallback } from ".";
-import { IDictionary } from "../app-logic/Types";
-import { requisitions } from "./Requisitions";
-import { Settings } from "./Settings/Settings";
-import { WorkerCallback } from "./WorkerCallback";
+import { IThenableCallback } from "./index.js";
+import { IDictionary } from "../app-logic/Types.js";
+import { requisitions } from "./Requisitions.js";
+import { Settings } from "./Settings/Settings.js";
+import { WorkerCallback } from "./WorkerCallback.js";
 
 export type IdentifiedWorker = Worker & {
     id: string;

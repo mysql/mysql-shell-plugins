@@ -26,12 +26,12 @@ import closeButton from "../../../assets/images/close.svg";
 
 import { ComponentChild, VNode } from "preact";
 
-import { IComponentProperties, ComponentBase, DragEventType } from "../Component/ComponentBase";
-import { Orientation, Container, ContentWrap } from "../Container/Container";
-import { IIconProperties, Icon } from "../Icon/Icon";
-import { IImageProperties } from "../Image/Image";
-import { Label } from "../Label/Label";
-import { Button } from "../Button/Button";
+import { IComponentProperties, ComponentBase, DragEventType } from "../Component/ComponentBase.js";
+import { Orientation, Container, ContentWrap } from "../Container/Container.js";
+import { IIconProperties, Icon } from "../Icon/Icon.js";
+import { IImageProperties } from "../Image/Image.js";
+import { Label } from "../Label/Label.js";
+import { Button } from "../Button/Button.js";
 
 export interface ITag {
     id: string;

@@ -23,13 +23,13 @@
 
 import { ComponentChild, createRef, toChildArray } from "preact";
 
-import { Codicon } from "../Codicon";
-import { IComponentProperties, ComponentPlacement, ComponentBase } from "../Component/ComponentBase";
-import { Container, Orientation } from "../Container/Container";
-import { Divider } from "../Divider/Divider";
-import { Icon } from "../Icon/Icon";
-import { Label } from "../Label/Label";
-import { Menu } from "./Menu";
+import { Codicon } from "../Codicon.js";
+import { IComponentProperties, ComponentPlacement, ComponentBase } from "../Component/ComponentBase.js";
+import { Container, Orientation } from "../Container/Container.js";
+import { Divider } from "../Divider/Divider.js";
+import { Icon } from "../Icon/Icon.js";
+import { Label } from "../Label/Label.js";
+import { Menu } from "./Menu.js";
 
 export interface IMenuItemProperties extends IComponentProperties {
     caption?: string;

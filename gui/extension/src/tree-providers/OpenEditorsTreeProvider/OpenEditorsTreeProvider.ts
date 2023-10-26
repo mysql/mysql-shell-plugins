@@ -21,22 +21,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import {
-    TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, Command,
-} from "vscode";
-import { EntityType } from "../../../../frontend/src/modules/db-editor";
-import { EditorLanguage } from "../../../../frontend/src/supplement";
+import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, Command } from "vscode";
+
+import { EntityType } from "../../../../frontend/src/modules/db-editor/index.js";
+import { EditorLanguage } from "../../../../frontend/src/supplement/index.js";
 
 import {
     IEditorOpenChangeData, IEditorCloseChangeData, requisitions, IRequestListEntry, IRequestTypeMap, IWebviewProvider,
-} from "../../../../frontend/src/supplement/Requisitions";
-import { DBType, IShellSessionDetails } from "../../../../frontend/src/supplement/ShellInterface";
-import { EditorOverviewTreeItem } from "./EditorOverviewTreeItem";
-import { EditorConnectionTreeItem } from "./EditorConnectionTreeItem";
-import { EditorTabTreeItem } from "./EditorTabTreeItem";
-import { EditorTreeItem } from "./EditorTreeItem";
-import { ShellConsoleSessionTreeItem } from "../ShellTreeProvider/ShellConsoleSessionTreeItem";
-import { ConnectionTreeItem } from "../ConnectionsTreeProvider/ConnectionTreeItem";
+} from "../../../../frontend/src/supplement/Requisitions.js";
+import { DBType, IShellSessionDetails } from "../../../../frontend/src/supplement/ShellInterface/index.js";
+import { EditorOverviewTreeItem } from "./EditorOverviewTreeItem.js";
+import { EditorConnectionTreeItem } from "./EditorConnectionTreeItem.js";
+import { EditorTabTreeItem } from "./EditorTabTreeItem.js";
+import { EditorTreeItem } from "./EditorTreeItem.js";
+import { ShellConsoleSessionTreeItem } from "../ShellTreeProvider/ShellConsoleSessionTreeItem.js";
+import { ConnectionTreeItem } from "../ConnectionsTreeProvider/ConnectionTreeItem.js";
 
 export interface IOpenEditorBaseEntry {
     type: string;

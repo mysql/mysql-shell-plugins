@@ -25,16 +25,18 @@ import "./Dropdown.css";
 
 import { cloneElement, ComponentChild, createRef } from "preact";
 
-import { DropdownItem, IDropdownItemProperties } from "./DropdownItem";
-import { convertPropValue } from "../../../utilities/string-helpers";
-import { collectVNodes } from "../../../utilities/ts-helpers";
-import { IComponentProperties, IComponentState, ComponentBase, ComponentPlacement } from "../Component/ComponentBase";
-import { Container, Orientation, ContentAlignment } from "../Container/Container";
-import { Divider } from "../Divider/Divider";
-import { Label } from "../Label/Label";
-import { Popup } from "../Popup/Popup";
-import { ITag, TagInput } from "../TagInput/TagInput";
-import { KeyboardKeys } from "../../../utilities/helpers";
+import { DropdownItem, IDropdownItemProperties } from "./DropdownItem.js";
+import { convertPropValue } from "../../../utilities/string-helpers.js";
+import { collectVNodes } from "../../../utilities/preact-helpers.js";
+import {
+    IComponentProperties, IComponentState, ComponentBase, ComponentPlacement,
+} from "../Component/ComponentBase.js";
+import { Container, Orientation, ContentAlignment } from "../Container/Container.js";
+import { Divider } from "../Divider/Divider.js";
+import { Label } from "../Label/Label.js";
+import { Popup } from "../Popup/Popup.js";
+import { ITag, TagInput } from "../TagInput/TagInput.js";
+import { KeyboardKeys } from "../../../utilities/helpers.js";
 
 export interface IDropdownProperties extends IComponentProperties {
     selection?: string | Set<string>;

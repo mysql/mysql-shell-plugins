@@ -21,11 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-import { IBackendInformation } from ".";
-import { MessageScheduler } from "../../communication/MessageScheduler";
-import { ShellAPIGui } from "../../communication/ProtocolGui";
+import { IBackendInformation } from "./index.js";
+import { MessageScheduler } from "../../communication/MessageScheduler.js";
+import { ShellAPIGui } from "../../communication/ProtocolGui.js";
 
-import { filterInt } from "../../utilities/string-helpers";
+import { filterInt } from "../../utilities/string-helpers.js";
 
 export class ShellInterfaceCore {
     /**

@@ -28,30 +28,30 @@ import {
 import { homedir } from "os";
 import { existsSync } from "fs";
 
-import { ICompartment, IPortForwardingSessionTargetResourceDetails } from "../../frontend/src/communication";
-import { taskOutputChannel } from "./extension";
+import { ICompartment, IPortForwardingSessionTargetResourceDetails } from "../../frontend/src/communication/index.js";
+import { taskOutputChannel } from "./extension.js";
 
-import { ExtensionHost } from "./ExtensionHost";
-import { OciTreeDataProvider } from "./tree-providers/OCITreeProvider";
-import { OciBastionTreeItem } from "./tree-providers/OCITreeProvider/OciBastionTreeItem";
-import { OciCompartmentTreeItem } from "./tree-providers/OCITreeProvider/OciCompartmentTreeItem";
-import { OciComputeInstanceTreeItem } from "./tree-providers/OCITreeProvider/OciComputeInstanceTreeItem";
-import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider/OciDbSystemTreeItem";
-import { OciLoadBalancerTreeItem } from "./tree-providers/OCITreeProvider/OciLoadBalancerTreeItem";
-import { OciConfigProfileTreeItem } from "./tree-providers/OCITreeProvider/OciProfileTreeItem";
-import { DbSystem } from "../../frontend/src/oci-typings/oci-mysql/lib/model";
+import { ExtensionHost } from "./ExtensionHost.js";
+import { OciTreeDataProvider } from "./tree-providers/OCITreeProvider/index.js";
+import { OciBastionTreeItem } from "./tree-providers/OCITreeProvider/OciBastionTreeItem.js";
+import { OciCompartmentTreeItem } from "./tree-providers/OCITreeProvider/OciCompartmentTreeItem.js";
+import { OciComputeInstanceTreeItem } from "./tree-providers/OCITreeProvider/OciComputeInstanceTreeItem.js";
+import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider/OciDbSystemTreeItem.js";
+import { OciLoadBalancerTreeItem } from "./tree-providers/OCITreeProvider/OciLoadBalancerTreeItem.js";
+import { OciConfigProfileTreeItem } from "./tree-providers/OCITreeProvider/OciProfileTreeItem.js";
+import { DbSystem } from "../../frontend/src/oci-typings/oci-mysql/lib/model/index.js";
 
-import { DialogResponseClosure, IDictionary, MdsDialogType } from "../../frontend/src/app-logic/Types";
-import { DialogWebviewManager } from "./web-views/DialogWebviewProvider";
-import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem";
-import { IMdsProfileData } from "../../frontend/src/communication/ProtocolMds";
-import { ShellInterfaceShellSession } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession";
-import { ICdmSchemaEntry } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel";
-import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface";
-import { webSession } from "../../frontend/src/supplement/WebSession";
-import { requisitions } from "../../frontend/src/supplement/Requisitions";
-import { DBType } from "../../frontend/src/supplement/ShellInterface";
-import { MySQLConnCompression, MySQLConnectionScheme } from "../../frontend/src/communication/MySQL";
+import { DialogResponseClosure, IDictionary, MdsDialogType } from "../../frontend/src/app-logic/Types.js";
+import { DialogWebviewManager } from "./WebviewProviders/DialogWebviewProvider.js";
+import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem.js";
+import { IMdsProfileData } from "../../frontend/src/communication/ProtocolMds.js";
+import { ShellInterfaceShellSession } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession.js";
+import { ICdmSchemaEntry } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel.js";
+import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
+import { webSession } from "../../frontend/src/supplement/WebSession.js";
+import { requisitions } from "../../frontend/src/supplement/Requisitions.js";
+import { DBType } from "../../frontend/src/supplement/ShellInterface/index.js";
+import { MySQLConnCompression, MySQLConnectionScheme } from "../../frontend/src/communication/MySQL.js";
 
 export class MDSCommandHandler {
     private dialogManager = new DialogWebviewManager();

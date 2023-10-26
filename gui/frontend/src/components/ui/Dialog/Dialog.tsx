@@ -25,9 +25,9 @@ import "./Dialog.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { DialogContent } from "./DialogContent";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
-import { Portal, IPortalOptions } from "../Portal/Portal";
+import { DialogContent } from "./DialogContent.js";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { Portal, IPortalOptions } from "../Portal/Portal.js";
 
 // Describes a collection of react nodes that should be rendered in an action area, separated
 // by their alignment.

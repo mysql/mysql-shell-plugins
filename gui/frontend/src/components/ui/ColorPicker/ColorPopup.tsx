@@ -28,15 +28,15 @@ import { ComponentChild, createRef } from "preact";
 import { CSSProperties } from "preact/compat";
 import Color from "color";
 
-import { Grid } from "../Grid/Grid";
-import { GridCell } from "../Grid/GridCell";
-import { IComponentState, ComponentBase, ComponentPlacement } from "../Component/ComponentBase";
-import { Container, Orientation, ContentAlignment } from "../Container/Container";
-import { Icon } from "../Icon/Icon";
-import { Input, IInputChangeProperties, IInputProperties } from "../Input/Input";
-import { Label } from "../Label/Label";
-import { Popup } from "../Popup/Popup";
-import { Slider } from "../Slider/Slider";
+import { Grid } from "../Grid/Grid.js";
+import { GridCell } from "../Grid/GridCell.js";
+import { IComponentState, ComponentBase, ComponentPlacement } from "../Component/ComponentBase.js";
+import { Container, Orientation, ContentAlignment } from "../Container/Container.js";
+import { Icon } from "../Icon/Icon.js";
+import { Input, IInputChangeProperties, IInputProperties } from "../Input/Input.js";
+import { Label } from "../Label/Label.js";
+import { Popup } from "../Popup/Popup.js";
+import { Slider } from "../Slider/Slider.js";
 
 /** The color callback passes a color to a listener, which can return an adjusted value to be set in the popup. */
 type ColorChangeCallback = (color: Color | undefined) => Color | undefined;

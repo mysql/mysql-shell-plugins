@@ -26,15 +26,15 @@ import dummy from "../../../../assets/images/add.svg";
 
 import { mount } from "enzyme";
 
-import { IDictionary } from "../../../../app-logic/Types";
+import { IDictionary } from "../../../../app-logic/Types.js";
 
-import { loremIpsum } from "../../test-helpers";
-import { Container, Orientation, ContentAlignment } from "../../../../components/ui/Container/Container";
-import { Icon } from "../../../../components/ui/Icon/Icon";
-import { Label } from "../../../../components/ui/Label/Label";
-import { DynamicList } from "../../../../components/ui/List/DynamicList";
-import { List } from "../../../../components/ui/List/List";
-import { Image } from "../../../../components/ui/Image/Image";
+import { loremIpsum } from "../../test-helpers.js";
+import { Container, Orientation, ContentAlignment } from "../../../../components/ui/Container/Container.js";
+import { Icon } from "../../../../components/ui/Icon/Icon.js";
+import { Label } from "../../../../components/ui/Label/Label.js";
+import { DynamicList } from "../../../../components/ui/List/DynamicList.js";
+import { List } from "../../../../components/ui/List/List.js";
+import { Image } from "../../../../components/ui/Image/Image.js";
 
 describe("List component test", (): void => {
     const simpleListEntry = <Label dataId="l" />;

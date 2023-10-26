@@ -31,16 +31,16 @@ import {
 import {
     ICompletionData, IParserErrorInfo, IStatementSpan, ISymbolInfo, ITokenInfo, QueryType, StatementFinishState,
     tokenFromPosition,
-} from "../parser-common";
+} from "../parser-common.js";
 
-import { SQLiteErrorListener } from "./SQLiteErrorListener";
-import { SQLiteLexer } from "./generated/SQLiteLexer";
-import { SQLiteParser, Select_stmtContext, Sql_stmt_listContext } from "./generated/SQLiteParser";
-import { getCodeCompletionItems } from "./SqliteCodeCompletion";
+import { SQLiteErrorListener } from "./SQLiteErrorListener.js";
+import { SQLiteLexer } from "./generated/SQLiteLexer.js";
+import { SQLiteParser, Select_stmtContext, Sql_stmt_listContext } from "./generated/SQLiteParser.js";
+import { getCodeCompletionItems } from "./SqliteCodeCompletion.js";
 
-import { unquote } from "../../utilities/string-helpers";
-import { DBSymbolTable, SystemFunctionSymbol } from "../DBSymbolTable";
-import { SQLiteVersion, determineQueryType, isKeyword } from "./SQLiteRecognizerCommon";
+import { unquote } from "../../utilities/string-helpers.js";
+import { DBSymbolTable, SystemFunctionSymbol } from "../DBSymbolTable.js";
+import { SQLiteVersion, determineQueryType, isKeyword } from "./SQLiteRecognizerCommon.js";
 
 // This file contains the main interface to all language services for SQLite.
 
@@ -80,10 +80,10 @@ export class SQLiteParsingServices {
 
         this.globalSymbols = new DBSymbolTable("globals", {});
         void import("./data/builtin-functions.json").then((systemFunctions) => {
-            Object.keys(systemFunctions.default).forEach((name: string) => {
-                this.globalSymbols
-                    .addNewSymbolOfType(SystemFunctionSymbol, undefined, name, systemFunctions[name] as []);
-            });
+            const functions = systemFunctions.default as { [key: string]: string[]; };
+            for (const [key, value] of Object.entries(functions)) {
+                this.globalSymbols.addNewSymbolOfType(SystemFunctionSymbol, undefined, key, value);
+            }
         });
     }
 

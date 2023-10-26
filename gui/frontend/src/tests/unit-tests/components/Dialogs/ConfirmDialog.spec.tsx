@@ -23,12 +23,12 @@
 
 import { mount } from "enzyme";
 
-import { Label } from "../../../../components/ui/Label/Label";
+import { Label } from "../../../../components/ui/Label/Label.js";
 
-import { nextProcessTick, sendKeyPress } from "../../test-helpers";
-import { DialogResponseClosure } from "../../../../app-logic/Types";
-import { ConfirmDialog } from "../../../../components/Dialogs/ConfirmDialog";
-import { KeyboardKeys } from "../../../../utilities/helpers";
+import { nextProcessTick, sendKeyPress } from "../../test-helpers.js";
+import { DialogResponseClosure } from "../../../../app-logic/Types.js";
+import { ConfirmDialog } from "../../../../components/Dialogs/ConfirmDialog.js";
+import { KeyboardKeys } from "../../../../utilities/helpers.js";
 
 describe("Confirm Dialog Tests", (): void => {
 

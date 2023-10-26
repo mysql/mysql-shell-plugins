@@ -24,13 +24,13 @@
 import { ComponentChild, createRef } from "preact";
 import cx from "classnames";
 
-import { Container, ContentAlignment, Orientation } from "../Container/Container";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase";
-import { Icon } from "../Icon/Icon";
-import { Label } from "../Label/Label";
-import { MenuItem, IMenuItemProperties } from "../Menu/MenuItem";
-import { IAccordionAction, IAccordionActionChoice } from "./Accordion";
-import { KeyboardKeys } from "../../../utilities/helpers";
+import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
+import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { Icon } from "../Icon/Icon.js";
+import { Label } from "../Label/Label.js";
+import { MenuItem, IMenuItemProperties } from "../Menu/MenuItem.js";
+import { IAccordionAction, IAccordionActionChoice } from "./Accordion.js";
+import { KeyboardKeys } from "../../../utilities/helpers.js";
 
 export interface IAccordionSectionProperties extends IComponentProperties {
     caption: string;

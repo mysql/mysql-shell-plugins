@@ -23,16 +23,16 @@
 
 import { commands } from "vscode";
 
-import { IWebviewProvider, requisitions } from "../../frontend/src/supplement/Requisitions";
-import { IShellSessionDetails } from "../../frontend/src/supplement/ShellInterface";
-import { ExtensionHost } from "./ExtensionHost";
-import { ICdmConnectionEntry } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel";
-import { ConnectionTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionTreeItem";
+import { IWebviewProvider, requisitions } from "../../frontend/src/supplement/Requisitions.js";
+import { IShellSessionDetails } from "../../frontend/src/supplement/ShellInterface/index.js";
+import { ExtensionHost } from "./ExtensionHost.js";
+import { ICdmConnectionEntry } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel.js";
+import { ConnectionTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionTreeItem.js";
 import {
     IEditorConnectionEntry, IShellSessionEntry,
-} from "./tree-providers/OpenEditorsTreeProvider/OpenEditorsTreeProvider";
+} from "./tree-providers/OpenEditorsTreeProvider/OpenEditorsTreeProvider.js";
 
-import { ShellConsoleViewProvider } from "./web-views/ShellConsoleViewProvider";
+import { ShellConsoleViewProvider } from "./WebviewProviders/ShellConsoleViewProvider.js";
 
 export class ShellConsoleCommandHandler {
     private providers: ShellConsoleViewProvider[] = [];

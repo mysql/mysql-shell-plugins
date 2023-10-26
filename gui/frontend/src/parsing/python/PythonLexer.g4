@@ -34,7 +34,7 @@ options {
 @header {
 /* eslint-disable @typescript-eslint/no-unused-vars, no-useless-escape */
 
-import { PythonLexerBase } from "../PythonLexerBase";
+import { PythonLexerBase } from "../PythonLexerBase.js";
 }
 
 // Artificial tokens only for parser purposes

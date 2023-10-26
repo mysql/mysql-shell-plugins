@@ -25,10 +25,10 @@ import "./Popup.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { computeContentPosition } from "../html-helpers";
-import { ComponentPlacement, IComponentState, ComponentBase } from "../Component/ComponentBase";
-import { Orientation, Container } from "../Container/Container";
-import { IPortalProperties, Portal, IPortalOptions } from "../Portal/Portal";
+import { computeContentPosition } from "../html-helpers.js";
+import { ComponentPlacement, IComponentState, ComponentBase } from "../Component/ComponentBase.js";
+import { Orientation, Container } from "../Container/Container.js";
+import { IPortalProperties, Portal, IPortalOptions } from "../Portal/Portal.js";
 
 export interface IPopupProperties extends IPortalProperties {
     header?: ComponentChild;

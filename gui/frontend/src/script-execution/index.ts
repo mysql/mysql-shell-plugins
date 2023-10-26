@@ -22,13 +22,14 @@
  */
 
 import { type IPosition, languages } from "monaco-editor";
-import { IDbModuleResultData } from "../app-logic/ApplicationDB";
 
-import { IColumnInfo, IDictionary, IExecutionInfo, MessageType } from "../app-logic/Types";
-import { ICodeEditorOptions, ICodeEditorViewState, IExecutionContextState } from "../components/ui/CodeEditor";
+import { IDbModuleResultData } from "../app-logic/ApplicationDB.js";
 
-import { LanguageCompletionKind } from "../parsing/parser-common";
-import type { IExecutionContext } from "../supplement";
+import { IColumnInfo, IDictionary, IExecutionInfo, MessageType } from "../app-logic/Types.js";
+import { ICodeEditorOptions, ICodeEditorViewState, IExecutionContextState } from "../components/ui/CodeEditor/index.js";
+
+import { LanguageCompletionKind } from "../parsing/parser-common.js";
+import type { IExecutionContext } from "../supplement/index.js";
 
 /** Possible languages used for results. Note: there's a similar type EditorLanguage, but with a few other entries. */
 export type ResultTextLanguage =

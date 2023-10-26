@@ -24,10 +24,10 @@
 import { act } from "@testing-library/preact";
 import { mount, shallow } from "enzyme";
 
-import { TextAlignment } from "../../../../components/ui/Label/Label";
-import { UpDown, IUpDownProperties, IUpDownState } from "../../../../components/ui/UpDown/UpDown";
+import { TextAlignment } from "../../../../components/ui/Label/Label.js";
+import { UpDown, IUpDownProperties, IUpDownState } from "../../../../components/ui/UpDown/UpDown.js";
 
-import { mouseEventMock } from "../../__mocks__/MockEvents";
+import { mouseEventMock } from "../../__mocks__/MockEvents.js";
 
 describe("UpDown render testing", (): void => {
 

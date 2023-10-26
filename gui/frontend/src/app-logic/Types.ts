@@ -25,7 +25,7 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import * as codicon from "../components/ui/Codicon";
+import * as codicon from "../components/ui/Codicon.js";
 
 // Types used in different places in the application (modules, parser, scripting etc.).
 

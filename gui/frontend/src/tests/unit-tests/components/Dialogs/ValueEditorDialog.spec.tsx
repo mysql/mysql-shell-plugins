@@ -26,14 +26,14 @@ import { mount } from "enzyme";
 import {
     CommonDialogValueOption, IChoiceDialogValue, IDialogSection, IDialogValidations, IDialogValues,
     IStringInputDialogValue, ValueEditDialog,
-} from "../../../../components/Dialogs/ValueEditDialog";
+} from "../../../../components/Dialogs/ValueEditDialog.js";
 import {
     changeInputValue, nextProcessTick, sendBlurEvent, sendKeyPress,
-} from "../../test-helpers";
-import { IDictionary } from "../../../../app-logic/Types";
-import { ICheckboxProperties, CheckState } from "../../../../components/ui/Checkbox/Checkbox";
-import { Label } from "../../../../components/ui/Label/Label";
-import { KeyboardKeys } from "../../../../utilities/helpers";
+} from "../../test-helpers.js";
+import { IDictionary } from "../../../../app-logic/Types.js";
+import { ICheckboxProperties, CheckState } from "../../../../components/ui/Checkbox/Checkbox.js";
+import { Label } from "../../../../components/ui/Label/Label.js";
+import { KeyboardKeys } from "../../../../utilities/helpers.js";
 
 describe("Value Edit Dialog Tests", (): void => {
     const clickButton = jest.fn((_id: string, _values: IDialogValues): void => {

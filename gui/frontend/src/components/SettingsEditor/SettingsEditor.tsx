@@ -27,19 +27,19 @@ import settingsIcon from "../../assets/images/settings.svg";
 import { ComponentChild, createRef, render } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
-import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase";
-import { requisitions } from "../../supplement/Requisitions";
-import { ThemeEditor } from "../Theming/ThemeEditor";
-import { settingCategories, ISettingCategory } from "../../supplement/Settings/SettingsRegistry";
-import { SettingsEditorList } from "./SettingsEditorList";
-import { IDictionary } from "../../app-logic/Types";
-import { AboutBox } from "../ui/AboutBox/AboutBox";
-import { Checkbox, CheckState, ICheckboxProperties } from "../ui/Checkbox/Checkbox";
-import { Container, Orientation, ContentAlignment } from "../ui/Container/Container";
-import { Label } from "../ui/Label/Label";
-import { ISearchValues, Search, ISearchProperties } from "../ui/Search/Search";
-import { ITabviewPage, Tabview } from "../ui/Tabview/Tabview";
-import { TreeGrid, ITreeGridOptions } from "../ui/TreeGrid/TreeGrid";
+import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { ThemeEditor } from "../Theming/ThemeEditor.js";
+import { settingCategories, ISettingCategory } from "../../supplement/Settings/SettingsRegistry.js";
+import { SettingsEditorList } from "./SettingsEditorList.js";
+import { IDictionary } from "../../app-logic/Types.js";
+import { AboutBox } from "../ui/AboutBox/AboutBox.js";
+import { Checkbox, CheckState, ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
+import { Container, Orientation, ContentAlignment } from "../ui/Container/Container.js";
+import { Label } from "../ui/Label/Label.js";
+import { ISearchValues, Search, ISearchProperties } from "../ui/Search/Search.js";
+import { ITabviewPage, Tabview } from "../ui/Tabview/Tabview.js";
+import { TreeGrid, ITreeGridOptions } from "../ui/TreeGrid/TreeGrid.js";
 
 interface ISettingsEditorProperties extends IComponentProperties {
     page: string;

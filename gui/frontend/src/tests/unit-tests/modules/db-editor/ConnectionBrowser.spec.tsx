@@ -23,8 +23,8 @@
 
 import { mount } from "enzyme";
 
-import { ConnectionBrowser } from "../../../../modules/db-editor/ConnectionBrowser";
-import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface";
+import { ConnectionBrowser } from "../../../../modules/db-editor/ConnectionBrowser.js";
+import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
 
 describe("Connection browser tests", (): void => {
 

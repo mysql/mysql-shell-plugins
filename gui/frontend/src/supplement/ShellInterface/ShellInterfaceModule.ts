@@ -21,13 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { EditorLanguage } from "..";
-import { MessageScheduler } from "../../communication/MessageScheduler";
+import { EditorLanguage } from "../index.js";
+import { MessageScheduler } from "../../communication/MessageScheduler.js";
 import {
     ShellAPIGui, IShellModuleDataEntry, IDBDataTreeEntry, IShellModuleDataCategoriesEntry,
-} from "../../communication/ProtocolGui";
-import { EntityType, IDBEditorScriptState, IFolderEntity, IDBDataEntry } from "../../modules/db-editor";
-import { uuid } from "../../utilities/helpers";
+} from "../../communication/ProtocolGui.js";
+import { EntityType, IDBEditorScriptState, IFolderEntity, IDBDataEntry } from "../../modules/db-editor/index.js";
+import { uuid } from "../../utilities/helpers.js";
 
 /** These are predefined data categories that always exist. */
 enum StandardDataCategories {

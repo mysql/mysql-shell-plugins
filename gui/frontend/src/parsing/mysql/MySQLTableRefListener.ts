@@ -21,11 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { AutoCompletionContext } from "./MySQLCodeCompletion";
-import { TableRefContext, TableAliasContext } from "./generated/MySQLMRSParser";
-import { MySQLMRSParserListener } from "./generated/MySQLMRSParserListener";
+import { AutoCompletionContext } from "./MySQLCodeCompletion.js";
+import { TableRefContext, TableAliasContext } from "./generated/MySQLMRSParser.js";
+import { MySQLMRSParserListener } from "./generated/MySQLMRSParserListener.js";
 
-import { unquote } from "../../utilities/string-helpers";
+import { unquote } from "../../utilities/string-helpers.js";
 
 // A listener to handle references as we traverse a parse tree.
 // We have two modes here:

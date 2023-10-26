@@ -21,10 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { MessageScheduler } from "../../communication/MessageScheduler";
-import { Protocol } from "../../communication/Protocol";
-import { IShellProfile, ShellAPIGui } from "../../communication/ProtocolGui";
-import { webSession } from "../WebSession";
+import { MessageScheduler } from "../../communication/MessageScheduler.js";
+import { Protocol } from "../../communication/Protocol.js";
+import { IShellProfile, ShellAPIGui } from "../../communication/ProtocolGui.js";
+import { webSession } from "../WebSession.js";
 
 export class ShellInterfaceUser {
 

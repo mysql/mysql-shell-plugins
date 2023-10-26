@@ -21,10 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { uuid } from "../../../utilities/helpers";
-import { ScriptingApi, PieGraphLayout } from "../console.worker-types";
+import { uuid } from "../../../utilities/helpers.js";
+import { ScriptingApi, PieGraphLayout } from "../console.worker-types.js";
 
-import { currentWorker } from "./execute";
+import { currentWorker } from "./execute.js";
 
 export class PieGraphProxy {
     public static render(data: IDataRecord[], layout?: PieGraphLayout, keys?: { name: string; value: string; }): void {

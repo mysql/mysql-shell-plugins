@@ -27,10 +27,10 @@ import { ExtensionContext, Uri, commands, window, ViewColumn, workspace, Extensi
 import { join } from "path";
 import { platform, release } from "os";
 
-import { printChannelOutput } from "../extension";
+import { printChannelOutput } from "../extension.js";
 import {
     IShellLaunchConfiguration, LogLevel, MySQLShellLauncher,
-} from "../../../frontend/src/utilities/MySQLShellLauncher";
+} from "../../../frontend/src/utilities/MySQLShellLauncher.js";
 
 import * as regedit from "regedit";
 

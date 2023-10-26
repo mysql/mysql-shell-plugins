@@ -26,13 +26,13 @@
 import { CandidatesCollection, CodeCompletionCore } from "antlr4-c3";
 import { BufferedTokenStream, CharStreams, CommonTokenStream, ParseTreeListener, ParseTreeWalker } from "antlr4ng";
 
-import { Stack } from "../../supplement/Stack";
-import { ICompletionData, LanguageCompletionKind, QueryType, Scanner } from "../parser-common";
-import { MySQLTableRefListener } from "./MySQLTableRefListener";
+import { Stack } from "../../supplement/Stack.js";
+import { ICompletionData, LanguageCompletionKind, QueryType, Scanner } from "../parser-common.js";
+import { MySQLTableRefListener } from "./MySQLTableRefListener.js";
 
-import { unquote } from "../../utilities/string-helpers";
-import { MySQLMRSParser } from "./generated/MySQLMRSParser";
-import { MySQLMRSLexer } from "./generated/MySQLMRSLexer";
+import { unquote } from "../../utilities/string-helpers.js";
+import { MySQLMRSParser } from "./generated/MySQLMRSParser.js";
+import { MySQLMRSLexer } from "./generated/MySQLMRSLexer.js";
 
 enum ObjectFlags {
     // For 3 part identifiers.

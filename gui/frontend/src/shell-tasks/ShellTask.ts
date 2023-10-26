@@ -21,11 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { MessageScheduler } from "../communication/MessageScheduler";
-import { ShellPromptResponseType } from "../communication/Protocol";
-import { IShellResultType, ShellAPIGui, IShellFeedbackRequest, IShellSimpleResult } from "../communication/ProtocolGui";
-import { ShellInterfaceShellSession } from "../supplement/ShellInterface/ShellInterfaceShellSession";
-import { uuid } from "../utilities/helpers";
+import { MessageScheduler } from "../communication/MessageScheduler.js";
+import { ShellPromptResponseType } from "../communication/Protocol.js";
+import {
+    IShellResultType, ShellAPIGui, IShellFeedbackRequest, IShellSimpleResult,
+} from "../communication/ProtocolGui.js";
+import { ShellInterfaceShellSession } from "../supplement/ShellInterface/ShellInterfaceShellSession.js";
+import { uuid } from "../utilities/helpers.js";
 
 export type ShellTaskStatusType = "pending" | "running" | "done" | "error";
 
@@ -94,7 +96,7 @@ export class ShellTask {
             } else if (this.isShellSimpleResult(data)) {
                 // Extract the "{percentage}% completed" to indicate the progress
                 if (data.info && this.statusCallback !== undefined) {
-                    const group = Array.from(data.info.matchAll(/(\d+)%\scompleted/gm), (m) => {return m[1]; });
+                    const group = Array.from(data.info.matchAll(/(\d+)%\scompleted/gm), (m) => { return m[1]; });
                     if (group.length > 0) {
                         const percentage = parseInt(group[0], 10);
                         if (!isNaN(percentage) && this.currentProgress !== percentage) {

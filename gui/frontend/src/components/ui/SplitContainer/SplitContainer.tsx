@@ -25,10 +25,10 @@ import "./SplitContainer.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
-import { Divider } from "../Divider/Divider";
-import { Container, ContentAlignment, Orientation } from "../Container/Container";
-import { convertPropValue } from "../../../utilities/string-helpers";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { Divider } from "../Divider/Divider.js";
+import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
+import { convertPropValue } from "../../../utilities/string-helpers.js";
 
 /** A record for each pane with dynamic size and behavior information. */
 interface IPanePositionData {

@@ -24,16 +24,17 @@
 import "./Statusbar.css";
 
 import { ComponentChild } from "preact";
-import * as codicon from "../Codicon";
 
-import { ThemeColor } from "../../Theming/ThemeColor";
-import { ComponentBase, IComponentProperties, IComponentState } from "../Component/ComponentBase";
-import { Container, ContentAlignment, Orientation } from "../Container/Container";
-import { requisitions } from "../../../supplement/Requisitions";
-import { Icon } from "../Icon/Icon";
-import { IDictionary, IStatusbarInfo } from "../../../app-logic/Types";
-import { Dropdown } from "../Dropdown/Dropdown";
-import { Button } from "../Button/Button";
+import * as codicon from "../Codicon.js";
+
+import { ThemeColor } from "../../Theming/ThemeColor.js";
+import { ComponentBase, IComponentProperties, IComponentState } from "../Component/ComponentBase.js";
+import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
+import { Icon } from "../Icon/Icon.js";
+import { IDictionary, IStatusbarInfo } from "../../../app-logic/Types.js";
+import { Dropdown } from "../Dropdown/Dropdown.js";
+import { Button } from "../Button/Button.js";
 
 export enum ControlType {
     TextType,

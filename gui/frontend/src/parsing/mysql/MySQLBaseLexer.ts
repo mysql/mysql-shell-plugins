@@ -25,12 +25,12 @@
 
 import { Lexer, Token } from "antlr4ng";
 
-import { QueryType } from "../parser-common";
+import { QueryType } from "../parser-common.js";
 
-import { MySQLMRSLexer } from "./generated/MySQLMRSLexer";
+import { MySQLMRSLexer } from "./generated/MySQLMRSLexer.js";
 import {
     IMySQLRecognizerCommon, SqlMode, isReservedKeyword, numberToVersion, isKeyword,
-} from "./MySQLRecognizerCommon";
+} from "./MySQLRecognizerCommon.js";
 
 // The base lexer class provides a number of functions needed in actions in the lexer (grammar).
 export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCommon {

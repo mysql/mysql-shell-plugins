@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../../app-logic/Types";
+import { IDictionary } from "../../app-logic/Types.js";
 
 export enum MySQLVersion {
     Unknown = "Unknown",

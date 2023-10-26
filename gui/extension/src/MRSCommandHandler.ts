@@ -29,23 +29,23 @@ import {
     commands, env, ExtensionContext, ExtensionMode, TerminalExitStatus, Uri, ViewColumn, WebviewPanel, window,
 } from "vscode";
 
-import { DBType } from "../../frontend/src/supplement/ShellInterface";
+import { DBType } from "../../frontend/src/supplement/ShellInterface/index.js";
 
-import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../frontend/src/communication/MySQL";
-import { IMrsServiceData } from "../../frontend/src/communication/ProtocolMrs";
-import { DBEditorModuleId } from "../../frontend/src/modules/ModuleInfo";
-import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { findExecutable } from "../../frontend/src/utilities/file-utilities";
-import { MySQLShellLauncher } from "../../frontend/src/utilities/MySQLShellLauncher";
-import { pathToCamelCase } from "../../frontend/src/utilities/string-helpers";
-import { ExtensionHost } from "./ExtensionHost";
+import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../frontend/src/communication/MySQL.js";
+import { IMrsServiceData } from "../../frontend/src/communication/ProtocolMrs.js";
+import { DBEditorModuleId } from "../../frontend/src/modules/ModuleInfo.js";
+import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { findExecutable } from "../../frontend/src/utilities/file-utilities.js";
+import { MySQLShellLauncher } from "../../frontend/src/utilities/MySQLShellLauncher.js";
+import { pathToCamelCase } from "../../frontend/src/utilities/string-helpers.js";
+import { ExtensionHost } from "./ExtensionHost.js";
 import {
     ICdmConnectionEntry,
     ICdmRestAuthAppEntry, ICdmRestContentFileEntry, ICdmRestContentSetEntry, ICdmRestDbObjectEntry, ICdmRestRootEntry,
     ICdmRestRouterEntry, ICdmRestSchemaEntry, ICdmRestServiceEntry, ICdmRestUserEntry, ICdmSchemaEntry,
-} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel";
-import { showMessageWithTimeout, showModalDialog } from "./utilities";
-import { openSqlEditorConnection, openSqlEditorSessionAndConnection } from "./utilitiesShellGui";
+} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel.js";
+import { showMessageWithTimeout, showModalDialog } from "./utilities.js";
+import { openSqlEditorConnection, openSqlEditorSessionAndConnection } from "./utilitiesShellGui.js";
 
 export class MRSCommandHandler {
     #docsWebviewPanel?: WebviewPanel;

@@ -23,7 +23,7 @@
 
 import { mount, shallow } from "enzyme";
 
-import { Search } from "../../../../components/ui/Search/Search";
+import { Search } from "../../../../components/ui/Search/Search.js";
 
 describe("Search component tests", (): void => {
 

@@ -22,8 +22,9 @@
  */
 
 import { CharStreams, CommonTokenStream, Token } from "antlr4ng";
-import { MySQLMRSLexer } from "../../../../parsing/mysql/generated/MySQLMRSLexer";
-import { Scanner, tokenFromPosition } from "../../../../parsing/parser-common";
+
+import { MySQLMRSLexer } from "../../../../parsing/mysql/generated/MySQLMRSLexer.js";
+import { Scanner, tokenFromPosition } from "../../../../parsing/parser-common.js";
 
 describe("Parser Common", () => {
     it("Getting token from position", () => {

@@ -21,10 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Misc, driver } from "../lib/misc";
 import { By, Key, until, WebElement } from "selenium-webdriver";
 import { platform } from "os";
-import { ThemeEditor } from "../lib/themeEditor";
+
+import { Misc, driver } from "../lib/misc.js";
+import { ThemeEditor } from "../lib/themeEditor.js";
 
 const dragAndDrop = `
 function createEvent(typeOfEvent) {
@@ -1337,4 +1338,3 @@ describe("Theme Editor", () => {
         }
     });
 });
-

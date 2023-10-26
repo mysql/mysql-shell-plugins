@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { GraphHost } from "../../../../components/graphs/GraphHost";
+import { GraphHost } from "../../../../components/graphs/GraphHost.js";
 
 describe("GraphHost Tests", () => {
     it("Base Rendering", () => {

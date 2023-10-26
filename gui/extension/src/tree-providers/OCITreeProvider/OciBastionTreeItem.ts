@@ -25,9 +25,9 @@ import * as path from "path";
 
 import { TreeItemCollapsibleState } from "vscode";
 
-import { IBastionSummary, ICompartment } from "../../../../frontend/src/communication";
-import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds";
-import { OciBaseTreeItem } from "./OciBaseTreeItem";
+import { IBastionSummary, ICompartment } from "../../../../frontend/src/communication/index.js";
+import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds.js";
+import { OciBaseTreeItem } from "./OciBaseTreeItem.js";
 
 export class OciBastionTreeItem extends OciBaseTreeItem {
     public contextValue = "mdsBastion";

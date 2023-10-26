@@ -23,9 +23,8 @@
 
 import ts from "typescript";
 import { IRange } from "monaco-editor";
-import { toChildArray, VNode } from "preact";
 
-import { ITextRange } from "../supplement";
+import { ITextRange } from "../supplement/index.js";
 
 /**
  * Type guard for the TextSpan interface.
@@ -54,17 +53,4 @@ export const editorRangeToTextRange = (value: IRange): ITextRange => {
         endLine: value.endLineNumber,
         endColumn: value.endColumn,
     };
-};
-
-/**
- * Examines a preact `children` structure and returns a list of only VNode elements.
- *
- * @param children The `children` field of a preact component.
- *
- * @returns The list of found VNodes.
- */
-export const collectVNodes = <T>(children: preact.ComponentChildren): Array<VNode<T>> => {
-    return toChildArray(children).filter((child) => {
-        return (child as VNode).type !== undefined;
-    }) as Array<VNode<T>>;
 };

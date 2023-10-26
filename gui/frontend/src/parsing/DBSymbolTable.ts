@@ -26,7 +26,7 @@
 import { ParserRuleContext, ParseTree, TerminalNode } from "antlr4ng";
 import { SymbolTable, BaseSymbol, ScopedSymbol, RoutineSymbol, TypedSymbol, VariableSymbol } from "antlr4-c3";
 
-import { SymbolKind, ISymbolInfo, ISymbolDefinition } from "./parser-common";
+import { SymbolKind, ISymbolInfo, ISymbolDefinition } from "./parser-common.js";
 
 export class CatalogSymbol extends ScopedSymbol {
 }

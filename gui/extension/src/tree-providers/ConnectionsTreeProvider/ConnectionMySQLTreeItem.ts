@@ -23,11 +23,11 @@
 
 import * as path from "path";
 
-import { IMySQLConnectionOptions } from "../../../../frontend/src/communication/MySQL";
-import { IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { IMySQLConnectionOptions } from "../../../../frontend/src/communication/MySQL.js";
+import { IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface/index.js";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 
-import { ConnectionTreeItem } from "./ConnectionTreeItem";
+import { ConnectionTreeItem } from "./ConnectionTreeItem.js";
 
 export class ConnectionMySQLTreeItem extends ConnectionTreeItem {
 

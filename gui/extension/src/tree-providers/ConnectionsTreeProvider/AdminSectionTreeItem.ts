@@ -23,9 +23,9 @@
 
 import { Command } from "vscode";
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 
-import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
+import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
 
 export class AdminSectionTreeItem extends ConnectionsTreeBaseItem {
     public contextValue = "adminSection";

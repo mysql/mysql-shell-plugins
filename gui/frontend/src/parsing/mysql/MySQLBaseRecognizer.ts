@@ -23,7 +23,7 @@
 
 import { Parser } from "antlr4ng";
 
-import { IMySQLRecognizerCommon, SqlMode } from "./MySQLRecognizerCommon";
+import { IMySQLRecognizerCommon, SqlMode } from "./MySQLRecognizerCommon.js";
 
 export abstract class MySQLBaseRecognizer extends Parser implements IMySQLRecognizerCommon {
 

@@ -24,8 +24,9 @@
 import "./StatusMark.css";
 
 import { ComponentChild } from "preact";
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase";
-import { Checkbox, CheckState } from "../Checkbox/Checkbox";
+
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { Checkbox, CheckState } from "../Checkbox/Checkbox.js";
 
 interface IStatusMarkProperties extends IComponentProperties {
     statusState: CheckState;

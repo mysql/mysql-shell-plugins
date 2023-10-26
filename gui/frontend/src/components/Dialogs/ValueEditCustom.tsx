@@ -22,9 +22,9 @@
  */
 
 import { ComponentChild } from "preact";
-import { IDictionary } from "../../app-logic/Types";
 
-import { ComponentBase, IComponentProperties, IComponentState } from "../ui/Component/ComponentBase";
+import { IDictionary } from "../../app-logic/Types.js";
+import { ComponentBase, IComponentProperties, IComponentState } from "../ui/Component/ComponentBase.js";
 
 /**
  * The properties of the ValueEditCustom class used as a custom control that can be embedded into a ValueEditDialog.

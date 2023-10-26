@@ -22,32 +22,32 @@
  */
 
 import { ComponentChild, createRef } from "preact";
-import { DialogResponseClosure, IDictionary, IServicePasswordRequest } from "../../app-logic/Types";
+import { DialogResponseClosure, IDictionary, IServicePasswordRequest } from "../../app-logic/Types.js";
 
 import {
     IMySQLConnectionOptions, MySQLConnCompression, MySQLConnectionScheme, MySQLSqlMode, MySQLSslMode,
-} from "../../communication/MySQL";
-import { IBastionSummary } from "../../communication/Oci";
-import { IMdsProfileData } from "../../communication/ProtocolMds";
-import { ISqliteConnectionOptions } from "../../communication/Sqlite";
-import { ConfirmDialog } from "../../components/Dialogs/ConfirmDialog";
+} from "../../communication/MySQL.js";
+import { IBastionSummary } from "../../communication/Oci.js";
+import { IMdsProfileData } from "../../communication/ProtocolMds.js";
+import { ISqliteConnectionOptions } from "../../communication/Sqlite.js";
+import { ConfirmDialog } from "../../components/Dialogs/ConfirmDialog.js";
 import {
     CommonDialogValueOption, DialogValueType, IDialogSection, IDialogValidations, IDialogValues,
     ValueEditDialog,
-} from "../../components/Dialogs/ValueEditDialog";
-import { CheckState, ICheckboxProperties } from "../../components/ui/Checkbox/Checkbox";
+} from "../../components/Dialogs/ValueEditDialog.js";
+import { CheckState, ICheckboxProperties } from "../../components/ui/Checkbox/Checkbox.js";
 
-import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase";
-import { Container, ContentAlignment, ContentWrap, Orientation } from "../../components/ui/Container/Container";
-import { Grid } from "../../components/ui/Grid/Grid";
-import { GridCell } from "../../components/ui/Grid/GridCell";
-import { Label } from "../../components/ui/Label/Label";
-import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator";
-import { requisitions } from "../../supplement/Requisitions";
-import { DBType, IConnectionDetails } from "../../supplement/ShellInterface";
-import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface";
-import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession";
-import { filterInt, basename } from "../../utilities/string-helpers";
+import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
+import { Container, ContentAlignment, ContentWrap, Orientation } from "../../components/ui/Container/Container.js";
+import { Grid } from "../../components/ui/Grid/Grid.js";
+import { GridCell } from "../../components/ui/Grid/GridCell.js";
+import { Label } from "../../components/ui/Label/Label.js";
+import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
+import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
+import { filterInt, basename } from "../../utilities/string-helpers.js";
 
 const editorHeading = "Database Connection Configuration";
 const editorDescription = [

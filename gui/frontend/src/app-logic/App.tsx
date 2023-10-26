@@ -25,30 +25,30 @@ import "./App.css";
 
 import { Component, createRef, VNode } from "preact";
 
-import { ApplicationHost } from "./ApplicationHost";
-import { ModuleRegistry } from "../modules/ModuleRegistry";
-import { LoginPage } from "../components/Login/LoginPage";
-import { ErrorBoundary } from "./ErrorBoundary";
-import { TooltipProvider } from "../components/ui/Tooltip/Tooltip";
-import { webSession } from "../supplement/WebSession";
-import { ShellInterface } from "../supplement/ShellInterface/ShellInterface";
-import { appParameters, requisitions } from "../supplement/Requisitions";
-import { IThemeChangeData } from "../components/Theming/ThemeManager";
-import { IEditorStatusInfo } from "../modules/db-editor";
-import { ProfileSelector } from "./ProfileSelector";
+import { ApplicationHost } from "./ApplicationHost.js";
+import { ModuleRegistry } from "../modules/ModuleRegistry.js";
+import { LoginPage } from "../components/Login/LoginPage.js";
+import { ErrorBoundary } from "./ErrorBoundary.js";
+import { TooltipProvider } from "../components/ui/Tooltip/Tooltip.js";
+import { webSession } from "../supplement/WebSession.js";
+import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
+import { appParameters, requisitions } from "../supplement/Requisitions.js";
+import { IThemeChangeData } from "../components/Theming/ThemeManager.js";
+import { IEditorStatusInfo } from "../modules/db-editor/index.js";
+import { ProfileSelector } from "./ProfileSelector.js";
 
-import { ShellModule } from "../modules/shell/ShellModule";
-import { DBEditorModule } from "../modules/db-editor/DBEditorModule";
-import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModule";
-import { ApplicationDB } from "./ApplicationDB";
-import { IDialogResponse } from "./Types";
-import { MessageScheduler } from "../communication/MessageScheduler";
-import { IShellProfile } from "../communication/ProtocolGui";
-import { ColorPopup } from "../components/ui/ColorPicker/ColorPopup";
-import { IComponentState } from "../components/ui/Component/ComponentBase";
-import { ProgressIndicator } from "../components/ui/ProgressIndicator/ProgressIndicator";
-import { IStatusbarItem, ControlType, Statusbar } from "../components/ui/Statusbar/Statusbar";
-import { MessagePanel } from "../components/Dialogs/MessagePanel";
+import { ShellModule } from "../modules/shell/ShellModule.js";
+import { DBEditorModule } from "../modules/db-editor/DBEditorModule.js";
+import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModule.js";
+import { ApplicationDB } from "./ApplicationDB.js";
+import { IDialogResponse } from "./Types.js";
+import { MessageScheduler } from "../communication/MessageScheduler.js";
+import { IShellProfile } from "../communication/ProtocolGui.js";
+import { ColorPopup } from "../components/ui/ColorPicker/ColorPopup.js";
+import { IComponentState } from "../components/ui/Component/ComponentBase.js";
+import { ProgressIndicator } from "../components/ui/ProgressIndicator/ProgressIndicator.js";
+import { IStatusbarItem, ControlType, Statusbar } from "../components/ui/Statusbar/Statusbar.js";
+import { MessagePanel } from "../components/Dialogs/MessagePanel.js";
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;

@@ -24,7 +24,7 @@
 import { mount } from "enzyme";
 import { createRef } from "preact";
 
-import { ScopeSelector } from "../../../../components/Theming/ScopeSelector";
+import { ScopeSelector } from "../../../../components/Theming/ScopeSelector.js";
 
 describe("ScopeSelector testing", () => {
     const scopeSelectorRef = createRef<ScopeSelector>();

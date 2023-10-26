@@ -26,16 +26,16 @@ import logo from "../../../assets/images/modules/module-shell.svg";
 
 import { ComponentChild } from "preact";
 
-import { ShellInterface } from "../../../supplement/ShellInterface/ShellInterface";
-import { Divider } from "../Divider/Divider";
-import { requisitions } from "../../../supplement/Requisitions";
-import { IBackendInformation } from "../../../supplement/ShellInterface";
-import { IComponentState, ComponentBase } from "../Component/ComponentBase";
-import { Orientation, ContentAlignment, Container, ContentWrap } from "../Container/Container";
-import { Grid } from "../Grid/Grid";
-import { GridCell } from "../Grid/GridCell";
-import { Icon } from "../Icon/Icon";
-import { Label } from "../Label/Label";
+import { ShellInterface } from "../../../supplement/ShellInterface/ShellInterface.js";
+import { Divider } from "../Divider/Divider.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
+import { IBackendInformation } from "../../../supplement/ShellInterface/index.js";
+import { IComponentState, ComponentBase } from "../Component/ComponentBase.js";
+import { Orientation, ContentAlignment, Container, ContentWrap } from "../Container/Container.js";
+import { Grid } from "../Grid/Grid.js";
+import { GridCell } from "../Grid/GridCell.js";
+import { Icon } from "../Icon/Icon.js";
+import { Label } from "../Label/Label.js";
 
 interface IAboutBoxState extends IComponentState {
     data?: IBackendInformation;

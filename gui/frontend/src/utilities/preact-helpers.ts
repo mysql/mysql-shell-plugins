@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,39 +21,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "./Group.css";
+import { toChildArray, VNode } from "preact";
 
-import { ComponentChild } from "preact";
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
-
-export interface IGroupProperties extends IComponentProperties {
-    caption?: string;
-}
-
-export class Group extends ComponentBase<IGroupProperties> {
-
-    public static defaultProps = {
-    };
-
-    public constructor(props: IGroupProperties) {
-        super(props);
-
-        this.addHandledProperties("caption");
-    }
-
-    public render(): ComponentChild {
-        const { children, caption } = this.mergedProps;
-        const className = this.getEffectiveClassNames(["group"]);
-
-        return (
-            <fieldset
-                className={className}
-                {...this.unhandledProperties}
-            >
-                {caption && <legend>{caption}</legend>}
-                {children}
-            </fieldset>
-        );
-    }
-
-}
+/**
+ * Examines a preact `children` structure and returns a list of only VNode elements.
+ *
+ * @param children The `children` field of a preact component.
+ *
+ * @returns The list of found VNodes.
+ */
+export const collectVNodes = <T>(children: preact.ComponentChildren): Array<VNode<T>> => {
+    return toChildArray(children).filter((child) => {
+        return (child as VNode).type !== undefined;
+    }) as Array<VNode<T>>;
+};

@@ -24,24 +24,15 @@
 import "./MrsDialogs.css";
 
 
-import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types";
+import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types.js";
+import { IMrsDbObjectData, IMrsSchemaData, IMrsServiceData } from "../../../communication/ProtocolMrs.js";
+import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog.js";
 import {
-    IMrsDbObjectData,
-    IMrsSchemaData,
-    IMrsServiceData,
-} from "../../../communication/ProtocolMrs";
-import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog";
-import {
-    CommonDialogValueOption,
-    IDialogSection,
-    IDialogValidations,
-    IDialogValues,
-} from "../../../components/Dialogs/ValueEditDialog";
-import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { convertToPascalCase } from "../../../utilities/string-helpers";
-import {
-    IMrsObjectFieldEditorData, MrsObjectFieldEditor,
-} from "./MrsObjectFieldEditor";
+    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues,
+} from "../../../components/Dialogs/ValueEditDialog.js";
+import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { convertToPascalCase } from "../../../utilities/string-helpers.js";
+import { IMrsObjectFieldEditorData, MrsObjectFieldEditor } from "./MrsObjectFieldEditor.js";
 
 export class MrsDbObjectDialog extends AwaitableValueEditDialog {
     private requestValue: IMrsDbObjectData;
@@ -66,7 +57,7 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
         this.createDbObject = payload.createObject as boolean;
 
         this.dialogValues = this.createDialogValues(request, services, schemas, rowOwnershipFields, title);
-        const result = await this.doShow(() => { return this.dialogValues!; },
+        const result = await this.doShow(() => { return this.dialogValues; },
             { title: "MySQL REST Object", autoResize: true });
 
         if (result.closure === DialogResponseClosure.Accept) {

@@ -23,12 +23,12 @@
 
 import { ComponentChild } from "preact";
 
-import { IComponentProperties, ComponentBase } from "../components/ui/Component/ComponentBase";
-import { Container, Orientation } from "../components/ui/Container/Container";
-import { Label } from "../components/ui/Label/Label";
-import { Message } from "../components/ui/Message/Message";
+import { IComponentProperties, ComponentBase } from "../components/ui/Component/ComponentBase.js";
+import { Container, Orientation } from "../components/ui/Container/Container.js";
+import { Label } from "../components/ui/Label/Label.js";
+import { Message } from "../components/ui/Message/Message.js";
 
-import { MessageType } from "./Types";
+import { MessageType } from "./Types.js";
 
 type IErrorBoundaryProperties = IComponentProperties;
 

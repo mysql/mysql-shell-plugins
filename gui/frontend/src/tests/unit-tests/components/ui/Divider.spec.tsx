@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { Divider } from "../../../../components/ui/Divider/Divider";
+import { Divider } from "../../../../components/ui/Divider/Divider.js";
 
 describe("Divider render testing", (): void => {
 

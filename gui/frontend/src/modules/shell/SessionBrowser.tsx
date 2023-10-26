@@ -28,16 +28,16 @@ import "./Shell.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { requisitions } from "../../supplement/Requisitions";
+import { requisitions } from "../../supplement/Requisitions.js";
 
-import { Settings } from "../../supplement/Settings/Settings";
-import { IShellSessionDetails } from "../../supplement/ShellInterface";
-import { BrowserTileType, IBrowserTileProperties } from "../../components/ui/BrowserTile/BrowserTile";
-import { IComponentProperties, ComponentBase } from "../../components/ui/Component/ComponentBase";
-import { Container, Orientation, ContentWrap } from "../../components/ui/Container/Container";
-import { FrontPage } from "../../components/ui/FrontPage/FrontPage";
-import { Label } from "../../components/ui/Label/Label";
-import { SessionTile, ISessionTileProperties } from "../../components/ui/SessionTile/SessionTile";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
+import { BrowserTileType, IBrowserTileProperties } from "../../components/ui/BrowserTile/BrowserTile.js";
+import { IComponentProperties, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
+import { Container, Orientation, ContentWrap } from "../../components/ui/Container/Container.js";
+import { FrontPage } from "../../components/ui/FrontPage/FrontPage.js";
+import { Label } from "../../components/ui/Label/Label.js";
+import { SessionTile, ISessionTileProperties } from "../../components/ui/SessionTile/SessionTile.js";
 
 interface ISessionBrowserProperties extends IComponentProperties {
     openSessions: IShellSessionDetails[];
@@ -155,7 +155,7 @@ export class SessionBrowser extends ComponentBase<ISessionBrowserProperties> {
     };
 
     private handleTileAction = (action: string, props: IBrowserTileProperties): void => {
-        this.doHandleTileAction(action, (props as ISessionTileProperties).details);
+        this.doHandleTileAction(action, (props as ISessionTileProperties)?.details);
     };
 
     private doHandleTileAction = (action: string, details?: IShellSessionDetails): void => {

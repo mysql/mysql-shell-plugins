@@ -39,32 +39,32 @@ import { ComponentChild, createRef, render } from "preact";
 
 import { CellComponent, ColumnDefinition, Formatter, RowComponent } from "tabulator-tables";
 
-import { IToolbarItems } from ".";
+import { IToolbarItems } from "./index.js";
 import {
     DBDataType, DialogResponseClosure, DialogType, IColumnInfo, IDialogRequest, IDialogResponse, IDictionary,
-} from "../../app-logic/Types";
+} from "../../app-logic/Types.js";
 
-import { IResultSet } from "../../script-execution";
-import { DBType } from "../../supplement/ShellInterface";
-import { convertRows, generateColumnInfo } from "../../supplement";
-import { requisitions } from "../../supplement/Requisitions";
-import { uuid } from "../../utilities/helpers";
-import { IPromptReplyBackend } from "../../communication/Protocol";
+import { IResultSet } from "../../script-execution/index.js";
+import { DBType } from "../../supplement/ShellInterface/index.js";
+import { convertRows, generateColumnInfo } from "../../supplement/index.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { uuid } from "../../utilities/helpers.js";
+import { IPromptReplyBackend } from "../../communication/Protocol.js";
 import {
     IComponentProperties, IComponentState, ComponentBase, SelectionType,
-} from "../../components/ui/Component/ComponentBase";
-import { Container, Orientation, ContentAlignment, ContentWrap } from "../../components/ui/Container/Container";
-import { Divider } from "../../components/ui/Divider/Divider";
-import { Dropdown } from "../../components/ui/Dropdown/Dropdown";
-import { Grid } from "../../components/ui/Grid/Grid";
-import { GridCell } from "../../components/ui/Grid/GridCell";
-import { Icon } from "../../components/ui/Icon/Icon";
-import { Label } from "../../components/ui/Label/Label";
-import { Tabview, TabPosition } from "../../components/ui/Tabview/Tabview";
-import { Toolbar } from "../../components/ui/Toolbar/Toolbar";
-import { TreeGrid, ITreeGridOptions } from "../../components/ui/TreeGrid/TreeGrid";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { Button } from "../../components/ui/Button/Button";
+} from "../../components/ui/Component/ComponentBase.js";
+import { Container, Orientation, ContentAlignment, ContentWrap } from "../../components/ui/Container/Container.js";
+import { Divider } from "../../components/ui/Divider/Divider.js";
+import { Dropdown } from "../../components/ui/Dropdown/Dropdown.js";
+import { Grid } from "../../components/ui/Grid/Grid.js";
+import { GridCell } from "../../components/ui/Grid/GridCell.js";
+import { Icon } from "../../components/ui/Icon/Icon.js";
+import { Label } from "../../components/ui/Label/Label.js";
+import { Tabview, TabPosition } from "../../components/ui/Tabview/Tabview.js";
+import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
+import { TreeGrid, ITreeGridOptions } from "../../components/ui/TreeGrid/TreeGrid.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { Button } from "../../components/ui/Button/Button.js";
 
 interface IGlobalStatus {
     threadConnected?: number;

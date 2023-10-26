@@ -23,8 +23,8 @@
 
 import LanguageWorker from "./sql.worker?worker";
 
-import { IdentifiedWorker, WorkerPool } from "../../supplement/WorkerPool";
-import { ILanguageWorkerTaskData, ILanguageWorkerResultData } from "../parser-common";
+import { IdentifiedWorker, WorkerPool } from "../../supplement/WorkerPool.js";
+import { ILanguageWorkerTaskData, ILanguageWorkerResultData } from "../parser-common.js";
 
 export class LanguageWorkerPool extends WorkerPool<ILanguageWorkerTaskData, ILanguageWorkerResultData> {
 

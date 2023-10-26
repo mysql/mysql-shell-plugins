@@ -22,9 +22,9 @@
  */
 
 import { By, until } from "selenium-webdriver";
-import { Misc, explicitWait, driver, IDBConnection } from "../../lib/misc";
-import { DBConnection } from "../../lib/dbConnection";
-import { DBNotebooks } from "../../lib/dbNotebooks";
+import { Misc, explicitWait, driver, IDBConnection } from "../../lib/misc.js";
+import { DBConnection } from "../../lib/dbConnection.js";
+import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import { basename } from "path";
 
 describe("MySQL Administration", () => {

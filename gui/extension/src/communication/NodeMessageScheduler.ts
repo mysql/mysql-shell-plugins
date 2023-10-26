@@ -25,7 +25,7 @@ import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { default as NodeWebSocket } from "ws";
 
-import { IConnectionOptions, MessageScheduler } from "../../../frontend/src/communication/MessageScheduler";
+import { IConnectionOptions, MessageScheduler } from "../../../frontend/src/communication/MessageScheduler.js";
 
 /** An extended message scheduler for tasks only used in the extension. */
 export class NodeMessageScheduler extends MessageScheduler {

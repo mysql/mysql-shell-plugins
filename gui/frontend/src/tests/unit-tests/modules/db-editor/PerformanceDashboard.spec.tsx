@@ -23,17 +23,17 @@
 
 import { mount } from "enzyme";
 
-import { MySQLConnectionScheme } from "../../../../communication/MySQL";
+import { MySQLConnectionScheme } from "../../../../communication/MySQL.js";
 
-import { ISavedGraphData } from "../../../../modules/db-editor";
-import { PerformanceDashboard } from "../../../../modules/db-editor/PerformanceDashboard";
-import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface";
-import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface";
-import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor";
-import { webSession } from "../../../../supplement/WebSession";
-import { sleep } from "../../../../utilities/helpers";
-import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher";
-import { getDbCredentials, ITestDbCredentials, setupShellForTests } from "../../test-helpers";
+import { ISavedGraphData } from "../../../../modules/db-editor/index.js";
+import { PerformanceDashboard } from "../../../../modules/db-editor/PerformanceDashboard.js";
+import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
+import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
+import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { webSession } from "../../../../supplement/WebSession.js";
+import { sleep } from "../../../../utilities/helpers.js";
+import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
+import { getDbCredentials, ITestDbCredentials, setupShellForTests } from "../../test-helpers.js";
 
 describe("PerformanceDashboard Tests", (): void => {
     let launcher: MySQLShellLauncher;

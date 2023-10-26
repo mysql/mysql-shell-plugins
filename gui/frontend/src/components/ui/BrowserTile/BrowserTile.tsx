@@ -25,13 +25,13 @@ import "./BrowserTile.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { Container, ContentAlignment, Orientation } from "../Container/Container";
-import { filterInt } from "../../../utilities/string-helpers";
-import { IComponentProperties, ComponentBase, DragEventType } from "../Component/ComponentBase";
-import { Icon } from "../Icon/Icon";
-import { Label } from "../Label/Label";
-import { Button } from "../Button/Button";
-import { KeyboardKeys } from "../../../utilities/helpers";
+import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
+import { filterInt } from "../../../utilities/string-helpers.js";
+import { IComponentProperties, ComponentBase, DragEventType } from "../Component/ComponentBase.js";
+import { Icon } from "../Icon/Icon.js";
+import { Label } from "../Label/Label.js";
+import { Button } from "../Button/Button.js";
+import { KeyboardKeys } from "../../../utilities/helpers.js";
 
 export enum BrowserTileType {
     Open,

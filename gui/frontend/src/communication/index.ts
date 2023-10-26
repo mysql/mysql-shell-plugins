@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../app-logic/Types";
+import { IDictionary } from "../app-logic/Types.js";
 
-export * from "./Oci";
+export * from "./Oci.js";
 
 // Types for communication in various environments, like a browser, native platform wrappers or Visual Studio Code.
 

@@ -24,8 +24,9 @@
 import * as path from "path";
 
 import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
-import { EntityType } from "../../../../frontend/src/modules/db-editor";
-import { EditorLanguage } from "../../../../frontend/src/supplement";
+
+import { EntityType } from "../../../../frontend/src/modules/db-editor/index.js";
+import { EditorLanguage } from "../../../../frontend/src/supplement/index.js";
 
 export class EditorTreeItem extends TreeItem {
     static readonly #entityIconMap = new Map<EntityType, string>([

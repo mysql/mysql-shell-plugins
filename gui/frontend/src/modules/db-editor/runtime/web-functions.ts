@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ScriptingApi } from "../console.worker-types";
-import { currentWorker } from "./execute";
-import { print } from "./simple-functions";
+import { ScriptingApi } from "../console.worker-types.js";
+import { currentWorker } from "./execute.js";
+import { print } from "./simple-functions.js";
 
 export const webFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     if (typeof window === "object") {

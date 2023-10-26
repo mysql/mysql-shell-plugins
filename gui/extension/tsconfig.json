@@ -1,10 +1,11 @@
 {
     "compilerOptions": {
         "declaration": true,
-        "module": "commonjs",
+        "module": "Node16",
+        "moduleResolution": "Node16",
         "target": "ES2022",
         "outDir": "out",
-        "noEmit": false,
+        "noEmit": true,
         "removeComments": true,
         "noImplicitAny": true,
         "sourceMap": true,
@@ -15,13 +16,12 @@
         "strictNullChecks": true,
         "alwaysStrict": true,
         "resolveJsonModule": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
     },
     "compileOnSave": true,
     "include": [
         "src/*.ts",
         "src/**/*.ts",
-        "../frontend/src/modules/db-editor/assets/typings/scripting-runtime.d.ts",
     ],
     "exclude": [
         "node_modules",

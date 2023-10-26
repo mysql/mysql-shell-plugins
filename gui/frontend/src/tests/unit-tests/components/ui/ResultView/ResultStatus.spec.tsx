@@ -23,8 +23,8 @@
 
 import { mount } from "enzyme";
 
-import { MessageType } from "../../../../../app-logic/Types";
-import { ResultStatus } from "../../../../../components/ResultView/ResultStatus";
+import { MessageType } from "../../../../../app-logic/Types.js";
+import { ResultStatus } from "../../../../../components/ResultView/ResultStatus.js";
 
 describe("Result Status Tests", (): void => {
 

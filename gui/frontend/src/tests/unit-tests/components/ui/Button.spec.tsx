@@ -27,12 +27,12 @@ import { mount, shallow } from "enzyme";
 import { act } from "preact/test-utils";
 import { createRef } from "preact";
 
-import { requisitions } from "../../../../supplement/Requisitions";
-import { mouseEventMock } from "../../__mocks__/MockEvents";
-import { Button, IButtonProperties } from "../../../../components/ui/Button/Button";
-import { ComponentSize } from "../../../../components/ui/Component/ComponentBase";
-import { Image } from "../../../../components/ui/Image/Image";
-import { Container, Orientation } from "../../../../components/ui/Container/Container";
+import { requisitions } from "../../../../supplement/Requisitions.js";
+import { mouseEventMock } from "../../__mocks__/MockEvents.js";
+import { Button, IButtonProperties } from "../../../../components/ui/Button/Button.js";
+import { ComponentSize } from "../../../../components/ui/Component/ComponentBase.js";
+import { Image } from "../../../../components/ui/Image/Image.js";
+import { Container, Orientation } from "../../../../components/ui/Container/Container.js";
 
 let clicked = false;
 

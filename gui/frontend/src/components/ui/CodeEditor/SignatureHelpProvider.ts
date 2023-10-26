@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IProviderEditorModel, languages, Position, ProviderResult, SignatureHelpResult } from ".";
-import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices";
+import { IProviderEditorModel, languages, Position, ProviderResult, SignatureHelpResult } from "./index.js";
+import { ScriptingLanguageServices } from "../../../script-execution/ScriptingLanguageServices.js";
 
 export class SignatureHelpProvider implements languages.SignatureHelpProvider {
 

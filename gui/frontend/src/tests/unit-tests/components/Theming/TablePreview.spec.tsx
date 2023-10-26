@@ -23,7 +23,7 @@
 
 import { mount } from "enzyme";
 
-import { TablePreview } from "../../../../components/Theming/Preview/TablePreview";
+import { TablePreview } from "../../../../components/Theming/Preview/TablePreview.js";
 
 describe("TablePreview testing", () => {
 

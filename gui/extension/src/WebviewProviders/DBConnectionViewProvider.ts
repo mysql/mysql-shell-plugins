@@ -28,15 +28,17 @@ import { commands, OpenDialogOptions, SaveDialogOptions, Uri, window } from "vsc
 import {
     IMrsDbObjectEditRequest, IOpenDialogOptions, IOpenFileDialogResult, IRequestTypeMap, IRequisitionCallbackValues,
     requisitions,
-} from "../../../frontend/src/supplement/Requisitions";
+} from "../../../frontend/src/supplement/Requisitions.js";
 
-import { IMySQLDbSystem } from "../../../frontend/src/communication";
-import { EntityType, IDBEditorScriptState } from "../../../frontend/src/modules/db-editor";
-import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo";
-import { EditorLanguage, INewEditorRequest, IRunQueryRequest, IScriptRequest } from "../../../frontend/src/supplement";
-import { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface";
-import { showMessageWithTimeout } from "../utilities";
-import { WebviewProvider } from "./WebviewProvider";
+import { IMySQLDbSystem } from "../../../frontend/src/communication/index.js";
+import { EntityType, IDBEditorScriptState } from "../../../frontend/src/modules/db-editor/index.js";
+import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo.js";
+import {
+    EditorLanguage, INewEditorRequest, IRunQueryRequest, IScriptRequest,
+} from "../../../frontend/src/supplement/index.js";
+import { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface/index.js";
+import { showMessageWithTimeout } from "../utilities.js";
+import { WebviewProvider } from "./WebviewProvider.js";
 
 export class DBConnectionViewProvider extends WebviewProvider {
     /**

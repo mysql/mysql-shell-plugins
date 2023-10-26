@@ -23,23 +23,23 @@
 
 import { ComponentChild, createRef, render } from "preact";
 
-import { ResultTabView } from "../components/ResultView/ResultTabView";
+import { ResultTabView } from "../components/ResultView/ResultTabView.js";
 import {
     IExecutionResult, IGraphResult, IPresentationOptions, IResponseDataOptions, IResultSetRows, IResultSets,
     ITextResult, LoadingState,
-} from ".";
-import { DiagnosticSeverity, IDiagnosticEntry, TextSpan } from "../parsing/parser-common";
-import { Monaco } from "../components/ui/CodeEditor";
-import { ExecutionContext } from "./ExecutionContext";
-import { requisitions } from "../supplement/Requisitions";
-import { EditorLanguage } from "../supplement";
+} from "./index.js";
+import { DiagnosticSeverity, IDiagnosticEntry, TextSpan } from "../parsing/parser-common.js";
+import { Monaco } from "../components/ui/CodeEditor/index.js";
+import { ExecutionContext } from "./ExecutionContext.js";
+import { requisitions } from "../supplement/Requisitions.js";
+import { EditorLanguage } from "../supplement/index.js";
 
-import { GraphHost } from "../components/graphs/GraphHost";
-import { ActionOutput } from "../components/ResultView/ActionOutput";
-import { MessageType } from "../app-logic/Types";
-import { Container, Orientation } from "../components/ui/Container/Container";
-import { SQLExecutionContext } from "./SQLExecutionContext";
-import { ResultStatus } from "../components/ResultView/ResultStatus";
+import { GraphHost } from "../components/graphs/GraphHost.js";
+import { ActionOutput } from "../components/ResultView/ActionOutput.js";
+import { MessageType } from "../app-logic/Types.js";
+import { Container, Orientation } from "../components/ui/Container/Container.js";
+import { SQLExecutionContext } from "./SQLExecutionContext.js";
+import { ResultStatus } from "../components/ResultView/ResultStatus.js";
 
 /** Base class for handling of UI related elements like editor decorations and result display in execution contexts. */
 export class PresentationInterface {

@@ -26,8 +26,8 @@ import icon from "../../../../assets/images/modules/module-sql.svg";
 import { createRef } from "preact";
 import { mount } from "enzyme";
 
-import { DBEditorModuleId } from "../../../../modules/ModuleInfo";
-import { DBEditorModule } from "../../../../modules/db-editor/DBEditorModule";
+import { DBEditorModuleId } from "../../../../modules/ModuleInfo.js";
+import { DBEditorModule } from "../../../../modules/db-editor/DBEditorModule.js";
 
 describe("DBEditor module tests", (): void => {
 

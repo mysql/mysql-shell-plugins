@@ -22,7 +22,7 @@
  */
 
 import { By, until, Key, WebElement, error } from "selenium-webdriver";
-import { driver, explicitWait, Misc } from "./misc";
+import { driver, explicitWait, Misc } from "./misc.js";
 
 export class DBConnection {
 

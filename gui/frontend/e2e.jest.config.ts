@@ -137,9 +137,9 @@ const config: Config = {
         ".+\\.worker\\?worker$": "<rootDir>/src/tests/unit-tests/__mocks__/workerMock.ts",
         ".+runtime\\.d\\.ts$": "<rootDir>/src/tests/unit-tests/__mocks__/typingsMock.ts",
         "^react$": "preact/compat",
-        //"^react-dom$": "preact/compat",
         '^react/jsx-runtime$': 'preact/jsx-runtime',
-        ".*\\?raw": "jest-raw-loader"
+        ".*\\?raw": "jest-raw-loader",
+        "^(\\.\\.?\\/.+)\\.js$": "$1", // For imports with the .js extension.
     },
 
     // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader

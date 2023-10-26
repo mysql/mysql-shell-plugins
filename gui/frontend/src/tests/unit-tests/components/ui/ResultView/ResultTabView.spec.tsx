@@ -23,12 +23,12 @@
 
 import { mount } from "enzyme";
 
-import { MessageType } from "../../../../../app-logic/Types";
-import { ResultStatus } from "../../../../../components/ResultView/ResultStatus";
-import { ResultTabView } from "../../../../../components/ResultView/ResultTabView";
-import { Button } from "../../../../../components/ui/Button/Button";
-import { IResultSets } from "../../../../../script-execution";
-import { nextProcessTick, nextRunLoop } from "../../../test-helpers";
+import { MessageType } from "../../../../../app-logic/Types.js";
+import { ResultStatus } from "../../../../../components/ResultView/ResultStatus.js";
+import { ResultTabView } from "../../../../../components/ResultView/ResultTabView.js";
+import { Button } from "../../../../../components/ui/Button/Button.js";
+import { IResultSets } from "../../../../../script-execution/index.js";
+import { nextProcessTick, nextRunLoop } from "../../../test-helpers.js";
 
 describe("Result Tabview Tests", (): void => {
 

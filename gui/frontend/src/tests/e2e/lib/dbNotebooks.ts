@@ -22,7 +22,7 @@
  */
 
 import { By, until, WebElement, Key, error } from "selenium-webdriver";
-import { driver, explicitWait, IDBConnection } from "./misc";
+import { driver, explicitWait, IDBConnection } from "./misc.js";
 
 export const execFullBlockSql = "Execute the selection or everything in the current block and create a new block";
 export const execFullBlockJs = "Execute everything in the current block and create a new block";

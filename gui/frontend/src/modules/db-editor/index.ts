@@ -21,9 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/// <reference types="./assets/typings/scripting-runtime.d.ts" />
+
 import { ComponentChild } from "preact";
 
-import { EditorLanguage } from "../../supplement";
+import { EditorLanguage } from "../../supplement/index.js";
 
 /** The of an entry in trees etc. */
 export enum EntityType {

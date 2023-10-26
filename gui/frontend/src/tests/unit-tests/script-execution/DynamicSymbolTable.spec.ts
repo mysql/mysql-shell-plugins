@@ -28,10 +28,10 @@ import {
     PluginSymbol, PrimaryKeySymbol, SchemaSymbol, StoredFunctionSymbol,
     StoredProcedureSymbol, SystemFunctionSymbol, SystemVariableSymbol, TableSymbol, TablespaceSymbol, TriggerSymbol,
     UdfSymbol, UserSymbol, UserVariableSymbol, ViewSymbol,
-} from "../../../parsing/DBSymbolTable";
-import { DynamicSymbolTable } from "../../../script-execution/DynamicSymbolTable";
-import { RoutineType, ShellInterfaceDb } from "../../../supplement/ShellInterface/ShellInterfaceDb";
-import { nextProcessTick } from "../test-helpers";
+} from "../../../parsing/DBSymbolTable.js";
+import { DynamicSymbolTable } from "../../../script-execution/DynamicSymbolTable.js";
+import { RoutineType, ShellInterfaceDb } from "../../../supplement/ShellInterface/ShellInterfaceDb.js";
+import { nextProcessTick } from "../test-helpers.js";
 
 class MockShellInterfaceDb extends ShellInterfaceDb {
     public async getCatalogObjects(type: string, _filter?: string): Promise<string[]> {

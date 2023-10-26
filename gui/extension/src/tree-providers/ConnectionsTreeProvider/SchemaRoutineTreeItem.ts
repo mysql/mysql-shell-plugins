@@ -23,9 +23,8 @@
 
 import { Command } from "vscode";
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor";
-
-import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem";
+import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
 
 export class SchemaRoutineTreeItem extends ConnectionsTreeBaseItem {
     public contextValue = "schemaRoutineItem";

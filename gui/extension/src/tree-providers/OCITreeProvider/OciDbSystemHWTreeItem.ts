@@ -24,9 +24,9 @@
 import * as path from "path";
 import { TreeItemCollapsibleState } from "vscode";
 
-import { ICompartment, IMySQLDbSystem } from "../../../../frontend/src/communication";
-import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds";
-import { OciDbSystemTreeItem } from "./OciDbSystemTreeItem";
+import { ICompartment, IMySQLDbSystem } from "../../../../frontend/src/communication/index.js";
+import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds.js";
+import { OciDbSystemTreeItem } from "./OciDbSystemTreeItem.js";
 
 export class OciDbSystemHWTreeItem extends OciDbSystemTreeItem {
     public contextValue = "mdsDbSystemHW";

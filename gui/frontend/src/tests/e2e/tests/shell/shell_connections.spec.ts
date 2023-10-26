@@ -22,10 +22,12 @@
  */
 
 import { By, WebElement, until } from "selenium-webdriver";
-import { GuiConsole } from "../../lib/guiConsole";
-import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc";
-import { ShellSession } from "../../lib/shellSession";
 import { basename } from "path";
+
+import { GuiConsole } from "../../lib/guiConsole.js";
+import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc.js";
+import { ShellSession } from "../../lib/shellSession.js";
+
 jest.retryTimes(1);
 describe("MySQL Shell Connections", () => {
 
