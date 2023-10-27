@@ -872,10 +872,12 @@ Execute \\help or \\? for help;`;
      * This can either be handled by the browser (not allowing to specify a target path) or by the host application
      * which has more freedom to allow the user to select a target path.
      *
+     * @param source If set to "viaKeyboardShortcut" the requisition was sent from a keyboard shortcut
+     *
      * @returns A promise that resolves to true if the notebook was saved, false if the request could not be fulfilled.
      *
      */
-    private editorSaveNotebook = async (): Promise<boolean> => {
+    private editorSaveNotebook = async (source?: string): Promise<boolean> => {
         const openState = this.findActiveEditor();
 
         if (openState) {
@@ -900,7 +902,11 @@ Execute \\help or \\? for help;`;
                 }, 4);
 
                 if (appParameters.embedded) {
-                    requisitions.executeRemote("editorSaveNotebook", text);
+                    if (source === undefined) {
+                        requisitions.executeRemote("editorSaveNotebook", text);
+                    } else {
+                        requisitions.executeRemote("editorSaveNotebookInPlace", text);
+                    }
                 } else {
                     // TODO: make the file name configurable.
                     const { caption } = this.props;

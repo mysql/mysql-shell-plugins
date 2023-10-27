@@ -727,7 +727,7 @@ export class PresentationInterface {
             while (run <= endLine) {
                 const text = model.getLineContent(run).trim();
                 if (text.length > 0) {
-                    if (run === endLine && text.startsWith("\\")) {
+                    if (text.startsWith("\\")) {
                         // The current line is the last one and starts with a backslash.
                         return true;
                     } else {

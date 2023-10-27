@@ -339,7 +339,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object["objects"] = [{
             "id": object_id,
             "db_object_id": self.mrs_object.get("id"),
-            "name": ctx.restObjectName().identifier().getText(),
+            "name": ctx.restObjectName().getText() if ctx.restObjectName() is not None else None,
             "kind": "RESULT",
             "position": 0,
             # Get top level fields
@@ -347,6 +347,7 @@ class MrsDdlListener(MRSListener):
                 object_id=object_id,
                 db_schema_name=self.mrs_object["schema_name"],
                 db_object_name=self.mrs_object["name"],
+                # If no graphQlObj is given, simply enabled all fields
                 auto_enable_fields=(ctx.graphQlObj() is None))
         }]
 
@@ -395,17 +396,17 @@ class MrsDdlListener(MRSListener):
 
     def enterRestProcedureResult(self, ctx):
         # A REST PROCEDURE can have multiple results
-        graph_gl_object_count = self.mrs_object.get(
-            "graph_gl_object_count", 0) + 1
-        self.mrs_object["graph_gl_object_count"] = graph_gl_object_count
+        graph_ql_object_count = self.mrs_object.get(
+            "graph_ql_object_count", 0) + 1
+        self.mrs_object["graph_ql_object_count"] = graph_ql_object_count
 
         # Add a new mrs object for each RESULT
         self.mrs_object["objects"].append({
             "id": self.get_uuid(),
             "db_object_id": self.mrs_object.get("id"),
-            "name": ctx.restResultName().getText(),
+            "name": ctx.restResultName().getText() if ctx.restResultName() is not None else None,
             "kind": "RESULT",
-            "position": graph_gl_object_count,
+            "position": graph_ql_object_count,
             "fields": []
         })
 
@@ -415,16 +416,30 @@ class MrsDdlListener(MRSListener):
         fields = current_object["fields"]
         field_name = lib.core.unquote(ctx.graphKeyValue().getText())
 
-        # If this is not a qualified identifier, it's a column
-        if ctx.qualifiedIdentifier().dotIdentifier() is None:
+        # Check if this GraphQlPair is inside a reference, and if so, adjust the ref_fields_offset so that
+        # the handling only applies to the referenced fields
+        ref_stack = self.mrs_object.get("parent_reference_stack")
+        if ref_stack is not None and len(ref_stack) > 0:
+            parent_ref = ref_stack[-1]
+            ref_fields_offset = parent_ref.get("referenced_fields_offset")
+        else:
+            parent_ref = None
+            ref_fields_offset = 0
+
+        # If there is no graphQlObj for this field, it's a column
+        if ctx.graphQlObj() is None:
             db_column_name = ctx.qualifiedIdentifier().getText().strip("`")
 
             # Check if this is a REST PROCEDURE RESULT
-            graph_gl_object_count = self.mrs_object.get(
-                "graph_gl_object_count", 0)
-            if graph_gl_object_count == 0:
+            graph_ql_object_count = self.mrs_object.get(
+                "graph_ql_object_count", 0)
+            if graph_ql_object_count == 0:
                 # A REST VIEW RESULT or REST PROCEDURE PARAMETERS
-                for field in fields:
+                for i, field in enumerate(fields):
+                    # Ignore all higher level fields and only consider referenced fields
+                    if i < ref_fields_offset:
+                        continue
+
                     db_column = field.get("db_column")
                     if db_column is not None and db_column.get("name") == db_column_name:
                         field["name"] = field_name
@@ -455,7 +470,7 @@ class MrsDdlListener(MRSListener):
                 # A REST PROCEDURE RESULT
                 fields.append({
                     "id": self.get_uuid(),
-                    "object_id": self.mrs_object.get("objects")[graph_gl_object_count].get("id"),
+                    "object_id": self.mrs_object.get("objects")[graph_ql_object_count].get("id"),
                     "name": field_name,
                     "position": len(fields),
                     "db_column": {
@@ -474,10 +489,13 @@ class MrsDdlListener(MRSListener):
                 current_object["fields"] = fields
 
         else:
-            db_schema_name = ctx.qualifiedIdentifier(
-            ).identifier().getText().strip("`")
-            db_object_name = ctx.qualifiedIdentifier(
-            ).dotIdentifier().identifier().getText().strip("`")
+            if ctx.qualifiedIdentifier().dotIdentifier() is None:
+                db_schema_name = self.mrs_object["schema_name"]
+                db_object_name = ctx.qualifiedIdentifier().identifier().getText().strip("`")
+            else:
+                db_schema_name = ctx.qualifiedIdentifier().identifier().getText().strip("`")
+                db_object_name = ctx.qualifiedIdentifier(
+                ).dotIdentifier().identifier().getText().strip("`")
 
             ref_mapping = None
             for field in fields:
@@ -531,28 +549,38 @@ class MrsDdlListener(MRSListener):
             else:
                 parent_ref = None
 
-            if parent_ref is not None and ctx.AT_REDUCETO_SYMBOL() is not None:
-                reduce_to = lib.core.unquote(
-                    ctx.graphQlReduceToValue().getText().lower())
-
+            if (parent_ref is not None and ctx.AT_UNNEST_SYMBOL() is not None and
+                parent_ref.get("object_reference") is not None and
+                parent_ref["object_reference"].get("reference_mapping") is not None and
+                    parent_ref["object_reference"]["reference_mapping"].get("kind") == "1:n"):
+                # This is an unnest of a 1:n reference, so check if there is exactly one sub-field enabled
+                # and set its id as the "reduce_to_value_of_field_id" of the reference
                 objects = self.mrs_object["objects"]
                 current_object = objects[-1]
                 fields = current_object.get("fields")
                 ref_fields_offset = parent_ref.get("referenced_fields_offset")
                 obj_reference = parent_ref.get("object_reference")
 
+                reduce_to_field_name = ""
+
                 for i, reduce_to_field in enumerate(fields):
                     # Ignore all higher level fields and only consider referenced fields
                     if i < ref_fields_offset:
                         continue
 
-                    if (reduce_to_field.get("name").lower() == reduce_to):
-                        obj_reference[
-                            "reduce_to_value_of_field_id"] = reduce_to_field.get("id")
-                        break
-                else:
+                    if reduce_to_field.get("enabled") and reduce_to_field.get("represents_reference_id") is None:
+                        if obj_reference.get("reduce_to_value_of_field_id") is None:
+                            obj_reference["reduce_to_value_of_field_id"] = reduce_to_field.get(
+                                "id")
+                            reduce_to_field_name = reduce_to_field.get("name")
+                        else:
+                            raise Exception(
+                                f'Only one column `{reduce_to_field_name}` must be defined for a N:1 unnest operation. '
+                                f'The column `{reduce_to_field.get("name")}` needs to be removed.')
+
+                if obj_reference.get("reduce_to_value_of_field_id") is None:
                     raise Exception(
-                        f'The column `{reduce_to}` defined for a reduce operation was not found.')
+                        f'At least one column must be defined for a N:1 unnest operation.')
 
     def exitCreateRestViewStatement(self, ctx):
         self.mrs_ddl_executor.createRestDbObject(self.mrs_object)
@@ -587,7 +615,8 @@ class MrsDdlListener(MRSListener):
                     "is_primary": False,
                     "is_unique": False,
                 },
-                "enabled": True,
+                # If explicit PARAMETERS are given, add the fields not enabled and enable only the given fields
+                "enabled": ctx.PARAMETERS_SYMBOL() is None,
                 "allow_filtering": True,
                 "allow_sorting": False,
                 "no_check": False,
@@ -598,7 +627,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object["objects"] = [{
             "id": object_id,
             "db_object_id": self.mrs_object["id"],
-            "name": ctx.restObjectName().identifier().getText(),
+            "name": ctx.restObjectName().getText() if ctx.restObjectName() is not None else None,
             "kind": "PARAMETERS",
             "position": 0,
             "fields": param_fields
@@ -732,8 +761,7 @@ class MrsDdlListener(MRSListener):
                 ctx.newViewRequestPath().requestPathIdentifier().getText()
                 if ctx.newViewRequestPath() is not None else None),
             "new_object_name": (
-                ctx.restObjectName().identifier().getText()
-                if ctx.restObjectName() is not None else None),
+                ctx.restObjectName().getText() if ctx.restObjectName() is not None else None),
             "type": "DUALITY VIEW",
             "parent_reference_stack": []
         }
@@ -747,20 +775,19 @@ class MrsDdlListener(MRSListener):
         # Set mrs_object["id"] since the field listener need that
         self.mrs_object["id"] = db_object["id"]
 
-        if ctx.restObjectName() is not None:
-            object_id = self.get_uuid()
-            self.mrs_object["objects"] = [{
-                "id": object_id,
-                "db_object_id": db_object["id"],
-                "name": ctx.restObjectName().identifier().getText(),
-                "kind": "RESULT",
-                "position": 0,
-                # Get top level fields
-                "fields": self.get_db_object_fields(
-                    object_id=object_id,
-                    db_schema_name=db_object["schema_name"],
-                    db_object_name=db_object["name"])
-            }]
+        object_id = self.get_uuid()
+        self.mrs_object["objects"] = [{
+            "id": object_id,
+            "db_object_id": db_object["id"],
+            "name": ctx.restObjectName().getText() if ctx.restObjectName() is not None else None,
+            "kind": "RESULT",
+            "position": 0,
+            # Get top level fields
+            "fields": self.get_db_object_fields(
+                object_id=object_id,
+                db_schema_name=db_object["schema_name"],
+                db_object_name=db_object["name"])
+        }]
 
     def exitAlterRestViewStatement(self, ctx):
         self.mrs_ddl_executor.alterRestDbObject(self.mrs_object)
@@ -776,8 +803,7 @@ class MrsDdlListener(MRSListener):
                 ctx.newProcedureRequestPath().requestPathIdentifier().getText()
                 if ctx.newProcedureRequestPath() is not None else None),
             "new_object_name": (
-                ctx.restObjectName().identifier().getText()
-                if ctx.restObjectName() is not None else None),
+                ctx.restObjectName().getText() if ctx.restObjectName() is not None else None),
             "type": "PROCEDURE"
         }
 
@@ -786,11 +812,10 @@ class MrsDdlListener(MRSListener):
         # Set mrs_object["id"] since the field listener need that
         self.mrs_object["id"] = db_object["id"]
 
-        if ctx.restObjectName() is not None:
-            self.add_rest_procedure_params(
-                ctx=ctx,
-                db_schema_name=db_object["schema_name"],
-                db_object_name=db_object["name"])
+        self.add_rest_procedure_params(
+            ctx=ctx,
+            db_schema_name=db_object["schema_name"],
+            db_object_name=db_object["name"])
 
     def exitAlterRestProcedureStatement(self, ctx):
         self.mrs_ddl_executor.alterRestDbObject(self.mrs_object)

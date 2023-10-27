@@ -45,6 +45,8 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public readonly currentSchemas = new Map<number, string>();
 
+    #lastNotebookUri?: Uri;
+
     /**
      * Shows the given module page.
      *
@@ -348,6 +350,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
             this.requisitions.register("closeInstance", this.closeInstance);
             this.requisitions.register("showInfo", this.showInfo);
             this.requisitions.register("editorSaveNotebook", this.editorSaveNotebook);
+            this.requisitions.register("editorSaveNotebookInPlace", this.editorSaveNotebookInPlace);
             this.requisitions.register("editorLoadNotebook", this.editorLoadNotebook);
             this.requisitions.register("showOpenDialog", this.showOpenDialog);
             this.requisitions.register("sqlSetCurrentSchema", this.setCurrentSchema);
@@ -423,15 +426,46 @@ export class DBConnectionViewProvider extends WebviewProvider {
                 };
 
                 void window.showSaveDialog(dialogOptions).then((uri: Uri) => {
-                    const path = uri.fsPath;
+                    if (uri !== undefined) {
+                        this.#lastNotebookUri = uri;
+
+                        const path = uri.fsPath;
+                        writeFile(path, content).then(() => {
+                            window.setStatusBarMessage(`DB Notebook saved to ${path}`, 5000);
+
+                            return resolve(true);
+                        }).catch(() => {
+                            void window.showErrorMessage(`Could not save notebook to ${path}.`);
+
+                            return resolve(false);
+                        });
+                    } else {
+                        return resolve(false);
+                    }
+                });
+            } else {
+                return resolve(false);
+            }
+        });
+    };
+
+    private editorSaveNotebookInPlace = (content?: string): Promise<boolean> => {
+        return new Promise((resolve) => {
+            if (content) {
+                if (this.#lastNotebookUri === undefined) {
+                    void this.editorSaveNotebook(content);
+                } else {
+                    const path = this.#lastNotebookUri.fsPath;
                     writeFile(path, content).then(() => {
+                        window.setStatusBarMessage(`DB Notebook saved to ${path}`, 5000);
+
                         return resolve(true);
                     }).catch(() => {
                         void window.showErrorMessage(`Could not save notebook to ${path}.`);
 
                         return resolve(false);
                     });
-                });
+                }
             } else {
                 return resolve(false);
             }
@@ -463,6 +497,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
 
             void window.showOpenDialog(dialogOptions).then((paths?: Uri[]) => {
                 if (paths && paths.length > 0) {
+                    this.#lastNotebookUri = paths[0];
                     const path = paths[0].fsPath;
                     readFile(path, { encoding: "utf-8" }).then((content) => {
                         this.requisitions?.executeRemote("editorLoadNotebook", { content, standalone: false });

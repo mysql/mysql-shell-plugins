@@ -136,7 +136,8 @@ Adding the database schema table via VS Code is equal to calling the [CREATE RES
 
 ```sql
 CREATE OR REPLACE REST DUALITY VIEW /city
-FROM `sakila`.`city` AS MyServiceSakilaCity;
+AS `sakila`.`city`
+AUTHENTICATION REQUIRED;
 
 SHOW CREATE REST VIEW /city;
 ```
@@ -147,13 +148,13 @@ SHOW CREATE REST VIEW /city;
 +-----------------------------------------------+
 | CREATE OR REPLACE REST DUALITY VIEW /city     |
 |     ON SERVICE /myTestService SCHEMA /sakila  |
-|     AUTHENTICATION REQUIRED                   |
-|     FROM sakila.city AS MyServiceSakilaCity { |
+|     AS sakila.city {                          |
 |         cityId: city_id,                      |
 |         city: city,                           |
 |         countryId: country_id,                |
 |         lastUpdate: last_update               |
-|     };                                        |
+|     }                                         |
+|     AUTHENTICATION REQUIRED;                  |
 +-----------------------------------------------+
 ```
 
@@ -167,7 +168,8 @@ The same can be achieved by using annotations in the MRS DDL statement.
 
 ```sql
 CREATE OR REPLACE REST DUALITY VIEW /city
-FROM `sakila`.`city` @INSERT @UPDATE @DELETE AS MyServiceSakilaCity;
+AS `sakila`.`city` @INSERT @UPDATE @DELETE
+AUTHENTICATION REQUIRED;
 ```
 
 The following table shows the mapping between CRUD operations and SQL operations.

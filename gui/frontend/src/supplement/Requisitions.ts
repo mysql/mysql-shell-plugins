@@ -311,6 +311,7 @@ export interface IRequestTypeMap {
      * selector). If `content` is empty, nothing happens.
      */
     "editorSaveNotebook": (content?: string) => Promise<boolean>;
+    "editorSaveNotebookInPlace": (content?: string) => Promise<boolean>;
 
     /**
      * Triggers loading a notebook from a file. The actual behavior depends on the context and the given `details`

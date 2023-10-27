@@ -78,16 +78,8 @@ def walk(fields, parent_id=None, level=1, add_data_type=False, current_object=No
                 "@UPDATE")
             "DELETE" in field["object_reference"]["crud_operations"] and attributes.append(
                 "@DELETE")
-            field["object_reference"]["unnest"] and attributes.append(
-                "@UNNEST")
-
-            if field["object_reference"].get("reduce_to_value_of_field_id"):
-                reduce_to_field = list(filter(lambda f: f["id"] == lib.core.id_to_binary(field["object_reference"].get(
-                    "reduce_to_value_of_field_id"), "reduce_to_value_of_field_id"), fields))
-
-                if reduce_to_field:
-                    attributes.append(
-                        f'@REDUCETO({reduce_to_field[0]["db_column"].get("name")})')
+            if field["object_reference"]["unnest"] or field["object_reference"].get("reduce_to_value_of_field_id"):
+                attributes.append("@UNNEST")
 
             children = cutLastComma(walk(fields=fields, parent_id=field["represents_reference_id"],
                                          level=level + 1, add_data_type=add_data_type, current_object=current_object))
@@ -151,7 +143,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     @property
     def current_service_id(self):
         self.lookup_current_service()
-        return self.state_data['current_service_id']
+        return self.state_data.get('current_service_id')
 
     @current_service_id.setter
     def current_service_id(self, value):
@@ -408,6 +400,40 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 })
                 raise
 
+    def fill_object_names_if_not_given(self, mrs_object: dict, schema_id, full_path):
+        assigned_names = []
+        for i, obj in enumerate(mrs_object.get("objects")):
+            # Auto-create unique object name if it was not specified by the user
+            if obj["name"] is None:
+                obj["name"] = lib.core.convert_path_to_pascal_case(full_path)
+                numeric_post_fix = 2
+                # If this db_object represents a procedure, add Params to the first object name and 2,3,.. if more than
+                # one result set object has been defined
+                if mrs_object.get("db_object_type") == "PROCEDURE":
+                    if obj["kind"] == "PARAMETERS":
+                        obj["name"] = obj["name"] + "Params"
+                    if i > 1:
+                        if numeric_post_fix < i:
+                            numeric_post_fix = i
+                        obj["name"] = lib.core.convert_path_to_pascal_case(
+                            full_path + str(numeric_post_fix))
+
+                # If the object name is not unique for this schema, keep increasing a numeric_post_fix
+                name_unique = False
+                while not name_unique:
+                    try:
+                        if obj["name"] in assigned_names:
+                            raise Exception("Object name already used.")
+                        lib.core.check_mrs_object_name(
+                            session=self.session, db_schema_id=schema_id, obj_id=obj["id"], obj_name=obj["name"])
+
+                        name_unique = True
+                        assigned_names.append(obj["name"])
+                    except:
+                        obj["name"] = lib.core.convert_path_to_pascal_case(
+                            full_path + str(numeric_post_fix))
+                        numeric_post_fix += 1
+
     def createRestDbObject(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
@@ -424,6 +450,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 schema_id = self.get_given_or_current_schema_id(mrs_object)
                 if schema_id is None:
                     raise Exception("No REST SCHEMA specified.")
+
+                self.fill_object_names_if_not_given(
+                    mrs_object=mrs_object, schema_id=schema_id,
+                    full_path=full_path)
 
                 # If the OR REPLACE was specified, check if there is an existing db_object on the same schema
                 # and delete it.
@@ -802,6 +832,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 raise Exception(
                     f'The given REST {rest_object_type} `{full_path}` could not be found.')
 
+            self.fill_object_names_if_not_given(
+                mrs_object=mrs_object, schema_id=db_object["db_schema_id"],
+                full_path=full_path)
+
             new_request_path = mrs_object.pop("new_request_path")
             if new_request_path is not None:
                 mrs_object["request_path"] = new_request_path
@@ -811,7 +845,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 # TODO: Implement object handling
                 pass
 
-            mrs_object.pop("graph_gl_object_count", None)
+            mrs_object.pop("graph_ql_object_count", None)
             objects = mrs_object.pop("objects", None)
 
             # Alter DB Object
@@ -1203,8 +1237,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "success",
-                # NOTE: this would duplicate the text printed in normal result processing in shell
-                "message": f'OK, {len(services)} record{"s" if len(services) > 1 else ""} received.',
                 "operation": self.current_operation,
                 "result": result,
                 "executionTime": timer.elapsed()
@@ -1239,8 +1271,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "success",
-                # NOTE: this would duplicate the text printed in normal result processing in shell
-                "message": f'OK, {len(schemas)} record{"s" if len(schemas) > 1 else ""} received.',
                 "operation": self.current_operation,
                 "result": result,
                 "executionTime": timer.elapsed()
@@ -1277,8 +1307,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             self.results.append({
                 "statementIndex": len(self.results) + 1,
                 "type": "success",
-                # NOTE: this would duplicate the text printed in normal result processing in shell
-                "message": f'OK, {len(items)} record{"s" if len(items) > 1 else ""} received.',
                 "operation": self.current_operation,
                 "result": result,
                 "executionTime": timer.elapsed()
@@ -1525,7 +1553,38 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
             stmt = (f'CREATE OR REPLACE REST {rest_object_type} {db_object.get("request_path")}\n' +
                     f'    ON SERVICE {mrs_object.get("url_context_root")} SCHEMA {db_object.get("schema_request_path")}\n' +
-                    f'    FROM {db_object.get("qualified_name")}\n')
+                    f'    AS {db_object.get("qualified_name")}')
+
+            if rest_object_type != "PROCEDURE":
+                stmt += f' CLASS {objects[0]["name"]}'
+
+                crud_ops = db_object.get("crud_operations")
+                if "CREATE" in crud_ops:
+                    stmt += " @INSERT"
+                if "UPDATE" in crud_ops:
+                    stmt += " @UPDATE"
+                if "DELETE" in crud_ops:
+                    stmt += " @DELETE"
+
+                fields = []
+                if len(objects) > 0:
+                    fields = lib.db_objects.get_object_fields_with_references(
+                        session=self.session, object_id=objects[0]["id"])
+
+                stmt += f' {{\n{cutLastComma(walk(fields=fields, level=2, current_object=db_object))}\n    }}\n'
+            else:
+                stmt += "\n"
+                for object in objects:
+                    fields = lib.db_objects.get_object_fields_with_references(
+                        session=self.session, object_id=object["id"])
+
+                    children = cutLastComma(walk(
+                        fields=fields, add_data_type=object["kind"] == "RESULT", current_object=db_object))
+
+                    stmt += f'{object["kind"]} {object["name"]}'
+
+                    if children:
+                        stmt += f" {{\n{children}\n}}\n"
 
             if db_object["enabled"] is False or db_object["enabled"] == 0:
                 stmt += "    DISABLED\n"
@@ -1558,44 +1617,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     js_indented += f'    {ln}\n'
                 stmt += f'    OPTIONS {js_indented[4:-1]}\n'
 
-            stmt += f'    AS {objects[0]["name"]}'
-
-            if rest_object_type != "PROCEDURE":
-                crud_ops = db_object.get("crud_operations")
-                if "CREATE" in crud_ops:
-                    stmt += " @INSERT"
-                if "UPDATE" in crud_ops:
-                    stmt += " @UPDATE"
-                if "DELETE" in crud_ops:
-                    stmt += " @DELETE"
-
-                fields = []
-                if len(objects) > 0:
-                    fields = lib.db_objects.get_object_fields_with_references(
-                        session=self.session, object_id=objects[0]["id"])
-
-                stmt += f' {{\n{cutLastComma(walk(fields=fields, level=2, current_object=db_object))}\n    }}'
-            else:
-                for object in objects:
-                    fields = lib.db_objects.get_object_fields_with_references(
-                        session=self.session, object_id=object["id"])
-
-                    children = cutLastComma(walk(
-                        fields=fields, add_data_type=object["kind"] == "RESULT", current_object=db_object))
-
-                    stmt += f'\n{object["kind"]}'
-
-                    if object["kind"] == "RESULT":
-                        stmt += f' {object["name"]}'
-
-                    if children:
-                        stmt += f" {{\n{children}\n}}"
-
-            stmt += ";"
-
             # Build CREATE statement
             result = [{
-                f"CREATE REST {rest_object_type}": stmt[:-1] + ";"
+                f"CREATE REST {rest_object_type}": stmt[:-1].rstrip() + ";"
             }]
 
             self.results.append({

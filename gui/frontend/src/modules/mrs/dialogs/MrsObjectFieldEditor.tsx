@@ -260,17 +260,9 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         if (field.objectReference.crudOperations.includes("CREATE")) { s += ` @INSERT`; }
                         if (field.objectReference.crudOperations.includes("UPDATE")) { s += ` @UPDATE`; }
                         if (field.objectReference.crudOperations.includes("DELETE")) { s += ` @DELETE`; }
-                        if (field.objectReference.unnest) { s += ` @UNNEST`; }
-                        if (field.objectReference.reduceToValueOfFieldId !== undefined) {
-                            const reduceToField = fields.find((f) => {
-                                return f.id === field.objectReference?.reduceToValueOfFieldId;
-                            });
-                            if (reduceToField) {
-                                // cSpell:ignore REDUCETO
-                                s += ` @REDUCETO(${String(reduceToField.dbColumn?.name)})`;
-                            }
-                        }
-                        s += ` {\n${c}\n${indent}}\n`;
+                        if (field.objectReference.unnest ||
+                            field.objectReference.reduceToValueOfFieldId !== undefined) { s += ` @UNNEST`; }
+                        s += ` {\n${c}\n${indent}},\n`;
                     }
                 }
             }
@@ -282,25 +274,25 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             let s = "";
 
             if (!dbObject.enabled) {
-                s += "    DISABLED\n";
+                s += "\n    DISABLED";
             }
             if (dbObject.requiresAuth) {
-                s += "    AUTHENTICATION REQUIRED\n";
+                s += "\n    AUTHENTICATION REQUIRED";
             }
             if (dbObject.itemsPerPage && dbObject.itemsPerPage !== 25) {
-                s += `    ITEMS PER PAGE ${dbObject.itemsPerPage}\n`;
+                s += `\n    ITEMS PER PAGE ${dbObject.itemsPerPage}`;
             }
             if (dbObject.comments) {
-                s += `    COMMENTS "${dbObject.comments}"\n`;
+                s += `\n    COMMENTS "${dbObject.comments}"`;
             }
             if (dbObject.mediaType) {
-                s += `    MEDIA TYPE ${dbObject.mediaType}\n`;
+                s += `\n    MEDIA TYPE ${dbObject.mediaType}`;
             }
             if (dbObject.crudOperationFormat !== "FEED") {
-                s += `    FORMAT ${dbObject.crudOperationFormat}\n`;
+                s += `\n    FORMAT ${dbObject.crudOperationFormat}`;
             }
             if (dbObject.authStoredProcedure) {
-                s += `    AUTHENTICATION PROCEDURE ${dbObject.authStoredProcedure}\n`;
+                s += `\n    AUTHENTICATION PROCEDURE ${dbObject.authStoredProcedure}`;
             }
 
             return s;
@@ -316,9 +308,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             if (mrsObject) {
                 view = `CREATE OR REPLACE REST DUALITY VIEW ${data.dbObject.requestPath}\n` +
                     `    ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath}\n` +
-                    `    FROM ${data.dbSchemaName}.${data.dbObject.name}\n` +
-                    addOptions(data.dbObject) +
-                    `    AS ${mrsObject.name}`;
+                    `    AS ${data.dbSchemaName}.${data.dbObject.name} CLASS ${mrsObject.name} `;
 
                 for (const op of data.dbObject.crudOperations) {
                     if (op === "CREATE") {
@@ -331,8 +321,10 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 }
 
                 if (mrsObject.fields) {
-                    view += ` {\n${cutLastComma(walk(mrsObject?.fields, undefined, 2))}\n    };`;
+                    view += ` {\n${cutLastComma(walk(mrsObject?.fields, undefined, 2))}\n    }\n`;
                 }
+
+                view += addOptions(data.dbObject) + ";";
             }
         } else {
             // Handle procedures
@@ -343,11 +335,10 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             if (mrsObject) {
                 view = `CREATE OR REPLACE REST PROCEDURE ${data.dbObject.requestPath}\n` +
                     `    ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath}\n` +
-                    addOptions(data.dbObject) +
-                    `    FROM ${data.dbSchemaName}.${data.dbObject.name} AS ${mrsObject.name}\n`;
+                    `    AS ${data.dbSchemaName}.${data.dbObject.name}`;
 
                 if (mrsObject.fields) {
-                    view += "PARAMETERS {\n" + walk(mrsObject?.fields).slice(0, -2) + "\n}";
+                    view += `\nPARAMETERS ${mrsObject.name} {\n` + walk(mrsObject?.fields).slice(0, -2) + "\n}";
                 }
 
                 for (const obj of data.mrsObjects) {
@@ -359,7 +350,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     }
                 }
 
-                view += ";";
+                view += addOptions(data.dbObject) + ";";
             }
         }
 
@@ -1060,12 +1051,12 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     <Label className="tableName" caption={refTbl} />
                     {cellData.field.enabled &&
                         crudDiv}
-                    {(/*cellData.field.objectReference.referenceMapping.kind !== "1:n" &&*/
+                    {(cellData.field.objectReference.referenceMapping.kind === "1:n" &&
                         cellData.children && cellData.children.length > 0 &&
                         cellData.children[0].type !== MrsObjectFieldTreeEntryType.LoadPlaceholder) &&
                         <Dropdown
                             className="reduceToDropdown"
-                            placeholder="Reduce to ..."
+                            placeholder="Unnest field ..."
                             data-tooltip="Display selected field instead of the object. Updates will be disabled"
                             id={cellData.field.id + "reduceToDropdown"}
                             key={cellData.field.id + "reduceToDropdown"}
@@ -1108,10 +1099,13 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                                     treeItem.field.objectReference.reduceToValueOfFieldId = reduceToFieldId;
                                     treeItem.field.objectReference.crudOperations = "READ";
 
-                                    // If this field is currently unnested, revert this
-                                    if (treeItem.field.objectReference.unnest) {
+                                    if (reduceToFieldId === undefined &&
+                                        treeItem.field.objectReference.unnest === true) {
                                         this.handleIconClick(cell, ActionIconName.Unnest);
-                                    } else {
+                                    }
+
+                                    if (reduceToFieldId !== undefined) {
+                                        treeItem.field.objectReference.unnest = true;
                                         this.updateStateData(data);
                                     }
                                 }
@@ -1480,7 +1474,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     }
 
                     // If this reference field had unnest set, make sure to unnest it after everything was loaded
-                    if (field.objectReference?.unnest === true) {
+                    // but only if the reduceToValueOfFieldId is not set - since we show this unnest as a dropdown
+                    if (field.objectReference?.unnest === true && !field.objectReference?.reduceToValueOfFieldId) {
                         initTreeItemsToUnnest?.push(treeItem);
                     }
                     // If this reference field had reduceToValueOfFieldId set, make sure to unnest it after

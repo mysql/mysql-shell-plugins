@@ -716,27 +716,39 @@ def check_request_path(session, request_path):
                         "in use.")
 
 
-def check_mrs_object_names(session, db_schema_id, objects):
+def check_mrs_object_name(session, db_schema_id, obj_id, obj_name):
     """Checks if the given mrs object name is valid and unique
+    """
+    res = session.run_sql("""
+            SELECT o.name
+            FROM mysql_rest_service_metadata.object o LEFT JOIN
+                mysql_rest_service_metadata.db_object dbo ON
+                o.db_object_id = dbo.id
+            WHERE dbo.db_schema_id = ? AND UPPER(o.name) = UPPER(?) AND o.id <> ?
+        """, [id_to_binary(db_schema_id, "db_schema_id"), obj_name,
+              id_to_binary(obj_id, "object.id")])
+
+    row = res.fetch_one()
+
+    if row and row.get_field("name") != "":
+        raise Exception(f'The object name {obj_name} is already '
+                        "in use on this REST schema.")
+
+
+def check_mrs_object_names(session, db_schema_id, objects):
+    """Checks if the given mrs object names are valid and unique
     """
     if objects is None:
         return
-    
+
+    assigned_names = []
     for obj in objects:
-        res = session.run_sql("""
-                SELECT o.name
-                FROM mysql_rest_service_metadata.object o LEFT JOIN
-                    mysql_rest_service_metadata.db_object dbo ON
-                    o.db_object_id = dbo.id
-                WHERE dbo.db_schema_id = ? AND UPPER(o.name) = UPPER(?) AND o.id <> ?
-            """, [id_to_binary(db_schema_id, "db_schema_id"), obj.get("name"),
-                  id_to_binary(obj.get("id"), "object.id")])
-
-        row = res.fetch_one()
-
-        if row and row.get_field("name") != "":
-            raise Exception(f'The object name {obj.get("name")} is already '
-                            "in use on this REST schema.")
+        if obj.get("name") in assigned_names:
+            raise Exception(f'The object name {obj.get("name")} has been used more than once.')
+        check_mrs_object_name(
+            session=session, db_schema_id=db_schema_id,
+            obj_id=obj.get("id"), obj_name=obj.get("name"))
+        assigned_names.append(obj.get("name"))
 
 
 def convert_json(value) -> dict:
@@ -1099,25 +1111,22 @@ def get_session_uri(session):
 
     return uri
 
+def uppercase_first_char(s):
+    if len(s) > 0:
+        return s[0].upper() + s[1:]
+    return ""
 
 def convert_path_to_camel_case(path):
     if (path.startswith("/")):
         path = path[1:]
-    path.replace("/", "_")
-
-    parts = path.split('_')
-    return parts[0] + ''.join(x.title() for x in parts[1:])
+    parts = path.replace("/", "_").split('_')
+    s = parts[0] + ''.join(uppercase_first_char(x) for x in parts[1:])
+    # Only return alphanumeric characters
+    return ''.join(e for e in s if e.isalnum())
 
 
 def convert_path_to_pascal_case(path):
-    s = convert_path_to_camel_case(path)
-    l = len(s)
-    if l == 0:
-        return ""
-    if l == 1:
-        return s[0].upper()
-
-    return s[0].upper() + s[1:]
+    return uppercase_first_char(convert_path_to_camel_case(path))
 
 
 def convert_snake_to_camel_case(snake_str):

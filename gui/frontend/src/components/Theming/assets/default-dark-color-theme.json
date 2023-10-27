@@ -1284,8 +1284,8 @@
         {
             "scope": "command",
             "settings": {
-                "foreground": "#dadfbd",
-                "fontStyle": "bold underline"
+                "foreground": "#db8f00",
+                "fontStyle": ""
             }
         }
     ]

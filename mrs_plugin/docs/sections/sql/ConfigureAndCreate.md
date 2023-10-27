@@ -80,7 +80,7 @@ CONFIGURE REST METADATA
     UPDATE IF AVAILABLE;
 ```
 
-The following example configures the MySQL REST Service and enables the GTID cache.
+The following example configures the MySQL REST Service and enables the GTID cache and sets authentication options.
 
 ```sql
 CONFIGURE REST METADATA
@@ -91,6 +91,19 @@ CONFIGURE REST METADATA
                 "enable": true,
                 "refresh_rate": 5,
                 "refresh_when_increases_by": 500
+            }
+        },
+        "authentication": {
+            "throttling": {
+                "perAccount": {
+                    "minimumTimeBetweenRequestsInMs": 1500,
+                    "maximumAttemptsPerMinute": 5
+                },
+                "perHost": {
+                    "minimumTimeBetweenRequestsInMs": 1500,
+                    "maximumAttemptsPerMinute": 5
+                },
+                "blockWhenAttemptsExceededInSeconds": 120
             }
         }
     };
@@ -111,6 +124,22 @@ jsonOptions ::=
 
 These options can include the following JSON keys.
 
+- `authentication`
+  - Defines global authentication parameters valid for all MySQL Routers
+  - `throttling`
+    - Used to limit the authentication attempts to prevent brute force attacks on account information
+    - `perAccount`
+      - Settings that apply per MRS account
+      - `minimumTimeBetweenRequestsInMs`
+        - Sets the minimum time between connection attempts. If a client tries to authenticate faster than that the request will be rejected. The value is given in milliseconds.
+      - `maximumAttemptsPerMinute`
+        - Sets the maximum amount of attempts per minute. If a client tries to authenticate more often that that further attempts will be blocked for the amount of seconds specified in the `blockWhenAttemptsExceededInSeconds` value.
+    - `perHost`
+      - Settings that apply per host from where a client tries to connect
+      - `minimumTimeBetweenRequestsInMs`
+      - `maximumAttemptsPerMinute`
+    - `blockWhenAttemptsExceededInSeconds`
+      - Sets the amount of time the account or client host will be blocked from authentication. The value is given in seconds.
 - `gtid`
   - Defines global settings for the MySQL GTID handling, using the following fields.
   - `cache`
@@ -508,8 +537,9 @@ createRestViewStatement:
     CREATE (OR REPLACE)? REST JSON? RELATIONAL?
         DUALITY? VIEW viewRequestPath (
         ON serviceSchemaSelector
-    )? FROM qualifiedIdentifier restObjectOptions? AS restObjectName
-        graphQlCrudOptions? graphQlObj?
+    )? AS qualifiedIdentifier (
+        CLASS restObjectName
+    )? graphQlCrudOptions? graphQlObj? restObjectOptions?
 ;
 
 serviceSchemaSelector:
@@ -545,12 +575,13 @@ The following example adds a REST duality view for the `sakila.city` database sc
 ```sql
 CREATE REST DUALITY VIEW /city
 ON SERVICE /myService SCHEMA /sakila
-FROM `sakila`.`city` AS MyServiceSakilaCity {
+AS `sakila`.`city` {
     cityId: city_id @SORTABLE,
     city: city,
     countryId: country_id,
     lastUpdate: last_update
-};
+}
+AUTHENTICATION REQUIRED;
 ```
 
 Querying the REST duality view using the TypeScript SDK returns the following JSON document.
@@ -579,7 +610,7 @@ The next example adds the referenced table `sakila.country` to the REST duality 
 ```sql
 CREATE OR REPLACE REST DUALITY VIEW /city
 ON SERVICE /myService SCHEMA /sakila
-FROM `sakila`.`city` AS MyServiceSakilaCity {
+AS `sakila`.`city` {
     cityId: city_id @SORTABLE,
     city: city,
     countryId: country_id,
@@ -589,7 +620,8 @@ FROM `sakila`.`city` AS MyServiceSakilaCity {
         country: country,
         lastUpdate: last_update
     }
-};
+}
+AUTHENTICATION REQUIRED;
 ```
 
 This is what the REST duality view looks like in the interactive MySQL REST Object Dialog in the MySQL Shell for VS Code extension.
@@ -744,7 +776,6 @@ graphQlPair:
         | AT_NOFILTERING
         | AT_ROWOWNERSHIP
         | AT_UNNEST
-        | AT_REDUCETO OPEN_PAR graphQlReduceToValue CLOSE_PAR
         | AT_DATATYPE OPEN_PAR graphQlDatatypeValue CLOSE_PAR
         | graphQlCrudOptions
     )? graphQlObj?
@@ -778,8 +809,8 @@ The `CREATE REST PROCEDURE` statement is used to add REST endpoints for database
 createRestProcedureStatement:
     CREATE (OR REPLACE)? REST PROCEDURE procedureRequestPath (
         ON serviceSchemaSelector
-    )? FROM qualifiedIdentifier restObjectOptions? AS restObjectName PARAMETERS
-        graphQlObj restProcedureResult*
+    )? AS qualifiedIdentifier (PARAMETERS restObjectName? graphQlObj)?
+        restProcedureResult* restObjectOptions?
 ;
 
 serviceSchemaSelector:
@@ -799,7 +830,7 @@ restObjectOptions: (
 ;
 
 restProcedureResult:
-    RESULT restResultName graphQlObj
+    RESULT restResultName? graphQlObj
 ;
 ```
 

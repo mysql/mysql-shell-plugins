@@ -84,41 +84,55 @@ ALTER REST SCHEMA /sakila2
 USE REST SCHEMA /sakila;
 
 CREATE OR REPLACE REST DUALITY VIEW /city
-FROM `sakila`.`city`
-AS MyServiceSakilaCity;
+AS `sakila`.`city`;
 
 SHOW CREATE REST VIEW /city;
 
-ALTER REST VIEW /city AS MyServiceSakilaCity2;
+ALTER REST VIEW /city CLASS MyServiceSakilaCity2;
 
 SHOW CREATE REST VIEW /city;
+
+CREATE OR REPLACE REST DUALITY VIEW /city
+    AS sakila.city
+    CLASS MyServiceSakilaCity {
+        cityId: city_id,
+        city: city,
+        countryId: country_id,
+        lastUpdate: last_update,
+        address: sakila.address @UNNEST {
+            address: address
+        },
+        country: sakila.country {
+            countryId: country_id @SORTABLE,
+            country: country
+        }
+    };
 
 CREATE OR REPLACE REST DUALITY VIEW /country
 ON SERVICE localhost/myTestService SCHEMA /sakila
-FROM sakila.country
-    ENABLED
-    AUTHENTICATION REQUIRED
-    ITEMS PER PAGE 25
-    COMMENTS "The sakila.country table"
-    MEDIA TYPE "Test"
-    FORMAT FEED
-    AUTHENTICATION PROCEDURE sakila.auth_proc
-AS MyServiceSakilaCountry @SELECT @INSERT @UPDATE @DELETE {
+AS sakila.country CLASS MyServiceSakilaCountry @SELECT @INSERT @UPDATE @DELETE {
     countryId: country_id @SORTABLE,
     country: country,
     lastUpdate: last_update,
     cities: sakila.city {
         city: city
     }
-};
+}
+ENABLED
+AUTHENTICATION REQUIRED
+ITEMS PER PAGE 25
+COMMENTS "The sakila.country table"
+MEDIA TYPE "Test"
+FORMAT FEED
+AUTHENTICATION PROCEDURE sakila.auth_proc;
 
 CREATE OR REPLACE REST DUALITY VIEW /actor
-FROM `sakila`.`actor` AS MyServiceSakilaActor {
+AS `sakila`.`actor` CLASS MyServiceSakilaActor {
     actorId: actor_id @SORTABLE,
     firstName: first_name,
     lastName: last_name,
     lastUpdate: last_update,
-    filmActor: sakila.film_actor @REDUCETO(title) {
+    filmActor: sakila.film_actor @UNNEST {
         film: sakila.film @UNNEST {
             title: title
         }
@@ -126,7 +140,7 @@ FROM `sakila`.`actor` AS MyServiceSakilaActor {
 };
 
 CREATE REST DUALITY VIEW /actorInfo
-FROM `sakila`.`actor_info` AS MyServiceSakilaActorInfo {
+AS `sakila`.`actor_info` CLASS MyServiceSakilaActorInfo {
     actorId: actor_id @SORTABLE,
     firstName: first_name,
     lastName: last_name,
@@ -134,36 +148,36 @@ FROM `sakila`.`actor_info` AS MyServiceSakilaActorInfo {
 };
 
 ALTER REST DUALITY VIEW /actorInfo
-    ON SERVICE localhost/myTestService SCHEMA /sakila
-    DISABLED
-    OPTIONS {
-        "option1": "this is option 1",
-        "option2": {
-            "option11": "this is option 1.1"
-        }
+ON SERVICE localhost/myTestService SCHEMA /sakila
+DISABLED
+OPTIONS {
+    "option1": "this is option 1",
+    "option2": {
+        "option11": "this is option 1.1"
     }
-    FORMAT ITEM;
+}
+FORMAT ITEM;
 
 ALTER REST DUALITY VIEW /actorInfo
-    NEW REQUEST PATH /actorInfo2
-    AS MyServiceSakilaActorInfoTest;
+NEW REQUEST PATH /actorInfo2
+CLASS MyServiceSakilaActorInfoTest;
 
 ALTER REST DUALITY VIEW /actorInfo2
-    NEW REQUEST PATH /actorInfo;
+NEW REQUEST PATH /actorInfo;
 
 SHOW CREATE REST VIEW /actorInfo;
 
 ALTER REST DUALITY VIEW /actorInfo
-    DISABLED
-    AS MyServiceSakilaActorInfoTest2 @UPDATE @INSERT @DELETE {
+CLASS MyServiceSakilaActorInfoTest2 @UPDATE @INSERT @DELETE {
     actorId: actor_id @SORTABLE,
     firstName: first_name
-};
+}
+DISABLED;
 
 SHOW CREATE REST VIEW /actorInfo;
 
 ALTER REST DUALITY VIEW /actorInfo
-    AS MyServiceSakilaActorInfoTest5 {
+CLASS MyServiceSakilaActorInfoTest5 {
     actorId: actor_id @SORTABLE,
     firstName: first_name
 };
@@ -171,8 +185,8 @@ ALTER REST DUALITY VIEW /actorInfo
 SHOW CREATE REST VIEW /actorInfo;
 
 CREATE OR REPLACE REST PROCEDURE /filmInStock
-FROM sakila.film_in_stock AS MyServiceSakilaFilmInStock
-PARAMETERS {
+AS sakila.film_in_stock
+PARAMETERS MyServiceSakilaFilmInStockParams {
     pFilmId: p_film_id @IN,
     pStoreId: p_store_id @IN,
     pFilmCount: p_film_count @OUT
@@ -184,25 +198,25 @@ RESULT MyServiceSakilaFilmInStock {
 SHOW CREATE REST PROCEDURE /filmInStock;
 
 ALTER REST PROCEDURE /filmInStock
-ON SERVICE localhost/myTestService SCHEMA /sakila AS MyServiceSakilaFilmInStock
+ON SERVICE localhost/myTestService SCHEMA /sakila
 PARAMETERS {
     pFilmId: p_film_id @IN,
     pStoreId: p_store_id @IN,
     pFilmCount: p_film_count @OUT
 }
-RESULT MyServiceSakilaFilmInStock {
+RESULT {
     inventoryId: inventory_id @DATATYPE("int")
 }
-RESULT MyServiceSakilaFilmInStock {
+RESULT {
     inventoryId2: inventory_id @DATATYPE("int")
 };
 
 SHOW CREATE REST PROCEDURE /filmInStock;
 
 ALTER REST PROCEDURE /filmInStock
-    NEW REQUEST PATH /filmInStockUpdated
-ON SERVICE localhost/myTestService SCHEMA /sakila AS MyServiceSakilaFilmInStockUpdated
-PARAMETERS {
+ON SERVICE localhost/myTestService SCHEMA /sakila
+NEW REQUEST PATH /filmInStockUpdated
+PARAMETERS MyServiceSakilaFilmInStockUpdated {
     pFilmId: p_film_id @IN,
     pStoreId: p_store_id @IN,
     pFilmCount: p_film_count @OUT
@@ -210,16 +224,16 @@ PARAMETERS {
 RESULT MyServiceSakilaFilmInStock {
     inventoryId: inventory_id @DATATYPE("int")
 }
-RESULT MyServiceSakilaFilmInStock {
+RESULT MyServiceSakilaFilmInStock2 {
     inventoryId2: inventory_id @DATATYPE("int")
 };
 
 SHOW CREATE REST PROCEDURE /filmInStockUpdated;
 
 ALTER REST PROCEDURE /filmInStockUpdated
-    NEW REQUEST PATH /filmInStock
-ON SERVICE localhost/myTestService SCHEMA /sakila AS MyServiceSakilaFilmInStock
-PARAMETERS {
+ON SERVICE localhost/myTestService SCHEMA /sakila
+NEW REQUEST PATH /filmInStock
+PARAMETERS MyServiceSakilaFilmInStockParams {
     pFilmId: p_film_id @IN,
     pStoreId: p_store_id @IN,
     pFilmCount: p_film_count @OUT
@@ -227,7 +241,7 @@ PARAMETERS {
 RESULT MyServiceSakilaFilmInStock {
     inventoryId: inventory_id @DATATYPE("int")
 }
-RESULT MyServiceSakilaFilmInStock {
+RESULT MyServiceSakilaFilmInStock2 {
     inventoryId2: inventory_id @DATATYPE("int")
 };
 
@@ -261,13 +275,13 @@ SHOW CREATE REST DUALITY VIEW /actorInfo;
 
 ALTER REST SCHEMA /sakila
 ON SERVICE localhost/myTestService
-    NEW REQUEST PATH /sakila123;
+NEW REQUEST PATH /sakila123;
 
 SHOW REST SCHEMAS;
 
 ALTER REST SCHEMA /sakila123
 ON SERVICE localhost/myTestService
-    NEW REQUEST PATH /sakila;
+NEW REQUEST PATH /sakila;
 
 SHOW REST SCHEMAS;
 
@@ -303,6 +317,16 @@ DROP REST DUALITY VIEW /actorInfo;
 DROP REST PROCEDURE /filmInStock;
 
 DROP REST CONTENT SET /testContent;
+
+CREATE OR REPLACE REST DUALITY VIEW /moviesByLanguage
+ON SERVICE localhost/myTestService SCHEMA /sakila
+AS `sakila`.`language` {
+    id: language_id,
+    name: name,
+    films: film {
+        title: title
+    }
+};
 
 DROP REST SCHEMA /sakila FROM localhost/myTestService;
 

@@ -223,62 +223,6 @@ export class CodeCompletionProvider implements languages.CompletionItemProvider 
             default: {
                 return [
                     {
-                        label: "\\sql",
-                        kind: languages.CompletionItemKind.Keyword,
-                        range,
-                        insertText: "\\sql",
-                        detail: "Command to switch the editor to SQL mode",
-                    },
-                    {
-                        label: "\\ts",
-                        kind: languages.CompletionItemKind.Keyword,
-                        range,
-                        insertText: "\\ts",
-                        detail: "Command to switch the editor to TypeScript mode",
-                    },
-                    {
-                        label: "\\typescript",
-                        kind: languages.CompletionItemKind.Keyword,
-                        range,
-                        insertText: "\\typescript",
-                        detail: "Command to switch the editor to TypeScript mode",
-                    },
-                    {
-                        label: "\\js",
-                        kind: languages.CompletionItemKind.Keyword,
-                        range,
-                        insertText: "\\js",
-                        detail: "Command to switch the editor to JavaScript mode",
-                    },
-                    {
-                        label: "\\javascript",
-                        kind: languages.CompletionItemKind.Keyword,
-                        range,
-                        insertText: "\\javascript",
-                        detail: "Command to switch the editor to JavaScript mode",
-                    },
-                    {
-                        label: "\\?",
-                        kind: languages.CompletionItemKind.Keyword,
-                        range,
-                        insertText: "\\?",
-                        detail: "Command to show some help information",
-                    },
-                    {
-                        label: "\\help",
-                        kind: languages.CompletionItemKind.Keyword,
-                        range,
-                        insertText: "\\help",
-                        detail: "Command to show some help information",
-                    },
-                    {
-                        label: "\\h",
-                        kind: languages.CompletionItemKind.Keyword,
-                        range,
-                        insertText: "\\h",
-                        detail: "Command to show some help information",
-                    },
-                    {
                         label: "\\about",
                         kind: languages.CompletionItemKind.Keyword,
                         range,

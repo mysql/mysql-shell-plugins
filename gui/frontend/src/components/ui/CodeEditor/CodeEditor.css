@@ -154,6 +154,7 @@
     display: block;
 
     margin-left: 13px;
+    padding-top: 1px;
 
     font-size: 0.9rem;
 
@@ -209,6 +210,7 @@
     display: block;
 
     margin-left: 13px;
+    padding-top: 1px;
 
     font-size: 0.9rem;
 
@@ -264,6 +266,7 @@
     content: "sql>";
     display: block;
     margin-left: 4px;
+    padding-top: 1px;
     font-size: 0.9rem;
     color: var(--editorPrompt-primary-sql);
 }
@@ -377,7 +380,7 @@
     height: 4px;
 
     right: 4px;
-    top: 50%;
+    top: calc(50% - 1px);
     background: #0096FF;
 }
 
