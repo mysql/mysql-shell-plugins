@@ -5190,6 +5190,7 @@ identifierKeywordsUnambiguous:
         | USERS_SYMBOL
         | ALLOW_SYMBOL
         | REGISTER_SYMBOL
+        | CLASS_SYMBOL
         | AT_INOUT_SYMBOL
         | AT_IN_SYMBOL
         | AT_OUT_SYMBOL
@@ -5199,7 +5200,6 @@ identifierKeywordsUnambiguous:
         | AT_NOFILTERING_SYMBOL
         | AT_ROWOWNERSHIP_SYMBOL
         | AT_UNNEST_SYMBOL
-        | AT_REDUCETO_SYMBOL
         | AT_DATATYPE_SYMBOL
         | AT_SELECT_SYMBOL
         | AT_NOSELECT_SYMBOL
@@ -5836,8 +5836,9 @@ createRestViewStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL?
         DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath (
         ON_SYMBOL serviceSchemaSelector
-    )? FROM_SYMBOL qualifiedIdentifier restObjectOptions? AS_SYMBOL restObjectName
-        graphQlCrudOptions? graphQlObj?
+    )? AS_SYMBOL qualifiedIdentifier (
+        CLASS_SYMBOL restObjectName
+    )? graphQlCrudOptions? graphQlObj? restObjectOptions?
 ;
 
 restObjectOptions: (
@@ -5869,12 +5870,12 @@ restViewAuthenticationProcedure:
 createRestProcedureStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
         ON_SYMBOL serviceSchemaSelector
-    )? FROM_SYMBOL qualifiedIdentifier restObjectOptions? AS_SYMBOL restObjectName PARAMETERS_SYMBOL
-        graphQlObj restProcedureResult*
+    )? AS_SYMBOL qualifiedIdentifier (PARAMETERS_SYMBOL restObjectName? graphQlObj)?
+        restProcedureResult* restObjectOptions?
 ;
 
 restProcedureResult:
-    RESULT_SYMBOL restResultName graphQlObj
+    RESULT_SYMBOL restResultName? graphQlObj
 ;
 
 // - CREATE REST CONTENT SET ------------------------------------------------
@@ -5926,7 +5927,9 @@ restAuthAppOptions: (
 ;
 
 allowNewUsersToRegister:
-    ALLOW_SYMBOL NEW_SYMBOL USERS_SYMBOL (TO_SYMBOL REGISTER_SYMBOL)?
+    ALLOW_SYMBOL NEW_SYMBOL USERS_SYMBOL (
+        TO_SYMBOL REGISTER_SYMBOL
+    )?
 ;
 
 defaultRole:
@@ -5974,21 +5977,21 @@ alterRestSchemaStatement:
 
 alterRestViewStatement:
     ALTER_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
-        viewRequestPath (
+        viewRequestPath (ON_SYMBOL serviceSchemaSelector)? (
         NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newViewRequestPath
-    )? (ON_SYMBOL serviceSchemaSelector)? restObjectOptions? (
-        AS_SYMBOL restObjectName graphQlCrudOptions? graphQlObj?
-    )?
+    )? (
+        CLASS_SYMBOL restObjectName graphQlCrudOptions? graphQlObj?
+    )? restObjectOptions?
 ;
 
 // - ALTER REST PROCEDURE ---------------------------------------------------
 
 alterRestProcedureStatement:
     ALTER_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
+        ON_SYMBOL serviceSchemaSelector
+    )? (
         NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newProcedureRequestPath
-    )? (ON_SYMBOL serviceSchemaSelector)? restObjectOptions? (
-        AS_SYMBOL restObjectName (PARAMETERS_SYMBOL graphQlObj)?
-    )? restProcedureResult*
+    )? (PARAMETERS_SYMBOL restObjectName? graphQlObj)? restProcedureResult* restObjectOptions?
 ;
 
 // DROP statements ==========================================================
@@ -6234,7 +6237,6 @@ graphQlPair:
         | AT_NOFILTERING_SYMBOL
         | AT_ROWOWNERSHIP_SYMBOL
         | AT_UNNEST_SYMBOL
-        | AT_REDUCETO_SYMBOL OPEN_PAR_SYMBOL graphQlReduceToValue CLOSE_PAR_SYMBOL
         | AT_DATATYPE_SYMBOL OPEN_PAR_SYMBOL graphQlDatatypeValue CLOSE_PAR_SYMBOL
         | graphQlCrudOptions
     )? graphQlObj?

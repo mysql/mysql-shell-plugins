@@ -41,7 +41,7 @@ CREATE REST SCHEMA /sakila FROM `sakila`;
 USE REST SCHEMA /sakila;
 
 CREATE REST DUALITY VIEW /actor
-FROM `sakila`.`actor` AS MyServiceSakilaActor {
+AS `sakila`.`actor` {
     actorId: actor_id @SORTABLE,
     firstName: first_name,
     lastName: last_name,
@@ -51,7 +51,8 @@ FROM `sakila`.`actor` AS MyServiceSakilaActor {
             title: title
         }
     }
-};
+}
+AUTHENTICATION REQUIRED;
 ```
 
 > Note: Please ensure to install the [MySQL sakila example database schema](https://downloads.mysql.com/docs/sakila-db.zip) before running the MRS DDL script above.

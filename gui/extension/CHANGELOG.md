@@ -1,5 +1,13 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.13.6+8.1.1
+
+### Fixes
+
+- Improved language switching of code blocks on DB Notebook
+- Updated MRS SQL grammar with new, improved syntax
+- Replaced MRS SQL @REDUCETO() decorator with @UNNEST for 1:n references
+
 ## Changes in 1.13.5+8.1.1
 
 ### Fixes

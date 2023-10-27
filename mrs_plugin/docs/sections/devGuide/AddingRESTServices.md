@@ -235,19 +235,20 @@ The following example adds a REST duality view for the `sakila.city` database sc
 ```sql
 CREATE REST DUALITY VIEW /city
 ON SERVICE /myService SCHEMA /sakila
-FROM `sakila`.`city` AS MyServiceSakilaCity {
+AS `sakila`.`city` {
     cityId: city_id @SORTABLE,
     city: city,
     countryId: country_id,
     lastUpdate: last_update
-};
+}
+AUTHENTICATION REQUIRED;
 ```
 
 The next example adds a REST procedure for the `sakila.film_in_stock` database schema stored procedure.
 
 ```sql
 CREATE OR REPLACE REST PROCEDURE /filmInStock
-FROM `sakila`.`film_in_stock` AS MyServiceSakilaFilmInStock
+AS `sakila`.`film_in_stock`
 PARAMETERS {
     pFilmId: p_film_id @IN,
     pStoreId: p_store_id @IN,
@@ -255,7 +256,8 @@ PARAMETERS {
 }
 RESULT MyServiceSakilaFilmInStock {
     inventoryId: inventory_id @DATATYPE("int")
-};
+}
+AUTHENTICATION REQUIRED;
 ```
 
 ### Adding a Schema Object with MySQL Shell for VS Code UI

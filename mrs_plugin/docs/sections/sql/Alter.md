@@ -111,11 +111,11 @@ Please see the MRS Developer's Guide to learn more about [JSON duality views](in
 ```antlr
 alterRestViewStatement:
     ALTER REST JSON? RELATIONAL? DUALITY? VIEW
-        viewRequestPath (
+        viewRequestPath (ON serviceSchemaSelector)? (
         NEW REQUEST PATH newViewRequestPath
-    )? (ON serviceSchemaSelector)? restObjectOptions? (
-        AS restObjectName graphQlCrudOptions? graphQlObj?
-    )?
+    )? (
+        CLASS restObjectName graphQlCrudOptions? graphQlObj?
+    )? restObjectOptions?
 ;
 
 serviceSchemaSelector:
@@ -168,10 +168,10 @@ It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-
 ```antlr
 alterRestProcedureStatement:
     ALTER REST PROCEDURE procedureRequestPath (
+        ON serviceSchemaSelector
+    )? (
         NEW REQUEST PATH newProcedureRequestPath
-    )? (ON serviceSchemaSelector)? restObjectOptions? (
-        AS restObjectName (PARAMETERS graphQlObj)?
-    )? restProcedureResult*
+    )? (PARAMETERS restObjectName? graphQlObj)? restProcedureResult* restObjectOptions?
 ;
 
 serviceSchemaSelector:

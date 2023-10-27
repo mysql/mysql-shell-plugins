@@ -321,7 +321,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             const compilerOptions: languages.typescript.CompilerOptions = {
                 allowNonTsExtensions: true,
                 target: languages.typescript.ScriptTarget.ESNext,
-                lib: ["esnext"],
                 module: languages.typescript.ModuleKind.ESNext,
                 strictNullChecks: true,
             };
@@ -1032,6 +1031,28 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             keybindings: [KeyMod.CtrlCmd | KeyCode.KeyA],
             run: () => {
                 this.handleSelectAll();
+            },
+            precondition,
+        }));
+
+        this.disposables.push(editor.addAction({
+            id: "saveAs",
+            label: "Save As ...",
+            contextMenuGroupId: "10_save",
+            keybindings: [KeyMod.Shift | KeyMod.CtrlCmd | KeyCode.KeyS],
+            run: () => {
+                void requisitions.execute("editorSaveNotebook", undefined);
+            },
+            precondition,
+        }));
+
+        this.disposables.push(editor.addAction({
+            id: "save",
+            label: "Save",
+            contextMenuGroupId: "10_save",
+            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
+            run: () => {
+                void requisitions.execute("editorSaveNotebook", "viaKeyboardShortcut");
             },
             precondition,
         }));

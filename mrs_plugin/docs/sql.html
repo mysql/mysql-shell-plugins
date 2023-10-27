@@ -575,7 +575,8 @@ restMetadataOptions: (
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    ENABLED</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">UPDATE</span> <span class="cf">IF</span> AVAILABLE;</span></code></pre></div>
                 <p>The following example configures the MySQL REST
-                Service and enables the GTID cache.</p>
+                Service and enables the GTID cache and sets
+                authentication options.</p>
                 <div class="sourceCode" id="cb6"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>CONFIGURE REST METADATA</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    ENABLED</span>
@@ -586,8 +587,21 @@ restMetadataOptions: (
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;refresh_rate&quot;</span>: <span class="dv">5</span>,</span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;refresh_when_increases_by&quot;</span>: <span class="dv">500</span></span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>            }</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    };</span></code></pre></div>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;authentication&quot;</span>: {</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;throttling&quot;</span>: {</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;perAccount&quot;</span>: {</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>                    <span class="ot">&quot;minimumTimeBetweenRequestsInMs&quot;</span>: <span class="dv">1500</span>,</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>                    <span class="ot">&quot;maximumAttemptsPerAccountPerMinute&quot;</span>: <span class="dv">5</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>                },</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;perHost&quot;</span>: {</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>                    <span class="ot">&quot;minimumTimeBetweenRequestsInMs&quot;</span>: <span class="dv">1500</span>,</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>                    <span class="ot">&quot;maximumAttemptsPerAccountPerMinute&quot;</span>: <span class="dv">5</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>                },</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;blockWhenAttemptsExceededInSeconds&quot;</span>: <span class="dv">120</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>            }</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    };</span></code></pre></div>
                 <h3 data-number="2.1.2"
                 id="rest-configuration-json-options"><span
                 class="header-section-number">2.1.2</span> REST
@@ -603,6 +617,49 @@ restMetadataOptions: (
                 <p>These options can include the following JSON
                 keys.</p>
                 <ul>
+                <li><code>authentication</code>
+                <ul>
+                <li>Defines global authentication parameters valid for
+                all MySQL Routers</li>
+                <li><code>throttling</code>
+                <ul>
+                <li>Used to limit the authentication attempts to prevent
+                brute force attacks on account information</li>
+                <li><code>perAccount</code>
+                <ul>
+                <li>Settings that apply per MRS account</li>
+                <li><code>minimumTimeBetweenRequestsInMs</code>
+                <ul>
+                <li>Sets the minimum time between connection attempts.
+                If a client tries to authenticate faster than that the
+                request will be rejected. The value is given in
+                milliseconds.</li>
+                </ul></li>
+                <li><code>maximumAttemptsPerAccountPerMinute</code>
+                <ul>
+                <li>Sets the maximum amount of attempts per minute. If a
+                client tries to authenticate more often that that
+                further attempts will be blocked for the amount of
+                seconds specified in the
+                <code>blockWhenAttemptsExceededInSeconds</code>
+                value.</li>
+                </ul></li>
+                </ul></li>
+                <li><code>perHost</code>
+                <ul>
+                <li>Settings that apply per host from where a client
+                tries to connect</li>
+                <li><code>minimumTimeBetweenRequestsInMs</code></li>
+                <li><code>maximumAttemptsPerAccountPerMinute</code></li>
+                </ul></li>
+                <li><code>blockWhenAttemptsExceededInSeconds</code>
+                <ul>
+                <li>Sets the amount of time the account or client host
+                will be blocked from authentication. The value is given
+                in seconds.</li>
+                </ul></li>
+                </ul></li>
+                </ul></li>
                 <li><code>gtid</code>
                 <ul>
                 <li>Defines global settings for the MySQL GTID handling,
@@ -1164,8 +1221,9 @@ restSchemaOptions: (
     CREATE (OR REPLACE)? REST JSON? RELATIONAL?
         DUALITY? VIEW viewRequestPath (
         ON serviceSchemaSelector
-    )? FROM qualifiedIdentifier restObjectOptions? AS restObjectName
-        graphQlCrudOptions? graphQlObj?
+    )? AS qualifiedIdentifier (
+        CLASS restObjectName
+    )? graphQlCrudOptions? graphQlObj? restObjectOptions?
 ;
 
 serviceSchemaSelector:
@@ -1435,7 +1493,6 @@ graphQlPair:
         | AT_NOFILTERING
         | AT_ROWOWNERSHIP
         | AT_UNNEST
-        | AT_REDUCETO OPEN_PAR graphQlReduceToValue CLOSE_PAR
         | AT_DATATYPE OPEN_PAR graphQlDatatypeValue CLOSE_PAR
         | graphQlCrudOptions
     )? graphQlObj?
@@ -1474,8 +1531,8 @@ graphQlValue:
                 <pre class="antlr"><code>createRestProcedureStatement:
     CREATE (OR REPLACE)? REST PROCEDURE procedureRequestPath (
         ON serviceSchemaSelector
-    )? FROM qualifiedIdentifier restObjectOptions? AS restObjectName PARAMETERS
-        graphQlObj restProcedureResult*
+    )? AS qualifiedIdentifier (PARAMETERS restObjectName? graphQlObj)?
+        restProcedureResult* restObjectOptions?
 ;
 
 serviceSchemaSelector:
@@ -1495,7 +1552,7 @@ restObjectOptions: (
 ;
 
 restProcedureResult:
-    RESULT restResultName graphQlObj
+    RESULT restResultName? graphQlObj
 ;</code></pre>
                 <p>createRestProcedureStatement ::= <img
                 src="sections/sql/../../images/sql/createRestProcedureStatement.svg"
@@ -1716,11 +1773,11 @@ restSchemaOptions: (
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>alterRestViewStatement:
     ALTER REST JSON? RELATIONAL? DUALITY? VIEW
-        viewRequestPath (
+        viewRequestPath (ON serviceSchemaSelector)? (
         NEW REQUEST PATH newViewRequestPath
-    )? (ON serviceSchemaSelector)? restObjectOptions? (
-        AS restObjectName graphQlCrudOptions? graphQlObj?
-    )?
+    )? (
+        CLASS restObjectName graphQlCrudOptions? graphQlObj?
+    )? restObjectOptions?
 ;
 
 serviceSchemaSelector:
@@ -1776,10 +1833,10 @@ restObjectOptions: (
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>alterRestProcedureStatement:
     ALTER REST PROCEDURE procedureRequestPath (
+        ON serviceSchemaSelector
+    )? (
         NEW REQUEST PATH newProcedureRequestPath
-    )? (ON serviceSchemaSelector)? restObjectOptions? (
-        AS restObjectName (PARAMETERS graphQlObj)?
-    )? restProcedureResult*
+    )? (PARAMETERS restObjectName? graphQlObj)? restProcedureResult* restObjectOptions?
 ;
 
 serviceSchemaSelector:
