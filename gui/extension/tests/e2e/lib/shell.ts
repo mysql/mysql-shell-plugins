@@ -20,23 +20,11 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { WebElement, until, Condition } from "vscode-extension-tester";
+import { until, Condition } from "vscode-extension-tester";
 import { driver } from "./misc";
-import * as constants from "./constants";
 import * as locator from "./locators";
 
 export class Shell {
-
-    public static getTech = async (el: WebElement): Promise<string> => {
-        const divs = await driver.wait(async () => {
-            return el.findElements(locator.shellConsole.prompt);
-        }, constants.wait5seconds, "No prompts were found");
-
-        const lastDiv = divs[divs.length - 1];
-        const classes = (await lastDiv.getAttribute("class")).split(" ");
-
-        return classes[2];
-    };
 
     public static isShellLoaded = (): Condition<boolean> => {
         return new Condition("Shell is not loaded",
@@ -46,32 +34,6 @@ export class Shell {
 
                 return title.length > 0 || textarea.length > 0;
             });
-    };
-
-    public static isValueOnJsonResult = (resultHost: WebElement, value: string): Condition<boolean> => {
-        return new Condition("Value is not on json result", async () => {
-            console.log(await resultHost.getAttribute("outerHTML"));
-            const json = await resultHost.findElements(locator.notebook.codeEditor.editor.result.json.exists);
-            if (json.length > 0) {
-                const jsonString = await json[json.length - 1].getAttribute("innerHTML");
-
-                return jsonString.includes(value);
-            }
-        });
-    };
-
-    public static isValueOnDataSet = (resultHost: WebElement, value: String): Condition<boolean> => {
-        return new Condition("Value is not on data set", async () => {
-            const cells = await resultHost.findElements(locator.notebook.codeEditor.editor.result.tableCell);
-            for (const cell of cells) {
-                const text = await cell.getText();
-                if (text === value) {
-                    return true;
-                }
-            }
-
-            return false;
-        });
     };
 
     public static changeSchemaOnTab = async (schema: string): Promise<void> => {

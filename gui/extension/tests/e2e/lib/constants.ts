@@ -39,6 +39,8 @@ export const openEditorsTreeSection = "OPEN EDITORS";
 export const tasksTreeSection = "MYSQL SHELL TASKS";
 
 // TIMEOUTS
+export const wait150MiliSeconds = 150;
+export const wait2seconds = 2000;
 export const wait5seconds = 5000;
 export const wait10seconds = 10000;
 export const wait15seconds = 15000; //queryWaits
@@ -93,6 +95,8 @@ export const collapseAll = "Collapse All";
 export const mysqlRestService = "MySQL REST Service";
 
 // CONTEXT MENUS ITEMS
+export const executeBlock = "Execute Block";
+export const executeBlockAndAdvance = "Execute Block and Advance";
 export const restartInternalShell = "Restart the Internal MySQL Shell Process";
 export const connectToExternalShell = "Connect to External MySQL Shell Process";
 export const relaunchWelcomeWizard = "Relaunch Welcome Wizard";

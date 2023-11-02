@@ -36,6 +36,7 @@ import * as constants from "../lib/constants";
 import * as Until from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
+import { CommandExecutor } from "../lib/cmdExecutor";
 
 if (!process.env.MYSQLSH_OCI_CONFIG_FILE) {
     throw new Error("Please define the environment variable MYSQLSH_OCI_CONFIG_FILE");
@@ -243,8 +244,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.openContextMenuItem(treeDBConnections, constants.openNewShellConsole,
                 constants.checkNewTabAndWebView);
             await driver.wait(Shell.isShellLoaded(), constants.wait5seconds * 3, "Shell Console was not loaded");
-            const result = await Misc.execCmd("mds.get.currentCompartmentId()", undefined, 60000);
-            expect(result[0]).to.equal(compartmentId);
+            const aboutInfo = await CommandExecutor.getLastExistingCmdResult();
+            const result = await CommandExecutor.execute("mds.get.currentCompartmentId()", aboutInfo.id);
+            expect(result.message).to.equal(compartmentId);
 
         });
 
@@ -457,7 +459,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Get Bastion Information and set it as current", async () => {
 
-
             const treeBastion = await Misc.getTreeElement(constants.ociTreeSection, "Bastion4PrivateSubnetStandardVnc");
             await Misc.openContextMenuItem(treeBastion, constants.getBastionInfo, constants.checkNewTab);
             await driver.wait(async () => {
@@ -501,8 +502,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.openContextMenuItem(treeDBConnections, constants.openNewShellConsole,
                 constants.checkNewTabAndWebView);
             await driver.wait(Shell.isShellLoaded(), constants.wait5seconds * 3, "Shell Console was not loaded");
-            const result = await Misc.execCmd("mds.get.currentBastionId()", undefined, 60000);
-            expect(result[0]).to.equal(bastionId);
+            const aboutInfo = await CommandExecutor.getLastExistingCmdResult();
+            const result = await CommandExecutor.execute("mds.get.currentBastionId()", aboutInfo.id);
+            expect(result.message).to.equal(bastionId);
 
 
         });
@@ -602,8 +604,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                         this.skip();
                     }
                 }
-                const result = await Misc.execCmd("select version();", undefined, constants.wait10seconds);
-                expect(result[0]).to.include("OK");
+                const aboutInfo = await CommandExecutor.getLastExistingCmdResult();
+                const result = await CommandExecutor.execute("select version();", aboutInfo.id);
+                expect(result.message).to.match(/OK/);
             } else {
                 await Misc.openContextMenuItem(treeDbSystem, constants.startDBSystem, constants.checkNotif);
                 const ntf = await Misc.getNotification("Are you sure you want to start the DB System", false);
@@ -684,9 +687,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await new EditorView().closeAllEditors();
             await (await Misc.getActionButton(treeLocalConn, constants.openNewConnection)).click();
             await driver.wait(Until.mdsConnectionIsOpened(localConn),
-                constants.wait10seconds, "Connection was not opened");
-            const result = await Misc.execCmd("select version();", undefined, 10000);
-            expect(result[0]).to.include("OK");
+                constants.wait25seconds, "Connection was not opened");
+            const aboutInfo = await CommandExecutor.getLastExistingCmdResult();
+            const result = await CommandExecutor.execute("select version();", aboutInfo.id);
+            expect(result.message).to.match(/OK/);
 
         });
 
