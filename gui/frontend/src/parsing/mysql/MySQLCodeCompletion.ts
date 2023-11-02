@@ -695,6 +695,11 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
             entry = unquote(entry);
         }
 
+        // Second step to build a usable entry string is to check for certain MRS tokens, which start with `AT_`.
+        if (entry.startsWith("AT_")) {
+            entry = "@" + entry.substring(3);
+        }
+
         let isFunction = false;
         if (candidate[1].length > 0) {
             // A function call?
