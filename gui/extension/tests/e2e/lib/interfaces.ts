@@ -21,6 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { WebElement } from "selenium-webdriver";
+
 export interface IConnBasicMySQL {
     hostname?: string;
     protocol?: string;
@@ -205,4 +207,16 @@ export interface IRestUser {
 export interface ITreeDBConnection {
     name: string;
     isMySQL: boolean;
+}
+
+export interface ICommandResult {
+    id: string;
+    message: string;
+    content: WebElement | ICommandTabResult[];
+    toolbar: WebElement;
+}
+
+export interface ICommandTabResult {
+    tabName: string;
+    content: string;
 }

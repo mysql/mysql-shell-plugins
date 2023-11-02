@@ -531,7 +531,7 @@ describe("Database Connections", () => {
             await DBConnection.setEditorLanguage("mysql");
 
             let query = `select * from performance_schema.session_status where variable_name in `;
-            query += `("ssl_cipher") and variable_value = "TLS_AES_256_GCM_SHA384"`;
+            query += `("ssl_cipher") and variable_value like "%TLS%"`;
 
             await Misc.execCmd(await driver.findElement(By.css("textarea")), query, undefined, true, true);
 

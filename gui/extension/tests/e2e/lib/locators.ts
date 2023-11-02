@@ -85,6 +85,8 @@ export const notebook = {
         editor: {
             exists: By.className("monaco-editor-background"),
             host: By.id("editorPaneHost"),
+            lines: By.css(".view-overlays > div"),
+            promptLine: By.css(".view-lines.monaco-mouse-cursor-text > div"),
             sentence: By.css(".view-lines.monaco-mouse-cursor-text > div > span"),
             wordInSentence: By.css(".view-lines.monaco-mouse-cursor-text > div > span span"),
             line: By.css("#contentHost .editorHost .view-line"),
@@ -94,20 +96,17 @@ export const notebook = {
             autoCompleteListItem: By.css(".monaco-list .monaco-highlighted-label span"),
             result: {
                 exists: By.className("zoneHost"),
-                hasContent: By.className("renderTarget"),
+                hasContent: By.className("content"),
                 existsById: (view: string): By => {
                     return By.xpath(`//div[@class='zoneHost' and @monaco-view-zone='${view}']`);
                 },
                 host: By.className("resultHost"),
-                tabSection: {
-                    exists: By.className("resultTabview"),
-                    body: By.className("tabArea"),
-                    tab: By.css(".tabArea div"),
-                    tabname: By.css(".tabArea label"),
-                },
-                headers: By.className("tabulator-headers"),
+
+                table: By.className("tabulator"),
+                tableRows: By.css(".tabulator-selectable.tabulator-row-odd"),
+                tableHeaders: By.className("tabulator-headers"),
                 tableColumnTitle: By.className("tabulator-col-title"),
-                tableCell: By.css(".zoneHost .tabulator-cell"),
+                tableCell: By.className("tabulator-cell"),
                 status: {
                     exists: By.className("resultStatus"),
                     text: By.css(".resultStatus > label"),
@@ -116,15 +115,21 @@ export const notebook = {
                     normalize: By.id("normalizeResultStateButton"),
                     toolbar: By.css(".resultStatus .toolbar"),
                 },
-                text: By.className("resultText"),
+                tabSection: {
+                    exists: By.className("tabAreaContainer"),
+                    body: By.className("tabArea"),
+                    tab: By.css(".tabArea .tabItem > label"),
+                },
+                text: By.css(".resultText > span"),
                 graphHost: {
                     exists: By.className("graphHost"),
                     column: By.css("rect"),
                 },
                 json: {
-                    exists: By.className("jsonView"),
+                    exists: By.css(".actionOutput .jsonView"),
                     field: By.css(".jsonView span > span"),
                 },
+                singleOutput: By.className("outputHost"),
             },
         },
         prompt: {
@@ -147,7 +152,7 @@ export const notebook = {
 };
 
 export const shellSession = {
-    exists: By.id("shellModuleHost"),
+    exists: By.id("sessionSelector"),
     result: {
         label: By.className("actionLabel"),
         output: By.className("actionOutput"),
@@ -435,6 +440,10 @@ export const checkBox = {
 
 export const genericDialog = {
     exists: By.className("valueEditDialog"),
+};
+
+export const suggestWidget = {
+    exists: By.css(".suggest-widget.visible"),
 };
 
 export const htmlTag = {

@@ -35,6 +35,7 @@ import * as constants from "./constants";
 import * as interfaces from "./interfaces";
 import * as locator from "./locators";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
+import { CommandExecutor } from "./cmdExecutor";
 
 export class Database {
 
@@ -217,8 +218,7 @@ export class Database {
         await Misc.switchBackToTopFrame();
         await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
             constants.createDBConnection);
-        await driver.wait(Until.tabIsOpened(constants.dbDefaultEditor), constants.wait5seconds,
-            `${constants.dbDefaultEditor} tab was not opened`);
+        await driver.wait(Until.tabIsOpened(constants.dbDefaultEditor), constants.wait5seconds);
         await Misc.switchToFrame();
         await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists), constants.wait10seconds);
 
@@ -273,6 +273,19 @@ export class Database {
         await dialog.findElement(locator.passwordDialog.ok).click();
     };
 
+    public static existsToolbarButton = async (button: string): Promise<boolean> => {
+        const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
+            constants.wait5seconds, "Toolbar was not found");
+        const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
+        for (const btn of buttons) {
+            if ((await btn.getAttribute("data-tooltip")) === button) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
     public static getToolbarButton = async (button: string): Promise<WebElement | undefined> => {
         const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
             constants.wait5seconds, "Toolbar was not found");
@@ -309,6 +322,32 @@ export class Database {
                 }
             }
         }, constants.wait5seconds, "Could not set a new line on the editor");
+    };
+
+    public static getMouseCursorLine = async (): Promise<number> => {
+        const lines = await driver.findElements(locator.notebook.codeEditor.editor.lines);
+        for (let i = 0; i <= lines.length - 1; i++) {
+            const curLine = await lines[i].findElements(locator.notebook.codeEditor.editor.currentLine);
+            if (curLine.length > 0) {
+                return i;
+            }
+        }
+    };
+
+    public static getLineFromWord = async (wordRef: string): Promise<number> => {
+        const regex = wordRef
+            .replace(/\*/g, "\\*")
+            .replace(/\./g, ".*")
+            .replace(/;/g, ".*")
+            .replace(/\s/g, ".*");
+        const lines = await driver.findElements(locator.notebook.codeEditor.editor.promptLine);
+        for (let i = 0; i <= lines.length - 1; i++) {
+            const lineContent = await lines[i].getAttribute("innerHTML");
+            if (lineContent.match(regex)) {
+                return i;
+            }
+        }
+        throw new Error(`Could not find '${wordRef}'`);
     };
 
     public static isStatementStart = async (statement: string): Promise<boolean | undefined> => {
@@ -1438,7 +1477,7 @@ export class Database {
 
         const textArea = await driver?.findElement(locator.notebook.codeEditor.textArea);
         await textArea.sendKeys(cmd);
-        await Misc.execOnEditor();
+        await CommandExecutor.exec();
         timeout = timeout ?? 5000;
 
         return Database.getScriptResult(timeout);

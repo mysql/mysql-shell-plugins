@@ -26,6 +26,8 @@ import {
     EditorView,
     BottomBarPanel,
     logging,
+    WebElement,
+    Locator,
 } from "vscode-extension-tester";
 import { execSync } from "child_process";
 import fs from "fs/promises";
@@ -37,7 +39,7 @@ import { Database } from "./db";
 export let credentialHelperOk = true;
 
 export const isNotLoading = (section: string): Condition<boolean> => {
-    return new Condition("Is not loading", async () => {
+    return new Condition(`for ${section} to NOT be loading`, async () => {
         const sec = await Misc.getSection(section);
         const loading = await sec.findElements(locator.section.loadingBar);
         const activityBar = new ActivityBar();
@@ -49,25 +51,25 @@ export const isNotLoading = (section: string): Condition<boolean> => {
 };
 
 export const tabIsOpened = (tabName: string): Condition<boolean> => {
-    return new Condition("Is not loading", async () => {
+    return new Condition(`for ${tabName} to be opened`, async () => {
         return (await new EditorView().getOpenEditorTitles()).includes(tabName);
     });
 };
 
 export const isFELoaded = (): Condition<boolean> => {
-    return new Condition("Frontend is loaded", async () => {
+    return new Condition("for Frontend to be loaded", async () => {
         return (await driver.findElements(locator.dbConnectionOverview.newDBConnection)).length > 0;
     });
 };
 
 const dbConnectionIsSuccessful = (): Condition<boolean> => {
-    return new Condition("DB Connection is successful", async () => {
+    return new Condition("for DB Connection is successful", async () => {
         return (await driver.findElements(locator.notebook.codeEditor.textArea)).length > 0;
     });
 };
 
 export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
-    return new Condition("DB loaded", async () => {
+    return new Condition(`for DB connection ${connection.caption} to be opened`, async () => {
         if ((await Misc.insideIframe()) === false) {
             await Misc.switchToFrame();
         }
@@ -85,7 +87,7 @@ export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Cond
 };
 
 export const mdsConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
-    return new Condition("DB loaded", async () => {
+    return new Condition(`for MDS connection ${connection.caption} to be opened`, async () => {
         if ((await Misc.insideIframe()) === false) {
             await Misc.switchToFrame();
         }
@@ -110,7 +112,7 @@ export const mdsConnectionIsOpened = (connection: interfaces.IDBConnection): Con
 };
 
 export const shellSessionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
-    return new Condition("DB loaded", async () => {
+    return new Condition(`for Shell session ${connection.caption} to be opened`, async () => {
         if ((await Misc.insideIframe()) === false) {
             await Misc.switchToFrame();
         }
@@ -127,14 +129,20 @@ export const shellSessionIsOpened = (connection: interfaces.IDBConnection): Cond
     });
 };
 
+export const webElementIsUpdated = (el: WebElement, lastDetailValue: string, detail: string): Condition<boolean> => {
+    return new Condition(`for Web Element to be Updated from ${lastDetailValue}, on detail ${detail}`, async () => {
+        return (await el.getCssValue(detail)) !== lastDetailValue;
+    });
+};
+
 export const dbSectionHasConnections = (): Condition<boolean> => {
-    return new Condition("DB Connections exists", async () => {
+    return new Condition("for DATABASE CONNECTIONS section to have connections", async () => {
         return (await Misc.getDBConnections()).length > 0;
     });
 };
 
 export const existsOnRouterLog = (text: string | RegExp): Condition<boolean> => {
-    return new Condition("Exists on Router log", async () => {
+    return new Condition(`for ${String(text)} to exist on Router log`, async () => {
         const routerLogFile = await Misc.getRouterLogFile();
         await driver.wait(async () => {
             try {
@@ -155,13 +163,35 @@ export const existsOnRouterLog = (text: string | RegExp): Condition<boolean> => 
 };
 
 export const isDefaultItem = (section: string, treeItemName: string, itemType: string): Condition<boolean> => {
-    return new Condition("The tree item is marked as default", async () => {
+    return new Condition(`for ${treeItemName} to be marked as default`, async () => {
         return Misc.isDefaultItem(section, treeItemName, itemType);
     });
 };
 
+export const elementLocated = (context: WebElement, locator: Locator): Condition<boolean> => {
+    return new Condition(`for element ${String(locator)} to be found`, async () => {
+        return (await context.findElements(locator)).length > 0;
+    });
+};
+
+export const toolbarButtonIsDisabled = (button: string): Condition<boolean> => {
+    return new Condition(`for button ${button} to be disabled`, async () => {
+        const btn = await Database.getToolbarButton(button);
+
+        return (await btn.getAttribute("class")).includes("disabled");
+    });
+};
+
+export const toolbarButtonIsEnabled = (button: string): Condition<boolean> => {
+    return new Condition(`for button ${button} to be enabled`, async () => {
+        const btn = await Database.getToolbarButton(button);
+
+        return !(await btn.getAttribute("class")).includes("disabled");
+    });
+};
+
 export const routerIsRunning = (): Condition<boolean> => {
-    return new Condition("Exists on Router log", () => {
+    return new Condition("for Router to be running", () => {
         if (Misc.isWindows()) {
             const cmdResult = execSync(`tasklist /fi "IMAGENAME eq mysqlrouter.exe"`);
             const resultLines = cmdResult.toString().split("\n");
@@ -183,7 +213,7 @@ export const routerIsRunning = (): Condition<boolean> => {
 };
 
 export const extensionIsReady = (): Condition<boolean> => {
-    return new Condition("Extension was not ready", async () => {
+    return new Condition("for the Extension to be ready", async () => {
         let tryNumber = 1;
         const feLoadTries = 3;
         let feWasLoaded = false;
@@ -207,6 +237,7 @@ export const extensionIsReady = (): Condition<boolean> => {
                 break;
             } catch (e) {
                 tryNumber++;
+                await Misc.removeInternalDB();
                 await Misc.switchBackToTopFrame();
                 await Misc.reloadVSCode();
             }
