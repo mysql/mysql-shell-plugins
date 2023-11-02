@@ -144,12 +144,19 @@ export class RdbmsLanguageService {
 
             this.pool.runTask(infoData).then((taskId: number, result: ILanguageWorkerResultData): void => {
                 if (!model.isDisposed() && result.completions) {
-                    const info = model.getWordUntilPosition(position);
+                    // Determine what has been written so far, by going back from the current position until we find
+                    // a whitespace character or the start of the line.
+                    const line = model.getLineContent(position.lineNumber);
+                    let index = position.column - 1;
+                    while (index > 0 && !/\s/.test(line[index - 1])) {
+                        --index;
+                    }
+
                     const replaceRange = context.fromLocal({
                         startLineNumber: position.lineNumber,
-                        startColumn: info.startColumn,
+                        startColumn: index + 1,
                         endLineNumber: position.lineNumber,
-                        endColumn: info.endColumn,
+                        endColumn: position.column,
                     });
 
                     this.transformCompletionItems(result.completions, replaceRange).then((suggestions) => {
@@ -157,7 +164,7 @@ export class RdbmsLanguageService {
                             // Add a special item here if nothing was found.
                             // Otherwise we get some meaningless default suggestions.
                             suggestions.push({
-                                label: "No Suggestions.",
+                                label: "No Suggestions",
                                 kind: languages.CompletionItemKind.Text,
                                 range: replaceRange,
                                 insertText: "",
