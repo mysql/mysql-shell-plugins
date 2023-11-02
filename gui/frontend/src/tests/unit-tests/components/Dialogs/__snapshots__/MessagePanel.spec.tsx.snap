@@ -14,7 +14,7 @@ exports[`Message Panel Tests Render Test 1`] = `
       }
     }
     caption={
-      <p>
+      <k>
         <Icon
           disabled={false}
           src={190}
@@ -22,7 +22,7 @@ exports[`Message Panel Tests Render Test 1`] = `
         <Label>
           
         </Label>
-      </p>
+      </k>
     }
     className="msg errorPanel"
     container={

@@ -21,7 +21,6 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-node scripts/copy-oci-typings.js
 node --no-warnings --loader ts-node/esm scripts/generate-mrs-grammar.ts
 
 # Generate parsers only if something in the source folder changed.

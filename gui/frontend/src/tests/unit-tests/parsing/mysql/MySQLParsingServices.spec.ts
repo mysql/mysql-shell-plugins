@@ -118,7 +118,8 @@ describe("MySQL Parsing Services Tests", () => {
         runParserTests();
     });
 
+    /* Enable for measurement purposes. Doesn't add anything to the test suite.
     it("Parse a number of files with various statements (warm run)", () => {
         runParserTests();
-    });
+    }); */
 });

@@ -46,13 +46,13 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <p>
+          <k>
             <Icon
               disabled={false}
               src={389}
             />
             <Label />
-          </p>
+          </k>
         }
         className="msg valueEditDialog"
         container={
@@ -247,7 +247,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <p>
+          <k>
             <Icon
               disabled={false}
               src={276}
@@ -255,7 +255,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
             <Label>
               Confirm
             </Label>
-          </p>
+          </k>
         }
         className="msg confirmDialog"
         container={

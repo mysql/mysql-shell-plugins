@@ -19,7 +19,6 @@ rem You should have received a copy of the GNU General Public License
 rem along with this program; if not, write to the Free Software Foundation, Inc.,
 rem 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-node scripts/copy-oci-typings.js
 node --no-warnings --loader ts-node/esm scripts/generate-mrs-grammar.ts
 
 antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/mysql/generated src/parsing/mysql/*.g4

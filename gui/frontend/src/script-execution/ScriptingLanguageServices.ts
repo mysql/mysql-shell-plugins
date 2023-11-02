@@ -616,17 +616,33 @@ export class ScriptingLanguageServices {
                 const worker = await this.workerForLanguage(context.language);
                 const service = await worker(model.uri);
                 const offset = model.getOffsetAt(position);
-                const occurrences: readonly ReferenceEntry[] | undefined =
-                    await service.getOccurrencesAtPosition(model.uri.toString(), offset);
+
+                // Careful here: we are mixing Monaco and TypeScript DocumentHighlight structures.
+                const occurrences: readonly ts.DocumentHighlights[] | undefined =
+                    await service.getDocumentHighlights(model.uri.toString(), offset, [model.uri.toString()]);
 
                 const result: DocumentHighlight[] = [];
                 for (const entry of occurrences || []) {
-                    result.push({
-                        range: context.fromLocal(entry.textSpan) as Range,
-                        kind: entry.isWriteAccess
-                            ? languages.DocumentHighlightKind.Write
-                            : languages.DocumentHighlightKind.Read,
-                    });
+                    for (const span of entry.highlightSpans) {
+                        let kind: languages.DocumentHighlightKind;
+                        switch (span.kind) {
+                            case ts.HighlightSpanKind.writtenReference:
+                                kind = languages.DocumentHighlightKind.Write;
+                                break;
+
+                            case ts.HighlightSpanKind.reference:
+                                kind = languages.DocumentHighlightKind.Read;
+                                break;
+
+                            default:
+                                kind = languages.DocumentHighlightKind.Text;
+                        }
+
+                        result.push({
+                            range: context.fromLocal(span.textSpan) as Range,
+                            kind,
+                        });
+                    }
                 }
 
                 return result;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,35 +21,27 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import glob from "glob";
-import path from "path";
-import fs from "fs";
+/* eslint-disable @typescript-eslint/naming-convention */
 
-const targetFolder = path.join("./src", "oci-typings");
+import { TestEnvironment } from "jest-environment-jsdom";
+import { JestEnvironmentConfig, EnvironmentContext } from "@jest/environment";
 
-const copyTypings = (folder) => {
-    const typings = glob.sync(path.join("node_modules", folder, "**/*.d.ts"));
+import { TextEncoder, TextDecoder } from "util";
 
-    typings.forEach((file) => {
-        const targetName = path.join(targetFolder, file.substring("node_modules".length));
+export default class ExtendedTestEnvironment extends TestEnvironment {
+    public constructor(config: JestEnvironmentConfig, context: EnvironmentContext) {
+        super(config, context);
 
-        fs.mkdirSync(path.dirname(targetName), { recursive: true });
-        fs.copyFileSync(file, targetName);
-    })
+        // https://github.com/jsdom/jsdom/issues/3363
+        this.global.structuredClone = (value: unknown) => {
+            return JSON.parse(JSON.stringify(value)) as unknown;
+        };
 
-};
 
-if (!fs.existsSync(targetFolder)) {
-    console.log("Copying OCI typings...");
+        // https://github.com/jsdom/jsdom/issues/2524
+        // @ts-expect-error, because the two decoders are not fully compatible (though good enough for tests).
+        this.global.TextDecoder = TextDecoder;
+        this.global.TextEncoder = TextEncoder;
 
-    copyTypings("oci-common");
-    copyTypings("oci-core");
-    copyTypings("oci-bastion");
-    copyTypings("oci-mysql");
-    copyTypings("oci-loadbalancer");
-    // cspell: ignore workrequests
-    copyTypings("oci-workrequests");
-    copyTypings("oci-identity");
-
-    console.log("done\n");
+    }
 }

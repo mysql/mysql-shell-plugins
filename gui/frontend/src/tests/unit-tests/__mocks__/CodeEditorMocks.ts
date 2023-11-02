@@ -50,7 +50,7 @@ export const mockModel: ICodeEditorModel = {
     pushEOL: jest.fn(), applyEdits: jest.fn(), setEOL: jest.fn(), onDidChangeContent: jest.fn(),
     onDidChangeDecorations: jest.fn(), onDidChangeOptions: jest.fn(), onDidChangeLanguage: jest.fn(),
     onDidChangeLanguageConfiguration: jest.fn(), onDidChangeAttached: jest.fn(), onWillDispose: jest.fn(),
-    dispose: jest.fn(), isAttachedToEditor: jest.fn(),
+    dispose: jest.fn(), isAttachedToEditor: jest.fn(), getAllMarginDecorations: jest.fn(),
     createSnapshot: jest.fn(),
 };
 export const position: Position = {
@@ -76,6 +76,6 @@ export const mockTextModel: Monaco.ITextModel = {
     pushEditOperations: jest.fn(), pushEOL: jest.fn(), applyEdits: jest.fn(), setEOL: jest.fn(),
     onDidChangeContent: jest.fn(), onDidChangeDecorations: jest.fn(), onDidChangeOptions: jest.fn(),
     onDidChangeLanguage: jest.fn(), onDidChangeLanguageConfiguration: jest.fn(), onDidChangeAttached: jest.fn(),
-    onWillDispose: jest.fn(), dispose: jest.fn(), isAttachedToEditor: jest.fn(),
+    onWillDispose: jest.fn(), dispose: jest.fn(), isAttachedToEditor: jest.fn(), getAllMarginDecorations: jest.fn(),
     createSnapshot: jest.fn(),
 };

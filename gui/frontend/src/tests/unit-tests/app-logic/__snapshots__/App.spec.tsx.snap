@@ -350,7 +350,7 @@ exports[`Application tests Application readiness 1`] = `
           }
         }
         caption={
-          <p>
+          <k>
             <Icon
               disabled={false}
               src={190}
@@ -358,7 +358,7 @@ exports[`Application tests Application readiness 1`] = `
             <Label>
               
             </Label>
-          </p>
+          </k>
         }
         className="msg errorPanel"
         container={
@@ -518,13 +518,13 @@ exports[`Application tests Application readiness 1`] = `
             }
           }
           caption={
-            <p>
+            <k>
               <Icon
                 disabled={false}
                 src={389}
               />
               <Label />
-            </p>
+            </k>
           }
           className="msg valueEditDialog"
           container={
@@ -589,7 +589,7 @@ exports[`Application tests Application readiness 1`] = `
             }
           }
           caption={
-            <p>
+            <k>
               <Icon
                 disabled={false}
                 src={276}
@@ -597,7 +597,7 @@ exports[`Application tests Application readiness 1`] = `
               <Label>
                 Confirm
               </Label>
-            </p>
+            </k>
           }
           className="msg confirmDialog"
           container={

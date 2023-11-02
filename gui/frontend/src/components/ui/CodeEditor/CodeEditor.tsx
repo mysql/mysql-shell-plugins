@@ -418,7 +418,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 autoFindInSelection: "never",
                 addExtraSpaceOnTop: false,
             },
-            "cursorSmoothCaretAnimation": false,
+            "cursorSmoothCaretAnimation": "off",
             "fontLigatures": true,
             wordWrap,
             wordWrapColumn,

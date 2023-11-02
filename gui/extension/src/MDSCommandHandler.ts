@@ -28,6 +28,8 @@ import {
 import { homedir } from "os";
 import { existsSync } from "fs";
 
+import { models } from "oci-mysql";
+
 import { ICompartment, IPortForwardingSessionTargetResourceDetails } from "../../frontend/src/communication/index.js";
 import { taskOutputChannel } from "./extension.js";
 
@@ -39,7 +41,6 @@ import { OciComputeInstanceTreeItem } from "./tree-providers/OCITreeProvider/Oci
 import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider/OciDbSystemTreeItem.js";
 import { OciLoadBalancerTreeItem } from "./tree-providers/OCITreeProvider/OciLoadBalancerTreeItem.js";
 import { OciConfigProfileTreeItem } from "./tree-providers/OCITreeProvider/OciProfileTreeItem.js";
-import { DbSystem } from "../../frontend/src/oci-typings/oci-mysql/lib/model/index.js";
 
 import { DialogResponseClosure, IDictionary, MdsDialogType } from "../../frontend/src/app-logic/Types.js";
 import { DialogWebviewManager } from "./WebviewProviders/DialogWebviewProvider.js";
@@ -570,7 +571,7 @@ export class MDSCommandHandler {
      * @param profile The OCI profile
      * @param host The extension host
      */
-    private async showMdsHWClusterDialog(dbSystem: DbSystem, compartment: ICompartment,
+    private async showMdsHWClusterDialog(dbSystem: models.DbSystem, compartment: ICompartment,
         profile: IMdsProfileData, host: ExtensionHost): Promise<void> {
 
         const statusbarItem = window.createStatusBarItem();
@@ -724,7 +725,7 @@ export class MDSCommandHandler {
      * @param profile The OCI profile
      * @param host The extension host
      */
-    private async showMdsEndpointDialog(dbSystem: DbSystem, compartment: ICompartment,
+    private async showMdsEndpointDialog(dbSystem: models.DbSystem, compartment: ICompartment,
         profile: IMdsProfileData, host: ExtensionHost): Promise<void> {
 
         const statusbarItem = window.createStatusBarItem();

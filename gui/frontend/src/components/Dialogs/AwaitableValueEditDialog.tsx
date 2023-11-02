@@ -37,7 +37,7 @@ export interface IAwaitableDialogResult {
  * A dialog implementation that provides the necessary tools to allow derived dialogs to return their results to a
  * waiting customer directly. This allows to chain multiple dialogs together.
  */
-export abstract class AwaitableValueEditDialog extends ComponentBase {
+export class AwaitableValueEditDialog extends ComponentBase {
     #dialogRef = createRef<ValueEditDialog>();
     #signal?: Semaphore<IAwaitableDialogResult>;
 

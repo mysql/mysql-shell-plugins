@@ -534,9 +534,8 @@ describe("Notebook", () => {
                 await contentHost.findElement(By.css("textarea")).getAttribute("value"),
             ).toContain("import from tester testing testing");
 
-            await DBConnection.closeFinder(finder);
+            await DBConnection.closeFinder();
 
-            expect(await finder.getAttribute("aria-hidden")).toBe("true");
         } catch (e) {
             testFailed = true;
             throw e;

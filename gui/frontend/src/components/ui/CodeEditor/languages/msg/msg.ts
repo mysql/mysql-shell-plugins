@@ -23,7 +23,7 @@
 
 /* spell-checker: disable */
 
-import { languages } from "monaco-editor/esm/vs/editor/editor.api";
+import { languages } from "monaco-editor/esm/vs/editor/editor.api.js";
 import { conf as tsConfig } from "monaco-editor/esm/vs/basic-languages/typescript/typescript";
 
 
@@ -35,27 +35,6 @@ export const language: languages.IMonarchLanguage = {
     defaultToken: "invalid",
     ignoreCase: true,
     start: "msg",
-
-    /* These keywords are dedicated to the msg language, but must be handled as part of each sub language.
-    keywords: [
-        "\\about",
-        "\\?",
-        "\\help",
-        "\\h",
-        "\\connect",
-        "\\c",
-        "\\disconnect",
-        "\\exit",
-        "\\option",
-        "\\quit",
-        "\\q",
-        "\\reconnect",
-        "\\show",
-        "\\status",
-        "\\s",
-        "\\use",
-        "\\u",
-    ],*/
     tokenizer: {
         msg: [], // No rules here for the moment.
     },

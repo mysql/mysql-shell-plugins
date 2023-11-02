@@ -444,13 +444,17 @@ export class Database {
     };
 
     public static closeFinder = async (): Promise<void> => {
-        const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds);
-        const actions = await findWidget.findElements(locator.findWidget.actions);
-        for (const action of actions) {
-            if ((await action.getAttribute("title")).indexOf("Close") !== -1) {
-                await action.click();
+        await driver.wait(async () => {
+            const findWidget = await driver.findElements(locator.findWidget.exists);
+            if (findWidget.length > 0) {
+                const closeButton = await findWidget[0].findElement(locator.findWidget.close);
+                await driver.executeScript("arguments[0].click()", closeButton);
+
+                return (await driver.findElements(locator.findWidget.exists)).length === 0;
+            } else {
+                return true;
             }
-        }
+        }, constants.wait5seconds, "Widget was not closed");
     };
 
     public static clickContextItem = async (item: string): Promise<void> => {
@@ -1491,7 +1495,6 @@ export class Database {
         }
 
         return [...new Set(els)] as string[];
-
     };
 
     public static isEditorStretched = async (): Promise<boolean> => {

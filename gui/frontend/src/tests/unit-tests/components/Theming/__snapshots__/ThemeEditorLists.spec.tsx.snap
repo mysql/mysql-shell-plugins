@@ -4344,7 +4344,7 @@ exports[`Theme editor lists testing Render test 1`] = `
         },
         {
           "caption": "Syntax Colors",
-          "content": <p>
+          "content": <k>
             <ScopeSelector
               customScopes={[]}
               defaultScopes={
@@ -5115,7 +5115,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                 }
               />
             </Container>
-          </p>,
+          </k>,
           "id": "syntaxColors",
         },
       ]
