@@ -9,7 +9,7 @@ exports[`Confirm Dialog Tests Confirm Dialog Render Test 1`] = `
       }
     }
     caption={
-      <p>
+      <k>
         <Icon
           disabled={false}
           src={276}
@@ -17,7 +17,7 @@ exports[`Confirm Dialog Tests Confirm Dialog Render Test 1`] = `
         <Label>
           Confirm
         </Label>
-      </p>
+      </k>
     }
     className="msg confirmDialog"
     container={

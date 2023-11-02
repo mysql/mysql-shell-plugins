@@ -22,7 +22,7 @@ exports[`Param Dialog Tests Render Test 1`] = `
       }
     }
     caption={
-      <p>
+      <k>
         <Icon
           disabled={false}
           src={256}
@@ -30,7 +30,7 @@ exports[`Param Dialog Tests Render Test 1`] = `
         <Label>
           Parameters
         </Label>
-      </p>
+      </k>
     }
     className="msg paramDialog"
     container={

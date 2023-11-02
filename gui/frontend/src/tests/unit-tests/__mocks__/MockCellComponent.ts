@@ -64,6 +64,7 @@ export class MockCellComponent implements CellComponent {
     public getTable = jest.fn();
     public getRow = jest.fn();
     public getData = jest.fn();
+    public getType = jest.fn();
     public checkHeight = jest.fn();
     public edit = jest.fn();
     public cancelEdit = jest.fn();

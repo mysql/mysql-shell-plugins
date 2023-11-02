@@ -200,8 +200,10 @@ const config: Config = {
         "enzyme-to-json/serializer"
     ],
 
-    // The test environment that will be used for testing
-    testEnvironment: "jsdom",
+    // The test environment that will be used for testing.
+    // Using our own environment, because FakeIndexedDB no longer defines `structuredClone` on the global object
+    // and JSDOM does not define it at all.
+    testEnvironment: "./src/tests/unit-tests/ExtendedTestEnvironment.ts",
 
     // Options that will be passed to the testEnvironment
     testEnvironmentOptions: {},

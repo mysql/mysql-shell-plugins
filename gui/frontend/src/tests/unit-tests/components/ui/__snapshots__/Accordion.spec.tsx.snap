@@ -631,9 +631,9 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                             >
                               <img
                                 class="msg image"
-                                height="0"
+                                height="20px"
                                 src="overviewPage.svg"
-                                width="0"
+                                width="20px"
                               />
                               <label
                                 class="msg label"
@@ -651,9 +651,9 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                             >
                               <img
                                 class="msg image"
-                                height="0"
+                                height="20px"
                                 src="overviewPage.svg"
-                                width="0"
+                                width="20px"
                               />
                               <label
                                 class="msg label"
@@ -671,9 +671,9 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                             >
                               <img
                                 class="msg image"
-                                height="0"
+                                height="20px"
                                 src="overviewPage.svg"
-                                width="0"
+                                width="20px"
                               />
                               <label
                                 class="msg label"

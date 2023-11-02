@@ -1546,13 +1546,13 @@ exports[`Application host tests Rendering About 1`] = `
               }
             }
             caption={
-              <p>
+              <k>
                 <Icon
                   disabled={false}
                   src={389}
                 />
                 <Label />
-              </p>
+              </k>
             }
             className="msg valueEditDialog"
             container={
@@ -1617,7 +1617,7 @@ exports[`Application host tests Rendering About 1`] = `
               }
             }
             caption={
-              <p>
+              <k>
                 <Icon
                   disabled={false}
                   src={276}
@@ -1625,7 +1625,7 @@ exports[`Application host tests Rendering About 1`] = `
                 <Label>
                   Confirm
                 </Label>
-              </p>
+              </k>
             }
             className="msg confirmDialog"
             container={
@@ -1685,13 +1685,13 @@ exports[`Application host tests Rendering About 1`] = `
                 }
               }
               caption={
-                <p>
+                <k>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </p>
+                </k>
               }
               className="msg valueEditDialog"
               container={
@@ -1774,13 +1774,13 @@ exports[`Application host tests Rendering About 1`] = `
                 }
               }
               caption={
-                <p>
+                <k>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </p>
+                </k>
               }
               className="msg valueEditDialog"
               container={
@@ -1863,13 +1863,13 @@ exports[`Application host tests Rendering About 1`] = `
                 }
               }
               caption={
-                <p>
+                <k>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </p>
+                </k>
               }
               className="msg valueEditDialog"
               container={
@@ -3476,13 +3476,13 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
               }
             }
             caption={
-              <p>
+              <k>
                 <Icon
                   disabled={false}
                   src={389}
                 />
                 <Label />
-              </p>
+              </k>
             }
             className="msg valueEditDialog"
             container={
@@ -3547,7 +3547,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
               }
             }
             caption={
-              <p>
+              <k>
                 <Icon
                   disabled={false}
                   src={276}
@@ -3555,7 +3555,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 <Label>
                   Confirm
                 </Label>
-              </p>
+              </k>
             }
             className="msg confirmDialog"
             container={
@@ -3615,13 +3615,13 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 }
               }
               caption={
-                <p>
+                <k>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </p>
+                </k>
               }
               className="msg valueEditDialog"
               container={
@@ -3704,13 +3704,13 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 }
               }
               caption={
-                <p>
+                <k>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </p>
+                </k>
               }
               className="msg valueEditDialog"
               container={
@@ -3793,13 +3793,13 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 }
               }
               caption={
-                <p>
+                <k>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </p>
+                </k>
               }
               className="msg valueEditDialog"
               container={
@@ -5406,13 +5406,13 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
               }
             }
             caption={
-              <p>
+              <k>
                 <Icon
                   disabled={false}
                   src={389}
                 />
                 <Label />
-              </p>
+              </k>
             }
             className="msg valueEditDialog"
             container={
@@ -5477,7 +5477,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
               }
             }
             caption={
-              <p>
+              <k>
                 <Icon
                   disabled={false}
                   src={276}
@@ -5485,7 +5485,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 <Label>
                   Confirm
                 </Label>
-              </p>
+              </k>
             }
             className="msg confirmDialog"
             container={
@@ -5545,13 +5545,13 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 }
               }
               caption={
-                <p>
+                <k>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </p>
+                </k>
               }
               className="msg valueEditDialog"
               container={
@@ -5634,13 +5634,13 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 }
               }
               caption={
-                <p>
+                <k>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </p>
+                </k>
               }
               className="msg valueEditDialog"
               container={
@@ -5723,13 +5723,13 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 }
               }
               caption={
-                <p>
+                <k>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </p>
+                </k>
               }
               className="msg valueEditDialog"
               container={

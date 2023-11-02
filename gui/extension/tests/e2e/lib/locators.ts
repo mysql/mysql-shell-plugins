@@ -93,7 +93,7 @@ export const notebook = {
             lineNumber: By.css(".margin-view-overlays .line-numbers"),
             currentLine: By.className("current-line"),
             statementStart: By.className("statementStart"),
-            autoCompleteListItem: By.css(".monaco-list .monaco-highlighted-label span"),
+            autoCompleteListItem: By.css(".monaco-list .monaco-highlighted-label"),
             scrollBar: By.className("editor-scrollable"),
             result: {
                 exists: By.className("zoneHost"),
@@ -180,6 +180,7 @@ export const findWidget = {
     matchesCount: By.className("matchesCount"),
     findMatch: By.css(".cdr.findMatch"),
     replacePart: By.className("replace-part"),
+    close: By.xpath(".//div[contains(@title, 'Close')]"),
 };
 
 export const mrsServiceDialog = {

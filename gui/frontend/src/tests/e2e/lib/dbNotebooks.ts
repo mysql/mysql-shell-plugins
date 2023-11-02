@@ -221,43 +221,13 @@ export class DBNotebooks {
     };
 
     /**
-     * Checks if the Db Type drop down list is stale, on the Connections dialog
-     * Because of the tests speed, sometimes we need to reload the dialog
-     *
-     * @returns A promise resolving when the init is made
-     */
-    /*public static initConDialog = async (): Promise<void> => {
-
-        const connBrowser = await driver.wait(until.elementLocated(By.css(".connectionBrowser")),
-            explicitWait, "Connection browser was not found");
-
-        let dialog: WebElement;
-        await driver.wait(async () => {
-            try {
-                await connBrowser.findElement(By.id("-1")).click();
-                dialog = driver.findElement(By.css(".valueEditDialog"));
-
-                return true;
-            } catch (e) {
-                return false;
-            }
-        }, explicitWait, "Connection dialog was not displayed");
-
-        dialog = driver.findElement(By.css(".valueEditDialog"));
-        await dialog.findElement(By.id("cancel")).click();
-        await driver.wait(until.stalenessOf(dialog), 2000, "Connection dialog is still displayed");
-        await driver.findElement(By.id("gui.shell")).click();
-        await driver.findElement(By.id("gui.sqleditor")).click();
-    };*/
-
-    /**
      * Returns the autocomplete context item list
      *
      * @returns A promise resolving when the list is fulfilled
      */
     public static getAutoCompleteMenuItems = async (): Promise<string[]> => {
         const els = [];
-        let items = await driver.wait(until.elementsLocated(By.css(".monaco-list .monaco-highlighted-label span")),
+        let items = await driver.wait(until.elementsLocated(By.css(".monaco-list .monaco-highlighted-label")),
             explicitWait, "Auto complete items were not displayed");
 
         for (const item of items) {
@@ -266,7 +236,7 @@ export class DBNotebooks {
 
         await driver.actions().sendKeys(Key.ARROW_UP).perform();
 
-        items = await driver.wait(until.elementsLocated(By.css(".monaco-list .monaco-highlighted-label span")),
+        items = await driver.wait(until.elementsLocated(By.css(".monaco-list .monaco-highlighted-label")),
             explicitWait, "Auto complete items were not displayed");
 
         for (const item of items) {

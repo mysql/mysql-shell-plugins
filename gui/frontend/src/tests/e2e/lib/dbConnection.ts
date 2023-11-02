@@ -273,16 +273,20 @@ export class DBConnection {
     /**
      * Closes the finder on DB Editor
      *
-     * @param el element to close
      * @returns Promise resolving with the finder is closed
      */
-    public static closeFinder = async (el: WebElement): Promise<void> => {
-        const actions = await el.findElements(By.css(".find-actions div"));
-        for (const action of actions) {
-            if ((await action.getAttribute("title")).indexOf("Close") !== -1) {
-                await action.click();
+    public static closeFinder = async (): Promise<void> => {
+        await driver.wait(async () => {
+            const findWidget = await driver.findElements(By.css(".find-widget.visible"));
+            if (findWidget.length > 0) {
+                const closeButton = await findWidget[0].findElement(By.xpath(".//div[contains(@title, 'Close')]"));
+                await driver.executeScript("arguments[0].click()", closeButton);
+
+                return (await driver.findElements(By.css(".find-widget.visible"))).length === 0;
+            } else {
+                return true;
             }
-        }
+        }, explicitWait, "Widget was not closed");
     };
 
     /**

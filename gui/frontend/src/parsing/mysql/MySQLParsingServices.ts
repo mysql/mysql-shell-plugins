@@ -972,7 +972,6 @@ export class MySQLParsingServices {
         this.lexer.sqlModeFromString(sqlMode);
         this.parser.serverVersion = serverVersion;
         this.parser.sqlModes = this.lexer.sqlModes;
-
     }
 
     /**

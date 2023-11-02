@@ -120,13 +120,13 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
               }
             }
             caption={
-              <p>
+              <k>
                 <Icon
                   disabled={false}
                   src={389}
                 />
                 <Label />
-              </p>
+              </k>
             }
             className="msg valueEditDialog"
             container={
@@ -192,7 +192,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
               }
             }
             caption={
-              <p>
+              <k>
                 <Icon
                   disabled={false}
                   src={276}
@@ -200,7 +200,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                 <Label>
                   Confirm
                 </Label>
-              </p>
+              </k>
             }
             className="msg confirmDialog"
             container={
@@ -243,7 +243,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
               }
             }
             caption={
-              <p>
+              <k>
                 <Icon
                   disabled={false}
                   src={276}
@@ -251,7 +251,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                 <Label>
                   Confirm
                 </Label>
-              </p>
+              </k>
             }
             className="msg confirmDialog"
             container={

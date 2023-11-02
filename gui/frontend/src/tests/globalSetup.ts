@@ -25,8 +25,6 @@
 
 import type { Config } from "jest";
 
-export { };
-
 // eslint-disable-next-line @typescript-eslint/require-await
 module.exports = async (_globalConfig: unknown, _projectConfig: Config) => {
     process.chdir("./src/tests/unit-tests");

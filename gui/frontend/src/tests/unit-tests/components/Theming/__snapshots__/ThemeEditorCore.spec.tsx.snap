@@ -387,13 +387,13 @@ exports[`Theme editor core testing Render test 1`] = `
                                 }
                               }
                               caption={
-                                <p>
+                                <k>
                                   <Icon
                                     disabled={false}
                                     src={389}
                                   />
                                   <Label />
-                                </p>
+                                </k>
                               }
                               className="msg valueEditDialog"
                               container={
@@ -4386,7 +4386,7 @@ exports[`Theme editor core testing Render test 1`] = `
               },
               {
                 "caption": "Syntax Colors",
-                "content": <p>
+                "content": <k>
                   <ScopeSelector
                     customScopes={[]}
                     defaultScopes={
@@ -5157,7 +5157,7 @@ exports[`Theme editor core testing Render test 1`] = `
                       }
                     />
                   </Container>
-                </p>,
+                </k>,
                 "id": "syntaxColors",
               },
             ]

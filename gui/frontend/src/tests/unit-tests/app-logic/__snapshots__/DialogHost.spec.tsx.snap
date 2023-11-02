@@ -132,13 +132,13 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
         }
       }
       caption={
-        <p>
+        <k>
           <Icon
             disabled={false}
             src={389}
           />
           <Label />
-        </p>
+        </k>
       }
       className="msg valueEditDialog"
       container={
@@ -203,7 +203,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
         }
       }
       caption={
-        <p>
+        <k>
           <Icon
             disabled={false}
             src={276}
@@ -211,7 +211,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           <Label>
             Confirm
           </Label>
-        </p>
+        </k>
       }
       className="msg confirmDialog"
       container={
@@ -271,13 +271,13 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <p>
+          <k>
             <Icon
               disabled={false}
               src={389}
             />
             <Label />
-          </p>
+          </k>
         }
         className="msg valueEditDialog"
         container={
@@ -360,13 +360,13 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <p>
+          <k>
             <Icon
               disabled={false}
               src={389}
             />
             <Label />
-          </p>
+          </k>
         }
         className="msg valueEditDialog"
         container={
@@ -449,13 +449,13 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <p>
+          <k>
             <Icon
               disabled={false}
               src={389}
             />
             <Label />
-          </p>
+          </k>
         }
         className="msg valueEditDialog"
         container={
