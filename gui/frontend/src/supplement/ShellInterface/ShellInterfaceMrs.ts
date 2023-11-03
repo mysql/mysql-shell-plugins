@@ -853,7 +853,7 @@ export class ShellInterfaceMrs {
     }
 
     public async getDbObjectParameters(dbObjectName?: string,
-        dbSchemaName?: string, dbObjectId?: string): Promise<IMrsDbObjectParameterData[]> {
+        dbSchemaName?: string, dbObjectId?: string, dbType?: string): Promise<IMrsDbObjectParameterData[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsGetDbObjectParameters,
             parameters: {
@@ -863,6 +863,25 @@ export class ShellInterfaceMrs {
                     dbObjectId,
                     dbSchemaName,
                     dbObjectName,
+                    dbType,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getDbFunctionReturnType(dbObjectName: string,
+        dbSchemaName: string): Promise<string> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetDbFunctionReturnType,
+            parameters: {
+                args: {
+                    dbSchemaName,
+                    dbObjectName,
+                },
+                kwargs: {
                     moduleSessionId: this.moduleSessionId,
                 },
             },

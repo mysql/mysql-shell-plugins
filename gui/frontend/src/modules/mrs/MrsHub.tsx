@@ -411,7 +411,7 @@ export class MrsHub extends ComponentBase {
         const services = await backend.mrs.listServices();
         const schemas = await backend.mrs.listSchemas(dbObject.serviceId === "" ? undefined : dbObject.serviceId);
         let rowOwnershipFields: string[];
-        if (dbObject.objectType !== "PROCEDURE") {
+        if (dbObject.objectType !== "PROCEDURE" && dbObject.objectType !== "FUNCTION") {
             const tableColumnsWithReferences = await backend.mrs.getTableColumnsWithReferences(
                 undefined, dbObject.name,
                 undefined, undefined, dbObject.schemaName,
@@ -423,7 +423,7 @@ export class MrsHub extends ComponentBase {
             });
         } else {
             const params = await backend.mrs.getDbObjectParameters(
-                dbObject.name, dbObject.schemaName);
+                dbObject.name, dbObject.schemaName, undefined, dbObject.objectType);
             rowOwnershipFields = params.map((p) => {
                 return p.name;
             });

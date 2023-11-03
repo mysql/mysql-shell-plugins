@@ -846,6 +846,53 @@ restObjectOptions ::=
 restProcedureResult ::=
 ![restProcedureResult](../../images/sql/restProcedureResult.svg "restProcedureResult")
 
+## CREATE REST FUNCTION
+
+The `CREATE REST FUNCTION` statement is used to add REST endpoints for database schema stored function. It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-duality-view) as defined for REST duality views to describe the REST functions's parameters and result. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-duality-view).
+
+**_SYNTAX_**
+
+```antlr
+createRestFunctionStatement:
+    CREATE (OR REPLACE)? REST FUNCTION functionRequestPath (
+        ON serviceSchemaSelector
+    )? AS qualifiedIdentifier (PARAMETERS restObjectName? graphQlObj)?
+        restFunctionResult? restObjectOptions?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+
+restObjectOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+        | restViewMediaType
+        | restViewFormat
+        | restViewAuthenticationProcedure
+    )+
+;
+
+restFunctionResult:
+    RESULT restResultName? graphQlObj
+;
+```
+
+createRestFunctionStatement ::=
+![createRestFunctionStatement](../../images/sql/createRestFunctionStatement.svg "createRestFunctionStatement")
+
+serviceSchemaSelector ::=
+![serviceSchemaSelector](../../images/sql/serviceSchemaSelector.svg "serviceSchemaSelector")
+
+restObjectOptions ::=
+![restObjectOptions](../../images/sql/restObjectOptions.svg "restObjectOptions")
+
+restFunctionResult ::=
+![restFunctionResult](../../images/sql/restFunctionResult.svg "restFunctionResult")
+
 ## CREATE REST CONTENT SET
 
 The `CREATE REST CONTENT SET` statement is used to add REST endpoints for static content.

@@ -301,7 +301,7 @@ SHOW CREATE REST AUTH APP "MRS" FROM SERVICE localhost/myTestService;
 
 SHOW CREATE REST AUTH APP "MySQL" FROM SERVICE localhost/myTestService;
 
-ALTER REST SERVICE /myService DISABLED;
+ALTER REST SERVICE localhost/myTestService DISABLED;
 
 DROP REST AUTH APP "MRS";
 
@@ -327,6 +327,22 @@ AS `sakila`.`language` {
         title: title
     }
 };
+
+CREATE OR REPLACE REST FUNCTION /actorFunc
+ON SERVICE localhost/myTestService SCHEMA /sakila
+AS `sakila`.`actor`;
+
+CREATE OR REPLACE REST FUNCTION /actorFunc
+    ON SERVICE localhost/myTestService SCHEMA /sakila
+    AS sakila.actor
+    PARAMETERS LocalhostMyServiceSakilaActorFuncParams {
+        s: s @IN
+    }
+    RESULT LocalhostMyServiceSakilaActorFunc {
+        result: result @DATATYPE("char")
+    };
+
+DROP REST FUNCTION /actorFunc;
 
 DROP REST SCHEMA /sakila FROM localhost/myTestService;
 

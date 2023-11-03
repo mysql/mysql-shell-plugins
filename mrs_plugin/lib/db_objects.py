@@ -267,9 +267,9 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     if not isinstance(db_object_name, str):
         raise Exception('Invalid object name.')
 
-    if db_object_type not in ["TABLE", "VIEW", "PROCEDURE"]:
+    if db_object_type not in ["TABLE", "VIEW", "PROCEDURE", "FUNCTION"]:
         raise ValueError(
-            'Invalid db_object_type. Only valid types are TABLE, VIEW and PROCEDURE.')
+            'Invalid db_object_type. Only valid types are TABLE, VIEW, PROCEDURE and FUNCTION.')
 
     if not crud_operations:
         raise ValueError("No CRUD operations specified."
@@ -300,7 +300,7 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
 
     core.check_mrs_object_names(session=session, db_schema_id=schema_id, objects=objects)
 
-    if db_object_type == "PROCEDURE":
+    if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
         crud_operations = ["UPDATE"]
 
     if db_object_id is None:
@@ -327,7 +327,7 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
 
     set_objects(session, db_object_id, objects)
 
-    if db_object_type == "PROCEDURE":
+    if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
         grant_privileges = ["EXECUTE"]
     else:
         grant_privileges = map_crud_operations(crud_operations)
@@ -335,8 +335,8 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     if not grant_privileges:
         raise ValueError("No valid CRUD Operation specified")
 
-    return db_object_id, database.get_grant_statement(schema["name"],
-                                                    db_object_name, grant_privileges)
+    return db_object_id, database.get_grant_statements(
+        schema["name"], db_object_name, grant_privileges, objects, db_object_type)
 
 
 def get_crud_operations(session, db_object_id: bytes):
@@ -399,7 +399,7 @@ def update_db_objects(session, db_object_ids, value):
 
         grant_privileges = map_crud_operations(
             value.get("crud_operations", []))
-        
+
         db_object = get_db_object(session, db_object_id)
 
         schema = schemas.get_schema(session, db_object["db_schema_id"])
@@ -410,12 +410,8 @@ def update_db_objects(session, db_object_ids, value):
 
         # Grant privilege to the 'mysql_rest_service_data_provider' role
         if grant_privileges:
-            if db_object["object_type"] == "PROCEDURE":
-                database.grant_db_object(session, schema.get(
-                    "name"), db_object['name'], ['EXECUTE'])
-            else:
-                database.grant_db_object(session, schema.get(
-                    "name"), db_object['name'], grant_privileges)
+            database.grant_db_object(
+                session, schema.get("name"), db_object['name'], grant_privileges, objects, db_object["object_type"])
 
         if objects is not None:
             set_objects(session, db_object_id, objects)
@@ -429,7 +425,8 @@ def db_schema_object_is_table(session, db_schema_name, db_object_name):
 
 
 def get_db_object_parameters(session, db_object_id=None,
-                             db_schema_name=None, db_object_name=None):
+                             db_schema_name=None, db_object_name=None,
+                             db_type="PROCEDURE"):
 
     if db_object_id:
         db_object = get_db_object(session, db_object_id)
@@ -441,12 +438,17 @@ def get_db_object_parameters(session, db_object_id=None,
 
         db_schema_name = db_object["schema_name"]
         db_object_name = db_object["name"]
-
-        if db_object["object_type"] != "PROCEDURE":
+        db_type = db_object["object_type"]
+        if db_object["object_type"] != "PROCEDURE" or db_object["object_type"] != "FUNCTION":
             raise ValueError(
-                "This function can only be called for PROCEDUREs.")
+                "This function can only be called for PROCEDUREs and FUNCTIONs.")
 
-    return database.get_db_object_parameters(session, db_schema_name, db_object_name)
+    return database.get_db_object_parameters(
+        session=session, db_schema_name=db_schema_name, db_object_name=db_object_name, db_type=db_type)
+
+def get_db_function_return_type(session, db_schema_name, db_object_name):
+    return database.get_db_function_return_type(
+        session=session, db_schema_name=db_schema_name, db_object_name=db_object_name)
 
 
 def get_table_columns_with_references(session, db_object_id=None,
@@ -534,15 +536,6 @@ def set_object_fields_with_references(session, db_object_id, obj):
 
                 ref_map["column_mapping"] = converted_col_mapping
                 ref_map_json = json.dumps(ref_map)
-
-                # Execute GRANTs
-                grant_privileges = map_crud_operations(
-                    obj_ref.get("crud_operations").split(","))
-                database.grant_db_object(
-                    session,
-                    ref_map.get("referenced_schema"),
-                    ref_map.get("referenced_table"),
-                    grant_privileges)
 
             if not ref_map_json:
                 raise Exception(

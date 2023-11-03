@@ -191,6 +191,30 @@ showRestProceduresStatement ::=
 serviceSchemaSelector ::=
 ![serviceSchemaSelector](../../images/sql/serviceSchemaSelector.svg "serviceSchemaSelector")
 
+## SHOW REST FUNCTIONS
+
+The `SHOW REST FUNCTIONS` statement lists all available REST functions of the given or current REST schema.
+
+**_SYNTAX_**
+
+```antlr
+showRestFunctionsStatement:
+    SHOW_SYMBOL REST_SYMBOL FUNCTIONS_SYMBOL (
+        (IN_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
+    )?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+```
+
+showRestFunctionsStatement ::=
+![showRestFunctionsStatement](../../images/sql/showRestFunctionsStatement.svg "showRestFunctionsStatement")
+
+serviceSchemaSelector ::=
+![serviceSchemaSelector](../../images/sql/serviceSchemaSelector.svg "serviceSchemaSelector")
+
 **_Examples_**
 
 The following example lists all REST procedures of the given REST schema.
@@ -350,6 +374,30 @@ serviceSchemaSelector:
 
 showCreateRestProcedureStatement ::=
 ![showCreateRestProcedureStatement](../../images/sql/showCreateRestProcedureStatement.svg "showCreateRestProcedureStatement")
+
+serviceSchemaSelector ::=
+![serviceSchemaSelector](../../images/sql/serviceSchemaSelector.svg "serviceSchemaSelector")
+
+## SHOW CREATE REST FUNCTION
+
+The `SHOW CREATE REST FUNCTION` statement shows the corresponding DDL statement for the given REST function.
+
+**_SYNTAX_**
+
+```antlr
+showCreateRestFunctionStatement:
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
+        (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
+    )?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+```
+
+showCreateRestFunctionStatement ::=
+![showCreateRestFunctionStatement](../../images/sql/showCreateRestFunctionStatement.svg "showCreateRestFunctionStatement")
 
 serviceSchemaSelector ::=
 ![serviceSchemaSelector](../../images/sql/serviceSchemaSelector.svg "serviceSchemaSelector")

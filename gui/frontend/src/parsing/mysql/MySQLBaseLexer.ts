@@ -386,6 +386,10 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                         return QueryType.AlterUser;
                     }
 
+                    case MySQLMRSLexer.REST_SYMBOL: {
+                        return QueryType.Rest;
+                    }
+
                     default: {
                         return QueryType.Unknown;
                     }
@@ -393,6 +397,13 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
 
             case MySQLMRSLexer.CREATE_SYMBOL: {
                 token = this.nextDefaultChannelToken();
+                // Skip OR REPLACE
+                if (token.type === MySQLMRSLexer.OR_SYMBOL) {
+                    token = this.nextDefaultChannelToken();
+                    if (token.type === MySQLMRSLexer.REPLACE_SYMBOL) {
+                        token = this.nextDefaultChannelToken();
+                    }
+                }
                 if (token.type === Token.EOF) {
                     return QueryType.Ambiguous;
                 }
@@ -473,7 +484,6 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                     }
 
                     case MySQLMRSLexer.VIEW_SYMBOL:
-                    case MySQLMRSLexer.OR_SYMBOL:        // CREATE OR REPLACE ... VIEW
                     case MySQLMRSLexer.ALGORITHM_SYMBOL: { // CREATE ALGORITHM ... VIEW
                         return QueryType.CreateView;
                     }
@@ -508,6 +518,10 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
 
                     case MySQLMRSLexer.USER_SYMBOL: {
                         return QueryType.CreateUser;
+                    }
+
+                    case MySQLMRSLexer.REST_SYMBOL: {
+                        return QueryType.Rest;
                     }
 
                     default: {
@@ -577,6 +591,10 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
 
                     case MySQLMRSLexer.USER_SYMBOL: {
                         return QueryType.DropUser;
+                    }
+
+                    case MySQLMRSLexer.REST_SYMBOL: {
+                        return QueryType.Rest;
                     }
 
                     default: {
@@ -1027,6 +1045,10 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                                 return QueryType.ShowCreateView;
                             }
 
+                            case MySQLMRSLexer.REST_SYMBOL: {
+                                return QueryType.Rest;
+                            }
+
                             default: {
                                 return QueryType.Show;
                             }
@@ -1157,6 +1179,10 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
                         return QueryType.ShowWarnings;
                     }
 
+                    case MySQLMRSLexer.REST_SYMBOL: {
+                        return QueryType.Rest;
+                    }
+
                     default: {
                         return QueryType.Unknown;
                     }
@@ -1215,6 +1241,11 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
             }
 
             case MySQLMRSLexer.USE_SYMBOL: {
+                token = this.nextDefaultChannelToken();
+                if (token.type === MySQLMRSLexer.REST_SYMBOL) {
+                    return QueryType.RestUse;
+                }
+
                 return QueryType.Use;
             }
 

@@ -61,9 +61,15 @@ def get_db_objects(session, schema_name, db_object_type):
                                   "ROUTINE_TYPE='PROCEDURE'"],
                            order="ROUTINE_NAME"
                            ).exec(session, [schema_name]).items
+    elif db_object_type == "FUNCTION":
+        return core.select(table="INFORMATION_SCHEMA.ROUTINES", cols="ROUTINE_NAME AS OBJECT_NAME",
+                           where=["ROUTINE_SCHEMA=? /*=sakila*/",
+                                  "ROUTINE_TYPE='FUNCTION'"],
+                           order="ROUTINE_NAME"
+                           ).exec(session, [schema_name]).items
 
     raise ValueError('Invalid db_object_type. Only valid types are '
-                     'TABLE, VIEW, PROCEDURE and SCHEMA.')
+                     'TABLE, VIEW, PROCEDURE, FUNCTION and SCHEMA.')
 
 
 def get_db_object(session, schema_name, db_object_name, db_object_type):
@@ -82,9 +88,15 @@ def get_db_object(session, schema_name, db_object_name, db_object_type):
                            where=["ROUTINE_SCHEMA=?",
                                   "ROUTINE_TYPE='PROCEDURE'", "ROUTINE_NAME=?"]
                            ).exec(session, [schema_name, db_object_name]).first
+    elif db_object_type == "FUNCTION":
+        return core.select(table="INFORMATION_SCHEMA.ROUTINES", cols="ROUTINE_NAME AS OBJECT_NAME",
+                           where=["ROUTINE_SCHEMA=?",
+                                  "ROUTINE_TYPE='FUNCTION'", "ROUTINE_NAME=?"]
+                           ).exec(session, [schema_name, db_object_name]).first
+
 
     raise ValueError('Invalid db_object_type. Only valid types are '
-                     'TABLE, VIEW, PROCEDURE and SCHEMA.')
+                     'TABLE, VIEW, PROCEDURE, FUNCTION and SCHEMA.')
 
 
 def get_object_type_count(session, schema_name, db_object_type):
@@ -105,15 +117,21 @@ def get_object_type_count(session, schema_name, db_object_type):
                             where=["ROUTINE_SCHEMA=?",
                                    "ROUTINE_TYPE='PROCEDURE'"]
                             )
+    elif db_object_type == "FUNCTION":
+        query = core.select(table="INFORMATION_SCHEMA.ROUTINES",
+                            cols="COUNT(*) AS object_count",
+                            where=["ROUTINE_SCHEMA=?",
+                                   "ROUTINE_TYPE='FUNCTION'"]
+                            )
     else:
         raise ValueError('Invalid db_object_type. Only valid types are '
-                         'TABLE, VIEW and PROCEDURE.')
+                         'TABLE, VIEW, PROCEDURE and FUNCTION.')
 
     row = query.exec(session, [schema_name]).first
     return int(row["object_count"]) if row else 0
 
 
-def get_db_object_parameters(session, db_schema_name, db_object_name):
+def get_db_object_parameters(session, db_schema_name, db_object_name, db_type):
     sql = """
         SELECT @id:=@id-1 AS id, @id * -1 AS position,
             PARAMETER_NAME AS name,
@@ -122,10 +140,25 @@ def get_db_object_parameters(session, db_schema_name, db_object_name):
         FROM `INFORMATION_SCHEMA`.`PARAMETERS`, (SELECT @id:=0) as init
         WHERE SPECIFIC_SCHEMA = ?
             AND SPECIFIC_NAME = ?
+            AND ROUTINE_TYPE = ?
+            AND NOT ISNULL(PARAMETER_MODE)
         ORDER BY ORDINAL_POSITION
     """
 
-    return core.MrsDbExec(sql).exec(session, [db_schema_name, db_object_name]).items
+    return core.MrsDbExec(sql).exec(session, [db_schema_name, db_object_name, db_type]).items
+
+
+def get_db_function_return_type(session, db_schema_name, db_object_name):
+    sql = """
+        SELECT DATA_TYPE
+        FROM `INFORMATION_SCHEMA`.`ROUTINES`
+        WHERE ROUTINE_SCHEMA = ?
+            AND ROUTINE_NAME = ?
+    """
+
+    row = core.MrsDbExec(sql).exec(session, [db_schema_name, db_object_name]).first
+
+    return row["DATA_TYPE"] if row else None
 
 
 def db_schema_object_is_table(session, db_schema_name, db_object_name):
@@ -139,15 +172,35 @@ def db_schema_object_is_table(session, db_schema_name, db_object_name):
     return row and "TABLE" in row["TABLE_TYPE"]
 
 
-def get_grant_statement(schema_name, db_object_name, grant_privileges):
-    return f"""GRANT {','.join(grant_privileges)}
-              ON {'PROCEDURE' if grant_privileges == ['EXECUTE'] else ''}
-              {schema_name}.{db_object_name}
-              TO 'mysql_rest_service_data_provider'@'%'"""
+def get_grant_statements(schema_name, db_object_name, grant_privileges, objects, db_object_type=None):
+    if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
+        grant_privileges = ["EXECUTE"]
+
+    grants = [
+        f"""GRANT {','.join(grant_privileges)}
+        ON {db_object_type if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION" else ''}
+        {schema_name}.{db_object_name}
+        TO 'mysql_rest_service_data_provider'@'%'"""]
+
+    # If the object is not a procedure, also add all referenced tables and views
+    if db_object_type != "PROCEDURE" and db_object_type != "FUNCTION" and objects is not None:
+        for obj in objects:
+            for field in obj.get("fields"):
+                if (field.get("object_reference") and
+                    (field["object_reference"].get("unnest") or field["enabled"])):
+                    ref_table = (f'{field["object_reference"]["reference_mapping"]["referenced_schema"]}' +
+                        f'.{field["object_reference"]["reference_mapping"]["referenced_table"]}')
+                    grants.append(f"""GRANT {','.join(grant_privileges)}
+                        ON {ref_table}
+                        TO 'mysql_rest_service_data_provider'@'%'""")
+
+    return grants
 
 
-def grant_db_object(session, schema_name, db_object_name, grant_privileges):
-    session.run_sql(get_grant_statement(schema_name, db_object_name, grant_privileges))
+def grant_db_object(session, schema_name, db_object_name, grant_privileges, objects=None, db_object_type=None):
+    grants = get_grant_statements(schema_name, db_object_name, grant_privileges, objects, db_object_type)
+    for grant in grants:
+        session.run_sql(grant)
 
 
 def revoke_all_from_db_object(session, schema_name, db_object_name, db_object_type):

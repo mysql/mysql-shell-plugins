@@ -116,8 +116,10 @@ export enum ShellAPIMrs {
     MrsGetDbObject = "mrs.get.db_object",
     /** Returns all db_objects for the given schema */
     MrsListDbObjects = "mrs.list.db_objects",
-    /** Gets the list of available parameters given db_object representing a STORED PROCEDURE */
+    /** Gets the list of available parameters given db_object representing a STORED PROCEDURE or FUNCTION */
     MrsGetDbObjectParameters = "mrs.get.db_object_parameters",
+    /** Gets the return data type of the FUNCTION */
+    MrsGetDbFunctionReturnType = "mrs.get.db_function_return_type",
     /** Sets the request_path of the given db_object */
     MrsSetDbObjectRequestPath = "mrs.set.dbObject.request_path",
     /** Sets the request_path of the given db_object */
@@ -750,6 +752,13 @@ export interface IShellMrsGetDbObjectParametersKwargs {
     dbSchemaName?: string;
     /** The name of the db_object */
     dbObjectName?: string;
+    /** The type of the db_object, either PROCEDURE or FUNCTION */
+    dbType?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsGetDbFunctionReturnTypeKwargs {
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -1139,6 +1148,7 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsGetDbObject]: { args: { requestPath?: string; dbObjectName?: string; }; kwargs?: IShellMrsGetDbObjectKwargs; };
     [ShellAPIMrs.MrsListDbObjects]: { kwargs?: IShellMrsListDbObjectsKwargs; };
     [ShellAPIMrs.MrsGetDbObjectParameters]: { args: { requestPath?: string; }; kwargs?: IShellMrsGetDbObjectParametersKwargs; };
+    [ShellAPIMrs.MrsGetDbFunctionReturnType]: { args: { dbSchemaName: string; dbObjectName: string; }; kwargs?: IShellMrsGetDbFunctionReturnTypeKwargs; };
     [ShellAPIMrs.MrsSetDbObjectRequestPath]: { args: { dbObjectId?: string; requestPath?: string; }; kwargs?: IShellMrsSetDbObjectRequestPathKwargs; };
     [ShellAPIMrs.MrsSetDbObjectCrudOperations]: { args: { dbObjectId?: string; crudOperations?: unknown[]; crudOperationFormat?: string; }; kwargs?: IShellMrsSetDbObjectCrudOperationsKwargs; };
     [ShellAPIMrs.MrsEnableDbObject]: { args: { dbObjectName?: string; schemaId?: string; }; kwargs?: IShellMrsEnableDbObjectKwargs; };
@@ -1512,6 +1522,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsGetDbObject]: { result: IMrsDbObjectData; };
     [ShellAPIMrs.MrsListDbObjects]: { result: IMrsDbObjectData[]; };
     [ShellAPIMrs.MrsGetDbObjectParameters]: { result: IMrsDbObjectParameterData[]; };
+    [ShellAPIMrs.MrsGetDbFunctionReturnType]: { result: string; };
     [ShellAPIMrs.MrsSetDbObjectRequestPath]: {};
     [ShellAPIMrs.MrsSetDbObjectCrudOperations]: {};
     [ShellAPIMrs.MrsEnableDbObject]: {};

@@ -40,6 +40,7 @@ mrsStatement:
     | createRestSchemaStatement
     | createRestViewStatement
     | createRestProcedureStatement
+    | createRestFunctionStatement
     | createRestContentSetStatement
     | createRestAuthAppStatement
     | createRestUserStatement
@@ -51,6 +52,7 @@ mrsStatement:
     | dropRestSchemaStatement
     | dropRestDualityViewStatement
     | dropRestProcedureStatement
+    | dropRestFunctionStatement
     | dropRestContentSetStatement
     | dropRestAuthAppStatement
     | dropRestUserStatement
@@ -60,12 +62,14 @@ mrsStatement:
     | showRestSchemasStatement
     | showRestViewsStatement
     | showRestProceduresStatement
+    | showRestFunctionsStatement
     | showRestContentSetsStatement
     | showRestAuthAppsStatement
     | showCreateRestServiceStatement
     | showCreateRestSchemaStatement
     | showCreateRestViewStatement
     | showCreateRestProcedureStatement
+    | showCreateRestFunctionStatement
     | showCreateRestAuthAppStatement
 ;
 
@@ -247,6 +251,19 @@ restProcedureResult:
     RESULT_SYMBOL restResultName? graphQlObj
 ;
 
+// - CREATE REST FUNCTION ---------------------------------------------------
+
+createRestFunctionStatement:
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
+        ON_SYMBOL serviceSchemaSelector
+    )? AS_SYMBOL qualifiedIdentifier (PARAMETERS_SYMBOL restObjectName? graphQlObj)?
+        restFunctionResult? restObjectOptions?
+;
+
+restFunctionResult:
+    RESULT_SYMBOL restResultName? graphQlObj
+;
+
 // - CREATE REST CONTENT SET ------------------------------------------------
 
 createRestContentSetStatement:
@@ -386,6 +403,12 @@ dropRestProcedureStatement:
     )?
 ;
 
+dropRestFunctionStatement:
+    DROP_SYMBOL REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
+        FROM_SYMBOL serviceSchemaSelector
+    )?
+;
+
 dropRestContentSetStatement:
     DROP_SYMBOL REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath (
         FROM_SYMBOL SERVICE_SYMBOL? serviceRequestPath
@@ -443,6 +466,12 @@ showRestProceduresStatement:
     )?
 ;
 
+showRestFunctionsStatement:
+    SHOW_SYMBOL REST_SYMBOL FUNCTIONS_SYMBOL (
+        (IN_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
+    )?
+;
+
 showRestContentSetsStatement:
     SHOW_SYMBOL REST_SYMBOL CONTENT_SYMBOL SETS_SYMBOL (
         (IN_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
@@ -474,6 +503,12 @@ showCreateRestViewStatement:
 
 showCreateRestProcedureStatement:
     SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
+        (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
+    )?
+;
+
+showCreateRestFunctionStatement:
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
         (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
     )?
 ;
@@ -519,6 +554,10 @@ restResultName:
 ;
 
 procedureRequestPath:
+    requestPathIdentifier
+;
+
+functionRequestPath:
     requestPathIdentifier
 ;
 
@@ -597,7 +636,7 @@ graphQlCrudOptions: (
 ;
 
 graphQlPair:
-    graphKeyValue COLON_SYMBOL qualifiedIdentifier (
+    graphQlPairKey COLON_SYMBOL graphQlPairValue (
         AT_IN_SYMBOL
         | AT_OUT_SYMBOL
         | AT_INOUT_SYMBOL
@@ -611,9 +650,70 @@ graphQlPair:
     )? graphQlObj?
 ;
 
-graphKeyValue:
+graphQlAllowedKeyword:
+    DATABASE_SYMBOL
+    | DATABASES_SYMBOL
+    | JSON_SYMBOL
+    | VIEW_SYMBOL
+    | PROCEDURE_SYMBOL
+    | FUNCTION_SYMBOL
+    | FILTER_SYMBOL
+    | PATH_SYMBOL
+    | USER_SYMBOL
+    | OPTIONS_SYMBOL
+    | PAGE_SYMBOL
+    | HOST_SYMBOL
+    | TYPE_SYMBOL
+    | FORMAT_SYMBOL
+    | UPDATE_SYMBOL
+    | ROLE_SYMBOL
+    | CONFIGURE_SYMBOL
+    | REST_SYMBOL
+    | METADATA_SYMBOL
+    | SERVICES_SYMBOL
+    | SERVICE_SYMBOL
+    | RELATIONAL_SYMBOL
+    | DUALITY_SYMBOL
+    | VIEWS_SYMBOL
+    | PROCEDURES_SYMBOL
+    | PARAMETERS_SYMBOL
+    | FUNCTIONS_SYMBOL
+    | RESULT_SYMBOL
+    | ENABLED_SYMBOL
+    | DISABLED_SYMBOL
+    | PROTOCOL_SYMBOL
+    | HTTP_SYMBOL
+    | HTTPS_SYMBOL
+    | COMMENTS_SYMBOL
+    | REQUEST_SYMBOL
+    | REDIRECTION_SYMBOL
+    | MANAGEMENT_SYMBOL
+    | REQUIRED_SYMBOL
+    | ITEMS_SYMBOL
+    | CONTENT_SYMBOL
+    | MEDIA_SYMBOL
+    | FEED_SYMBOL
+    | ITEM_SYMBOL
+    | SETS_SYMBOL
+    | AUTH_SYMBOL
+    | APPS_SYMBOL
+    | APP_SYMBOL
+    | VENDOR_SYMBOL
+    | MYSQL_SYMBOL
+    | USERS_SYMBOL
+    | REGISTER_SYMBOL
+    | CLASS_SYMBOL
+;
+
+graphQlPairKey:
     DOUBLE_QUOTED_TEXT
     | identifier
+    | graphQlAllowedKeyword
+;
+
+graphQlPairValue:
+    qualifiedIdentifier
+    | graphQlAllowedKeyword
 ;
 
 graphQlReduceToValue:

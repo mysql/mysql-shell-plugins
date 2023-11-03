@@ -234,7 +234,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
         schema.get("request_path"))
 
     crud_ops = ["Create", "Read", "Update",
-                "Delete", "UpdateProcedure", "ReadUnique"]
+                "Delete", "UpdateProcedure", "ReadUnique", "ReadFunction"]
 
     enabled_crud_ops = []
 
@@ -291,9 +291,11 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
                 obj_interfaces_def, out_params_interface_fields = generate_interfaces(
                     db_obj, obj, fields, class_name, sdk_language, session)
-                obj_interfaces += obj_interfaces_def
+                # Do not add obj_interfaces for FUNCTION results
+                if obj.get("kind") == "PARAMETERS" or db_obj.get("object_type") != "FUNCTION":
+                    obj_interfaces += obj_interfaces_def
 
-                if db_obj.get("object_type") == "PROCEDURE":
+                if db_obj.get("object_type") == "PROCEDURE" or db_obj.get("object_type") == "FUNCTION":
                     if obj.get("kind") == "PARAMETERS":
                         obj_param_interface = obj.get("name")
                     if obj.get("kind") != "PARAMETERS":
@@ -301,14 +303,29 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                     if len(out_params_interface_fields) > 0:
                         obj_meta_interfaces.append(class_name + "Out")
 
-            # If there are not result sets defined for a Store Procedure, the return type must be IMrsProcedureResult
+            # If there are no result sets defined for a Store Procedure, the return type must be IMrsProcedureResult
             if len(objects) == 1 and obj.get("kind") == "PARAMETERS":
                 if len(out_params_interface_fields) == 0:
                     obj_meta_interface = "IMrsProcedureResult"
                 else:
                     obj_meta_interfaces.append("MrsProcedure")
 
-            if len(obj_meta_interfaces) > 0:
+            # If the db object is a function, get the return datatype
+            obj_function_result_datatype = None
+            if db_obj.get("object_type") == "FUNCTION":
+                obj_function_result_datatype = "unknown"
+                if len(objects) > 1:
+                    fields = lib.db_objects.get_object_fields_with_references(
+                        session=session, object_id=objects[1].get("id"))
+
+                    if len(fields) > 0:
+                        db_column_info = field.get("db_column")
+                        if db_column_info:
+                            obj_function_result_datatype = get_datatype_mapping(
+                                db_datatype=db_column_info.get("datatype"), db_not_null=False,
+                                sdk_language=sdk_language)
+
+            if len(obj_meta_interfaces) > 0 and db_obj.get("object_type") != "FUNCTION":
                 if sdk_language == "TypeScript":
                     interface_list = [
                         "I" + x + "Result" for x in obj_meta_interfaces]
@@ -333,19 +350,23 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                 "obj_pk_list": ", ".join(obj_pk_list),
                 "obj_quoted_pk_list": ", ".join(obj_quoted_pk_list),
                 "obj_string_pk_list": ", ".join(obj_string_pk_list),
-                "obj_string_args_where_pk_list": ", ".join(obj_string_args_where_pk_list)
+                "obj_string_args_where_pk_list": ", ".join(obj_string_args_where_pk_list),
+                "obj_function_result_datatype": obj_function_result_datatype
             }
 
             # Remove unsupported CRUD operations for this DB Object
-            if db_obj.get("object_type") != "PROCEDURE":
+            if db_obj.get("object_type") != "PROCEDURE" and db_obj.get("object_type") != "FUNCTION":
                 db_object_crud_ops = db_obj.get("crud_operations", [])
                 # If this DB Object has unique columns (PK or UNIQUE) allow ReadUnique
                 # cSpell:ignore READUNIQUE
                 if len(obj_unique_list) > 0 and not "READUNIQUE" in db_object_crud_ops:
                     db_object_crud_ops.append("READUNIQUE")
-            else:
-                # For PROCEDURES, handle custom "UpdateProcedure" operation, delete all other
+            elif db_obj.get("object_type") == "PROCEDURE":
+                # For PROCEDUREs, handle custom "UpdateProcedure" operation, delete all other
                 db_object_crud_ops = ["UPDATEPROCEDURE"]
+            elif db_obj.get("object_type") == "FUNCTION":
+                # For FUNCTIONs, handle custom "ReadFunction" operation, delete all other
+                db_object_crud_ops = ["READFUNCTION"]
 
             # Loop over all CRUD operations and filter the sections that are not applicable for the specific object
             obj_template = loop.group(1)
@@ -538,7 +559,8 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language, session):
 
                             # Add all table fields that have allow_filtering set and SP params to the
                             # param_interface_fields
-                            if ((field.get("allow_filtering") and db_obj.get("object_type") != "PROCEDURE")
+                            if ((field.get("allow_filtering") and db_obj.get("object_type") != "PROCEDURE" and
+                                 db_obj.get("object_type") != "FUNCTION")
                                     or obj.get("kind") == "PARAMETERS"):
                                 param_interface_fields.append(
                                     f'    {field.get("name")}?: {datatype},\n')
@@ -561,7 +583,8 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language, session):
                             f'    {field.get("name")}?: {datatype},\n')
 
                     # Add all table fields that have allow_filtering set and SP params to the param_interface_fields
-                    if ((field.get("allow_filtering") and db_obj.get("object_type") != "PROCEDURE")
+                    if ((field.get("allow_filtering") and db_obj.get("object_type") != "PROCEDURE" and
+                         db_obj.get("object_type") != "FUNCTION")
                             or obj.get("kind") == "PARAMETERS"):
                         param_interface_fields.append(
                             f'    {field.get("name")}?: {datatype},\n')
@@ -573,7 +596,7 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language, session):
 
     if len(interface_fields) > 0:
         extends = "extends IMrsBaseObject "
-        if db_obj.get("object_type") == "PROCEDURE":
+        if db_obj.get("object_type") == "PROCEDURE" or db_obj.get("object_type") == "FUNCTION":
             if obj.get("kind") != "PARAMETERS":
                 obj_interfaces.append(
                     f"export interface I{class_name}Result {{\n" +

@@ -137,7 +137,7 @@ export class MrsBaseSession {
             });
         } catch (e) {
             throw new Error(`${errorMsg}\n\nPlease check if MySQL Router is running and the REST endpoint ` +
-                `${this.serviceUrl ?? ""}${input} does exist.`);
+                `${this.serviceUrl ?? ""}${input} does exist.\n\n${e}`);
         } finally {
             clearTimeout(timeoutTimer);
         }
@@ -448,6 +448,10 @@ export interface IMrsProcedureResultList<C> {
     items: C[],
 }
 
+export interface IMrsFunctionResult<C> {
+    result: C,
+}
+
 export interface IMrsDeleteResult {
     itemsDeleted: number
 }
@@ -701,7 +705,7 @@ export type BooleanFieldMapSelect<TableMetadata> = {
      * and the type is inferred from the corresponding children.
      */
     [Key in keyof TableMetadata]?: TableMetadata[Key] extends (Primitive | JsonValue) ? boolean :
-        NestingFieldMap<TableMetadata[Key]>;
+    NestingFieldMap<TableMetadata[Key]>;
 };
 
 /**
@@ -1037,7 +1041,7 @@ export class MrsBaseObjectQuery<C, P> {
      * @returns A list of column names.
      */
     private readonly fieldsWithValue = (fields: BooleanFieldMapSelect<C>, value: unknown, prefix = ""):
-    Array<keyof C> => {
+        Array<keyof C> => {
         return Object.keys(fields).reduce((acc: Array<keyof C>, field) => {
             const ref = fields[field as keyof typeof fields];
 
@@ -1177,5 +1181,28 @@ export class MrsBaseObjectCall<I, P extends IMrsFetchData> {
         const responseBody = await res.json();
 
         return responseBody as IMrsProcedureResultList<I>;
+    };
+}
+
+export class MrsBaseObjectFunctionCall<I, P extends IMrsFetchData> {
+    public constructor(
+        protected schema: MrsBaseSchema,
+        protected requestPath: string,
+        protected params: P) {
+    }
+
+    public fetch = async (): Promise<I> => {
+        const input = `${this.schema.requestPath}${this.requestPath}`;
+
+        const res = await this.schema.service.session.doFetch({
+            input,
+            method: "PUT",
+            body: this.params,
+            errorMsg: "Failed to call item.",
+        });
+
+        const responseBody = await res.json();
+
+        return (responseBody as IMrsFunctionResult<I>).result;
     };
 }

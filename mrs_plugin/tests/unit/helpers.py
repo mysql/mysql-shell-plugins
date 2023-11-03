@@ -148,7 +148,8 @@ class DbObjectCT():
     def __init__(self, session, **kwargs) -> None:
         self._session = session
         self._db_object_id, grants = lib.db_objects.add_db_object(session, **kwargs)
-        lib.core.MrsDbExec(grants).exec(session)
+        for grant in grants:
+            lib.core.MrsDbExec(grant).exec(session)
 
     def __enter__(self):
         return self._db_object_id
