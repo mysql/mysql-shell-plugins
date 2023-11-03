@@ -409,7 +409,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 numeric_post_fix = 2
                 # If this db_object represents a procedure, add Params to the first object name and 2,3,.. if more than
                 # one result set object has been defined
-                if mrs_object.get("db_object_type") == "PROCEDURE":
+                if mrs_object.get("db_object_type") == "PROCEDURE" or mrs_object.get("db_object_type") == "FUNCTION":
                     if obj["kind"] == "PARAMETERS":
                         obj["name"] = obj["name"] + "Params"
                     if i > 1:
@@ -442,8 +442,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         full_path = self.getFullSchemaPath(
             mrs_object=mrs_object, request_path=mrs_object.get("request_path"))
 
-        type_caption = "DUALITY VIEW" if mrs_object.get(
-            "db_object_type") != "PROCEDURE" else "PROCEDURE"
+        db_object_type = mrs_object.get("db_object_type")
+        type_caption = "DUALITY VIEW" if db_object_type == "TABLE" or db_object_type == "VIEW" else db_object_type
 
         with lib.core.MrsDbTransaction(self.session):
             try:
@@ -492,7 +492,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         mrs_object.get("id"), "db_object_id"),
                     objects=mrs_object.get("objects"))
 
-                lib.core.MrsDbExec(grants).exec(self.session)
+                for grant in grants:
+                    lib.core.MrsDbExec(grant).exec(self.session)
 
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
@@ -506,7 +507,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "error",
-                    "message": f"Failed to create the REST{type_caption} `{full_path}`. {e}",
+                    "message": f"Failed to create the REST {type_caption} `{full_path}`. {e}",
                     "operation": self.current_operation
                 })
                 raise
@@ -1544,6 +1545,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             if rest_object_type == "PROCEDURE" and db_object.get("object_type") != "PROCEDURE":
                 raise Exception(
                     f'The given REST object `{full_path}` is not a REST PROCEDURE.')
+            if rest_object_type == "FUNCTION" and db_object.get("object_type") != "FUNCTION":
+                raise Exception(
+                    f'The given REST object `{full_path}` is not a REST FUNCTION.')
             if (rest_object_type == "DUALITY VIEW" and
                     db_object.get("object_type") != "TABLE" and db_object.get("object_type") != "VIEW"):
                 raise Exception(
@@ -1555,7 +1559,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     f'    ON SERVICE {mrs_object.get("url_context_root")} SCHEMA {db_object.get("schema_request_path")}\n' +
                     f'    AS {db_object.get("qualified_name")}')
 
-            if rest_object_type != "PROCEDURE":
+            if rest_object_type != "PROCEDURE" and rest_object_type != "FUNCTION":
                 stmt += f' CLASS {objects[0]["name"]}'
 
                 crud_ops = db_object.get("crud_operations")

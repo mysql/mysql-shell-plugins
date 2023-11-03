@@ -44,6 +44,9 @@ import {
     IMrsProcedureResultList,
     MrsBaseObjectCall,
     // --- importUpdateProcedureOnlyEnd
+    // --- importReadFunctionOnlyStart
+    MrsBaseObjectFunctionCall,
+    // --- importReadFunctionOnlyEnd
     // --- importUpdateOnlyStart
     IUpdateOptions,
     MrsBaseObjectUpdate,
@@ -146,7 +149,6 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
             return new MrsBaseObjectCreate<I${obj_class_name}>(this.schema, ${obj_class_name}Request.#requestPath, ${obj_name});
         },
         // --- crudCreateOnlyEnd
-
         // --- crudReadOnlyStart
         get: <K extends keyof I${obj_class_name}>(
             ...args: K[]): MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params> => {
@@ -162,7 +164,14 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
                 this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}Params);
         },
         // --- crudUpdateProcedureOnlyEnd
-
+        // --- crudReadFunctionOnlyStart
+        get: (
+            ${obj_name}Params: I${obj_param_interface},
+        ): MrsBaseObjectFunctionCall<${obj_function_result_datatype}, I${obj_param_interface}> => {
+            return new MrsBaseObjectFunctionCall<${obj_function_result_datatype}, I${obj_param_interface}>(
+                this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}Params);
+        },
+        // --- crudReadFunctionOnlyEnd
         // --- crudUpdateOnlyStart
         put: (
             ${obj_name}: I${obj_class_name},
@@ -171,7 +180,6 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
                 this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}, key !== undefined ? key : [${obj_string_pk_list}]);
         },
         // --- crudUpdateOnlyEnd
-
         // --- crudDeleteOnlyStart
         delete: (): MrsBaseObjectDelete<I${obj_class_name}Params> => {
             return new MrsBaseObjectDelete<I${obj_class_name}Params>(this.schema, ${obj_class_name}Request.#requestPath);
@@ -270,6 +278,14 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return this.rest.put(${obj_name}Params).fetch();
     };
     // --- crudUpdateProcedureOnlyEnd
+
+    // --- crudReadFunctionOnlyStart
+    public call = (
+        ${obj_name}Params: I${obj_param_interface},
+    ): Promise<${obj_function_result_datatype}> => {
+        return this.rest.get(${obj_name}Params).fetch();
+    };
+    // --- crudReadFunctionOnlyEnd
 
     // --- crudDeleteOnlyStart
     public delete = async (args: IDeleteOptions<I${obj_class_name}Params>): Promise<IMrsDeleteResult> => {

@@ -410,11 +410,22 @@ class MrsDdlListener(MRSListener):
             "fields": []
         })
 
+    def enterRestFunctionResult(self, ctx):
+        # A REST FUNCTION can have parameters and one result defined
+        graph_ql_object_count = self.mrs_object.get(
+            "graph_ql_object_count", 0) + 1
+        self.mrs_object["graph_ql_object_count"] = graph_ql_object_count
+
+        self.mrs_object["objects"][1]["name"] = ctx.restResultName().getText(
+            ) if ctx.restResultName() is not None else None
+
     def enterGraphQlPair(self, ctx):
         objects = self.mrs_object["objects"]
-        current_object = objects[-1]
+        current_object = objects[-1] if (
+            self.mrs_object.get("db_object_type", "") != "FUNCTION") else objects[self.mrs_object.get(
+                "graph_ql_object_count", 0)]
         fields = current_object["fields"]
-        field_name = lib.core.unquote(ctx.graphKeyValue().getText())
+        field_name = lib.core.unquote(ctx.graphQlPairKey().getText())
 
         # Check if this GraphQlPair is inside a reference, and if so, adjust the ref_fields_offset so that
         # the handling only applies to the referenced fields
@@ -428,13 +439,12 @@ class MrsDdlListener(MRSListener):
 
         # If there is no graphQlObj for this field, it's a column
         if ctx.graphQlObj() is None:
-            db_column_name = ctx.qualifiedIdentifier().getText().strip("`")
+            db_column_name = ctx.graphQlPairValue().getText().strip("`")
 
             # Check if this is a REST PROCEDURE RESULT
-            graph_ql_object_count = self.mrs_object.get(
-                "graph_ql_object_count", 0)
+            graph_ql_object_count = self.mrs_object.get("graph_ql_object_count", 0)
             if graph_ql_object_count == 0:
-                # A REST VIEW RESULT or REST PROCEDURE PARAMETERS
+                # A REST VIEW RESULT or REST PROCEDURE/FUNCTION PARAMETERS
                 for i, field in enumerate(fields):
                     # Ignore all higher level fields and only consider referenced fields
                     if i < ref_fields_offset:
@@ -468,33 +478,35 @@ class MrsDdlListener(MRSListener):
                         f'`{self.mrs_object.get("schema_name")}`.`{self.mrs_object.get("name")}`.')
             else:
                 # A REST PROCEDURE RESULT
-                fields.append({
-                    "id": self.get_uuid(),
-                    "object_id": self.mrs_object.get("objects")[graph_ql_object_count].get("id"),
-                    "name": field_name,
-                    "position": len(fields),
-                    "db_column": {
-                        "name": db_column_name,
-                        "datatype": lib.core.unquote(
-                            ctx.graphQlDatatypeValue().getText().lower()
-                        ) if ctx.AT_DATATYPE_SYMBOL() else "varchar(45)"
-                    },
-                    "enabled": True,
-                    "allow_filtering": True,
-                    "allow_sorting": False,
-                    "no_check": False,
-                    "no_update": False
-                })
+                if self.mrs_object.get("db_object_type", "") != "FUNCTION":
+                    fields.append({
+                        "id": self.get_uuid(),
+                        "object_id": self.mrs_object.get("objects")[graph_ql_object_count].get("id"),
+                        "name": field_name,
+                        "position": len(fields),
+                        "db_column": {
+                            "name": db_column_name,
+                            "datatype": lib.core.unquote(
+                                ctx.graphQlDatatypeValue().getText().lower()
+                            ) if ctx.AT_DATATYPE_SYMBOL() else "varchar(45)"
+                        },
+                        "enabled": True,
+                        "allow_filtering": True,
+                        "allow_sorting": False,
+                        "no_check": False,
+                        "no_update": False
+                    })
 
                 current_object["fields"] = fields
 
         else:
-            if ctx.qualifiedIdentifier().dotIdentifier() is None:
+            if (ctx.graphQlPairValue().qualifiedIdentifier() is None or
+                ctx.graphQlPairValue().qualifiedIdentifier().dotIdentifier() is None):
                 db_schema_name = self.mrs_object["schema_name"]
-                db_object_name = ctx.qualifiedIdentifier().identifier().getText().strip("`")
+                db_object_name = ctx.graphQlPairValue().getText().strip("`")
             else:
-                db_schema_name = ctx.qualifiedIdentifier().identifier().getText().strip("`")
-                db_object_name = ctx.qualifiedIdentifier(
+                db_schema_name = ctx.graphQlPairValue().qualifiedIdentifier().identifier().getText().strip("`")
+                db_object_name = ctx.graphQlPairValue().qualifiedIdentifier(
                 ).dotIdentifier().identifier().getText().strip("`")
 
             ref_mapping = None
@@ -541,7 +553,8 @@ class MrsDdlListener(MRSListener):
                     f'`{self.mrs_object.get("schema_name")}`.`{self.mrs_object.get("name")}`.')
 
     def exitGraphQlPair(self, ctx):
-        if ctx.qualifiedIdentifier().dotIdentifier() is not None:
+        if (ctx.graphQlPairValue().qualifiedIdentifier() is not None and
+            ctx.graphQlPairValue().qualifiedIdentifier().dotIdentifier() is not None):
             # Remove last reference_id
             ref_stack = self.mrs_object.get("parent_reference_stack")
             if len(ref_stack) > 0:
@@ -653,6 +666,116 @@ class MrsDdlListener(MRSListener):
             db_object_name=self.mrs_object["name"])
 
     def exitCreateRestProcedureStatement(self, ctx):
+        self.mrs_ddl_executor.createRestDbObject(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # CREATE REST FUNCTION
+
+    def add_rest_functions_params_and_result(self, ctx, db_schema_name, db_object_name):
+        object_id = self.get_uuid()
+
+        params = lib.db_objects.get_db_object_parameters(
+            session=self.session,
+            db_schema_name=db_schema_name,
+            db_object_name=db_object_name,
+            db_type="FUNCTION")
+
+        param_fields = []
+        for param in params:
+            param_name = lib.core.convert_snake_to_camel_case(
+                param.get("name"))
+            field = {
+                "id": self.get_uuid(),
+                "object_id": object_id,
+                "name": param_name,
+                "position": param.get("position"),
+                "db_column": {
+                    "name": param.get("name"),
+                    "in": "IN" in param.get("mode"),
+                    "out": "OUT" in param.get("mode"),
+                    "datatype": param.get("datatype"),
+                    "not_null": True,
+                    "is_generated": False,
+                    "is_primary": False,
+                    "is_unique": False,
+                },
+                # If explicit PARAMETERS are given, add the fields not enabled and enable only the given fields
+                "enabled": ctx.PARAMETERS_SYMBOL() is None,
+                "allow_filtering": True,
+                "allow_sorting": False,
+                "no_check": False,
+                "no_update": False
+            }
+            param_fields.append(field)
+
+        self.mrs_object["objects"] = [{
+            "id": object_id,
+            "db_object_id": self.mrs_object["id"],
+            "name": ctx.restObjectName().getText() if ctx.restObjectName() is not None else None,
+            "kind": "PARAMETERS",
+            "position": 0,
+            "fields": param_fields
+        }]
+
+        # Get result datatype and add a result object for it
+        returnDataType = lib.db_objects.get_db_function_return_type(
+            session=self.session,
+            db_schema_name=db_schema_name,
+            db_object_name=db_object_name,
+        )
+        object_id = self.get_uuid()
+        result_fields = [{
+            "id": self.get_uuid(),
+            "object_id": object_id,
+            "name": "result",
+            "position": 0,
+            "db_column": {
+                "name": "result",
+                "datatype": returnDataType,
+                "not_null": False,
+                "is_generated": False,
+                "is_primary": False,
+                "is_unique": False,
+            },
+            "enabled": True,
+            "allow_filtering": True,
+            "allow_sorting": False,
+            "no_check": False,
+            "no_update": False
+        }]
+        self.mrs_object["objects"].append({
+            "id": object_id,
+            "db_object_id": self.mrs_object["id"],
+            "name": ctx.restFunctionResult().restResultName().getText() if (
+                ctx.restFunctionResult() is not None and
+                ctx.restObjectName() is not None) else None,
+            "kind": "RESULT",
+            "position": 1,
+            "fields": result_fields
+        })
+
+
+    def enterCreateRestFunctionStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": (
+                "CREATE" if ctx.REPLACE_SYMBOL() is None
+                else "CREATE OR REPLACE") + " REST FUNCTION",
+            "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "id": self.get_uuid(),
+            "request_path": ctx.functionRequestPath().getText(),
+            "db_object_type": "FUNCTION",
+            "crud_operations": ["READ"]
+        }
+
+        self.set_schema_name_and_name(ctx=ctx)
+
+        self.add_rest_functions_params_and_result(
+            ctx=ctx,
+            db_schema_name=self.mrs_object["schema_name"],
+            db_object_name=self.mrs_object["name"])
+
+
+    def exitCreateRestFunctionStatement(self, ctx):
         self.mrs_ddl_executor.createRestDbObject(self.mrs_object)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -873,6 +996,20 @@ class MrsDdlListener(MRSListener):
         self.mrs_ddl_executor.dropRestDbObject(self.mrs_object)
 
     # ------------------------------------------------------------------------------------------------------------------
+    # DROP REST FUNCTION
+
+    def enterDropRestFunctionStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": "DROP REST FUNCTION",
+            "request_path": ctx.functionRequestPath().getText(),
+            "type": "FUNCTION"
+        }
+
+    def exitDropRestFunctionStatement(self, ctx):
+        self.mrs_ddl_executor.dropRestDbObject(self.mrs_object)
+
+
+    # ------------------------------------------------------------------------------------------------------------------
     # DROP REST CONTENT SET
 
     def enterDropRestContentSetStatement(self, ctx):
@@ -989,6 +1126,18 @@ class MrsDdlListener(MRSListener):
         self.mrs_ddl_executor.showRestDbObjects(self.mrs_object)
 
     # ------------------------------------------------------------------------------------------------------------------
+    # SHOW REST FUNCTIONS
+
+    def enterShowRestFunctionsStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": "SHOW REST FUNCTIONS",
+            "object_types": ["FUNCTION"]
+        }
+
+    def exitShowRestFunctionsStatement(self, ctx):
+        self.mrs_ddl_executor.showRestDbObjects(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
     # SHOW REST CONTENT SETS
 
     def enterShowRestContentSetsStatement(self, ctx):
@@ -1063,7 +1212,22 @@ class MrsDdlListener(MRSListener):
         self.mrs_ddl_executor.showCreateRestDbObject(self.mrs_object)
 
     # ------------------------------------------------------------------------------------------------------------------
-    # SHOW CREATE REST PROCEDURE
+    # SHOW CREATE REST FUNCTION
+
+    def enterShowCreateRestFunctionStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation":
+                "SHOW CREATE REST FUNCTION",
+            "request_path": ctx.functionRequestPath().getText(),
+            "type": "FUNCTION"
+        }
+
+    def exitShowCreateRestFunctionStatement(self, ctx):
+        self.mrs_ddl_executor.showCreateRestDbObject(self.mrs_object)
+
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # SHOW CREATE REST AUTH APP
 
     def enterShowCreateRestAuthAppStatement(self, ctx):
         self.mrs_object = {

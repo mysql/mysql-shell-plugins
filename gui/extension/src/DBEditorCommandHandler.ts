@@ -611,7 +611,8 @@ export class DBEditorCommandHandler {
                 }
 
                 const item = entry.treeItem;
-                if (objectType === "TABLE" || objectType === "VIEW" || objectType === "PROCEDURE") {
+                if (objectType === "TABLE" || objectType === "VIEW" || objectType === "PROCEDURE" ||
+                    objectType === "FUNCTION") {
                     // First, create a new temporary dbObject, then call the DbObject dialog
                     this.createNewDbObject(entry.treeItem.backend, item, objectType).then((dbObject) => {
                         const provider = this.#host.currentProvider;

@@ -287,6 +287,24 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#createRestFunctionStatement.
+    def enterCreateRestFunctionStatement(self, ctx:MRSParser.CreateRestFunctionStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#createRestFunctionStatement.
+    def exitCreateRestFunctionStatement(self, ctx:MRSParser.CreateRestFunctionStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#restFunctionResult.
+    def enterRestFunctionResult(self, ctx:MRSParser.RestFunctionResultContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#restFunctionResult.
+    def exitRestFunctionResult(self, ctx:MRSParser.RestFunctionResultContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#createRestContentSetStatement.
     def enterCreateRestContentSetStatement(self, ctx:MRSParser.CreateRestContentSetStatementContext):
         pass
@@ -467,6 +485,15 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#dropRestFunctionStatement.
+    def enterDropRestFunctionStatement(self, ctx:MRSParser.DropRestFunctionStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#dropRestFunctionStatement.
+    def exitDropRestFunctionStatement(self, ctx:MRSParser.DropRestFunctionStatementContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#dropRestContentSetStatement.
     def enterDropRestContentSetStatement(self, ctx:MRSParser.DropRestContentSetStatementContext):
         pass
@@ -557,6 +584,15 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#showRestFunctionsStatement.
+    def enterShowRestFunctionsStatement(self, ctx:MRSParser.ShowRestFunctionsStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#showRestFunctionsStatement.
+    def exitShowRestFunctionsStatement(self, ctx:MRSParser.ShowRestFunctionsStatementContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#showRestContentSetsStatement.
     def enterShowRestContentSetsStatement(self, ctx:MRSParser.ShowRestContentSetsStatementContext):
         pass
@@ -608,6 +644,15 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#showCreateRestProcedureStatement.
     def exitShowCreateRestProcedureStatement(self, ctx:MRSParser.ShowCreateRestProcedureStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#showCreateRestFunctionStatement.
+    def enterShowCreateRestFunctionStatement(self, ctx:MRSParser.ShowCreateRestFunctionStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#showCreateRestFunctionStatement.
+    def exitShowCreateRestFunctionStatement(self, ctx:MRSParser.ShowCreateRestFunctionStatementContext):
         pass
 
 
@@ -698,6 +743,15 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#procedureRequestPath.
     def exitProcedureRequestPath(self, ctx:MRSParser.ProcedureRequestPathContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#functionRequestPath.
+    def enterFunctionRequestPath(self, ctx:MRSParser.FunctionRequestPathContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#functionRequestPath.
+    def exitFunctionRequestPath(self, ctx:MRSParser.FunctionRequestPathContext):
         pass
 
 
@@ -818,12 +872,30 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by MRSParser#graphKeyValue.
-    def enterGraphKeyValue(self, ctx:MRSParser.GraphKeyValueContext):
+    # Enter a parse tree produced by MRSParser#graphQlAllowedKeyword.
+    def enterGraphQlAllowedKeyword(self, ctx:MRSParser.GraphQlAllowedKeywordContext):
         pass
 
-    # Exit a parse tree produced by MRSParser#graphKeyValue.
-    def exitGraphKeyValue(self, ctx:MRSParser.GraphKeyValueContext):
+    # Exit a parse tree produced by MRSParser#graphQlAllowedKeyword.
+    def exitGraphQlAllowedKeyword(self, ctx:MRSParser.GraphQlAllowedKeywordContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#graphQlPairKey.
+    def enterGraphQlPairKey(self, ctx:MRSParser.GraphQlPairKeyContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#graphQlPairKey.
+    def exitGraphQlPairKey(self, ctx:MRSParser.GraphQlPairKeyContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#graphQlPairValue.
+    def enterGraphQlPairValue(self, ctx:MRSParser.GraphQlPairValueContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#graphQlPairValue.
+    def exitGraphQlPairValue(self, ctx:MRSParser.GraphQlPairValueContext):
         pass
 
 

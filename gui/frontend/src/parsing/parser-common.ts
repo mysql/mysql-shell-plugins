@@ -200,7 +200,11 @@ export enum QueryType {
     Help,
     Use,
 
-    Sentinel
+    Sentinel,
+
+    Rest,
+    RestUse,
+    RestShow,
 }
 
 /**

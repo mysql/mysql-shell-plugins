@@ -121,15 +121,15 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
 
             grants = get_db_object_privileges(session,
                 result['schema_name'], result['name'])
-            
+
             assert sorted(grants) == sorted(lib.db_objects.map_crud_operations(result["crud_operations"]))
             db_object_table_data = db_object_table.get("id", db_object_id)
             assert db_object_table_data["crud_operations"] == ["CREATE", "READ", "UPDATE"]
             assert db_object_table.same_as_snapshot
-            
+
             new_crud_ops = ["CREATE", "READ", "UPDATE", "DELETE"]
             lib.database.revoke_all_from_db_object(session, result["schema_name"], result["name"], result["object_type"])
-            lib.database.grant_db_object(session, result["schema_name"], result["name"], 
+            lib.database.grant_db_object(session, result["schema_name"], result["name"],
                                          lib.database.crud_mapping(new_crud_ops))
             lib.db_objects.set_crud_operations(session=session,
                 db_object_id=db_object_id, crud_operations=new_crud_ops,
@@ -172,7 +172,7 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
 
             new_crud_ops = ["CREATE", "READ", "UPDATE"]
             lib.database.revoke_all_from_db_object(session, result["schema_name"], result["name"], result["object_type"])
-            lib.database.grant_db_object(session, result["schema_name"], result["name"], 
+            lib.database.grant_db_object(session, result["schema_name"], result["name"],
                                          lib.database.crud_mapping(new_crud_ops))
             lib.db_objects.set_crud_operations(session=session,
                 db_object_id=result["id"], crud_operations=new_crud_ops,

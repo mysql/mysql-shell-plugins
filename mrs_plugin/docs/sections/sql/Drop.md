@@ -111,6 +111,23 @@ dropRestProcedureStatement:
 dropRestProcedureStatement ::=
 ![dropRestProcedureStatement](../../images/sql/dropRestProcedureStatement.svg "dropRestProcedureStatement")
 
+## DROP REST FUNCTION
+
+The `DROP REST FUNCTION` statement is used to drop an existing REST functions.
+
+**_SYNTAX_**
+
+```antlr
+dropRestFunctionStatement:
+    DROP_SYMBOL REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
+        FROM_SYMBOL serviceSchemaSelector
+    )?
+;
+```
+
+dropRestFunctionStatement ::=
+![dropRestFunctionStatement](../../images/sql/dropRestFunctionStatement.svg "dropRestFunctionStatement")
+
 ## DROP REST CONTENT SET
 
 The `DROP REST CONTENT SET` statement is used to drop an existing REST static content set.

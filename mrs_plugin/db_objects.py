@@ -353,17 +353,19 @@ def add_db_object(**kwargs):
                 else:
                     comments = ""
 
-            db_object_id, grants = lib.db_objects.add_db_object(session=session, schema_id=schema.get("id"),
-                                                        db_object_name=db_object_name, request_path=request_path, enabled=enabled,
-                                                        db_object_type=db_object_type,
-                                                        items_per_page=items_per_page, requires_auth=requires_auth,
-                                                        row_user_ownership_enforced=row_user_ownership_enforced,
-                                                        row_user_ownership_column=row_user_ownership_column,
-                                                        crud_operations=crud_operations, crud_operation_format=crud_operation_format,
-                                                        comments=comments, media_type=media_type, auto_detect_media_type=auto_detect_media_type,
-                                                        auth_stored_procedure=auth_stored_procedure, options=options, objects=objects)
+            db_object_id, grants = lib.db_objects.add_db_object(
+                session=session, schema_id=schema.get("id"),
+                db_object_name=db_object_name, request_path=request_path, enabled=enabled,
+                db_object_type=db_object_type,
+                items_per_page=items_per_page, requires_auth=requires_auth,
+                row_user_ownership_enforced=row_user_ownership_enforced,
+                row_user_ownership_column=row_user_ownership_column,
+                crud_operations=crud_operations, crud_operation_format=crud_operation_format,
+                comments=comments, media_type=media_type, auto_detect_media_type=auto_detect_media_type,
+                auth_stored_procedure=auth_stored_procedure, options=options, objects=objects)
 
-        lib.core.MrsDbExec(grants).exec(session)
+        for grant in grants:
+            lib.core.MrsDbExec(grant).exec(session)
 
         if lib.core.get_interactive_result():
             return "\n" + "Object added successfully."
@@ -504,7 +506,8 @@ def get_db_objects(**kwargs):
 
 @plugin_function('mrs.get.dbObjectParameters', shell=True, cli=True, web=True)
 def get_db_object_parameters(request_path=None, **kwargs):
-    """Gets the list of available parameters given db_object representing a STORED PROCEDURE
+    """Gets the list of available parameters given db_object representing a
+    STORED PROCEDURE or FUNCTION
 
     Args:
         request_path (str): The request path of the db_object
@@ -514,6 +517,7 @@ def get_db_object_parameters(request_path=None, **kwargs):
         db_object_id (str): The id of the db_object
         db_schema_name (str): The name of the db_schema
         db_object_name (str): The name of the db_object
+        db_type (str): The type of the db_object, either PROCEDURE or FUNCTION
         session (object): The database session to use.
 
     Returns:
@@ -528,6 +532,7 @@ def get_db_object_parameters(request_path=None, **kwargs):
 
     db_schema_name = kwargs.get("db_schema_name")
     db_object_name = kwargs.get("db_object_name")
+    db_type = kwargs.get("db_type", "PROCEDURE")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         if db_object_id:
@@ -540,8 +545,27 @@ def get_db_object_parameters(request_path=None, **kwargs):
 
         return lib.db_objects.get_db_object_parameters(session,
                                                        db_schema_name=db_schema_name,
-                                                       db_object_name=db_object_name)
+                                                       db_object_name=db_object_name,
+                                                       db_type=db_type)
 
+@plugin_function('mrs.get.dbFunctionReturnType', shell=True, cli=True, web=True)
+def get_db_function_return_type(db_schema_name, db_object_name, **kwargs):
+    """Gets the return data type of the FUNCTION
+
+    Args:
+        db_schema_name (str): The name of the db_schema
+        db_object_name (str): The name of the db_object
+        **kwargs: Additional options
+
+    Keyword Args:
+        session (object): The database session to use.
+
+    Returns:
+        The datatype as string
+    """
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        return lib.db_objects.get_db_function_return_type(
+            session, db_schema_name=db_schema_name, db_object_name=db_object_name)
 
 @plugin_function('mrs.set.dbObject.requestPath', shell=True, cli=True, web=True)
 def set_request_path(db_object_id=None, request_path=None, **kwargs):
@@ -703,7 +727,7 @@ def set_crud_operations(db_object_id=None, crud_operations=None,
             raise Exception('Schema not found.')
 
 
-        if db_object["object_type"] == "PROCEDURE":
+        if db_object["object_type"] == "PROCEDURE" or db_object["object_type"] == "FUNCTION":
             grant_privileges = ["EXECUTE"]
         else:
             grant_privileges = lib.database.crud_mapping(crud_operations)
@@ -712,19 +736,23 @@ def set_crud_operations(db_object_id=None, crud_operations=None,
             raise ValueError("No valid CRUD Operation specified")
 
         # Try to revoke grants. On error it raises an error and no changes are done.
-        lib.database.revoke_all_from_db_object(session, schema["name"], 
+        lib.database.revoke_all_from_db_object(session, schema["name"],
                                                db_object["name"], db_object["object_type"])
 
         current_crud, current_format = lib.db_objects.get_crud_operations(session, db_object_id)
 
+        objects = lib.db_objects.get_objects(session=session, db_object_id=db_object_id)
+
         try:
-            lib.database.grant_db_object(session, schema["name"], db_object["name"], grant_privileges)
+            lib.database.grant_db_object(
+                session, schema["name"], db_object["name"], grant_privileges, objects, db_object["object_type"])
             lib.db_objects.set_crud_operations(session=session, db_object_id=db_object_id,
                                            crud_operations=crud_operations,
                                            crud_operation_format=crud_operation_format)
         except:
             grant_privileges = lib.database.crud_mapping(current_crud)
-            lib.database.grant_db_object(session, schema["name"], db_object["name"], grant_privileges)
+            lib.database.grant_db_object(
+                session, schema["name"], db_object["name"], grant_privileges, objects, db_object["object_type"])
             lib.db_objects.set_crud_operations(session=session, db_object_id=db_object_id,
                                            crud_operations=current_crud,
                                            crud_operation_format=current_format)

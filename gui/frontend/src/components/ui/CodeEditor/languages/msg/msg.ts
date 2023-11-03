@@ -23,10 +23,12 @@
 
 /* spell-checker: disable */
 
-import { languages } from "monaco-editor/esm/vs/editor/editor.api.js";
+import { languages } from "monaco-editor/esm/vs/editor/editor.api";
+import { conf as tsConfig } from "monaco-editor/esm/vs/basic-languages/typescript/typescript";
+
 
 export const languageConfiguration: languages.LanguageConfiguration = {
-    // No configuration for the language. It's solely defined by its sub languages.
+    ...tsConfig,
 };
 
 export const language: languages.IMonarchLanguage = {
