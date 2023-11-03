@@ -35,7 +35,6 @@ import * as constants from "./constants";
 import * as interfaces from "./interfaces";
 import * as locator from "./locators";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
-import { CommandExecutor } from "./cmdExecutor";
 
 export class Database {
 
@@ -1473,16 +1472,6 @@ export class Database {
         return result;
     };
 
-    public static execScript = async (cmd: string, timeout?: number): Promise<string> => {
-
-        const textArea = await driver?.findElement(locator.notebook.codeEditor.textArea);
-        await textArea.sendKeys(cmd);
-        await CommandExecutor.exec();
-        timeout = timeout ?? 5000;
-
-        return Database.getScriptResult(timeout);
-    };
-
     public static getAutoCompleteMenuItems = async (): Promise<string[]> => {
         const els = [];
         let items = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.autoCompleteListItem),
@@ -1513,28 +1502,6 @@ export class Database {
         return height > 0;
     };
 
-    public static getScriptResult = async (timeout = constants.wait5seconds): Promise<string> => {
-        let toReturn = "";
-        await driver.wait(async () => {
-            const resultHost = await driver.findElements(locator.notebook.codeEditor.editor.result.host);
-            if (resultHost.length > 0) {
-                const status = await resultHost[resultHost.length - 1]
-                    .findElements(locator.notebook.codeEditor.editor.result.status.text);
-                const output = await resultHost[resultHost.length - 1]
-                    .findElements(locator.shellSession.result.outputText);
-                if (status.length > 0) {
-                    toReturn = await status[status.length - 1].getAttribute("innerHTML");
-                } else if (output.length > 0) {
-                    toReturn = await output[output.length - 1].getAttribute("innerHTML");
-                }
-
-                return true;
-            }
-        }, timeout, `No results were found`);
-
-        return toReturn;
-    };
-
     public static clearInputField = async (el: WebElement): Promise<void> => {
         await driver.wait(async () => {
             await el.click();
@@ -1548,10 +1515,6 @@ export class Database {
             return (await el.getAttribute("value")).length === 0;
         }, constants.wait5seconds);
 
-    };
-
-    public static isResultTabMaximized = async (): Promise<boolean> => {
-        return (await driver.findElements(locator.notebook.codeEditor.editor.result.status.normalize)).length > 0;
     };
 
     public static selectCurrentEditor = async (editorName: string, editorType: string): Promise<void> => {

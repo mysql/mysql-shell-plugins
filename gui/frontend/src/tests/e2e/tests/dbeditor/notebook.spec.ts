@@ -307,6 +307,21 @@ describe("Notebook", () => {
     it("Connection toolbar buttons - Execute statement at the caret position", async () => {
         try {
 
+            const clickLine = async (line: number): Promise<void> => {
+                await driver.wait(async () => {
+                    try {
+                        const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
+                        lines.shift();
+                        const spans = await lines[line].findElements(By.css("span"));
+                        await spans[spans.length - 1].click();
+
+                        return true;
+                    } catch (e) {
+                        // continue
+                    }
+                }, explicitWait, `Line ${line} is still stale`);
+            };
+
             const textArea = await driver.findElement(By.css("textarea"));
 
             await DBConnection.writeSQL("select * from actor limit 1;");
@@ -319,11 +334,7 @@ describe("Notebook", () => {
 
             await DBConnection.writeSQL("select * from category limit 1;");
 
-            let lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
-
-            let span2Click = await lines[lines.length - 2].findElement(By.css("span > span"));
-
-            await span2Click.click();
+            await clickLine(0);
 
             let execCaretBtn = await DBConnection.getToolbarButton(execCaret);
             await execCaretBtn?.click();
@@ -333,10 +344,7 @@ describe("Notebook", () => {
                 return DBConnection.getResultColumnName("address_id") !== undefined;
             }, 3000, "No new results block was displayed");
 
-            lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
-            span2Click = await lines[lines.length - 3].findElement(By.css("span > span"));
-
-            await span2Click.click();
+            await clickLine(1);
 
             execCaretBtn = await DBConnection.getToolbarButton(execCaret);
 
@@ -346,10 +354,7 @@ describe("Notebook", () => {
                 return await DBConnection.getResultColumnName("actor_id") !== undefined;
             }), explicitWait, "actor_id column was not found");
 
-            lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
-            span2Click = await lines[lines.length - 1].findElement(By.css("span > span"));
-
-            await span2Click.click();
+            await clickLine(2);
 
             execCaretBtn = await DBConnection.getToolbarButton(execCaret);
 

@@ -300,10 +300,11 @@ try {
             writeMsg "DONE"
         } else {
             if ($isLinux) {
-                $link = Join-Path $config "plugin_data" "gui_plugin" "web_certs"
-                writeMsg "Re-creating the symbolic link for $link ..." "-NoNewLine"
-                Remove-Item -Path $link -Force
-                New-Item -ItemType SymbolicLink -Path $link -Target $targetWebCerts
+                $webCerts = Join-Path $config "plugin_data" "gui_plugin" "web_certs"
+                $destination = Join-Path $config "plugin_data" "gui_plugin"
+                writeMsg "Copying web certs to $destination ..." "-NoNewLine"
+                Remove-Item -Path $webCerts -Force -Recurse
+                Copy-Item -Path $targetWebCerts -Destination $destination -Force -Recurse
                 writeMsg "DONE"
             }
         }

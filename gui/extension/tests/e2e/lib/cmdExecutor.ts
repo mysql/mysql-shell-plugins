@@ -38,6 +38,22 @@ import * as Until from "./until";
  */
 export class CommandExecutor {
 
+    /** monaco-view-zone id number*/
+    private resultId = "";
+
+    /** Data set result message. Eg. OK, 1 record retrieved, or shell command result */
+    private message = "";
+
+    /** Data set or json result set or multiple queries result sets */
+    private content: WebElement | interfaces.ICommandTabResult[];
+
+    /** Toolbar of a data set */
+    private toolbar: WebElement;
+
+    public constructor() {
+        this.resultId = "1";
+    }
+
     /**
      * Writes a command on the editor
      *
@@ -45,7 +61,7 @@ export class CommandExecutor {
      * @param slowWriting True if the command should be written with a delay between each character
      * @returns A promise resolving when the command is written
      */
-    public static write = async (cmd: string, slowWriting?: boolean): Promise<void> => {
+    public write = async (cmd: string, slowWriting?: boolean): Promise<void> => {
         await driver.wait(async () => {
             try {
                 const textArea = await driver.wait(until.elementLocated(locator.notebook.codeEditor.textArea),
@@ -77,7 +93,7 @@ export class CommandExecutor {
                     }
                 }
 
-                return CommandExecutor.isTextOnEditor(lines[0]);
+                return this.isTextOnEditor(lines[0]);
             } catch (e) {
                 if (e instanceof error.ElementNotInteractableError) {
                     const editorLines = await driver.findElements(locator.notebook.codeEditor.editor.currentLine);
@@ -99,191 +115,162 @@ export class CommandExecutor {
     };
 
     /**
+     * Cleans the editor
+     * @returns A promise resolving when the editor is cleaned
+     */
+    public clean = async (): Promise<void> => {
+        await driver.wait(async () => {
+            try {
+                const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+                if (Misc.isMacOs()) {
+                    await textArea.sendKeys(Key.chord(Key.COMMAND, "a", "a"));
+                } else {
+                    await textArea.sendKeys(Key.chord(Key.CONTROL, "a", "a"));
+                }
+
+                await textArea.sendKeys(Key.BACK_SPACE);
+                await driver.wait(async () => {
+                    return await Database.getPromptLastTextLine() === "";
+                }, constants.wait5seconds, "Prompt was not cleaned");
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, "Editor was not cleaned");
+
+        this.resultId = undefined;
+    };
+
+    /**
+     * Executes a script on the editor
+     *
+     * @param cmd The command
+     * @param slowWriting True if the command should be written with a delay between each character
+     * @returns A promise resolving with the script result
+     */
+    public executeScript = async (cmd: string, slowWriting: boolean): Promise<void> => {
+        await this.write(cmd, slowWriting);
+        await this.exec();
+        await this.setResultMessage(cmd, undefined, true);
+        await this.setResultContent(cmd, undefined, true);
+        await this.setResultToolbar(cmd, undefined, true);
+    };
+
+    /**
      * Executes a command on the editor
      *
      * @param cmd The command
-     * @param lastResultId The last known result id (for previsous command executions).
-     * This parameter ensures the current command result is processed, since it will search for the next expected
-     * result id.
      * @param slowWriting True if the command should be written with a delay between each character
-     * @param checkOnResultId Verify the result on this result id
+     * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public static execute = async (cmd: string, lastResultId?: string, slowWriting = false,
-        checkOnResultId = undefined,
-    ): Promise<interfaces.ICommandResult> => {
+    public execute = async (cmd: string, slowWriting = false, searchOnExistingId?: string): Promise<void> => {
 
-        let nextResultId: string;
-
-        if (CommandExecutor.isSpecialCmd(cmd)) {
-            throw new Error("Please use the function 'CommandExecutor.languageSwitch()'");
+        if (this.isSpecialCmd(cmd)) {
+            throw new Error("Please use the function 'languageSwitch()'");
         }
 
-        if (checkOnResultId) {
-            nextResultId = checkOnResultId;
-        } else {
-            nextResultId = await CommandExecutor.getNextResultId(lastResultId);
+        await this.write(cmd, slowWriting);
+        await this.exec();
+
+        const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
+        await this.setResultMessage(cmd, nextId);
+        await this.setResultContent(cmd, nextId);
+        await this.setResultToolbar(cmd, nextId);
+        if (nextId) {
+            this.setResultId(nextId);
         }
-        await CommandExecutor.write(cmd, slowWriting);
-        await CommandExecutor.exec();
-
-        const cmdResult: interfaces.ICommandResult = {
-            id: undefined,
-            message: undefined,
-            toolbar: undefined,
-            content: undefined,
-        };
-
-        cmdResult.id = await (await CommandExecutor.getResult(nextResultId, cmd)).getAttribute("monaco-view-zone");
-        cmdResult.message = await CommandExecutor.getResultMsg(nextResultId, cmd);
-        cmdResult.content = await CommandExecutor.getResultContent(nextResultId, cmd);
-        cmdResult.toolbar = await CommandExecutor.getResultToolbar(nextResultId, cmd);
-
-        return cmdResult;
     };
 
     /**
      * Executes a command on the editor using a toolbar button
      *
      * @param cmd The command
-     * @param lastResultId The last known result id (for previsous command executions).
-     * This parameter ensures the current command result is processed, since it will search for the next expected
-     * result id.
      * @param button The button to click, to trigger the execution
      * @param slowWriting True if the command should be written with a delay between each character
-     * @param checkOnResultId Verify the result on this result id
+     * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public static executeWithButton = async (cmd: string, lastResultId: string, button: string,
-        slowWriting = false,
-        checkOnResultId = undefined): Promise<interfaces.ICommandResult> => {
+    public executeWithButton = async (cmd: string, button: string, slowWriting = false, searchOnExistingId?: string):
+        Promise<void> => {
 
-        let nextResultId: string;
-
-        if (CommandExecutor.isSpecialCmd(cmd)) {
-            throw new Error("Please use the function 'CommandExecutor.languageSwitch()'");
+        if (this.isSpecialCmd(cmd)) {
+            throw new Error("Please use the function 'this.languageSwitch()'");
         }
         if (button === constants.execCaret) {
-            throw new Error("Please use the function 'CommandExecutor.findCmdAndExecute()'");
+            throw new Error("Please use the function 'this.findCmdAndExecute()'");
         }
 
-        if (checkOnResultId) {
-            nextResultId = checkOnResultId;
-        } else {
-            nextResultId = await CommandExecutor.getNextResultId(lastResultId);
-        }
-
-        await CommandExecutor.write(cmd, slowWriting);
+        await this.write(cmd, slowWriting);
         await (await Database.getToolbarButton(button)).click();
 
-        const cmdResult: interfaces.ICommandResult = {
-            id: undefined,
-            message: undefined,
-            toolbar: undefined,
-            content: undefined,
-        };
-
-        cmdResult.id = await (await CommandExecutor.getResult(nextResultId, cmd)).getAttribute("monaco-view-zone");
-        cmdResult.message = await CommandExecutor.getResultMsg(nextResultId, cmd);
-        cmdResult.content = await CommandExecutor.getResultContent(nextResultId, cmd);
-        cmdResult.toolbar = await CommandExecutor.getResultToolbar(nextResultId, cmd);
-
-        return cmdResult;
-
+        const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
+        await this.setResultMessage(cmd, nextId);
+        await this.setResultContent(cmd, nextId);
+        await this.setResultToolbar(cmd, nextId);
+        if (nextId) {
+            this.setResultId(nextId);
+        }
     };
 
     /**
      * Executes a command on the editor using a context menu item
      *
      * @param cmd The command
-     * @param lastResultId The last known result id (for previsous command executions).
-     * This parameter ensures the current command result is processed, since it will search for the next expected
-     * result id.
      * @param item The context menu item to click, to trigger the execution
      * @param slowWriting True if the command should be written with a delay between each character
-     * @param checkOnResultId Verify the result on this result id
+     * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public static executeWithContextMenu = async (cmd: string, lastResultId: string, item: string,
-        slowWriting = false, checkOnResultId = undefined): Promise<interfaces.ICommandResult> => {
+    public executeWithContextMenu = async (cmd: string, item: string, slowWriting = false, searchOnExistingId?:
+        string): Promise<void> => {
 
-        let nextResultId: string;
-
-        if (CommandExecutor.isSpecialCmd(cmd)) {
-            throw new Error("Please use the function 'CommandExecutor.languageSwitch()'");
+        if (this.isSpecialCmd(cmd)) {
+            throw new Error("Please use the function 'this.languageSwitch()'");
         }
 
-        if (checkOnResultId) {
-            nextResultId = checkOnResultId;
-        } else {
-            nextResultId = await CommandExecutor.getNextResultId(lastResultId);
-        }
-
-        await CommandExecutor.write(cmd, slowWriting);
+        await this.write(cmd, slowWriting);
         await Database.clickContextItem(item);
 
-        const cmdResult: interfaces.ICommandResult = {
-            id: undefined,
-            message: undefined,
-            toolbar: undefined,
-            content: undefined,
-        };
-
-        cmdResult.id = await (await CommandExecutor.getResult(nextResultId, cmd)).getAttribute("monaco-view-zone");
-        cmdResult.message = await CommandExecutor.getResultMsg(nextResultId, cmd);
-        cmdResult.content = await CommandExecutor.getResultContent(nextResultId, cmd);
-        cmdResult.toolbar = await CommandExecutor.getResultToolbar(nextResultId, cmd);
-
-        return cmdResult;
-
+        const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
+        await this.setResultMessage(cmd, searchOnExistingId);
+        await this.setResultContent(cmd, nextId);
+        await this.setResultToolbar(cmd, nextId);
+        if (nextId) {
+            this.setResultId(nextId);
+        }
     };
 
     /**
      * Executes a command on the editor, setting the credentials right after the execution is triggered
      *
      * @param cmd The command
-     * @param lastResultId The last known result id (for previsous command executions).
-     * This parameter ensures the current command result is processed, since it will search for the next expected
-     * result id.
      * @param dbConnection The DB Connection to use
      * @param slowWriting True if the command should be written with a delay between each character
-     * @param checkOnResultId Verify the result on this result id
+     * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public static executeExpectingCredentials = async (cmd: string, lastResultId: string,
-        dbConnection: interfaces.IDBConnection, slowWriting = false, checkOnResultId = undefined,
-    ): Promise<interfaces.ICommandResult> => {
+    public executeExpectingCredentials = async (cmd: string, dbConnection: interfaces.IDBConnection,
+        slowWriting = false, searchOnExistingId?: string): Promise<void> => {
 
-        let nextResultId: string;
-
-        if (CommandExecutor.isSpecialCmd(cmd)) {
-            throw new Error("Please use the function 'CommandExecutor.languageSwitch()'");
+        if (this.isSpecialCmd(cmd)) {
+            throw new Error("Please use the function 'this.languageSwitch()'");
         }
 
-        if (checkOnResultId) {
-            nextResultId = checkOnResultId;
-        } else {
-            nextResultId = await CommandExecutor.getNextResultId(lastResultId);
-        }
-
-        await CommandExecutor.write(cmd, slowWriting);
-        await CommandExecutor.exec();
+        await this.write(cmd, slowWriting);
+        await this.exec();
         await Database.setDBConnectionCredentials(dbConnection);
 
-        const cmdResult: interfaces.ICommandResult = {
-            id: undefined,
-            message: undefined,
-            toolbar: undefined,
-            content: undefined,
-        };
-
-        await driver.sleep(300);
-        cmdResult.id = await (await CommandExecutor.getResult(nextResultId, cmd)).getAttribute("monaco-view-zone");
-        cmdResult.message = await CommandExecutor.getResultMsg(nextResultId, cmd);
-        cmdResult.content = await CommandExecutor.getResultContent(nextResultId, cmd);
-        cmdResult.toolbar = await CommandExecutor.getResultToolbar(nextResultId, cmd);
-
-        return cmdResult;
+        const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
+        await this.setResultMessage(cmd, nextId);
+        await this.setResultContent(cmd, nextId);
+        await this.setResultToolbar(cmd, nextId);
+        if (nextId) {
+            this.setResultId(nextId);
+        }
     };
 
     /**
@@ -291,28 +278,14 @@ export class CommandExecutor {
      * and Execute block button on scripts
      *
      * @param cmd The command
-     * @param lastResultId The last known result id (for previsous command executions).
-     * This parameter ensures the current command result is processed, since it will search for the next expected
-     * result id.
-     * @param checkOnResultId Verify the result on this result id
+     * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public static findCmdAndExecute = async (cmd: string, lastResultId: string, checkOnResultId = undefined,
-    ): Promise<interfaces.ICommandResult> => {
-
-        let nextResultId: string;
-
-        if (CommandExecutor.isSpecialCmd(cmd)) {
-            throw new Error("Please use the function 'CommandExecutor.languageSwitch()'");
+    public findAndExecute = async (cmd: string, searchOnExistingId?: string): Promise<void> => {
+        if (this.isSpecialCmd(cmd)) {
+            throw new Error("Please use the function 'this.languageSwitch()'");
         }
-
-        if (checkOnResultId) {
-            nextResultId = checkOnResultId;
-        } else {
-            nextResultId = await CommandExecutor.getNextResultId(lastResultId);
-        }
-
-        await CommandExecutor.setMouseCursorAt(cmd);
+        await this.setMouseCursorAt(cmd);
 
         if (await Database.existsToolbarButton(constants.execCaret)) {
             const toolbarButton = await Database.getToolbarButton(constants.execCaret);
@@ -322,100 +295,82 @@ export class CommandExecutor {
         } else {
             await (await Database.getToolbarButton(constants.execFullBlockJs)).click();
         }
-
-        const cmdResult: interfaces.ICommandResult = {
-            id: undefined,
-            message: undefined,
-            toolbar: undefined,
-            content: undefined,
-        };
-
-        cmdResult.id = await (await CommandExecutor.getResult(nextResultId, cmd)).getAttribute("monaco-view-zone");
-        cmdResult.message = await CommandExecutor.getResultMsg(nextResultId, cmd);
-        cmdResult.content = await CommandExecutor.getResultContent(nextResultId, cmd);
-        cmdResult.toolbar = await CommandExecutor.getResultToolbar(nextResultId, cmd);
-
-        return cmdResult;
+        const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
+        await this.setResultMessage(cmd, nextId);
+        await this.setResultContent(cmd, nextId);
+        await this.setResultToolbar(cmd, nextId);
+        if (nextId) {
+            this.setResultId(nextId);
+        }
     };
 
     /**
-     * Returns the last existing command result on the editor
-     *
-     * @param resultId The last known result id (for previsous command executions).
-     * This parameter ensures the current command result is processed, since it will search for the next expected
-     * result id.
-     * @returns A promise resolving when the command is executed
+     * Updates the object with the last existing command result on the editor
+     * @returns A promise resolving with the last cmd result
      */
-    public static getLastExistingCmdResult = async (resultId?: string): Promise<interfaces.ICommandResult> => {
-
-        let nextResultId: string;
-        if (resultId) {
-            nextResultId = await CommandExecutor.getNextResultId(resultId);
+    public loadLastExistingCommandResult = async (): Promise<void> => {
+        const nextId = await this.getNextResultId(this.resultId);
+        await this.setResultMessage(undefined, nextId);
+        await this.setResultContent(undefined, nextId);
+        await this.setResultToolbar(undefined, nextId);
+        if (nextId) {
+            this.setResultId(nextId);
         }
-
-        const cmdResult: interfaces.ICommandResult = {
-            id: undefined,
-            message: undefined,
-            toolbar: undefined,
-            content: undefined,
-        };
-
-        cmdResult.id = await (await CommandExecutor.getResult(nextResultId, "")).getAttribute("monaco-view-zone");
-        cmdResult.message = await CommandExecutor.getResultMsg(nextResultId, "");
-        cmdResult.content = await CommandExecutor.getResultContent(nextResultId, "");
-        cmdResult.toolbar = await CommandExecutor.getResultToolbar(nextResultId, "");
-
-        return cmdResult;
     };
 
     /**
      * Executes a language switch on the editor (sql, python, typescript or javascript)
      *
      * @param cmd The command to change the language
-     * @param lastResultId The last known result id (for previsous command executions).
-     * This parameter ensures the current command result is processed, since it will search for the next expected
-     * result id.
      * @param slowWriting True if the command should be written with a delay between each character
-     * @param checkOnResultId Verify the result on this result id
+     * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public static languageSwitch = async (cmd: string, lastResultId?: string, slowWriting = false,
-        checkOnResultId = undefined): Promise<interfaces.ICommandResult> => {
+    public languageSwitch = async (cmd: string, slowWriting = false, searchOnExistingId?:
+        string | undefined): Promise<void> => {
 
-        let nextResultId: string;
-
-        if (!CommandExecutor.isSpecialCmd(cmd)) {
-            throw new Error("Please use the function 'CommandExecutor.execute() or others'");
+        if (!this.isSpecialCmd(cmd)) {
+            throw new Error("Please use the function 'this.execute() or others'");
         }
 
-        if ((await CommandExecutor.isShellSession()) === true) {
-            if (checkOnResultId) {
-                nextResultId = checkOnResultId;
-            } else {
-                nextResultId = await CommandExecutor.getNextResultId(lastResultId);
+        await this.write(cmd, slowWriting);
+        await this.exec();
+
+        if ((await this.isShellSession()) === true) {
+            const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
+            await this.setResultMessage(cmd, nextId);
+            await this.setResultContent(cmd, nextId);
+            await this.setResultToolbar(cmd, nextId);
+            if (nextId) {
+                this.setResultId(nextId);
+            }
+        }
+    };
+
+    /**
+     * Changes the schema using the top tab
+     *
+     * @param schema The schema
+     * @returns A promise resolving with the command result
+     */
+    public changeSchemaOnTab = async (schema: string): Promise<void> => {
+        const tabSchema = await driver.findElement(locator.shellConsole.connectionTab.schema);
+        await tabSchema.click();
+        const menu = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schemaMenu),
+            constants.wait5seconds, "Schema list was not displayed");
+        const items = await menu.findElements(locator.shellConsole.connectionTab.schemaItem);
+        for (const item of items) {
+            if ((await item.getAttribute("innerHTML")).includes(schema)) {
+                await item.click();
+                break;
             }
         }
 
-        await CommandExecutor.write(cmd, slowWriting);
-        await CommandExecutor.exec();
+        await driver.wait(async () => {
+            return (await driver.findElement(locator.shellConsole.connectionTab.schema).getText()).includes(schema);
+        }, constants.wait5seconds, `${schema} was not selected`);
 
-        if ((await CommandExecutor.isShellSession()) === true) {
-            const cmdResult: interfaces.ICommandResult = {
-                id: undefined,
-                message: undefined,
-                toolbar: undefined,
-                content: undefined,
-            };
-
-            cmdResult.id = await (await CommandExecutor.getResult(nextResultId, "")).getAttribute("monaco-view-zone");
-            cmdResult.message = await CommandExecutor.getResultMsg(nextResultId, cmd);
-            cmdResult.content = await CommandExecutor.getResultContent(nextResultId, cmd);
-            cmdResult.toolbar = await CommandExecutor.getResultToolbar(nextResultId, cmd);
-
-            return cmdResult;
-        } else {
-            return undefined;
-        }
+        await this.loadLastExistingCommandResult();
     };
 
     /**
@@ -423,7 +378,7 @@ export class CommandExecutor {
      *
      * @returns A promise resolving when the command is executed
      */
-    public static exec = async (): Promise<void> => {
+    public exec = async (): Promise<void> => {
         if (Misc.isMacOs()) {
             await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.chord(Key.COMMAND, Key.ENTER));
         } else {
@@ -436,11 +391,66 @@ export class CommandExecutor {
      *
      * @returns A promise resolving when the suggestions menu is opened
      */
-    public static openSuggestionMenu = async (): Promise<void> => {
+    public openSuggestionMenu = async (): Promise<void> => {
         const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
         await textArea.sendKeys(Key.chord(Key.CONTROL, Key.SPACE));
         await driver.wait(until.elementLocated(locator.suggestWidget.exists),
             constants.wait2seconds, "The suggestions menu was not displayed");
+    };
+
+    /**
+     * Returns the last existing script result on the editor
+     *
+     * @returns A promise resolving with the script result
+     */
+    public loadLastScriptResult = async (): Promise<void> => {
+        await this.setResultMessage(undefined, undefined, true);
+        await this.setResultContent(undefined, undefined, true);
+        await this.setResultToolbar(undefined, undefined, true);
+    };
+
+    /**
+     * Gets the command result id
+     * @returns The result id
+     */
+    public getResultId = (): string => {
+        return this.resultId;
+    };
+
+    /**
+     * Fethces the last result id that exists on the editor and updates the current object result id
+     */
+    public syncronizeResultId = async (): Promise<void> => {
+        const lastEditorResults = await driver.wait(until
+            .elementsLocated(locator.notebook.codeEditor.editor.result.exists),
+            constants.wait5seconds, "Could not find any results for sync");
+        const id = (await lastEditorResults[lastEditorResults.length - 1].getAttribute("monaco-view-zone"))
+            .match(/(\d+)/)[1];
+        this.setResultId(id);
+    };
+
+    /**
+     * Gets the last known result message
+     * @returns The message
+     */
+    public getResultMessage = (): string => {
+        return this.message;
+    };
+
+    /**
+     * Gets the last known result content
+     * @returns The content
+     */
+    public getResultContent = (): WebElement | interfaces.ICommandTabResult[] => {
+        return this.content;
+    };
+
+    /**
+     * Gets the last known result toolbar
+     * @returns The toolbar
+     */
+    public getResultToolbar = (): WebElement => {
+        return this.toolbar;
     };
 
     /**
@@ -449,7 +459,7 @@ export class CommandExecutor {
      * @param word The word or command
      * @returns A promise resolving when the mouse cursor is placed at the desired spot
      */
-    private static setMouseCursorAt = async (word: string): Promise<void> => {
+    public setMouseCursorAt = async (word: string): Promise<void> => {
         const mouseCursorIs = await Database.getMouseCursorLine();
         const mouseCursorShouldBe = await Database.getLineFromWord(word);
         const taps = mouseCursorShouldBe - mouseCursorIs;
@@ -479,47 +489,64 @@ export class CommandExecutor {
      * @param cmd The command
      * @returns A promise resolving when the command is marked as special or not special
      */
-    private static isSpecialCmd = (cmd: string): boolean => {
+    private isSpecialCmd = (cmd: string): boolean => {
         return (cmd.match(/(\\js|\\javascript|\\ts|\\typescript|\\sql|\\q|\\d|\\py|\\python)/)) !== null;
+    };
+
+    /**
+     * Returns the result block from a script execution
+     * @returns A promise resolving with the result block
+     */
+    private getResultScript = async (): Promise<WebElement> => {
+        return driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.script));
     };
 
     /**
      * Returns the result block for an expected result id
      * When the nextId is undefined, the method will return the last existing comand result on the editor
-     * @param nextId The next expected result id
      * @param cmd The command
+     * @param searchOnExistingId The next expected result id
      * @returns A promise resolving when the mouse cursor is placed at the desired spot
      */
-    private static getResult = async (nextId: string, cmd: string): Promise<WebElement> => {
+    private getResult = async (cmd?: string, searchOnExistingId?: string):
+        Promise<WebElement> => {
+
+        cmd = cmd ?? "last result";
+
         let result: WebElement;
-        if (!nextId) { // if the editor was cleaned, return the latest result block
-            const results = await driver.wait(until
-                .elementsLocated(locator.notebook.codeEditor.editor.result.exists),
-                constants.wait5seconds, `Could not find last result for cmd ${cmd}`);
-            result = results[results.length - 1];
-        } else { // if the editor was not cleaned, search for the expected next result id
+
+        if (searchOnExistingId) {
             result = await driver.wait(until
-                .elementLocated(locator.notebook.codeEditor.editor.result.existsById(String(nextId))),
-                constants.wait15seconds, `Could not find result id ${String(nextId)} for cmd ${cmd}`);
+                .elementLocated(locator.notebook.codeEditor.editor.result.existsById(String(searchOnExistingId))),
+                constants.wait10seconds, `Could not find result id ${String(searchOnExistingId)} for ${cmd}`);
+        } else {
+            result = await driver.wait(until
+                .elementLocated(locator.notebook.codeEditor.editor.result.exists),
+                constants.wait10seconds, `Could not find results for ${cmd}`);
+            const id = (await result.getAttribute("monaco-view-zone")).match(/(\d+)/)[1];
+            this.setResultId(id);
         }
 
         return result;
     };
 
     /**
-     * Returns the message as a result of a command execution
+     * Sets the message as a result of a command execution
      * If the command was a SQL query, it will return the status (ex. OK, 1 record retrieved)
      * If the command is a non SQL query, it will return the message that resulted of the command execution
-     * @param id The result id to search for
      * @param cmd The command
+     * @param searchOnExistingId The next expected result id
+     * @param fromScript If the result is from a script execution
      * @returns A promise resolving with the result message
      */
-    private static getResultMsg = async (id: string, cmd: string): Promise<string | undefined> => {
+    private setResultMessage = async (cmd?: string, searchOnExistingId?: string, fromScript = false): Promise<void> => {
+
         let result: WebElement;
         let resultToReturn: string;
         await driver.wait(async () => {
             try {
-                result = await CommandExecutor.getResult(id, cmd);
+                result = fromScript ? await this
+                    .getResultScript() : await this.getResult(cmd, searchOnExistingId);
                 // select
                 const statusResult = await result.findElements(locator.notebook.codeEditor.editor.result.status.text);
                 // insert / delete / drop / call procedures
@@ -534,20 +561,25 @@ export class CommandExecutor {
                 const resultMsg = await result.findElements(locator.notebook.codeEditor.editor.result.status.message);
                 const resultOutput = await result.findElements(locator.shellSession.result.outputText);
 
+                await driver.executeScript("arguments[0].scrollBy(0, 1500)",
+                    await driver.findElement(locator.notebook.codeEditor.editor.scrollBar));
+
                 if (statusResult.length > 0) {
                     resultToReturn = await statusResult[statusResult.length - 1].getText();
                 } else if (textResult.length > 0) {
-                    if (cmd.match(/export/) !== null) {
-                        await driver.wait(async () => {
-                            return (await textResult[textResult.length - 1].getText())
-                                .match(/The dump can be loaded using/) !== null;
-                        }, constants.wait5seconds, "Could not find on result 'The dump can be loaded using'");
-                    } else if (cmd.match(/\\c.*@.*/) !== null) {
-                        await driver.wait(async () => {
-                            resultToReturn = await textResult[textResult.length - 1].getText();
+                    if (cmd) {
+                        if (cmd.match(/export/) !== null) {
+                            await driver.wait(async () => {
+                                return (await textResult[textResult.length - 1].getText())
+                                    .match(/The dump can be loaded using/) !== null;
+                            }, constants.wait5seconds, "Could not find on result 'The dump can be loaded using'");
+                        } else if (cmd.match(/(\\c|connect|Session).*@.*/) !== null) {
+                            await driver.wait(async () => {
+                                resultToReturn = await textResult[textResult.length - 1].getText();
 
-                            return resultToReturn.match(/schema/) !== null;
-                        }, constants.wait5seconds, "Could not find on result ' .'");
+                                return resultToReturn.match(/schema/) !== null;
+                            }, constants.wait5seconds, "Could not find on result ' .'");
+                        }
                     }
                     resultToReturn = await textResult[textResult.length - 1].getText();
                 } else if (jsonResult.length > 0) {
@@ -561,7 +593,7 @@ export class CommandExecutor {
                         resultToReturn += await output.getText();
                     }
                 }
-                if (resultToReturn !== undefined) {
+                if (resultToReturn !== undefined && resultToReturn !== "") {
                     return true;
                 }
             } catch (e) {
@@ -569,23 +601,23 @@ export class CommandExecutor {
                     throw e;
                 }
             }
-        }, constants.wait10seconds, "Could not find the result message");
+        }, constants.wait5seconds, "Could not find the result message");
 
-        return resultToReturn;
+        this.message = resultToReturn;
     };
 
     /**
-     * Returns the content as a result of a command execution
+     * Sets the content as a result of a command execution
      * If the command was a SQL query with a SELECT statement, it will return the data set
      * If the command was a SQL query with multiples SELECT statements, it will return the data set for each one,
      * as a @string representation.
      * It can return JSON or Graphs or even text
-     * @param id The result id to search for
      * @param cmd The command
+     * @param searchOnExistingId The next expected result id
+     * @param fromScript If the result is from a script execution
      * @returns A promise resolving with the result content
      */
-    private static getResultContent = async (id: string, cmd: string):
-        Promise<WebElement | interfaces.ICommandTabResult[]> => {
+    private setResultContent = async (cmd?: string, searchOnExistingId?: string, fromScript = false): Promise<void> => {
 
         let result: WebElement;
         let resultContent: WebElement | interfaces.ICommandTabResult[];
@@ -599,8 +631,9 @@ export class CommandExecutor {
 
         await driver.wait(async () => {
             try {
-                result = await CommandExecutor.getResult(id, cmd);
-                if (CommandExecutor.expectResultTabs(cmd)) {
+                result = fromScript ? await this
+                    .getResultScript() : await this.getResult(cmd, searchOnExistingId);
+                if (this.expectResultTabs(cmd)) {
                     await driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.tabSection.exists),
                         constants.wait5seconds, `A result tab should exist for cmd ${cmd}`);
                 }
@@ -623,29 +656,45 @@ export class CommandExecutor {
                     resultContent = [];
                     const tabs = await result.findElements(locator.notebook.codeEditor.editor.result.tabSection.tab);
                     for (const tab of tabs) {
-                        const resultTableRows = await result
-                            .findElement(locator.notebook.codeEditor.editor.result.tableRows);
+                        // is data set ?
+                        const tableRows = await result
+                            .findElement(locator.notebook.codeEditor.editor.result.tableRows)
+                            .catch(() => { return undefined; });
+                        // is output text ?
+                        const outputText = await result
+                            .findElement(locator.notebook.codeEditor.editor.result.textOutput)
+                            .catch(() => { return undefined; });
                         await tab.click();
-                        await driver.wait(until.stalenessOf(resultTableRows), constants.wait2seconds,
-                            "Result table was not updated");
-                        await driver.wait(Until.elementLocated(result,
-                            locator.notebook.codeEditor.editor.result.tableHeaders),
-                            constants.wait2seconds, "Result Table headers were not loaded");
-                        await driver.wait(Until.elementLocated(result,
-                            locator.notebook.codeEditor.editor.result.tableCell),
-                            constants.wait2seconds, "Table cells were not loaded").catch(async () => {
-                                const result = await CommandExecutor.getResult(id, cmd);
-                                await result.findElement(locator.notebook.codeEditor.editor.result.tableColumnTitle)
-                                    .click();
-                                await driver.wait(Until
-                                    .elementLocated(result, locator.notebook.codeEditor.editor.result.tableCell),
-                                    constants.wait2seconds, `Table cell was not set after click on column title (bug)`);
+                        if (tableRows) {
+                            await driver.wait(until.stalenessOf(tableRows as WebElement), constants.wait2seconds,
+                                "Result table was not updated");
+                            await driver.wait(Until.elementLocated(result,
+                                locator.notebook.codeEditor.editor.result.tableHeaders),
+                                constants.wait2seconds, "Result Table headers were not loaded");
+                            await driver.wait(Until.elementLocated(result,
+                                locator.notebook.codeEditor.editor.result.tableCell),
+                                constants.wait2seconds, "Table cells were not loaded").catch(async () => {
+                                    const result = fromScript ? await this
+                                        .getResultScript() : await this.getResult(cmd, searchOnExistingId);
+                                    await result.findElement(locator.notebook.codeEditor.editor.result.tableColumnTitle)
+                                        .click();
+                                    await driver.wait(Until
+                                        .elementLocated(result, locator.notebook.codeEditor.editor.result.tableCell),
+                                        constants.wait2seconds,
+                                        `Table cell was not set after click on column title (bug)`);
+                                });
+                            resultContent.push({
+                                tabName: await tab.getText(),
+                                content: await (await result
+                                    .findElement(locator.notebook.codeEditor.editor.result.table))
+                                    .getAttribute("innerHTML"),
                             });
-                        resultContent.push({
-                            tabName: await tab.getText(),
-                            content: await (await result.findElement(locator.notebook.codeEditor.editor.result.table))
-                                .getAttribute("innerHTML"),
-                        });
+                        } else if (outputText) {
+                            resultContent.push({
+                                tabName: await tab.getText(),
+                                content: await (outputText as WebElement).getText(),
+                            });
+                        }
                     }
                 } else if (isTableResult) {
                     await driver.wait(Until.elementLocated(result,
@@ -654,7 +703,7 @@ export class CommandExecutor {
                     await driver.wait(Until.elementLocated(result,
                         locator.notebook.codeEditor.editor.result.tableCell),
                         constants.wait2seconds, "Table cells were not loaded").catch(async () => {
-                            const result = await CommandExecutor.getResult(id, cmd);
+                            const result = await this.getResult(cmd, searchOnExistingId);
                             await result.findElement(locator.notebook.codeEditor.editor.result.tableColumnTitle)
                                 .click();
                             await driver.wait(Until
@@ -676,27 +725,31 @@ export class CommandExecutor {
                     return true;
                 }
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
+                if (!(e instanceof error.StaleElementReferenceError) ||
+                    !(e instanceof error.ElementNotInteractableError)) {
                     throw e;
                 }
             }
-        }, constants.wait10seconds, `Could not return the result content for cmd ${cmd}`);
+        }, constants.wait5seconds, `Could not return the result content for cmd ${cmd}`);
 
-        return resultContent;
+        this.content = resultContent;
     };
 
     /**
-     * Returns the toolbar of a SQL query result
-     * @param id The result id to search for
+     * Sets the toolbar of a SQL query result
      * @param cmd The command
+     * @param searchOnExistingId The next expected result id
+     * @param fromScript If the result is from a script execution
      * @returns A promise resolving with the result toolbar
      */
-    private static getResultToolbar = async (id: string, cmd: string): Promise<WebElement> => {
+    private setResultToolbar = async (cmd?: string, searchOnExistingId?: string, fromScript = false): Promise<void> => {
+
         let toolbar: WebElement;
-        if ((await CommandExecutor.isShellSession()) === false) {
+        if ((await this.isShellSession()) === false) {
             await driver.wait(async () => {
                 try {
-                    const result = await CommandExecutor.getResult(id, cmd);
+                    const result = fromScript ? await this
+                        .getResultScript() : await this.getResult(cmd, searchOnExistingId);
                     const hasTableResult = (await result.findElements(locator.notebook.codeEditor.editor.result.table))
                         .length > 0;
                     if (hasTableResult) {
@@ -712,7 +765,7 @@ export class CommandExecutor {
             }, constants.wait5seconds, `Could not get the result toolbar for cmd ${cmd}`);
         }
 
-        return toolbar;
+        this.toolbar = toolbar;
     };
 
     /**
@@ -722,24 +775,19 @@ export class CommandExecutor {
      * @param lastResultId The last known result id
      * @returns A promise resolving with the next result id
      */
-    private static getNextResultId = async (lastResultId: string): Promise<string> => {
+    private getNextResultId = async (lastResultId: string): Promise<string> => {
         let resultId: string;
-        const getNext = (item: string): string => {
-            const letter = item.match(/[a-zA-Z]/)[0];
-            const id = item.match(/(\d+)/)[0];
-            const nextId = parseInt(id, 10) + 1;
-
-            return `${letter}${nextId}`;
-        };
-
         if (lastResultId) {
-            resultId = getNext(lastResultId);
+            resultId = String(parseInt(lastResultId, 10) + 1);
         } else {
             const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
-            // the editor may not have any previous results at all
+            // the editor may not have any previous results at all (it has been cleaned)
             if (results.length > 0) {
                 const result = results[results.length - 1];
-                resultId = getNext(await result.getAttribute("monaco-view-zone"));
+                const id = (await result.getAttribute("monaco-view-zone")).match(/(\d+)/)[1];
+                resultId = String(parseInt(id, 10) + 1);
+            } else {
+                return undefined;
             }
         }
 
@@ -750,7 +798,7 @@ export class CommandExecutor {
      * Returns true if the context is within a shell session
      * @returns A promise resolving with the truthiness of the function
      */
-    private static isShellSession = async (): Promise<boolean> => {
+    private isShellSession = async (): Promise<boolean> => {
         return (await driver.findElements(locator.shellSession.exists)).length > 0;
     };
 
@@ -759,7 +807,7 @@ export class CommandExecutor {
      * @param text The text to search for
      * @returns A promise resolving with the truthiness of the function
      */
-    private static isTextOnEditor = async (text: string): Promise<boolean> => {
+    private isTextOnEditor = async (text: string): Promise<boolean> => {
         let isTextOnEditor = false;
         await driver.wait(async () => {
             try {
@@ -794,7 +842,7 @@ export class CommandExecutor {
      * @param cmd The command
      * @returns A promise resolving with the truthiness of the function
      */
-    private static expectResultTabs = (cmd: string): boolean => {
+    private expectResultTabs = (cmd: string): boolean => {
         if (cmd) {
             const match = cmd.match(/(select|SELECT)/g);
             if (match) {
@@ -805,4 +853,11 @@ export class CommandExecutor {
         return false;
     };
 
+    /**
+     * Sets the last known result id
+     * @param id The result id
+     */
+    private setResultId = (id: string): void => {
+        this.resultId = id;
+    };
 }

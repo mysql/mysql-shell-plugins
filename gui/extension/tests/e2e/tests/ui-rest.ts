@@ -79,6 +79,8 @@ describe("MySQL REST Service", () => {
 
     before(async function () {
 
+        const commandExecutor = new CommandExecutor();
+
         await Misc.loadDriver();
         try {
             await driver.wait(Until.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
@@ -92,14 +94,14 @@ describe("MySQL REST Service", () => {
                 constants.openNewConnection, constants.checkNewTabAndWebView);
             await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds,
                 "DB Connection was not loaded");
-            let result = await CommandExecutor.execute("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`;");
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.execute("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`;");
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
             const query = `DROP TABLE IF EXISTS ${tableToDump}; CREATE TABLE ${tableToDump} (id int,name VARCHAR(50));`;
-            result = await CommandExecutor.execute(query, result.id);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.execute(query);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
             const sql = `DROP SCHEMA IF EXISTS \`${schemaToDump}\`; CREATE SCHEMA \`${schemaToDump}\`;`;
-            result = await CommandExecutor.execute(sql, result.id);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.execute(sql);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
             await Misc.switchBackToTopFrame();
             if (await Misc.requiresMRSMetadataUpgrade(globalConn)) {
                 await Misc.upgradeMRSMetadata();

@@ -210,13 +210,17 @@ export interface ITreeDBConnection {
 }
 
 export interface ICommandResult {
-    id: string;
-    message: string;
-    content: WebElement | ICommandTabResult[];
-    toolbar: WebElement;
+    message?: string;
+    content?: WebElement | ICommandTabResult[];
+    toolbar?: WebElement;
 }
 
 export interface ICommandTabResult {
     tabName: string;
     content: string;
+}
+
+export interface ICommandResultIdHolder {
+    id?: string;
+    suite?: string
 }

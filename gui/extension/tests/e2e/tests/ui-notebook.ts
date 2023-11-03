@@ -110,13 +110,8 @@ describe("NOTEBOOKS", () => {
 
     describe("DB Editor", () => {
 
-        let clean = false;
-        let result: interfaces.ICommandResult;
-        let lastResultId = "";
-
-        const updateResultId = (value) => {
-            lastResultId = value;
-        };
+        const commandExecutor = new CommandExecutor();
+        let cleanEditor = false;
 
         before(async function () {
             try {
@@ -130,17 +125,13 @@ describe("NOTEBOOKS", () => {
             }
         });
 
-        beforeEach(() => {
-            clean = false;
-        });
-
         afterEach(async function () {
             if (this.currentTest.state === "failed") {
                 await Misc.processFailure(this);
             }
-
-            if (clean) {
-                await Misc.cleanEditor();
+            if (cleanEditor) {
+                await commandExecutor.clean();
+                cleanEditor = false;
             }
         });
 
@@ -158,12 +149,11 @@ describe("NOTEBOOKS", () => {
 
         it("Multi-cursor", async () => {
             try {
-
-                await CommandExecutor.write("select * from sakila.actor;");
+                await commandExecutor.write("select * from sakila.actor;");
                 await Database.setNewLineOnEditor();
-                await CommandExecutor.write("select * from sakila.address;");
+                await commandExecutor.write("select * from sakila.address;");
                 await Database.setNewLineOnEditor();
-                await CommandExecutor.write("select * from sakila.city;");
+                await commandExecutor.write("select * from sakila.city;");
 
                 const clickLine = async (line: number): Promise<void> => {
                     await driver.wait(async () => {
@@ -208,15 +198,14 @@ describe("NOTEBOOKS", () => {
                 expect(items[1]).to.include("testing");
                 expect(items[2]).to.include("testing");
             } finally {
-                clean = true;
+                cleanEditor = true;
             }
         });
 
         it("Using a DELIMITER", async () => {
 
-            try {
-                const query =
-                    `DELIMITER $$
+            const query =
+                `DELIMITER $$
                     SELECT actor_id
                     FROM
                     sakila.actor LIMIT 1 $$
@@ -225,29 +214,21 @@ describe("NOTEBOOKS", () => {
                     select 1 $$
                 `;
 
-                result = await CommandExecutor.executeWithButton(query, undefined, constants.execFullBlockSql);
-                updateResultId(result.id);
-                expect(result.message).to.match(/OK/);
-                const content = (result.content as unknown as interfaces.ICommandTabResult[]);
-                expect(content.length).to.equals(2);
-                for (const result of content) {
-                    expect(result.tabName).to.match(/Result/);
-                }
-            } finally {
-                clean = true;
+            await commandExecutor.executeWithButton(query, constants.execFullBlockSql);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            const content = commandExecutor.getResultContent() as unknown as interfaces.ICommandTabResult[];
+            expect(content.length).to.equals(2);
+            for (const result of content) {
+                expect(result.tabName).to.match(/Result/);
             }
+
         });
 
         it("Connection toolbar buttons - Execute selection or full block and create a new block", async () => {
 
-            const prompts = await Database.getPrompts();
-            result = await CommandExecutor.executeWithButton("SELECT * FROM sakila.actor;", undefined,
-                constants.execFullBlockSql);
-            updateResultId(result.id);
-            expect(result.message).to.match(/(\d+) record/);
-            await driver.wait(async () => {
-                return (await Database.getPrompts()) > prompts;
-            }, constants.wait5seconds, "A new prompt line should exist");
+            await commandExecutor.executeWithButton("SELECT * FROM sakila.actor;", constants.execFullBlockSql);
+            expect(commandExecutor.getResultMessage()).to.match(/(\d+) record/);
+            await driver.wait(Until.editorHasNewPrompt(), constants.wait5seconds, "Editor should have a new prompt");
         });
 
         it("Connection toolbar buttons - Execute statement at the caret position", async () => {
@@ -255,28 +236,27 @@ describe("NOTEBOOKS", () => {
             try {
                 const query1 = "select * from sakila.actor limit 1;";
                 const query2 = "select * from sakila.address limit 2;";
-                await CommandExecutor.write(query1, true);
+                await commandExecutor.write(query1, true);
                 await Database.setNewLineOnEditor();
-                await CommandExecutor.write(query2, true);
-                let result = await CommandExecutor.findCmdAndExecute(query1, lastResultId);
-                updateResultId(result.id);
-                expect(result.message).to.match(/OK/);
-                expect(await (result.content as WebElement).getAttribute("innerHTML")).to.match(/actor_id/);
-                result = await CommandExecutor.findCmdAndExecute(query2, undefined, lastResultId);
-                updateResultId(result.id);
-                expect(await (result.content as WebElement).getAttribute("innerHTML")).to.match(/address_id/);
+                await commandExecutor.write(query2, true);
+                await commandExecutor.findAndExecute(query1);
+                expect(commandExecutor.getResultMessage()).to.match(/OK/);
+                expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+                    .to.match(/actor_id/);
+                await commandExecutor.findAndExecute(query2, commandExecutor.getResultId());
+                expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+                    .to.match(/address_id/);
             } finally {
-                clean = true;
+                cleanEditor = true;
             }
         });
 
         it("Switch between search tabs", async () => {
 
-            result = await CommandExecutor
-                .execute("select * from sakila.actor limit 1; select * from sakila.address limit 1;", undefined, true);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK/);
-            const resultTabs = (result.content as unknown as interfaces.ICommandTabResult[]);
+            await commandExecutor
+                .execute("select * from sakila.actor limit 1; select * from sakila.address limit 1;", true);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            const resultTabs = (commandExecutor.getResultContent() as unknown as interfaces.ICommandTabResult[]);
             expect(resultTabs[0].tabName).to.equals("Result #1");
             expect(resultTabs[1].tabName).to.equals("Result #2");
             expect(resultTabs[0].content).to.match(/actor_id.*first_name.*last_name.*last_update/);
@@ -286,10 +266,9 @@ describe("NOTEBOOKS", () => {
 
         it("Connect to database and verify default schema", async () => {
 
-            result = await CommandExecutor.execute("SELECT SCHEMA();", lastResultId);
-            updateResultId(result.id);
-            expect(result.message).to.match(/1 record retrieved/);
-            expect(await ((result.content as WebElement)
+            await commandExecutor.execute("SELECT SCHEMA();");
+            expect(commandExecutor.getResultMessage()).to.match(/1 record retrieved/);
+            expect(await ((commandExecutor.getResultContent() as WebElement)
                 .findElement(locator.notebook.codeEditor.editor.result.tableCell)).getText())
                 .to.equals((globalConn.basic as interfaces.IConnBasicMySQL).schema);
         });
@@ -311,31 +290,23 @@ describe("NOTEBOOKS", () => {
             await driver.wait(until.elementIsEnabled(rollBackBtn),
                 3000, "Commit button should be enabled");
 
-            let result = await CommandExecutor
-                .execute(`INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`,
-                    lastResultId);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor
+                .execute(`INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
 
             await rollBackBtn.click();
 
-            result = await CommandExecutor.execute(`SELECT * FROM sakila.actor WHERE first_name="${random}";`,
-                lastResultId);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.execute(`SELECT * FROM sakila.actor WHERE first_name="${random}";`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
 
-            result = await CommandExecutor
-                .execute(`INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`,
-                    lastResultId);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor
+                .execute(`INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
 
             await commitBtn.click();
 
-            result = await CommandExecutor.execute(`SELECT * FROM sakila.actor WHERE first_name="${random}";`,
-                lastResultId);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.execute(`SELECT * FROM sakila.actor WHERE first_name="${random}";`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
 
             await autoCommitBtn.click();
 
@@ -352,17 +323,15 @@ describe("NOTEBOOKS", () => {
                 "Commit/Rollback DB changes button is still enabled ",
             );
 
-            result = await CommandExecutor.execute(`DELETE FROM sakila.actor WHERE first_name="${random}";`,
-                lastResultId);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.execute(`DELETE FROM sakila.actor WHERE first_name="${random}";`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
         });
 
         it("Connection toolbar buttons - Find and Replace", async () => {
 
             try {
                 const contentHost = await driver.findElement(locator.notebook.exists);
-                await CommandExecutor.write(`import from xpto xpto xpto`);
+                await commandExecutor.write(`import from xpto xpto xpto`);
                 const findBtn = await Database.getToolbarButton("Find");
                 await findBtn.click();
                 const finder = await driver.wait(until.elementLocated(locator.findWidget.exists),
@@ -396,7 +365,7 @@ describe("NOTEBOOKS", () => {
                 expect(await finder.getAttribute("aria-hidden")).equals("true");
 
             } finally {
-                clean = true;
+                cleanEditor = true;
             }
 
         });
@@ -406,78 +375,66 @@ describe("NOTEBOOKS", () => {
                 const query = "select * from sakila.actor limit 1";
                 const languageSwitch = "\\javascript ";
                 const jsCmd = "Math.random()";
-
-                let result = await CommandExecutor.execute(query);
-                const block1 = result.id;
-                expect(result.message).to.match(/OK/);
-                await CommandExecutor.languageSwitch(languageSwitch);
-                result = await CommandExecutor.execute(jsCmd, block1);
-                const block2 = result.id;
-                expect(result.message).to.match(/(\d+).(\d+)/);
-                result = await CommandExecutor.findCmdAndExecute(query, undefined, block1);
-                expect(result.message).to.match(/OK/);
-                result = await CommandExecutor.findCmdAndExecute(jsCmd, undefined, block2);
-                expect(result.message).to.match(/(\d+).(\d+)/);
-
+                await commandExecutor.execute(query);
+                const block1 = commandExecutor.getResultId();
+                expect(commandExecutor.getResultMessage()).to.match(/OK/);
+                await commandExecutor.languageSwitch(languageSwitch);
+                await commandExecutor.execute(jsCmd, undefined, block1);
+                const block2 = commandExecutor.getResultId();
+                expect(commandExecutor.getResultMessage()).to.match(/(\d+).(\d+)/);
+                await commandExecutor.findAndExecute(query, block1);
+                expect(commandExecutor.getResultMessage()).to.match(/OK/);
+                await commandExecutor.findAndExecute(jsCmd, block2);
+                expect(commandExecutor.getResultMessage()).to.match(/(\d+).(\d+)/);
             } finally {
-                clean = true;
+                cleanEditor = true;
             }
         });
 
         it("Multi-line comments", async () => {
 
-            await CommandExecutor.languageSwitch("\\sql ", undefined, true);
-            result = await CommandExecutor.execute("select version();");
-            updateResultId(result.id);
-            expect(result.message).to.match(/1 record retrieved/);
-            const txt = await (result.content as WebElement)
+            await commandExecutor.languageSwitch("\\sql ", true);
+            await commandExecutor.execute("select version();");
+            expect(commandExecutor.getResultMessage()).to.match(/1 record retrieved/);
+            const txt = await (commandExecutor.getResultContent() as WebElement)
                 .findElement(locator.notebook.codeEditor.editor.result.tableCell).getText();
             const server = txt.match(/(\d+).(\d+).(\d+)/g)![0];
             const digits = server.split(".");
             let serverVer = digits[0];
             digits[1].length === 1 ? serverVer += "0" + digits[1] : serverVer += digits[1];
             digits[2].length === 1 ? serverVer += "0" + digits[2] : serverVer += digits[2];
-            result = await CommandExecutor.execute(`/*!${serverVer} select * from sakila.actor;*/`, lastResultId, true);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK, (\d+) records retrieved/);
+            await commandExecutor.execute(`/*!${serverVer} select * from sakila.actor;*/`, true);
+            expect(commandExecutor.getResultMessage()).to.match(/OK, (\d+) records retrieved/);
             const higherServer = parseInt(serverVer, 10) + 1;
-            result = await CommandExecutor.execute(`/*!${higherServer} select * from sakila.actor;*/`,
-                lastResultId, true);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK, 0 records retrieved/);
+            await commandExecutor.execute(`/*!${higherServer} select * from sakila.actor;*/`, true);
+            expect(commandExecutor.getResultMessage()).to.match(/OK, 0 records retrieved/);
 
         });
 
         it("Context Menu - Execute", async () => {
 
-            let prompts = await Database.getPrompts();
-            let result = await CommandExecutor.executeWithContextMenu("select * from sakila.actor limit 1;",
-                lastResultId,
+            const prompts = await Database.getPrompts();
+            await commandExecutor.executeWithContextMenu("select * from sakila.actor limit 1;",
                 constants.executeBlock);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK, 1 record retrieved/);
+            expect(commandExecutor.getResultMessage()).to.match(/OK, 1 record retrieved/);
             expect(await Database.getPrompts()).to.equal(prompts);
-            await Misc.cleanEditor();
+            const blockId = commandExecutor.getResultId();
 
-            prompts = await Database.getPrompts();
-            result = await CommandExecutor
-                .executeWithContextMenu("select * from sakila.actor limit 1;", undefined,
-                    constants.executeBlockAndAdvance);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK, 1 record retrieved/);
-            expect(await Database.getPrompts()).to.be.greaterThan(prompts);
+            await commandExecutor
+                .executeWithContextMenu("select * from sakila.actor limit 1;", constants.executeBlockAndAdvance,
+                    undefined, blockId);
+            expect(commandExecutor.getResultMessage()).to.match(/OK, 1 record retrieved/);
+            await driver.wait(Until.editorHasNewPrompt(), constants.wait5seconds, "Editor should have a new prompt");
 
         });
 
         it("Maximize and Normalize Result tab", async () => {
 
-            result = await CommandExecutor.execute("select * from sakila.actor;", lastResultId);
-            lastResultId = result.id;
-            expect(result.message).to.match(/OK/);
-            await result.toolbar.findElement(locator.notebook.codeEditor.editor.result.status.maximize).click();
-            await driver.wait(new Condition("", async () => {
-                return Database.isResultTabMaximized();
-            }), constants.wait5seconds, "Result tab was not maxized");
+            await commandExecutor.execute("select * from sakila.actor;");
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            await (commandExecutor.getResultToolbar())
+                .findElement(locator.notebook.codeEditor.editor.result.status.maximize).click();
+            await driver.wait(Until.resultTabIsMaximized(), constants.wait5seconds);
 
             expect(await Database.getCurrentEditor()).to.equals("Result #1");
             try {
@@ -486,33 +443,25 @@ describe("NOTEBOOKS", () => {
                 expect(tabArea.length, "Result tab should not be visible").to.equals(0);
                 await driver.findElement(locator.notebook.codeEditor.editor.result.status.normalize).click();
                 expect(await Database.isEditorStretched()).to.be.true;
-                expect(await Database.isResultTabMaximized()).to.be.false;
+                await driver.wait(Until.resultTabIsNormalized, constants.wait5seconds);
                 tabArea = await driver.findElements(locator.notebook.codeEditor.editor.result.tabSection.body);
                 expect(tabArea.length, "Result tab should be visible").to.equals(1);
             } finally {
                 await Database.selectCurrentEditor("DB Notebook", "notebook");
+                await commandExecutor.syncronizeResultId();
             }
         });
 
         it("Pie Graph based on DB table", async () => {
 
-            await CommandExecutor.languageSwitch("\\ts ", undefined, true);
-            result = await CommandExecutor.execute(
+            await commandExecutor.languageSwitch("\\ts ", true);
+            await commandExecutor.execute(
                 `const res = await runSql("SELECT Name, Capital FROM world_x_cst.country limit 10");
-                const options: IGraphOptions = {
-                    series: [
-                        {
-                            type: "bar",
-                            yLabel: "Actors",
-                            data: res as IJsonGraphData,
-                        }
-                    ]
-                };
-                Graph.render(options);
-                `);
+                const options: IGraphOptions = {series:[{type: "bar", yLabel: "Actors", data: res as IJsonGraphData}]};
+                Graph.render(options);`);
 
-            expect(result.message).to.match(/graph/);
-            const pieChart = result.content;
+            expect(commandExecutor.getResultMessage()).to.match(/graph/);
+            const pieChart = commandExecutor.getResultContent();
             const chartColumns = await (pieChart as WebElement)
                 .findElements(locator.notebook.codeEditor.editor.result.graphHost.column);
             for (const col of chartColumns) {
@@ -523,10 +472,10 @@ describe("NOTEBOOKS", () => {
 
         it("Schema autocomplete context menu", async () => {
 
-            await CommandExecutor.languageSwitch("\\sql ", undefined, true);
-            await CommandExecutor.write("select * from");
+            await commandExecutor.languageSwitch("\\sql ", true);
+            await commandExecutor.write("select * from");
             await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.SPACE);
-            await CommandExecutor.openSuggestionMenu();
+            await commandExecutor.openSuggestionMenu();
             const els = await Database.getAutoCompleteMenuItems();
             expect(els).to.include("mysql");
             expect(els).to.include("performance_schema");
@@ -541,6 +490,7 @@ describe("NOTEBOOKS", () => {
     describe("Scripts", () => {
 
         let refItem: TreeItem;
+        const commandExecutor = new CommandExecutor();
 
         before(async function () {
             try {
@@ -587,8 +537,8 @@ describe("NOTEBOOKS", () => {
                 return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
             }, constants.wait5seconds, "Current editor is not Untitled-(*)");
             expect(await Database.getCurrentEditorType()).to.include("Mysql");
-            const result = await Database.execScript("select * from sakila.actor limit 1;");
-            expect(result).to.match(/OK, (\d+) record/);
+            await commandExecutor.executeScript("select * from sakila.actor limit 1;", undefined);
+            expect(commandExecutor.getResultMessage()).to.match(/OK, (\d+) record/);
             await Misc.switchBackToTopFrame();
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             refItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "Mysql");
@@ -602,8 +552,8 @@ describe("NOTEBOOKS", () => {
                 return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
             }, constants.wait5seconds, "Current editor is not Untitled-(*)");
             expect(await Database.getCurrentEditorType()).to.include("scriptTs");
-            const result = await Database.execScript("Math.random()");
-            expect(result).to.match(/(\d+).(\d+)/);
+            await commandExecutor.executeScript("Math.random()", undefined);
+            expect(commandExecutor.getResultMessage()).to.match(/(\d+).(\d+)/);
             await Misc.switchBackToTopFrame();
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             refItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "scriptTs");
@@ -618,8 +568,8 @@ describe("NOTEBOOKS", () => {
                 return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
             }, constants.wait5seconds, "Current editor is not Untitled-(*)");
             expect(await Database.getCurrentEditorType()).to.include("scriptJs");
-            const result = await Database.execScript("Math.random()");
-            expect(result).to.match(/(\d+).(\d+)/);
+            await commandExecutor.executeScript("Math.random()", undefined);
+            expect(commandExecutor.getResultMessage()).to.match(/(\d+).(\d+)/);
             await Misc.switchBackToTopFrame();
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             refItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "scriptJs");
@@ -674,8 +624,9 @@ describe("NOTEBOOKS", () => {
 
         it("Save Notebook", async () => {
 
-            const result = await CommandExecutor.execute("SELECT VERSION();");
-            expect(result.message).to.match(/1 record retrieved/);
+            const commandExecutor = new CommandExecutor();
+            await commandExecutor.execute("SELECT VERSION();");
+            expect(commandExecutor.getResultMessage()).to.match(/1 record retrieved/);
             await (await Database.getToolbarButton(constants.saveNotebook)).click();
             await Misc.switchBackToTopFrame();
             await Misc.setInputPath(destFile);
@@ -693,7 +644,6 @@ describe("NOTEBOOKS", () => {
         it("Replace this Notebook with content from a file", async () => {
 
             await Misc.switchToFrame();
-            await Misc.cleanEditor();
             await (await Database.getToolbarButton(constants.loadNotebook)).click();
             await Misc.switchBackToTopFrame();
             await Misc.setInputPath(`${destFile}.mysql-notebook`);

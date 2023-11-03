@@ -139,6 +139,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Misc.switchBackToTopFrame();
             await new EditorView().closeAllEditors();
+
         });
 
         after(async function () {
@@ -182,13 +183,16 @@ describe("DATABASE CONNECTIONS", () => {
             let visibleItems: CustomTreeItem[];
             await driver.wait(async () => {
                 visibleItems = await treeDBSection.getVisibleItems();
+                if (visibleItems.length > 0) {
+                    for (const item of visibleItems) {
+                        if (await item.getAttribute("aria-level") !== "1") {
+                            return false;
+                        }
+                    }
 
-                return visibleItems.length === 2;
-            }, constants.wait5seconds, "Only 2 items should be visible");
-
-            expect(await visibleItems[0].getLabel()).equals(globalConn.caption);
-            expect(await visibleItems[1].getLabel()).equals(localConn.caption);
-
+                    return true;
+                }
+            }, constants.wait5seconds, "The tree is not fully collapsed");
         });
 
         it("Restart internal MySQL Shell process", async () => {
@@ -378,7 +382,7 @@ describe("DATABASE CONNECTIONS", () => {
             );
 
             await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-            const aboutInfo = await CommandExecutor.getLastExistingCmdResult();
+            const commandExecutor = new CommandExecutor();
             await Misc.switchBackToTopFrame();
             await Misc.sectionFocus(constants.dbTreeSection);
             const treeDBSection = await Misc.getSection(constants.dbTreeSection);
@@ -407,8 +411,8 @@ describe("DATABASE CONNECTIONS", () => {
             const treeDBConn = await Misc.getTreeElement(constants.dbTreeSection, "db_connection");
             await Misc.openContextMenuItem(treeDBConn, constants.selectRowsInNotebook, constants.checkNewTabAndWebView);
             await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-            const result = await CommandExecutor.getLastExistingCmdResult(aboutInfo.id);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.loadLastExistingCommandResult();
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
 
         });
 
@@ -442,12 +446,13 @@ describe("DATABASE CONNECTIONS", () => {
 
             await Database.setDBConnectionCredentials(globalConn);
             await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-            const query = `
-                select * from performance_schema.session_status where variable_name in 
-                ("ssl_cipher") and variable_value like "%TLS%"
-            `;
-            const result = await CommandExecutor.execute(query);
-            expect(result.message).to.match(/1 record retrieved/);
+            const query =
+                `select * from performance_schema.session_status where variable_name in 
+                ("ssl_cipher") and variable_value like "%TLS%" `;
+            const cmdExecutor = new CommandExecutor();
+            await cmdExecutor.execute(query);
+            expect(cmdExecutor.getResultMessage()).to.match(/1 record retrieved/);
+
 
         });
 
@@ -582,11 +587,7 @@ describe("DATABASE CONNECTIONS", () => {
         const testView = `testview`;
         const testRoutine = "test_routine";
         const dup = "duplicatedConnection";
-        let lastResultId = "";
-
-        const updateResultId = (value) => {
-            lastResultId = value;
-        };
+        const commandExecutor = new CommandExecutor();
 
         before(async function () {
             try {
@@ -620,11 +621,8 @@ describe("DATABASE CONNECTIONS", () => {
             }
 
             if (clean) {
-                try {
-                    await Misc.cleanEditor();
-                } catch (e) {
-                    // continue
-                }
+                await commandExecutor.clean();
+                clean = false;
             }
             await Misc.switchBackToTopFrame();
         });
@@ -749,9 +747,11 @@ describe("DATABASE CONNECTIONS", () => {
             const scriptLines = await driver.findElements(locator.notebook.codeEditor.editor.line);
             expect(scriptLines.length).to.be.greaterThan(0);
             await Database.selectCurrentEditor("DB Notebook", "notebook");
+            await commandExecutor.syncronizeResultId();
         });
 
         it("Set as Current Database Schema", async () => {
+
             await Misc.switchBackToTopFrame();
             treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
             await Misc.expandDBConnectionTree(treeGlobalConn,
@@ -759,13 +759,15 @@ describe("DATABASE CONNECTIONS", () => {
             const treeSchema = await Misc.getTreeElement(constants.dbTreeSection,
                 (globalConn.basic as interfaces.IConnBasicMySQL).schema);
             await Misc.openContextMenuItem(treeSchema, constants.setCurrentDBSchema, undefined);
-            await driver.wait(Until.isDefaultItem(constants.dbTreeSection, "sakila", "schema"), constants.wait5seconds);
+            await driver.wait(Until.isDefaultItem(constants.dbTreeSection, "sakila", "schema"),
+                constants.wait5seconds);
             await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
             await new EditorView().openEditor(globalConn.caption);
             await Misc.switchToFrame();
-            let result = await CommandExecutor.execute("select * from actor limit 1;");
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.execute("SELECT DATABASE();");
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+                .to.match(new RegExp((globalConn.basic as interfaces.IConnBasicMySQL).schema));
             await Misc.switchBackToTopFrame();
             const otherSchema = await Misc.getTreeElement(constants.dbTreeSection, "world_x_cst");
             await Misc.openContextMenuItem(otherSchema, constants.setCurrentDBSchema, undefined);
@@ -774,14 +776,17 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await Misc.isDefaultItem(constants.dbTreeSection, "sakila", "schema")).to.be.false;
             await new EditorView().openEditor(globalConn.caption);
             await Misc.switchToFrame();
-            result = await CommandExecutor.execute("select * from city limit 1;", lastResultId);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.execute("SELECT DATABASE();");
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+                .to.match(/world_x_cst/);
             await Misc.switchBackToTopFrame();
             await new EditorView().closeAllEditors();
             await driver.wait(async () => {
                 return !(await Misc.isDefaultItem(constants.dbTreeSection, "world_x_cst", "schema"));
             }, constants.wait5seconds, "world_x_cst should not be the default");
             expect(await Misc.isDefaultItem(constants.dbTreeSection, "sakila", "schema")).to.be.false;
+
         });
 
         it("Dump Schema to Disk", async () => {
@@ -792,14 +797,14 @@ describe("DATABASE CONNECTIONS", () => {
             await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
             await Misc.switchToFrame();
             await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-            let result = await CommandExecutor.executeWithButton(`drop schema if exists \`${testSchema}\`;`,
-                undefined, constants.execFullBlockSql);
-            expect(result.message).to.match(/OK/);
-            result = await CommandExecutor.execute(`create schema ${testSchema};`);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK/);
-            result = await CommandExecutor.execute("SET GLOBAL local_infile = 'ON';", lastResultId);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.syncronizeResultId();
+            await commandExecutor.executeWithButton(`drop schema if exists \`${testSchema}\`;`,
+                constants.execFullBlockSql);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            await commandExecutor.execute(`create schema ${testSchema};`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            await commandExecutor.execute("SET GLOBAL local_infile = 'ON';");
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
             await Misc.switchBackToTopFrame();
             const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, testSchema);
             treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
@@ -819,9 +824,8 @@ describe("DATABASE CONNECTIONS", () => {
                 `Dump Schema ${testSchema} to Disk (done)`)).to.be.true;
             await Misc.sectionFocus(constants.dbTreeSection);
             await Misc.switchToFrame();
-            result = await CommandExecutor.execute(`drop schema ${testSchema};`, lastResultId);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.execute(`drop schema ${testSchema};`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
         });
 
         it("Load Dump from Disk", async () => {
@@ -840,19 +844,17 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
             expect(await Misc.existsTreeElement(constants.dbTreeSection, testSchema)).to.be.true;
             await Misc.switchToFrame();
-            const result = await CommandExecutor.execute(`drop schema ${testSchema};`, lastResultId);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.execute(`drop schema ${testSchema};`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
         });
 
         it("Dump Schema to Disk for MySQL Database Service", async () => {
             await new EditorView().openEditor(globalConn.caption);
             await Misc.switchToFrame();
-            let result = await CommandExecutor.execute(`drop schema if exists \`${testSchema}\`;`, lastResultId);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK/);
-            result = await CommandExecutor.execute(`create schema ${testSchema};`, lastResultId);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.execute(`drop schema if exists \`${testSchema}\`;`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            await commandExecutor.execute(`create schema ${testSchema};`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
             await Misc.switchBackToTopFrame();
             const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, testSchema);
             treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
@@ -925,11 +927,10 @@ describe("DATABASE CONNECTIONS", () => {
         it("Drop Schema", async () => {
 
             await Misc.switchToFrame();
-            let result = await CommandExecutor.execute(`drop schema if exists \`${testSchema}\`;`);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK/);
-            result = await CommandExecutor.execute(`create schema ${testSchema};`, lastResultId);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.execute(`drop schema if exists \`${testSchema}\`;`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            await commandExecutor.execute(`create schema ${testSchema};`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
             await Misc.switchBackToTopFrame();
             const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, testSchema);
             treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
@@ -957,9 +958,8 @@ describe("DATABASE CONNECTIONS", () => {
             const actorTable = await Misc.getTreeElement(constants.dbTreeSection, "actor");
             await Misc.openContextMenuItem(actorTable, constants.selectRowsInNotebook, constants.checkNewTabAndWebView);
             try {
-                await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-                const result = await CommandExecutor.getLastExistingCmdResult();
-                expect(result.message).to.match(/OK/);
+                await commandExecutor.loadLastExistingCommandResult();
+                expect(commandExecutor.getResultMessage()).to.match(/OK/);
             } finally {
                 clean = true;
             }
@@ -1003,12 +1003,10 @@ describe("DATABASE CONNECTIONS", () => {
 
             await new EditorView().openEditor(globalConn.caption);
             await Misc.switchToFrame();
-            let result = await CommandExecutor.execute(`drop table if exists \`${testTable}\`;`);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK/);
-            result = await CommandExecutor.execute(`create table ${testTable} (id int, name VARCHAR(50));`,
-                lastResultId);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.execute(`drop table if exists \`${testTable}\`;`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            await commandExecutor.execute(`create table ${testTable} (id int, name VARCHAR(50));`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
             await Misc.switchBackToTopFrame();
             const treeTestTable = await Misc.getTreeElement(constants.dbTreeSection, testTable);
             await Misc.openContextMenuItem(treeTestTable, constants.dropTable, constants.checkDialog);
@@ -1025,8 +1023,8 @@ describe("DATABASE CONNECTIONS", () => {
             const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, "test_view");
             await Misc.openContextMenuItem(treeTestView, constants.selectRowsInNotebook,
                 constants.checkNewTabAndWebView);
-            const result = await CommandExecutor.getLastExistingCmdResult();
-            expect(result.message).to.match(/OK, (\d+) records/);
+            await commandExecutor.loadLastExistingCommandResult();
+            expect(commandExecutor.getResultMessage()).to.match(/OK, (\d+) records/);
         });
 
         it("View - Copy name and create statement to clipboard", async () => {
@@ -1068,12 +1066,10 @@ describe("DATABASE CONNECTIONS", () => {
 
             await new EditorView().openEditor(globalConn.caption);
             await Misc.switchToFrame();
-            let result = await CommandExecutor.execute(`drop view if exists \`${testView}\``);
-            updateResultId(result.id);
-            expect(result.message).to.match(/OK/);
-            result = await CommandExecutor.execute(`CREATE VIEW ${testView} as select * from sakila.actor;`,
-                lastResultId);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.execute(`drop view if exists \`${testView}\``);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            await commandExecutor.execute(`CREATE VIEW ${testView} as select * from sakila.actor;`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
             await Misc.switchBackToTopFrame();
             await Misc.expandDBConnectionTree(treeGlobalConn,
                 (globalConn.basic as interfaces.IConnBasicMySQL).password);
@@ -1091,12 +1087,9 @@ describe("DATABASE CONNECTIONS", () => {
 
             const actorTable = await Misc.getTreeElement(constants.dbTreeSection, "actor");
             await Misc.openContextMenuItem(actorTable, constants.showData, constants.checkNewTabAndWebView);
-            const result = await Database.getScriptResult(constants.wait10seconds);
-            expect(result).to.match(/OK/);
-            expect(result).to.match(/OK/);
-            await driver.wait(new Condition("", async () => {
-                return Database.isResultTabMaximized();
-            }), constants.wait5seconds, "Result tab was not maxized");
+            await commandExecutor.loadLastScriptResult();
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            await driver.wait(Until.resultTabIsMaximized(), constants.wait5seconds);
 
         });
 
@@ -1106,12 +1099,9 @@ describe("DATABASE CONNECTIONS", () => {
             const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, "test_view");
             await Misc.openContextMenuItem(treeTestView, constants.showData, constants.checkNewTabAndWebView);
             await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-            const result = await Database.getScriptResult(constants.wait10seconds);
-            expect(result).to.match(/OK/);
-            expect(result).to.match(/OK/);
-            await driver.wait(new Condition("", async () => {
-                return Database.isResultTabMaximized();
-            }), constants.wait5seconds, "Resulta tab was not maxized");
+            await commandExecutor.loadLastScriptResult();
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            await driver.wait(Until.resultTabIsMaximized(), constants.wait5seconds);
 
         });
 
@@ -1121,10 +1111,10 @@ describe("DATABASE CONNECTIONS", () => {
             await treeGlobalSchemaTables.collapse();
             await Misc.switchToFrame();
             await Database.selectCurrentEditor("DB Notebook", "notebook");
+            await commandExecutor.syncronizeResultId();
 
-            let result = await CommandExecutor.execute(`drop procedure if exists \`${testRoutine}\`;`);
-            expect(result.message).to.match(/OK/);
-            await Misc.cleanEditor();
+            await commandExecutor.execute(`drop procedure if exists \`${testRoutine}\`;`);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
 
             const procedure =
                 `DELIMITER $$ 
@@ -1137,8 +1127,8 @@ describe("DATABASE CONNECTIONS", () => {
                 DELIMITER ;
             `;
 
-            result = await CommandExecutor.executeWithButton(procedure, result.id, constants.execFullBlockSql);
-            expect(result.message).to.match(/OK/);
+            await commandExecutor.executeWithButton(procedure, constants.execFullBlockSql);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
             await Misc.switchBackToTopFrame();
             const treeRoutines = await Misc.getTreeElement(constants.dbTreeSection, "Routines");
             await treeRoutines.expand();

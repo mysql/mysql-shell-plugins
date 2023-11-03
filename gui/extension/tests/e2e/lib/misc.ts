@@ -20,6 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 import { spawnSync, execSync } from "child_process";
 import clipboard from "clipboardy";
 import fs from "fs/promises";
@@ -32,7 +33,6 @@ import {
     WebDriver, ModalDialog,
     WebElement, Workbench, Button, Notification,
 } from "vscode-extension-tester";
-import { Database } from "./db";
 import * as constants from "./constants";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 import * as Until from "./until";
@@ -745,30 +745,6 @@ export class Misc {
         }
     };
 
-    public static cleanEditor = async (): Promise<void> => {
-        await driver.wait(async () => {
-            try {
-                const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-                if (Misc.isMacOs()) {
-                    await textArea.sendKeys(Key.chord(Key.COMMAND, "a", "a"));
-                } else {
-                    await textArea.sendKeys(Key.chord(Key.CONTROL, "a", "a"));
-                }
-
-                await textArea.sendKeys(Key.BACK_SPACE);
-                await driver.wait(async () => {
-                    return await Database.getPromptLastTextLine() === "";
-                }, 3000, "Prompt was not cleaned");
-
-                return true;
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
-                }
-            }
-        }, constants.wait5seconds, "Editor was not cleaned");
-    };
-
     public static getResultTabs = async (resultHost: WebElement): Promise<string[]> => {
 
         const result: string[] = [];
@@ -1057,6 +1033,21 @@ export class Misc {
         }, constants.wait10seconds, `${itemName.toString()} on section ${section} was not found`);
 
         return el;
+    };
+
+    public static getTreeElementByType = async (section: string, type: string): Promise<TreeItem> => {
+
+        const sectionTree = await Misc.getSection(section);
+        const treeItems = await sectionTree.getVisibleItems();
+        for (const treeItem of treeItems) {
+            const el = await treeItem.findElement(locator.section.itemIcon);
+            const backImage = await el.getCssValue("background-image");
+            if (backImage.match(new RegExp(type)) !== null) {
+                return treeItem;
+            }
+        }
+
+        throw new Error(`Could not find the item type ${type} on section ${section}`);
     };
 
     public static existsTreeElement = async (section: string, itemName: string | RegExp): Promise<boolean> => {
