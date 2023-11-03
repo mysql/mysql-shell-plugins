@@ -308,7 +308,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             if (mrsObject) {
                 view = `CREATE OR REPLACE REST DUALITY VIEW ${data.dbObject.requestPath}\n` +
                     `    ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath}\n` +
-                    `    AS ${data.dbSchemaName}.${data.dbObject.name} CLASS ${mrsObject.name} `;
+                    `    AS ${data.dbSchemaName}.${data.dbObject.name} CLASS ${mrsObject.name}`;
 
                 for (const op of data.dbObject.crudOperations) {
                     if (op === "CREATE") {
@@ -321,7 +321,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 }
 
                 if (mrsObject.fields) {
-                    view += ` {\n${cutLastComma(walk(mrsObject?.fields, undefined, 2))}\n    }\n`;
+                    view += ` {\n${cutLastComma(walk(mrsObject?.fields, undefined, 2))}\n    }`;
                 }
 
                 view += addOptions(data.dbObject) + ";";
@@ -338,14 +338,15 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     `    AS ${data.dbSchemaName}.${data.dbObject.name}`;
 
                 if (mrsObject.fields) {
-                    view += `\nPARAMETERS ${mrsObject.name} {\n` + walk(mrsObject?.fields).slice(0, -2) + "\n}";
+                    view += `\n    PARAMETERS ${mrsObject.name} {\n` +
+                        walk(mrsObject?.fields, undefined, 2).slice(0, -2) + "\n    }";
                 }
 
                 for (const obj of data.mrsObjects) {
                     if (obj.kind !== MrsObjectKind.Parameters) {
                         if (obj.fields) {
-                            view += `\nRESULT ${obj.name} {\n`
-                                + walk(obj.fields, undefined, undefined, true).slice(0, -2) + "\n}";
+                            view += `\n    RESULT ${obj.name} {\n`
+                                + walk(obj.fields, undefined, 2, true).slice(0, -2) + "\n    }";
                         }
                     }
                 }

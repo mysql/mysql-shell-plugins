@@ -1579,12 +1579,12 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         session=self.session, object_id=object["id"])
 
                     children = cutLastComma(walk(
-                        fields=fields, add_data_type=object["kind"] == "RESULT", current_object=db_object))
+                        fields=fields, level=2, add_data_type=object["kind"] == "RESULT", current_object=db_object))
 
-                    stmt += f'{object["kind"]} {object["name"]}'
+                    stmt += f'    {object["kind"]} {object["name"]}'
 
                     if children:
-                        stmt += f" {{\n{children}\n}}\n"
+                        stmt += f" {{\n{children}\n    }}\n"
 
             if db_object["enabled"] is False or db_object["enabled"] == 0:
                 stmt += "    DISABLED\n"
