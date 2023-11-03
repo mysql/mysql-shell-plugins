@@ -190,6 +190,27 @@ export const toolbarButtonIsEnabled = (button: string): Condition<boolean> => {
     });
 };
 
+export const resultTabIsMaximized = (): Condition<boolean> => {
+    return new Condition(`for result tab to be maximezed`, async () => {
+        return (await driver.findElements(locator.notebook.codeEditor.editor.result.status.normalize)).length > 0;
+    });
+};
+
+export const resultTabIsNormalized = (): Condition<boolean> => {
+    return new Condition(`for result tab to be maximezed`, async () => {
+        return (await driver.findElements(locator.notebook.codeEditor.editor.result.status.normalize)).length === 0;
+    });
+};
+
+export const editorHasNewPrompt = (): Condition<boolean> => {
+    return new Condition(`for editor to have a new prompt`, async () => {
+        const editorSentences = await driver.findElements(locator.notebook.codeEditor.editor.sentence);
+
+        return (await (editorSentences[editorSentences.length - 1]).getAttribute("innerHTML"))
+            .match(/<span><\/span>/) !== null;
+    });
+};
+
 export const routerIsRunning = (): Condition<boolean> => {
     return new Condition("for Router to be running", () => {
         if (Misc.isWindows()) {

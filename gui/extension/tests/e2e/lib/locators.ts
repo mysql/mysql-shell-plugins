@@ -94,14 +94,22 @@ export const notebook = {
             currentLine: By.className("current-line"),
             statementStart: By.className("statementStart"),
             autoCompleteListItem: By.css(".monaco-list .monaco-highlighted-label span"),
+            scrollBar: By.className("editor-scrollable"),
             result: {
                 exists: By.className("zoneHost"),
                 hasContent: By.className("content"),
                 existsById: (view: string): By => {
-                    return By.xpath(`//div[@class='zoneHost' and @monaco-view-zone='${view}']`);
+                    let xpath = `//div[@class='zoneHost' and (`;
+                    xpath += `
+                        @monaco-view-zone='b${view}' or
+                        @monaco-view-zone='c${view}' or
+                        @monaco-view-zone='d${view}' or
+                        @monaco-view-zone='e${view}')]
+                    `;
+
+                    return By.xpath(xpath);
                 },
                 host: By.className("resultHost"),
-
                 table: By.className("tabulator"),
                 tableRows: By.css(".tabulator-selectable.tabulator-row-odd"),
                 tableHeaders: By.className("tabulator-headers"),
@@ -130,6 +138,8 @@ export const notebook = {
                     field: By.css(".jsonView span > span"),
                 },
                 singleOutput: By.className("outputHost"),
+                script: By.className("standaloneScriptHost"),
+                textOutput: By.css(".actionOutput span > span"),
             },
         },
         prompt: {

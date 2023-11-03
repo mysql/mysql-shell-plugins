@@ -20,7 +20,8 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { until, Condition } from "vscode-extension-tester";
+
+import { Condition } from "vscode-extension-tester";
 import { driver } from "./misc";
 import * as locator from "./locators";
 
@@ -36,21 +37,4 @@ export class Shell {
             });
     };
 
-    public static changeSchemaOnTab = async (schema: string): Promise<void> => {
-        const tabSchema = await driver.findElement(locator.shellConsole.connectionTab.schema);
-        await tabSchema.click();
-        const menu = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schemaMenu),
-            3000, "Schema list was not displayed");
-        const items = await menu.findElements(locator.shellConsole.connectionTab.schemaItem);
-        for (const item of items) {
-            if ((await item.getAttribute("innerHTML")).includes(schema)) {
-                await item.click();
-                break;
-            }
-        }
-
-        await driver.wait(async () => {
-            return (await driver.findElement(locator.shellConsole.connectionTab.schema).getText()).includes(schema);
-        }, 3000, `${schema} was not selected`);
-    };
 }
