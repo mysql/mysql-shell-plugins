@@ -791,20 +791,16 @@ export class RequisitionHub {
      */
     public handleRemoteMessage(message: IEmbeddedMessage): void {
         if (message.command === "paste" && message.data) {
-            // Special handling for incoming paste events.
+            // Special handling for paste events. An iframe does not get a paste event directly. Instead we have to
+            // capture it in the hosting document and forward it as command to our app.
+            // Here we convert that command back to a paste event and dispatch it to the active element.
             const element = document.activeElement;
             const text = message.data.text as string;
             if (element && (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) {
-                const oldValue = element.value;
-                const start = element.selectionStart ?? oldValue.length;
-                element.value = oldValue.substring(0, start) + text +
-                    oldValue.substring(element.selectionEnd ?? start);
-
-                element.selectionStart = start + text.length; // Set the caret at the end of the new text.
-                element.selectionEnd = start + text.length;
-
-                const event = new Event("input", { bubbles: true });
-                element.dispatchEvent(event);
+                const dataTransfer = new DataTransfer();
+                dataTransfer.setData("text/plain", text);
+                const pasteEvent = new ClipboardEvent("paste", { clipboardData: dataTransfer });
+                element.dispatchEvent(pasteEvent);
             }
 
             return;
