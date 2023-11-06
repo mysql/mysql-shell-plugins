@@ -88,6 +88,8 @@ PROCEDURES_PATH = os.path.join(WORKING_DIR, "sql", "procedures.sql")
 MAX_WORKERS = "3"
 TOKEN = "1234test"
 
+TESTS_TIMEOUT = 30*60
+
 class SetEnvironmentVariablesTask:
     """Task for setting environment variables"""
 
@@ -157,7 +159,13 @@ class NPMScript:
 
         e2e_tests = subprocess.Popen(args=args, env=self.environment)
         e2e_tests.communicate()
-        return_code = e2e_tests.wait()
+
+        try:
+            return_code = e2e_tests.wait(timeout=TESTS_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            e2e_tests.kill()
+            return_code = -1
+
         if return_code != 0:
             raise task_utils.TaskFailException("Tests failed")
 
