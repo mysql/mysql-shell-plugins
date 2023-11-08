@@ -41,6 +41,16 @@ export interface IMrsFetchInput {
     timeout?: number;
 }
 
+export interface IMrsAuthUser {
+    name: string;
+    email: string;
+}
+
+export interface IMrsAuthStatus {
+    status: string;
+    user?: IMrsAuthUser;
+}
+
 interface IAuthChallenge {
     nonce: string;
     iterations: number;
@@ -137,7 +147,7 @@ export class MrsBaseSession {
             });
         } catch (e) {
             throw new Error(`${errorMsg}\n\nPlease check if MySQL Router is running and the REST endpoint ` +
-                `${this.serviceUrl ?? ""}${input} does exist.`);
+                `${this.serviceUrl ?? ""}${input} does exist.\n\n${(e instanceof Error) ? e.message : String(e)}`);
         } finally {
             clearTimeout(timeoutTimer);
         }
@@ -169,6 +179,20 @@ export class MrsBaseSession {
         }
 
         return response;
+    };
+
+    /**
+     * Gets the authentication status of the current session as defined by the accessToken
+     *
+     * @returns The response object with {"status":"authorized", "user": {...}} or {"status":"unauthorized"}
+     */
+    public readonly getAuthenticationStatus = async (): Promise<IMrsAuthStatus> => {
+        try {
+            return (await (await this.doFetch(
+                { input: `/authentication/status`, errorMsg: "Failed to authenticate." })).json()) as IMrsAuthStatus;
+        } catch (e) {
+            return { status: "unauthorized" };
+        }
     };
 
     public readonly verifyUserName = async (authApp: string, userName: string): Promise<void> => {
@@ -221,6 +245,8 @@ export class MrsBaseSession {
                 }, undefined, undefined, undefined, false);
 
                 if (!response.ok) {
+                    this.accessToken = undefined;
+
                     return {
                         authApp: this.authApp,
                         errorCode: response.status,
@@ -231,9 +257,11 @@ export class MrsBaseSession {
                 } else {
                     const result = await response.json();
 
+                    this.accessToken = String(result.accessToken);
+
                     return {
                         authApp: this.authApp,
-                        jwt: String(result.accessToken),
+                        jwt: this.accessToken,
                     };
                 }
             } catch (e) {
@@ -341,7 +369,7 @@ export class MrsBaseService {
     public session: MrsBaseSession;
 
     public constructor(
-        protected readonly serviceUrl: string,
+        public readonly serviceUrl: string,
         protected readonly authPath = "/authentication",
         protected readonly defaultTimeout = 8000) {
         this.session = new MrsBaseSession(serviceUrl, authPath, defaultTimeout);
@@ -446,6 +474,10 @@ export interface IMrsProcedureResult {
 
 export interface IMrsProcedureResultList<C> {
     items: C[],
+}
+
+export interface IMrsFunctionResult<C> {
+    result: C,
 }
 
 export interface IMrsDeleteResult {
@@ -700,8 +732,8 @@ export type BooleanFieldMapSelect<TableMetadata> = {
      * If the column contains a primitive value the type should be a boolean, otherwise, it contains an object value
      * and the type is inferred from the corresponding children.
      */
-    [Key in keyof TableMetadata]?: TableMetadata[Key] extends (Primitive | JsonValue) ? boolean :
-        NestingFieldMap<TableMetadata[Key]>;
+    [Key in keyof TableMetadata]?: TableMetadata[Key] extends (
+        Primitive | JsonValue) ? boolean : NestingFieldMap<TableMetadata[Key]>;
 };
 
 /**
@@ -931,7 +963,7 @@ export class MrsBaseObjectQuery<C, P> {
         if ("links" in responseBody) {
             responseBody.links = undefined;
         }
-        if (responseBody.items) {
+        if (responseBody.items !== undefined) {
             for (const item of responseBody.items) {
                 if ("links" in item) {
                     item.links = undefined;
@@ -1036,8 +1068,8 @@ export class MrsBaseObjectQuery<C, P> {
      * @param [prefix] A prefix to carry when the function is called recursively on nested fields.
      * @returns A list of column names.
      */
-    private readonly fieldsWithValue = (fields: BooleanFieldMapSelect<C>, value: unknown, prefix = ""):
-    Array<keyof C> => {
+    private readonly fieldsWithValue = (
+        fields: BooleanFieldMapSelect<C>, value: unknown, prefix = ""): Array<keyof C> => {
         return Object.keys(fields).reduce((acc: Array<keyof C>, field) => {
             const ref = fields[field as keyof typeof fields];
 
@@ -1177,5 +1209,28 @@ export class MrsBaseObjectCall<I, P extends IMrsFetchData> {
         const responseBody = await res.json();
 
         return responseBody as IMrsProcedureResultList<I>;
+    };
+}
+
+export class MrsBaseObjectFunctionCall<I, P extends IMrsFetchData> {
+    public constructor(
+        protected schema: MrsBaseSchema,
+        protected requestPath: string,
+        protected params: P) {
+    }
+
+    public fetch = async (): Promise<I> => {
+        const input = `${this.schema.requestPath}${this.requestPath}`;
+
+        const res = await this.schema.service.session.doFetch({
+            input,
+            method: "PUT",
+            body: this.params,
+            errorMsg: "Failed to call item.",
+        });
+
+        const responseBody = await res.json();
+
+        return (responseBody as IMrsFunctionResult<I>).result;
     };
 }

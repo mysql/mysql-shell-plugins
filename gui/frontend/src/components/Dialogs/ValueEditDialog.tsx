@@ -241,6 +241,10 @@ interface IResourceDialogValue extends IBaseDialogValue {
     /**Used to limit user selectable files. */
     filters?: IOpenDialogFilters;
 
+    multiSelection?: boolean;
+    canSelectFiles?: boolean;
+    canSelectFolders?: boolean;
+
     /** Called when the selection was changed. */
     onChange?: (value: string, dialog: ValueEditDialog) => void;
 }
@@ -1068,7 +1072,9 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                             key={key}
                             path={value as string}
                             filters={entry.value.filters}
-                            multiSelection={false}
+                            multiSelection={entry.value.multiSelection ?? false}
+                            canSelectFiles={entry.value.canSelectFiles ?? true}
+                            canSelectFolders={entry.value.canSelectFolders ?? false}
                             placeholder={entry.value.placeholder}
                             onChange={this.fileChange.bind(this, sectionId)}
                             onConfirm={this.acceptOnConfirm}

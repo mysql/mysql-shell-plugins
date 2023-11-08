@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -38,6 +38,19 @@
 #    packaging/mysql-shell/darwin-arm64
 #    packaging/mysql-shell/darwin-x64
 #    packaging/mysql-shell/win32-x64
+#    packaging/mysql-shell/linux-arm64
+#    packaging/mysql-shell/linux-x64
+#
+# The MySQL Router is now also included in the extension package. The following
+# folders need to be created in the packaging directory. When building from PB2
+# the latest router version from the mysql-trunk-http-rest-preview-release PB2
+# branch needs to be used.
+#
+#    packaging/mysql-router/darwin-arm64
+#    packaging/mysql-router/darwin-x64
+#    packaging/mysql-router/win32-x64
+#    packaging/mysql-router/linux-arm64
+#    packaging/mysql-router/linux-x64
 
 # Simple function to check url exists
 # Usage: if `validate_url $url`; then dosomething; else echo "does not exist"; fi
@@ -76,6 +89,40 @@ function download_shell_mac_pkg(){
         else
             return 1
         fi
+    fi
+}
+
+# Function that cleans up the OCI package to include just the modules that are used
+# Usage: strip_oci_package ./path/to/oci
+function strip_oci_package(){
+    # Collect all folders to delete, except the ones in the list
+    delFolders=()
+    prefix="$1/"
+    for dir in $1/*; do
+        if [ -d "$dir" ]; then
+            case ${dir#"$prefix"} in
+                "core"|"constants.py"|"version.py"|"work_requests"|"compute_instance_agent"|"request.py"|"alloy.py"|"service_endpoints.py"|"regions.py"|"circuit_breaker"|"decorators.py"|"regions_definitions.py"|"signer.py"|"util.py"|"dns"|"config.py"|"fips.py"|"load_balancer"|"object_storage"|"exceptions.py"|"retry"|"_vendor"|"waiter.py"|"response.py"|"base_client.py"|"mysql"|"pagination"|"auth"|"bastion"|"identity")
+                    # do nothing
+                    ;;
+                *)
+                    # error
+                    delFolders+=("$dir")
+            esac
+        fi
+    done
+
+    # Delete the folders
+    if [ ${#delFolders[@]} -gt 0 ]; then
+        rm -rf "${delFolders[@]}"
+
+        # Remove full import from __init__.py
+        if [[ $OSTYPE == 'darwin'* ]]; then
+            sed -i '' '16,$d' $1/__init__.py
+        else
+            sed -i '16,$d' $1/__init__.py
+        fi
+    else
+        echo OCI cleanup failed. Folder $1 not found.
     fi
 }
 
@@ -161,9 +208,17 @@ for d in packaging/mysql-shell/*; do
         echo "Copy shell binaries, lib and share"
         cp -R $d/bin shell/.
         cp -R $d/lib shell/.
-        cp -R $d/libexec shell/.
+        cp -R $d/libexec shell/. 2>/dev/null || :
         cp -R $d/share shell/.
 
+        echo "Cleanup OCI SDK folder"
+        OCIPATH=shell/lib/mysqlsh/lib/python3.10/site-packages/oci
+        if [ "$PLATFORM" == "linux-arm64" ] || [ "$PLATFORM" == "linux-x64" ]; then
+            OCIPATH=shell/lib/mysqlsh/lib/python3.9/site-packages/oci
+        elif [ "$PLATFORM" == "win32-x64" ]; then
+            OCIPATH=shell/lib/Python3.10/Lib/site-packages/oci
+        fi
+        strip_oci_package $OCIPATH
 
         echo "Copy plugins"
         cp -RL $HOME/.mysqlsh/plugins/gui_plugin shell/lib/mysqlsh/plugins/.
@@ -178,12 +233,34 @@ for d in packaging/mysql-shell/*; do
             rm -rf shell/lib/mysqlsh/plugins/gui_plugin/wrappers
         fi
 
+        # Remove the shell directory if it exists
+        if [ -d "router" ]; then
+            rm -rf router
+        fi
+
+        # Make router directory where the extension will expect the router
+        if [ -d "packaging/mysql-router/$PLATFORM/bin" ]; then
+            echo "Copy router binaries, lib and share for platform $PLATFORM"
+
+            mkdir router
+
+            cp -R packaging/mysql-router/$PLATFORM/bin router/.
+            cp -R packaging/mysql-router/$PLATFORM/lib router/.
+        else
+            echo "MySQL Router not found, skipping MySQL Router packaging."
+        fi
+
         echo "Create VSIX package"
         vsce package --target $PLATFORM --baseImagesUrl https://github.com/mysql/mysql-shell-plugins/raw/master/gui/extension || exit 1
 
         mv -f *.vsix packaging/extension-packages/.
     fi
 done
+
+# Remove the router directory if it exists
+if [ -d "router" ]; then
+    rm -rf router
+fi
 
 # Remove the shell directory if it exists
 if [ -d "shell" ]; then

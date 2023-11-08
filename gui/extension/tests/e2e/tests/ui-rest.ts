@@ -759,7 +759,9 @@ describe("MySQL REST Service", () => {
             const dest = join(process.cwd(), "dump.sdk");
             await fs.rm(dest, { force: true, recursive: true });
             await Misc.setInputPath(dest);
-            await Misc.getNotification("MRS Service REST Files exported successfully.");
+            await Database.setExportMRSSDK(undefined);
+            await Misc.switchBackToTopFrame();
+            await Misc.getNotification("MRS SDK Files exported successfully");
             const files = await fs.readdir(dest);
             expect(files.length).to.be.greaterThan(0);
         });
@@ -941,7 +943,7 @@ describe("MySQL REST Service", () => {
             servicePath: `/crudService`,
             enabled: true,
             settings: {
-                hostNameFilter: `127.0.0.1:8443`,
+                hostNameFilter: ``,
             },
         };
 
@@ -969,11 +971,15 @@ describe("MySQL REST Service", () => {
             },
         };
 
-        let baseUrl = `https://${crudService.settings.hostNameFilter}`;
-        baseUrl += `${crudService.servicePath}${crudSchema.restSchemaPath}`;
+        let baseUrl = "";
 
         before(async function () {
             try {
+                crudService.settings.hostNameFilter = `127.0.0.1:${await Misc.getRouterPort()}`;
+                crudSchema.restServicePath = `${crudService.settings.hostNameFilter}${crudService.servicePath}`;
+                crudObject.restServicePath = `${crudService.settings.hostNameFilter}${crudService.servicePath}`;
+                baseUrl = `https://${crudService.settings.hostNameFilter}`;
+                baseUrl += `${crudService.servicePath}${crudSchema.restSchemaPath}`;
                 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
                 await Misc.cleanCredentials();
                 let treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection,

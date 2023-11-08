@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-autofocus */
 /*
  * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
@@ -66,7 +67,7 @@ export default class UserPage extends Component<IUserPageProps, IUserPageState> 
             // This is weird.
             const user = await myService.mrsNotes.user.findFirst();
 
-            if (typeof user === "undefined" || nickname === user.nickname && email === user.email) {
+            if (typeof user === "undefined" || (nickname === user.nickname && email === user.email)) {
                 return;
             }
 

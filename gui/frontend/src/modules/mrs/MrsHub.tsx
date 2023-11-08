@@ -29,7 +29,7 @@ import {
 import { IShellDictionary } from "../../communication/Protocol.js";
 
 import {
-    IMrsAuthAppData, IMrsContentSetData, IMrsObject, IMrsSchemaData, IMrsServiceData, IMrsUserData,
+    IMrsAuthAppData, IMrsContentSetData, IMrsObject, IMrsSchemaData, IMrsSdkOptions, IMrsServiceData, IMrsUserData,
     IMrsUserRoleData,
 } from "../../communication/ProtocolMrs.js";
 import { AwaitableValueEditDialog } from "../../components/Dialogs/AwaitableValueEditDialog.js";
@@ -46,6 +46,10 @@ import { IMrsServiceDialogData, MrsServiceDialog } from "./dialogs/MrsServiceDia
 import { uuid } from "../../utilities/helpers.js";
 import { DialogHost } from "../../app-logic/DialogHost.js";
 import { snakeToCamelCase } from "../../utilities/string-helpers.js";
+import { IMrsSdkExportDialogData, MrsSdkExportDialog } from "./dialogs/MrsSdkExportDialog.js";
+import { getMySQLDbConnectionUri } from "../../communication/MySQL.js";
+import { IConnectionDetails } from "../../supplement/ShellInterface/index.js";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 
 type DialogConstructor = new (props: {}) => AwaitableValueEditDialog;
 
@@ -84,6 +88,7 @@ export class MrsHub extends ComponentBase {
         [MrsDialogType.MrsContentSet, MrsContentSetDialog],
         [MrsDialogType.MrsAuthenticationApp, MrsAuthenticationAppDialog],
         [MrsDialogType.MrsUser, MrsUserDialog],
+        [MrsDialogType.MrsSdkExport, MrsSdkExportDialog],
     ]);
 
     // Holds the currently running dialog type (only one of each type can run at the same time) and last
@@ -950,6 +955,95 @@ export class MrsHub extends ComponentBase {
             } catch (error) {
                 void requisitions.execute("showError", [`Error while adding MySQL REST User: ${String(error)}`]);
             }
+        }
+
+        return true;
+    };
+
+    /**
+     * Shows a dialog to create a new or edit an existing MRS service.
+     *
+     * @param backend The interface for sending the requests.
+     * @param serviceId The id of the REST service
+     * @param connectionId The id of the DB Connection
+     * @param connectionDetails The DB Connection details
+     * @param directory The directory that holds or should hold the exported SDK
+     *
+     * @returns A promise resolving when the dialog was closed. Always resolves to true to indicate the request
+     *          was handled.
+     */
+    public showMrsSdkExportDialog = async (backend: ShellInterfaceSqlEditor,
+        serviceId: string, connectionId: number, connectionDetails?: IConnectionDetails,
+        directory?: string): Promise<boolean> => {
+
+        if (connectionDetails === undefined) {
+            connectionDetails = await ShellInterface.dbConnections.getDbConnection(connectionId);
+
+            if (connectionDetails === undefined) {
+                return false;
+            }
+        }
+
+        // const authApps = await backend.mrs.getAuthApps(authApp.serviceId ?? "unknown");
+        const service = await backend.mrs.getService(
+            serviceId, null, null, null, null);
+        let serviceUrl;
+        if (!service.hostCtx.toLowerCase().startsWith("http")) {
+            const port = 8443 + connectionId;
+            serviceUrl =
+                `https://localhost:${port}${service.urlContextRoot}`;
+        } else {
+            serviceUrl = service.hostCtx;
+        }
+
+        const currentSdkOptions = directory ? await backend.mrs.getSdkOptions(directory) : undefined;
+
+        const request = {
+            id: "mrsSdkExportDialog",
+            type: MrsDialogType.MrsSdkExport,
+            title: `Export MRS SDK Files for ${service.hostCtx}`,
+            parameters: {
+                serviceName: service.hostCtx,
+                languages: ["TypeScript"],
+                appBaseClasses: [
+                    {
+                        language: "TypeScript",
+                        appBaseClasses: ["MrsBaseAppPreact.ts"],
+                    },
+                ],
+            },
+            values: {
+                directory,
+                serviceUrl: currentSdkOptions?.serviceUrl ?? serviceUrl,
+                serviceId,
+                sdkLanguage: currentSdkOptions?.sdkLanguage ?? "TypeScript",
+                addAppBaseClass: currentSdkOptions?.addAppBaseClass,
+                header: currentSdkOptions?.header,
+            },
+        };
+
+        const result = await this.showDialog(request);
+        if (result === DialogResponseClosure.Cancel) {
+            return true;
+        }
+
+        const data = result as IMrsSdkExportDialogData;
+
+        // Write SDK
+        try {
+            await backend.mrs.dumpSdkServiceFiles(
+                data.directory, {
+                serviceId,
+                dbConnectionUri: getMySQLDbConnectionUri(
+                    connectionDetails),
+                sdkLanguage: data.sdkLanguage,
+                serviceUrl: data.serviceUrl,
+                addAppBaseClass: data.addAppBaseClass,
+            });
+            void requisitions.execute("showInfo", ["MRS SDK Files exported successfully."]);
+        } catch (error) {
+            void requisitions.execute(
+                "showError", [`Error while exporting the REST Service SDK Files: ${String(error)}`]);
         }
 
         return true;

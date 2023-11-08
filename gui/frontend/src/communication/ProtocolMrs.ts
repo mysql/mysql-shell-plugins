@@ -72,6 +72,8 @@ export enum ShellAPIMrs {
     MrsGetSdkServiceClasses = "mrs.get.sdk_service_classes",
     /** Dumps the SDK service files for a REST Service */
     MrsDumpSdkServiceFiles = "mrs.dump.sdk_service_files",
+    /** Reads the SDK service option file located in a given directory */
+    MrsGetSdkOptions = "mrs.get.sdk_options",
     /** Returns the SDK service classes source for the given language */
     MrsGetRuntimeManagementCode = "mrs.get.runtime_management_code",
     /** Add a schema to the given MRS service */
@@ -409,13 +411,30 @@ export interface IShellMrsGetSdkServiceClassesKwargs {
     moduleSessionId?: string;
 }
 
-export interface IShellMrsDumpSdkServiceFilesKwargs {
+export interface IShellMrsDumpSdkServiceFilesKwargsOptions {
     /** The ID of the service the SDK should be generated for. If not specified, the default service is used. */
     serviceId?: string;
+    /** The dbConnectionUri that was used to export the SDK files */
+    dbConnectionUri?: string;
     /** The SDK language to generate */
     sdkLanguage?: string;
+    /** The additional AppBaseClass file name */
+    addAppBaseClass?: string;
+    /** The url of the service */
+    serviceUrl?: string;
+    /** The version of the generated files */
+    version?: number;
+    /** The generation date of the SDK files */
+    generationDate?: string;
+    /** The header to use for the SDK files */
+    header?: string;
+}
+
+export interface IShellMrsDumpSdkServiceFilesKwargs {
     /** The directory to store the .mrs.sdk folder with the files */
     directory?: string;
+    /** Several options how the SDK should be created */
+    options?: IShellMrsDumpSdkServiceFilesKwargsOptions;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -1125,6 +1144,7 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsGetSdkBaseClasses]: { kwargs?: IShellMrsGetSdkBaseClassesKwargs; };
     [ShellAPIMrs.MrsGetSdkServiceClasses]: { kwargs?: IShellMrsGetSdkServiceClassesKwargs; };
     [ShellAPIMrs.MrsDumpSdkServiceFiles]: { kwargs?: IShellMrsDumpSdkServiceFilesKwargs; };
+    [ShellAPIMrs.MrsGetSdkOptions]: { args: { directory: string; }; };
     [ShellAPIMrs.MrsGetRuntimeManagementCode]: { kwargs?: IShellMrsGetRuntimeManagementCodeKwargs; };
     [ShellAPIMrs.MrsAddSchema]: { kwargs?: IShellMrsAddSchemaKwargs; };
     [ShellAPIMrs.MrsGetSchema]: { kwargs?: IShellMrsGetSchemaKwargs; };
@@ -1485,6 +1505,17 @@ export interface IMrsScriptResult {
     result?: IDictionary,
 }
 
+export interface IMrsSdkOptions {
+    serviceId: string,
+    dbConnectionUri: string,
+    sdkLanguage: string,
+    addAppBaseClass?: string,
+    serviceUrl: string,
+    version?: number,
+    generationDate?: string,
+    header?: string,
+}
+
 export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData; };
     [ShellAPIMrs.MrsGetService]: { result: IMrsServiceData; };
@@ -1566,6 +1597,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsGetTableColumnsWithReferences]: { result: IMrsTableColumnWithReference[]; };
     [ShellAPIMrs.MrsGetObjectFieldsWithReferences]: { result: IMrsObjectFieldWithReference[]; };
     [ShellAPIMrs.MrsDumpSdkServiceFiles]: { result: boolean; };
+    [ShellAPIMrs.MrsGetSdkOptions]: { result: IMrsSdkOptions; };
     [ShellAPIMrs.MrsRunScript]: { result: IMrsScriptResult[]; };
 }
 

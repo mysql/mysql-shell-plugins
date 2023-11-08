@@ -21,36 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Component, ComponentChild } from "preact";
+import { ComponentChild } from "preact";
+import { IMyServiceMrsNotesUser, MyService, IMrsAuthUser, IMrsAuthStatus } from "./myService.mrs.sdk/myService";
+import { IAppState, MrsBaseApp } from "./myService.mrs.sdk/MrsBaseAppPreact";
 
 import WelcomePage from "./pages/WelcomePage/WelcomePage";
 import UserPage from "./pages/UserPage/UserPage";
 import ModalError from "./components/ModalError";
 import Header from "./components/Header";
 import Notes from "./pages/NotesPage/NotesPage";
-import { IMyServiceMrsNotesUser, MyService } from "./myService.mrs.sdk/myService";
-
-// Defines the MySQL REST Service URL of the MRS Notes service
-export const serviceUrl = "https://localhost:8443/myService";
-
-interface IAuthUser {
-    name: string;
-    email: string;
-}
-
-interface IAuthStatus {
-    status: string;
-    user?: IAuthUser;
-}
-
-interface IAppState {
-    authApp?: string;
-    accessToken?: string;
-    authenticating: boolean;
-    restarting: boolean;
-    user?: IMyServiceMrsNotesUser;
-    error?: Error,
-}
 
 export interface IFetchInput {
     errorMsg?: string;
@@ -59,228 +38,35 @@ export interface IFetchInput {
     input: string;
 }
 
-export class App extends Component<{}, IAppState> {
-    #myService: MyService;
+interface IMyAppState extends IAppState {
+    user?: IMyServiceMrsNotesUser;
+}
 
+export class App extends MrsBaseApp<MyService, IMyAppState> {
     public constructor() {
-        super();
-
-        // Initialize the App Component's state variables
-        this.state = {
-            authenticating: false,
-            restarting: false,
-        };
-
-        this.#myService = new MyService();
-
-        this.handleLogin();
+        super(new MyService(), "MrsNotes");
     }
 
-    /**
-     * Returns the current URL with a new URL search string
-     *
-     * @param searchString The new search string to use
-     *
-     * @returns The current URL with a new searchString
-     */
-    private readonly getUrlWithNewSearchString = (searchString: string = ""): string => {
-        return window.location.protocol + "//" + window.location.host + window.location.pathname +
-            (searchString !== "" ? `?${searchString}` : "") + window.location.hash;
-    };
-
-    /**
-     * A small wrapper around fetch() that uses the active JWT accessToken to the MRS and throws
-     * an exception if the response was not OK
-     *
-     * @param input The RequestInfo, either a URL string or a JSON object with named parameters
-     * @param errorMsg The error message to include in the exception if the fetch is not successful
-     * @param method The HTTP method to use with GET being the default
-     * @param body The request body as object
-     * @param autoResponseCheck Set to false if the error checking should not be performed
-     *
-     * @returns The response object
-     */
-    public doFetch = async (input: string | IFetchInput, errorMsg?: string,
-        method?: string, body?: object, autoResponseCheck: boolean = true): Promise<Response> => {
-        const { accessToken, authApp } = this.state;
-
-        // Check if parameters are passed as named parameters and if so, assign them
-        if (typeof input === "object" && input !== null) {
-            errorMsg = input?.errorMsg ?? "Failed to fetch data.";
-            method = input?.method ?? "GET";
-            body = input?.body;
-            input = input?.input;
-        } else {
-            errorMsg = errorMsg ?? "Failed to fetch data.";
-            method = method ?? "GET";
-        }
-
-        let response;
-
+    protected afterHandleLogin = async (status: IMrsAuthStatus): Promise<void> => {
+        // Make sure the user table has an entry for this user
         try {
-            response = await fetch(`${serviceUrl}${input}`, {
-                method,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                headers: (accessToken !== undefined) ? { Authorization: "Bearer " + accessToken } : undefined,
-                body: (body !== undefined) ? JSON.stringify(body) : undefined,
-            });
-        } catch (e) {
-            throw new Error(`${errorMsg}\n\nPlease check if a MRS DB Object with the ` +
-                `path ${serviceUrl}${input} does exist.`);
-        }
-
-        if (!response.ok && autoResponseCheck) {
-            // Check if the current session has expired
-            if (response.status === 401) {
-                this.setState({ restarting: true });
-                window.alert("Your current session expired. You will be logged in again.");
-
-                void this.startLogin(authApp);
-            }
-
-            let errorInfo;
-            try {
-                errorInfo = await response.json();
-            } catch (e) {
-                throw new Error(`${response.status}. ${errorMsg} (${response.statusText})`);
-            }
-            // If there is a message, throw with that message
-            if (typeof errorInfo.message === "string") {
-                throw new Error(errorInfo.message)
-            } else {
-                throw new Error(`${response.status}. ${errorMsg} (${response.statusText})` +
-                    `${(errorInfo !== undefined) ? ("\n\n" + JSON.stringify(errorInfo, null, 4) + "\n") : ""}`);
-            }
-        }
-
-        return response;
-    };
-
-    /**
-     * Starts the login process using the given authApp
-     *
-     * @param authApp The name of the MRS auth_app
-     */
-    public startLogin = (authApp?: string): void => {
-        if (authApp !== undefined) {
-            // Encode current URL but replace the location.search with the authApp name
-            const redirectUrl = encodeURIComponent(this.getUrlWithNewSearchString(`authApp=${authApp}`));
-
-            window.location.href = `${serviceUrl}/authentication/login?app=${authApp}&sessionType=bearer` +
-                `&onCompletionRedirect=${redirectUrl}`;
-        } else {
-            window.location.href = this.getUrlWithNewSearchString();
+            const user = await this.ensureUserAccount(status?.user as IMrsAuthUser);
+            // Update the URL
+            this.showPage("notes", false);
+            // End the authenticating status and set the user info
+            this.setState({ authenticating: false, user });
+        } catch(e) {
+            this.setState({ error: e instanceof Error ? e : Error(String(e))});
         }
     };
 
-    /**
-     * Handles the login process
-     *
-     * @param authApp The authApp, if already know
-     * @param accessToken The accessToken, if already given
-     * @param mrsBuiltInAuth Set to true when the built in MRS Auth should be used
-     */
-    public handleLogin = (authApp?: string, accessToken?: string, mrsBuiltInAuth = false): void => {
-        // We need to associate the credentials to the MRS service session somehow.
-        // From what I could tell, this seemed to be the better place to do it.
-        // However, I think the verifyUserName() and verifyPassword() SDK methods should handle this.
-        this.#myService.session.accessToken = accessToken;
-        this.#myService.session.authApp = authApp;
-
-        // Fetch URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-
-        // If the authApp and accessToken have not been passed as parameters, check if they are given as URL parameters
-        if (authApp === undefined) {
-            const authAppParam = urlParams.get("authApp");
-            authApp = authAppParam !== null ? authAppParam : undefined;
-        }
-        if (accessToken === undefined) {
-            const accessTokenParam = urlParams.get("accessToken");
-            accessToken = accessTokenParam !== null ? accessTokenParam : undefined;
-        }
-
-        // If accessToken is not specified, check window.localStorage
-        if (accessToken === undefined) {
-            const storedJwtAccessToken = window.localStorage.getItem("mrsNotesJwtAccessToken");
-            accessToken = storedJwtAccessToken !== null ? storedJwtAccessToken : undefined;
-        } else {
-            // If it was specified, store it in the window.localStorage
-            window.localStorage.setItem("mrsNotesJwtAccessToken", accessToken);
-
-            // Clean Browser URL without reloading the page
-            window.history.replaceState(undefined, "", this.getUrlWithNewSearchString());
-        }
-
-        // Store/restore authApp from window.localStorage as well
-        if (authApp === undefined) {
-            const storedMrsNotesAuthApp = window.localStorage.getItem("mrsNotesAuthApp");
-            authApp = storedMrsNotesAuthApp !== null ? storedMrsNotesAuthApp : undefined;
-            const storedMrsBuiltInAuth = window.localStorage.getItem("mrsNotesBuiltInAuth");
-            mrsBuiltInAuth = storedMrsBuiltInAuth !== null ? (storedMrsBuiltInAuth === "true") : false;
-        } else {
-            window.localStorage.setItem("mrsNotesAuthApp", authApp);
-            window.localStorage.setItem("mrsNotesBuiltInAuth", String(mrsBuiltInAuth));
-        }
-
-        // Ensure to force a render update to reflect URL hash changes when the user clicks the back button
-        window.addEventListener("hashchange", () => {
-            this.forceUpdate();
-        }, false);
-
-        // Initialize the App Component's state variables
-        this.setState({
-            authApp, accessToken, authenticating: accessToken !== undefined && !mrsBuiltInAuth,
-        }, () => {
-            // Check if the current accessToken is still valid
-            if (accessToken !== undefined) {
-                void this.getAuthenticationStatus().then((status) => {
-                    if (status?.status === "authorized") {
-                        // Make sure the user table has an entry for this user
-                        this.ensureUserAccount(status?.user as IAuthUser).then(user => {
-                            // Update the URL
-                            this.showPage("notes", false);
-                            // End the authenticating status and set the user info
-                            this.setState({ authenticating: false, user });
-                        }).catch((e) => {
-                            this.setState({ error: e });
-                        });
-                    } else {
-                        // If not, go back to login page
-                        this.logout();
-                    }
-                });
-            }
-        });
+    // eslint-disable-next-line @typescript-eslint/require-await
+    protected afterLogout = async (): Promise<void> => {
+        this.setState({ user: undefined });
     };
 
-    /**
-     * Resets the page URL and the app state
-     */
-    public logout = (): void => {
-        window.localStorage.removeItem("mrsNotesJwtAccessToken");
-        window.localStorage.removeItem("mrsNotesAuthApp");
-        window.localStorage.removeItem("mrsNotesBuiltInAuth");
-        window.history.pushState({}, document.title, window.location.pathname);
-        this.setState({ accessToken: undefined, user: undefined, authenticating: false, error: undefined });
-    };
-
-    /**
-     * Gets the authentication status of the current session as defined by the accessToken
-     *
-     * @returns The response object with {"status":"authorized", "user": {...}} or {"status":"unauthorized"}
-     */
-    private readonly getAuthenticationStatus = async (): Promise<IAuthStatus> => {
-        try {
-            return (await (await this.doFetch(
-                { input: `/authentication/status`, errorMsg: "Failed to authenticate." })).json()) as IAuthStatus;
-        } catch (e) {
-            return { status: "unauthorized" };
-        }
-    };
-
-    private readonly ensureUserAccount = async (user: IAuthUser): Promise<IMyServiceMrsNotesUser> => {
-        const existingUser = await this.#myService.mrsNotes.user.findFirst();
+    private readonly ensureUserAccount = async (user: IMrsAuthUser): Promise<IMyServiceMrsNotesUser> => {
+        const existingUser = await this.mrsService.mrsNotes.user.findFirst();
 
         // If a user account already exists, return it.
         if (existingUser) {
@@ -288,7 +74,7 @@ export class App extends Component<{}, IAppState> {
         }
 
         // Otherwise, create one.
-        return await this.#myService.mrsNotes.user.create({ data: { email: user.email, nickname: user.name } });
+        return this.mrsService.mrsNotes.user.create({ data: { email: user.email, nickname: user.name } });
     };
 
     /**
@@ -340,7 +126,7 @@ export class App extends Component<{}, IAppState> {
      *
      * @returns ComponentChild
      */
-    public render = (_props: undefined, state: IAppState): ComponentChild => {
+    public render = (_props: undefined, state: IMyAppState): ComponentChild => {
         const { error, authenticating, restarting, user } = state;
         const page = window.location.hash;
         const errorHtml = restarting
@@ -366,10 +152,10 @@ export class App extends Component<{}, IAppState> {
                         <Header userNick={user?.nickname} showPage={this.showPage} logout={this.logout} />
                         {page === "#user" &&
                             <UserPage showError={this.showError} showPage={this.showPage}
-                                user={user} updateUser={this.updateUser} myService={this.#myService} />
+                                user={user} updateUser={this.updateUser} myService={this.mrsService} />
                         }
                         {page.startsWith("#notes") &&
-                            <Notes showError={this.showError} showPage={this.showPage} myService={this.#myService} />
+                            <Notes showError={this.showError} showPage={this.showPage} myService={this.mrsService} />
                         }
                     </div>
                 </>
@@ -377,7 +163,7 @@ export class App extends Component<{}, IAppState> {
         }
 
         return (
-            <WelcomePage startLogin={this.startLogin} handleLogin={this.handleLogin} myService={this.#myService} />
+            <WelcomePage myService={this.mrsService} startLogin={this.startLogin} handleLogin={this.handleLogin} />
         );
     };
 }

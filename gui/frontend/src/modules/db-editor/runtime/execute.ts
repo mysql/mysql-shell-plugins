@@ -61,7 +61,7 @@ export const execute = async (worker: PrivateWorker, code: string,
     const { print, setGlobalScriptingObjectProperty } = await import("./simple-functions.js");
 
     const { webFetch: fetch } = await import("./web-functions.js");
-    const { mrsPrintSdkCode, mrsSetCurrentService, mrsEditService, mrsSetServiceUrl,
+    const { mrsPrintSdkCode, mrsSetCurrentService, mrsEditService, mrsExportServiceSdk, mrsSetServiceUrl,
         mrsAuthenticate, mrsEditSchema, mrsEditDbObject,
     } = await import("./web-functions.js");
 

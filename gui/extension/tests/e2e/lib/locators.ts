@@ -471,3 +471,16 @@ export const dialogBox = {
     exists: By.className("monaco-dialog-box"),
     buttons: By.css(".dialog-buttons > a"),
 };
+
+export const mrsSdkDialog = {
+    exists: By.id("mrsSdkExportDialog"),
+    directory: By.id("directory"),
+    serviceUrl: By.id("serviceUrl"),
+    sdkLanguageList: By.css("#sdkLanguagePopup .popup.visible"),
+    sdkLanguage: By.id("sdkLanguage"),
+    appBaseClass: By.id("addAppBaseClass"),
+    appBaseClassList: By.css("#addAppBaseClassPopup .popup.visible"),
+    sdkFileHeader: By.id("header"),
+    ok: By.id("ok"),
+    cancel: By.id("cancel"),
+};

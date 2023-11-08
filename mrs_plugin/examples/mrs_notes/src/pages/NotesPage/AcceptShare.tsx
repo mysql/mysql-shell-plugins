@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-autofocus */
 /*
  * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
@@ -54,7 +55,7 @@ export default class AcceptShare extends Component<IAcceptShareProps, IAcceptSha
      * Accepts a shared note
      */
     private readonly acceptSharedNote = async (): Promise<void> => {
-        const { showError, myService } = this.props;
+        const { myService } = this.props;
         const { invitationKey } = this.state;
 
         try {

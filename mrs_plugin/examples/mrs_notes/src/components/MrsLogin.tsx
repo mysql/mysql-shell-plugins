@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-autofocus */
 /*
  * Copyright (c) 2023, Oracle and/or its affiliates.
  *
@@ -33,8 +34,8 @@ interface IMrsLoginProps {
 
 interface IMrsLoginState {
     userName: string;
-    password: string;
-    loginError: string;
+    password?: string;
+    loginError?: string;
     userNameVerified: boolean;
 }
 
@@ -45,9 +46,10 @@ export default class MrsLogin extends Component<IMrsLoginProps, IMrsLoginState> 
     public constructor(props: IMrsLoginProps) {
         super(props);
 
-        this.setState({
-            userNameVerified: false
-        });
+        this.state = {
+            userName: "",
+            userNameVerified: false,
+        };
     }
 
     private readonly setStateClassStyle = (id: string, className?: string): void => {
@@ -109,7 +111,7 @@ export default class MrsLogin extends Component<IMrsLoginProps, IMrsLoginState> 
 
             const response = await myService.session.verifyPassword(password);
 
-            if (response.errorCode) {
+            if (response.errorCode !== null && response.errorCode !== undefined) {
                 this.showLoginError(response.errorMessage as string);
             }
 
@@ -139,7 +141,8 @@ export default class MrsLogin extends Component<IMrsLoginProps, IMrsLoginState> 
                             onInput={(e) => { this.userNameChange((e.target as HTMLInputElement).value); }}
                             onKeyPress={(e) => { if (e.keyCode === 13) { void this.verifyUserName(); } }} />
                         {!userNameVerified && <div id="userNameBtn" className={styles.mrsLoginBtnNext}
-                            onClick={() => { void this.verifyUserName(); }} />
+                            onClick={() => { void this.verifyUserName(); }}
+                            onKeyPress={ () => { /** */ }} role="button" tabIndex={-1}/>
                         }
                     </div>
                     {userNameVerified &&
@@ -148,7 +151,8 @@ export default class MrsLogin extends Component<IMrsLoginProps, IMrsLoginState> 
                                 onInput={(e) => { this.passwordChange((e.target as HTMLInputElement).value); }}
                                 onKeyPress={(e) => { if (e.keyCode === 13) { void this.verifyPassword(); } }} />
                             <div id="passwordBtn" className={styles.mrsLoginBtnNext}
-                                onClick={() => { void this.verifyPassword(); }} />
+                                onClick={() => { void this.verifyPassword(); }}
+                                onKeyPress={ () => { /** */ }} role="button" tabIndex={-2}/>
                         </div>
                     }
                 </div>

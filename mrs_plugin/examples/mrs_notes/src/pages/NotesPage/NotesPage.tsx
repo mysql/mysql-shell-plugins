@@ -27,7 +27,6 @@ import AcceptShare from "./AcceptShare";
 import NoteList from "./NotesList";
 import Share from "./Share";
 import styles from "./NotesPage.module.css";
-import { IFetchInput } from "../../app";
 import type { IMyServiceMrsNotesNotesAll, MyService } from "../../myService.mrs.sdk/myService";
 
 interface INotesPageProps {
@@ -101,6 +100,7 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
         }
     };
 
+
     /**
      * Refreshes and updates the notes state
      *
@@ -124,13 +124,16 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
             }
 
             const take = 10;
-            let page, skip = 0;
+            let page; let skip = 0;
 
             do {
                 // Proof that we do not need more than "take" and "skip" for pagination.
                 // Ultimately, this can be simplified if findMany() returns an instance of IMyServiceMrsNotesNotesAll[].
-                page = await myService.mrsNotes.notesAll.findMany({ take, skip, select: { content: false }, where: {
-                    title: { $like: `${noteSearchText ? noteSearchText : ""}%` } } });
+                page = await myService.mrsNotes.notesAll.findMany({
+                    take, skip, select: { content: false }, where: {
+                        title: { $like: `${noteSearchText ?? ""}%` },
+                    },
+                });
 
                 newNotes.push(...page.items);
                 // Set a new state of the newNotes to trigger a re-render
@@ -196,7 +199,8 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
 
         try {
             const newNote = await myService.mrsNotes.note.create({
-                data: { title: content.split("\n")[0], content, pinned: false, lockedDown: false } })
+                data: { title: content.split("\n")[0], content, pinned: false, lockedDown: false },
+            });
 
             this.setInfoMessage("Note added.");
 
@@ -220,7 +224,7 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
 
         this.setInfoMessage("Deleting note...");
 
-        await myService.mrsNotes.note.delete({ where: { id: note.id }});
+        await myService.mrsNotes.note.delete({ where: { id: note.id } });
 
         this.setInfoMessage("Note deleted.");
     };
@@ -241,7 +245,7 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
             pinned: note.pinned,
             lockedDown: note.lockedDown,
             content: note.content as string,
-            tags: note.tags
+            tags: note.tags,
         });
 
         this.setInfoMessage("Note updated.");
@@ -341,7 +345,7 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
 
         try {
             if (activeNote !== undefined) {
-                if (window.confirm(`Are you sure you want to delete the note "${activeNote.title}"?`)) {
+                if (window.confirm(`Are you sure you want to delete the note "${activeNote.title ?? ""}"?`)) {
                     await this.deleteNote(activeNote);
 
                     this.setState({ activeNote: undefined });
@@ -423,10 +427,11 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                     // does not like it.
                     // According to Lukasz, we decided that boolean values would map to BIT(1) only. So, we
                     // need to change the sample app schema before changing this.
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     invitationAccepted: 0,
-                    invitationKey: { not: null }
-                }
+                    invitationKey: { not: null },
+                },
             });
 
             this.setState({ pendingInvitation: typeof pendingInvitation === "undefined" ? false : true });
@@ -514,7 +519,9 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                                     onClick={() => { void this.addNote(undefined, true); }} />
                             </div>
                             <div className={styles.noteContent}>
-                                <div className={styles.noteDate} onClick={() => { this.setTextAreaFocus(); }}>
+                                <div className={styles.noteDate}
+                                    onClick={() => { this.setTextAreaFocus(); }}
+                                    onKeyPress={() => {/** */ }} role="button" tabIndex={0}>
                                     {activeNote !== undefined
                                         ? (new Date(String(activeNote.lastUpdate))).toLocaleString(
                                             undefined, { dateStyle: "long", timeStyle: "short" })
@@ -532,11 +539,17 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                 }
                 {page === "#notesShare" &&
                     <Share showError={showError} activeNote={activeNote}
-                        showPage={async (page: string) => { await this.refreshNotes(); showPage(page); }} myService={myService} />
+                        showPage={async (page: string) => {
+                            await this.refreshNotes(); showPage(page);
+                        }}
+                        myService={myService} />
                 }
                 {page === "#notesAcceptShare" &&
                     <AcceptShare showError={showError}
-                        showPage={async (page: string) => { await this.refreshNotes(); showPage(page); }} myService={myService} />
+                        showPage={async (page: string) => {
+                            await this.refreshNotes(); showPage(page);
+                        }}
+                        myService={myService} />
                 }
             </>);
     };

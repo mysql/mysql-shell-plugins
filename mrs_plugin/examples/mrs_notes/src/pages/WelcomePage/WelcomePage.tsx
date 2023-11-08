@@ -22,7 +22,6 @@
  */
 
 import { Component, ComponentChild } from "preact";
-import { serviceUrl } from "../../app";
 import MrsLogin from "../../components/MrsLogin";
 import styles from "./WelcomePage.module.css";
 import type { MyService } from "../../myService.mrs.sdk/myService";
@@ -79,7 +78,8 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
         } catch (e) {
             const errStr = (typeof e === "string") ? e : (e instanceof Error) ? e.message : "";
             this.setState({
-                error: `Failed to connect to the REST endpoint:\n${serviceUrl}/mrsNotes/notesServed\nError: ${errStr}`,
+                error: `Failed to connect to the REST endpoint:\n${myService.serviceUrl}` +
+                    `/mrsNotes/notesServed\nError: ${errStr}`,
             });
         }
     };
@@ -108,7 +108,7 @@ export default class WelcomePage extends Component<IWelcomePageProps, IWelcomePa
      * @returns The rendered ComponentChild
      */
     public render = (props: IWelcomePageProps, state: IWelcomePageState): ComponentChild => {
-        const { startLogin, handleLogin, myService } = props;
+        const { myService, handleLogin, startLogin } = props;
         const { notesServed, authApps, error } = state;
         // Build a human readable string of there are notesServed > 0
         const notesManaged = (notesServed > 0)

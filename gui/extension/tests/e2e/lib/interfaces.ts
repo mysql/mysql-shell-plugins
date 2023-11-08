@@ -224,3 +224,11 @@ export interface ICommandResultIdHolder {
     id?: string;
     suite?: string;
 }
+
+export interface IExportMRSSDK {
+    directory: string;
+    url: string;
+    apiLanguage: string;
+    appBaseClass: string;
+    sdkFileHeader: string;
+}

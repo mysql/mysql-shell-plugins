@@ -147,7 +147,7 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
         if not host_ctx.lower().startswith("http"):
             service_url = "https://localhost:8443" + url_context_root
         else:
-            service_url = url_context_root + url_context_root
+            service_url = host_ctx
 
     mapping = {
         "service_name": lib.core.convert_path_to_camel_case(service.get("url_context_root")),
@@ -727,6 +727,10 @@ class MrsService {
 
     public edit = () => {
         mrsEditService(this.#serviceId);
+    };
+
+    public exportSdk = () => {
+        mrsExportServiceSdk(this.#serviceId);
     };
 }
 

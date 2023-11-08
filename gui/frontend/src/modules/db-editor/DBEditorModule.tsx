@@ -51,6 +51,7 @@ import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor/index.js"
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts.js";
 import {
     appParameters, IMrsAuthAppEditRequest, IMrsContentSetEditRequest, IMrsDbObjectEditRequest, IMrsSchemaEditRequest,
+    IMrsSdkExportRequest,
     IMrsUserEditRequest, InitialEditor, requisitions,
 } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
@@ -218,6 +219,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.register("showMrsContentSetDialog", this.showMrsContentSetDialog);
         requisitions.register("showMrsAuthAppDialog", this.showMrsAuthAppDialog);
         requisitions.register("showMrsUserDialog", this.showMrsUserDialog);
+        requisitions.register("showMrsSdkExportDialog", this.showMrsSdkExportDialog);
     }
 
     public componentWillUnmount(): void {
@@ -244,6 +246,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.unregister("showMrsContentSetDialog", this.showMrsContentSetDialog);
         requisitions.unregister("showMrsAuthAppDialog", this.showMrsAuthAppDialog);
         requisitions.unregister("showMrsUserDialog", this.showMrsUserDialog);
+        requisitions.unregister("showMrsSdkExportDialog", this.showMrsSdkExportDialog);
     }
 
     public render(): ComponentChild {
@@ -865,6 +868,23 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 const state = this.connectionState.get(selectedPage);
                 if (state) {
                     return this.mrsHubRef.current.showMrsUserDialog(state.backend, request.authApp, request.user);
+                }
+            }
+        }
+
+        return false;
+    };
+
+    private showMrsSdkExportDialog = async (request: IMrsSdkExportRequest): Promise<boolean> => {
+        if (this.mrsHubRef.current) {
+            const { selectedPage, editorTabs } = this.state;
+            const tab = editorTabs.find((entry) => { return entry.tabId === selectedPage; });
+            if (tab) {
+                const state = this.connectionState.get(selectedPage);
+                if (state) {
+                    return this.mrsHubRef.current.showMrsSdkExportDialog(
+                        state.backend, request.serviceId, request.connectionId, request.connectionDetails,
+                        request.directory);
                 }
             }
         }

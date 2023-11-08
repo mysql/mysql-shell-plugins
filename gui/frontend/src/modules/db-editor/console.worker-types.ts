@@ -100,6 +100,9 @@ export enum ScriptingApi {
     /** Triggers the MRS db object editor. */
     MrsEditDbObject,
 
+    /** Trigger MRS SDK Export dialog */
+    MrsExportServiceSdk,
+
     /** A special API to denote that everything is done in the console worker and the task can be removed. */
     Done,
 }

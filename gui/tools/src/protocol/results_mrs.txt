@@ -296,6 +296,17 @@ export interface IMrsScriptResult {
     result?: IDictionary,
 }
 
+export interface IMrsSdkOptions {
+    serviceId: string,
+    dbConnectionUri: string,
+    sdkLanguage: string,
+    addAppBaseClass?: string,
+    serviceUrl: string,
+    version?: number,
+    generationDate?: string,
+    header?: string,
+}
+
 export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData; };
     [ShellAPIMrs.MrsGetService]: { result: IMrsServiceData; };
@@ -377,5 +388,6 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsGetTableColumnsWithReferences]: { result: IMrsTableColumnWithReference[]; };
     [ShellAPIMrs.MrsGetObjectFieldsWithReferences]: { result: IMrsObjectFieldWithReference[]; };
     [ShellAPIMrs.MrsDumpSdkServiceFiles]: { result: boolean; };
+    [ShellAPIMrs.MrsGetSdkOptions]: { result: IMrsSdkOptions; };
     [ShellAPIMrs.MrsRunScript]: { result: IMrsScriptResult[]; };
 }

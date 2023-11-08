@@ -68,6 +68,18 @@ export const mrsEditService = (serviceId: string): void => {
     });
 };
 
+export const mrsExportServiceSdk = (serviceId: string): void => {
+    currentWorker.postMessage({
+        taskId: currentWorker.currentTaskId,
+        data: {
+            api: ScriptingApi.MrsExportServiceSdk,
+            serviceId,
+            contextId: currentWorker.currentContext,
+            final: true,
+        },
+    });
+};
+
 export const mrsSetServiceUrl = (serviceUrl: string): void => {
     currentWorker.postMessage({
         taskId: currentWorker.currentTaskId,

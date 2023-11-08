@@ -119,7 +119,7 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
     }
 
     public render(): ComponentChild {
-        const { path, placeholder, id } = this.mergedProps;
+        const { path, placeholder, id, canSelectFolders } = this.mergedProps;
 
         const className = this.getEffectiveClassNames(["fileSelector"]);
 
@@ -137,11 +137,11 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
                     onConfirm={this.handleInputConfirm}
                     onCancel={this.handleInputCancel}
                 />
-                <Button
+                { (!canSelectFolders || appParameters.embedded) && <Button
                     id={id && `${id}Btn`}
                     caption="..."
                     onClick={this.handleButtonClick}
-                />
+                />}
             </Container>
         );
     }

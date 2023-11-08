@@ -1692,6 +1692,49 @@ export class Database {
         await dialog.findElement(locator.hwDialog.ok).click();
     };
 
+    public static setExportMRSSDK = async (data: interfaces.IExportMRSSDK): Promise<void> => {
+        if ((await Misc.insideIframe()) === false) {
+            await Misc.switchToFrame();
+        }
+
+        const dialog = await driver.wait(until.elementLocated(locator.mrsSdkDialog.exists), constants.wait5seconds,
+            "Export MRS SDK dialog was not found");
+
+        if (data) {
+            if (data.directory) {
+                const inputDirectory = await dialog.findElement(locator.mrsSdkDialog.directory);
+                await inputDirectory.clear();
+                await inputDirectory.sendKeys(data.directory);
+            }
+            if (data.url) {
+                const inputServiceUrl = await dialog.findElement(locator.mrsSdkDialog.serviceUrl);
+                await inputServiceUrl.clear();
+                await inputServiceUrl.sendKeys(data.url);
+            }
+            if (data.apiLanguage) {
+                const inputSdkLanguage = await dialog.findElement(locator.mrsSdkDialog.sdkLanguage);
+                await inputSdkLanguage.click();
+                const popup = await driver.wait(until.elementLocated(locator.mrsSdkDialog.sdkLanguageList));
+                await popup.findElement(By.id(data.apiLanguage)).click();
+                await driver.actions().sendKeys(Key.ESCAPE).perform();
+            }
+            if (data.appBaseClass) {
+                const inputAppBaseClass = await dialog.findElement(locator.mrsSdkDialog.appBaseClass);
+                await inputAppBaseClass.click();
+                const popup = await driver.wait(until.elementLocated(locator.mrsSdkDialog.appBaseClassList));
+                await popup.findElement(By.id(data.appBaseClass)).click();
+                await driver.actions().sendKeys(Key.ESCAPE).perform();
+            }
+            if (data.sdkFileHeader) {
+                const inputSdkFileHeader = await dialog.findElement(locator.mrsSdkDialog.sdkFileHeader);
+                await inputSdkFileHeader.clear();
+                await inputSdkFileHeader.sendKeys(data.sdkFileHeader);
+            }
+        }
+
+        await dialog.findElement(locator.mrsSdkDialog.ok).click();
+    };
+
     private static toggleCheckBox = async (elId: string, checked: boolean): Promise<void> => {
         const isUnchecked = async () => {
             return (await driver.findElement(By.id(elId)).getAttribute("class")).split(" ")
