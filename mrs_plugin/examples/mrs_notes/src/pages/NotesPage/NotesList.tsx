@@ -64,7 +64,8 @@ export default class NoteList extends Component<INotesListProps> {
 
                         return (
                             <div className={noteStyle}
-                                key={note.id} onClick={() => { void setActiveNoteById(note.id, true); }} tabIndex={0}>
+                                key={note.id} onClick={() => { void setActiveNoteById(note.id, true); }}
+                                onKeyPress={ () => { /** */ }} role="button" tabIndex={0}>
                                 <div className={styles.notesListItemGutter}>
                                     {note.shared === true &&
                                         <Icon name="userIcon" styleClass={styles.userIconStyle} />

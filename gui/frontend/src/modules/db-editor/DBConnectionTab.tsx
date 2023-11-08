@@ -1393,26 +1393,18 @@ Execute \\help or \\? for help;`;
             }
 
             case QueryType.Use: {
-                // Check if this is a USE REST SERVICE statement
-                if (options.query.trim().match(/\s*USE\s+REST\s+SERVICE\.*/gmi)) {
-                    // Enforce a refresh of the MRS Sdk Cache
-                    this.cachedMrsServiceSdk.schemaMetadataVersion = undefined;
-                    await this.updateMrsServiceSdkCache();
-
-                    void requisitions.executeRemote("refreshConnections", undefined);
-                } else {
-                    // The user wants to change the current schema.
-                    // This may have failed so query the backend for the current schema and then trigger the command.
-                    const schema = await backend?.getCurrentSchema();
-                    if (schema) {
-                        requisitions.executeRemote("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
-                        await requisitions.execute("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
-                    }
+                // The user wants to change the current schema.
+                // This may have failed so query the backend for the current schema and then trigger the command.
+                const schema = await backend?.getCurrentSchema();
+                if (schema) {
+                    requisitions.executeRemote("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
+                    await requisitions.execute("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
                 }
 
                 break;
             }
 
+            case QueryType.RestUse:
             case QueryType.Rest: {
                 // Enforce a refresh of the MRS Sdk Cache
                 this.cachedMrsServiceSdk.schemaMetadataVersion = undefined;
@@ -1430,6 +1422,7 @@ Execute \\help or \\? for help;`;
     };
 
     private updateMrsServiceSdkCache = async (): Promise<boolean> => {
+        const { connectionId } = this.props;
         const { backend } = this.state;
 
         if (backend !== undefined) {
@@ -1480,6 +1473,17 @@ Execute \\help or \\? for help;`;
                         // Fetch new SDK Service Classes and build full code
                         void updateStatusbar(`$(loading~spin) ${firstLoad ? "Loading" : "Refreshing"} MRS SDK for ` +
                             `${serviceMetadata.hostCtx}...`);
+                        if (this.cachedMrsServiceSdk.serviceUrl === undefined) {
+                            if (!serviceMetadata.hostCtx.toLowerCase().startsWith("http")) {
+                                const service = await backend.mrs.getService(
+                                    serviceMetadata.id, null, null, null, null);
+
+                                this.cachedMrsServiceSdk.serviceUrl =
+                                    `https://localhost:${8443+connectionId}${service.urlContextRoot}`;
+                            } else {
+                                this.cachedMrsServiceSdk.serviceUrl = serviceMetadata.hostCtx;
+                            }
+                        }
                         code += this.cachedMrsServiceSdk.baseClasses + "\n" +
                             await backend.mrs.getSdkServiceClasses(
                                 serviceMetadata.id, "TypeScript", true, this.cachedMrsServiceSdk.serviceUrl);
@@ -1741,7 +1745,7 @@ Execute \\help or \\? for help;`;
      * @returns A promise which resolves when the result was handled.
      */
     private handleTaskResult = async (taskId: number, data: IConsoleWorkerResultData): Promise<void> => {
-        const { workerPool } = this.props;
+        const { workerPool, connectionId } = this.props;
         const { backend } = this.state;
 
         try {
@@ -1982,6 +1986,21 @@ Execute \\help or \\? for help;`;
                         const service = await backend.mrs.getService(data.serviceId, null, null, null, null);
                         if (service !== undefined) {
                             void requisitions.execute("showMrsServiceDialog", service);
+                        }
+
+                    }
+
+                    break;
+                }
+
+                case ScriptingApi.MrsExportServiceSdk: {
+                    if (backend && data.serviceId && typeof data.serviceId === "string") {
+                        const service = await backend.mrs.getService(data.serviceId, null, null, null, null);
+                        if (service !== undefined) {
+                            void requisitions.execute("showMrsSdkExportDialog", {
+                                serviceId: data.serviceId,
+                                connectionId,
+                            });
                         }
 
                     }

@@ -1,5 +1,20 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.14.0+8.1.1
+
+### Additions
+
+- Added support for MRS functions
+- Added MySQL Router to extension package
+- Changed the MRS sample code to make use of SDK
+
+### Fixes
+
+- Fixed broken Copy/Paste function on DB Notebooks
+- Fix for breaking OCI SDK change for listing MySQL DB Systems
+- Fixed auto-completion for @... decorators for MRS SQL statements
+- Fixes in MRS SQL generation
+
 ## Changes in 1.13.6+8.1.1
 
 ### Fixes

@@ -224,6 +224,9 @@ export enum MrsDialogType {
 
     /** A dialog to create or edit an MRS contentSet. */
     MrsContentSet,
+
+    /** A dialog to set the SDK export settings. */
+    MrsSdkExport,
 }
 
 /** Types for MySQL Database Service (OCI) dialogs. */

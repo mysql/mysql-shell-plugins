@@ -465,12 +465,8 @@ export class Misc {
     };
 
     public static getRouterConfigFile = (): string => {
-        if (Misc.isWindows()) {
-            return join(process.env.APPDATA, "MySQL",
-                "mysqlrouter", "mysqlrouter.conf");
-        } else {
-            return join(constants.basePath, ".mysqlrouter", "mysqlrouter.conf");
-        }
+        return join(constants.basePath, `mysqlsh-${process.env.TEST_SUITE}`,
+            "plugin_data", "mrs_plugin", "router_configs", "1", "mysqlrouter", "mysqlrouter.conf");
     };
 
     public static getRouterLogFile = async (): Promise<string> => {

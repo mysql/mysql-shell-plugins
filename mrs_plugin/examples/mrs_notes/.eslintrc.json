@@ -1,14 +1,19 @@
 {
     "env": {
         "browser": true,
-        "es2021": true
+        "es6": true
     },
     "extends": [
-        "plugin:react/recommended",
-        "standard-with-typescript",
+        "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "plugin:react/recommended",
+        "plugin:jsx-a11y/recommended",
         "plugin:jsdoc/recommended"
+    ],
+    "ignorePatterns": [
+        "**/dist/*",
+        "src/tests"
     ],
     "overrides": [
     ],
@@ -600,7 +605,6 @@
         "@typescript-eslint/strict-boolean-expressions": "error",
         "jsdoc/check-alignment": "error",
         "jsdoc/check-indentation": "off",
-        "jsdoc/newline-after-description": "error",
         "jsdoc/require-param-type": "off",
         "jsdoc/require-returns-type": "off",
         "jsdoc/tag-lines": [

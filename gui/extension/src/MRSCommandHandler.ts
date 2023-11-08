@@ -23,7 +23,7 @@
 
 import fs from "fs";
 import os from "os";
-import path from "path";
+import path, { join } from "path";
 
 import {
     commands, env, ExtensionContext, ExtensionMode, TerminalExitStatus, Uri, ViewColumn, WebviewPanel, window,
@@ -31,7 +31,9 @@ import {
 
 import { DBType } from "../../frontend/src/supplement/ShellInterface/index.js";
 
-import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../frontend/src/communication/MySQL.js";
+import {
+    IMySQLConnectionOptions, MySQLConnectionScheme,
+} from "../../frontend/src/communication/MySQL.js";
 import { IMrsServiceData } from "../../frontend/src/communication/ProtocolMrs.js";
 import { DBEditorModuleId } from "../../frontend/src/modules/ModuleInfo.js";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -80,25 +82,30 @@ export class MRSCommandHandler {
                 await this.startStopLocalRouter(host.context, entry);
             }));
 
-        host.context.subscriptions.push(commands.registerCommand("msg.mrs.killLocalRouters", () => {
-            let term = window.terminals.find((t) => { return t.name === "MySQL Router MRS"; });
-            if (term === undefined) {
-                term = window.createTerminal("MySQL Router MRS");
-            }
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.killLocalRouters",
+            (entry?: ICdmRestRootEntry) => {
+                let term = window.terminals.find((t) => { return t.name === "MySQL Router MRS"; });
+                if (term === undefined) {
+                    term = window.createTerminal("MySQL Router MRS");
+                }
 
-            if (os.platform() === "win32") {
-                term.sendText("taskkill /IM mysqlrouter.exe /F", true);
-            } else {
-                term.sendText("killall -9 mysqlrouter", true);
-            }
+                if (term) {
+                    term.show();
+                    if (os.platform() === "win32") {
+                        term.sendText("taskkill /IM mysqlrouter.exe /F", true);
+                    } else {
+                        term.sendText("killall -9 mysqlrouter", true);
+                    }
 
-            // Make sure to remove the .pid file
-            try {
-                fs.unlinkSync(path.join(this.getLocalRouterConfigDir(), "mysqlrouter.pid"));
-            } catch (error) {
-                //
-            }
-        }));
+                    // Make sure to remove the .pid file
+                    try {
+                        fs.unlinkSync(path.join(this.getRouterConfigDir(host.context, entry), "mysqlrouter.pid"));
+                    } catch (error) {
+                        //
+                    }
+                }
+
+            }));
 
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.stopLocalRouter",
@@ -201,28 +208,66 @@ export class MRSCommandHandler {
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.exportServiceSdk",
             async (entry?: ICdmRestServiceEntry) => {
-                if (entry) {
+                if (entry && entry.treeItem && entry.treeItem.value && this.#host.currentProvider) {
                     const item = entry.treeItem;
-                    if (item.value) {
-                        const backend = item.backend;
 
-                        await window.showSaveDialog({
+                    try {
+                        const value = await window.showSaveDialog({
                             title: "Export REST Service SDK Files...",
                             defaultUri: Uri.file(`${os.homedir()}/${pathToCamelCase(item.value.urlContextRoot)}` +
                                 `.mrs.sdk`),
                             saveLabel: "Export SDK Files",
-                        }).then(async (value) => {
-                            if (value !== undefined) {
-                                try {
-                                    const path = value.fsPath;
-                                    await backend.mrs.dumpSdkServiceFiles(item.value.id, "TypeScript", path);
-                                    showMessageWithTimeout("MRS Service REST Files exported successfully.");
-                                } catch (error) {
-                                    void window.showErrorMessage(
-                                        `Error while exporting the REST Service SDK Files: ${String(error)}`);
-                                }
-                            }
                         });
+
+                        if (value !== undefined) {
+                            const connectionId = entry.parent.parent.id;
+
+                            void this.#host.currentProvider.runCommand("job", [
+                                { requestType: "showModule", parameter: DBEditorModuleId },
+                                { requestType: "showPage", parameter: {
+                                    module: DBEditorModuleId, page: connectionId } },
+                                { requestType: "showMrsSdkExportDialog", parameter: {
+                                    serviceId: item.value.id,
+                                    connectionId,
+                                    connectionDetails: entry.parent.parent.treeItem.details,
+                                    directory: value.fsPath,
+                                } },
+                            ], "newConnection");
+                        }
+                    } catch (e) {
+                        // do nothing
+                    }
+                }
+            }));
+
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.rebuildMrsSdk",
+            async (directory?: Uri) => {
+                if (directory) {
+                    const connection = await host.determineConnection(DBType.MySQL);
+                    if (connection) {
+                        const sqlEditor = new ShellInterfaceSqlEditor();
+                        const statusbarItem = window.createStatusBarItem();
+                        try {
+                            statusbarItem.text = "$(loading~spin) Starting Database Session ...";
+                            statusbarItem.show();
+
+                            statusbarItem.text = "$(loading~spin) Starting Database Session ...";
+                            await sqlEditor.startSession(String(connection.treeItem.details.id) + "MrsSdkGeneration");
+
+                            statusbarItem.text = "$(loading~spin) Opening Database Connection ...";
+                            await openSqlEditorConnection(sqlEditor, connection.treeItem.details.id, (message) => {
+                                statusbarItem.text = "$(loading~spin) " + message;
+                            });
+
+                            await sqlEditor.mrs.dumpSdkServiceFiles(directory.fsPath);
+                            showMessageWithTimeout("MRS SDK Files exported successfully.");
+                        } catch (error) {
+                            void window.showErrorMessage("A error occurred when trying to show the MRS Static " +
+                                `Content Set Dialog. Error: ${error instanceof Error ? error.message : String(error)}`);
+                        } finally {
+                            statusbarItem.hide();
+                            await sqlEditor.closeSession();
+                        }
                     }
                 }
             }));
@@ -544,16 +589,6 @@ export class MRSCommandHandler {
                 }
             }));
 
-        host.context.subscriptions.push(commands.registerCommand("msg.mrs.rebuildMrsSdk",
-            async (directory?: Uri) => {
-                if (directory) {
-                    const connection = await host.determineConnection(DBType.MySQL);
-                    if (connection) {
-                        void window.showErrorMessage("Not yet implemented.");
-                    }
-                }
-            }));
-
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.deleteContentSet",
             async (entry?: ICdmRestContentSetEntry) => {
                 if (entry) {
@@ -871,10 +906,32 @@ export class MRSCommandHandler {
         }
     };
 
+    private getRouterConfigDir = (context: ExtensionContext, entry?: ICdmRestRootEntry): string => {
+        const shellConfDir = MySQLShellLauncher.getShellUserConfigDir(
+            context.extensionMode === ExtensionMode.Development);
+        const routerConfigBaseDir = path.join(shellConfDir, "plugin_data", "mrs_plugin", "router_configs");
+
+        return (process.env.MYSQL_ROUTER_CUSTOM_DIR !== undefined)
+            ? process.env.MYSQL_ROUTER_CUSTOM_DIR
+            : path.join(routerConfigBaseDir, entry?.parent.id.toString() ?? "default", "mysqlrouter");
+    };
+
+    private getEmbeddedRouterBinPath = (context: ExtensionContext): string | undefined => {
+        const routerBinDir = join(context.extensionPath, "router", "bin");
+
+        if (fs.existsSync(routerBinDir)) {
+            return routerBinDir;
+        }
+
+        return undefined;
+    };
+
     private bootstrapLocalRouter = async (context: ExtensionContext,
         entry?: ICdmRestRootEntry, waitAndClosedWhenFinished = false): Promise<TerminalExitStatus | undefined> => {
         if (entry) {
-            if (findExecutable("mysqlrouter_bootstrap").length > 0) {
+            const routerBinDir = this.getEmbeddedRouterBinPath(context);
+
+            if (routerBinDir !== undefined || findExecutable("mysqlrouter_bootstrap").length > 0) {
                 const shellConfDir = MySQLShellLauncher.getShellUserConfigDir(
                     context.extensionMode === ExtensionMode.Development);
                 const certDir = path.join(shellConfDir, "plugin_data", "gui_plugin", "web_certs");
@@ -900,16 +957,7 @@ export class MRSCommandHandler {
                     term = window.createTerminal("MySQL Router MRS");
                 }
 
-                let routerConfigDir: string;
-                if (process.env.MYSQL_ROUTER_CUSTOM_DIR !== undefined) {
-                    routerConfigDir = process.env.MYSQL_ROUTER_CUSTOM_DIR;
-                } else {
-                    if (os.platform() === "win32") {
-                        routerConfigDir = path.join(this.getBaseDir(), "mysqlrouter");
-                    } else {
-                        routerConfigDir = path.join(this.getBaseDir(), ".mysqlrouter");
-                    }
-                }
+                const routerConfigDir = this.getRouterConfigDir(context, entry);
 
                 if (fs.existsSync(routerConfigDir)) {
                     const answer = await window.showInformationMessage(
@@ -926,16 +974,24 @@ export class MRSCommandHandler {
                     } else {
                         return;
                     }
+                } else {
+                    fs.mkdirSync(routerConfigDir, { recursive: true });
                 }
 
                 // cSpell:ignore consolelog
                 if (term !== undefined) {
                     term.show();
+                    const routerBootstrapPath = routerBinDir !== undefined
+                        ? join(routerBinDir, "mysqlrouter_bootstrap") : "mysqlrouter_bootstrap";
+                    const basePort = 6446 + (entry?.parent.id ?? 0) * 4;
+                    const httpPort = 8443 + (entry?.parent.id ?? 0);
                     term.sendText(
-                        `mysqlrouter_bootstrap ${connString} --mrs --directory "${routerConfigDir}" ` +
+                        `${routerBootstrapPath} ${connString} --mrs --directory "${routerConfigDir}" ` +
                         `"--conf-set-option=http_server.ssl_cert=${path.join(certDir, "server.crt")}" ` +
                         `"--conf-set-option=http_server.ssl_key=${path.join(certDir, "server.key")}" ` +
-                        `--conf-set-option=logger.level=DEBUG --conf-set-option=logger.sinks=consolelog`,
+                        `--conf-set-option=logger.level=DEBUG --conf-set-option=logger.sinks=consolelog ` +
+                        `--conf-base-port=${basePort.toString()} ` +
+                        `--conf-set-option=http_server.port=${httpPort.toString()}`,
                         !waitAndClosedWhenFinished);
 
                     if (waitAndClosedWhenFinished) {
@@ -1014,52 +1070,68 @@ export class MRSCommandHandler {
         return path.join(os.homedir(), "AppData", "Roaming", "MySQL");
     };
 
-    private getLocalRouterConfigDir = (): string => {
-        let routerConfigDir: string;
-        if (os.platform() === "win32") {
-            routerConfigDir = path.join(this.getBaseDir(), "mysqlrouter");
-        } else {
-            routerConfigDir = path.join(this.getBaseDir(), ".mysqlrouter");
-        }
-
-        return routerConfigDir;
-    };
-
     private startStopLocalRouter = async (context: ExtensionContext,
         entry?: ICdmRestRootEntry, start = true): Promise<void> => {
         if (entry) {
-            if (findExecutable("mysqlrouter")) {
-                const routerConfigDir = this.getLocalRouterConfigDir();
+            const routerBinDir = this.getEmbeddedRouterBinPath(context);
+
+            if (routerBinDir !== undefined || findExecutable("mysqlrouter")) {
+                const routerConfigDir = this.getRouterConfigDir(context, entry);
 
                 if (fs.existsSync(routerConfigDir)) {
                     let term = window.terminals.find((t) => { return t.name === "MySQL Router MRS"; });
                     if (term === undefined) {
                         term = window.createTerminal("MySQL Router MRS");
-                    }
-
-                    if (term !== undefined) {
-                        let cmd = (start ? "start" : "stop") + (os.platform() === "win32" ? ".ps1" : ".sh");
-                        cmd = path.join(routerConfigDir, cmd);
-
-                        if (cmd.includes(" ")) {
-                            if (os.platform() === "win32") {
-
-                                // If there is a space in the path, ensure to add the PowerShell call operator (&)
-                                if (cmd.includes(" ")) {
-                                    cmd = "& \"" + cmd + "\"";
-                                }
-                            } else {
-                                cmd = "\"" + cmd + "\"";
-                            }
-                        }
-
+                    } else {
                         term.show();
-                        if (os.platform() === "win32") {
-                            term.sendText("Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser", true);
-                            term.sendText("clear", true);
-                        }
-                        term.sendText(cmd, true);
                     }
+
+                    if (start) {
+                        // If there is a pid file, try to kill the router and remove the pid file
+                        const pidFilePath = path.join(this.getRouterConfigDir(context, entry), "mysqlrouter.pid");
+                        try {
+                            await fs.promises.access(pidFilePath);
+                            const answer = await window.showInformationMessage(
+                                `A MySQL Router instance might already to be running. `
+                                + "Do you want to force a start/restart of the MySQL Router?",
+                                "Yes", "No");
+                            if (answer === "Yes") {
+                                if (os.platform() === "win32") {
+                                    term.sendText("taskkill /IM mysqlrouter.exe /F", true);
+                                } else {
+                                    term.sendText("killall -9 mysqlrouter", true);
+                                }
+
+                                // Make sure to remove the .pid file
+                                await fs.promises.unlink(pidFilePath);
+                            } else {
+                                return;
+                            }
+                        } catch (error) {
+                            // do nothing
+                        }
+                    }
+
+                    let cmd = (start ? "start" : "stop") + (os.platform() === "win32" ? ".ps1" : ".sh");
+                    cmd = path.join(routerConfigDir, cmd);
+
+                    if (cmd.includes(" ")) {
+                        if (os.platform() === "win32") {
+
+                            // If there is a space in the path, ensure to add the PowerShell call operator (&)
+                            if (cmd.includes(" ")) {
+                                cmd = "& \"" + cmd + "\"";
+                            }
+                        } else {
+                            cmd = "\"" + cmd + "\"";
+                        }
+                    }
+
+                    if (os.platform() === "win32") {
+                        term.sendText("Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser", true);
+                        term.sendText("clear", true);
+                    }
+                    term.sendText(cmd, true);
                 } else {
                     if (start) {
                         const answer = await window.showInformationMessage(
@@ -1071,9 +1143,10 @@ export class MRSCommandHandler {
                             void this.startStopLocalRouter(this.#host.context, entry);
                         }
                     } else {
-                        showMessageWithTimeout(
+                        await window.showInformationMessage(
                             `The MySQL Router config directory ${routerConfigDir} was not found. ` +
-                            "Please bootstrap a local MySQL Router instance for development first.");
+                            "Please bootstrap a local MySQL Router instance for development first.",
+                            "OK");
                     }
                 }
             } else {

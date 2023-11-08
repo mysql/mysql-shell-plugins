@@ -123,11 +123,9 @@ try {
 
     if ($env:TEST_SUITE -eq "rest"){
         if ($isLinux) {
-            $mysqlrouterConfig = Join-Path $env:HOME ".mysqlrouter"
-            $mysqlrouterConfigOld = Join-Path $env:HOME ".mysqlrouter_old"
+            $mysqlrouterConfig = Join-Path $env:HOME "mysqlsh-$env:TEST_SUITE" "plugin_data" "mrs_plugin" "router_configs"
         } else {
-            $mysqlrouterConfig = Join-Path $env:APPDATA "MySQL" "mysqlrouter"
-            $mysqlrouterConfigOld = Join-Path $env:APPDATA "MySQL" "mysqlrouter_old"
+            $mysqlrouterConfig = Join-Path $env:userprofile "mysqlsh-$env:TEST_SUITE" "plugin_data" "mrs_plugin" "router_configs"
         }
 
         if (Test-Path -Path $mysqlrouterConfig) {

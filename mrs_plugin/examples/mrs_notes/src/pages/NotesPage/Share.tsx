@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-autofocus */
 /*
  * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
@@ -64,7 +65,8 @@ export default class Share extends Component<IShareProps, IShareState> {
         try {
             // Share the note with the given user
             if (email !== "") {
-                const response = await myService.mrsNotes.noteShare.call({ noteId: activeNote?.id, email, viewOnly, canShare });
+                const response = await myService.mrsNotes.noteShare.call(
+                    { noteId: activeNote?.id, email, viewOnly, canShare });
 
                 if (response.items?.length > 0) {
                     // Indicate that the note has been shared

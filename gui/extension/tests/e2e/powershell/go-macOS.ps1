@@ -53,16 +53,10 @@ if (Test-Path -Path $msqlsh){
 
 # REMOVE ROUTER LEFTOVERS
 if ($env:TEST_SUITE -eq "rest"){
-    $mysqlrouterConfig = Join-Path $home ".mysqlrouter"
-    $mysqlrouterConfigOld = Join-Path $home ".mysqlrouter_old"
+    $mysqlrouterConfig = Join-Path $home "mysqlsh-$env:TEST_SUITE" "plugin_data" "mrs_plugin" "router_configs"
     if (Test-Path -Path $mysqlrouterConfig) {
         write-host "Removing router config folder..."
         Remove-Item -Path $mysqlrouterConfig -Force -Recurse
-        write-host "DONE"
-    }
-    if (Test-Path -Path $mysqlrouterConfigOld) {
-        write-host "Removing router old config folder..."
-        Remove-Item -Path $mysqlrouterConfigOld -Force -Recurse
         write-host "DONE"
     }
 }

@@ -10,6 +10,7 @@
 /* eslint-disable @typescript-eslint/lines-between-class-members */
 /* eslint-disable @typescript-eslint/promise-function-async */
 /* eslint-disable no-multiple-empty-lines */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
     Geometry,
     GeometryCollection,
@@ -36,50 +37,20 @@ import {
     IMrsProcedureResult,
     IMrsProcedureResultList,
     MrsBaseObjectCall,
+    // --- importReadFunctionOnlyStart
+    MrsBaseObjectFunctionCall,
+    // --- importReadFunctionOnlyEnd
     IUpdateOptions,
     MrsBaseObjectUpdate,
     IMrsDeleteResult,
     IDeleteOptions,
     MrsBaseObjectDelete,
 } from "./MrsBaseClasses";
-/* =============================================================================
- * MRS Service https://localhost:8443/myService
- */
 
-export class MyService extends MrsBaseService {
-    #mrsNotes?: MyServiceMrsNotes;
-
-    public constructor() {
-        super("https://localhost:8443/myService", "/authentication");
-    }
-    public get mrsNotes(): MyServiceMrsNotes { if (this.#mrsNotes === undefined) { this.#mrsNotes = new MyServiceMrsNotes(this, "/mrsNotes"); } return this.#mrsNotes; }
-
-}
+export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
 /* -----------------------------------------------------------------------------
  * MRS Schema /mrsNotes
  */
-
-export class MyServiceMrsNotes extends MrsBaseSchema {
-    #note?: MyServiceMrsNotesNoteRequest;
-    #user?: MyServiceMrsNotesUserRequest;
-    #userHasNote?: MyServiceMrsNotesUserHasNoteRequest;
-    #notesAll?: MyServiceMrsNotesNotesAllRequest;
-    #notesServed?: MyServiceMrsNotesNotesServedRequest;
-    #noteAcceptShare?: MyServiceMrsNotesNoteAcceptShareParamsRequest;
-    #noteDelete?: MyServiceMrsNotesNoteDeleteParamsRequest;
-    #noteShare?: MyServiceMrsNotesNoteShareRequest;
-    #noteUpdate?: MyServiceMrsNotesNoteUpdateParamsRequest;
-    public get note(): MyServiceMrsNotesNoteRequest { if (this.#note === undefined) { this.#note = new MyServiceMrsNotesNoteRequest(this); } return this.#note; }
-    public get user(): MyServiceMrsNotesUserRequest { if (this.#user === undefined) { this.#user = new MyServiceMrsNotesUserRequest(this); } return this.#user; }
-    public get userHasNote(): MyServiceMrsNotesUserHasNoteRequest { if (this.#userHasNote === undefined) { this.#userHasNote = new MyServiceMrsNotesUserHasNoteRequest(this); } return this.#userHasNote; }
-    public get notesAll(): MyServiceMrsNotesNotesAllRequest { if (this.#notesAll === undefined) { this.#notesAll = new MyServiceMrsNotesNotesAllRequest(this); } return this.#notesAll; }
-    public get notesServed(): MyServiceMrsNotesNotesServedRequest { if (this.#notesServed === undefined) { this.#notesServed = new MyServiceMrsNotesNotesServedRequest(this); } return this.#notesServed; }
-    public get noteAcceptShare(): MyServiceMrsNotesNoteAcceptShareParamsRequest { if (this.#noteAcceptShare === undefined) { this.#noteAcceptShare = new MyServiceMrsNotesNoteAcceptShareParamsRequest(this); } return this.#noteAcceptShare; }
-    public get noteDelete(): MyServiceMrsNotesNoteDeleteParamsRequest { if (this.#noteDelete === undefined) { this.#noteDelete = new MyServiceMrsNotesNoteDeleteParamsRequest(this); } return this.#noteDelete; }
-    public get noteShare(): MyServiceMrsNotesNoteShareRequest { if (this.#noteShare === undefined) { this.#noteShare = new MyServiceMrsNotesNoteShareRequest(this); } return this.#noteShare; }
-    public get noteUpdate(): MyServiceMrsNotesNoteUpdateParamsRequest { if (this.#noteUpdate === undefined) { this.#noteUpdate = new MyServiceMrsNotesNoteUpdateParamsRequest(this); } return this.#noteUpdate; }
-
-}
 
 export class MyServiceMrsNotesObjectRequest {
     public constructor(
@@ -721,5 +692,41 @@ export interface IMyServiceMrsNotesNoteUpdateParams extends IMrsFetchData {
 }
 
 
+
+export class MyServiceMrsNotes extends MrsBaseSchema {
+    #note?: MyServiceMrsNotesNoteRequest;
+    #user?: MyServiceMrsNotesUserRequest;
+    #userHasNote?: MyServiceMrsNotesUserHasNoteRequest;
+    #notesAll?: MyServiceMrsNotesNotesAllRequest;
+    #notesServed?: MyServiceMrsNotesNotesServedRequest;
+    #noteAcceptShare?: MyServiceMrsNotesNoteAcceptShareParamsRequest;
+    #noteDelete?: MyServiceMrsNotesNoteDeleteParamsRequest;
+    #noteShare?: MyServiceMrsNotesNoteShareRequest;
+    #noteUpdate?: MyServiceMrsNotesNoteUpdateParamsRequest;
+    public get note(): MyServiceMrsNotesNoteRequest { if (this.#note === undefined) { this.#note = new MyServiceMrsNotesNoteRequest(this); } return this.#note; }
+    public get user(): MyServiceMrsNotesUserRequest { if (this.#user === undefined) { this.#user = new MyServiceMrsNotesUserRequest(this); } return this.#user; }
+    public get userHasNote(): MyServiceMrsNotesUserHasNoteRequest { if (this.#userHasNote === undefined) { this.#userHasNote = new MyServiceMrsNotesUserHasNoteRequest(this); } return this.#userHasNote; }
+    public get notesAll(): MyServiceMrsNotesNotesAllRequest { if (this.#notesAll === undefined) { this.#notesAll = new MyServiceMrsNotesNotesAllRequest(this); } return this.#notesAll; }
+    public get notesServed(): MyServiceMrsNotesNotesServedRequest { if (this.#notesServed === undefined) { this.#notesServed = new MyServiceMrsNotesNotesServedRequest(this); } return this.#notesServed; }
+    public get noteAcceptShare(): MyServiceMrsNotesNoteAcceptShareParamsRequest { if (this.#noteAcceptShare === undefined) { this.#noteAcceptShare = new MyServiceMrsNotesNoteAcceptShareParamsRequest(this); } return this.#noteAcceptShare; }
+    public get noteDelete(): MyServiceMrsNotesNoteDeleteParamsRequest { if (this.#noteDelete === undefined) { this.#noteDelete = new MyServiceMrsNotesNoteDeleteParamsRequest(this); } return this.#noteDelete; }
+    public get noteShare(): MyServiceMrsNotesNoteShareRequest { if (this.#noteShare === undefined) { this.#noteShare = new MyServiceMrsNotesNoteShareRequest(this); } return this.#noteShare; }
+    public get noteUpdate(): MyServiceMrsNotesNoteUpdateParamsRequest { if (this.#noteUpdate === undefined) { this.#noteUpdate = new MyServiceMrsNotesNoteUpdateParamsRequest(this); } return this.#noteUpdate; }
+    
+}
+
+/* =============================================================================
+ * MRS Service https://localhost:8444/myService
+ */
+
+export class MyService extends MrsBaseService {
+    #mrsNotes?: MyServiceMrsNotes;
+
+    public constructor() {
+        super("https://localhost:8444/myService", "/authentication");
+    }
+    public get mrsNotes(): MyServiceMrsNotes { if (this.#mrsNotes === undefined) { this.#mrsNotes = new MyServiceMrsNotes(this, "/mrsNotes"); } return this.#mrsNotes; }
+    
+}
 
 

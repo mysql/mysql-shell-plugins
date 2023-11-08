@@ -103,6 +103,7 @@ class DbMysqlSession(DbSession):
                 SetupTasks.HeatWaveCheckTask(self),
                 SetupTasks.BastionHandlerTask(
                     self, lambda message: self._message_callback('PENDING', "", message)),
+                SetupTasks.RemoveExternalOptionsTask(self),
                 DbPingHandlerTask(self)]
 
     @property

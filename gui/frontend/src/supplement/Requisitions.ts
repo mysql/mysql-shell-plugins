@@ -252,6 +252,13 @@ export interface IMrsUserEditRequest extends IDictionary {
     user?: IMrsUserData;
 }
 
+export interface IMrsSdkExportRequest extends IDictionary {
+    serviceId: string;
+    connectionId: number;
+    connectionDetails?: IConnectionDetails;
+    directory?: string;
+}
+
 /**
  * The map containing possible requests and their associated callback.
  * The return value in the promise determines if the request was handled or not.
@@ -446,6 +453,8 @@ export interface IRequestTypeMap {
 
     /** Shows the dialog to create or update an MRS user. */
     "showMrsUserDialog": (data: IMrsUserEditRequest) => Promise<boolean>;
+
+    "showMrsSdkExportDialog": (data: IMrsSdkExportRequest) => Promise<boolean>;
 
     /** A list of requests that must be executed sequentially. */
     "job": (job: Array<IRequestListEntry<keyof IRequestTypeMap>>) => Promise<boolean>;

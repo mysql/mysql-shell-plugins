@@ -21,6 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { IConnectionDetails } from "../supplement/ShellInterface/index.js";
+
 // Have to disable naming convention rule as we list a number of values here that cannot be
 // changed to conform to our rules.
 
@@ -213,4 +215,30 @@ export interface IMySQLConnectionOptions {
 
     /** disable HeatWave check */
     "disable-heat-wave-check"?: boolean;
+
+    /** MRS service host for this connection */
+    "mrs-service-host"?: string;
 }
+
+export const getMySQLDbConnectionUri = (details: IConnectionDetails): string => {
+    const opt = details.options as IMySQLConnectionOptions;
+    let dbConnectionUri = String(opt.scheme);
+
+    if (details.useSSH) {
+        dbConnectionUri += `+ssh://`;
+    } else if (details.useMDS) {
+        dbConnectionUri += `+mds://`;
+    }
+
+    if (opt.user) {
+        dbConnectionUri += `${opt.user}@`;
+    }
+
+    dbConnectionUri += opt.host;
+
+    if (opt.port) {
+        dbConnectionUri += ":" + String(opt.port);
+    }
+
+    return dbConnectionUri;
+};

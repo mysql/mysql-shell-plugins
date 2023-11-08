@@ -29,7 +29,7 @@ import {
     IMrsContentSetData, IMrsContentFileData, IShellMrsUpdateAuthenticationAppKwargsValue, IMrsUserData,
     IShellMrsUpdateUserKwargsValue, IMrsRoleData, IMrsUserRoleData,
     IMrsRouterData, IMrsCurrentServiceMetadata, IMrsTableColumnWithReference, IMrsObjectFieldWithReference,
-    IMrsObject, IMrsDbObjectParameterData,
+    IMrsObject, IMrsDbObjectParameterData, IMrsSdkOptions,
 } from "../../communication/ProtocolMrs.js";
 import { webSession } from "../WebSession.js";
 
@@ -813,14 +813,13 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async dumpSdkServiceFiles(serviceId: string, sdkLanguage: string, directory: string): Promise<boolean> {
+    public async dumpSdkServiceFiles(directory?: string, options?: IMrsSdkOptions): Promise<boolean> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsDumpSdkServiceFiles,
             parameters: {
                 kwargs: {
-                    serviceId,
-                    sdkLanguage,
                     directory,
+                    options: (options as unknown) as IShellDictionary,
                     moduleSessionId: this.moduleSessionId,
                 },
             },
@@ -828,6 +827,20 @@ export class ShellInterfaceMrs {
 
         return response.result;
     }
+
+    public async getSdkOptions(directory: string): Promise<IMrsSdkOptions | undefined> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetSdkOptions,
+            parameters: {
+                args: {
+                    directory,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
 
     public async getTableColumnsWithReferences(requestPath?: string, dbObjectName?: string,
         dbObjectId?: string, schemaId?: string, schemaName?: string,

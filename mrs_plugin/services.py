@@ -28,6 +28,9 @@ import mrs_plugin.lib as lib
 from .interactive import resolve_service, resolve_options
 from pathlib import Path
 import os
+import shutil
+import json
+import datetime
 
 
 def verify_value_keys(**kwargs):
@@ -866,20 +869,26 @@ def dump_sdk_service_files(**kwargs):
         **kwargs: Options to determine what should be generated.
 
     Keyword Args:
+        directory (str): The directory to store the .mrs.sdk folder with the files
+        options (dict): Several options how the SDK should be created
+        session (object): The database session to use.
+
+    Allowed options for options:
         service_id (str): The ID of the service the SDK should be generated for. If not specified, the default service
             is used.
+        db_connection_uri (str): The dbConnectionUri that was used to export the SDK files
         sdk_language (str): The SDK language to generate
-        directory (str): The directory to store the .mrs.sdk folder with the files
-        session (object): The database session to use.
+        add_app_base_class (str): The additional AppBaseClass file name
+        service_url (str): The url of the service
+        version (integer): The version of the generated files
+        generationDate (str): The generation date of the SDK files
+        header (str): The header to use for the SDK files
 
     Returns:
         True on success
     """
-    lib.core.convert_ids_to_binary(["service_id"], kwargs)
-
-    service_id = kwargs.get("service_id")
-    sdk_language = kwargs.get("sdk_language", "TypeScript")
     directory = kwargs.get("directory")
+    options = kwargs.get("options")
 
     if not directory:
         if lib.core.get_interactive_default():
@@ -891,29 +900,91 @@ def dump_sdk_service_files(**kwargs):
         else:
             raise Exception("No directory given.")
 
+    # Ensure the directory path exists
+    Path(directory).mkdir(parents=True, exist_ok=True)
+
+    # Try to read the mrs_config from the directory
+    mrs_config = get_stored_sdk_options(directory=directory)
+    if mrs_config is None and options is None:
+        raise Exception(f"No SDK options given and no existing SDK config found in the directory {directory}")
+
+    if mrs_config is None:
+        mrs_config = {}
+
+    if options is not None:
+        mrs_config["serviceId"] = options.get("service_id")
+        mrs_config["sdkLanguage"] = options.get("sdk_language", "TypeScript")
+        mrs_config["serviceUrl"] = options.get("service_url")
+        mrs_config["addAppBaseClass"] = options.get("add_app_base_class")
+        mrs_config["dbConnectionUri"] = options.get("db_connection_uri")
+        mrs_config["header"] = options.get(
+            "header", "/* Copyright (c) 2023, Oracle and/or its affiliates. */")
+
+    mrs_config["generationDate"] = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+    serviceId = lib.core.id_to_binary(mrs_config.get("serviceId"), "mrs.config.json", True)
+    if serviceId is None:
+        raise Exception("No serviceId defined in mrs.config.json. Please export the MRS SDK again.")
+
+    if mrs_config.get("sdkLanguage") is None:
+        raise Exception("No SDK Language given.")
+
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        service = resolve_service(session, service_id, True, True)
+        service = resolve_service(session, serviceId, True, True)
         service_name = lib.core.convert_path_to_camel_case(
             service.get("url_context_root"))
-        sdk_folder = f"{service_name}.mrs.sdk"
-
-        if not directory.endswith(sdk_folder):
-            directory = os.path.join(directory, sdk_folder)
-
-        # Ensure the directory path exists
-        Path(directory).mkdir(parents=True, exist_ok=True)
 
         base_classes = get_sdk_base_classes(
-            sdk_language=sdk_language, session=session)
+            sdk_language=mrs_config.get("sdkLanguage"), session=session)
         with open(os.path.join(directory, "MrsBaseClasses.ts"), 'w') as f:
             f.write(base_classes)
 
         service_classes = get_sdk_service_classes(
-            service_id=service_id, sdk_language=sdk_language, session=session)
+            service_id=serviceId, service_url=mrs_config.get("serviceUrl"),
+            sdk_language=mrs_config.get("sdkLanguage"), session=session)
         with open(os.path.join(directory, f"{service_name}.ts"), 'w') as f:
             f.write(service_classes)
 
+        add_app_base_class = mrs_config.get("addAppCaseClass")
+
+        if add_app_base_class is not None and isinstance(add_app_base_class, str) and add_app_base_class is not '':
+            path = os.path.abspath(__file__)
+            filePath = Path(os.path.dirname(path), "sdk", add_app_base_class)
+            shutil.copy(filePath, os.path.join(directory, add_app_base_class))
+
+    # cspell:ignore timespec
+    conf_file = Path(directory, "mrs.config.json")
+    with open(conf_file, 'w') as f:
+        f.write(json.dumps(mrs_config, indent=4))
+
     return True
+
+@plugin_function('mrs.get.sdkOptions', shell=True, cli=True, web=True)
+def get_stored_sdk_options(directory):
+    """Reads the SDK service option file located in a given directory
+
+    Args:
+        directory (str): The directory where the mrs.config.json file is stored
+
+    Returns:
+        The SDK options stored in that directory otherwise None
+    """
+
+    # Try to read the mrs_config from the directory
+    mrs_config = {}
+    conf_file = Path(directory, "mrs.config.json")
+    if conf_file.is_file():
+        try:
+            with open(conf_file) as f:
+                mrs_config = json.load(f)
+        except:
+            pass
+
+    if "addAppBaseClass" in mrs_config:
+        if isinstance(mrs_config["addAppBaseClass"], int):
+            del mrs_config["addAppBaseClass"]
+
+    return mrs_config
 
 
 @plugin_function('mrs.get.runtimeManagementCode', shell=True, cli=True, web=True)

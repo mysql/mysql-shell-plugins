@@ -26,6 +26,7 @@ import { Component, ComponentChild } from "preact";
 interface IHeaderProps {
     name: string,
     styleClass?: string,
+    tabIndex?: number,
     onClick?: () => void;
 }
 
@@ -35,12 +36,13 @@ interface IHeaderProps {
  */
 export default class Icon extends Component<IHeaderProps> {
     public render = (props: IHeaderProps): ComponentChild => {
-        const { name, styleClass, onClick } = props;
+        const { name, styleClass, tabIndex, onClick } = props;
         const styleClassName = styleClass ?? `${name}Style`;
 
         return (
             <div className={`icon ${styleClassName}`}
-                onClick={(onClick !== undefined) ? () => { onClick(); } : undefined} >
+                onClick={(onClick !== undefined) ? () => { onClick(); } : undefined}
+                onKeyPress={ () => { /** */ }} role="button" tabIndex={tabIndex}>
                 <div className={`iconBg ${name}`} ></div >
             </div >
         );
