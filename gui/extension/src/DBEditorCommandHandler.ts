@@ -49,7 +49,7 @@ import { ConnectionsTreeBaseItem } from "./tree-providers/ConnectionsTreeProvide
 import {
     CdmSchemaGroupMember,
     ConnectionsTreeDataModelEntry, ICdmConnectionEntry, ICdmRestDbObjectEntry, ICdmRoutineEntry, ICdmSchemaEntry,
-    ICdmTableEntry, ICdmTriggerEntry,
+    ICdmTableEntry, ICdmTriggerEntry, ICdmEventEntry,
 } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel.js";
 import {
     ConnectionsTreeDataProvider,
@@ -358,8 +358,8 @@ export class DBEditorCommandHandler {
             entry?.treeItem.dropItem();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.dropEvent", (item?: SchemaEventTreeItem) => {
-            item?.dropItem();
+        context.subscriptions.push(commands.registerCommand("msg.dropEvent", (item?: ICdmEventEntry) => {
+            item?.treeItem?.dropItem();
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.defaultConnection",
