@@ -213,7 +213,6 @@ export class DBEditorCommandHandler {
             (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
                 provider ??= this.#host.currentProvider;
                 if (provider instanceof DBConnectionViewProvider) {
-                    provider.caption = caption;
                     void provider.showPageSection(String(connectionId), EntityType.Notebook, itemId);
                 }
             }));
@@ -222,7 +221,6 @@ export class DBEditorCommandHandler {
             (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
                 provider ??= this.#host.currentProvider;
                 if (provider instanceof DBConnectionViewProvider) {
-                    provider.caption = caption;
                     void provider.showPageSection(String(connectionId), EntityType.Script, itemId);
                 }
             }));
@@ -231,7 +229,6 @@ export class DBEditorCommandHandler {
             (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
                 provider ??= this.#host.currentProvider;
                 if (provider instanceof DBConnectionViewProvider) {
-                    provider.caption = caption;
                     void provider.showPageSection(String(connectionId), EntityType.Status, itemId);
                 }
             }));
@@ -240,7 +237,6 @@ export class DBEditorCommandHandler {
             (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
                 provider ??= this.#host.currentProvider;
                 if (provider instanceof DBConnectionViewProvider) {
-                    provider.caption = caption;
                     void provider.showPageSection(String(connectionId), EntityType.Connections, itemId);
                 }
             }));
@@ -249,7 +245,6 @@ export class DBEditorCommandHandler {
             (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
                 provider ??= this.#host.currentProvider;
                 if (provider instanceof DBConnectionViewProvider) {
-                    provider.caption = caption;
                     void provider.showPageSection(String(connectionId), EntityType.Dashboard, itemId);
                 }
             }));

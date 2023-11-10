@@ -101,6 +101,7 @@ export interface IProviderSessionEntry extends IOpenEditorBaseEntry {
     sessions: IShellSessionEntry[];
 }
 
+
 /**
  * The provider for the open editors section in the extension.
  */
@@ -528,6 +529,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
                 this.#lastSelectedItems.set(provider, editor);
                 this.#selectCallback(editor);
             }
+            provider.caption = editor.alternativeCaption;
         } else {
             this.#lastSelectedItems.set(provider, entry.connectionOverview!);
             if (editorOrPage === "DB Connection Overview") {

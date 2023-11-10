@@ -521,7 +521,7 @@ describe("NOTEBOOKS", () => {
             let textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await Os.keyboardSelectAll(textArea);
             await Os.keyboardCopy(textArea);
-            await Workbench.openEditor(globalConn.caption);
+            await Workbench.openEditor(`${constants.openEditorsDBNotebook} (${globalConn.caption})`);
             await Misc.switchToFrame();
             textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await driver.executeScript("arguments[0].click()", textArea);

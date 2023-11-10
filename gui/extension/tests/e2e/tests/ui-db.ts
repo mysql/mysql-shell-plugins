@@ -496,8 +496,8 @@ describe("DATABASE CONNECTIONS", () => {
         it("Server Status", async () => {
 
             await (await Tree.getElement(constants.dbTreeSection, constants.serverStatus)).click();
-            expect(await Workbench.getOpenEditorTitles(), errors.tabIsNotOpened(constants.serverStatus))
-                .to.include(constants.serverStatus);
+            expect(await Workbench.getOpenEditorTitles(), errors.tabIsNotOpened(constants.dbDefaultEditor))
+                .to.include(constants.dbDefaultEditor);
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
             expect(await Notebook.getCurrentEditorName(), `The current editor name should be ${constants.serverStatus}`)
                 .to.equals(constants.serverStatus);
@@ -517,8 +517,8 @@ describe("DATABASE CONNECTIONS", () => {
 
             const clientConn = await Tree.getElement(constants.dbTreeSection, constants.clientConns);
             await clientConn.click();
-            expect(await Workbench.getOpenEditorTitles(), errors.tabIsNotOpened(constants.clientConns))
-                .to.include(constants.clientConns);
+            await driver.wait(waitUntil.tabIsOpened(`${constants.clientConns} (${globalConn.caption})`),
+                constants.wait5seconds);
             await driver.wait(async () => {
                 return await Notebook.getCurrentEditorName() === constants.clientConns;
             }, constants.wait5seconds, "Clients Connections editor was not selected");
@@ -551,8 +551,8 @@ describe("DATABASE CONNECTIONS", () => {
 
             const perfDash = await Tree.getElement(constants.dbTreeSection, constants.perfDash);
             await perfDash.click();
-            expect(await Workbench.getOpenEditorTitles(), errors.tabIsNotOpened(constants.perfDash))
-                .to.include(constants.perfDash);
+            await driver.wait(waitUntil.tabIsOpened(`${constants.perfDash} (${globalConn.caption})`),
+                constants.wait5seconds);
             await driver.wait(async () => {
                 return await Notebook.getCurrentEditorName() === constants.perfDash;
             }, constants.wait5seconds, "Performance Dashboard editor was not selected");
@@ -739,7 +739,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(waitUntil.isDefaultItem(constants.dbTreeSection, "sakila", "schema"),
                 constants.wait5seconds);
             await (await Tree.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
-            await Workbench.openEditor(globalConn.caption);
+            await Workbench.openEditor(`${constants.openEditorsDBNotebook} (${globalConn.caption})`);
             await commandExecutor.execute("SELECT DATABASE();", true);
             expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
                 commandExecutor.getResultMessage())).to.match(/OK/);
@@ -752,7 +752,7 @@ describe("DATABASE CONNECTIONS", () => {
                 constants.wait5seconds);
             expect(await Tree.isElementDefault(constants.dbTreeSection, "sakila", "schema"),
                 errors.notDefault("sakila")).to.be.false;
-            await Workbench.openEditor(globalConn.caption);
+            await Workbench.openEditor(`${constants.openEditorsDBNotebook} (${globalConn.caption})`);
             await commandExecutor.execute("SELECT DATABASE();", true);
             expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
                 commandExecutor.getResultMessage())).to.match(/OK/);
