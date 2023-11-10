@@ -198,6 +198,13 @@ export const prepareWebviewContent = (panel: WebviewPanel, url: URL): void => {
         }, "*");
     });
 
+    document.addEventListener("cut", (event) => {
+        frame.contentWindow.postMessage({
+            source: "host",
+            command: "cut",
+        }, "*");
+    });
+
     window.addEventListener('message', (event) => {
         if (!frame) {
             vscode = acquireVsCodeApi();
