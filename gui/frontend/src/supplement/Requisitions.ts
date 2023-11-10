@@ -804,6 +804,13 @@ export class RequisitionHub {
             }
 
             return;
+        } else if (message.command === "cut") {
+            const element = document.activeElement;
+            if (element && (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) {
+                element.dispatchEvent(new ClipboardEvent("cut"));
+            }
+
+            return;
         }
 
         const requestType = message.command as keyof IRequestTypeMap;
