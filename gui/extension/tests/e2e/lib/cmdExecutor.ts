@@ -55,6 +55,13 @@ export class CommandExecutor {
     }
 
     /**
+     * Sets the last known result id to undefined, to force the command executor to grab the first id on the editor
+     */
+    public reset = (): void => {
+        this.resultId = undefined;
+    };
+
+    /**
      * Writes a command on the editor
      *
      * @param cmd The command
@@ -141,7 +148,7 @@ export class CommandExecutor {
             }
         }, constants.wait5seconds, "Editor was not cleaned");
 
-        this.resultId = undefined;
+        this.reset();
     };
 
     /**
@@ -306,9 +313,13 @@ export class CommandExecutor {
 
     /**
      * Updates the object with the last existing command result on the editor
+     * @param reset Resets the result id of the current object
      * @returns A promise resolving with the last cmd result
      */
-    public loadLastExistingCommandResult = async (): Promise<void> => {
+    public loadLastExistingCommandResult = async (reset = false): Promise<void> => {
+        if (reset) {
+            this.setResultId(undefined);
+        }
         const nextId = await this.getNextResultId(this.resultId);
         await this.setResultMessage(undefined, nextId);
         await this.setResultContent(undefined, nextId);
@@ -467,10 +478,12 @@ export class CommandExecutor {
         if (taps > 0) {
             for (let i = 0; i < taps; i++) {
                 await textArea.sendKeys(Key.ARROW_DOWN);
+                await driver.sleep(300);
             }
         } else if (taps < 0) {
             for (let i = 0; i < Math.abs(taps); i++) {
                 await textArea.sendKeys(Key.ARROW_UP);
+                await driver.sleep(300);
             }
         }
     };

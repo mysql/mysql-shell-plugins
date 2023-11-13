@@ -466,3 +466,8 @@ export const htmlTag = {
     span: By.css("span"),
     h2: By.css("h2"),
 };
+
+export const dialogBox = {
+    exists: By.className("monaco-dialog-box"),
+    buttons: By.css(".dialog-buttons > a"),
+};

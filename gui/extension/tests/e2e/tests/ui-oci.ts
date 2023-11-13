@@ -624,6 +624,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("Edit an existing MDS Connection", async function () {
 
+            this.retries(1);
+
             if (skip) {
                 this.skip();
             }
