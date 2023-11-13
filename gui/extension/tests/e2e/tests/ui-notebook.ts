@@ -128,6 +128,7 @@ describe("NOTEBOOKS", () => {
         afterEach(async function () {
             if (this.currentTest.state === "failed") {
                 await Misc.processFailure(this);
+                commandExecutor.reset();
             }
             if (cleanEditor) {
                 await commandExecutor.clean();

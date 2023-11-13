@@ -91,6 +91,15 @@ New-Item -Path $env:MYSQLSH_OCI_RC_FILE -Force -ItemType "file"
 
 $testResources = Join-Path $home "test-resources"
 
+# RUN SQL CONFIGURATIONS FOR TESTS
+$refExt = Join-Path $testResources "ext"
+$extFolder = Get-ChildItem -Path $refExt -Filter "*oracle*"
+$shell = Join-Path $extFolder "shell" "bin" "mysqlsh"
+write-host "Running SQL configurations for tests..." "-NoNewLine"
+$runConfig = "$shell -u $env:DBUSERNAME -p$env:DBPASSWORD -h localhost --file sql/setup.sql"
+Invoke-Expression $runConfig
+write-host "DONE"
+
 # EXECUTE TESTS
 $env:NODE_ENV = "test"
 

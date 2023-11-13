@@ -255,13 +255,12 @@ try {
     Get-Job | Wait-Job
     writeMsg "DONE installing the extension!"
 
+    $refExt = Join-Path $env:WORKSPACE "ext-$($testSuites[0])"
+    $extFolder = Get-ChildItem -Path $refExt -Filter "*oracle*"
+    $shell = Join-Path $extFolder "shell" "bin" "mysqlsh"
 
     # CHECK WEB CERTIFICATES
     if ($isLinux) {
-        $refExt = Join-Path $env:WORKSPACE "ext-$($testSuites[0])"
-        $extFolder = Get-ChildItem -Path $refExt -Filter "*oracle*"
-        $shell = Join-Path $extFolder "shell" "bin" "mysqlsh"
-
         # RE INSTALL WEB CERTIFICATES
         writeMsg "Re-installing web certificates..." "-NoNewLine"
         $removeWebCerts = "$shell --js -e `"gui.core.removeShellWebCertificate()`""
@@ -270,6 +269,12 @@ try {
         Invoke-Expression $installWebCerts
         writeMsg "DONE"
     }
+
+    # RUN SQL CONFIGURATIONS FOR TESTS
+    writeMsg "Running SQL configurations for tests..." "-NoNewLine"
+    $runConfig = "$shell -u $env:DBUSERNAME -p$env:DBPASSWORD -h localhost --file sql/setup.sql"
+    Invoke-Expression $runConfig
+    writeMsg "DONE"
 
     # CHECK CONFIG FOLDERS AND WEB CERTIFICATES 
     writeMsg "Checking config folders..." "-NoNewLine"

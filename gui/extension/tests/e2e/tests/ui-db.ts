@@ -23,7 +23,7 @@
 import { join } from "path";
 import fs from "fs/promises";
 import {
-    BottomBarPanel, Condition, EditorView, ModalDialog, TreeItem,
+    BottomBarPanel, Condition, EditorView, TreeItem,
     until, WebElement, Workbench, error, ActivityBar, CustomTreeItem,
 } from "vscode-extension-tester";
 import { expect } from "chai";
@@ -579,12 +579,14 @@ describe("DATABASE CONNECTIONS", () => {
         let treeGlobalSchema: TreeItem;
         let treeGlobalSchemaTables: TreeItem;
         let treeGlobalSchemaViews: TreeItem;
-        let clean = false;
         let treeGlobalConn: TreeItem;
         const dumpFolder = join(constants.workspace, "dump");
-        const testSchema = `testschema`;
-        const testTable = `testtable`;
-        const testView = `testview`;
+        const dumpSchemaToDisk = `dump_schema_to_disk`;
+        const schemaForMySQLDBService = "schema_for_mysql_db_service";
+        const schemaToDrop = "schema_to_drop";
+        const tableToDrop = `table_to_drop`;
+        const testView = `test_view`;
+        const viewToDrop = "view_to_drop";
         const testRoutine = "test_routine";
         const dup = "duplicatedConnection";
         const commandExecutor = new CommandExecutor();
@@ -618,11 +620,7 @@ describe("DATABASE CONNECTIONS", () => {
         afterEach(async function () {
             if (this.currentTest.state === "failed") {
                 await Misc.processFailure(this);
-            }
-
-            if (clean) {
-                await commandExecutor.clean();
-                clean = false;
+                commandExecutor.reset();
             }
             await Misc.switchBackToTopFrame();
         });
@@ -790,23 +788,7 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("Dump Schema to Disk", async () => {
-            await Misc.switchBackToTopFrame();
-            treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
-            await Misc.expandDBConnectionTree(treeGlobalConn,
-                (globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
-            await Misc.switchToFrame();
-            await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-            await commandExecutor.syncronizeResultId();
-            await commandExecutor.executeWithButton(`drop schema if exists \`${testSchema}\`;`,
-                constants.execFullBlockSql);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            await commandExecutor.execute(`create schema ${testSchema};`);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            await commandExecutor.execute("SET GLOBAL local_infile = 'ON';");
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            await Misc.switchBackToTopFrame();
-            const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, testSchema);
+            const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, dumpSchemaToDisk);
             treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
                 (globalConn.basic as interfaces.IConnBasicMySQL).schema);
 
@@ -815,24 +797,24 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.openContextMenuItem(treeTestSchema, constants.dumpSchemaToDisk, constants.checkInput);
             await Misc.setInputPath(dumpFolder);
             await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await Misc.waitForOutputText(`Task 'Dump Schema ${testSchema} to Disk' completed successfully`,
+            await Misc.waitForOutputText(`Task 'Dump Schema ${dumpSchemaToDisk} to Disk' completed successfully`,
                 constants.wait10seconds);
             const files = await fs.readdir(dumpFolder);
             expect(files.length).to.be.greaterThan(0);
             await Misc.sectionFocus(constants.tasksTreeSection);
             expect(await Misc.existsTreeElement(constants.tasksTreeSection,
-                `Dump Schema ${testSchema} to Disk (done)`)).to.be.true;
+                `Dump Schema ${dumpSchemaToDisk} to Disk (done)`)).to.be.true;
             await Misc.sectionFocus(constants.dbTreeSection);
-            await Misc.switchToFrame();
-            await commandExecutor.execute(`drop schema ${testSchema};`);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            await Misc.openContextMenuItem(treeTestSchema, constants.dropSchema, undefined);
+            await Misc.pushDialogButton(`Drop ${dumpSchemaToDisk}`);
+            await Misc.getNotification(`The object ${dumpSchemaToDisk} has been dropped successfully.`);
+            expect(await Misc.existsTreeElement(constants.dbTreeSection, dumpSchemaToDisk)).to.be.false;
         });
 
         it("Load Dump from Disk", async () => {
-            await Misc.switchBackToTopFrame();
-            await Misc.sectionFocus(constants.dbTreeSection);
+
             const treeDBSection = await Misc.getSection(constants.dbTreeSection);
-            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
+            await Misc.clickSectionToolbarButton(treeDBSection, constants.reloadConnections);
             await Misc.openContextMenuItem(treeGlobalConn, constants.loadDumpFromDisk, constants.checkInput);
             await Misc.setInputPath(dumpFolder);
             await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
@@ -841,22 +823,20 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.sectionFocus(constants.tasksTreeSection);
             expect(await Misc.existsTreeElement(constants.tasksTreeSection, /Loading Dump (.*) \(done\)/)).to.be.true;
             await Misc.sectionFocus(constants.dbTreeSection);
-            await Misc.clickSectionToolbarButton(treeDBSection, "Reload the connection list");
-            expect(await Misc.existsTreeElement(constants.dbTreeSection, testSchema)).to.be.true;
-            await Misc.switchToFrame();
-            await commandExecutor.execute(`drop schema ${testSchema};`);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            await Misc.clickSectionToolbarButton(treeDBSection, constants.reloadConnections);
+            expect(await Misc.existsTreeElement(constants.dbTreeSection, dumpSchemaToDisk)).to.be.true;
+
         });
 
         it("Dump Schema to Disk for MySQL Database Service", async () => {
-            await new EditorView().openEditor(globalConn.caption);
-            await Misc.switchToFrame();
-            await commandExecutor.execute(`drop schema if exists \`${testSchema}\`;`);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            await commandExecutor.execute(`create schema ${testSchema};`);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            await Misc.switchBackToTopFrame();
-            const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, testSchema);
+            //await new EditorView().openEditor(globalConn.caption);
+            //await Misc.switchToFrame();
+            //await commandExecutor.execute(`drop schema if exists \`${testSchema}\`;`);
+            //expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            //await commandExecutor.execute(`create schema ${testSchema};`);
+            //expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            //await Misc.switchBackToTopFrame();
+            const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, schemaForMySQLDBService);
             treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
                 (globalConn.basic as interfaces.IConnBasicMySQL).schema);
 
@@ -865,13 +845,13 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.openContextMenuItem(treeTestSchema, constants.dumpSchemaToDiskToServ, constants.checkInput);
             await Misc.setInputPath(dumpFolder);
             await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await Misc.waitForOutputText(`Task 'Dump Schema ${testSchema} to Disk' completed successfully`,
+            await Misc.waitForOutputText(`Task 'Dump Schema ${schemaForMySQLDBService} to Disk' completed successfully`,
                 constants.wait10seconds);
             const files = await fs.readdir(dumpFolder);
             expect(files.length).to.be.greaterThan(0);
             await Misc.sectionFocus(constants.tasksTreeSection);
             expect(await Misc.existsTreeElement(constants.tasksTreeSection,
-                `Dump Schema ${testSchema} to Disk (done)`)).to.be.true;
+                `Dump Schema ${schemaForMySQLDBService} to Disk (done)`)).to.be.true;
         });
 
         it("Load Data to HeatWave Cluster", async () => {
@@ -885,6 +865,20 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Misc.getNotification("The data load to the HeatWave cluster operation has finished");
             await new BottomBarPanel().toggle(false);
+        });
+
+        it("Drop Schema", async () => {
+
+            const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, schemaToDrop);
+            await Misc.openContextMenuItem(treeTestSchema, constants.dropSchema, undefined);
+            const ntfs = await new Workbench().getNotifications();
+            if (ntfs.length > 0) {
+                await Misc.clickOnNotificationButton(ntfs[ntfs.length - 1], `Drop ${schemaToDrop}')]`);
+            } else {
+                await Misc.pushDialogButton(`Drop ${schemaToDrop}`);
+            }
+            await Misc.getNotification(`The object ${schemaToDrop} has been dropped successfully.`);
+            expect(await Misc.existsTreeElement(constants.dbTreeSection, schemaToDrop)).to.be.false;
 
         });
 
@@ -924,45 +918,16 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it("Drop Schema", async () => {
-
-            await Misc.switchToFrame();
-            await commandExecutor.execute(`drop schema if exists \`${testSchema}\`;`);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            await commandExecutor.execute(`create schema ${testSchema};`);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            await Misc.switchBackToTopFrame();
-            const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, testSchema);
-            treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
-                (globalConn.basic as interfaces.IConnBasicMySQL).schema);
-
-            await Misc.openContextMenuItem(treeTestSchema, constants.dropSchema, undefined);
-            const ntfs = await new Workbench().getNotifications();
-            if (ntfs.length > 0) {
-                await Misc.clickOnNotificationButton(ntfs[ntfs.length - 1], `Drop ${testSchema}')]`);
-            } else {
-                const dialog = new ModalDialog();
-                await dialog.pushButton(`Drop ${testSchema}`);
-            }
-            await Misc.getNotification(`The object ${testSchema} has been dropped successfully.`);
-            expect(await Misc.existsTreeElement(constants.dbTreeSection, testSchema)).to.be.false;
-
-        });
-
         it("Table - Select Rows in DB Notebook", async () => {
-            treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
-                (globalConn.basic as interfaces.IConnBasicMySQL).schema);
             await treeGlobalSchema.expand();
             treeGlobalSchemaTables = await Misc.getTreeElement(constants.dbTreeSection, "Tables");
             await treeGlobalSchemaTables.expand();
             const actorTable = await Misc.getTreeElement(constants.dbTreeSection, "actor");
             await Misc.openContextMenuItem(actorTable, constants.selectRowsInNotebook, constants.checkNewTabAndWebView);
-            try {
-                await commandExecutor.loadLastExistingCommandResult();
-                expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            } finally {
-                clean = true;
-            }
+            await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait10seconds);
+            await commandExecutor.loadLastExistingCommandResult(true);
+            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+
         });
 
         it("Table - Copy name and create statement to clipboard", async () => {
@@ -1001,26 +966,18 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Drop Table", async () => {
 
-            await new EditorView().openEditor(globalConn.caption);
-            await Misc.switchToFrame();
-            await commandExecutor.execute(`drop table if exists \`${testTable}\`;`);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            await commandExecutor.execute(`create table ${testTable} (id int, name VARCHAR(50));`);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            await Misc.switchBackToTopFrame();
-            const treeTestTable = await Misc.getTreeElement(constants.dbTreeSection, testTable);
+            const treeTestTable = await Misc.getTreeElement(constants.dbTreeSection, tableToDrop);
             await Misc.openContextMenuItem(treeTestTable, constants.dropTable, constants.checkDialog);
-            const dialog = new ModalDialog();
-            await dialog.pushButton(`Drop ${testTable}`);
-            await Misc.getNotification(`The object ${testTable} has been dropped successfully.`);
-            expect(await Misc.existsTreeElement(constants.dbTreeSection, testTable)).to.be.false;
+            await Misc.pushDialogButton(`Drop ${tableToDrop}`);
+            await Misc.getNotification(`The object ${tableToDrop} has been dropped successfully.`);
+            expect(await Misc.existsTreeElement(constants.dbTreeSection, tableToDrop)).to.be.false;
 
         });
 
         it("View - Select Rows in DB Notebook", async () => {
             treeGlobalSchemaViews = await Misc.getTreeElement(constants.dbTreeSection, "Views");
             await treeGlobalSchemaViews.expand();
-            const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, "test_view");
+            const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, testView);
             await Misc.openContextMenuItem(treeTestView, constants.selectRowsInNotebook,
                 constants.checkNewTabAndWebView);
             await commandExecutor.loadLastExistingCommandResult();
@@ -1028,15 +985,15 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("View - Copy name and create statement to clipboard", async () => {
-
+            await Misc.switchBackToTopFrame();
             await driver.wait(new Condition("", async () => {
                 try {
-                    const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, "test_view");
+                    const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, testView);
                     await Misc.openContextMenuItem(treeTestView, [constants.copyToClipboard,
                     constants.copyToClipboardName], constants.checkNotif, constants.dbObjectCtxMenu);
                     await Misc.getNotification("The name was copied to the system clipboard");
 
-                    return clipboard.readSync() === "test_view";
+                    return clipboard.readSync() === testView;
                 } catch (e) {
                     if (!(e instanceof error.StaleElementReferenceError)) {
                         throw e;
@@ -1047,7 +1004,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.wait(new Condition("", async () => {
                 try {
-                    const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, "test_view");
+                    const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, testView);
                     await Misc.openContextMenuItem(treeTestView, [constants.copyToClipboard,
                     constants.copyToClipboardStat], constants.checkNotif, constants.dbObjectCtxMenu);
                     await Misc.getNotification("The create script was copied to the system clipboard");
@@ -1064,23 +1021,15 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Drop View", async () => {
 
-            await new EditorView().openEditor(globalConn.caption);
-            await Misc.switchToFrame();
-            await commandExecutor.execute(`drop view if exists \`${testView}\``);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            await commandExecutor.execute(`CREATE VIEW ${testView} as select * from sakila.actor;`);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            await Misc.switchBackToTopFrame();
             await Misc.expandDBConnectionTree(treeGlobalConn,
                 (globalConn.basic as interfaces.IConnBasicMySQL).password);
             await treeGlobalSchema.expand();
             await treeGlobalSchemaViews.expand();
-            const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, testView);
+            const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, viewToDrop);
             await Misc.openContextMenuItem(treeTestView, constants.dropView, constants.checkDialog);
-            const dialog = new ModalDialog();
-            await dialog.pushButton(`Drop ${testView}`);
-            await Misc.getNotification(`The object ${testView} has been dropped successfully.`);
-            expect(await Misc.existsTreeElement(constants.dbTreeSection, testView)).to.be.false;
+            await Misc.pushDialogButton(`Drop ${viewToDrop}`);
+            await Misc.getNotification(`The object ${viewToDrop} has been dropped successfully.`);
+            expect(await Misc.existsTreeElement(constants.dbTreeSection, viewToDrop)).to.be.false;
         });
 
         it("Table - Show Data", async () => {
@@ -1096,7 +1045,7 @@ describe("DATABASE CONNECTIONS", () => {
         it("View - Show Data", async function () {
             this.retries(1);
 
-            const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, "test_view");
+            const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, testView);
             await Misc.openContextMenuItem(treeTestView, constants.showData, constants.checkNewTabAndWebView);
             await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds);
             await commandExecutor.loadLastScriptResult();
@@ -1105,37 +1054,10 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it("Routines - Add Routine", async () => {
-            await Misc.sectionFocus(constants.dbTreeSection);
-            const treeGlobalSchemaTables = await Misc.getTreeElement(constants.dbTreeSection, "Tables");
-            await treeGlobalSchemaTables.collapse();
-            await Misc.switchToFrame();
-            await Database.selectCurrentEditor("DB Notebook", "notebook");
-            await commandExecutor.syncronizeResultId();
-
-            await commandExecutor.execute(`drop procedure if exists \`${testRoutine}\`;`);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
-
-            const procedure =
-                `DELIMITER $$ 
-                CREATE DEFINER=\`${process.env.DBUSERNAME}\`@\`${(globalConn.basic as interfaces.IConnBasicMySQL)
-                    .hostname}\`
-                PROCEDURE \`${testRoutine}\`()
-                BEGIN
-                select * from sakila.actor;
-                END $$
-                DELIMITER ;
-            `;
-
-            await commandExecutor.executeWithButton(procedure, constants.execFullBlockSql);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            await Misc.switchBackToTopFrame();
+        it("Routines - Clipboard", async () => {
             const treeRoutines = await Misc.getTreeElement(constants.dbTreeSection, "Routines");
             await treeRoutines.expand();
             expect(await Misc.existsTreeElement(constants.dbTreeSection, testRoutine)).to.be.true;
-        });
-
-        it("Routines - Clipboard", async () => {
             await driver.wait(new Condition("", async () => {
                 try {
                     const treeTestRoutine = await Misc.getTreeElement(constants.dbTreeSection, testRoutine);
@@ -1203,8 +1125,7 @@ describe("DATABASE CONNECTIONS", () => {
         it("Routines - Drop Routine", async () => {
             const treeTestRoutine = await Misc.getTreeElement(constants.dbTreeSection, testRoutine);
             await Misc.openContextMenuItem(treeTestRoutine, constants.dropStoredRoutine, constants.checkDialog);
-            const dialog = new ModalDialog();
-            await dialog.pushButton(`Drop ${testRoutine}`);
+            await Misc.pushDialogButton(`Drop ${testRoutine}`);
             await Misc.getNotification(`The object ${testRoutine} has been dropped successfully.`);
             expect(await Misc.existsTreeElement(constants.dbTreeSection, testRoutine)).to.be.false;
         });

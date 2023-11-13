@@ -39,7 +39,6 @@ import * as Until from "../lib/until";
 import * as locator from "../lib/locators";
 import { hostname } from "os";
 import clipboard from "clipboardy";
-import { CommandExecutor } from "../lib/cmdExecutor";
 
 describe("MySQL REST Service", () => {
 
@@ -79,8 +78,6 @@ describe("MySQL REST Service", () => {
 
     before(async function () {
 
-        const commandExecutor = new CommandExecutor();
-
         await Misc.loadDriver();
         try {
             await driver.wait(Until.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
@@ -94,14 +91,6 @@ describe("MySQL REST Service", () => {
                 constants.openNewConnection, constants.checkNewTabAndWebView);
             await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds,
                 "DB Connection was not loaded");
-            await commandExecutor.execute("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`;");
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            const query = `DROP TABLE IF EXISTS ${tableToDump}; CREATE TABLE ${tableToDump} (id int,name VARCHAR(50));`;
-            await commandExecutor.execute(query);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            const sql = `DROP SCHEMA IF EXISTS \`${schemaToDump}\`; CREATE SCHEMA \`${schemaToDump}\`;`;
-            await commandExecutor.execute(sql);
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
             await Misc.switchBackToTopFrame();
             if (await Misc.requiresMRSMetadataUpgrade(globalConn)) {
                 await Misc.upgradeMRSMetadata();

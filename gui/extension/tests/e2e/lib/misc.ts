@@ -143,6 +143,20 @@ export class Misc {
 
     };
 
+    public static pushDialogButton = async (buttonName: string): Promise<void> => {
+        const dialogBox = await driver.wait(until.elementLocated(locator.dialogBox.exists),
+            constants.wait5seconds, `Could not find dialog box`);
+        const dialogButtons = await dialogBox.findElements(locator.dialogBox.buttons);
+        for (const button of dialogButtons) {
+            if (await button.getAttribute("title") === buttonName) {
+                await button.click();
+
+                return;
+            }
+        }
+        throw new Error(`Could not find button ${buttonName}`);
+    };
+
     public static openContextMenuItem = async (
         treeItem: TreeItem,
         ctxMenuItem: string | string[],

@@ -258,7 +258,6 @@ export const extensionIsReady = (): Condition<boolean> => {
                 break;
             } catch (e) {
                 tryNumber++;
-                await Misc.removeInternalDB();
                 await Misc.switchBackToTopFrame();
                 await Misc.reloadVSCode();
             }
@@ -269,13 +268,29 @@ export const extensionIsReady = (): Condition<boolean> => {
             await Misc.writeMySQLshLogs();
             const bottomBar = new BottomBarPanel();
             await bottomBar.maximize();
+            await (await bottomBar.openOutputView()).selectChannel(constants.extensionName);
             const output = await (await bottomBar.openOutputView()).getText();
             console.log("<<<<OUTPUT Tab Logs>>>>");
             console.log(output);
             const logs = driver.manage().logs();
             console.log("<<<<<DEV TOOLS Console log>>>>");
             console.log(await logs.get(logging.Type.BROWSER));
-            throw new Error(`Extension was not loaded successfully after ${feLoadTries} tries.)}`);
+
+            let text = `Extension was not loaded successfully after ${feLoadTries} tries. Check the logs. `;
+            // one last try to recover
+            if (output.match(/(ERROR|error)/) !== null) {
+                console.log("An error was found on the OUTPUT tab, removing Internal DB");
+                await Misc.removeInternalDB();
+                text += `Internal DB was removed. Please re-run the tests`;
+                await Misc.reloadVSCode();
+                try {
+                    await loadTry();
+                } catch (e) {
+                    throw new Error(text);
+                }
+            } else {
+                throw new Error(text);
+            }
         }
 
         credentialHelperOk = await Misc.findOnMySQLShLog(/Failed to initialize the default helper/);

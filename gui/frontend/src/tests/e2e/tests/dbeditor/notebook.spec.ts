@@ -307,21 +307,6 @@ describe("Notebook", () => {
     it("Connection toolbar buttons - Execute statement at the caret position", async () => {
         try {
 
-            const clickLine = async (line: number): Promise<void> => {
-                await driver.wait(async () => {
-                    try {
-                        const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
-                        lines.shift();
-                        const spans = await lines[line].findElements(By.css("span"));
-                        await spans[spans.length - 1].click();
-
-                        return true;
-                    } catch (e) {
-                        // continue
-                    }
-                }, explicitWait, `Line ${line} is still stale`);
-            };
-
             const textArea = await driver.findElement(By.css("textarea"));
 
             await DBConnection.writeSQL("select * from actor limit 1;");
@@ -334,7 +319,8 @@ describe("Notebook", () => {
 
             await DBConnection.writeSQL("select * from category limit 1;");
 
-            await clickLine(0);
+            await textArea.sendKeys(Key.ARROW_UP);
+            await driver.sleep(500);
 
             let execCaretBtn = await DBConnection.getToolbarButton(execCaret);
             await execCaretBtn?.click();
@@ -344,7 +330,8 @@ describe("Notebook", () => {
                 return DBConnection.getResultColumnName("address_id") !== undefined;
             }, 3000, "No new results block was displayed");
 
-            await clickLine(1);
+            await textArea.sendKeys(Key.ARROW_UP);
+            await driver.sleep(500);
 
             execCaretBtn = await DBConnection.getToolbarButton(execCaret);
 
@@ -354,7 +341,10 @@ describe("Notebook", () => {
                 return await DBConnection.getResultColumnName("actor_id") !== undefined;
             }), explicitWait, "actor_id column was not found");
 
-            await clickLine(2);
+            await textArea.sendKeys(Key.ARROW_DOWN);
+            await driver.sleep(500);
+            await textArea.sendKeys(Key.ARROW_DOWN);
+            await driver.sleep(500);
 
             execCaretBtn = await DBConnection.getToolbarButton(execCaret);
 
