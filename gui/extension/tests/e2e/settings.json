@@ -2,6 +2,6 @@
     "terminal.integrated.copyOnSelection": true,
     "terminal.integrated.sendKeybindingsToShell": true,
     "window.dialogStyle": "custom",
-    "msg.debugLog.level": "DEBUG3",
+    "msg.debugLog.level": "DEBUG2",
     "terminal.integrated.gpuAcceleration": "off"
 }

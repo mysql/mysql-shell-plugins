@@ -25,6 +25,7 @@ import { join } from "path";
 
 // EXTENSION NAME
 export const extensionName = "MySQL Shell for VS Code";
+export const feLogFile = "1-MySQL Shell for VS Code.log";
 
 // BASE PATH
 export const basePath = process.env.USERPROFILE ?? process.env.HOME;

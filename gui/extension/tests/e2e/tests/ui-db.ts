@@ -95,12 +95,14 @@ describe("DATABASE CONNECTIONS", () => {
             }
         } catch (e) {
             await Misc.processFailure(this);
+            await Misc.prepareExtensionLogsForExport(process.env.TEST_SUITE);
             throw e;
         }
     });
 
     after(async function () {
         try {
+            await Misc.prepareExtensionLogsForExport(process.env.TEST_SUITE);
             const dbConnections = await Misc.getDBConnections();
             for (const dbConnection of dbConnections) {
                 await Misc.deleteConnection(dbConnection.name, dbConnection.isMySQL, false);

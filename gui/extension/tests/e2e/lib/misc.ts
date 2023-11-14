@@ -385,6 +385,66 @@ export class Misc {
         spawnSync(mysqlsh, params);
     };
 
+    public static getExtentionOutputLogsFolder = async (): Promise<string> => {
+        let testResources: string;
+        if (Misc.isMacOs()) {
+            testResources = "test-resources";
+        } else {
+            testResources = `test-resources-${process.env.TEST_SUITE}`;
+        }
+        const today = new Date();
+        const month = (`0${(today.getMonth() + 1)}`).slice(-2);
+        const day = (`0${today.getDate()}`).slice(-2);
+        const todaysDate = `${today.getFullYear()}${month}${day}`;
+
+        let pathToLog = join(
+            constants.basePath,
+            testResources,
+            "settings",
+            "logs",
+        );
+        const variableFolder = await fs.readdir(pathToLog);
+        pathToLog = join(
+            constants.basePath,
+            testResources,
+            "settings",
+            "logs",
+            variableFolder[0],
+            "window1",
+            "exthost",
+        );
+        const folders = await fs.readdir(pathToLog);
+        let outputLogging: string;
+        for (const folder of folders) {
+            if (folder.startsWith(`output_logging_${todaysDate}`)) {
+                outputLogging = folder;
+                break;
+            }
+        }
+        pathToLog = join(
+            constants.basePath,
+            testResources,
+            "settings",
+            "logs",
+            variableFolder[0],
+            "window1",
+            "exthost",
+            outputLogging,
+        );
+
+        return pathToLog;
+    };
+
+    public static prepareExtensionLogsForExport = async (testSuite: string): Promise<void> => {
+        const logPathFolder = await Misc.getExtentionOutputLogsFolder();
+        // rename the file
+        await fs.rename(join(logPathFolder, constants.feLogFile),
+            join(logPathFolder, `${testSuite}_output_tab.log`));
+        // copy to workspace
+        await fs.copyFile(join(logPathFolder, `${testSuite}_output_tab.log`),
+            join(constants.workspace, `${testSuite}_output_tab.log`));
+    };
+
     public static killRouterFromTerminal = (): void => {
         if (Misc.isWindows()) {
             try {
@@ -430,7 +490,6 @@ export class Misc {
         await fs.writeFile(imgPath, img, "base64");
 
         addContext(testContext, { title: "Failure", value: `../screenshots/${String(testName)}_screenshot.png` });
-
     };
 
     public static expandDBConnectionTree = async (conn: TreeItem, password: string): Promise<void> => {

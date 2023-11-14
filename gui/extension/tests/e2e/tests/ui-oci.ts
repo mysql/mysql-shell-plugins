@@ -98,6 +98,15 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
     });
 
+    after(async function () {
+        try {
+            await Misc.prepareExtensionLogsForExport(process.env.TEST_SUITE);
+        } catch (e) {
+            await Misc.processFailure(this);
+            throw e;
+        }
+    });
+
     describe("Profile", () => {
 
         beforeEach(async function () {
