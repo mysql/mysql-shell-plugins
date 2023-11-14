@@ -91,7 +91,16 @@ describe("MYSQL SHELL CONSOLES", () => {
 
     });
 
-    describe("Shell generic operations", () => {
+    after(async function () {
+        try {
+            await Misc.prepareExtensionLogsForExport(process.env.TEST_SUITE);
+        } catch (e) {
+            await Misc.processFailure(this);
+            throw e;
+        }
+    });
+
+    describe.only("Shell generic operations", () => {
 
         beforeEach(async function () {
             try {

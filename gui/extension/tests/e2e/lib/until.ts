@@ -24,12 +24,12 @@ import {
     Condition,
     ActivityBar,
     EditorView,
-    BottomBarPanel,
     logging,
     WebElement,
     Locator,
 } from "vscode-extension-tester";
 import { execSync } from "child_process";
+import { join } from "path";
 import fs from "fs/promises";
 import * as constants from "./constants";
 import { Misc, driver } from "./misc";
@@ -266,18 +266,15 @@ export const extensionIsReady = (): Condition<boolean> => {
         if (feWasLoaded === false) {
             console.log("<<<<MYSQLSH Logs>>>>");
             await Misc.writeMySQLshLogs();
-            const bottomBar = new BottomBarPanel();
-            await bottomBar.maximize();
-            await (await bottomBar.openOutputView()).selectChannel(constants.extensionName);
-            const output = await (await bottomBar.openOutputView()).getText();
-            console.log("<<<<OUTPUT Tab Logs>>>>");
-            console.log(output);
             const logs = driver.manage().logs();
             console.log("<<<<<DEV TOOLS Console log>>>>");
             console.log(await logs.get(logging.Type.BROWSER));
 
             let text = `Extension was not loaded successfully after ${feLoadTries} tries. Check the logs. `;
             // one last try to recover
+            const path = join(await Misc.getExtentionOutputLogsFolder(), constants.feLogFile);
+            const output = (await fs.readFile(path)).toString();
+
             if (output.match(/(ERROR|error)/) !== null) {
                 console.log("An error was found on the OUTPUT tab, removing Internal DB");
                 await Misc.removeInternalDB();
