@@ -354,7 +354,7 @@
             },
             {
                 "command": "msg.openConnectionNewTab",
-                "title": "Connect to Database on New Tab",
+                "title": "Open New Database Connection on New Tab",
                 "icon": {
                     "dark": "images/dark/openConnection.svg",
                     "light": "images/light/openConnection.svg"
@@ -1078,6 +1078,7 @@
                 },
                 {
                     "command": "msg.openConnection",
+                    "alt": "msg.openConnectionNewTab",
                     "when": "view == msg.connections && viewItem =~ /^connection.*/",
                     "group": "1_msg@1"
                 },
