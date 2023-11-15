@@ -265,7 +265,14 @@ def main() -> None:
             except task_utils.TaskFailException as exception:
                 task_utils.Logger.error(exception)
                 test_failed = True
-                NPMScript(executor.environment, "e2e-tests-report", []).run()
+                # The proper way to handle this internal exception handling
+                # is by adding executor state that we can clean up only those tasks
+                # that was executed. This is temporary solution and will be
+                # reworked eventually.
+                try:
+                    NPMScript(executor.environment, "e2e-tests-report", []).run()
+                except task_utils.TaskFailException as internal_exception:
+                    task_utils.Logger.error(internal_exception)
 
             executor.clean_up()
 
