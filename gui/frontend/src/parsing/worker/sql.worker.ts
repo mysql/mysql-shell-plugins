@@ -147,12 +147,13 @@ ctx.addEventListener("message", (event: MessageEvent) => {
         }
 
         case "tokenize": {
-            const result = services.tokenize(data.sql, data.version, data.sqlMode);
-
-            postResultMessage(taskId, {
-                tokens: result,
-                final: true,
+            void services.tokenize(data.sql, data.version, data.sqlMode).then((result) => {
+                postResultMessage(taskId, {
+                    tokens: result,
+                    final: true,
+                });
             });
+
 
             break;
         }

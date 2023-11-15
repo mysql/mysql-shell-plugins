@@ -938,6 +938,7 @@ Execute \\help or \\? for help;`;
             }
         } else {
             const statements = context.statements;
+            //const statements = await context.getAllStatements();
             while (true) {
                 // Allow toggling the stop-on-error during execution.
                 const stopOnErrors = Settings.get("editor.stopOnErrors", true);

@@ -521,7 +521,7 @@ storedRoutineBody:
 createFunction:
     definerClause? FUNCTION_SYMBOL ifNotExists? functionName OPEN_PAR_SYMBOL (
         functionParameter (COMMA_SYMBOL functionParameter)*
-    )? CLOSE_PAR_SYMBOL RETURNS_SYMBOL typeWithOptCollate routineCreateOption* compoundStatement
+    )? CLOSE_PAR_SYMBOL RETURNS_SYMBOL typeWithOptCollate routineCreateOption* storedRoutineBody
 ;
 
 createUdf:

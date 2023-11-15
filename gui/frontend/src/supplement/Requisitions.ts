@@ -157,6 +157,11 @@ export interface IEditorExecutionOptions {
     asText: boolean;
 }
 
+export interface IEditorHostExecutionOptions extends IEditorExecutionOptions {
+    query: string;
+    language: EditorLanguage;
+}
+
 /** A special set of data for the communication debugger/listener. */
 export interface IDebuggerData {
     request?: INativeShellRequest;
@@ -277,6 +282,7 @@ export interface IRequestTypeMap {
 
     "editorExecuteSelectedOrAll": (options: IEditorExecutionOptions) => Promise<boolean>;
     "editorExecuteCurrent": (options: IEditorExecutionOptions) => Promise<boolean>;
+    "editorExecuteOnHost": (options: IEditorHostExecutionOptions) => Promise<boolean>;
     "editorFind": SimpleCallback;
     "editorFormat": SimpleCallback;
     "editorRunCommand": (details: { command: string; context: IExecutionContext; }) => Promise<boolean>;

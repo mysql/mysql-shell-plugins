@@ -24,6 +24,7 @@
 import { languages } from "../../index.js";
 
 export interface ILanguageDefinition {
+    language: languages.IMonarchLanguage;
     languageConfiguration: languages.LanguageConfiguration;
 }
 

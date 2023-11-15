@@ -30,6 +30,7 @@ import { ExecutionContext } from "./ExecutionContext.js";
 import { PresentationInterface } from "./PresentationInterface.js";
 import { binarySearch } from "../utilities/helpers.js";
 import { requisitions } from "../supplement/Requisitions.js";
+import { Semaphore } from "../supplement/Semaphore.js";
 
 interface IStatementDetails extends IStatementSpan {
     diagnosticDecorationIDs: string[];
@@ -52,6 +53,9 @@ export class SQLExecutionContext extends ExecutionContext {
 
     // The set of currently running validations with the statement index and a timestamp.
     private validationsRunning = new Map<number, number>();
+
+    // A signal that is set when the splitter is currently running. Can be awaited to wait for the splitter to finish.
+    #splitterSignal?: Semaphore<void>;
 
     public constructor(presentation: PresentationInterface, public dbVersion: number, public sqlMode: string,
         public currentSchema: string, statementSpans?: IStatementSpan[]) {
@@ -80,6 +84,8 @@ export class SQLExecutionContext extends ExecutionContext {
      */
     public dispose(): void {
         super.dispose();
+
+        this.splittingFinished();
 
         this.pendingSplitActions.clear();
         this.splitActionsRunning.clear();
@@ -248,12 +254,14 @@ export class SQLExecutionContext extends ExecutionContext {
     }
 
     /**
-     * Returns the list of statements from the context.
+     * Returns the list of executable statements from the context, that is, without delimiter changes.
+     *
+     * The line numbers in the returned statements are relative to the start of this context and one-based.
      *
      * The statement list might not be 100% accurate, if there are pending validations currently.
      *
      * @returns If there's a selection in the model return statements that are touched by that selection, otherwise
-     *          return all statements.
+     *          returns all executable statements.
      */
     public get statements(): IStatement[] {
         const model = this.model;
@@ -336,12 +344,61 @@ export class SQLExecutionContext extends ExecutionContext {
                     index,
                     text,
                     offset: details.span.start,
-                    line: rangeStart.lineNumber - this.presentation.startLine + 1,
+                    line: rangeStart.lineNumber,
                     column: rangeStart.column,
                 });
             }
         }
 
+        return result;
+    }
+
+    /**
+     * Returns all statements currently known to the context. This list includes delimiter changes and is not
+     * affect by a selection in the editor.
+     *
+     * The line numbers in the returned statements are relative to the start of this context and one-based.
+     *
+     * The statement list might not be 100% accurate, if there are pending validations currently.
+     *
+     * @returns the full statement list.
+     */
+    public async getAllStatements(): Promise<IStatement[]> {
+        const model = this.model;
+        if (!model || model.isDisposed()) {
+            return [];
+        }
+
+        if (this.#splitterSignal) {
+            // Wait for the splitter to finish.
+            await this.#splitterSignal.wait();
+        }
+
+        const result: IStatement[] = [];
+        for (let index = 0; index < this.statementDetails.length; ++index) {
+            const details = this.statementDetails[index];
+            const rangeStart = model.getPositionAt(details.span.start);
+            let end = details.span.start + details.span.length;
+            if (details.state === StatementFinishState.Complete) {
+                end -= details.delimiter!.length;
+            }
+            const rangeEnd = model.getPositionAt(end);
+
+            const text = model.getValueInRange({
+                startLineNumber: rangeStart.lineNumber,
+                startColumn: rangeStart.column,
+                endLineNumber: rangeEnd.lineNumber,
+                endColumn: rangeEnd.column,
+            }, Monaco.EndOfLinePreference.LF);
+
+            result.push({
+                index,
+                text,
+                offset: details.span.start,
+                line: rangeStart.lineNumber,
+                column: rangeStart.column,
+            });
+        }
 
         return result;
     }
@@ -435,9 +492,11 @@ export class SQLExecutionContext extends ExecutionContext {
                 diagnosticDecorationIDs: [],
             }];
 
-            setTimeout(() => {
-                this.splitNextStatement();
-            }, 0);
+            // Notify already waiting consumers that the current splitter run is done.
+            this.splittingFinished();
+
+            this.#splitterSignal = new Semaphore<void>();
+            this.splitNextStatement();
         }
     }
 
@@ -519,7 +578,9 @@ export class SQLExecutionContext extends ExecutionContext {
             }, Monaco.EndOfLinePreference.LF);
 
             if (sql.trimStart().startsWith("\\")) {
-                // This is (now) an internal command. Remove any decoration for it.
+                // This is (now) an internal command. Remove any decoration for it and stop splitting.
+                this.splittingFinished();
+
                 model.deltaDecorations?.(nextDetails.diagnosticDecorationIDs, []);
                 this.updateLineStartMarkers();
 
@@ -534,6 +595,8 @@ export class SQLExecutionContext extends ExecutionContext {
                 // request has been cancelled.
                 const actionTimestamp = this.splitActionsRunning.get(next);
                 if (actionTimestamp === undefined || actionTimestamp > timestamp) {
+                    this.splittingFinished();
+
                     return;
                 }
 
@@ -556,6 +619,7 @@ export class SQLExecutionContext extends ExecutionContext {
                         nextDetails.state = ranges[0].state;
                         nextDetails.contentStart = nextDetails.span.start + ranges[0].contentStart;
 
+                        this.splittingFinished();
                         this.validateNextStatement(next);
                         this.updateLineStartMarkers();
                     };
@@ -663,10 +727,18 @@ export class SQLExecutionContext extends ExecutionContext {
                         for (let i = 1; i < validationCount; ++i) {
                             this.validateNextStatement();
                         }
+
+                        // If this operation left us with no further split requests then we are done with the split run.
+                        if (this.pendingSplitActions.size === 0) {
+                            this.splittingFinished();
+                        }
                     }
                 }
             }, sql);
         } else {
+            // We are done with the split run. Send notification and start validating.
+            this.splittingFinished();
+
             this.validateNextStatement();
         }
     }
@@ -806,13 +878,16 @@ export class SQLExecutionContext extends ExecutionContext {
                 indexes[index] += delta;
             }
         });
+
         this.pendingSplitActions = new Set(indexes);
+
+        // Do not touch the splitter signal. We are not starting or ending the splitter process here.
     }
 
     /**
      * Puts a new statement index for splitting on the split action queue, at the first position. This is to have this
      * index processed as soon as possible (only used during change handling).
-     * If that index is already in the split or validation queues then it is removed from there.
+     * If that index is already in the split or validation queues then it is first removed from there.
      *
      * @param index The index to push.
      */
@@ -828,6 +903,10 @@ export class SQLExecutionContext extends ExecutionContext {
             this.pendingSplitActions = new Set([index, ...this.pendingSplitActions]);
 
             if (oldSize === 0) {
+                // Starting a new splitter run.
+                if (!this.#splitterSignal) {
+                    this.#splitterSignal = new Semaphore<void>();
+                }
                 this.splitNextStatement();
             }
         }
@@ -858,4 +937,9 @@ export class SQLExecutionContext extends ExecutionContext {
         }
     }
 
+    /** Notifies all consumers that are waiting for the current splitter run. */
+    private splittingFinished(): void {
+        this.#splitterSignal?.notifyAll();
+        this.#splitterSignal = undefined;
+    }
 }

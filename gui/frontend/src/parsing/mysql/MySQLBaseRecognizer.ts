@@ -35,7 +35,7 @@ export abstract class MySQLBaseRecognizer extends Parser implements IMySQLRecogn
     public supportMrs = true;
 
     /** Enable Multi Language Extension support. */
-    public supportMle = false;
+    public supportMle = true;
 
     /**
      * Determines if the given SQL mode is currently active in the lexer.

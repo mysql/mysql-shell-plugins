@@ -38,7 +38,9 @@ import {
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
 import { EditorLanguage, ITextRange } from "../../../supplement/index.js";
-import { appParameters, IEditorExecutionOptions, requisitions } from "../../../supplement/Requisitions.js";
+import {
+    appParameters, IEditorExecutionOptions, IEditorHostExecutionOptions, requisitions,
+} from "../../../supplement/Requisitions.js";
 import { Settings } from "../../../supplement/Settings/Settings.js";
 import { editorRangeToTextRange } from "../../../utilities/ts-helpers.js";
 
@@ -181,6 +183,11 @@ interface ICodeEditorProperties extends IComponentProperties {
     createResultPresentation?: ResultPresentationFactory;
 }
 
+interface ITemplateItem {
+    code: string,
+    language: EditorLanguage,
+}
+
 export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
     public static readonly defaultProps = {
@@ -225,6 +232,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
     // All allocated event handlers and other Monaco resources that must be explicitly disposed off.
     private disposables: IDisposable[] = [];
+
+    private templateCodeBlocks: ITemplateItem[] = [];
+    private templatePastePosition: number | undefined;
 
     public constructor(props: ICodeEditorProperties) {
         super(props);
@@ -295,7 +305,15 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         languages.onLanguage(msg.id, () => {
             void msg.loader().then((definition: ILanguageDefinition) => {
+                languages.setMonarchTokensProvider(msg.id, definition.language);
                 languages.setLanguageConfiguration(msg.id, definition.languageConfiguration);
+            });
+        });
+
+        languages.onLanguage("mysql", () => {
+            void msg.loader().then((definition: ILanguageDefinition) => {
+                languages.setMonarchTokensProvider("mysql", definition.language);
+                languages.setLanguageConfiguration("mysql", definition.languageConfiguration);
             });
         });
 
@@ -944,6 +962,20 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         }));
 
         if (appParameters.embedded) {
+            this.disposables.push(editor.addAction({
+                id: "executeOnHost",
+                label: "Execute on all visible DB Notebooks",
+                keybindings: [KeyMod.Alt | KeyMod.CtrlCmd | KeyCode.Enter],
+                contextMenuGroupId: "2_execution",
+                contextMenuOrder: 5,
+                precondition,
+                run: () => {
+                    const options = { atCaret: true, advance: true, asText: false };
+                    this.executeCurrentContextOnHost(options);
+                    this.executeCurrentContext(options);
+                },
+            }));
+
             // In embedded mode some key combinations don't work by default. So we add handlers for them here.
             this.disposables.push(editor.addAction({
                 id: "paste",
@@ -1097,6 +1129,34 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             run: () => {
                 editor.trigger("source", "acceptSelectedSuggestion", null);
             },
+        }));
+
+        this.disposables.push(editor.addAction({
+            id: "removeAllResults",
+            label: "Remove All Results",
+            contextMenuGroupId: "3_results",
+            contextMenuOrder: 1,
+            precondition,
+            run: () => { return this.removeAllResults(); },
+        }));
+
+        this.disposables.push(editor.addAction({
+            id: "useNotebookAsTemplate",
+            label: "Use Notebook as Template",
+            contextMenuGroupId: "9_cutcopypaste",
+            contextMenuOrder: 5,
+            precondition,
+            run: () => { return this.useNotebookAsTemplate(); },
+        }));
+
+        this.disposables.push(editor.addAction({
+            id: "appendFromTemplate",
+            label: "Append Codeblock from Template",
+            keybindings: [KeyMod.CtrlCmd | KeyMod.Alt | KeyCode.KeyP],
+            contextMenuGroupId: "9_cutcopypaste",
+            contextMenuOrder: 6,
+            precondition,
+            run: () => { return this.appendFromTemplate(); },
         }));
 
         this.disposables.push(editor);
@@ -1481,6 +1541,32 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                         }
 
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * Executes the context where the caret is in on all visible DB notebooks, if the app is embedded.
+     *
+     * @param options The options to control the execution.
+     */
+    private executeCurrentContextOnHost(options: ICodeExecutionOptions): void {
+        const editor = this.backend;
+        const model = this.model;
+        if (editor && model) {
+            const index = this.currentBlockIndex;
+            if (index > -1) {
+                const block = model.executionContexts?.contextAt(index);
+                if (block) {
+                    const data: IEditorHostExecutionOptions = {
+                        startNewBlock: options.advance ?? true,
+                        forceSecondaryEngine: options.forceSecondaryEngine ?? false,
+                        asText: options.asText ?? false,
+                        query: block.code,
+                        language: block.language,
+                    };
+                    void requisitions.executeRemote("editorExecuteOnHost", data);
                 }
             }
         }
@@ -2070,6 +2156,47 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                         forceMoveMarkers: false,
                     },
                 ], false);
+            }
+        }
+    };
+
+    /**
+     * Removes the result views from all execution contexts.
+     */
+    private removeAllResults(): void {
+        const model = this.model;
+        if (model) {
+            model.executionContexts?.removeAllResults();
+        }
+    }
+
+    private useNotebookAsTemplate = (): void => {
+        const model = this.model;
+        if (model && model.executionContexts) {
+            this.templateCodeBlocks = [];
+            this.templatePastePosition = 0;
+            for (let i = 0; i < model.executionContexts.count; i++) {
+                const context = model.executionContexts.contextAt(i);
+                this.templateCodeBlocks.push({
+                    code: context?.code ?? "",
+                    language: context?.language ?? "sql",
+                });
+            }
+
+            this.clear();
+        }
+    };
+
+    private appendFromTemplate = (): void => {
+        if (this.templatePastePosition !== undefined && this.templatePastePosition < this.templateCodeBlocks.length) {
+            const templateBlock = this.templateCodeBlocks[this.templatePastePosition];
+            this.appendText(templateBlock.code);
+            this.switchCurrentLanguage(templateBlock.language, false);
+
+            this.templatePastePosition++;
+            if (this.templatePastePosition >= this.templateCodeBlocks.length) {
+                this.templatePastePosition = undefined;
+                this.templateCodeBlocks = [];
             }
         }
     };
