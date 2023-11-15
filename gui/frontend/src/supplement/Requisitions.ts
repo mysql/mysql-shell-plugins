@@ -571,29 +571,6 @@ export class RequisitionHub {
 
                         // Forward event to the window parent, which will forward to VS Code.
                         window.parent.postMessage(obj, "*");
-
-                        // Additionally, we have to take care for clipboard actions here.
-                        // We cannot access the clipboard in this nested iframe, so we send the text to the
-                        // extension, which can write to the clipboard.
-                        if (e.metaKey && (e.key === "c" || e.key === "x")) {
-                            const selection = window.getSelection();
-                            if (selection) {
-                                this.writeToClipboard(selection.toString());
-                                const element = document.activeElement;
-                                if (e.key === "x" && (element instanceof HTMLInputElement
-                                    || element instanceof HTMLTextAreaElement)) {
-                                    if (element.selectionStart !== null) {
-                                        const oldValue = element.value;
-                                        const caret = Math.min(element.selectionStart, element.selectionEnd ?? 1000);
-                                        element.value = oldValue.substring(0, element.selectionStart) + oldValue
-                                            .substring(element.selectionEnd as number ?? element.selectionStart);
-
-                                        element.selectionStart = caret;
-                                        element.selectionEnd = caret;
-                                    }
-                                }
-                            }
-                        }
                     });
 
                     document.addEventListener("keyup", (e) => {
@@ -790,29 +767,6 @@ export class RequisitionHub {
      * @param message The message to distribute.
      */
     public handleRemoteMessage(message: IEmbeddedMessage): void {
-        if (message.command === "paste" && message.data) {
-            // Special handling for paste events. An iframe does not get a paste event directly. Instead we have to
-            // capture it in the hosting document and forward it as command to our app.
-            // Here we convert that command back to a paste event and dispatch it to the active element.
-            const element = document.activeElement;
-            const text = message.data.text as string;
-            if (element && (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) {
-                const dataTransfer = new DataTransfer();
-                dataTransfer.setData("text/plain", text);
-                const pasteEvent = new ClipboardEvent("paste", { clipboardData: dataTransfer });
-                element.dispatchEvent(pasteEvent);
-            }
-
-            return;
-        } else if (message.command === "cut") {
-            const element = document.activeElement;
-            if (element && (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) {
-                element.dispatchEvent(new ClipboardEvent("cut"));
-            }
-
-            return;
-        }
-
         const requestType = message.command as keyof IRequestTypeMap;
         const parameter = message.data as IRequisitionCallbackValues<typeof requestType>;
 

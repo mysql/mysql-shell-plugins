@@ -111,7 +111,6 @@ describe("MsgSemanticTokensProvider Tests", () => {
         const model: ICodeEditorModel = Object.assign(Monaco.createModel("", "javascript"), {
             executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
             editorMode: CodeEditorMode.Standard,
-            appEmbedded: false,
         });
 
         const cancellationToken = {
@@ -131,7 +130,6 @@ describe("MsgSemanticTokensProvider Tests", () => {
         const model: ICodeEditorModel = Object.assign(Monaco.createModel("", "mysql"), {
             executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
             editorMode: CodeEditorMode.Standard,
-            appEmbedded: false,
         });
 
         const cancellationToken = {
@@ -157,7 +155,6 @@ describe("MsgSemanticTokensProvider Tests", () => {
         let model: ICodeEditorModel = Object.assign(Monaco.createModel("", "msg"), {
             executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
             editorMode: CodeEditorMode.Standard,
-            appEmbedded: false,
         });
 
         const cancellationToken = {
@@ -183,7 +180,6 @@ describe("MsgSemanticTokensProvider Tests", () => {
         model = Object.assign(Monaco.createModel("", "msg"), {
             executionContexts: new ExecutionContexts(undefined, 0, "", ""),
             editorMode: CodeEditorMode.Standard,
-            appEmbedded: false,
         });
 
         const jsPresentation = new EmbeddedPresentationInterface({ getModel: () => { return model; } },
@@ -204,7 +200,6 @@ describe("MsgSemanticTokensProvider Tests", () => {
         model = Object.assign(Monaco.createModel("", "msg"), {
             executionContexts: new ExecutionContexts(undefined, 0, "", ""),
             editorMode: CodeEditorMode.Standard,
-            appEmbedded: false,
         });
 
         const tsPresentation = new EmbeddedPresentationInterface({ getModel: () => { return model; } },
@@ -227,7 +222,6 @@ describe("MsgSemanticTokensProvider Tests", () => {
         const model: ICodeEditorModel = Object.assign(Monaco.createModel("", "msg"), {
             executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
             editorMode: CodeEditorMode.Standard,
-            appEmbedded: false,
         });
 
         const cancellationToken = {

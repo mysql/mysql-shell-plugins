@@ -31,7 +31,7 @@ import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.j
 const ec = new ExecutionContexts(StoreType.DbEditor, 1, "", "");
 export const mockModel: ICodeEditorModel = {
     executionContexts: ec,
-    symbols: new SymbolTable("myTable", {}), editorMode: CodeEditorMode.Standard, appEmbedded: false,
+    symbols: new SymbolTable("myTable", {}), editorMode: CodeEditorMode.Standard,
     uri: new Uri(), id: "", getOptions: jest.fn(), getVersionId: jest.fn(), getAlternativeVersionId: jest.fn(),
     setValue: jest.fn(), getValue: jest.fn(), getValueLength: jest.fn(), getValueInRange: jest.fn(),
     getValueLengthInRange: jest.fn(), getCharacterCountInRange: jest.fn(), getLineCount: jest.fn(),

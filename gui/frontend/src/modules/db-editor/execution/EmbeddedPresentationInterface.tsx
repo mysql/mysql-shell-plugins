@@ -82,7 +82,6 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                 // This local model has no execution blocks.
                 symbols: editorModel.symbols,
                 editorMode: CodeEditorMode.Standard,
-                appEmbedded: false,
             });
 
             if ("session" in editorModel) {

@@ -178,7 +178,7 @@ export const prepareWebviewContent = (panel: WebviewPanel, url: URL): void => {
 </head>
 <body style="margin:0px;padding:0px;overflow:hidden;">
 <!-- Everything is larger in our iframe. Not sure who is to blame for this, but we need to scale it down. -->
-<iframe id="frame-msg" onload="hideWaitForContentDiv()"
+<iframe id="frame-msg" onload="hideWaitForContentDiv()" allow="clipboard-read; clipboard-write;"
     src="${url.toString()}"
     frameborder="0" style="overflow: hidden; overflow-x: hidden; overflow-y: hidden; height:100%;
     width: 100%; position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; user-select: none;">
@@ -189,21 +189,6 @@ export const prepareWebviewContent = (panel: WebviewPanel, url: URL): void => {
 <script>
     let frame;
     let vscode;
-
-    document.addEventListener("paste", (event) => {
-        frame.contentWindow.postMessage({
-            source: "host",
-            command: "paste",
-            data: { text: event.clipboardData.getData("text") }
-        }, "*");
-    });
-
-    document.addEventListener("cut", (event) => {
-        frame.contentWindow.postMessage({
-            source: "host",
-            command: "cut",
-        }, "*");
-    });
 
     window.addEventListener('message', (event) => {
         if (!frame) {

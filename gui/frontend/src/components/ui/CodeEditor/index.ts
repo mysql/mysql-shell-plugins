@@ -171,9 +171,6 @@ export interface IProviderEditorModel extends editor.ITextModel {
 
     /** Functionality differs depending on where the code editor is used. */
     editorMode: CodeEditorMode;
-
-    /** A flag, indicating if the editor has to add extra functionality only used in embedded use cases. */
-    appEmbedded: boolean;
 }
 
 /** Base scope names used for syntax highlighting. These are combined with the modifiers below. */

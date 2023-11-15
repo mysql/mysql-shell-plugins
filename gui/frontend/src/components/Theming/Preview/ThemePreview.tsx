@@ -124,7 +124,6 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
         const model: ICodeEditorModel = Object.assign(Monaco.createModel(content, "javascript"), {
             executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
             editorMode: CodeEditorMode.Standard,
-            appEmbedded: false,
         });
 
         if (model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
