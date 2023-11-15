@@ -682,8 +682,9 @@ class BEServer:
         is_timeout = False
         with open(self.be_log_path, 'a', encoding="UTF-8") as be_log:
             environment = self.environment.copy()
-            environment["MYSQLSH_USER_CONFIG_HOME"] = os.path.join(
-                WORKING_DIR, f'port_{self.port}')
+            mysqlsh_user_config_home = os.path.join(WORKING_DIR, f'port_{self.port}')
+            os.makedirs(mysqlsh_user_config_home, exist_ok=True)
+            environment["MYSQLSH_USER_CONFIG_HOME"] = mysqlsh_user_config_home
             timeout = time.time() + 30   # 30 seconds from now
 
             shell_args = [self.mysqlsh_executable, "--py", "-e"]
