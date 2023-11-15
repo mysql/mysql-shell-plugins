@@ -375,6 +375,15 @@ export class ExecutionContexts implements IContextProvider {
         }
     }
 
+    /**
+     * Removes the results from all contexts.
+     */
+    public removeAllResults(): void {
+        this.content.forEach((context) => {
+            context.removeResult();
+        });
+    }
+
     private createContext(presentation: PresentationInterface, statementSpans?: IStatementSpan[]): ExecutionContext {
         presentation.onRemoveResult = this.onResultRemoval;
         if (presentation.isSQLLike) {

@@ -180,13 +180,13 @@ export class SQLiteParsingServices {
      *
      * @returns The information about the symbol at the given offset, if there's one.
      */
-    public tokenize(text: string): ITokenInfo[] {
+    public async tokenize(text: string): Promise<ITokenInfo[]> {
         this.errors = [];
         this.lexer.inputStream = CharStreams.fromString(text);
         this.tokenStream.setTokenSource(this.lexer);
         this.tokenStream.fill();
 
-        return this.tokenStream.getTokens().map((token: Token) => {
+        return Promise.resolve(this.tokenStream.getTokens().map((token: Token) => {
             return {
                 type: this.lexerTypeToScope(token),
                 offset: token.start,
@@ -194,7 +194,7 @@ export class SQLiteParsingServices {
                 column: token.column,
                 length: token.stop - token.start + 1,
             };
-        });
+        }));
     }
 
     /**

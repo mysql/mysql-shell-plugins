@@ -41,13 +41,23 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
     public supportMrs = true;
 
     /** Enable Multi Language Extension support. */
-    public supportMle = false;
+    public supportMle = true;
 
     public readonly charsets: Set<string> = new Set(); // Used to check repertoires.
     protected inVersionComment = false;
 
     private pendingTokens: Token[] = [];
     private symbols: Map<string, number> = new Map(); // A list of all defined symbols for lookup.
+
+    static #longString = "2147483647";
+    static #longLength = 10;
+    static #signedLongString = "-2147483648";
+    static #longLongString = "9223372036854775807";
+    static #longLongLength = 19;
+    static #signedLongLongString = "-9223372036854775808";
+    static #signedLongLongLength = 19;
+    static #unsignedLongLongString = "18446744073709551615";
+    static #unsignedLongLongLength = 20;
 
     /**
      * Determines if the given type is a relational operator.
@@ -1336,21 +1346,11 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
      * @returns The token type for that text.
      */
     protected determineNumericType(text: string): number {
-        const longString = "2147483647";
-        const longLength = 10;
-        const signedLongString = "-2147483648";
-        const longLongString = "9223372036854775807";
-        const longLongLength = 19;
-        const signedLongLongString = "-9223372036854775808";
-        const signedLongLongLength = 19;
-        const unsignedLongLongString = "18446744073709551615";
-        const unsignedLongLongLength = 20;
-
         // The original code checks for leading +/- but actually that can never happen, neither in the
         // server parser (as a digit is used to trigger processing in the lexer) nor in our parser
         // as our rules are defined without signs. But we do it anyway for maximum compatibility.
         let length = text.length - 1;
-        if (length < longLength) { // quick normal case
+        if (length < MySQLBaseLexer.#longLength) { // quick normal case
             return MySQLMRSLexer.INT_NUMBER;
         }
 
@@ -1370,7 +1370,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
             --length;
         }
 
-        if (length < longLength) {
+        if (length < MySQLBaseLexer.#longLength) {
             return MySQLMRSLexer.INT_NUMBER;
         }
 
@@ -1378,35 +1378,35 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
         let bigger: number;
         let cmp: string;
         if (negative) {
-            if (length === longLength) {
-                cmp = signedLongString.substr(1);
+            if (length === MySQLBaseLexer.#longLength) {
+                cmp = MySQLBaseLexer.#signedLongString.substr(1);
                 smaller = MySQLMRSLexer.INT_NUMBER; // If <= signed_long_str
                 bigger = MySQLMRSLexer.LONG_NUMBER; // If >= signed_long_str
-            } else if (length < signedLongLongLength) {
+            } else if (length < MySQLBaseLexer.#signedLongLongLength) {
                 return MySQLMRSLexer.LONG_NUMBER;
-            } else if (length > signedLongLongLength) {
+            } else if (length > MySQLBaseLexer.#signedLongLongLength) {
                 return MySQLMRSLexer.DECIMAL_NUMBER;
             } else {
-                cmp = signedLongLongString.substr(1);
+                cmp = MySQLBaseLexer.#signedLongLongString.substr(1);
                 smaller = MySQLMRSLexer.LONG_NUMBER; // If <= signed_longlong_str
                 bigger = MySQLMRSLexer.DECIMAL_NUMBER;
             }
         } else {
-            if (length === longLength) {
-                cmp = longString;
+            if (length === MySQLBaseLexer.#longLength) {
+                cmp = MySQLBaseLexer.#longString;
                 smaller = MySQLMRSLexer.INT_NUMBER;
                 bigger = MySQLMRSLexer.LONG_NUMBER;
-            } else if (length < longLongLength) {
+            } else if (length < MySQLBaseLexer.#longLongLength) {
                 return MySQLMRSLexer.LONG_NUMBER;
-            } else if (length > longLongLength) {
-                if (length > unsignedLongLongLength) {
+            } else if (length > MySQLBaseLexer.#longLongLength) {
+                if (length > MySQLBaseLexer.#unsignedLongLongLength) {
                     return MySQLMRSLexer.DECIMAL_NUMBER;
                 }
-                cmp = unsignedLongLongString;
+                cmp = MySQLBaseLexer.#unsignedLongLongString;
                 smaller = MySQLMRSLexer.ULONGLONG_NUMBER;
                 bigger = MySQLMRSLexer.DECIMAL_NUMBER;
             } else {
-                cmp = longLongString;
+                cmp = MySQLBaseLexer.#longLongString;
                 smaller = MySQLMRSLexer.LONG_NUMBER;
                 bigger = MySQLMRSLexer.ULONGLONG_NUMBER;
             }

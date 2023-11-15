@@ -158,7 +158,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
                     args: {
                         moduleSessionId,
                         sql,
-                        params,
+                        params: params !== undefined && params.length > 0 ? params : undefined,
                         options: { rowPacketSize: Settings.get("sql.rowPacketSize", 1000) },
                     },
                 },

@@ -21,11 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* spell-checker: disable */
-
 import { languages } from "monaco-editor/esm/vs/editor/editor.api.js";
 import { conf as tsConfig } from "monaco-editor/esm/vs/basic-languages/typescript/typescript";
-
 
 export const languageConfiguration: languages.LanguageConfiguration = {
     ...tsConfig,
@@ -36,7 +33,10 @@ export const language: languages.IMonarchLanguage = {
     ignoreCase: true,
     start: "msg",
     tokenizer: {
-        msg: [], // No rules here for the moment.
+        msg: [
+            // By default all text is formatted as string. The semantic highlighter will update the formatting.
+            [/.*/, { token: "string.quoted.double.sql" }],
+        ],
     },
 
 };

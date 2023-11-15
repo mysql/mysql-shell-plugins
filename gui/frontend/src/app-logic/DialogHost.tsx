@@ -50,7 +50,8 @@ export class DialogHost extends ComponentBase {
     #focusedElements: Array<Element | null> = [];
 
     #promptDialogRef = createRef<ValueEditDialog>();
-    // Tri-state: undefined = not active, null = active (use requisitions, assigned = active (use this).
+
+    // Tri-state: undefined = not active, null = active (use requisitions, assigned = active (use this)).
     #promptDialogSignal: Semaphore<IDialogResponse> | undefined | null;
 
     #confirmDialogRef = createRef<ConfirmDialog>();

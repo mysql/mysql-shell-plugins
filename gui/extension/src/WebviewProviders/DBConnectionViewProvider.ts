@@ -26,6 +26,7 @@ import { readFile, writeFile } from "fs/promises";
 import { commands, OpenDialogOptions, SaveDialogOptions, Uri, window } from "vscode";
 
 import {
+    IEditorHostExecutionOptions,
     IMrsDbObjectEditRequest, IOpenDialogOptions, IOpenFileDialogResult, IRequestTypeMap, IRequisitionCallbackValues,
     requisitions,
 } from "../../../frontend/src/supplement/Requisitions.js";
@@ -356,6 +357,8 @@ export class DBConnectionViewProvider extends WebviewProvider {
             this.requisitions.register("editorLoadNotebook", this.editorLoadNotebook);
             this.requisitions.register("showOpenDialog", this.showOpenDialog);
             this.requisitions.register("sqlSetCurrentSchema", this.setCurrentSchema);
+
+            this.requisitions.register("editorExecuteOnHost", this.executeOnHost);
         }
     }
 
@@ -394,6 +397,13 @@ export class DBConnectionViewProvider extends WebviewProvider {
         return requisitions.execute("proxyRequest", {
             provider: this,
             original: { requestType: "sqlSetCurrentSchema", parameter: data },
+        });
+    };
+
+    private executeOnHost = (data: IEditorHostExecutionOptions): Promise<boolean> => {
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "editorExecuteOnHost", parameter: data },
         });
     };
 

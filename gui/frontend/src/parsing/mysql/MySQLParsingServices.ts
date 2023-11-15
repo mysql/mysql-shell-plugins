@@ -39,6 +39,7 @@ import { MySQLErrorListener } from "./MySQLErrorListener.js";
 import { MySQLParseUnit } from "./MySQLServiceTypes.js";
 import {
     ICompletionData, IParserErrorInfo, IStatementSpan, ISymbolInfo, ITokenInfo, QueryType, StatementFinishState,
+    SymbolKind,
     TextSpan, tokenFromPosition,
 } from "../parser-common.js";
 
@@ -260,33 +261,65 @@ export class MySQLParsingServices {
      *
      * @returns The information about the symbol at the given offset, if there's one.
      */
-    public tokenize(text: string, serverVersion: number, sqlMode: string): ITokenInfo[] {
+    public async tokenize(text: string, serverVersion: number, sqlMode: string): Promise<ITokenInfo[]> {
+        const result: ITokenInfo[] = [];
+
+        const splitMultiLineStatements = (text: string, type: string, firstIndex: number,
+            firstColumn: number): void => {
+            const lines = text.split("\n");
+            lines.forEach((line: string, lineIndex: number) => {
+                if (line.length > 0) {
+                    result.push({
+                        type,
+                        line: firstIndex + lineIndex,
+                        column: lineIndex === 0 ? firstColumn : 0,
+                        length: line.length,
+                    });
+                }
+            });
+
+        };
+
+        // Special treatment for delimiters.
+        if (text.match(/^\s*delimiter /i)) {
+            splitMultiLineStatements(text, "delimiter.sql", 1, 0);
+
+            return result;
+        }
+
         this.applyServerDetails(serverVersion, sqlMode);
         this.errors = [];
         this.lexer.inputStream = CharStreams.fromString(text);
         this.tokenStream.setTokenSource(this.lexer);
         this.tokenStream.fill();
 
-        const result: ITokenInfo[] = [];
         const tokens = this.tokenStream.getTokens();
 
         let variablePending = false;
         const version = numberToVersion(serverVersion);
-        tokens.forEach((token: Token) => {
-            if (token.type !== MySQLMRSLexer.WHITESPACE && token.type !== Token.EOF) {
-                if (token.type === MySQLMRSLexer.BLOCK_COMMENT) {
+        for (const token of tokens) {
+            switch (token.type) {
+                case MySQLMRSLexer.WHITESPACE:
+                case MySQLMRSLexer.EOF: {
+                    break;
+                }
+
+                case MySQLMRSLexer.BLOCK_COMMENT: {
                     // Block comments can span multiple lines. Split them up into individual lines.
-                    const lines = token.text.split("\n");
-                    lines.forEach((line: string, lineIndex: number) => {
-                        result.push({
-                            type: "comment.block.sql",
-                            line: token.line + lineIndex,
-                            column: lineIndex === 0 ? token.column : 0,
-                            length: line.length,
-                        });
-                    });
-                } else {
-                    let type = this.lexerTypeToScope(token, version);
+                    splitMultiLineStatements(token.text, "comment.block.sql", token.line, token.column);
+
+                    break;
+                }
+
+                case MySQLMRSLexer.DOLLAR_QUOTED_STRING_TEXT: {
+                    // Ditto for dollar quoted strings.
+                    splitMultiLineStatements(token.text, "string.sql", token.line, token.column);
+
+                    break;
+                }
+
+                default: {
+                    let type = await this.lexerTypeToScope(token, version);
 
                     // System variables appear as two tokens, the first one being the @@ sign.
                     // Make both of them appear as variable.predefined.
@@ -305,7 +338,7 @@ export class MySQLParsingServices {
                     });
                 }
             }
-        });
+        }
 
         return result;
     }
@@ -944,6 +977,8 @@ export class MySQLParsingServices {
             }
         }
 
+        //console.log(this.tree?.toStringTree());
+
         return this.tree;
     }
 
@@ -982,7 +1017,7 @@ export class MySQLParsingServices {
      *
      * @returns The scope name.
      */
-    private lexerTypeToScope(token: Token, serverVersion: MySQLVersion): string {
+    private async lexerTypeToScope(token: Token, serverVersion: MySQLVersion): Promise<string> {
         switch (token.type) {
             case MySQLMRSLexer.AT_TEXT_SUFFIX: {
                 return "variable.language";
@@ -1001,7 +1036,9 @@ export class MySQLParsingServices {
             }
 
             case MySQLMRSLexer.BLOCK_COMMENT:
-            case MySQLMRSLexer.INVALID_BLOCK_COMMENT: {
+            case MySQLMRSLexer.INVALID_BLOCK_COMMENT:
+            case MySQLMRSLexer.VERSION_COMMENT_START:
+            case MySQLMRSLexer.VERSION_COMMENT_END: {
                 return "comment.block";
             }
 
@@ -1028,11 +1065,46 @@ export class MySQLParsingServices {
                     return "delimiter";
                 }
 
-                if (isKeyword(token.text ?? "", serverVersion)) {
+                const name = token.text;
+                if (isKeyword(name, serverVersion)) {
+                    if (name.length > 2) {
+                        const info = await this.globalSymbols.getSymbolInfo(name.toLowerCase());
+                        if (info) {
+                            switch (info.kind) {
+                                case SymbolKind.SystemFunction: {
+                                    return "support.function";
+                                }
+
+                                case SymbolKind.SystemVariable: {
+                                    return "variable.predefined";
+                                }
+
+                                default:
+                            }
+                        }
+                    }
+
                     return "keyword";
                 }
 
                 if (this.lexer.isIdentifier(token.type)) {
+                    if (name.length > 2) {
+                        const info = await this.globalSymbols.getSymbolInfo(name.toLocaleLowerCase());
+                        if (info) {
+                            switch (info.kind) {
+                                case SymbolKind.SystemFunction: {
+                                    return "support.function";
+                                }
+
+                                case SymbolKind.SystemVariable: {
+                                    return "variable.predefined";
+                                }
+
+                                default:
+                            }
+                        }
+                    }
+
                     return "identifier";
                 }
 

@@ -104,6 +104,13 @@ export class MsgSemanticTokensProvider implements DocumentSemanticTokensProvider
             this.#changedLines.set(model.id, details);
         }
 
+        if (details.firstLine === -1 || details.lastLine === -1) {
+            // No changes since the last call to provideDocumentSemanticTokens. That usually means that the
+            // model was loaded from state and we have to fully generate the semantic tokens.
+            details.firstLine = 1;
+            details.lastLine = model.getLineCount();
+        }
+
         const indices = model.executionContexts.contextIndicesFromRange({
             startLine: details.firstLine,
             startColumn: 0,

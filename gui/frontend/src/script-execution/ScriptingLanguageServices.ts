@@ -415,7 +415,7 @@ export class ScriptingLanguageServices {
      *
      * @returns A promise that resolves to a list of tokens.
      */
-    public tokenize = (block: IExecutionContext): Promise<ITextToken[][]> => {
+    public tokenize = async (block: IExecutionContext): Promise<ITextToken[][]> => {
         const context = block as ExecutionContext;
 
         if (context.isInternal) {
@@ -465,15 +465,20 @@ export class ScriptingLanguageServices {
             case "sql":
             case "mysql": {
                 const sqlContext = context as SQLExecutionContext;
-                const model = context.model;
-                if (model && !model.isDisposed()) {
-                    return new Promise((resolve) => {
-                        const sql = model.getValue();
+                const promises: Array<Promise<ITextToken[][]>> = [];
+
+                // This statement call should not be affected by a selection in the editor,
+                // it is only used when a change occurred (which will remove any selection).
+                const offsets: number[] = [];
+                const statements = await sqlContext.getAllStatements();
+                statements.forEach((statement) => {
+                    offsets.push(statement.line - 1); // Convert to zero-base.
+                    promises.push(new Promise((resolve) => {
                         const taskData: ILanguageWorkerTokenizeData = {
                             language: context.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
                             api: "tokenize",
                             version: sqlContext.dbVersion,
-                            sql,
+                            sql: statement.text,
                             sqlMode: sqlContext.sqlMode,
                         };
 
@@ -512,9 +517,26 @@ export class ScriptingLanguageServices {
                                     resolve(tokens);
                                 }
                             });
+                    }));
+                });
+
+                const result = Promise.all(promises).then((values) => {
+                    const tokens: ITextToken[][] = [];
+                    values.forEach((value) => {
+                        // Update the relative line numbers to absolute ones.
+                        const lineOffset = offsets.shift() ?? 0;
+                        value.forEach((lineTokens) => {
+                            lineTokens.forEach((token) => {
+                                token.line += lineOffset;
+                            });
+                        });
+                        tokens.push(...value);
                     });
-                }
-                break;
+
+                    return tokens;
+                });
+
+                return result;
             }
 
             default:
