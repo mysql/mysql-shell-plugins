@@ -38,7 +38,6 @@ describe("ScriptingLanguageServices Tests", () => {
         const jsModel: ICodeEditorModel = Object.assign(Monaco.createModel("", "javascript"), {
             executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
             editorMode: CodeEditorMode.Standard,
-            appEmbedded: false,
         });
 
         if (jsModel.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {

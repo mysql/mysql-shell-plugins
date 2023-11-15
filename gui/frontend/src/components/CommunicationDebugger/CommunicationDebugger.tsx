@@ -392,7 +392,6 @@ export class CommunicationDebugger
         const model: ICodeEditorModel = Object.assign(Monaco.createModel(content, "javascript"), {
             executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
             editorMode: CodeEditorMode.Standard,
-            appEmbedded: false,
         });
 
         const state: IEditorPersistentState = {

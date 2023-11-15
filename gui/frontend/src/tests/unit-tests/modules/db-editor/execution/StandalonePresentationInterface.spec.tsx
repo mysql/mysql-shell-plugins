@@ -42,7 +42,6 @@ describe("Standalone presentation interface tests", (): void => {
     const model: ICodeEditorModel = Object.assign(Monaco.createModel("", "msg"), {
         executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
         editorMode: CodeEditorMode.Standard,
-        appEmbedded: false,
     });
 
     model.setEOL(Monaco.EndOfLineSequence.LF);

@@ -1956,7 +1956,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             executionContexts: new ExecutionContexts(StoreType.DbEditor, serverVersion, sqlMode, currentSchema),
             symbols: new DynamicSymbolTable(backend, "db symbols", { allowDuplicateSymbols: true }),
             editorMode: CodeEditorMode.Standard,
-            appEmbedded: false,
         });
 
         if (model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {

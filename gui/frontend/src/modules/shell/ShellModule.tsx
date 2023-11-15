@@ -596,7 +596,6 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
             // on the connection the user opens.
             symbols: new DynamicSymbolTable(undefined, "db symbols", { allowDuplicateSymbols: true }),
             editorMode: CodeEditorMode.Terminal,
-            appEmbedded: false,
             session,
         });
 

@@ -2318,7 +2318,6 @@ Execute \\help or \\? for help;`;
                     }
 
                     default: {
-                        //value = convertLineBreaks(String(row[column.field]));
                         value = String(row[column.field]);
 
                         break;
@@ -2327,6 +2326,7 @@ Execute \\help or \\? for help;`;
 
                 row[column.field] = value;
                 let length = value.length;
+
                 // Check if the value has line breaks, if so, find the longest line
                 if (/\r|\n/.exec(value)) {
                     let maxLength = 0;

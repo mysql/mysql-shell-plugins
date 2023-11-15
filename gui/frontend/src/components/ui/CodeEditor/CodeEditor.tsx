@@ -38,7 +38,7 @@ import {
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
 import { EditorLanguage, ITextRange } from "../../../supplement/index.js";
-import { IEditorExecutionOptions, requisitions } from "../../../supplement/Requisitions.js";
+import { appParameters, IEditorExecutionOptions, requisitions } from "../../../supplement/Requisitions.js";
 import { Settings } from "../../../supplement/Settings/Settings.js";
 import { editorRangeToTextRange } from "../../../utilities/ts-helpers.js";
 
@@ -394,7 +394,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                     Settings.get("editor.sqlMode", ""), ""),
                 symbols: new SymbolTable("default", { allowDuplicateSymbols: true }),
                 editorMode: CodeEditorMode.Standard,
-                appEmbedded: false,
             });
 
 
@@ -944,6 +943,38 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             run: () => { return this.executeCurrentContext({ atCaret: true, advance: true, asText: true }); },
         }));
 
+        if (appParameters.embedded) {
+            // In embedded mode some key combinations don't work by default. So we add handlers for them here.
+            this.disposables.push(editor.addAction({
+                id: "paste",
+                label: "Paste",
+                keybindings: [KeyMod.CtrlCmd | KeyCode.KeyV],
+                run: () => {
+                    editor.trigger("source", "editor.action.clipboardPasteAction", null);
+                },
+            }));
+
+            this.disposables.push(editor.addAction({
+                id: "copy",
+                label: "Copy",
+                keybindings: [KeyMod.CtrlCmd | KeyCode.KeyC],
+                precondition,
+                run: () => {
+                    editor.trigger("source", "editor.action.clipboardCopyAction", null);
+                },
+            }));
+
+            this.disposables.push(editor.addAction({
+                id: "cut",
+                label: "Cut",
+                keybindings: [KeyMod.CtrlCmd | KeyCode.KeyX],
+                precondition,
+                run: () => {
+                    editor.trigger("source", "editor.action.clipboardCutAction", null);
+                },
+            }));
+        }
+
         if (mixedLanguage) {
             if (allowedLanguages.includes("sql")) {
                 this.disposables.push(editor.addAction({
@@ -978,7 +1009,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 }));
             }
 
-            if (this.model?.appEmbedded) {
+            if (appParameters.embedded) {
                 this.disposables.push(editor.addAction({
                     id: "sendBlockUpdates",
                     label: "Update SQL in Original Source File",
@@ -997,6 +1028,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 run: () => { this.handleBackspace(); },
                 precondition,
             }));
+
             this.disposables.push(editor.addAction({
                 id: "deleteForward",
                 label: "Delete Forward",
