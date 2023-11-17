@@ -7,6 +7,9 @@
 - Added support for MRS functions
 - Added MySQL Router to extension package
 - Changed the MRS sample code to make use of SDK
+- Added a popup menu item to open the DB Connection on a new VS Code tab when the Alt key is held before opening the DB Connection menu
+- Added new feature to execute a single statement on all open DB Notebooks
+- Added new feature to convert a DB Notebook to a template that can be used to paste code blocks from
 
 ### Fixes
 

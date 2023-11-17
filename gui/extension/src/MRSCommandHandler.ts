@@ -1021,7 +1021,7 @@ export class MRSCommandHandler {
                     "Do you want to download and install the MySQL Router now?",
                     "Yes", "No");
                 if (answer === "Yes") {
-                    const labsUrl = "https://downloads.mysql.com/snapshots/pb/mysql-router-8.1.0-labs-mrs-preview-6/";
+                    const labsUrl = "https://downloads.mysql.com/snapshots/pb/mysql-8.2.0-labs-mrs7-preview-release/";
                     let fileUrl: string;
 
                     switch (os.platform()) {
@@ -1029,18 +1029,18 @@ export class MRSCommandHandler {
                             switch (os.arch()) {
                                 case "arm":
                                 case "arm64": {
-                                    fileUrl = `${labsUrl}mysql-router-8.1.0-labs-mrs-6-macos13-arm64.dmg`;
+                                    fileUrl = `${labsUrl}mysql-router-8.2.0-labs-mrs-7-macos13-arm64.dmg`;
                                     break;
                                 }
                                 default: {
-                                    fileUrl = `${labsUrl}mysql-router-8.1.0-labs-mrs-6-macos13-x86_64.dmg`;
+                                    fileUrl = `${labsUrl}mysql-router-8.2.0-labs-mrs-7-macos13-x86_64.dmg`;
                                     break;
                                 }
                             }
                             break;
                         }
                         case "win32": {
-                            fileUrl = `${labsUrl}mysql-router-8.1.0-labs-mrs-6-winx64.msi`;
+                            fileUrl = `${labsUrl}mysql-router-8.2.0-labs-mrs-7-winx64.msi`;
                             break;
                         }
                         default: {

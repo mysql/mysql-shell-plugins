@@ -26,7 +26,7 @@ import {
     Uri, ExtensionKind, ExtensionMode,
 } from "vscode";
 
-import * as child_process from "child_process";
+import * as childProcess from "child_process";
 import { existsSync, rmSync } from "fs";
 import { join } from "path";
 import { platform, arch } from "os";
@@ -292,7 +292,12 @@ export const activate = (context: ExtensionContext): void => {
             const shellDir = join(context.extensionPath, "shell");
             if (existsSync(shellDir)) {
                 // cSpell:ignore xattr
-                void child_process.execSync(`xattr -rc ${shellDir}`);
+                void childProcess.execSync(`xattr -rc ${shellDir}`);
+            }
+            const routerDir = join(context.extensionPath, "router");
+            if (existsSync(routerDir)) {
+                // cSpell:ignore xattr
+                void childProcess.execSync(`xattr -rc ${routerDir}`);
             }
         }
     }
