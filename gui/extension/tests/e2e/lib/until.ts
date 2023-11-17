@@ -27,6 +27,7 @@ import {
     logging,
     WebElement,
     Locator,
+    Workbench,
 } from "vscode-extension-tester";
 import { execSync } from "child_process";
 import { join } from "path";
@@ -37,6 +38,7 @@ import * as locator from "./locators";
 import * as interfaces from "./interfaces";
 import { Database } from "./db";
 export let credentialHelperOk = true;
+
 
 export const isNotLoading = (section: string): Condition<boolean> => {
     return new Condition(`for ${section} to NOT be loading`, async () => {
@@ -208,6 +210,33 @@ export const editorHasNewPrompt = (): Condition<boolean> => {
 
         return (await (editorSentences[editorSentences.length - 1]).getAttribute("innerHTML"))
             .match(/<span><\/span>/) !== null;
+    });
+};
+
+export const notificationsExist = (): Condition<boolean> => {
+    return new Condition(`for notifications to be displayed`, async () => {
+        return (await new Workbench().getNotifications()).length > 0;
+    });
+};
+
+export const fetchIsSuccessful = (url: string, data?: RequestInit): Condition<boolean> => {
+    return new Condition(`for router ${url} to return success`, async () => {
+        let response: Response;
+
+        return driver.wait(async () => {
+            try {
+                response = await fetch(url, data);
+
+                await response.json();
+
+                return true;
+            } catch (e) {
+                // continue
+                console.log("-------");
+                console.log(e);
+                console.log("-------");
+            }
+        }, constants.wait5seconds, `Could not get URL for ${url}`);
     });
 };
 

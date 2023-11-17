@@ -29,7 +29,7 @@ import { expect } from "chai";
 import { driver, Misc } from "../lib/misc";
 import { Shell } from "../lib/shell";
 import * as constants from "../lib/constants";
-import * as Until from "../lib/until";
+import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import { CommandExecutor } from "../lib/cmdExecutor";
@@ -78,7 +78,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Until.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
+            await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.switchToFrame();
             await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),

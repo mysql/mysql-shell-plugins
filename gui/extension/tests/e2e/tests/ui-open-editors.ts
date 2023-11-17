@@ -29,7 +29,7 @@ import { driver, Misc } from "../lib/misc";
 import { Shell } from "../lib/shell";
 import { Database } from "../lib/db";
 import * as constants from "../lib/constants";
-import * as Until from "../lib/until";
+import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 
@@ -75,7 +75,7 @@ describe("OPEN EDITORS", () => {
 
         await Misc.loadDriver();
         try {
-            await driver.wait(Until.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
+            await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
             await Misc.dismissNotifications();
@@ -134,7 +134,8 @@ describe("OPEN EDITORS", () => {
         await Misc.sectionFocus(constants.dbTreeSection);
         const treeLocalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
         await (await Misc.getActionButton(treeLocalConn, constants.openNewConnection)).click();
-        await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait5seconds, "Connection was not opened");
+        await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait5seconds,
+            "Connection was not opened");
         await Misc.switchBackToTopFrame();
         const treeOEGlobalConn = await Misc.getTreeElement(constants.openEditorsTreeSection,
             globalConn.caption);
@@ -228,7 +229,8 @@ describe("OPEN EDITORS", () => {
         await item.expand();
         await (await Misc.getTreeElement(constants.openEditorsTreeSection,
             constants.openEditorsDBNotebook)).click();
-        await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait5seconds, "Connection was not opened");
+        await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait5seconds,
+            "Connection was not opened");
 
     });
 
