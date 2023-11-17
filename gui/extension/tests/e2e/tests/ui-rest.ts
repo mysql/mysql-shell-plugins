@@ -35,7 +35,7 @@ import { driver, Misc } from "../lib/misc";
 import { Database } from "../lib/db";
 import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
-import * as Until from "../lib/until";
+import * as waitUntil from "../lib/until";
 import * as locator from "../lib/locators";
 import { hostname } from "os";
 import clipboard from "clipboardy";
@@ -80,7 +80,7 @@ describe("MySQL REST Service", () => {
 
         await Misc.loadDriver();
         try {
-            await driver.wait(Until.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
+            await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.sectionFocus(constants.dbTreeSection);
             await Database.createConnection(globalConn);
@@ -89,7 +89,7 @@ describe("MySQL REST Service", () => {
             await Misc.cleanCredentials();
             await Misc.openContextMenuItem(await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption),
                 constants.openNewConnection, constants.checkNewTabAndWebView);
-            await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds,
+            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds,
                 "DB Connection was not loaded");
             await Misc.switchBackToTopFrame();
             if (await Misc.requiresMRSMetadataUpgrade(globalConn)) {
@@ -147,7 +147,7 @@ describe("MySQL REST Service", () => {
 
         beforeEach(async function () {
             try {
-                await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
+                await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
                     `${constants.dbTreeSection} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -185,13 +185,13 @@ describe("MySQL REST Service", () => {
             const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
             await Misc.openContextMenuItem(treeMySQLRESTService, constants.disableRESTService, constants.checkInput);
             await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
+            await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
                 `${constants.dbTreeSection} is still loading`);
             await Misc.getNotification("MySQL REST Service configured successfully.");
             await driver.wait(async () => {
                 await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
                     constants.reloadConnections);
-                await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
+                await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
                     `${constants.dbTreeSection} is still loading`);
 
                 return (await Misc.isMRSDisabled(treeMySQLRESTService)) === true;
@@ -205,13 +205,13 @@ describe("MySQL REST Service", () => {
             const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
             await Misc.openContextMenuItem(treeMySQLRESTService, constants.enableRESTService, constants.checkInput);
             await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
+            await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
                 `${constants.dbTreeSection} is still loading`);
             await Misc.getNotification("MySQL REST Service configured successfully.");
             await driver.wait(async () => {
                 await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
                     constants.reloadConnections);
-                await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
+                await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
                     `${constants.dbTreeSection} is still loading`);
 
                 return (await Misc.isMRSDisabled(treeMySQLRESTService)) === false;
@@ -248,8 +248,8 @@ describe("MySQL REST Service", () => {
             const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
             await treeMySQLRESTService.expand();
             await Misc.openContextMenuItem(treeMySQLRESTService, constants.startRouter, constants.checkTerminal);
-            await driver.wait(Until.routerIsRunning(), constants.wait10seconds, "Router should be running");
-            await driver.wait(Until.existsOnRouterLog("Start accepting connections for routing"),
+            await driver.wait(waitUntil.routerIsRunning(), constants.wait10seconds, "Router should be running");
+            await driver.wait(waitUntil.existsOnRouterLog("Start accepting connections for routing"),
                 constants.wait20seconds, "'Start accepting connections for routing' was not found on the router log");
         });
 
@@ -264,7 +264,7 @@ describe("MySQL REST Service", () => {
                     return !Misc.isRouterRunning();
                 }, constants.wait10seconds, "Router task should not be running");
             } else {
-                await driver.wait(Until.existsOnRouterLog("Unloading all plugins"),
+                await driver.wait(waitUntil.existsOnRouterLog("Unloading all plugins"),
                     constants.wait20seconds, "'Unloading all plugins' was not found on the router log");
                 expect(Misc.isRouterRunning()).to.be.false;
             }
@@ -441,7 +441,7 @@ describe("MySQL REST Service", () => {
 
         beforeEach(async function () {
             try {
-                await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
+                await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
                     `${constants.dbTreeSection} is still loading`);
                 await Misc.dismissNotifications();
             } catch (e) {
@@ -565,10 +565,10 @@ describe("MySQL REST Service", () => {
             const treeRandomService = await Misc.getTreeElement(constants.dbTreeSection,
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
             await Misc.openContextMenuItem(treeRandomService, constants.setAsCurrentREST, constants.checkNotif);
-            await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
+            await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
                 `${constants.dbTreeSection} is still loading`);
             await Misc.getNotification("The MRS service has been set as the new default service.");
-            await driver.wait(Until.isDefaultItem(constants.dbTreeSection
+            await driver.wait(waitUntil.isDefaultItem(constants.dbTreeSection
                 , `${globalService.servicePath} (${globalService.settings.hostNameFilter})`,
                 "rest"), constants.wait5seconds, "REST Service tree item did not became default");
         });
@@ -759,7 +759,7 @@ describe("MySQL REST Service", () => {
             const dest = join(process.cwd(), "dump.sdk");
             await fs.rm(dest, { force: true, recursive: true });
             await Misc.setInputPath(dest);
-            await Misc.getNotification("MRS Service REST Files exported successfully");
+            await Misc.getNotification("MRS Service REST Files exported successfully.");
             const files = await fs.readdir(dest);
             expect(files.length).to.be.greaterThan(0);
         });
@@ -941,7 +941,7 @@ describe("MySQL REST Service", () => {
             servicePath: `/crudService`,
             enabled: true,
             settings: {
-                hostNameFilter: "127.0.0.1:8443",
+                hostNameFilter: `127.0.0.1:8443`,
             },
         };
 
@@ -1015,13 +1015,13 @@ describe("MySQL REST Service", () => {
                 await fs.truncate(await Misc.getRouterLogFile());
                 treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
                 await Misc.openContextMenuItem(treeMySQLRESTService, constants.startRouter, undefined);
-                await driver.wait(Until.routerIsRunning(), constants.wait10seconds, "Router should be running");
-                await driver.wait(Until.existsOnRouterLog("Start accepting connections for routing"),
+                await driver.wait(waitUntil.routerIsRunning(), constants.wait10seconds, "Router should be running");
+                await driver.wait(waitUntil.existsOnRouterLog("Start accepting connections for routing"),
                     constants.wait20seconds,
                     "'Start accepting connections for routing' was not found on the router log");
                 let regExp = `adding_route:.*${crudService.servicePath}`;
                 regExp += `${crudSchema.restSchemaPath}${crudObject.restObjectPath}`;
-                await driver.wait(Until.existsOnRouterLog(new RegExp(regExp)),
+                await driver.wait(waitUntil.existsOnRouterLog(new RegExp(regExp)),
                     constants.wait25seconds,
                     "'adding route' was not found on the router log");
             } catch (e) {
@@ -1062,6 +1062,7 @@ describe("MySQL REST Service", () => {
         });
 
         it("Get schema metadata", async () => {
+            await driver.wait(waitUntil.fetchIsSuccessful(`${baseUrl}/metadata-catalog`));
             response = await fetch(`${baseUrl}/metadata-catalog`);
             const data = await response.json();
             expect(response.ok).to.be.true;
@@ -1069,6 +1070,8 @@ describe("MySQL REST Service", () => {
         });
 
         it("Get object metadata", async () => {
+            await driver.wait(waitUntil
+                .fetchIsSuccessful(`${baseUrl}/metadata-catalog/${crudObject.restObjectPath.replace("/", "")}`));
             response = await fetch(`${baseUrl}/metadata-catalog/${crudObject.restObjectPath.replace("/", "")}`);
             const data = await response.json();
             expect(response.ok).to.be.true;
@@ -1077,6 +1080,8 @@ describe("MySQL REST Service", () => {
         });
 
         it("Get object data", async () => {
+            await driver.wait(waitUntil
+                .fetchIsSuccessful(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}`));
             response = await fetch(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}`);
             const data = await response.json();
             expect(response.ok).to.be.true;
@@ -1101,10 +1106,21 @@ describe("MySQL REST Service", () => {
         });
 
         it("Update table row", async () => {
+            await driver.wait(waitUntil.fetchIsSuccessful(`${baseUrl}/${crudObject.restObjectPath
+                .replace("/", "")}/${actorId}`, {
+                method: "put",
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                body: JSON
+                    .stringify({ firstName: "Mister", lastName: "Test", lastUpdate: "2023-06-23 13:32:54" }),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                headers: { "Content-Type": "application/json" },
+            }));
+
             response = await fetch(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}/${actorId}`, {
                 method: "put",
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                body: JSON.stringify({ firstName: "Mister", lastName: "Test", lastUpdate: "2023-06-23 13:32:54" }),
+                body: JSON
+                    .stringify({ firstName: "Mister", lastName: "Test", lastUpdate: "2023-06-23 13:32:54" }),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 headers: { "Content-Type": "application/json" },
             });
@@ -1119,7 +1135,6 @@ describe("MySQL REST Service", () => {
             const query = `"actorId":${actorId}`;
             response = await fetch(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}?q={${query}}`,
                 { method: "delete" });
-
             const data = await response.json();
             expect(response.ok).to.be.true;
             expect(data.itemsDeleted).to.equals(1);
@@ -1127,6 +1142,8 @@ describe("MySQL REST Service", () => {
 
         it("Filter object data", async () => {
             const query = `"firstName":"PENELOPE"`;
+            await driver.wait(waitUntil
+                .fetchIsSuccessful(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}?q={${query}}`));
             response = await fetch(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}?q={${query}}`);
             const data = await response.json();
             expect(response.ok).to.be.true;

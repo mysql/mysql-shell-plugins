@@ -29,7 +29,7 @@ import {
 import { browser, driver, Misc } from "../lib/misc";
 import { Database } from "../lib/db";
 import * as constants from "../lib/constants";
-import * as Until from "../lib/until";
+import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import { CommandExecutor } from "../lib/cmdExecutor";
@@ -80,7 +80,7 @@ describe("NOTEBOOKS", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Until.extensionIsReady(), constants.wait2minutes);
+            await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes);
             await Misc.toggleBottomBar(false);
             await Database.createConnection(globalConn);
             await new EditorView().closeAllEditors();
@@ -119,7 +119,7 @@ describe("NOTEBOOKS", () => {
                 await Misc.cleanCredentials();
                 await Misc.openContextMenuItem(await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption),
                     constants.openNewConnection, constants.checkNewTabAndWebView);
-                await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds);
+                await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -230,7 +230,8 @@ describe("NOTEBOOKS", () => {
 
             await commandExecutor.executeWithButton("SELECT * FROM sakila.actor;", constants.execFullBlockSql);
             expect(commandExecutor.getResultMessage()).to.match(/(\d+) record/);
-            await driver.wait(Until.editorHasNewPrompt(), constants.wait5seconds, "Editor should have a new prompt");
+            await driver.wait(waitUntil.editorHasNewPrompt(),
+                constants.wait5seconds, "Editor should have a new prompt");
         });
 
         it("Connection toolbar buttons - Execute statement at the caret position", async () => {
@@ -424,7 +425,8 @@ describe("NOTEBOOKS", () => {
                 .executeWithContextMenu("select * from sakila.actor limit 1;", constants.executeBlockAndAdvance,
                     undefined, blockId);
             expect(commandExecutor.getResultMessage()).to.match(/OK, 1 record retrieved/);
-            await driver.wait(Until.editorHasNewPrompt(), constants.wait5seconds, "Editor should have a new prompt");
+            await driver.wait(waitUntil.editorHasNewPrompt(),
+                constants.wait5seconds, "Editor should have a new prompt");
 
         });
 
@@ -434,7 +436,7 @@ describe("NOTEBOOKS", () => {
             expect(commandExecutor.getResultMessage()).to.match(/OK/);
             await (commandExecutor.getResultToolbar())
                 .findElement(locator.notebook.codeEditor.editor.result.status.maximize).click();
-            await driver.wait(Until.resultTabIsMaximized(), constants.wait5seconds);
+            await driver.wait(waitUntil.resultTabIsMaximized(), constants.wait5seconds);
 
             expect(await Database.getCurrentEditor()).to.equals("Result #1");
             try {
@@ -443,7 +445,7 @@ describe("NOTEBOOKS", () => {
                 expect(tabArea.length, "Result tab should not be visible").to.equals(0);
                 await driver.findElement(locator.notebook.codeEditor.editor.result.status.normalize).click();
                 expect(await Database.isEditorStretched()).to.be.true;
-                await driver.wait(Until.resultTabIsNormalized, constants.wait5seconds);
+                await driver.wait(waitUntil.resultTabIsNormalized, constants.wait5seconds);
                 tabArea = await driver.findElements(locator.notebook.codeEditor.editor.result.tabSection.body);
                 expect(tabArea.length, "Result tab should be visible").to.equals(1);
             } finally {
@@ -493,7 +495,7 @@ describe("NOTEBOOKS", () => {
                 await Misc.sectionFocus(constants.dbTreeSection);
                 const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
-                await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds);
+                await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
                 await Misc.switchBackToTopFrame();
                 await Misc.sectionFocus(constants.openEditorsTreeSection);
             } catch (e) {
@@ -590,7 +592,7 @@ describe("NOTEBOOKS", () => {
                 await Misc.sectionFocus(constants.dbTreeSection);
                 const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
                 await (await Misc.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
-                await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds);
+                await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -668,7 +670,7 @@ describe("NOTEBOOKS", () => {
             await (await input.findQuickPick(globalConn.caption)).select();
             await new EditorView().openEditor("test.mysql-notebook");
 
-            await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds);
+            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
             await Database.verifyNotebook("SELECT VERSION();", "1 record retrieved");
 
         });
@@ -689,7 +691,7 @@ describe("NOTEBOOKS", () => {
             const input = await InputBox.create();
             await (await input.findQuickPick(globalConn.caption)).select();
             await new EditorView().openEditor("test.mysql-notebook");
-            await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds);
+            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
             await Database.verifyNotebook("SELECT VERSION();", "1 record retrieved");
 
         });
@@ -715,7 +717,7 @@ describe("NOTEBOOKS", () => {
             }, constants.wait5seconds, "E2E section was not found");
             const file = await section.findItem("test.mysql-notebook", 3);
             await file.click();
-            await driver.wait(Until.dbConnectionIsOpened(globalConn), constants.wait15seconds);
+            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
             await Misc.switchBackToTopFrame();
             await new EditorView().openEditor("test.mysql-notebook");
             const activityBar = new ActivityBar();
@@ -745,7 +747,7 @@ describe("NOTEBOOKS", () => {
             const file = await section.findItem("test.mysql-notebook", 3);
             await file.click();
             await new EditorView().openEditor("test.mysql-notebook");
-            await Misc.getNotification("Please create a MySQL Database Connection first.");
+            await Misc.getNotification("Please create a MySQL Database Connection first.", undefined, true);
             await Misc.switchToFrame();
             expect(await driver.findElement(locator.htmlTag.h2).getText()).to.equals("No connection selected");
 
@@ -753,7 +755,7 @@ describe("NOTEBOOKS", () => {
             await new EditorView().closeAllEditors();
 
             await Misc.openContextMenuItem(file, constants.openNotebookWithConn, constants.checkNotif);
-            await Misc.getNotification("Please create a MySQL Database Connection first.");
+            await Misc.getNotification("Please create a MySQL Database Connection first.", undefined, true);
         });
 
     });

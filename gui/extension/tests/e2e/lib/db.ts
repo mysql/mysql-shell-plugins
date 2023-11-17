@@ -30,7 +30,7 @@ import {
 } from "vscode-extension-tester";
 import { basename } from "path";
 import { driver, Misc } from "./misc";
-import * as Until from "./until";
+import * as waitUntil from "./until";
 import * as constants from "./constants";
 import * as interfaces from "./interfaces";
 import * as locator from "./locators";
@@ -217,7 +217,7 @@ export class Database {
         await Misc.switchBackToTopFrame();
         await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
             constants.createDBConnection);
-        await driver.wait(Until.tabIsOpened(constants.dbDefaultEditor), constants.wait5seconds);
+        await driver.wait(waitUntil.tabIsOpened(constants.dbDefaultEditor), constants.wait5seconds);
         await Misc.switchToFrame();
         await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists), constants.wait10seconds);
 
@@ -1583,7 +1583,7 @@ export class Database {
     public static setDBConnectionCredentials = async (data: interfaces.IDBConnection,
         timeout?: number): Promise<void> => {
         await Database.setPassword(data);
-        if (Until.credentialHelperOk) {
+        if (waitUntil.credentialHelperOk) {
             await Misc.setConfirmDialog("no", timeout);
         }
     };

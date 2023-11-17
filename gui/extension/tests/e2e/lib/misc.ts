@@ -30,12 +30,12 @@ import { join } from "path";
 import {
     BottomBarPanel, Condition, CustomTreeSection, EditorView, error, InputBox, ITimeouts,
     Key, OutputView, SideBarView, TreeItem, until, VSBrowser,
-    WebDriver, ModalDialog,
+    WebDriver, ModalDialog, NotificationType,
     WebElement, Workbench, Button, Notification,
 } from "vscode-extension-tester";
 import * as constants from "./constants";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
-import * as Until from "./until";
+import * as waitUntil from "./until";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
 export let driver: WebDriver;
@@ -299,7 +299,7 @@ export class Misc {
         };
 
         const treeDBSection = await Misc.getSection(constants.dbTreeSection);
-        await driver.wait(Until.isNotLoading(constants.dbTreeSection), constants.wait5seconds);
+        await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait5seconds);
         await treeDBSection.click();
         const moreActions = await treeDBSection.findElement(locator.section.moreActions);
         await moreActions.click();
@@ -437,12 +437,17 @@ export class Misc {
 
     public static prepareExtensionLogsForExport = async (testSuite: string): Promise<void> => {
         const logPathFolder = await Misc.getExtentionOutputLogsFolder();
-        // rename the file
-        await fs.rename(join(logPathFolder, constants.feLogFile),
-            join(logPathFolder, `${testSuite}_output_tab.log`));
-        // copy to workspace
-        await fs.copyFile(join(logPathFolder, `${testSuite}_output_tab.log`),
-            join(constants.workspace, `${testSuite}_output_tab.log`));
+        try {
+            // rename the file
+            await fs.rename(join(logPathFolder, constants.feLogFile),
+                join(logPathFolder, `${testSuite}_output_tab.log`));
+            // copy to workspace
+            await fs.copyFile(join(logPathFolder, `${testSuite}_output_tab.log`),
+                join(constants.workspace, `${testSuite}_output_tab.log`));
+        } catch (e) {
+            // continue
+        }
+
     };
 
     public static killRouterFromTerminal = (): void => {
@@ -607,13 +612,22 @@ export class Misc {
         }, constants.wait5seconds, "Could not switch back to top frame");
     };
 
-    public static getNotification = async (text: string, dismiss = true): Promise<Notification> => {
+    public static getNotification = async (text: string, dismiss = true,
+        expectFailure = false): Promise<Notification> => {
         let notif: Notification;
+
+        await driver.wait(waitUntil.notificationsExist(), constants.wait5seconds);
+
         await driver.wait(async () => {
             try {
                 const ntfs = await new Workbench().getNotifications();
                 if (ntfs.length > 0) {
                     for (const ntf of ntfs) {
+                        if (expectFailure === false) {
+                            if (await ntf.getType() === NotificationType.Error) {
+                                throw new Error("An error has occurred");
+                            }
+                        }
                         if ((await ntf.getMessage()).includes(text)) {
                             notif = ntf;
                             if (dismiss) {
@@ -629,7 +643,7 @@ export class Misc {
                     throw e;
                 }
             }
-        }, constants.wait10seconds, `Could not find '${text}' notification`);
+        }, constants.wait2seconds, `Could not find '${text}' notification`);
 
         return notif;
     };
@@ -705,6 +719,17 @@ export class Misc {
         }, timeout, `Could not find text '${textToSearch[0]}' on the terminal`);
     };
 
+    public static getRouterPort = async (): Promise<string> => {
+        const routerConfigFilePath = Misc.getRouterConfigFile();
+        const fileContent = (await fs.readFile(routerConfigFilePath)).toString();
+        const lines = fileContent.split("\n");
+        for (let i = 0; i <= lines.length - 1; i++) {
+            if (lines[i] === "[http_server]") {
+                return lines[i + 1].match(/port=(\d+)/)[1];
+            }
+        }
+    };
+
     public static terminalHasErrors = async (): Promise<boolean> => {
         const out = await Misc.getTerminalOutput();
 
@@ -764,7 +789,7 @@ export class Misc {
             await inputBox.confirm();
         }
 
-        if (Until.credentialHelperOk) {
+        if (waitUntil.credentialHelperOk) {
             await driver.wait(async () => {
                 inputBox = await InputBox.create();
                 if ((await inputBox.isPassword()) === false) {
@@ -1070,7 +1095,7 @@ export class Misc {
         }
 
         const sectionTree = await Misc.getSection(section);
-        await driver.wait(Until.isNotLoading(section), constants.wait20seconds);
+        await driver.wait(waitUntil.isNotLoading(section), constants.wait20seconds);
         let reload = false;
 
         await driver.wait(async () => {
@@ -1078,7 +1103,7 @@ export class Misc {
                 if (reload) {
                     if (section === constants.dbTreeSection || section === constants.ociTreeSection) {
                         await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
-                        await driver.wait(Until.isNotLoading(section), constants.wait20seconds);
+                        await driver.wait(waitUntil.isNotLoading(section), constants.wait20seconds);
                     }
                 }
                 if (itemName instanceof RegExp) {
@@ -1126,7 +1151,7 @@ export class Misc {
     public static existsTreeElement = async (section: string, itemName: string | RegExp): Promise<boolean> => {
         let reloadLabel: string;
         const sectionTree = await Misc.getSection(section);
-        await driver.wait(Until.isNotLoading(section), constants.wait10seconds);
+        await driver.wait(waitUntil.isNotLoading(section), constants.wait10seconds);
         if (section === constants.dbTreeSection || section === constants.ociTreeSection) {
             if (section === constants.dbTreeSection) {
                 reloadLabel = "Reload the connection list";
@@ -1134,7 +1159,7 @@ export class Misc {
                 reloadLabel = "Reload the OCI Profile list";
             }
             await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
-            await driver.wait(Until.isNotLoading(section), constants.wait20seconds);
+            await driver.wait(waitUntil.isNotLoading(section), constants.wait20seconds);
         }
 
         if (itemName instanceof RegExp) {
@@ -1425,7 +1450,7 @@ export class Misc {
             const treeItem = await Misc.getTreeElement(section, item);
             if (!(await treeItem.isExpanded())) {
                 await treeItem.expand();
-                await driver.wait(Until.isNotLoading(section), loadingTimeout);
+                await driver.wait(waitUntil.isNotLoading(section), loadingTimeout);
             }
         }
     };

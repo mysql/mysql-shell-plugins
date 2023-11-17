@@ -222,5 +222,5 @@ export interface ICommandTabResult {
 
 export interface ICommandResultIdHolder {
     id?: string;
-    suite?: string
+    suite?: string;
 }

@@ -31,7 +31,7 @@ import * as constants from "./constants";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
 import { Misc, driver } from "./misc";
-import * as Until from "./until";
+import * as waitUntil from "./until";
 
 /**
  * This class aggregates the functions that will execute commands on notebooks or shell sessions, as well as its results
@@ -297,8 +297,8 @@ export class CommandExecutor {
         if (await Database.existsToolbarButton(constants.execCaret)) {
             const toolbarButton = await Database.getToolbarButton(constants.execCaret);
             await toolbarButton.click();
-            await driver.wait(Until.toolbarButtonIsDisabled(constants.execCaret), constants.wait5seconds);
-            await driver.wait(Until.toolbarButtonIsEnabled(constants.execCaret), constants.wait5seconds);
+            await driver.wait(waitUntil.toolbarButtonIsDisabled(constants.execCaret), constants.wait5seconds);
+            await driver.wait(waitUntil.toolbarButtonIsEnabled(constants.execCaret), constants.wait5seconds);
         } else {
             await (await Database.getToolbarButton(constants.execFullBlockJs)).click();
         }
@@ -681,17 +681,17 @@ export class CommandExecutor {
                         if (tableRows) {
                             await driver.wait(until.stalenessOf(tableRows as WebElement), constants.wait2seconds,
                                 "Result table was not updated");
-                            await driver.wait(Until.elementLocated(result,
+                            await driver.wait(waitUntil.elementLocated(result,
                                 locator.notebook.codeEditor.editor.result.tableHeaders),
                                 constants.wait2seconds, "Result Table headers were not loaded");
-                            await driver.wait(Until.elementLocated(result,
+                            await driver.wait(waitUntil.elementLocated(result,
                                 locator.notebook.codeEditor.editor.result.tableCell),
                                 constants.wait2seconds, "Table cells were not loaded").catch(async () => {
                                     const result = fromScript ? await this
                                         .getResultScript() : await this.getResult(cmd, searchOnExistingId);
                                     await result.findElement(locator.notebook.codeEditor.editor.result.tableColumnTitle)
                                         .click();
-                                    await driver.wait(Until
+                                    await driver.wait(waitUntil
                                         .elementLocated(result, locator.notebook.codeEditor.editor.result.tableCell),
                                         constants.wait2seconds,
                                         `Table cell was not set after click on column title (bug)`);
@@ -710,16 +710,16 @@ export class CommandExecutor {
                         }
                     }
                 } else if (isTableResult) {
-                    await driver.wait(Until.elementLocated(result,
+                    await driver.wait(waitUntil.elementLocated(result,
                         locator.notebook.codeEditor.editor.result.tableHeaders),
                         constants.wait2seconds, "Table headers were not loaded");
-                    await driver.wait(Until.elementLocated(result,
+                    await driver.wait(waitUntil.elementLocated(result,
                         locator.notebook.codeEditor.editor.result.tableCell),
                         constants.wait2seconds, "Table cells were not loaded").catch(async () => {
                             const result = await this.getResult(cmd, searchOnExistingId);
                             await result.findElement(locator.notebook.codeEditor.editor.result.tableColumnTitle)
                                 .click();
-                            await driver.wait(Until
+                            await driver.wait(waitUntil
                                 .elementLocated(result, locator.notebook.codeEditor.editor.result.tableCell),
                                 constants.wait2seconds, `Table cell was not set after click on column title (bug)`);
                         });
