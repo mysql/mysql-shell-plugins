@@ -50,6 +50,7 @@ import { IMrsSdkExportDialogData, MrsSdkExportDialog } from "./dialogs/MrsSdkExp
 import { getMySQLDbConnectionUri } from "../../communication/MySQL.js";
 import { IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
+import { getRouterPortForConnection } from "../../modules/mrs/mrs-helpers.js";
 
 type DialogConstructor = new (props: {}) => AwaitableValueEditDialog;
 
@@ -989,9 +990,8 @@ export class MrsHub extends ComponentBase {
             serviceId, null, null, null, null);
         let serviceUrl;
         if (!service.hostCtx.toLowerCase().startsWith("http")) {
-            const port = 8443 + connectionId;
             serviceUrl =
-                `https://localhost:${port}${service.urlContextRoot}`;
+                `https://localhost:${getRouterPortForConnection(connectionId)}${service.urlContextRoot}`;
         } else {
             serviceUrl = service.hostCtx;
         }

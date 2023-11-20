@@ -71,6 +71,7 @@ import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
 import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses.js";
 import { IMrsAuthRequestPayload } from "../mrs/types.js";
+import { getRouterPortForConnection } from "../../modules/mrs/mrs-helpers.js";
 
 const errorRexExp = new RegExp(`(You have an error in your SQL syntax; check the manual that corresponds to your ` +
     `MySQL server version for the right syntax to use near '(.*)' at line )(\\d+)`);
@@ -1475,9 +1476,10 @@ Execute \\help or \\? for help;`;
                             if (!serviceMetadata.hostCtx.toLowerCase().startsWith("http")) {
                                 const service = await backend.mrs.getService(
                                     serviceMetadata.id, null, null, null, null);
+                                const routerPort = getRouterPortForConnection(connectionId);
 
                                 this.cachedMrsServiceSdk.serviceUrl =
-                                    `https://localhost:${8443 + connectionId}${service.urlContextRoot}`;
+                                    `https://localhost:${routerPort}${service.urlContextRoot}`;
                             } else {
                                 this.cachedMrsServiceSdk.serviceUrl = serviceMetadata.hostCtx;
                             }

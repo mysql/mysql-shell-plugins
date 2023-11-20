@@ -48,6 +48,7 @@ import {
 } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel.js";
 import { showMessageWithTimeout, showModalDialog } from "./utilities.js";
 import { openSqlEditorConnection, openSqlEditorSessionAndConnection } from "./utilitiesShellGui.js";
+import { getRouterPortForConnection } from "../../frontend/src/modules/mrs/mrs-helpers.js";
 
 export class MRSCommandHandler {
     #docsWebviewPanel?: WebviewPanel;
@@ -228,6 +229,7 @@ export class MRSCommandHandler {
                                     module: DBEditorModuleId, page: connectionId } },
                                 { requestType: "showMrsSdkExportDialog", parameter: {
                                     serviceId: item.value.id,
+                                    routerPort: getRouterPortForConnection(connectionId),
                                     connectionId,
                                     connectionDetails: entry.parent.parent.treeItem.details,
                                     directory: value.fsPath,
@@ -358,10 +360,11 @@ export class MRSCommandHandler {
                     const item = entry.treeItem;
                     if (item.value) {
                         const o = item.value;
+                        const port = getRouterPortForConnection(entry.treeItem.connectionId);
                         let url = (o.hostCtx ?? "") + (o.schemaRequestPath ?? "") + o.requestPath;
 
                         if (url.startsWith("/")) {
-                            url = `https://localhost:8443${url}`;
+                            url = `https://localhost:${port}${url}`;
                         } else {
                             url = `https://${url}`;
                         }
@@ -377,10 +380,11 @@ export class MRSCommandHandler {
                     const item = entry.treeItem;
                     if (item.value) {
                         const o = item.value;
+                        const port = getRouterPortForConnection(entry.treeItem.connectionId);
                         let url = (o.hostCtx ?? "") + (o.contentSetRequestPath ?? "") + o.requestPath;
 
                         if (url.startsWith("/")) {
-                            url = `https://localhost:8443${url}`;
+                            url = `https://localhost:${port}${url}`;
                         } else {
                             url = `https://${url}`;
                         }
