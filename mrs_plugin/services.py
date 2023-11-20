@@ -733,7 +733,7 @@ def get_current_service_metadata(**kwargs):
         session (object): The database session to use.
 
     Returns:
-        {id: string, metadata_version: string}
+        {id: string, host_ctx: string, metadata_version: string}
     """
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
@@ -746,6 +746,11 @@ def get_current_service_metadata(**kwargs):
         service = lib.services.get_service(
             session=session, service_id=service_id)
 
+        if service is None:
+            lib.services.set_current_service_id(
+                session=session, service_id=None)
+            return {}
+
         # Lookup the last entry in the audit_log table that affects the service and use that as the
         # version int
         res = session.run_sql(
@@ -755,9 +760,9 @@ def get_current_service_metadata(**kwargs):
         row = res.fetch_one()
 
         metadata = {
-            "id": service_id,
-            "host_ctx": service.get("host_ctx") if service else None,
-            "metadata_version": row.get_field("version") if row and service else None
+            "id": lib.core.convert_id_to_string(service.get("id")),
+            "host_ctx": service.get("host_ctx"),
+            "metadata_version": row.get_field("version") if row is not None else None
         }
 
         if not lib.core.get_interactive_result():
