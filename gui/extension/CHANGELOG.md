@@ -1,5 +1,11 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.14.3+8.1.1
+
+### Fixes
+
+- BUG#36027690 Connection error when opening REST Object Request Path in Web Browser
+
 ## Changes in 1.14.2+8.1.1
 
 ### Fixes
