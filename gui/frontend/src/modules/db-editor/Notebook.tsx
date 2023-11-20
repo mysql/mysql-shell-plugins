@@ -45,6 +45,7 @@ import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellIn
 import { IOpenEditorState, ISavedEditorState } from "./DBConnectionTab.js";
 import { DBEditorToolbar } from "./DBEditorToolbar.js";
 import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface.js";
+import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
 
 interface INotebookProperties extends IComponentProperties {
     standaloneMode: boolean;
@@ -230,9 +231,10 @@ export class Notebook extends ComponentBase<INotebookProperties> {
      * in VS code).
      *
      * @param options Content and details for script execution.
+     * @param sql The SQL queries to execute.
      * @param linkId The link ID, to connect the new execution context with the original text.
      */
-    public executeQuery(options: IScriptExecutionOptions, linkId?: number): void {
+    public async executeQueries(options: IScriptExecutionOptions, sql: string, linkId?: number): Promise<void> {
         if (this.editorRef.current) {
             const { dbType } = this.props;
 
@@ -245,9 +247,11 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                 currentBlock = lastBlock;
             }
 
-            if (currentBlock) {
-                this.editorRef.current.appendText(options.source as string);
+            if (currentBlock instanceof SQLExecutionContext) {
+                this.editorRef.current.appendText(sql);
                 currentBlock.linkId = linkId;
+
+                await currentBlock.splittingDone();
 
                 const { onScriptExecution } = this.props;
                 void onScriptExecution?.(currentBlock, options).then((executed) => {

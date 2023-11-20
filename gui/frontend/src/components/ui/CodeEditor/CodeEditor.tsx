@@ -39,7 +39,7 @@ import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.j
 import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
 import { EditorLanguage, ITextRange } from "../../../supplement/index.js";
 import {
-    appParameters, IEditorExecutionOptions, IEditorHostExecutionOptions, requisitions,
+    appParameters, IEditorCommonExecutionOptions, IEditorExtendedExecutionOptions, requisitions,
 } from "../../../supplement/Requisitions.js";
 import { Settings } from "../../../supplement/Settings/Settings.js";
 import { editorRangeToTextRange } from "../../../utilities/ts-helpers.js";
@@ -104,20 +104,6 @@ export interface IEditorPersistentState {
 }
 
 type WordWrapType = "off" | "on" | "wordWrapColumn" | "bounded";
-
-interface ICodeExecutionOptions {
-    /** If true then execute only the statement at the caret position. This is valid only for SQL like languages. */
-    atCaret?: boolean;
-
-    /** If true, move the caret to the next block.If there's no block, create a new one first. */
-    advance?: boolean;
-
-    /** Tells the executor to add a hint to SELECT statements to use the secondary engine(usually HeatWave). */
-    forceSecondaryEngine?: boolean;
-
-    /** When true render the query and the result as plain text. */
-    asText?: boolean;
-}
 
 interface ICodeEditorProperties extends IComponentProperties {
     savedState?: IEditorPersistentState;
@@ -972,7 +958,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 contextMenuOrder: 5,
                 precondition,
                 run: () => {
-                    const options = { atCaret: true, advance: true, asText: false };
+                    const options = { atCaret: false, advance: true, asText: false };
                     this.executeCurrentContextOnHost(options);
                     this.executeCurrentContext(options);
                 },
@@ -1509,7 +1495,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      *
      * @param options Options to control the execution.
      */
-    private executeCurrentContext(options: ICodeExecutionOptions): void {
+    private executeCurrentContext(options: IEditorCommonExecutionOptions): void {
         const editor = this.backend;
         const model = this.model;
         if (editor && model) {
@@ -1553,7 +1539,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      *
      * @param options The options to control the execution.
      */
-    private executeCurrentContextOnHost(options: ICodeExecutionOptions): void {
+    private executeCurrentContextOnHost(options: IEditorCommonExecutionOptions): void {
         const editor = this.backend;
         const model = this.model;
         if (editor && model) {
@@ -1561,11 +1547,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             if (index > -1) {
                 const block = model.executionContexts?.contextAt(index);
                 if (block) {
-                    const data: IEditorHostExecutionOptions = {
-                        startNewBlock: options.advance ?? true,
-                        forceSecondaryEngine: options.forceSecondaryEngine ?? false,
-                        asText: options.asText ?? false,
-                        query: block.code,
+                    const data: IEditorExtendedExecutionOptions = {
+                        ...options,
+                        code: block.code,
                         language: block.language,
                     };
                     void requisitions.executeRemote("editorExecuteOnHost", data);
@@ -2048,14 +2032,14 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         return "unhandled";
     }
 
-    private executeSelectedOrAll = (options: IEditorExecutionOptions): Promise<boolean> => {
+    private executeSelectedOrAll = (options: IEditorCommonExecutionOptions): Promise<boolean> => {
         const { language } = this.mergedProps;
 
         const editor = this.backend;
         const model = this.model;
         const terminalMode = model?.editorMode === CodeEditorMode.Terminal;
 
-        const advance = (language === "msg") && options.startNewBlock;
+        const advance = (language === "msg") && options.advance;
         this.executeCurrentContext(
             {
                 advance: advance || terminalMode,
@@ -2067,14 +2051,14 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         return Promise.resolve(true);
     };
 
-    private executeCurrent = (options: IEditorExecutionOptions): Promise<boolean> => {
+    private executeCurrent = (options: IEditorCommonExecutionOptions): Promise<boolean> => {
         const { language } = this.mergedProps;
 
         const editor = this.backend;
         const model = this.model;
         const terminalMode = model?.editorMode === CodeEditorMode.Terminal;
 
-        const advance = (language === "msg") && options.startNewBlock;
+        const advance = (language === "msg") && options.advance;
         this.executeCurrentContext(
             {
                 atCaret: true,

@@ -254,19 +254,30 @@ export class SQLExecutionContext extends ExecutionContext {
     }
 
     /**
-     * Returns the list of executable statements from the context, that is, without delimiter changes.
+     * Allows callers to wait for the completion of the current statement splitting run.
+     */
+    public async splittingDone(): Promise<void> {
+        if (this.#splitterSignal) {
+            await this.#splitterSignal.wait();
+        }
+    }
+
+    /**
+     * @returns a promise that resolves to a list of executable statements from the context, that is, without delimiter
+     * changes. The promise is resolved as soon as all pending/ongoing statement split actions are finished.
+     * If there's a selection in the editor then only statements touched by that selection are returned.
      *
      * The line numbers in the returned statements are relative to the start of this context and one-based.
-     *
-     * The statement list might not be 100% accurate, if there are pending validations currently.
-     *
-     * @returns If there's a selection in the model return statements that are touched by that selection, otherwise
-     *          returns all executable statements.
      */
-    public get statements(): IStatement[] {
+    public async getExecutableStatements(): Promise<IStatement[]> {
         const model = this.model;
         if (!model || model.isDisposed()) {
-            return [];
+            return Promise.resolve([]);
+        }
+
+        if (this.#splitterSignal) {
+            // Wait for the splitter to finish.
+            await this.#splitterSignal.wait();
         }
 
         const result: IStatement[] = [];
@@ -354,14 +365,11 @@ export class SQLExecutionContext extends ExecutionContext {
     }
 
     /**
-     * Returns all statements currently known to the context. This list includes delimiter changes and is not
-     * affect by a selection in the editor.
+     * @returns a promise that resolves to all statements from the context. This list includes delimiter changes and is
+     * not affect by a selection in the editor. The promise is resolved as soon as all pending/ongoing statement split
+     * actions are finished.
      *
      * The line numbers in the returned statements are relative to the start of this context and one-based.
-     *
-     * The statement list might not be 100% accurate, if there are pending validations currently.
-     *
-     * @returns the full statement list.
      */
     public async getAllStatements(): Promise<IStatement[]> {
         const model = this.model;
@@ -577,6 +585,12 @@ export class SQLExecutionContext extends ExecutionContext {
                 endColumn: rangeEnd.column,
             }, Monaco.EndOfLinePreference.LF);
 
+            if (sql === "") {
+                this.splittingFinished();
+
+                return;
+            }
+
             if (sql.trimStart().startsWith("\\")) {
                 // This is (now) an internal command. Remove any decoration for it and stop splitting.
                 this.splittingFinished();
@@ -595,8 +609,6 @@ export class SQLExecutionContext extends ExecutionContext {
                 // request has been cancelled.
                 const actionTimestamp = this.splitActionsRunning.get(next);
                 if (actionTimestamp === undefined || actionTimestamp > timestamp) {
-                    this.splittingFinished();
-
                     return;
                 }
 
@@ -720,13 +732,8 @@ export class SQLExecutionContext extends ExecutionContext {
                             this.validationsRunning.delete(run); // Just in case it was already running.
                         }
 
-                        // Start a number of validations in parallel.
-                        // Always trigger at least one validation.
-                        const validationCount = Math.min(10, newStatements.length);
+                        // Trigger a validation run for the first statement in the new list.
                         this.validateNextStatement();
-                        for (let i = 1; i < validationCount; ++i) {
-                            this.validateNextStatement();
-                        }
 
                         // If this operation left us with no further split requests then we are done with the split run.
                         if (this.pendingSplitActions.size === 0) {

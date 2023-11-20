@@ -26,17 +26,14 @@ import { readFile, writeFile } from "fs/promises";
 import { commands, OpenDialogOptions, SaveDialogOptions, Uri, window } from "vscode";
 
 import {
-    IEditorHostExecutionOptions,
-    IMrsDbObjectEditRequest, IOpenDialogOptions, IOpenFileDialogResult, IRequestTypeMap, IRequisitionCallbackValues,
-    requisitions,
+    IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, IOpenDialogOptions, IOpenFileDialogResult,
+    IRequestTypeMap, IRequisitionCallbackValues, requisitions,
 } from "../../../frontend/src/supplement/Requisitions.js";
 
 import { IMySQLDbSystem } from "../../../frontend/src/communication/index.js";
 import { EntityType, IDBEditorScriptState } from "../../../frontend/src/modules/db-editor/index.js";
 import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo.js";
-import {
-    EditorLanguage, INewEditorRequest, IRunQueryRequest, IScriptRequest,
-} from "../../../frontend/src/supplement/index.js";
+import { EditorLanguage, INewEditorRequest, IScriptRequest } from "../../../frontend/src/supplement/index.js";
 import { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface/index.js";
 import { showMessageWithTimeout } from "../utilities.js";
 import { WebviewProvider } from "./WebviewProvider.js";
@@ -83,18 +80,18 @@ export class DBConnectionViewProvider extends WebviewProvider {
     }
 
     /**
-     * Executes a single statement in a webview tab.
+     * Executes a piece of code in a webview tab.
      *
      * @param page The page to open in the webview tab (if not already done).
      * @param details Required information about the query that must be executed.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public runQuery(page: string, details: IRunQueryRequest): Promise<boolean> {
+    public runCode(page: string, details: IEditorExtendedExecutionOptions): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
-            { requestType: "editorRunQuery", parameter: details },
+            { requestType: "editorRunCode", parameter: details },
         ], details.linkId === -1 ? "newConnection" : "newConnectionWithEmbeddedSql");
     }
 
@@ -400,7 +397,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
         });
     };
 
-    private executeOnHost = (data: IEditorHostExecutionOptions): Promise<boolean> => {
+    private executeOnHost = (data: IEditorExtendedExecutionOptions): Promise<boolean> => {
         return requisitions.execute("proxyRequest", {
             provider: this,
             original: { requestType: "editorExecuteOnHost", parameter: data },

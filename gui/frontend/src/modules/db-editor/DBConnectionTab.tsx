@@ -37,6 +37,7 @@ import {
 import { ScriptEditor } from "./ScriptEditor.js";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
 import {
+    IEditorExtendedExecutionOptions,
     IMrsDbObjectEditRequest, IMrsSchemaEditRequest, appParameters,
     requisitions,
 } from "../../supplement/Requisitions.js";
@@ -50,7 +51,7 @@ import {
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
 import {
-    convertRows, EditorLanguage, generateColumnInfo, IRunQueryRequest, ISqlPageRequest, IScriptRequest,
+    convertRows, EditorLanguage, generateColumnInfo, ISqlPageRequest, IScriptRequest,
 } from "../../supplement/index.js";
 import { ServerStatus } from "./ServerStatus.js";
 import { ClientConnections } from "./ClientConnections.js";
@@ -293,7 +294,7 @@ Execute \\help or \\? for help;`;
         requisitions.register("editorCommit", this.editorCommit);
         requisitions.register("editorRollback", this.editorRollback);
         requisitions.register("sqlShowDataAtPage", this.sqlShowDataAtPage);
-        requisitions.register("editorRunQuery", this.editorRunQuery);
+        requisitions.register("editorRunCode", this.editorRunCode);
         requisitions.register("editorRunScript", this.editorRunScript);
         requisitions.register("editorInsertUserScript", this.editorInsertUserScript);
         requisitions.register("showPageSection", this.showPageSection);
@@ -330,7 +331,7 @@ Execute \\help or \\? for help;`;
         requisitions.unregister("editorCommit", this.editorCommit);
         requisitions.unregister("editorRollback", this.editorRollback);
         requisitions.unregister("sqlShowDataAtPage", this.sqlShowDataAtPage);
-        requisitions.unregister("editorRunQuery", this.editorRunQuery);
+        requisitions.unregister("editorRunCode", this.editorRunCode);
         requisitions.unregister("editorRunScript", this.editorRunScript);
         requisitions.unregister("editorInsertUserScript", this.editorInsertUserScript);
         requisitions.unregister("showPageSection", this.showPageSection);
@@ -529,23 +530,24 @@ Execute \\help or \\? for help;`;
     private sqlShowDataAtPage = async (data: ISqlPageRequest): Promise<boolean> => {
         const pageSize = Settings.get("sql.limitRowCount", 1000);
         await this.executeQuery(data.context as SQLExecutionContext, 0, data.page, pageSize,
-            { source: data.sql }, data.oldResultId);
+            {}, data.sql, data.oldResultId);
 
         return true;
     };
 
     /**
-     * Runs the given query in the active notebook. If no notebook is active, make one active.
+     * Runs the given code in the active notebook. If no notebook is active, make one active.
      *
-     * @param details The details about the query to run.
+     * @param options The details about the code to run.
      *
-     * @returns A promise that resolves to true if the query was run, false if the request could not be fulfilled,
+     * @returns A promise that resolves to true if the code was executed, false if the request could not be fulfilled,
      *          because a notebook must be created first.
      */
-    private editorRunQuery = (details: IRunQueryRequest): Promise<boolean> => {
+    private editorRunCode = async (options: IEditorExtendedExecutionOptions): Promise<boolean> => {
         if (this.notebookRef.current) {
-            this.notebookRef.current.executeQuery(
-                { source: details.query, params: details.parameters }, details.linkId);
+            if (options.language === "mysql") {
+                await this.notebookRef.current.executeQueries({ params: options.params }, options.code, options.linkId);
+            }
 
             return Promise.resolve(true);
         } else {
@@ -929,16 +931,11 @@ Execute \\help or \\? for help;`;
 
         context.clearResult();
         if (options.source) {
-            if (typeof options.source !== "string") {
-                options.source = context.getStatementAtPosition(options.source)?.text;
-            }
+            const sql = context.getStatementAtPosition(options.source)?.text ?? "";
 
-            if (options.source) {
-                await this.executeQuery(context, 0, 0, pageSize, options);
-            }
+            await this.executeQuery(context, 0, 0, pageSize, options, sql);
         } else {
-            const statements = context.statements;
-            //const statements = await context.getAllStatements();
+            const statements = await context.getExecutableStatements();
             while (true) {
                 // Allow toggling the stop-on-error during execution.
                 const stopOnErrors = Settings.get("editor.stopOnErrors", true);
@@ -949,7 +946,7 @@ Execute \\help or \\? for help;`;
 
                 try {
                     await this.executeQuery(context, statement.index, 0, pageSize,
-                        { ...options, source: statement.text });
+                        options, statement.text);
                 } catch (e) {
                     if (stopOnErrors) {
                         break;
@@ -968,15 +965,15 @@ Execute \\help or \\? for help;`;
      * @param page The page number for the LIMIT clause.
      * @param pageSize The size of a page.
      * @param options Content and details for script execution.
+     * @param sql The query to execute.
      * @param oldResultId An optional ID which points to an existing result set. If given, this ID is used,
      *                    to replace that old result set with the new data. Otherwise a new result set is generated.
      *
      * @returns A promise which resolves when the query execution is finished.
      */
     private executeQuery = async (context: SQLExecutionContext, index: number, page: number, pageSize: number,
-        options: IScriptExecutionOptions, oldResultId?: string): Promise<void> => {
+        options: IScriptExecutionOptions, sql: string, oldResultId?: string): Promise<void> => {
 
-        const sql = options.source as string;
         if (sql.trim().length === 0) {
             return;
         }
@@ -1251,7 +1248,8 @@ Execute \\help or \\? for help;`;
                         let line = parseInt(match[3], 10);
 
                         // Then add the offset of the query within the block. The query index is one-based too.
-                        const statement = options.context.statements[options.index - 1];
+                        const statements = await options.context.getExecutableStatements();
+                        const statement = statements[options.index - 1];
                         if (statement) {
                             line += statement.line;
 
@@ -1479,7 +1477,7 @@ Execute \\help or \\? for help;`;
                                     serviceMetadata.id, null, null, null, null);
 
                                 this.cachedMrsServiceSdk.serviceUrl =
-                                    `https://localhost:${8443+connectionId}${service.urlContextRoot}`;
+                                    `https://localhost:${8443 + connectionId}${service.urlContextRoot}`;
                             } else {
                                 this.cachedMrsServiceSdk.serviceUrl = serviceMetadata.hostCtx;
                             }

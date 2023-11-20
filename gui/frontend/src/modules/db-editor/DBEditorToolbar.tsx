@@ -185,7 +185,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                     onClick={
                         () => {
                             void requisitions.execute("editorExecuteSelectedOrAll",
-                                { startNewBlock: true, forceSecondaryEngine: false, asText: false });
+                                { advance: true, forceSecondaryEngine: false, asText: false });
                         }
                     }
                 >
@@ -201,7 +201,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                     onClick={
                         () => {
                             void requisitions.execute("editorExecuteSelectedOrAll",
-                                { startNewBlock: false, forceSecondaryEngine: false, asText: false });
+                                { advance: false, forceSecondaryEngine: false, asText: false });
                         }
                     }
                 >
@@ -219,7 +219,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                     onClick={
                         () => {
                             void requisitions.execute("editorExecuteCurrent",
-                                { startNewBlock: false, forceSecondaryEngine: false, asText: false });
+                                { advance: false, forceSecondaryEngine: false, asText: false });
                         }
                     }
                 >
@@ -236,7 +236,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                     onClick={
                         () => {
                             void requisitions.execute("editorExecuteSelectedOrAll",
-                                { startNewBlock: true, forceSecondaryEngine: false, asText: true });
+                                { advance: true, forceSecondaryEngine: false, asText: true });
                         }
                     }
                 >
@@ -254,7 +254,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                         onClick={
                             () => {
                                 void requisitions.execute("editorExecuteSelectedOrAll",
-                                    { startNewBlock: true, forceSecondaryEngine: true, asText: false });
+                                    { advance: true, forceSecondaryEngine: true, asText: false });
                             }
                         }
                     >
@@ -268,7 +268,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                         onClick={
                             () => {
                                 void requisitions.execute("editorExecuteCurrent",
-                                    { startNewBlock: false, forceSecondaryEngine: true, asText: false });
+                                    { advance: false, forceSecondaryEngine: true, asText: false });
                             }
                         }
                     >

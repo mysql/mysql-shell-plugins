@@ -27,15 +27,13 @@ import { basename } from "path";
 import { commands, ConfigurationTarget, TextEditor, Uri, window, workspace } from "vscode";
 
 import {
-    IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
+    ICodeBlockExecutionOptions, IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
 } from "../../frontend/src/supplement/Requisitions.js";
 
 import { ScriptTreeItem } from "./tree-providers/ScriptTreeItem.js";
 
 import { EntityType, IDBEditorScriptState } from "../../frontend/src/modules/db-editor/index.js";
-import {
-    EditorLanguage, INewEditorRequest, IRunQueryRequest, IScriptRequest,
-} from "../../frontend/src/supplement/index.js";
+import { EditorLanguage, INewEditorRequest, IScriptRequest } from "../../frontend/src/supplement/index.js";
 import { DBConnectionViewProvider } from "./WebviewProviders/DBConnectionViewProvider.js";
 
 import { IMrsDbObjectData } from "../../frontend/src/communication/ProtocolMrs.js";
@@ -55,7 +53,6 @@ import {
     ConnectionsTreeDataProvider,
 } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider.js";
 import { ConnectionTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionTreeItem.js";
-import { SchemaEventTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaEventTreeItem.js";
 import {
     IEditorConnectionEntry, IOpenEditorBaseEntry, IOpenEditorEntry, OpenEditorsTreeDataProvider,
 } from "./tree-providers/OpenEditorsTreeProvider/OpenEditorsTreeProvider.js";
@@ -136,7 +133,7 @@ export class DBEditorCommandHandler {
         });
 
         requisitions.register("connectedToUrl", this.connectedToUrl);
-        requisitions.register("editorRunQuery", this.editorRunQuery);
+        requisitions.register("executeCodeBlock", this.executeCodeBlock);
         requisitions.register("proxyRequest", this.proxyRequest);
 
         context.subscriptions.push(commands.registerCommand("msg.refreshConnections", () => {
@@ -201,11 +198,10 @@ export class DBEditorCommandHandler {
 
                 const item = entry.treeItem;
                 const query = `${select} * ${from} \`${item.schema}\`.\`${item.label as string}\``;
-                void provider?.runQuery(String(item.connectionId), {
-                    query,
-                    data: {},
+                void provider?.runCode(String(item.connectionId), {
+                    code: query,
+                    language: "mysql",
                     linkId: -1,
-                    parameters: [],
                 });
             }
         }));
@@ -773,16 +769,15 @@ export class DBEditorCommandHandler {
      *
      * @param details The request to send to the app.
      *
-     * @returns A promise returning a flag if the task was successfully executed or not.
+     * @returns A promise returning a flag whether the task was successfully executed or not.
      */
-    private editorRunQuery = (details: IRunQueryRequest): Promise<boolean> => {
+    private executeCodeBlock = (details: ICodeBlockExecutionOptions): Promise<boolean> => {
         const provider = this.#host.currentProvider;
         if (provider) {
-            return provider.runQuery(details.data.connectionId as string, {
+            return provider.runCode(String(details.connectionId), {
                 linkId: details.linkId,
-                query: details.query,
-                data: {},
-                parameters: [],
+                code: details.query,
+                language: "mysql",
             });
         }
 

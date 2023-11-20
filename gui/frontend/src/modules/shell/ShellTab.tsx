@@ -285,7 +285,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
         params?: Array<[string, string]>): Promise<void> {
         context.clearResult();
         if (!command.startsWith("\\") && context.isSQLLike) {
-            const statements = (context as SQLExecutionContext).statements;
+            const statements = await (context as SQLExecutionContext).getExecutableStatements();
 
             let index = 0;
             while (true) {

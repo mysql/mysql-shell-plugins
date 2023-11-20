@@ -147,11 +147,10 @@ export interface IScriptExecutionOptions {
 
     /**
      * Determines where the SQL code comes from that must be executed. If that's a position it means
-     * to run only the code at that (caret) position. If a string is specified then it means to run
-     * this (single) query only. If not given at all run the statements touched by the editor selection
-     * or all statements, if there's no selection.
+     * to run only the code at that (caret) position. If not given at all run the statements touched by the editor
+     * selection or all statements, if there's no selection.
      */
-    source?: IPosition | string;
+    source?: IPosition;
 
     /** When true render the query and the result as plain text. */
     asText?: boolean;

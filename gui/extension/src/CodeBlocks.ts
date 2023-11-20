@@ -33,10 +33,10 @@ import { CharStreams, CommonTokenStream } from "antlr4ng";
 import { PythonLexer } from "../../frontend/src/parsing/python/generated/PythonLexer.js";
 
 import {
+    ICodeBlockExecutionOptions,
     IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
 } from "../../frontend/src/supplement/Requisitions.js";
 import { printChannelOutput } from "./extension.js";
-import { IDictionary } from "../../frontend/src/app-logic/Types.js";
 
 /** A record of white spaces in a code block, which must be re-applied when replacing the original block. */
 interface IWhiteSpaces {
@@ -219,16 +219,13 @@ export class CodeBlocks {
                                     ranges[existing] = span;
                                 }
 
-                                const data: IDictionary = {
+                                const options: ICodeBlockExecutionOptions = {
                                     caption,
-                                    connectionId: String(connectionId),
-                                };
-                                void requisitions.execute("editorRunQuery", {
-                                    data,
+                                    connectionId,
                                     query: beautified,
                                     linkId: span.id,
-                                    parameters: [],
-                                });
+                                };
+                                void requisitions.execute("executeCodeBlock", options);
                             }
 
                             break;
