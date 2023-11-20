@@ -67,7 +67,7 @@ import {
 } from "./index.js";
 import { Codicon } from "../../components/ui/Codicon.js";
 import { IOpenEditorState } from "./DBConnectionTab.js";
-import { requisitions } from "../../supplement/Requisitions.js";
+import { IEditorExtendedExecutionOptions, requisitions } from "../../supplement/Requisitions.js";
 import { EditorLanguage } from "../../supplement/index.js";
 import { Accordion, IAccordionProperties } from "../../components/ui/Accordion/Accordion.js";
 import { IAccordionItemProperties } from "../../components/ui/Accordion/AccordionItem.js";
@@ -674,9 +674,11 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                     query = `${select} * ${from} ${tableName}`;
                 }
 
-                void requisitions.execute("job", [{
-                    requestType: "editorRunQuery", parameter: { query, data: {} },
-                }]);
+                const options: IEditorExtendedExecutionOptions = {
+                    code: query,
+                    language: "mysql",
+                };
+                void requisitions.execute("job", [{ requestType: "editorRunCode", parameter: options }]);
 
                 break;
             }

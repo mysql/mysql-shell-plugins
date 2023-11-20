@@ -22,7 +22,7 @@
  */
 
 import {
-    EditorLanguage, IExecutionContext, INewEditorRequest, IRunQueryRequest, IScriptRequest, ISqlPageRequest,
+    EditorLanguage, IExecutionContext, INewEditorRequest, IScriptRequest, ISqlPageRequest,
 } from "./index.js";
 
 import {
@@ -151,15 +151,56 @@ export interface IOpenFileDialogResult {
     path: string[];
 }
 
-export interface IEditorExecutionOptions {
-    startNewBlock: boolean;
-    forceSecondaryEngine: boolean;
-    asText: boolean;
+/**
+ * Options for all code execution requests. They are always bound to a specific execution context, when used.
+ */
+export interface IEditorCommonExecutionOptions {
+    /** If true then execute only the statement at the caret position. This is valid only for SQL like languages. */
+    atCaret?: boolean;
+
+    /** If true, move the caret to the next block.If there's no block, create a new one first. */
+    advance?: boolean;
+
+    /** Tells the executor to add a hint to SELECT statements to use the secondary engine(usually HeatWave). */
+    forceSecondaryEngine?: boolean;
+
+    /** When true render the query and the result as plain text. */
+    asText?: boolean;
+
+    /** Any additional named parameters for placeholders in the code. */
+    params?: Array<[string, string]>;
 }
 
-export interface IEditorHostExecutionOptions extends IEditorExecutionOptions {
-    query: string;
+/**
+ * Options for executing code in special situations (code broadcast, menu commands, extension code blocks etc.)
+ * where the actual execution happens in another context (which is determined dynamically).
+ */
+export interface IEditorExtendedExecutionOptions extends IEditorCommonExecutionOptions {
+    /** The language of the code in the text field. */
     language: EditorLanguage;
+
+    /** The code to execute. */
+    code: string;
+
+    linkId?: number;
+}
+
+/** Details when executing an embedded SQL query. */
+export interface ICodeBlockExecutionOptions {
+    /** Mandatory: the id of the code block. */
+    linkId: number;
+
+    /** The id of the connection to use for execution. */
+    connectionId: number;
+
+    /** The tile to use if the request required opening a new notebook. */
+    caption: string;
+
+    /** The statement to execute. */
+    query: string;
+
+    /** Any additional named parameters for placeholders in the code. */
+    params?: Array<[string, string]>;
 }
 
 /** A special set of data for the communication debugger/listener. */
@@ -287,9 +328,9 @@ export interface IRequestTypeMap {
 
     "sqlShowDataAtPage": (data: ISqlPageRequest) => Promise<boolean>;
 
-    "editorExecuteSelectedOrAll": (options: IEditorExecutionOptions) => Promise<boolean>;
-    "editorExecuteCurrent": (options: IEditorExecutionOptions) => Promise<boolean>;
-    "editorExecuteOnHost": (options: IEditorHostExecutionOptions) => Promise<boolean>;
+    "editorExecuteSelectedOrAll": (options: IEditorCommonExecutionOptions) => Promise<boolean>;
+    "editorExecuteCurrent": (options: IEditorCommonExecutionOptions) => Promise<boolean>;
+    "editorExecuteOnHost": (options: IEditorExtendedExecutionOptions) => Promise<boolean>;
     "editorFind": SimpleCallback;
     "editorFormat": SimpleCallback;
     "editorRunCommand": (details: { command: string; context: IExecutionContext; }) => Promise<boolean>;
@@ -301,7 +342,10 @@ export interface IRequestTypeMap {
     "editorRollback": SimpleCallback;
     "editorShowConnections": SimpleCallback;
     "editorInsertUserScript": (data: { language: EditorLanguage; resourceId: number; }) => Promise<boolean>;
-    "editorRunQuery": (details: IRunQueryRequest) => Promise<boolean>;
+
+    /** Execute a piece of code in the given language. */
+    "editorRunCode": (options: IEditorExtendedExecutionOptions) => Promise<boolean>;
+
     "editorRunScript": (details: IScriptRequest) => Promise<boolean>;
     "editorEditScript": (details: IScriptRequest) => Promise<boolean>;
     "editorLoadScript": (details: IScriptRequest) => Promise<boolean>;
@@ -420,7 +464,11 @@ export interface IRequestTypeMap {
     "connectionsUpdated": SimpleCallback;
     "selectConnectionTab": (details: { connectionId: number, page: string; }) => Promise<boolean>;
 
+    /** Update extension code blocks. */
     "codeBlocksUpdate": (data: { linkId: number; code: string; }) => Promise<boolean>;
+
+    /** Execute an embedded extension code block. */
+    "executeCodeBlock": (options: ICodeBlockExecutionOptions) => Promise<boolean>;
 
     "showError": (values: string[]) => Promise<boolean>;
     "showInfo": (values: string[]) => Promise<boolean>;

@@ -39,7 +39,7 @@ import { ShellTasksTreeDataProvider } from "./tree-providers/ShellTreeProvider/S
 import { IStatusbarInfo } from "../../frontend/src/app-logic/Types.js";
 import { IShellModuleDataCategoriesEntry, IShellProfile } from "../../frontend/src/communication/ProtocolGui.js";
 import {
-    IEditorHostExecutionOptions,
+    IEditorExtendedExecutionOptions,
     IRequestListEntry, IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider, requisitions,
 } from "../../frontend/src/supplement/Requisitions.js";
 import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
@@ -57,7 +57,6 @@ import {
 } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider.js";
 import { DBConnectionViewProvider } from "./WebviewProviders/DBConnectionViewProvider.js";
 import { WebviewProvider } from "./WebviewProviders/WebviewProvider.js";
-import { IRunQueryRequest } from "../../frontend/src/supplement/index.js";
 
 /** This class manages some extension wide things like authentication handling etc. */
 export class ExtensionHost {
@@ -680,16 +679,10 @@ export class ExtensionHost {
             }
 
             case "editorExecuteOnHost": {
-                const incoming = request.original.parameter as IEditorHostExecutionOptions;
-                const data: IRunQueryRequest = {
-                    data: {},
-                    query: incoming.query,
-                    parameters: [],
-                    linkId: -1,
-                };
+                const incoming = request.original.parameter as IEditorExtendedExecutionOptions;
 
                 return new Promise((resolve) => {
-                    void requisitions.broadcastRequest(request.provider, "editorRunQuery", data).then(() => {
+                    void requisitions.broadcastRequest(request.provider, "editorRunCode", incoming).then(() => {
                         resolve(true);
                     });
                 });

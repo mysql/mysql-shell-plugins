@@ -25,6 +25,8 @@ import { mysqlInfo, sqliteInfo } from "../app-logic/RdbmsInfo.js";
 import { DBDataType, IColumnInfo, IDictionary } from "../app-logic/Types.js";
 import { DBType } from "./ShellInterface/index.js";
 
+export { Stack } from "./Stack.js";
+
 // Commonly used data types and functions.
 
 export const editorLanguages = [
@@ -95,13 +97,7 @@ export interface ISqlPageRequest {
     sql: string;
 }
 
-export interface IRunQueryRequest {
-    data: IDictionary;
-    query: string;
-    parameters: Array<[string, string]>;
-    linkId: number;
-}
-
+/** A general request related to a code script (load/save etc.). */
 export interface IScriptRequest {
     /** A unique ID to identify the script in this request. */
     scriptId: string;
@@ -114,7 +110,7 @@ export interface IScriptRequest {
 
     /**
      * Used when executing SQL statements to tell the executor to add a hint to SELECT statements to use the secondary
-     * engine (usually HeatWave
+     * engine (usually HeatWave).
      */
     forceSecondaryEngine?: boolean;
 }
@@ -133,8 +129,6 @@ export interface INewEditorRequest {
     /** Optional content to use for the new script file. */
     content?: string;
 }
-
-export { Stack } from "./Stack.js";
 
 export type WorkerExecutorType<T> = (
     onResult?: ((taskId: number, value: T) => void),
