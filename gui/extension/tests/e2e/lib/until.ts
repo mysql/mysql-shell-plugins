@@ -29,7 +29,6 @@ import {
     Locator,
     Workbench,
 } from "vscode-extension-tester";
-import { execSync } from "child_process";
 import { join } from "path";
 import fs from "fs/promises";
 import * as constants from "./constants";
@@ -219,46 +218,29 @@ export const notificationsExist = (): Condition<boolean> => {
     });
 };
 
-export const fetchIsSuccessful = (url: string, data?: RequestInit): Condition<boolean> => {
-    return new Condition(`for router ${url} to return success`, async () => {
-        let response: Response;
-
-        return driver.wait(async () => {
-            try {
-                response = await fetch(url, data);
-
-                await response.json();
-
-                return true;
-            } catch (e) {
-                // continue
-                console.log("-------");
-                console.log(e);
-                console.log("-------");
-            }
-        }, constants.wait5seconds, `Could not get URL for ${url}`);
+export const routerProcessIsRunning = (): Condition<boolean> => {
+    return new Condition("for Router to be running", () => {
+        return Misc.isRouterProcessRunning();
     });
 };
 
-export const routerIsRunning = (): Condition<boolean> => {
-    return new Condition("for Router to be running", () => {
-        if (Misc.isWindows()) {
-            const cmdResult = execSync(`tasklist /fi "IMAGENAME eq mysqlrouter.exe"`);
-            const resultLines = cmdResult.toString().split("\n");
-            for (const line of resultLines) {
-                if (line.match(/mysqlrouter.exe/) !== null) {
-                    return true;
-                }
-            }
-        } else {
-            const cmdResult = execSync("ps aux | grep mysqlrouter");
-            const resultLines = cmdResult.toString().split("\n");
-            for (const line of resultLines) {
-                if (line.match(/\/usr\/.*\/.*router/) !== null) {
-                    return true;
-                }
-            }
-        }
+export const routerIconIsActive = (): Condition<boolean> => {
+    return new Condition(`for router icon to be active`, async () => {
+        const dbSection = await Misc.getSection(constants.dbTreeSection);
+        await Misc.clickSectionToolbarButton(dbSection, constants.reloadConnections);
+        await driver.wait(isNotLoading(constants.dbTreeSection), constants.wait5seconds);
+
+        return Misc.isRouterIconActive();
+    });
+};
+
+export const routerIconIsInactive = (): Condition<boolean> => {
+    return new Condition(`for router icon to be inactive`, async () => {
+        const dbSection = await Misc.getSection(constants.dbTreeSection);
+        await Misc.clickSectionToolbarButton(dbSection, constants.reloadConnections);
+        await driver.wait(isNotLoading(constants.dbTreeSection), constants.wait5seconds);
+
+        return !(await Misc.isRouterIconActive());
     });
 };
 
