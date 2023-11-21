@@ -931,9 +931,9 @@ Execute \\help or \\? for help;`;
 
         context.clearResult();
         if (options.source) {
-            const sql = context.getStatementAtPosition(options.source)?.text ?? "";
+            const sql = (await context.getStatementAtPosition(options.source))?.text;
 
-            await this.executeQuery(context, 0, 0, pageSize, options, sql);
+            await this.executeQuery(context, 0, 0, pageSize, options, sql ?? "");
         } else {
             const statements = await context.getExecutableStatements();
             while (true) {

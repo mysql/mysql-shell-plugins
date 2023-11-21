@@ -29,8 +29,8 @@ import {
 } from "antlr4ng";
 
 import {
-    ICompletionData, IParserErrorInfo, IStatementSpan, ISymbolInfo, ITokenInfo, QueryType, StatementFinishState,
-    tokenFromPosition,
+    ICompletionData, IParserErrorInfo, IStatement, IStatementSpan, ISymbolInfo, ITokenInfo, QueryType,
+    StatementFinishState, tokenFromPosition,
 } from "../parser-common.js";
 
 import { SQLiteErrorListener } from "./SQLiteErrorListener.js";
@@ -174,27 +174,33 @@ export class SQLiteParsingServices {
     }
 
     /**
-     * Creates a list of token info items for the given text.
+     * Creates a list of token info items for the given statements.
      *
-     * @param text The text to handle.
+     * @param statements A list of statements to tokenize.
      *
      * @returns The information about the symbol at the given offset, if there's one.
      */
-    public async tokenize(text: string): Promise<ITokenInfo[]> {
+    public async tokenize(statements: IStatement[]): Promise<ITokenInfo[]> {
         this.errors = [];
-        this.lexer.inputStream = CharStreams.fromString(text);
-        this.tokenStream.setTokenSource(this.lexer);
-        this.tokenStream.fill();
 
-        return Promise.resolve(this.tokenStream.getTokens().map((token: Token) => {
-            return {
-                type: this.lexerTypeToScope(token),
-                offset: token.start,
-                line: token.line,
-                column: token.column,
-                length: token.stop - token.start + 1,
-            };
-        }));
+        const result: ITokenInfo[] = [];
+        for (const statement of statements) {
+            this.lexer.inputStream = CharStreams.fromString(statement.text);
+            this.tokenStream.setTokenSource(this.lexer);
+            this.tokenStream.fill();
+
+            const tokens = this.tokenStream.getTokens();
+            for (const token of tokens) {
+                result.push({
+                    type: this.lexerTypeToScope(token),
+                    offset: token.start + statement.offset,
+                    length: token.stop - token.start + 1,
+                });
+            }
+        }
+
+        return Promise.resolve(result);
+
     }
 
     /**

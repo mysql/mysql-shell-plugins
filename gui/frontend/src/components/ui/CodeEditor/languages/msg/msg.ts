@@ -34,8 +34,9 @@ export const language: languages.IMonarchLanguage = {
     start: "msg",
     tokenizer: {
         msg: [
-            // By default all text is formatted as string. The semantic highlighter will update the formatting.
-            [/.*/, { token: "string.quoted.double.sql" }],
+            // Override highlighting of braces and make them appear as strings.
+            // The semantic highlighter will update the formatting.
+            [/[[\](){}]/, { token: "string" }],
         ],
     },
 

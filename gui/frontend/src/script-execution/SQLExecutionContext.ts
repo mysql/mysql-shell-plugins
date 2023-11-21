@@ -23,9 +23,9 @@
 
 import { IPosition } from "monaco-editor";
 
-import { IStatement, Monaco } from "../components/ui/CodeEditor/index.js";
+import { Monaco } from "../components/ui/CodeEditor/index.js";
 import { ScriptingLanguageServices } from "./ScriptingLanguageServices.js";
-import { IDiagnosticEntry, IStatementSpan, StatementFinishState } from "../parsing/parser-common.js";
+import { IStatement, IDiagnosticEntry, IStatementSpan, StatementFinishState } from "../parsing/parser-common.js";
 import { ExecutionContext } from "./ExecutionContext.js";
 import { PresentationInterface } from "./PresentationInterface.js";
 import { binarySearch } from "../utilities/helpers.js";
@@ -332,18 +332,17 @@ export class SQLExecutionContext extends ExecutionContext {
             }
         } else {
             for (let index = 0; index < this.statementDetails.length; ++index) {
-                const details = this.statementDetails[index];
-                if (details.state === StatementFinishState.DelimiterChange) {
+                const currentDetails = this.statementDetails[index];
+                if (currentDetails.state === StatementFinishState.DelimiterChange) {
                     continue;
                 }
 
-                const rangeStart = model.getPositionAt(details.span.start);
-                let end = details.span.start + details.span.length;
-                if (details.state === StatementFinishState.Complete) {
-                    end -= details.delimiter!.length;
+                const rangeStart = model.getPositionAt(currentDetails.span.start);
+                let end = currentDetails.span.start + currentDetails.span.length;
+                if (currentDetails.state === StatementFinishState.Complete) {
+                    end -= currentDetails.delimiter!.length;
                 }
                 const rangeEnd = model.getPositionAt(end);
-
                 const text = model.getValueInRange({
                     startLineNumber: rangeStart.lineNumber,
                     startColumn: rangeStart.column,
@@ -354,7 +353,7 @@ export class SQLExecutionContext extends ExecutionContext {
                 result.push({
                     index,
                     text,
-                    offset: details.span.start,
+                    offset: currentDetails.span.start,
                     line: rangeStart.lineNumber,
                     column: rangeStart.column,
                 });
@@ -384,11 +383,14 @@ export class SQLExecutionContext extends ExecutionContext {
 
         const result: IStatement[] = [];
         for (let index = 0; index < this.statementDetails.length; ++index) {
-            const details = this.statementDetails[index];
-            const rangeStart = model.getPositionAt(details.span.start);
-            let end = details.span.start + details.span.length;
-            if (details.state === StatementFinishState.Complete) {
-                end -= details.delimiter!.length;
+            const currentDetails = this.statementDetails[index];
+            const rangeStart = model.getPositionAt(currentDetails.span.start);
+            let end = currentDetails.span.start + currentDetails.span.length;
+
+            let delimiterLength = 0;
+            if (currentDetails.state === StatementFinishState.Complete) {
+                delimiterLength = currentDetails.delimiter!.length;
+                end -= currentDetails.delimiter!.length;
             }
             const rangeEnd = model.getPositionAt(end);
 
@@ -402,9 +404,10 @@ export class SQLExecutionContext extends ExecutionContext {
             result.push({
                 index,
                 text,
-                offset: details.span.start,
+                offset: currentDetails.span.start,
                 line: rangeStart.lineNumber,
                 column: rangeStart.column,
+                delimiterLength,
             });
         }
 
@@ -419,59 +422,49 @@ export class SQLExecutionContext extends ExecutionContext {
      *
      * @returns The statement at the given position, if there's any, or undefined.
      */
-    public getStatementAtPosition(position: IPosition): IStatement | undefined {
+    public async getStatementAtPosition(position: IPosition): Promise<IStatement | undefined> {
         if (this.disposed) {
             return undefined;
         }
 
+        if (this.#splitterSignal) {
+            // Wait for the splitter to finish.
+            await this.#splitterSignal.wait();
+        }
+
         const model = this.model;
-        if (!model || model.isDisposed()) {
+        if (!model || model.isDisposed() || this.statementDetails.length === 0) {
             return undefined;
         }
 
         const offset = model.getOffsetAt(position);
-        const index = this.statementDetails.findIndex((details: IStatementDetails) => {
+        let index = this.statementDetails.findIndex((details: IStatementDetails) => {
             return details.span.start <= offset && details.span.start + details.span.length >= offset;
         });
 
-        if (index > -1) {
-            const details = this.statementDetails[index];
-            const hitStart = model.getPositionAt(details.span.start);
-            const hitEnd = model.getPositionAt(details.span.start + details.span.length);
-
-            const text = model.getValueInRange({
-                startLineNumber: hitStart.lineNumber,
-                startColumn: hitStart.column,
-                endLineNumber: hitEnd.lineNumber,
-                endColumn: hitEnd.column,
-            }, Monaco.EndOfLinePreference.LF);
-
-            return {
-                index,
-                text,
-                offset: details.span.start,
-                line: hitStart.lineNumber,
-                column: hitStart.column,
-            };
-        } else {
-            // See if the given offset is beyond the last line, in which case code completion
-            // started before we finished splitting. Use the last line in this case.
-            const info = model.getWordUntilPosition(position);
-            const text = model.getValueInRange({
-                startLineNumber: position.lineNumber,
-                startColumn: info.startColumn,
-                endLineNumber: position.lineNumber,
-                endColumn: info.endColumn,
-            }, Monaco.EndOfLinePreference.LF);
-
-            return {
-                index: this.statementDetails.length - 1,
-                text,
-                offset,
-                line: position.lineNumber,
-                column: info.startColumn,
-            };
+        if (index < 0) {
+            // Just in case the position is at the end of the context, return the last statement.
+            index = this.statementDetails.length - 1;
         }
+
+        const details = this.statementDetails[index];
+        const hitStart = model.getPositionAt(details.span.start);
+        const hitEnd = model.getPositionAt(details.span.start + details.span.length);
+
+        const text = model.getValueInRange({
+            startLineNumber: hitStart.lineNumber,
+            startColumn: hitStart.column,
+            endLineNumber: hitEnd.lineNumber,
+            endColumn: hitEnd.column,
+        }, Monaco.EndOfLinePreference.LF);
+
+        return {
+            index,
+            text,
+            offset: details.span.start,
+            line: hitStart.lineNumber,
+            column: hitStart.column,
+        };
     }
 
     /**

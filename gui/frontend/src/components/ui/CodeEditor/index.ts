@@ -117,23 +117,6 @@ export interface IExecutionContextState {
     statements: IStatementSpan[];
 }
 
-/** A statement consists of its text and its relative position within its block/context. */
-export interface IStatement {
-    /** The index of the statement in the statement list. */
-    index: number;
-
-    text: string;
-
-    /** The character offset of the statement in the containing model. */
-    offset: number;
-
-    /** The line number of the statement in the containing model. */
-    line: number;
-
-    /** Ditto for the column. */
-    column: number;
-}
-
 /** Options that control how SQL statements are executed. */
 export interface IScriptExecutionOptions {
     /** Any additional named parameters for placeholders in the query. */
