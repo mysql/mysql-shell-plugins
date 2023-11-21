@@ -1,5 +1,12 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.14.1+8.1.1
+
+### Fixes
+
+- Re-enable auto-completion by default. Auto-completion of table columns is still broken and will be fixed in a separate release.
+- Fixed MRS autocompletion when the current service had been deleted
+
 ## Changes in 1.14.0+8.1.1
 
 ### Additions
