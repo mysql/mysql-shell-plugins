@@ -1,5 +1,13 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.14.2+8.1.1
+
+### Fixes
+
+- Fixed code completion + semantic highlighting
+- Fix SQL code execution to properly wait for the splitter to finish and the execute one statement after another
+- Cleanup if websocket request/responds handling
+
 ## Changes in 1.14.1+8.1.1
 
 ### Fixes
