@@ -123,14 +123,12 @@ export class RdbmsLanguageService {
             this.localSymbols.addDependencies(model.symbols);
         }
 
+        const statement = await context.getStatementAtPosition(position);
+        if (!statement) {
+            return;
+        }
+
         return new Promise((resolve, reject) => {
-            const statement = context.getStatementAtPosition(position);
-            if (!statement) {
-                resolve(undefined);
-
-                return;
-            }
-
             const infoData: ILanguageWorkerSuggestionData = {
                 api: "suggestion",
                 language: this.language,
@@ -148,7 +146,7 @@ export class RdbmsLanguageService {
                     // a whitespace character or the start of the line.
                     const line = model.getLineContent(position.lineNumber);
                     let index = position.column - 1;
-                    while (index > 0 && !/\s/.test(line[index - 1])) {
+                    while (index > 0 && !/[\s.]/.test(line[index - 1])) {
                         --index;
                     }
 

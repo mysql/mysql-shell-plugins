@@ -38,9 +38,8 @@ import {
 import { MySQLErrorListener } from "./MySQLErrorListener.js";
 import { MySQLParseUnit } from "./MySQLServiceTypes.js";
 import {
-    ICompletionData, IParserErrorInfo, IStatementSpan, ISymbolInfo, ITokenInfo, QueryType, StatementFinishState,
-    SymbolKind,
-    TextSpan, tokenFromPosition,
+    ICompletionData, IParserErrorInfo, IStatement, IStatementSpan, ISymbolInfo, ITokenInfo, QueryType,
+    StatementFinishState, SymbolKind, TextSpan, tokenFromPosition,
 } from "../parser-common.js";
 
 import { SystemVariableSymbol, SystemFunctionSymbol, DBSymbolTable } from "../DBSymbolTable.js";
@@ -255,87 +254,64 @@ export class MySQLParsingServices {
     /**
      * Creates a list of token info items for the given text.
      *
-     * @param text The text to handle.
+     * @param statements A list of statements to tokenize.
      * @param serverVersion The version of MySQL to control the parsing process.
      * @param sqlMode The current SQL mode in the server.
      *
      * @returns The information about the symbol at the given offset, if there's one.
      */
-    public async tokenize(text: string, serverVersion: number, sqlMode: string): Promise<ITokenInfo[]> {
+    public async tokenize(statements: IStatement[], serverVersion: number,
+        sqlMode: string): Promise<ITokenInfo[]> {
         const result: ITokenInfo[] = [];
 
-        const splitMultiLineStatements = (text: string, type: string, firstIndex: number,
-            firstColumn: number): void => {
-            const lines = text.split("\n");
-            lines.forEach((line: string, lineIndex: number) => {
-                if (line.length > 0) {
-                    result.push({
-                        type,
-                        line: firstIndex + lineIndex,
-                        column: lineIndex === 0 ? firstColumn : 0,
-                        length: line.length,
-                    });
-                }
-            });
+        for (const statement of statements) {
+            // Special treatment for delimiters.
+            if (statement.text.match(/^\s*delimiter /i)) {
+                // Line and column values are one based.
+                result.push({
+                    type: "delimiter.sql",
+                    offset: statement.offset,
+                    length: statement.text.length,
+                });
 
-        };
+                continue;
+            }
 
-        // Special treatment for delimiters.
-        if (text.match(/^\s*delimiter /i)) {
-            splitMultiLineStatements(text, "delimiter.sql", 1, 0);
+            this.applyServerDetails(serverVersion, sqlMode);
+            this.errors = [];
+            this.lexer.inputStream = CharStreams.fromString(statement.text);
+            this.tokenStream.setTokenSource(this.lexer);
+            this.tokenStream.fill();
 
-            return result;
-        }
+            const tokens = this.tokenStream.getTokens();
 
-        this.applyServerDetails(serverVersion, sqlMode);
-        this.errors = [];
-        this.lexer.inputStream = CharStreams.fromString(text);
-        this.tokenStream.setTokenSource(this.lexer);
-        this.tokenStream.fill();
-
-        const tokens = this.tokenStream.getTokens();
-
-        let variablePending = false;
-        const version = numberToVersion(serverVersion);
-        for (const token of tokens) {
-            switch (token.type) {
-                case MySQLMRSLexer.WHITESPACE:
-                case MySQLMRSLexer.EOF: {
-                    break;
-                }
-
-                case MySQLMRSLexer.BLOCK_COMMENT: {
-                    // Block comments can span multiple lines. Split them up into individual lines.
-                    splitMultiLineStatements(token.text, "comment.block.sql", token.line, token.column);
-
-                    break;
-                }
-
-                case MySQLMRSLexer.DOLLAR_QUOTED_STRING_TEXT: {
-                    // Ditto for dollar quoted strings.
-                    splitMultiLineStatements(token.text, "string.sql", token.line, token.column);
-
-                    break;
-                }
-
-                default: {
-                    let type = await this.lexerTypeToScope(token, version);
-
-                    // System variables appear as two tokens, the first one being the @@ sign.
-                    // Make both of them appear as variable.predefined.
-                    if (type === "variable.predefined") {
-                        variablePending = true;
-                    } else if (variablePending) {
-                        variablePending = false;
-                        type = "variable.predefined";
+            let variablePending = false;
+            const version = numberToVersion(serverVersion);
+            for (const token of tokens) {
+                switch (token.type) {
+                    case MySQLMRSLexer.WHITESPACE:
+                    case MySQLMRSLexer.EOF: {
+                        break;
                     }
 
-                    result.push({
-                        type: type + ".sql",
-                        line: token.line,
-                        column: token.column,
-                        length: token.stop - token.start + 1,
-                    });
+                    default: {
+                        let type = await this.lexerTypeToScope(token, version);
+
+                        // System variables appear as two tokens, the first one being the @@ sign.
+                        // Make both of them appear as variable.predefined.
+                        if (type === "variable.predefined") {
+                            variablePending = true;
+                        } else if (variablePending) {
+                            variablePending = false;
+                            type = "variable.predefined";
+                        }
+
+                        result.push({
+                            type: type + ".sql",
+                            offset: statement.offset + token.start,
+                            length: token.stop - token.start + 1,
+                        });
+                    }
                 }
             }
         }
@@ -1031,6 +1007,7 @@ export class MySQLParsingServices {
                 return "string.quoted.single";
             }
 
+            case MySQLMRSLexer.DOLLAR_QUOTED_STRING_TEXT:
             case MySQLMRSLexer.DOUBLE_QUOTED_TEXT: {
                 return "string.quoted.double";
             }

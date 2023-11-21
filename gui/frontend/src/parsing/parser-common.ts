@@ -241,9 +241,10 @@ export interface IStatementSpan {
      */
     delimiter?: string;
 
-    /** Start and length of the entire statement, including leading whitespaces. */
+    /** Start and length of the entire statement, including leading whitespaces/comments. */
     span: TextSpan;
 
+    /** An alternative start offset, for the first non-whitespace/non-comment character. */
     contentStart: number;
 
     /** The offset where non-whitespace content starts. */
@@ -313,11 +314,8 @@ export interface ITokenInfo {
     /** The token type (highlighter scope). */
     type: string;
 
-    /** The (one-based) token line. */
-    line: number;
-
-    /** The (zero-based) offset in that line. */
-    column: number;
+    /** The position of the first token character relative to its containing statement. */
+    offset: number;
 
     /** The length of the token text. */
     length: number;
@@ -448,10 +446,32 @@ interface ILanguageWorkerCleanupData {
     language: ServiceLanguage;
 }
 
+/** A statement consists of its text and its relative position within its block/context. */
+export interface IStatement {
+    /** The index of the statement in the statement list. */
+    index: number;
+
+    /** The text of the statement without delimiter. */
+    text: string;
+
+    /** The character offset of the statement in the containing model. */
+    offset: number;
+
+    /** The line number of the statement in the containing model. */
+    line: number;
+
+    /** Ditto for the column. */
+    column: number;
+
+
+    /** The length of the delimiter given for this statement. */
+    delimiterLength?: number;
+}
+
 export interface ILanguageWorkerTokenizeData {
     api: "tokenize";
     language: ServiceLanguage;
-    sql: string;
+    statements: IStatement[];
     version: number;
     sqlMode: string;
 }

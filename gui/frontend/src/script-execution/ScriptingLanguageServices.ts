@@ -273,9 +273,12 @@ export class ScriptingLanguageServices {
             case "sql":
             case "mysql": {
                 const sqlContext = context as SQLExecutionContext;
-                const statement = sqlContext.getStatementAtPosition(position);
+                const statement = await sqlContext.getStatementAtPosition(position);
                 if (statement) {
-                    const start = model.getOffsetAt({ lineNumber: statement.line, column: statement.column });
+                    const start = model.getOffsetAt({
+                        lineNumber: statement.line,
+                        column: statement.column,
+                    });
 
                     return new Promise((resolve) => {
                         const infoData: ILanguageWorkerInfoData = {
@@ -428,10 +431,14 @@ export class ScriptingLanguageServices {
             }]]);
         }
 
+        const model = context.model;
+        if (!model) {
+            return Promise.resolve([]);
+        }
+
         switch (context.language) {
             case "javascript":
             case "typescript": {
-                const model = context.model;
                 if (model && !model.isDisposed()) {
                     const monacoTokens = Monaco.tokenize(model.getValue(), context.language);
                     const tokens: ITextToken[][] = [];
@@ -465,78 +472,89 @@ export class ScriptingLanguageServices {
             case "sql":
             case "mysql": {
                 const sqlContext = context as SQLExecutionContext;
-                const promises: Array<Promise<ITextToken[][]>> = [];
-
-                // This statement call should not be affected by a selection in the editor,
-                // it is only used when a change occurred (which will remove any selection).
-                const offsets: number[] = [];
                 const statements = await sqlContext.getAllStatements();
-                statements.forEach((statement) => {
-                    offsets.push(statement.line - 1); // Convert to zero-base.
-                    promises.push(new Promise((resolve) => {
-                        const taskData: ILanguageWorkerTokenizeData = {
-                            language: context.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
-                            api: "tokenize",
-                            version: sqlContext.dbVersion,
-                            sql: statement.text,
-                            sqlMode: sqlContext.sqlMode,
-                        };
 
-                        this.workerPool.runTask(taskData)
-                            .then((taskId: number, data: ILanguageWorkerResultData): void => {
-                                if (data.tokens) {
-                                    const tokens: ITextToken[][] = [];
+                return new Promise((resolve) => {
+                    const taskData: ILanguageWorkerTokenizeData = {
+                        language: context.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
+                        api: "tokenize",
+                        version: sqlContext.dbVersion,
+                        statements,
+                        sqlMode: sqlContext.sqlMode,
+                    };
 
-                                    // Split lines into individual token sub arrays.
-                                    let i = 0;
-                                    let currentLine = -1;
-                                    while (i < data.tokens.length) {
-                                        if (currentLine === -1) {
-                                            currentLine = data.tokens[i].line;
-                                        }
+                    let currentLine = -1;
+                    this.workerPool.runTask(taskData).then((_taskId: number, data: ILanguageWorkerResultData): void => {
+                        const result: ITextToken[][] = [];
+                        if (data.tokens) {
+                            let lineTokens: ITextToken[] = [];
 
-                                        const lineTokens: ITextToken[] = [];
-                                        while (i < data.tokens.length) {
-                                            if (data.tokens[i].line === currentLine) {
-                                                const token = data.tokens[i++];
+                            // Split lines into individual token sub arrays.
+                            let i = 0;
+                            while (i < data.tokens.length) {
+                                const token = data.tokens[i];
+                                const startPosition = model.getPositionAt(token.offset);
+                                if (currentLine === -1) {
+                                    // Prime the current line number.
+                                    currentLine = startPosition.lineNumber;
+                                }
+
+                                if (startPosition.lineNumber === currentLine) {
+                                    const endPosition = model.getPositionAt(token.offset + token.length);
+                                    if (startPosition.lineNumber === endPosition.lineNumber) {
+                                        lineTokens.push({
+                                            line: startPosition.lineNumber - 1,
+                                            column: startPosition.column - 1,
+                                            length: token.length,
+                                            type: token.type,
+                                        });
+                                    } else {
+                                        // The token spans multiple lines.
+                                        const lineCount = endPosition.lineNumber - startPosition.lineNumber + 1;
+                                        for (let i = 0; i < lineCount; ++i) {
+                                            if (i === 0) {
                                                 lineTokens.push({
-                                                    line: token.line - 1,
-                                                    column: token.column,
-                                                    length: token.length,
+                                                    line: startPosition.lineNumber - 1,
+                                                    column: startPosition.column - 1,
+                                                    length: model.getLineLength(startPosition.lineNumber) -
+                                                        startPosition.column + 1,
+                                                    type: token.type,
+                                                });
+                                            } else if (i === lineCount - 1) {
+                                                lineTokens.push({
+                                                    line: endPosition.lineNumber - 1,
+                                                    column: 0,
+                                                    length: endPosition.column - 1,
                                                     type: token.type,
                                                 });
                                             } else {
-                                                currentLine = data.tokens[i].line;
-                                                break;
+                                                lineTokens.push({
+                                                    line: startPosition.lineNumber + i - 1,
+                                                    column: 0,
+                                                    length: model.getLineLength(startPosition.lineNumber + i),
+                                                    type: token.type,
+                                                });
                                             }
+
                                         }
-
-                                        tokens.push(lineTokens);
                                     }
-
-                                    resolve(tokens);
+                                    ++i;
+                                } else {
+                                    // Store the new line of tokens and continue with the next line number.
+                                    result.push(lineTokens);
+                                    lineTokens = [];
+                                    currentLine = startPosition.lineNumber;
                                 }
-                            });
-                    }));
-                });
+                            }
 
-                const result = Promise.all(promises).then((values) => {
-                    const tokens: ITextToken[][] = [];
-                    values.forEach((value) => {
-                        // Update the relative line numbers to absolute ones.
-                        const lineOffset = offsets.shift() ?? 0;
-                        value.forEach((lineTokens) => {
-                            lineTokens.forEach((token) => {
-                                token.line += lineOffset;
-                            });
-                        });
-                        tokens.push(...value);
+                            if (lineTokens.length > 0) {
+                                result.push(lineTokens);
+                            }
+                        }
+
+                        resolve(result);
                     });
-
-                    return tokens;
                 });
-
-                return result;
             }
 
             default:
