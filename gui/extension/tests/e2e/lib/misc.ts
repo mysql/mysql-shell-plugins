@@ -25,7 +25,7 @@ import { spawnSync, execSync } from "child_process";
 import clipboard from "clipboardy";
 import fs from "fs/promises";
 import addContext from "mochawesome/addContext";
-import { platform } from "os";
+import { hostname, platform } from "os";
 import { join } from "path";
 import {
     BottomBarPanel, Condition, CustomTreeSection, EditorView, error, InputBox, ITimeouts,
@@ -938,7 +938,7 @@ export class Misc {
         }
     };
 
-    public static isRouterRunning = (): boolean => {
+    public static isRouterProcessRunning = (): boolean => {
         if (Misc.isWindows()) {
             const cmdResult = execSync(`tasklist /fi "IMAGENAME eq mysqlrouter.exe"`);
             const resultLines = cmdResult.toString().split("\n");
@@ -960,6 +960,13 @@ export class Misc {
 
             return false;
         }
+    };
+
+    public static isRouterIconActive = async (): Promise<boolean> => {
+        const routerItem = await Misc.getTreeElement(constants.dbTreeSection, new RegExp(hostname()));
+        const icon = await routerItem.findElement(locator.section.itemIcon);
+
+        return (await icon.getCssValue("background-image")).match(/router.svg/) !== null;
     };
 
     public static routerHasError = async (treeItem: TreeItem): Promise<boolean> => {

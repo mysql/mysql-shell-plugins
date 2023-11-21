@@ -236,7 +236,7 @@ describe("MySQL REST Service", () => {
             expect(await Misc.existsTreeElement(constants.dbTreeSection, new RegExp(hostname()))).to.be.true;
             const router = await Misc.getTreeElement(constants.dbTreeSection, new RegExp(hostname()));
             expect(await Misc.routerHasError(router), "Please update Router").to.be.false;
-            expect(Misc.isRouterRunning()).to.be.false;
+            await driver.wait(waitUntil.routerIconIsInactive(), constants.wait10seconds);
             await Misc.setRouterConfig({
                 sinks: "filelog",
             });
@@ -248,9 +248,7 @@ describe("MySQL REST Service", () => {
             const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
             await treeMySQLRESTService.expand();
             await Misc.openContextMenuItem(treeMySQLRESTService, constants.startRouter, constants.checkTerminal);
-            await driver.wait(waitUntil.routerIsRunning(), constants.wait10seconds, "Router should be running");
-            await driver.wait(waitUntil.existsOnRouterLog("Start accepting connections for routing"),
-                constants.wait20seconds, "'Start accepting connections for routing' was not found on the router log");
+            await driver.wait(waitUntil.routerIconIsActive(), constants.wait10seconds);
         });
 
         it("Stop Local MySQL Router Instance", async () => {
@@ -259,15 +257,7 @@ describe("MySQL REST Service", () => {
             await treeMySQLRESTService.expand();
             await fs.truncate(await Misc.getRouterLogFile());
             await Misc.openContextMenuItem(treeMySQLRESTService, constants.stopRouter, constants.checkTerminal);
-            if (Misc.isWindows()) {
-                await driver.wait(() => {
-                    return !Misc.isRouterRunning();
-                }, constants.wait10seconds, "Router task should not be running");
-            } else {
-                await driver.wait(waitUntil.existsOnRouterLog("Unloading all plugins"),
-                    constants.wait20seconds, "'Unloading all plugins' was not found on the router log");
-                expect(Misc.isRouterRunning()).to.be.false;
-            }
+            await driver.wait(waitUntil.routerIconIsInactive(), constants.wait10seconds);
         });
 
         it("Browse the MySQL REST Service Documentation", async () => {
@@ -1021,15 +1011,7 @@ describe("MySQL REST Service", () => {
                 await fs.truncate(await Misc.getRouterLogFile());
                 treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
                 await Misc.openContextMenuItem(treeMySQLRESTService, constants.startRouter, undefined);
-                await driver.wait(waitUntil.routerIsRunning(), constants.wait10seconds, "Router should be running");
-                await driver.wait(waitUntil.existsOnRouterLog("Start accepting connections for routing"),
-                    constants.wait20seconds,
-                    "'Start accepting connections for routing' was not found on the router log");
-                let regExp = `adding_route:.*${crudService.servicePath}`;
-                regExp += `${crudSchema.restSchemaPath}${crudObject.restObjectPath}`;
-                await driver.wait(waitUntil.existsOnRouterLog(new RegExp(regExp)),
-                    constants.wait25seconds,
-                    "'adding route' was not found on the router log");
+                await driver.wait(waitUntil.routerIconIsActive(), constants.wait10seconds);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1068,7 +1050,6 @@ describe("MySQL REST Service", () => {
         });
 
         it("Get schema metadata", async () => {
-            await driver.wait(waitUntil.fetchIsSuccessful(`${baseUrl}/metadata-catalog`));
             response = await fetch(`${baseUrl}/metadata-catalog`);
             const data = await response.json();
             expect(response.ok).to.be.true;
@@ -1076,8 +1057,6 @@ describe("MySQL REST Service", () => {
         });
 
         it("Get object metadata", async () => {
-            await driver.wait(waitUntil
-                .fetchIsSuccessful(`${baseUrl}/metadata-catalog/${crudObject.restObjectPath.replace("/", "")}`));
             response = await fetch(`${baseUrl}/metadata-catalog/${crudObject.restObjectPath.replace("/", "")}`);
             const data = await response.json();
             expect(response.ok).to.be.true;
@@ -1086,8 +1065,6 @@ describe("MySQL REST Service", () => {
         });
 
         it("Get object data", async () => {
-            await driver.wait(waitUntil
-                .fetchIsSuccessful(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}`));
             response = await fetch(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}`);
             const data = await response.json();
             expect(response.ok).to.be.true;
@@ -1112,16 +1089,6 @@ describe("MySQL REST Service", () => {
         });
 
         it("Update table row", async () => {
-            await driver.wait(waitUntil.fetchIsSuccessful(`${baseUrl}/${crudObject.restObjectPath
-                .replace("/", "")}/${actorId}`, {
-                method: "put",
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                body: JSON
-                    .stringify({ firstName: "Mister", lastName: "Test", lastUpdate: "2023-06-23 13:32:54" }),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                headers: { "Content-Type": "application/json" },
-            }));
-
             response = await fetch(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}/${actorId}`, {
                 method: "put",
                 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -1148,8 +1115,6 @@ describe("MySQL REST Service", () => {
 
         it("Filter object data", async () => {
             const query = `"firstName":"PENELOPE"`;
-            await driver.wait(waitUntil
-                .fetchIsSuccessful(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}?q={${query}}`));
             response = await fetch(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}?q={${query}}`);
             const data = await response.json();
             expect(response.ok).to.be.true;

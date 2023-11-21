@@ -1195,7 +1195,7 @@ export class Database {
         if (restObject.jsonRelDuality) {
             if (restObject.jsonRelDuality.dbObject) {
                 const inDbObj = await dialog.findElement(locator.mrsDbObjectDialog.jsonDuality.dbObject);
-                await inDbObj.clear();
+                await this.clearInputField(inDbObj);
                 await inDbObj.sendKeys(restObject.jsonRelDuality.dbObject);
             }
             if (restObject.jsonRelDuality.sdkLanguage) {
