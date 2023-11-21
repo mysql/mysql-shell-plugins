@@ -1447,7 +1447,7 @@ Execute \\help or \\? for help;`;
 
                 // Check if there is a current MRS service set and if the cached
                 if (serviceMetadata.id !== undefined && serviceMetadata.id !== null &&
-                    serviceMetadata.hostCtx !== undefined &&
+                    serviceMetadata.hostCtx !== undefined && serviceMetadata.hostCtx !== null &&
                     serviceMetadata.metadataVersion !== undefined) {
                     if (this.cachedMrsServiceSdk.schemaId !== serviceMetadata.id ||
                         this.cachedMrsServiceSdk.schemaMetadataVersion !== serviceMetadata.metadataVersion) {
