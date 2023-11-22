@@ -960,14 +960,11 @@ export class MrsBaseObjectQuery<C, P> {
         const responseBody = await res.json();
 
         // Remove links from response and response items
-        if ("links" in responseBody) {
+        if (typeof responseBody !== "undefined") {
             responseBody.links = undefined;
-        }
-        if (responseBody.items !== undefined) {
+
             for (const item of responseBody.items) {
-                if ("links" in item) {
-                    item.links = undefined;
-                }
+                item.links = undefined;
             }
         }
 

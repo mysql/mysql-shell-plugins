@@ -47,7 +47,9 @@ import {
     MrsBaseObjectDelete,
 } from "./MrsBaseClasses";
 
+// --- MySQL Shell for VS Code Extension Remove --- Begin
 export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
+// --- MySQL Shell for VS Code Extension Remove --- End
 /* -----------------------------------------------------------------------------
  * MRS Schema /mrsNotes
  */
