@@ -44,11 +44,28 @@ export type IBastionSummary = bastionModels.BastionSummary & {
 };
 
 export type IBastion = bastionModels.Bastion;
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export const BastionLifecycleState = bastionModels.BastionLifecycleState;
+
 export type IMySQLDbSystem = mySQLModels.DbSystem & {
     isSupportedForHwCluster?: boolean;
     isSupportedForAnalyticsCluster?: boolean;
 };
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace DBSystem {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    export const LifecycleState = mySQLModels.DbSystem.LifecycleState;
+}
+
 export type IMySQLDbSystemShapeSummary = mySQLModels.ShapeSummary;
 export type ILoadBalancer = loadBalancerModels.LoadBalancer;
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace LoadBalancer {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    export const LifecycleState = loadBalancerModels.LoadBalancer.LifecycleState;
+}
 
 export type IPortForwardingSessionTargetResourceDetails = bastionModels.PortForwardingSessionTargetResourceDetails;

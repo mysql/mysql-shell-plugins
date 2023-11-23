@@ -746,6 +746,13 @@
                 "prefix": [
                     "I"
                 ]
+            },
+            {
+                "selector": "import",
+                "format": [
+                    "PascalCase",
+                    "camelCase"
+                ]
             }
         ],
         "@typescript-eslint/triple-slash-reference": "off",
