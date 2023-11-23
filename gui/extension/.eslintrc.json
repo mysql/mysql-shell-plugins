@@ -612,6 +612,13 @@
                 "prefix": [
                     "I"
                 ]
+            },
+            {
+                "selector": "import",
+                "format": [
+                    "PascalCase",
+                    "camelCase"
+                ]
             }
         ],
         "jsdoc/check-alignment": "error",

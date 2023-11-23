@@ -30,7 +30,6 @@ import { uuid } from "../utilities/helpers.js";
 
 import { IProtocolParameters } from "./ProtocolParameterMapper.js";
 import { IProtocolResults } from "./ProtocolResultMapper.js";
-import { IDictionary } from "../app-logic/Types.js";
 import { IGenericResponse, Protocol, EventType } from "./Protocol.js";
 import { multiResultAPIs, ShellAPIGui, IErrorResult, IWebSessionData } from "./ProtocolGui.js";
 import { ShellAPIMds } from "./ProtocolMds.js";

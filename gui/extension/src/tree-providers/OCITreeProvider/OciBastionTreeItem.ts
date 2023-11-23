@@ -25,7 +25,7 @@ import * as path from "path";
 
 import { TreeItemCollapsibleState } from "vscode";
 
-import { IBastionSummary, ICompartment } from "../../../../frontend/src/communication/index.js";
+import { IBastionSummary, ICompartment, BastionLifecycleState } from "../../../../frontend/src/communication/index.js";
 import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds.js";
 import { OciBaseTreeItem } from "./OciBaseTreeItem.js";
 
@@ -39,7 +39,7 @@ export class OciBastionTreeItem extends OciBaseTreeItem {
         super(bastion.name, profile, TreeItemCollapsibleState.None);
 
         let iconName = bastion.isCurrent ? "ociBastionCurrent.svg" : "ociBastion.svg";
-        if (bastion.lifecycleState !== "ACTIVE") {
+        if (bastion.lifecycleState !== BastionLifecycleState.Active) {
             iconName = bastion.isCurrent ? "ociBastionCurrentNotActive.svg" : "ociBastionNotActive.svg";
         }
 

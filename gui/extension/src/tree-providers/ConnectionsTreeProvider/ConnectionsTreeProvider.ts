@@ -587,7 +587,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
 
             const schemas = await item.backend.getCatalogObjects("Schema");
             for (const schema of schemas) {
-                if (item.details.dbType === "MySQL") {
+                if (item.details.dbType === DBType.MySQL) {
                     // If the schema is the MRS metadata schema, add the MRS tree item
                     if (schema === "mysql_rest_service_metadata") {
                         try {
@@ -703,7 +703,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
      */
     private async loadSchemaGroupMembers(entry: ICdmSchemaGroupEntry): Promise<void> {
         const item = entry.treeItem;
-        const isMySQL = entry.parent.parent.treeItem.details.dbType === "MySQL";
+        const isMySQL = entry.parent.parent.treeItem.details.dbType === DBType.MySQL;
 
         switch (entry.treeItem.groupType) {
             case "Routines": {

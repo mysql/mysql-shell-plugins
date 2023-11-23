@@ -29,7 +29,7 @@ import {
 import { IShellDictionary } from "../../communication/Protocol.js";
 
 import {
-    IMrsAuthAppData, IMrsContentSetData, IMrsObject, IMrsSchemaData, IMrsSdkOptions, IMrsServiceData, IMrsUserData,
+    IMrsAuthAppData, IMrsContentSetData, IMrsObject, IMrsSchemaData, IMrsServiceData, IMrsUserData,
     IMrsUserRoleData,
 } from "../../communication/ProtocolMrs.js";
 import { AwaitableValueEditDialog } from "../../components/Dialogs/AwaitableValueEditDialog.js";
