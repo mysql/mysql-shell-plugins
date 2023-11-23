@@ -87,7 +87,7 @@ import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem
 import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator.js";
 import { ITabviewPage, Tabview, TabPosition } from "../../components/ui/Tabview/Tabview.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
-import { IOpenConnectionData, IShellPasswordFeedbackRequest } from "../../communication/ProtocolGui.js";
+import { IOpenConnectionData, IShellPasswordFeedbackRequest, IStatusData } from "../../communication/ProtocolGui.js";
 import { MrsHub } from "../mrs/MrsHub.js";
 import { IMrsServiceData } from "../../communication/ProtocolMrs.js";
 import { IGenericResponse } from "../../communication/Protocol.js";
@@ -1002,6 +1002,10 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         });
     };
 
+    private isStatusCodeData(response: unknown): response is IStatusData {
+        return (response as IStatusData).result !== undefined;
+    }
+
     /**
      * Opens the given connection once all verification was done. Used when opening a connection the first time.
      *
@@ -1026,8 +1030,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             await backend.openConnection(connection.id, requestId, ((response, requestId) => {
                 if (!ShellPromptHandler.handleShellPrompt(response.result as IShellPasswordFeedbackRequest, requestId,
                     backend, "Provide Password")) {
-                    const raw = response as unknown as IGenericResponse;
-                    this.setProgressMessage(raw.requestState.msg);
+                    if (this.isStatusCodeData(response)) {
+                        this.setProgressMessage(response.result);
+                    }
                     connectionData = response.result as IOpenConnectionData;
                 }
             }));

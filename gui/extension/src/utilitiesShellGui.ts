@@ -25,7 +25,7 @@ import Anser from "anser";
 import { window } from "vscode";
 
 import { IGenericResponse, ShellPromptResponseType } from "../../frontend/src/communication/Protocol.js";
-import { IShellFeedbackRequest } from "../../frontend/src/communication/ProtocolGui.js";
+import { IShellFeedbackRequest, IStatusData } from "../../frontend/src/communication/ProtocolGui.js";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 
 const isShellPromptResult = (response?: unknown): response is IShellFeedbackRequest => {
@@ -33,6 +33,11 @@ const isShellPromptResult = (response?: unknown): response is IShellFeedbackRequ
 
     return candidate?.prompt !== undefined;
 };
+
+
+const isStatusCodeData = (response?: unknown): response is IStatusData => {
+    return (response as IStatusData).result !== undefined;
+}
 
 /**
  * Opens an sqlEditor connection
@@ -66,8 +71,9 @@ export const openSqlEditorConnection = async (sqlEditor: ShellInterfaceSqlEditor
                     });
             }
         } else if (progress) {
-            const raw = data as unknown as IGenericResponse;
-            progress(raw.requestState.msg);
+            if (isStatusCodeData(data)) {
+                progress(data.result);
+            }
         }
     });
 };

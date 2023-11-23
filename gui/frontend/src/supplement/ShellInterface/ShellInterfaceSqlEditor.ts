@@ -26,7 +26,7 @@ import { Settings } from "../Settings/Settings.js";
 import { MessageScheduler, DataCallback } from "../../communication/MessageScheduler.js";
 import { IPromptReplyBackend, ShellPromptResponseType, Protocol } from "../../communication/Protocol.js";
 import {
-    ShellAPIGui, IOpenConnectionData, IDbEditorResultSetData, IShellPasswordFeedbackRequest,
+    ShellAPIGui, IOpenConnectionData, IDbEditorResultSetData, IShellPasswordFeedbackRequest, IStatusData,
 } from "../../communication/ProtocolGui.js";
 import { ShellInterfaceDb } from "./ShellInterfaceDb.js";
 import { ShellInterfaceMds } from "./ShellInterfaceMds.js";
@@ -122,7 +122,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
      */
     public async openConnection(dbConnectionId: number, requestId?: string,
         callback?: DataCallback<ShellAPIGui.GuiSqleditorOpenConnection>):
-        Promise<IOpenConnectionData | IShellPasswordFeedbackRequest | undefined> {
+        Promise<IOpenConnectionData | IShellPasswordFeedbackRequest | IStatusData | undefined> {
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
             const response = await MessageScheduler.get.sendRequest({
