@@ -23,7 +23,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-    IFindManyOptions, IFindUniqueOptions, JsonValue, MrsBaseObjectQuery, MrsBaseSchema, MrsBaseService,
+    IFindManyOptions, IFindUniqueOptions, JsonValue, MrsBaseObjectDelete, MrsBaseObjectQuery, MrsBaseSchema, MrsBaseService,
 } from "../MrsBaseClasses";
 
 // fixtures
@@ -244,6 +244,21 @@ describe("MRS SDK API", () => {
         expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$null":"null"}}', expect.anything());
     });
 
+    it("deletes all records where a given field is NULL", async () => {
+        const options: IFindManyOptions<unknown, { maybe: number | null }> = {
+            where: {
+                maybe: null,
+            },
+        };
+
+        const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz");
+        await query.where(options.where).fetch();
+
+        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$null":"null"}}', expect.objectContaining({
+            method: "DELETE"
+        }));
+    });
+
     it("retrieves all records where a given field is not NULL", async () => {
         const options: IFindManyOptions<unknown, { maybe: number | null }> = {
             where: {
@@ -257,6 +272,23 @@ describe("MRS SDK API", () => {
         await query.where(options.where).fetch();
 
         expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$notnull":"null"}}', expect.anything());
+    });
+
+    it("deletes all records where a given field is not NULL", async () => {
+        const options: IFindManyOptions<unknown, { maybe: number | null }> = {
+            where: {
+                maybe: {
+                    not: null,
+                },
+            },
+        };
+
+        const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz");
+        await query.where(options.where).fetch();
+
+        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$notnull":"null"}}', expect.objectContaining({
+            method: "DELETE"
+        }));
     });
 
     it(`retrieves all records where a field called "not" is NULL`, async () => {

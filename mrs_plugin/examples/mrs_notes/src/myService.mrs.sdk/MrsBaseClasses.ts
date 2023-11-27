@@ -802,21 +802,13 @@ export type UpdateMatch<Type, PrimaryKeys extends Array<string & keyof Type>> = 
     [ColumnName in keyof Pick<Type, PrimaryKeys[number]>]-?: Type[ColumnName]
 };
 
-export class MrsBaseObjectQuery<C, P> {
-    // This needs to be extended in order to hold AND, OR, etc. based on the actual grammar
+/**
+ * This is an internal abstract class to hold common functionality related to query filters
+ * between different types of MRS CRUD operations.
+ */
+class MrsRequestFilter<P> {
     protected whereCondition?: string;
-    protected offsetCondition?: number;
-    protected limitCondition?: number;
-    protected pageSizeCondition = 25;
 
-    public constructor(
-        private readonly schema: MrsBaseSchema,
-        private readonly requestPath: string,
-        private readonly fieldsToGet?: string[] | BooleanFieldMapSelect<C> | FieldNameSelect<C>,
-        private readonly fieldsToOmit?: string[]) {
-    }
-
-    // where() proposal
     public where = (filter?: DataFilter<P>): this => {
         if (typeof filter === "undefined") {
             return this;
@@ -843,6 +835,20 @@ export class MrsBaseObjectQuery<C, P> {
 
         return this;
     };
+}
+
+export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
+    protected offsetCondition?: number;
+    protected limitCondition?: number;
+    protected pageSizeCondition = 25;
+
+    public constructor(
+        private readonly schema: MrsBaseSchema,
+        private readonly requestPath: string,
+        private readonly fieldsToGet?: string[] | BooleanFieldMapSelect<C> | FieldNameSelect<C>,
+        private readonly fieldsToOmit?: string[]) {
+            super();
+    }
 
     public whereOld = <K extends keyof P>(param: K, op: keyof IMrsOperator, value?: string): this => {
         const ops: IMrsOperator = {
@@ -962,7 +968,6 @@ export class MrsBaseObjectQuery<C, P> {
         // Remove links from response and response items
         if (typeof responseBody !== "undefined") {
             responseBody.links = undefined;
-
             for (const item of responseBody.items) {
                 item.links = undefined;
             }
@@ -1115,19 +1120,12 @@ export class MrsBaseObjectCreate<T> {
     };
 }
 
-export class MrsBaseObjectDelete<T> {
-    protected whereCondition?: string;
-
+export class MrsBaseObjectDelete<T> extends MrsRequestFilter<T> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string) {
+            super();
     }
-
-    public where = (filter: DataFilter<T>): this => {
-        this.whereCondition = JSON.stringify(filter);
-
-        return this;
-    };
 
     public fetch = async (): Promise<IMrsDeleteResult> => {
         let inputStr = `${this.schema.requestPath}${this.requestPath}`;
