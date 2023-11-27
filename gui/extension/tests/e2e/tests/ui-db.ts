@@ -425,9 +425,9 @@ describe("DATABASE CONNECTIONS", () => {
 
             sslConn.ssl = {
                 mode: "Require and Verify CA",
-                caPath: `${String(process.env.SSL_ROOT_FOLDER)}/ca-cert.pem`,
-                clientCertPath: `${String(process.env.SSL_ROOT_FOLDER)}/client-cert.pem`,
-                clientKeyPath: `${String(process.env.SSL_ROOT_FOLDER)}/client-key.pem`,
+                caPath: String(process.env.SSL_CA_CERT_PATH),
+                clientCertPath: String(process.env.SSL_CLIENT_CERT_PATH),
+                clientKeyPath: String(process.env.SSL_CLIENT_KEY_PATH),
             };
 
             await Database.setConnection(
@@ -446,7 +446,6 @@ describe("DATABASE CONNECTIONS", () => {
                 dbConn,
             );
 
-            await Database.setDBConnectionCredentials(globalConn);
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
             const query =
                 `select * from performance_schema.session_status where variable_name in 
@@ -629,6 +628,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         after(async function () {
             try {
+                await fs.rm(dumpFolder, { force: true, recursive: true });
                 await new EditorView().closeAllEditors();
                 const treeDBSection = await Misc.getSection(constants.dbTreeSection);
                 await Misc.clickSectionToolbarButton(treeDBSection, constants.collapseAll);
@@ -793,12 +793,11 @@ describe("DATABASE CONNECTIONS", () => {
             const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, dumpSchemaToDisk);
             treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
                 (globalConn.basic as interfaces.IConnBasicMySQL).schema);
-
             await fs.rm(dumpFolder, { force: true, recursive: true });
             await fs.mkdir(dumpFolder);
             await Misc.openContextMenuItem(treeTestSchema, constants.dumpSchemaToDisk, constants.checkInput);
             await Misc.setInputPath(dumpFolder);
-            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
+            await Misc.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Misc.waitForOutputText(`Task 'Dump Schema ${dumpSchemaToDisk} to Disk' completed successfully`,
                 constants.wait10seconds);
             const files = await fs.readdir(dumpFolder);
@@ -819,7 +818,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.clickSectionToolbarButton(treeDBSection, constants.reloadConnections);
             await Misc.openContextMenuItem(treeGlobalConn, constants.loadDumpFromDisk, constants.checkInput);
             await Misc.setInputPath(dumpFolder);
-            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
+            await Misc.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Misc.waitForOutputText(/Task 'Loading Dump .* from Disk' completed successfully/,
                 constants.wait10seconds);
             await Misc.sectionFocus(constants.tasksTreeSection);
@@ -831,13 +830,6 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("Dump Schema to Disk for MySQL Database Service", async () => {
-            //await new EditorView().openEditor(globalConn.caption);
-            //await Misc.switchToFrame();
-            //await commandExecutor.execute(`drop schema if exists \`${testSchema}\`;`);
-            //expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            //await commandExecutor.execute(`create schema ${testSchema};`);
-            //expect(commandExecutor.getResultMessage()).to.match(/OK/);
-            //await Misc.switchBackToTopFrame();
             const treeTestSchema = await Misc.getTreeElement(constants.dbTreeSection, schemaForMySQLDBService);
             treeGlobalSchema = await Misc.getTreeElement(constants.dbTreeSection,
                 (globalConn.basic as interfaces.IConnBasicMySQL).schema);
@@ -846,7 +838,7 @@ describe("DATABASE CONNECTIONS", () => {
             await fs.mkdir(dumpFolder);
             await Misc.openContextMenuItem(treeTestSchema, constants.dumpSchemaToDiskToServ, constants.checkInput);
             await Misc.setInputPath(dumpFolder);
-            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
+            await Misc.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Misc.waitForOutputText(`Task 'Dump Schema ${schemaForMySQLDBService} to Disk' completed successfully`,
                 constants.wait10seconds);
             const files = await fs.readdir(dumpFolder);
@@ -864,7 +856,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
             await Database.setDataToHw();
             await Misc.switchBackToTopFrame();
-            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
+            await Misc.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Misc.getNotification("The data load to the HeatWave cluster operation has finished");
             await new BottomBarPanel().toggle(false);
         });
@@ -1046,7 +1038,6 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("View - Show Data", async function () {
             this.retries(1);
-
             const treeTestView = await Misc.getTreeElement(constants.dbTreeSection, testView);
             await Misc.openContextMenuItem(treeTestView, constants.showData, constants.checkNewTabAndWebView);
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);

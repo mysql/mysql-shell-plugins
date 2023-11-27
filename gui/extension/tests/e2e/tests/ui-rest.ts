@@ -107,8 +107,7 @@ describe("MySQL REST Service", () => {
                     return true;
                 } else if (inputWidget.length > 0) {
                     if (await inputWidget[0].isDisplayed()) {
-                        await Misc.setInputPassword(treeGlobalConn,
-                            (globalConn.basic as interfaces.IConnBasicMySQL).password);
+                        await Misc.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
                     }
                 }
             }, constants.wait10seconds, `MySQL REST Service was not configured`);
@@ -182,9 +181,8 @@ describe("MySQL REST Service", () => {
         it("Disable MySQL REST Service", async () => {
 
             const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
-            const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
-            await Misc.openContextMenuItem(treeMySQLRESTService, constants.disableRESTService, constants.checkInput);
-            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
+            await Misc.openContextMenuItem(treeMySQLRESTService, constants.disableRESTService, undefined);
+            await Misc.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
                 `${constants.dbTreeSection} is still loading`);
             await Misc.getNotification("MySQL REST Service configured successfully.");
@@ -202,9 +200,8 @@ describe("MySQL REST Service", () => {
         it("Enable MySQL REST Service", async () => {
 
             const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
-            const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
-            await Misc.openContextMenuItem(treeMySQLRESTService, constants.enableRESTService, constants.checkInput);
-            await Misc.setInputPassword(treeGlobalConn, (globalConn.basic as interfaces.IConnBasicMySQL).password);
+            await Misc.openContextMenuItem(treeMySQLRESTService, constants.enableRESTService, undefined);
+            await Misc.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
                 `${constants.dbTreeSection} is still loading`);
             await Misc.getNotification("MySQL REST Service configured successfully.");
@@ -403,6 +400,7 @@ describe("MySQL REST Service", () => {
 
         const destDumpSchema = join(constants.workspace, restSchemaToDump.settings.schemaName);
         const destDumpTable = join(constants.workspace, tableToDump);
+        const destDumpSdk = join(constants.workspace, "dump.sdk");
 
         before(async function () {
             try {
@@ -446,6 +444,10 @@ describe("MySQL REST Service", () => {
                 await Misc.processFailure(this);
                 await Misc.dismissNotifications();
             }
+        });
+
+        after(async () => {
+            await fs.rm(destDumpSdk, { force: true, recursive: true });
         });
 
         it("Edit REST Service", async () => {
@@ -746,13 +748,13 @@ describe("MySQL REST Service", () => {
             const treeRandomService = await Misc.getTreeElement(constants.dbTreeSection,
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
             await Misc.openContextMenuItem(treeRandomService, constants.exportRESTSDK, constants.checkInput);
-            const dest = join(process.cwd(), "dump.sdk");
-            await fs.rm(dest, { force: true, recursive: true });
-            await Misc.setInputPath(dest);
+
+            await fs.rm(destDumpSdk, { force: true, recursive: true });
+            await Misc.setInputPath(destDumpSdk);
             await Database.setExportMRSSDK(undefined);
             await Misc.switchBackToTopFrame();
             await Misc.getNotification("MRS SDK Files exported successfully");
-            const files = await fs.readdir(dest);
+            const files = await fs.readdir(destDumpSdk);
             expect(files.length).to.be.greaterThan(0);
         });
 
@@ -933,7 +935,7 @@ describe("MySQL REST Service", () => {
             servicePath: `/crudService`,
             enabled: true,
             settings: {
-                hostNameFilter: ``,
+                hostNameFilter: `127.0.0.1:8444`,
             },
         };
 
@@ -961,15 +963,11 @@ describe("MySQL REST Service", () => {
             },
         };
 
-        let baseUrl = "";
+        let baseUrl = `https://${crudService.settings.hostNameFilter}`;
+        baseUrl += `${crudService.servicePath}${crudSchema.restSchemaPath}`;
 
         before(async function () {
             try {
-                crudService.settings.hostNameFilter = `127.0.0.1:${await Misc.getRouterPort()}`;
-                crudSchema.restServicePath = `${crudService.settings.hostNameFilter}${crudService.servicePath}`;
-                crudObject.restServicePath = `${crudService.settings.hostNameFilter}${crudService.servicePath}`;
-                baseUrl = `https://${crudService.settings.hostNameFilter}`;
-                baseUrl += `${crudService.servicePath}${crudSchema.restSchemaPath}`;
                 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
                 await Misc.cleanCredentials();
                 let treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection,

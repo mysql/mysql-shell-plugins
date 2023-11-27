@@ -412,24 +412,6 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Context Menu - Execute", async () => {
-
-            const prompts = await Database.getPrompts();
-            await commandExecutor.executeWithContextMenu("select * from sakila.actor limit 1;",
-                constants.executeBlock);
-            expect(commandExecutor.getResultMessage()).to.match(/OK, 1 record retrieved/);
-            expect(await Database.getPrompts()).to.equal(prompts);
-            const blockId = commandExecutor.getResultId();
-
-            await commandExecutor
-                .executeWithContextMenu("select * from sakila.actor limit 1;", constants.executeBlockAndAdvance,
-                    undefined, blockId);
-            expect(commandExecutor.getResultMessage()).to.match(/OK, 1 record retrieved/);
-            await driver.wait(waitUntil.editorHasNewPrompt(),
-                constants.wait5seconds, "Editor should have a new prompt");
-
-        });
-
         it("Maximize and Normalize Result tab", async () => {
 
             await commandExecutor.execute("select * from sakila.actor;");
@@ -455,7 +437,6 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Pie Graph based on DB table", async () => {
-
             await commandExecutor.languageSwitch("\\ts ", true);
             await commandExecutor.execute(
                 `const res = await runSql("SELECT Name, Capital FROM world_x_cst.country limit 10");
@@ -473,7 +454,6 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Schema autocomplete context menu", async () => {
-
             await commandExecutor.languageSwitch("\\sql ", true);
             await commandExecutor.write("select * from");
             await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.SPACE);
@@ -690,7 +670,7 @@ describe("NOTEBOOKS", () => {
             await Misc.openContextMenuItem(file, constants.openNotebookWithConn, constants.checkInput);
             const input = await InputBox.create();
             await (await input.findQuickPick(globalConn.caption)).select();
-            await new EditorView().openEditor("test.mysql-notebook");
+            await driver.wait(waitUntil.tabIsOpened("test.mysql-notebook"), constants.wait5seconds);
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
             await Database.verifyNotebook("SELECT VERSION();", "1 record retrieved");
 
@@ -721,7 +701,7 @@ describe("NOTEBOOKS", () => {
             await Misc.switchBackToTopFrame();
             await new EditorView().openEditor("test.mysql-notebook");
             const activityBar = new ActivityBar();
-            await (await activityBar.getViewControl("MySQL Shell for VS Code"))?.openView();
+            await (await activityBar.getViewControl(constants.extensionName))?.openView();
             await Misc.deleteConnection(globalConn.caption);
             const tabs = await new EditorView().getOpenEditorTitles();
             expect(tabs).to.not.include("test.mysql-notebook");

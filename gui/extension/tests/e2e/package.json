@@ -28,6 +28,7 @@
     "e2e-tests-get-vscode": "extest get-vscode",
     "e2e-tests-get-chromedriver": "extest get-chromedriver",
     "e2e-tests-install-vsix": "extest install-vsix",
+    "e2e-tests-setup-and-run": "mysqlsh --py -f setup_local_env_for_ext_tests_and_run.py",
     "e2e-tests": "extest run-tests",
     "e2e-tests-tsc": "tsc",
     "e2e-tests-merge": "mochawesome-merge",

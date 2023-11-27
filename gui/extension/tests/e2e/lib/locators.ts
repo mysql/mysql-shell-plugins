@@ -428,6 +428,7 @@ export const iframe = {
     exists: By.css("iframe"),
     container: By.css(".file-icons-enabled > div"),
     isActive: By.id("active-frame"),
+    isLoading: By.id("waitForContent"),
 };
 
 export const shellForVscode = {

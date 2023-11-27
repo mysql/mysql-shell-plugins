@@ -24,17 +24,18 @@ import os
 import pathlib
 import platform
 import shutil
-import sqlite3
 import subprocess
 import time
 import typing
 
 VERBOSE = True
-WORKING_DIR = os.path.abspath(os.path.dirname(__file__))
-SAKILA_SQL_PATH = os.path.join(WORKING_DIR, "sql", "sakila.sql")
-WORLD_SQL_PATH = os.path.join(WORKING_DIR, "sql", "world_x_cst.sql")
-USERS_PATH = os.path.join(WORKING_DIR, "sql", "users.sql")
-PROCEDURES_PATH = os.path.join(WORKING_DIR, "sql", "procedures.sql")
+THIS_FILE_PATH = pathlib.Path(os.path.realpath(__file__))
+WORKING_DIR = THIS_FILE_PATH.parent.absolute()
+SAKILA_SQL_PATH = WORKING_DIR.joinpath("sql", "sakila.sql")
+WORLD_SQL_PATH = WORKING_DIR.joinpath("sql", "world_x_cst.sql")
+USERS_PATH = WORKING_DIR.joinpath("sql", "users.sql")
+PROCEDURES_PATH = WORKING_DIR.joinpath("sql", "procedures.sql")
+REPO_ROOT = THIS_FILE_PATH.parent.parent.parent.parent.parent.parent.absolute()
 
 TOKEN = "1234test"
 TEXT_ONLY_OUTPUT = True
@@ -103,6 +104,7 @@ def get_executables(name: str) -> str:
         ] = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
     executables["VSCode"] = "code.exe" if system == "Windows" else "code"
+    executables["MySQL Router"] = "mysqlrouter.exe" if system == "Windows" else "mysqlrouter"
 
     return executables[name]
 
@@ -158,13 +160,25 @@ class Logger:
         if VERBOSE:
             print(f"{'[INF]' if TEXT_ONLY_OUTPUT else 'ℹ️'} {msg}")
 
+    @classmethod
+    def debug(cls, msg: str) -> None:
+        """Prints debug message"""
+
+        if VERBOSE:
+            print(f"{'[DBG]' if TEXT_ONLY_OUTPUT else '🐞'} {msg}")
+
 
 class CheckVersionTask:
     """Checks version of the given executables"""
 
     def __init__(self, name: str):
-        self.executable = pathlib.Path(get_executables(name))
-        self.name = name
+        if pathlib.Path(name).name == name:
+            self.executable = pathlib.Path(get_executables(name))
+            self.name = name
+        else:
+            self.executable = pathlib.Path(name)
+            self.name = self.executable.name
+
         self.version = ""
         self.message_success = f"Found {self.name: <20} [{self.version}]"
         self.message_fail = (
@@ -210,7 +224,12 @@ class CheckVersionTask:
         return True
 
 
-class ShellTask(abc.ABC):
+class BaseTask(abc.ABC):
+    def clean_up(self) -> None:
+        """Clean up after task finish"""
+
+
+class ShellTask(BaseTask):
     """Base class to execute shell commands"""
 
     def __init__(self, environment: typing.Dict[str, str]) -> None:
@@ -264,6 +283,7 @@ class ShellTask(abc.ABC):
         try:
             args = [self.mysqlsh_executable, mode]
             if conn_str:
+                args.append("--quiet-start=2")
                 args.append(conn_str)
             args.append("-f" if file else "-e")
             args.append(command_or_file_path if file else quote(
@@ -291,9 +311,6 @@ class ShellTask(abc.ABC):
                 Logger.warning(exc)
         return out
 
-    def clean_up(self) -> None:
-        """Clean up after task finish"""
-
 
 class AddUserToBE(ShellTask):
     def __init__(self, environment: typing.Dict[str, str], dir_name: str, servers: typing.List) -> None:
@@ -303,10 +320,9 @@ class AddUserToBE(ShellTask):
         self.servers = servers
 
     def run(self) -> None:
-        environment = self.environment.copy()
         for server in self.servers:
             if server.multi_user:
-                environment["MYSQLSH_USER_CONFIG_HOME"] = os.path.join(
+                self.environment["MYSQLSH_USER_CONFIG_HOME"] = os.path.join(
                     WORKING_DIR, f'port_{server.port}')
                 subprocess.Popen([
                     self.mysqlsh_executable,
@@ -314,50 +330,58 @@ class AddUserToBE(ShellTask):
                     "-e",
                     "gui.users.create_user('client', 'client', 'Administrator')",
                 ],
-                    env=environment
+                    env=self.environment
                 )
         Logger.success("BE user has been added")
 
 
-class SetPluginsTask(ShellTask):
-    """Setup MySQL Shell home directory in temp directory"""
+class SetPluginsTask(BaseTask):
+    """Setup MySQL Shell home directory in a specific directory"""
 
-    def __init__(self, environment: typing.Dict[str, str], dir_name: str, servers: typing.List) -> None:
-        super().__init__(environment)
-        self.dir_name = dir_name
+    def __init__(self, plugins_path: pathlib.Path, servers: typing.List = None) -> None:
+        self.plugins_path = plugins_path
         self.servers = servers
-        this_file = os.path.dirname(__file__)
-        repo_root = os.path.join(this_file, "..", "..", "..", "..", "..")
-        repo_root = os.path.realpath(repo_root)
-        self.gui_plugin_path = os.path.join(
-            repo_root, "gui", "backend", "gui_plugin")
-        self.mds_plugin_path = os.path.join(repo_root, "mds_plugin")
-        self.mrs_plugin_path = os.path.join(repo_root, "mrs_plugin")
 
     def run(self) -> None:
         """Runs the task"""
 
-        self.set_plugins_path()
-        Logger.success("BE plugins have been set")
+        self.install_plugins()
 
-        self.set_custom_config_folders()
-        Logger.success("Plugins config folders have been set")
+        Logger.success(f"Plugins have been linked at: {self.plugins_path}")
 
-    def set_plugins_path(self) -> None:
+        if self.servers is not None:
+            self.set_custom_config_folders()
+            Logger.success("Sets custom config folders for servers successfully")
+
+    def get_repo_plugin_path(self, plugin_name):
+        """Gets the path to given plugin name"""
+
+        if plugin_name == 'gui_plugin':
+            return REPO_ROOT.joinpath("gui", "backend", plugin_name)
+        else:
+            return REPO_ROOT.joinpath(plugin_name)
+
+    def link_plugin(self, name):
+        "Creates a symlink of the specified plugin"
+
+        link_target = self.plugins_path.joinpath(name)
+
+        if not link_target.exists():
+            create_symlink(self.get_repo_plugin_path(name), link_target)
+
+    def install_plugins(self) -> None:
         """Sets paths for plugins in MySQL Shell home dir"""
 
-        plugins_path = os.path.join(self.dir_name, "mysqlsh", "plugins")
-        os.makedirs(plugins_path, exist_ok=True)
-        create_symlink(self.gui_plugin_path, os.path.join(
-            plugins_path, "gui_plugin"))
-        create_symlink(self.mds_plugin_path, os.path.join(
-            plugins_path, "mds_plugin"))
-        create_symlink(self.mrs_plugin_path, os.path.join(
-            plugins_path, "mrs_plugin"))
+        os.makedirs(self.plugins_path, exist_ok=True)
+
+        self.link_plugin('gui_plugin')
+        self.link_plugin('mds_plugin')
+        self.link_plugin('mrs_plugin')
 
     def set_custom_config_folders(self) -> None:
-        plugins_path = os.path.join(self.dir_name, "mysqlsh", "plugins")
-        os.makedirs(plugins_path, exist_ok=True)
+        """Sets custom config folders for all servers"""
+
+        os.makedirs(self.plugins_path, exist_ok=True)
 
         for server in self.servers:
             path = os.path.join(WORKING_DIR, f'port_{server.port}')
@@ -365,152 +389,57 @@ class SetPluginsTask(ShellTask):
                 shutil.rmtree(path)
 
             os.makedirs(os.path.join(path,  "plugins"))
-            create_symlink(self.gui_plugin_path, os.path.join(
+            create_symlink(self.get_repo_plugin_path('gui_plugin'), os.path.join(
                 path, "plugins", "gui_plugin"))
-            create_symlink(self.mds_plugin_path, os.path.join(
+            create_symlink(self.get_repo_plugin_path('mds_plugin'), os.path.join(
                 path, "plugins", "mds_plugin"))
-            create_symlink(self.mrs_plugin_path, os.path.join(
+            create_symlink(self.get_repo_plugin_path('mrs_plugin'), os.path.join(
                 path, "plugins", "mrs_plugin"))
 
 
-class SetBeDbTask(ShellTask):
-    """Setup MySQL Shell home directory in temp directory"""
-
-    def __init__(self, environment: typing.Dict[str, str], dir_name: str, suffix: str = "", skip_create_plugins: bool = False) -> None:
-        super().__init__(environment)
-        self.dir_name = dir_name
-        self.suffix = suffix
-        self.mysqlsh_dir = "mysqlsh" if suffix == "" else f"mysqlsh-{suffix}"
-        self.skip_create_plugins = skip_create_plugins
-        self.environment["MYSQLSH_USER_CONFIG_HOME"] = os.path.join(
-            dir_name, self.mysqlsh_dir)
-        self.plugins_path = None
-
-    def run(self) -> None:
-        """Runs the task"""
-
-        self.create_backend_database()
-        Logger.success("BE db have been created")
-
-        self.set_plugins_path()
-        if not self.skip_create_plugins:
-            Logger.success("BE plugins have been set")
-
-        self.delete_credentials()
-        Logger.success("Old credentials were deleted")
-
-        self.shell_command_execute(
-            command="gui.users.create_user('client', 'client', 'Administrator')"
-        )
-        Logger.success("BE user have been added")
-
-        if self.skip_create_plugins:
-            os.remove(pathlib.Path(self.plugins_path, "gui_plugin"))
-
-    def set_plugins_path(self) -> None:
-        """Sets paths for plugins in MySQL Shell home dir"""
-
-        self.plugins_path = os.path.join(self.dir_name, self.mysqlsh_dir, "plugins")
-        os.makedirs(self.plugins_path, exist_ok=True)
-
-        gui_plugin_path = os.path.join(
-            WORKING_DIR,
-            "..",
-            "..",
-            "..",
-            "..",
-            "backend",
-            "gui_plugin",
-        )
-        mds_plugin_path = os.path.join(
-            WORKING_DIR, "..", "..", "..", "..", "..", "mds_plugin"
-        )
-        mrs_plugin_path = os.path.join(
-            WORKING_DIR, "..", "..", "..", "..", "..", "mrs_plugin"
-        )
-
-        create_symlink(gui_plugin_path, os.path.join(
-            self.plugins_path, "gui_plugin"))
-        if not self.skip_create_plugins:
-            create_symlink(mds_plugin_path, os.path.join(
-                self.plugins_path, "mds_plugin"))
-            create_symlink(mrs_plugin_path, os.path.join(
-                self.plugins_path, "mrs_plugin"))
-
-    def create_backend_database(self):
-        """Creates backend database"""
-
-        sqlite_be_db_path = os.path.join(
-            self.dir_name, self.mysqlsh_dir, "plugin_data", "gui_plugin"
-        )
-
-        current_dir = os.getcwd()
-        current_create_script = os.path.join(
-            WORKING_DIR,
-            "..",
-            "..",
-            "..",
-            "..",
-            "backend",
-            "gui_plugin",
-            "core",
-            "db_schema",
-            "mysqlsh_gui_backend.sqlite.sql",
-        )
-
-        os.makedirs(sqlite_be_db_path, exist_ok=True)
-        os.chdir(sqlite_be_db_path)
-        conn = sqlite3.connect(
-            os.path.join(sqlite_be_db_path, "mysqlsh_gui_backend.sqlite3")
-        )
-        cur = conn.cursor()
-        with open(current_create_script, "r", encoding="UTF-8") as sql_file:
-            sql_create = sql_file.read()
-
-        try:
-            cur.executescript(sql_create)
-        except sqlite3.Error as exc:
-            raise TaskFailException("Can't init BE db") from exc
-        conn.close()
-        os.chdir(current_dir)
-
-    def delete_credentials(self):
-        """Deletes old credentials from lasts tests"""
-
-        credentials_to_delete = [
-            f"root@localhost:{self.environment['DBPORT']}",
-            f"dbuser1@localhost:{self.environment['DBPORT']}",
-            f"clientqa@localhost:{self.environment['DBPORT']}",
-        ]
-
-        for credential in credentials_to_delete:
-            self.shell_command_execute(
-                command=f"shell.delete_credential('{credential}')",
-                raise_exception=False,
-            )
-
-
 class SetMySQLServerTask(ShellTask):
-    """Deploys MySQL Server and install required schemas and users"""
+    """
+    Deploys MySQL Server and install required schemas and users
 
-    def __init__(self, environment: typing.Dict[str, str], dir_name: str) -> None:
+    Unless MYSQL_URI env var is defined with a URI to a running server in which case
+    that server would be used instead of deploying a sandbox.
+
+    i.e. MYSQL_URI=root:@localhost:3306
+    """
+
+    def __init__(self, environment: typing.Dict[str, str], dir_name: str, set_ssl_root_folder: bool = False) -> None:
         super().__init__(environment)
         self.dir_name = dir_name
+        self.sandbox_deployed = False
+        self.set_ssl_root_folder = set_ssl_root_folder
 
     def run(self) -> None:
         """Runs the task"""
 
-        # We will use the certs deployed with the server
-        self.environment["SSL_ROOT_FOLDER"] = f"{self.dir_name}/{self.environment['DBPORT']}/sandboxdata"
+        if self.set_ssl_root_folder:
+            self.environment["SSL_ROOT_FOLDER"] = f"{self.dir_name}/{self.environment['DBPORT']}/sandboxdata"
+        existing_uri = ''
+        if 'MYSQL_URI' in self.environment:
+            existing_uri = self.environment['MYSQL_URI']
+            ssl_root_folder = pathlib.Path(self.find_ssl_root_folder(existing_uri))
+            if not ssl_root_folder.joinpath("ca.pem").exists():
+                raise RuntimeError(
+                    f"Unable to find SSL certificates for {existing_uri} in {ssl_root_folder}")
+            self.environment['SSL_ROOT_FOLDER'] = ssl_root_folder
 
         conn_string = (
             f"{self.environment['DBUSERNAME']}:{self.environment['DBPASSWORD']}@localhost:{self.environment['DBPORT']}"
         )
-        Logger.info("Start deploying MySQL Server")
-        self.deploy_mysql_instance()
-        Logger.success(
-            "MySQL instance was successfully deployed and running"
-        )
+
+        if existing_uri == conn_string:
+            Logger.info("Using existing MySQL Server")
+        else:
+            Logger.info("Start deploying MySQL Server")
+            self.deploy_mysql_instance()
+            Logger.success(
+                "MySQL instance was successfully deployed and running"
+            )
+            self.sandbox_deployed = True
 
         self.install_schema(name="sakila", path=SAKILA_SQL_PATH)
         Logger.success("Sakila db installed")
@@ -566,19 +495,38 @@ class SetMySQLServerTask(ShellTask):
             command=f"dba.deploy_sandbox_instance({self.environment['DBPORT']}, {options})"
         )
 
+        cert_path = pathlib.Path(
+            self.dir_name, f"{self.environment['DBPORT']}", "sandboxdata")
+
+        if not cert_path.joinpath("ca.pem").exists():
+            raise RuntimeError("Unable to find SSL certificates")
+
+        # We will use the certs deployed with the server
+        self.environment['SSL_CA_CERT_PATH'] = cert_path.joinpath("ca.pem")
+        self.environment['SSL_CLIENT_CERT_PATH'] = cert_path.joinpath("client-cert.pem")
+        self.environment['SSL_CLIENT_KEY_PATH'] = cert_path.joinpath("client-key.pem")
+
+    def find_ssl_root_folder(self, conn_string: str) -> str:
+        """Returns the SSL rot folder for custom MySQL Server"""
+
+        return self.shell_command_execute(
+            command="select @@datadir", mode="--sql", conn_str=conn_string
+        ).rsplit("\n", maxsplit=1)[-1]
+
     def clean_up(self) -> None:
         """Clean up after task finish"""
 
-        options = f'{{"sandboxDir": "{self.dir_name}"}}'
-        self.shell_command_execute(
-            command=f"dba.kill_sandbox_instance({self.environment['DBPORT']}, {options})"
-        )
-        Logger.success("Successfully stopped MySQL instance")
+        if self.sandbox_deployed:
+            options = f'{{"sandboxDir": "{self.dir_name}"}}'
+            self.shell_command_execute(
+                command=f"dba.kill_sandbox_instance({self.environment['DBPORT']}, {options})"
+            )
+            Logger.success("Successfully stopped MySQL instance")
 
-        self.shell_command_execute(
-            command=f"dba.delete_sandbox_instance({self.environment['DBPORT']}, {options})"
-        )
-        Logger.success("Successfully deleted MySQL instance")
+            self.shell_command_execute(
+                command=f"dba.delete_sandbox_instance({self.environment['DBPORT']}, {options})"
+            )
+            Logger.success("Successfully deleted MySQL instance")
 
 
 class StartBeServersTask:
@@ -674,7 +622,7 @@ class BEServer:
         self.environment = environment
 
     def search_str(self, file_path, word):
-         with open(file_path, 'r', encoding="UTF-8") as file:
+        with open(file_path, 'r', encoding="UTF-8") as file:
             content = file.read()
             return word in content
 

@@ -14,4 +14,9 @@
     "files.watcherExclude": {
         ".vscode-test": true
     },
+    "npm.exclude": [
+        "**/test-resources/**",
+        "**/shell/**",
+        "**/e2e/vscode**"
+    ]
 }

@@ -134,8 +134,7 @@ describe("OPEN EDITORS", () => {
         await Misc.sectionFocus(constants.dbTreeSection);
         const treeLocalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
         await (await Misc.getActionButton(treeLocalConn, constants.openNewConnection)).click();
-        await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait5seconds,
-            "Connection was not opened");
+        await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait5seconds);
         await Misc.switchBackToTopFrame();
         const treeOEGlobalConn = await Misc.getTreeElement(constants.openEditorsTreeSection,
             globalConn.caption);

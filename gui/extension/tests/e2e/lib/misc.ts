@@ -28,10 +28,10 @@ import addContext from "mochawesome/addContext";
 import { hostname, platform } from "os";
 import { join } from "path";
 import {
-    BottomBarPanel, Condition, CustomTreeSection, EditorView, error, InputBox, ITimeouts,
+    Condition, CustomTreeSection, EditorView, error, InputBox, ITimeouts,
     Key, OutputView, SideBarView, TreeItem, until, VSBrowser,
     WebDriver, ModalDialog, NotificationType,
-    WebElement, Workbench, Button, Notification,
+    WebElement, Workbench, Button, Notification, TerminalView,
 } from "vscode-extension-tester";
 import * as constants from "./constants";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
@@ -387,25 +387,25 @@ export class Misc {
 
     public static getExtentionOutputLogsFolder = async (): Promise<string> => {
         let testResources: string;
-        if (Misc.isMacOs()) {
-            testResources = "test-resources";
-        } else {
-            testResources = `test-resources-${process.env.TEST_SUITE}`;
+        for (let i = 0; i <= process.argv.length - 1; i++) {
+            if (process.argv[i] === "-s") {
+                testResources = process.argv[i + 1];
+                break;
+            }
         }
+
         const today = new Date();
         const month = (`0${(today.getMonth() + 1)}`).slice(-2);
         const day = (`0${today.getDate()}`).slice(-2);
         const todaysDate = `${today.getFullYear()}${month}${day}`;
 
         let pathToLog = join(
-            constants.basePath,
             testResources,
             "settings",
             "logs",
         );
         const variableFolder = await fs.readdir(pathToLog);
         pathToLog = join(
-            constants.basePath,
             testResources,
             "settings",
             "logs",
@@ -422,7 +422,6 @@ export class Misc {
             }
         }
         pathToLog = join(
-            constants.basePath,
             testResources,
             "settings",
             "logs",
@@ -504,7 +503,7 @@ export class Misc {
             const inputWidget = await driver.wait(until.elementLocated(locator.inputBox.exists), 500)
                 .catch(() => { return undefined; });
             if (inputWidget && (await (inputWidget as WebElement).isDisplayed())) {
-                await Misc.setInputPassword(conn, password);
+                await Misc.setInputPassword(password);
 
                 return driver.wait(async () => {
                     return conn.hasChildren();
@@ -537,17 +536,20 @@ export class Misc {
                     }
                 }, constants.wait5seconds, "Could not find a visible iframe div");
 
-                const expectedFrames = 2;
-
-                const firstIframe = await visibleDiv.findElement(locator.iframe.exists);
-                await driver.wait(until.ableToSwitchToFrame(firstIframe),
+                const parentIframe = await visibleDiv.findElement(locator.iframe.exists);
+                await driver.wait(until.ableToSwitchToFrame(parentIframe),
                     constants.wait5seconds, "Could not enter the first iframe");
+                const activeFrame = await driver.wait(until.elementLocated(locator.iframe.isActive),
+                    constants.wait5seconds, "Web View content was not loaded");
+                await driver.wait(until.ableToSwitchToFrame(activeFrame),
+                    constants.wait5seconds, "Could not enter the active iframe");
 
-                for (let i = 0; i <= expectedFrames - 1; i++) {
-                    const frame = await driver.findElements(locator.iframe.exists);
-                    if (frame.length > 0) {
-                        await driver.wait(until.ableToSwitchToFrame(frame[0]),
-                            constants.wait5seconds, "Could not enter the second iframe");
+                let iframe: WebElement[];
+                while (true) {
+                    iframe = await driver.findElements(locator.iframe.exists);
+                    if (iframe.length > 0) {
+                        await driver.wait(until.ableToSwitchToFrame(iframe[0]),
+                            constants.wait150MiliSeconds);
                         const deepestFrame = await driver.findElements(locator.iframe.exists);
                         if (deepestFrame.length > 0) {
                             await driver.executeScript("arguments[0].style.width='100%';", deepestFrame[0]);
@@ -555,9 +557,7 @@ export class Misc {
                             await driver.executeScript("arguments[0].style.transform='scale(1)';", deepestFrame[0]);
                         }
                     }
-                    else {
-                        break;
-                    }
+                    break;
                 }
 
                 return true;
@@ -696,8 +696,7 @@ export class Misc {
             await keyboard.type(cmd);
             await keyboard.type(nutKey.Enter);
         } else {
-            const bootomBar = new BottomBarPanel();
-            const terminal = await bootomBar.openTerminalView();
+            const terminal = new TerminalView();
             await terminal.executeCommand(cmd, timeout);
         }
 
@@ -715,17 +714,6 @@ export class Misc {
         }, timeout, `Could not find text '${textToSearch[0]}' on the terminal`);
     };
 
-    public static getRouterPort = async (): Promise<string> => {
-        const routerConfigFilePath = Misc.getRouterConfigFile();
-        const fileContent = (await fs.readFile(routerConfigFilePath)).toString();
-        const lines = fileContent.split("\n");
-        for (let i = 0; i <= lines.length - 1; i++) {
-            if (lines[i] === "[http_server]") {
-                return lines[i + 1].match(/port=(\d+)/)[1];
-            }
-        }
-    };
-
     public static terminalHasErrors = async (): Promise<boolean> => {
         const out = await Misc.getTerminalOutput();
 
@@ -733,14 +721,11 @@ export class Misc {
     };
 
     public static findOutputText = async (textToSearch: string | RegExp | RegExp[]): Promise<boolean> => {
-        let output: OutputView;
-        await new BottomBarPanel().openOutputView();
-        output = new OutputView();
+        const output = new OutputView();
 
         let clipBoardText = "";
         await driver.wait(async () => {
             try {
-                output = new OutputView();
                 clipBoardText = await output.getText();
 
                 return true;
@@ -776,10 +761,15 @@ export class Misc {
         }, timeout, `'${textToSearch.toString()}' was not found on Output view`);
     };
 
-    public static setInputPassword = async (connection: TreeItem, password: string): Promise<void> => {
+    public static setInputPassword = async (password: string): Promise<void> => {
         let inputBox: InputBox;
 
-        inputBox = await InputBox.create();
+        try {
+            inputBox = await InputBox.create(constants.wait1second);
+        } catch (e) {
+            return;
+        }
+
         if (await inputBox.isPassword()) {
             await inputBox.setText(password);
             await inputBox.confirm();
@@ -981,6 +971,7 @@ export class Misc {
         const treeOCISection = await Misc.getSection(constants.ociTreeSection);
         const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
         const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
+        await driver.actions().move({ origin: treeTasksSection }).perform();
 
         if ((await treeDBSection.getTitle()) === section) {
             await driver.wait(new Condition("", async () => {
@@ -1013,6 +1004,8 @@ export class Misc {
                         !(await treeOpenEditorsSection.isExpanded()) &&
                         !(await treeTasksSection.isExpanded());
                 } catch (e) {
+                    console.log("error");
+                    console.log(e);
                     if (!(e instanceof error.TimeoutError || e instanceof error.ElementClickInterceptedError)) {
                         throw e;
                     }
@@ -1153,30 +1146,46 @@ export class Misc {
 
     public static existsTreeElement = async (section: string, itemName: string | RegExp): Promise<boolean> => {
         let reloadLabel: string;
-        const sectionTree = await Misc.getSection(section);
-        await driver.wait(waitUntil.isNotLoading(section), constants.wait10seconds);
-        if (section === constants.dbTreeSection || section === constants.ociTreeSection) {
-            if (section === constants.dbTreeSection) {
-                reloadLabel = "Reload the connection list";
-            } else if (section === constants.ociTreeSection) {
-                reloadLabel = "Reload the OCI Profile list";
-            }
-            await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
-            await driver.wait(waitUntil.isNotLoading(section), constants.wait20seconds);
-        }
+        let exists: boolean;
+        await driver.wait(async () => {
+            try {
+                const sectionTree = await Misc.getSection(section);
+                await driver.wait(waitUntil.isNotLoading(section), constants.wait10seconds);
+                if (section === constants.dbTreeSection || section === constants.ociTreeSection) {
+                    if (section === constants.dbTreeSection) {
+                        reloadLabel = "Reload the connection list";
+                    } else if (section === constants.ociTreeSection) {
+                        reloadLabel = "Reload the OCI Profile list";
+                    }
+                    await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
+                    await driver.wait(waitUntil.isNotLoading(section), constants.wait20seconds);
+                }
 
-        if (itemName instanceof RegExp) {
-            const treeItems = await sectionTree.getVisibleItems();
-            for (const item of treeItems) {
-                if ((await item.getLabel()).match(itemName) !== null) {
+                if (itemName instanceof RegExp) {
+                    const treeItems = await sectionTree.getVisibleItems();
+                    for (const item of treeItems) {
+                        if ((await item.getLabel()).match(itemName) !== null) {
+                            exists = true;
+
+                            return true;
+                        }
+                    }
+                    exists = false;
+
+                    return true;
+                } else {
+                    exists = (await sectionTree.findItem(itemName, 5)) !== undefined;
+
                     return true;
                 }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
             }
+        }, constants.wait5seconds, `Could not determine if ${itemName} exists`);
 
-            return false;
-        } else {
-            return (await sectionTree.findItem(itemName, 5)) !== undefined;
-        }
+        return exists;
     };
 
     public static getDBConnections = async (): Promise<interfaces.ITreeDBConnection[]> => {
@@ -1281,8 +1290,6 @@ export class Misc {
 
     public static getTerminalOutput = async (): Promise<string> => {
         let out: string;
-        const bootomBar = new BottomBarPanel();
-        await bootomBar.openTerminalView();
         await driver.wait(until.elementLocated(locator.terminal.textArea),
             constants.wait5seconds, "Terminal was not opened");
         await driver.wait(async () => {
@@ -1359,6 +1366,7 @@ export class Misc {
     };
 
     public static requiresMRSMetadataUpgrade = async (dbConnection: interfaces.IDBConnection): Promise<boolean> => {
+        await Misc.dismissNotifications();
         const dbTreeConnection = await Misc.getTreeElement(constants.dbTreeSection, dbConnection.caption);
         await Misc.cleanCredentials();
         await Misc.expandDBConnectionTree(dbTreeConnection,

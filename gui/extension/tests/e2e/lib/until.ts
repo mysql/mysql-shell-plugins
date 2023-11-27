@@ -59,13 +59,23 @@ export const tabIsOpened = (tabName: string): Condition<boolean> => {
 
 export const isFELoaded = (): Condition<boolean> => {
     return new Condition("for Frontend to be loaded", async () => {
-        return (await driver.findElements(locator.dbConnectionOverview.newDBConnection)).length > 0;
+        return (await driver.findElements(locator.notebook.toolbar.editorSelector.exists)).length > 0;
     });
 };
 
 const dbConnectionIsSuccessful = (): Condition<boolean> => {
     return new Condition("for DB Connection is successful", async () => {
-        return (await driver.findElements(locator.notebook.codeEditor.textArea)).length > 0;
+        const editorSelectorExists = (await driver.findElements(locator.notebook.toolbar.editorSelector.exists))
+            .length > 0;
+        const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
+
+        return editorSelectorExists || existsNotebook;
+    });
+};
+
+const shellSessionIsSuccessful = (): Condition<boolean> => {
+    return new Condition("for DB Connection is successful", async () => {
+        return (await driver.findElements(locator.shellSession.exists)).length > 0;
     });
 };
 
@@ -79,8 +89,7 @@ export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Cond
         const existsGenericDialog = (await driver.findElements(locator.genericDialog.exists)).length > 0;
         if (existsPasswordDialog) {
             await Database.setDBConnectionCredentials(connection);
-            await driver.wait(dbConnectionIsSuccessful(),
-                constants.wait15seconds, "DB connection was not successful");
+            await driver.wait(dbConnectionIsSuccessful(), constants.wait15seconds);
         }
 
         return existsNotebook || existsGenericDialog;
@@ -122,8 +131,8 @@ export const shellSessionIsOpened = (connection: interfaces.IDBConnection): Cond
 
         if (existsPasswordDialog) {
             await Database.setDBConnectionCredentials(connection);
-            await driver.wait(dbConnectionIsSuccessful(),
-                constants.wait15seconds, "DB connection was not successful");
+            await driver.wait(shellSessionIsSuccessful(),
+                constants.wait15seconds, "Shell session was not successful");
         }
 
         return (await driver.findElements(locator.shellConsole.editor)).length > 0;
