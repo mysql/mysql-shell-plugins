@@ -5,6 +5,7 @@
 ### Fixes
 
 - BUG#36027690 Connection error when opening REST Object Request Path in Web Browser
+- BUG#36032142 Unexpected error when deleting records with filter containing nullables
 
 ## Changes in 1.14.2+8.1.1
 
