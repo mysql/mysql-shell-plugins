@@ -1478,6 +1478,46 @@ export class Misc {
         }
     };
 
+    public static keyboardSelectAll = async (el: WebElement): Promise<void> => {
+        if (Misc.isMacOs()) {
+            await driver.executeScript("arguments[0].click()", el);
+            await el.sendKeys(Key.chord(Key.COMMAND, "a"));
+        } else {
+            await driver.executeScript("arguments[0].click()", el);
+            await el.sendKeys(Key.chord(Key.CONTROL, "a"));
+        }
+    };
+
+    public static keyboardCopy = async (el?: WebElement): Promise<void> => {
+        if (Misc.isMacOs()) {
+            await driver.executeScript("arguments[0].click()", el);
+            await el.sendKeys(Key.chord(Key.COMMAND, "c"));
+        } else {
+            await driver.executeScript("arguments[0].click()", el);
+            await el.sendKeys(Key.chord(Key.CONTROL, "c"));
+        }
+    };
+
+    public static keyboardPaste = async (el?: WebElement): Promise<void> => {
+        if (Misc.isMacOs()) {
+            await driver.executeScript("arguments[0].click()", el);
+            await el.sendKeys(Key.chord(Key.COMMAND, "v"));
+        } else {
+            await driver.executeScript("arguments[0].click()", el);
+            await el.sendKeys(Key.chord(Key.CONTROL, "v"));
+        }
+    };
+
+    public static keyboardCut = async (el?: WebElement): Promise<void> => {
+        if (Misc.isMacOs()) {
+            await driver.executeScript("arguments[0].click()", el);
+            await el.sendKeys(Key.chord(Key.COMMAND, "x"));
+        } else {
+            await driver.executeScript("arguments[0].click()", el);
+            await el.sendKeys(Key.chord(Key.CONTROL, "x"));
+        }
+    };
+
     private static existsNewTab = async (prevTabs: number): Promise<boolean> => {
         return driver.wait(async () => {
             const currentOpenedTabs = await new EditorView().getOpenEditorTitles();

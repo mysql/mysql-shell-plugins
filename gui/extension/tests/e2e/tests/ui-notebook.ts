@@ -26,6 +26,8 @@ import {
     ActivityBar, Condition, CustomTreeSection, EditorView, InputBox, Key, TreeItem,
     until, WebElement, ModalDialog, error,
 } from "vscode-extension-tester";
+import { join } from "path";
+import clipboard from "clipboardy";
 import { browser, driver, Misc } from "../lib/misc";
 import { Database } from "../lib/db";
 import * as constants from "../lib/constants";
@@ -453,13 +455,78 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Schema autocomplete context menu", async () => {
+        it("Autocomplete context menu", async () => {
+
             await commandExecutor.languageSwitch("\\sql ", true);
-            await commandExecutor.write("select * from");
-            await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.SPACE);
+            await commandExecutor.write("select sak", true);
             await commandExecutor.openSuggestionMenu();
-            const els = await Database.getAutoCompleteMenuItems();
-            expect(els.toString()).to.match(/(mysql|performace_schema|sakila|sys|world_x_cst|actor|address)/);
+            let els = await Database.getAutoCompleteMenuItems();
+            expect(els.toString()).to.match(/sakila/);
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+            await textArea.sendKeys(Key.ESCAPE);
+            await commandExecutor.write("ila.", true);
+            await commandExecutor.openSuggestionMenu();
+            els = await Database.getAutoCompleteMenuItems();
+            expect(els.toString()).to.match(/(actor|address|category)/);
+            await textArea.sendKeys(Key.ESCAPE);
+            await commandExecutor.write("actor.", true);
+            await commandExecutor.openSuggestionMenu();
+            els = await Database.getAutoCompleteMenuItems();
+            expect(els.toString()).to.match(/(actor_id|first_name|last_name)/);
+            await textArea.sendKeys(Key.ESCAPE);
+        });
+
+        it("Copy paste into notebook", async () => {
+            await commandExecutor.clean();
+            await Misc.switchBackToTopFrame();
+            await browser.openResources(join(constants.workspace, "gui", "frontend",
+                "src", "tests", "e2e", "sql", "sakila.sql"));
+            await driver.wait(waitUntil.tabIsOpened("sakila.sql"));
+            let textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+            await Misc.keyboardSelectAll(textArea);
+            await Misc.keyboardCopy(textArea);
+            await new EditorView().openEditor(globalConn.caption);
+            await Misc.switchToFrame();
+            textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+            await driver.executeScript("arguments[0].click()", textArea);
+            let clipboardText = await clipboard.read();
+            clipboardText = clipboardText.replace(/`|;/gm, "");
+            await clipboard.write(clipboardText);
+            await Misc.keyboardPaste(textArea);
+
+            const sakilaFile = await fs.readFile(join(constants.workspace, "gui", "frontend",
+                "src", "tests", "e2e", "sql", "sakila.sql"));
+            const fileLines = sakilaFile.toString().split("\n");
+            const findBtn = await Database.getToolbarButton("Find");
+            await findBtn.click();
+            const finder = await driver.wait(until.elementLocated(locator.findWidget.exists),
+                constants.wait5seconds, "Find widget was not displayed");
+            const finderTextArea = await finder.findElement(locator.notebook.codeEditor.textArea);
+            for (const line of fileLines) {
+                await finderTextArea.sendKeys(line.substring(0, 150).replace(/`|;/gm, ""));
+                expect(
+                    await finder.findElement(locator.findWidget.matchesCount).getText(),
+                ).to.match(/1 of (\d+)/);
+                await Database.clearInputField(finderTextArea);
+            }
+        });
+
+        it("Cut paste into notebook", async () => {
+            const sentence1 = "select * from sakila.actor";
+            const sentence2 = "select * from sakila.address";
+            await Database.closeFinder();
+            await commandExecutor.clean();
+            await commandExecutor.write(sentence1);
+            await Database.setNewLineOnEditor();
+            await commandExecutor.write(sentence2);
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+            await Misc.keyboardSelectAll(textArea);
+            await Misc.keyboardCut(textArea);
+            expect(await Database.existsOnNotebook(sentence1)).to.be.false;
+            expect(await Database.existsOnNotebook(sentence2)).to.be.false;
+            await Misc.keyboardPaste(textArea);
+            expect(await Database.existsOnNotebook(sentence1)).to.be.true;
+            expect(await Database.existsOnNotebook(sentence2)).to.be.true;
         });
 
     });
