@@ -136,6 +136,7 @@ class SetEnvironmentVariablesTask:
     def clean_up(self) -> None:
         """Clean up after task finish"""
 
+
 class NPMScript:
     """Runs e2e tests"""
 
@@ -251,10 +252,13 @@ def main() -> None:
             task_utils.BEServer(executor.environment, 8005, True),
         ]
 
-        executor.add_task(SetEnvironmentVariablesTask(executor.environment, tmp_dirname, be_servers))
+        executor.add_task(SetEnvironmentVariablesTask(
+            executor.environment, tmp_dirname, be_servers))
         executor.add_task(SetFrontendTask(executor.environment))
-        executor.add_task(task_utils.SetPluginsTask(executor.environment, tmp_dirname, be_servers))
-        executor.add_task(task_utils.SetMySQLServerTask(executor.environment, tmp_dirname))
+        executor.add_task(task_utils.SetPluginsTask(
+            pathlib.Path(tmp_dirname, "mysqlsh", "plugins"), be_servers))
+        executor.add_task(task_utils.SetMySQLServerTask(
+            executor.environment, tmp_dirname, True))
         executor.add_task(task_utils.StartBeServersTask(be_servers))
         executor.add_task(task_utils.AddUserToBE(executor.environment, tmp_dirname, be_servers))
         executor.add_task(NPMScript(executor.environment, "e2e-tests-run", [f"--maxWorkers={MAX_WORKERS}"]))

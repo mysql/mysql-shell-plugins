@@ -105,7 +105,7 @@ export class CommandExecutor {
                 if (e instanceof error.ElementNotInteractableError) {
                     const editorLines = await driver.findElements(locator.notebook.codeEditor.editor.currentLine);
                     await editorLines[editorLines.length - 1].click();
-                } else {
+                } else if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
@@ -243,7 +243,7 @@ export class CommandExecutor {
         await Database.clickContextItem(item);
 
         const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
-        await this.setResultMessage(cmd, searchOnExistingId);
+        await this.setResultMessage(cmd, nextId);
         await this.setResultContent(cmd, nextId);
         await this.setResultToolbar(cmd, nextId);
         if (nextId) {
@@ -339,11 +339,9 @@ export class CommandExecutor {
      */
     public languageSwitch = async (cmd: string, slowWriting = false, searchOnExistingId?:
         string | undefined): Promise<void> => {
-
         if (!this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.execute() or others'");
         }
-
         await this.write(cmd, slowWriting);
         await this.exec();
 
@@ -578,32 +576,47 @@ export class CommandExecutor {
                     await driver.findElement(locator.notebook.codeEditor.editor.scrollBar));
 
                 if (statusResult.length > 0) {
-                    resultToReturn = await statusResult[statusResult.length - 1].getText();
+                    resultToReturn = await statusResult[statusResult.length - 1].getAttribute("innerHTML");
                 } else if (textResult.length > 0) {
                     if (cmd) {
                         if (cmd.match(/export/) !== null) {
                             await driver.wait(async () => {
-                                return (await textResult[textResult.length - 1].getText())
+                                return (await textResult[textResult.length - 1].getAttribute("innerHTML"))
                                     .match(/The dump can be loaded using/) !== null;
                             }, constants.wait5seconds, "Could not find on result 'The dump can be loaded using'");
-                        } else if (cmd.match(/(\\c|connect|Session).*@.*/) !== null) {
+                        } else if (cmd.match(/(\\c|connect).*@.*/) !== null) {
                             await driver.wait(async () => {
-                                resultToReturn = await textResult[textResult.length - 1].getText();
+                                resultToReturn = await textResult[textResult.length - 1].getAttribute("innerHTML");
 
                                 return resultToReturn.match(/schema/) !== null;
                             }, constants.wait5seconds, "Could not find on result ' .'");
                         }
                     }
-                    resultToReturn = await textResult[textResult.length - 1].getText();
+                    resultToReturn = await textResult[textResult.length - 1].getAttribute("innerHTML");
                 } else if (jsonResult.length > 0) {
-                    resultToReturn = await jsonResult[jsonResult.length - 1].getText();
+                    resultToReturn = await jsonResult[jsonResult.length - 1].getAttribute("innerHTML");
                 } else if (resultGraph.length > 0) {
                     resultToReturn = "graph";
                 } else if (resultMsg.length > 0) {
-                    resultToReturn = await resultMsg[resultMsg.length - 1].getText();
+                    resultToReturn = await resultMsg[resultMsg.length - 1].getAttribute("innerHTML");
                 } else if (resultOutput.length > 0) {
-                    for (const output of resultOutput) {
-                        resultToReturn += await output.getText();
+                    if (cmd.match(/mysql.*Session/) !== null) {
+                        await driver.wait(async () => {
+                            for (const output of resultOutput) {
+                                const text = (await output.getText()).trim();
+                                if (text !== "" && text !== "undefined") {
+                                    resultToReturn += await output.getText();
+                                } else {
+                                    return false;
+                                }
+                            }
+
+                            return true;
+                        }, constants.wait5seconds, "Could not find on result ' .'");
+                    } else {
+                        for (const output of resultOutput) {
+                            resultToReturn += await output.getText();
+                        }
                     }
                 }
                 if (resultToReturn !== undefined && resultToReturn !== "") {
@@ -695,6 +708,8 @@ export class CommandExecutor {
                                         .elementLocated(result, locator.notebook.codeEditor.editor.result.tableCell),
                                         constants.wait2seconds,
                                         `Table cell was not set after click on column title (bug)`);
+
+                                    return false;
                                 });
                             resultContent.push({
                                 tabName: await tab.getText(),

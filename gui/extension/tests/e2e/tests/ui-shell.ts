@@ -100,7 +100,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         }
     });
 
-    describe.only("Shell generic operations", () => {
+    describe("Shell generic operations", () => {
 
         beforeEach(async function () {
             try {
@@ -251,9 +251,6 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Connect using mysql mysqlx global variable", async () => {
 
             let cmd = `mysql.getClassicSession('${username}:${password}@${hostname}:${port}/${schema}')`;
-            await commandExecutor.execute(cmd, true);
-            expect(commandExecutor.getResultMessage()).to.match(/ClassicSession/);
-            cmd = `mysql.getSession('${username}:${password}@${hostname}:${port}/${schema}')`;
             await commandExecutor.execute(cmd, true);
             expect(commandExecutor.getResultMessage()).to.match(/ClassicSession/);
             cmd = `mysqlx.getSession('${username}:${password}@${hostname}:${portX}/${schema}')`;

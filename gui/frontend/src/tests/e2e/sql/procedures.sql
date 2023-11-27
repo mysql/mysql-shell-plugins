@@ -1,7 +1,7 @@
 use sakila;
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `clearSchemas`()
+CREATE DEFINER=`root`@`localhost` PROCEDURE IF NOT EXISTS `clearSchemas`()
 BEGIN
     DECLARE done INT DEFAULT FALSE;
     DECLARE dbname VARCHAR(255);
@@ -28,7 +28,7 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `clearTables`()
+CREATE DEFINER=`root`@`localhost` PROCEDURE IF NOT EXISTS `clearTables`()
 BEGIN
     DECLARE done INT DEFAULT FALSE;
     DECLARE tablename VARCHAR(255);
@@ -55,7 +55,7 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `clearViews`()
+CREATE DEFINER=`root`@`localhost` PROCEDURE IF NOT EXISTS `clearViews`()
 BEGIN
     DECLARE done INT DEFAULT FALSE;
     DECLARE viewname VARCHAR(255);

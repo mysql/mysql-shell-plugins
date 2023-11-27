@@ -28,6 +28,7 @@ import {
     BottomBarPanel,
     TextEditor,
     ModalDialog,
+    OutputView,
 } from "vscode-extension-tester";
 import { driver, Misc } from "../lib/misc";
 import { Database } from "../lib/db";
@@ -57,9 +58,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.sectionFocus(constants.ociTreeSection);
             await driver.wait(waitUntil.isNotLoading(constants.ociTreeSection), constants.wait20seconds,
                 `${constants.ociTreeSection} is still loading`);
-
             await fs.writeFile(process.env.MYSQLSH_OCI_CONFIG_FILE, "");
-
             const treeOCISection = await Misc.getSection(constants.ociTreeSection);
             await Misc.clickSectionToolbarButton(treeOCISection,
                 "Configure the OCI Profile list");
@@ -528,18 +527,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.openContextMenuItem(treeBastion, constants.refreshBastion, undefined);
             const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
             await treeTasksSection.expand();
-            const bottomBar = new BottomBarPanel();
-            const outputView = await bottomBar.openOutputView();
             await Misc.waitForOutputText("Task 'Refresh Bastion' completed successfully", constants.wait20seconds);
-            await outputView.clearText();
+            await new OutputView().clearText();
             expect(await Misc.existsTreeElement(constants.tasksTreeSection, "Refresh Bastion (done)")).to.be.true;
         });
 
         it("Delete Bastion", async () => {
-
-            const bottomBar = new BottomBarPanel();
-            const outputView = await bottomBar.openOutputView();
-            await outputView.clearText();
+            await new OutputView().clearText();
             const treeBastion = await Misc.getTreeElementByType(constants.ociTreeSection, constants.bastionType);
             await Misc.openContextMenuItem(treeBastion, constants.deleteBastion, undefined);
             const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
@@ -550,8 +544,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.clickOnNotificationButton(ntf, "NO");
             await Misc.waitForOutputText("Deletion aborted", constants.wait5seconds);
             expect(await Misc.existsTreeElement(constants.tasksTreeSection, "Delete Bastion (error)")).to.be.true;
-            await outputView.clearText();
-            await bottomBar.toggle(false);
+            await new OutputView().clearText();
+            await new BottomBarPanel().toggle(false);
 
         });
 

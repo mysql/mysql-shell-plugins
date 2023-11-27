@@ -59,6 +59,7 @@ export const bastionPassword = "MySQLR0cks!";
 
 // TIMEOUTS
 export const wait150MiliSeconds = 150;
+export const wait1second = 1000;
 export const wait2seconds = 2000;
 export const wait3seconds = 3000;
 export const wait5seconds = 5000;
