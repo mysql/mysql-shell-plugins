@@ -1183,7 +1183,7 @@ export class Database {
         }
         if (restObject.restObjectPath) {
             const inObjPath = await dialog.findElement(locator.mrsDbObjectDialog.requestPath);
-            await inObjPath.clear();
+            await Database.clearInputField(inObjPath);
             await inObjPath.sendKeys(restObject.restObjectPath);
         }
         if (restObject.enabled !== undefined) {
@@ -1632,6 +1632,33 @@ export class Database {
             throw new Error(`Could not find the SQL result ${resultStatus} on the notebook`);
         }
 
+    };
+
+    public static existsOnNotebook = async (word: string): Promise<boolean> => {
+        const commands: string[] = [];
+        await driver.wait(async () => {
+            try {
+                const cmds = await driver.wait(
+                    until.elementsLocated(locator.notebook.codeEditor.editor.sentence),
+                    constants.wait5seconds, "No lines were found");
+                for (const cmd of cmds) {
+                    const spans = await cmd.findElements(locator.htmlTag.span);
+                    let sentence = "";
+                    for (const span of spans) {
+                        sentence += (await span.getText()).replace("&nbsp;", " ");
+                    }
+                    commands.push(sentence);
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, "No SQL commands were found on the notebook");
+
+        return commands.includes(word);
     };
 
     public static setDataToHw = async (

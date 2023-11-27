@@ -33,11 +33,36 @@ try {
     $log = Join-Path $workspace "psExt_$env:TEST_SUITE.log"
 
     function writeMsg($msg, $option){
-
         $msg | Out-File $log -Append
-
         Invoke-Expression "write-host `"$msg`" $option"
-        
+    }
+
+    function extensionWasNotLoaded(){
+        $path = Join-Path $workspace "resultsExt-$env:TEST_SUITE.log"
+        if (Test-Path $path) {
+            return $null -ne (Get-Content -Path $path | Select-String -Pattern "Extension was not loaded successfully" | % { $_.Matches.Groups[0].Value })
+        } else {
+            return $false
+        }
+    }
+
+    function runTests($testResources){
+        writeMsg "Executing GUI tests for $env:TEST_SUITE suite..."
+        $env:NODE_ENV = "test"
+        $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s $testResources", "-e $extPath", "-f", "-o settings.json", "./output/tests/ui-$env:TEST_SUITE.js" -Wait -PassThru -RedirectStandardOutput "$workspace\resultsExt-$env:TEST_SUITE.log" -RedirectStandardError "$workspace\resultsExtErr-$env:TEST_SUITE.log"
+        if (!(Test-Path -Path "$workspace\resultsExt-$env:TEST_SUITE.log")){
+            writeMsg "$workspace\resultsExt-$env:TEST_SUITE.log was not found."
+            return 1
+        } else {
+            $hasFailedTests = $null -ne (Get-Content -Path "$workspace\resultsExt-$env:TEST_SUITE.log" | Select-String -Pattern "(\d+) failing" | % { $_.Matches.Groups[0].Value })
+            if($hasFailedTests -and ([int]$hasFailedTests -gt 0)){
+                writeMsg "RESULT for $($env:TEST_SUITE.toUpper()) suite: FAILED"
+                return 1
+            } else {
+                writeMsg "RESULT for $($env:TEST_SUITE.toUpper()) suite: PASSED"
+                return 0
+            }
+        }
     }
 
     if (Test-Path -Path $log){
@@ -154,22 +179,14 @@ try {
     New-Item -Path $env:MYSQLSH_OCI_RC_FILE -Force -ItemType "file"
 
     # EXECUTE TESTS
-    writeMsg "Executing GUI tests for $env:TEST_SUITE suite..."
-    $env:NODE_ENV = "test"
-    $prc = Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests", "--", "-s $testResources", "-e $extPath", "-f", "-o settings.json", "./output/tests/ui-$env:TEST_SUITE.js" -Wait -PassThru -RedirectStandardOutput "$workspace\resultsExt-$env:TEST_SUITE.log" -RedirectStandardError "$workspace\resultsExtErr-$env:TEST_SUITE.log"
-    if (!(Test-Path -Path "$workspace\resultsExt-$env:TEST_SUITE.log")){
-        writeMsg "$workspace\resultsExt-$env:TEST_SUITE.log was not found."
-        exit 1
-    } else {
-        $hasFailedTests = $null -ne (Get-Content -Path "$workspace\resultsExt-$env:TEST_SUITE.log" | Select-String -Pattern "(\d+) failing" | % { $_.Matches.Groups[0].Value })
-        if($hasFailedTests -and ([int]$hasFailedTests -gt 0) ){
-            writeMsg "DONE for $($env:TEST_SUITE.toUpper()) suite. There are FAILED tests. Check resultsExt-$env:TEST_SUITE.log."
-            exit 1
-        } else {
-            writeMsg "DONE for $($env:TEST_SUITE.toUpper()) suite. All tests PASSED!"
+    $result = runTests $testResources
+    if ($result -ne 0) {
+        if (extensionWasNotLoaded) {
+            write-host "Extension was not loaded. Trying again"
+            $result = runTests $testResources
         }
-    }
-    
+    } 
+    exit $result   
 }
 catch {
     writeMsg $_

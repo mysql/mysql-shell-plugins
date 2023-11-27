@@ -233,7 +233,7 @@ describe("MySQL REST Service", () => {
             expect(await Misc.existsTreeElement(constants.dbTreeSection, new RegExp(hostname()))).to.be.true;
             const router = await Misc.getTreeElement(constants.dbTreeSection, new RegExp(hostname()));
             expect(await Misc.routerHasError(router), "Please update Router").to.be.false;
-            await driver.wait(waitUntil.routerIconIsInactive(), constants.wait10seconds);
+            await driver.wait(waitUntil.routerIconIsInactive(), constants.wait20seconds);
             await Misc.setRouterConfig({
                 sinks: "filelog",
             });
@@ -245,7 +245,7 @@ describe("MySQL REST Service", () => {
             const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
             await treeMySQLRESTService.expand();
             await Misc.openContextMenuItem(treeMySQLRESTService, constants.startRouter, constants.checkTerminal);
-            await driver.wait(waitUntil.routerIconIsActive(), constants.wait10seconds);
+            await driver.wait(waitUntil.routerIconIsActive(), constants.wait20seconds);
         });
 
         it("Stop Local MySQL Router Instance", async () => {
@@ -254,7 +254,7 @@ describe("MySQL REST Service", () => {
             await treeMySQLRESTService.expand();
             await fs.truncate(await Misc.getRouterLogFile());
             await Misc.openContextMenuItem(treeMySQLRESTService, constants.stopRouter, constants.checkTerminal);
-            await driver.wait(waitUntil.routerIconIsInactive(), constants.wait10seconds);
+            await driver.wait(waitUntil.routerIconIsInactive(), constants.wait20seconds);
         });
 
         it("Browse the MySQL REST Service Documentation", async () => {
@@ -1009,7 +1009,7 @@ describe("MySQL REST Service", () => {
                 await fs.truncate(await Misc.getRouterLogFile());
                 treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
                 await Misc.openContextMenuItem(treeMySQLRESTService, constants.startRouter, undefined);
-                await driver.wait(waitUntil.routerIconIsActive(), constants.wait10seconds);
+                await driver.wait(waitUntil.routerIconIsActive(), constants.wait20seconds);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
