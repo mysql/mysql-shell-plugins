@@ -51,7 +51,9 @@ const config: Config = {
         "!src/parsing/mysql/generated/**",
         "!src/parsing/SQLite/generated/**",
         "!src/parsing/python/generated/**",
-        "!src/**/*.d.ts"
+        "!src/**/*.d.ts",
+        // The MRS SDK is already being tested as an external standalone project.
+        "!src/modules/mrs/sdk/**",
     ],
 
     // The directory where Jest should output its coverage files
