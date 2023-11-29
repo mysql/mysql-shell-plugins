@@ -175,7 +175,7 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
 
 }
 
-export interface IMyServiceMrsNotesNote extends IMrsBaseObject {
+export interface IMyServiceMrsNotesNote {
     title?: string,
     id?: number,
     lastUpdate?: string,
@@ -322,7 +322,7 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
 
 }
 
-export interface IMyServiceMrsNotesUser extends IMrsBaseObject {
+export interface IMyServiceMrsNotesUser {
     id?: string,
     email?: MaybeNull<string>,
     nickname?: string,
@@ -397,7 +397,7 @@ export class MyServiceMrsNotesUserHasNoteRequest extends MyServiceMrsNotesObject
 
 }
 
-export interface IMyServiceMrsNotesUserHasNote extends IMrsBaseObject {
+export interface IMyServiceMrsNotesUserHasNote {
     canShare?: boolean,
     viewOnly?: boolean,
     invitationKey?: MaybeNull<string>,
@@ -463,7 +463,7 @@ export class MyServiceMrsNotesNotesAllRequest extends MyServiceMrsNotesObjectReq
 
 }
 
-export interface IMyServiceMrsNotesNotesAll extends IMrsBaseObject {
+export interface IMyServiceMrsNotesNotesAll {
     lastUpdate?: string,
     createDate?: string,
     content?: MaybeNull<string>,
@@ -538,7 +538,7 @@ export class MyServiceMrsNotesNotesServedRequest extends MyServiceMrsNotesObject
 
 }
 
-export interface IMyServiceMrsNotesNotesServed extends IMrsBaseObject {
+export interface IMyServiceMrsNotesNotesServed {
     notesServed?: MaybeNull<number>,
 }
 
