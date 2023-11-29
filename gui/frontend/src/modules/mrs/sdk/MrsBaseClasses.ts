@@ -422,6 +422,7 @@ export interface IMrsLink {
 
 export interface IMrsBaseObject {
     links?: IMrsLink[];
+    _metadata: IMrsMetadata;
 }
 
 export interface IMrsOperator {
@@ -847,7 +848,7 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
         private readonly requestPath: string,
         private readonly fieldsToGet?: string[] | BooleanFieldMapSelect<C> | FieldNameSelect<C>,
         private readonly fieldsToOmit?: string[]) {
-            super();
+        super();
     }
 
     public whereOld = <K extends keyof P>(param: K, op: keyof IMrsOperator, value?: string): this => {
@@ -1124,7 +1125,7 @@ export class MrsBaseObjectDelete<T> extends MrsRequestFilter<T> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string) {
-            super();
+        super();
     }
 
     public fetch = async (): Promise<IMrsDeleteResult> => {
@@ -1168,7 +1169,7 @@ export class MrsBaseObjectUpdate<T extends object | undefined> {
         return this;
     };
 
-    public fetch = async (): Promise<IMrsResultList<T>> => {
+    public fetch = async (): Promise<T> => {
         const input = `${this.schema.requestPath}${this.requestPath}/${this.keys.join(",")}`;
 
         const res = await this.schema.service.session.doFetch({
@@ -1178,9 +1179,11 @@ export class MrsBaseObjectUpdate<T extends object | undefined> {
             errorMsg: "Failed to update item.",
         });
 
-        const responseBody = await res.json();
+        // The REST service returns a single resource, which is an ORDS-compatible object representation decorated with
+        // additional fields such as "links" and "_metadata".
+        const responseBody = await res.json() as T & IMrsBaseObject;
 
-        return responseBody as IMrsResultList<T>;
+        return responseBody;
     };
 }
 

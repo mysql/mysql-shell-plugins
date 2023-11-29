@@ -595,7 +595,6 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language, session):
                             f'    {field.get("name")}?: {datatype},\n')
 
     if len(interface_fields) > 0:
-        extends = "extends IMrsBaseObject "
         if db_obj.get("object_type") == "PROCEDURE" or db_obj.get("object_type") == "FUNCTION":
             if obj.get("kind") != "PARAMETERS":
                 obj_interfaces.append(
@@ -603,10 +602,9 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language, session):
                     f'    type: "{class_name}",\n' +
                     f'    items: I{class_name}[],\n' +
                     "}\n\n")
-            extends = ""
 
         obj_interfaces.append(
-            f"export interface I{class_name} {extends}{{\n" +
+            f"export interface I{class_name} {{\n" +
             "".join(interface_fields) +
             "}\n\n")
 
