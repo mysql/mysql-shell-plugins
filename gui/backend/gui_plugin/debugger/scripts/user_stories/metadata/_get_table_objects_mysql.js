@@ -245,3 +245,65 @@ await ws.sendAndValidate({
         "done": true
     }
 ], 0))
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_object",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Column",
+        "schema_name": ws.tokens["schema"],
+        "table_name": 'categories',
+        "name": 'categoryID'
+    }
+}, ws.matchList([
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": { "name": "categoryID", "type": "int", "not_null": true, "default": null, "is_pk": true }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+], 0))
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_object",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Column",
+        "schema_name": ws.tokens["schema"],
+        "table_name": 'categories',
+        "name": 'categoryName'
+    }
+}, ws.matchList([
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": { "name": "categoryName", "type": "varchar(100)", "not_null": true, "default": null, "is_pk": false }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+], 0))

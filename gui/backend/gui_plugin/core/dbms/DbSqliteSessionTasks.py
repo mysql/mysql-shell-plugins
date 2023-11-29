@@ -133,3 +133,24 @@ class SqliteGetAutoCommit(DbTask):
             logger.exception(e)
             self.dispatch_result("ERROR", message=str(e),
                                  data=Response.exception(e))
+
+
+class SqliteColumnObjectTask(BaseObjectTask):
+    def process_result(self):
+        _err_msg = f"The {self.type} '{self.name}' does not exist."
+        row = self.resultset.fetch_one()
+
+        if not row:
+            self.dispatch_result("ERROR", message=_err_msg)
+        else:
+            self.dispatch_result("PENDING", data=self.format(row))
+
+
+    def format(self, row):
+        return {
+                "name": row['name'],
+                "type": row['type'],
+                "not_null": row['not_null'],
+                "default": row['default'],
+                "is_pk": row['is_pk']
+        }

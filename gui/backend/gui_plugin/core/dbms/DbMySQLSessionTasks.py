@@ -99,6 +99,27 @@ class MySQLTableObjectTask(BaseObjectTask):
             if values['columns']:
                 self.dispatch_result("PENDING", data=values)
 
+class MySQLColumnObjectTask(BaseObjectTask):
+    def format(self, row):
+        return {
+                "name": row[0],
+                "type": row[1],
+                "not_null": row[2],
+                "default": row[3],
+                "is_pk": row[4]
+        }
+
+    def process_result(self):
+        _err_msg = f"The {self.type} '{self.name}' does not exist."
+        if self.resultset.has_data():
+            row = self.resultset.fetch_one()
+
+            if not row:
+                self.dispatch_result("ERROR", message=_err_msg)
+            else:
+                self.dispatch_result("PENDING", data=self.format(row))
+        else:
+            self.dispatch_result("ERROR", message=_err_msg)
 
 class MySQLOneFieldListTask(DbQueryTask):
     def process_result(self):

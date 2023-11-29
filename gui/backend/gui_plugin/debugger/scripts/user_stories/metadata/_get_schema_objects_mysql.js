@@ -684,7 +684,7 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "ERROR",
-            "msg": "The trigger 'test_user_story.after_insert' does not exist."
+            "msg": "The trigger 'categories.after_insert' does not exist."
         },
         "request_id": ws.lastGeneratedRequestId
     }
@@ -737,7 +737,7 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "ERROR",
-            "msg": "The foreign key 'test_user_story.fk_user' does not exist."
+            "msg": "The foreign key 'categories.fk_user' does not exist."
         },
         "request_id": ws.lastGeneratedRequestId
     }
@@ -790,7 +790,7 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "ERROR",
-            "msg": "The index 'test_user_story._user_story_index_' does not exist."
+            "msg": "The index 'categories._user_story_index_' does not exist."
         },
         "request_id": ws.lastGeneratedRequestId
     }
