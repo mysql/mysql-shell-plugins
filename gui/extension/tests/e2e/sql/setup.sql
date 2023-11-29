@@ -62,6 +62,13 @@ CREATE VIEW `test_view` as select * from actor;
 DROP VIEW IF EXISTS `view_to_drop`; 
 CREATE VIEW `view_to_drop` as select * from actor;
 
+-- Event 
+DROP EVENT IF EXISTS `test_event`;
+CREATE EVENT test_event
+    ON SCHEDULE AT CURRENT_TIMESTAMP + INTERVAL 1 HOUR
+    DO
+      select 1;
+
 -- Routine
 DROP PROCEDURE IF EXISTS `test_routine`;
 DELIMITER $$ 

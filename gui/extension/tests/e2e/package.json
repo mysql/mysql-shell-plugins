@@ -32,7 +32,8 @@
     "e2e-tests": "extest run-tests",
     "e2e-tests-tsc": "tsc",
     "e2e-tests-merge": "mochawesome-merge",
-    "e2e-tests-report": "marge -f test-report"
+    "e2e-tests-report": "marge -f test-report",
+    "e2e-tests-build-extension": "pwsh powershell/build-extension.ps1"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
   "publisher": "Oracle"
