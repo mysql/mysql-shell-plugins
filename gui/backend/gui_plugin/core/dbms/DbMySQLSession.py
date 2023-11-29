@@ -35,7 +35,8 @@ from gui_plugin.core.dbms import DbPingHandlerTask
 from gui_plugin.core.dbms.DbMySQLSessionTasks import (MySQLBaseObjectTask,
                                                       MySQLOneFieldListTask,
                                                       MySQLOneFieldTask,
-                                                      MySQLTableObjectTask)
+                                                      MySQLTableObjectTask,
+                                                      MySQLColumnObjectTask)
 from gui_plugin.core.dbms.DbSession import (DbSession, DbSessionFactory,
                                             ReconnectionMode)
 from gui_plugin.core.dbms.DbSessionTasks import (DbExecuteTask,
@@ -651,8 +652,10 @@ class DbMysqlSession(DbSession):
                         AND TABLE_NAME = ?
                         AND INDEX_NAME LIKE ?"""
         elif type == "Column":
-            sql = """SELECT COLUMN_NAME
-                    FROM INFORMATION_SCHEMA.COLUMNS
+            sql = """SELECT COLUMN_NAME as 'name', COLUMN_TYPE as 'type',
+                        IS_NULLABLE='NO' as 'not_null', COLUMN_DEFAULT as 'default',
+                        COLUMN_KEY='PRI' as 'is_pk'
+                    FROM information_schema.COLUMNS
                     WHERE TABLE_SCHEMA = ?
                         AND TABLE_NAME = ?
                         AND COLUMN_NAME LIKE ?"""
@@ -660,11 +663,18 @@ class DbMysqlSession(DbSession):
         if self.threaded:
             context = get_context()
             task_id = context.request_id if context else None
-            self.add_task(MySQLBaseObjectTask(self,
-                                              task_id=task_id,
-                                              sql=sql,
-                                              type=type, name=f"{schema_name}.{name}",
-                                              params=params))
+            if type == "Column":
+                self.add_task(MySQLColumnObjectTask(self,
+                                                task_id=task_id,
+                                                sql=sql,
+                                                type=type, name=f"{table_name}.{name}",
+                                                params=params))
+            else:
+                self.add_task(MySQLBaseObjectTask(self,
+                                                task_id=task_id,
+                                                sql=sql,
+                                                type=type, name=f"{table_name}.{name}",
+                                                params=params))
         else:
             result = self.execute(sql, params).fetch_one()
             if not result:

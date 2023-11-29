@@ -33,7 +33,7 @@ from gui_plugin.core.dbms.DbSession import (DbSession, DbSessionFactory,
 from gui_plugin.core.dbms.DbSessionTasks import check_supported_type
 from gui_plugin.core.dbms.DbSqliteSessionTasks import (
     SqliteBaseObjectTask, SqliteGetAutoCommit, SqliteOneFieldListTask,
-    SqliteSetCurrentSchemaTask, SqliteTableObjectTask)
+    SqliteSetCurrentSchemaTask, SqliteTableObjectTask, SqliteColumnObjectTask)
 from gui_plugin.core.Error import MSGException
 
 
@@ -414,7 +414,7 @@ class DbSqliteSession(DbSession):
                         AND name = ?
                     ORDER BY name;"""
         elif type == "Column":
-            sql = f"""SELECT name
+            sql = f"""SELECT name, type, "notnull" as 'not_null', dflt_value as 'default', pk as 'is_pk'
                     FROM pragma_table_info('{table_name}', '{schema_name}')
                     WHERE name = ?
                     ORDER BY name;"""
@@ -422,6 +422,11 @@ class DbSqliteSession(DbSession):
 
         context = get_context()
         task_id = context.request_id if context else None
-        self.add_task(SqliteBaseObjectTask(self, task_id=task_id, sql=sql,
-                                           type=type, name=f"{schema_name}.{name}",
-                                           params=params))
+        if type == "Column":
+            self.add_task(SqliteColumnObjectTask(self, task_id=task_id, sql=sql,
+                                            type=type, name=f"{schema_name}.{name}",
+                                            params=params))
+        else:
+            self.add_task(SqliteBaseObjectTask(self, task_id=task_id, sql=sql,
+                                            type=type, name=f"{schema_name}.{name}",
+                                            params=params))

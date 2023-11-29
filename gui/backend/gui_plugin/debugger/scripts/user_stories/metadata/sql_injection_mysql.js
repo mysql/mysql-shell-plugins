@@ -351,7 +351,7 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "ERROR",
-            "msg": "The trigger 'test_user_story`; SELECT 'MyTrigger'; --.categories_AFTER_INSERT' does not exist."
+            "msg": "The trigger 'categories.categories_AFTER_INSERT' does not exist."
         },
         "request_id": ws.lastGeneratedRequestId,
     }
@@ -379,7 +379,7 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "ERROR",
-            "msg": "The trigger 'test_user_story.categories_AFTER_INSERT' does not exist."
+            "msg": "The trigger 'categories`; SELECT 'MyTrigger'; --.categories_AFTER_INSERT' does not exist."
         },
         "request_id": ws.lastGeneratedRequestId,
     }
@@ -407,7 +407,7 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "ERROR",
-            "msg": "The trigger 'test_user_story.categories_AFTER_INSERT`; SELECT 'MyTrigger'; --' does not exist."
+            "msg": "The trigger 'categories.categories_AFTER_INSERT`; SELECT 'MyTrigger'; --' does not exist."
         },
         "request_id": ws.lastGeneratedRequestId,
     }

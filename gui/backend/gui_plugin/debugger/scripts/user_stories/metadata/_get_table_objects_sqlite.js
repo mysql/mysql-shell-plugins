@@ -91,7 +91,6 @@ await ws.sendAndValidate({
     }
 ])
 
-
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
@@ -100,8 +99,8 @@ await ws.sendAndValidate({
         "module_session_id": ws.lastModuleSessionId,
         "type": "Column",
         "schema_name": "main",
-        "table_name": "sqlite_master",
-        "name": "type"
+        "table_name": "tests_user",
+        "name": "id"
     }
 }, [
     responses.pending.executionStarted,
@@ -111,7 +110,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": ws.ignore
+        "result": { "name": "id", "type": "INTEGER", "not_null": true, "default": null, "is_pk": true }
     },
     {
         "request_state": {
@@ -131,8 +130,8 @@ await ws.sendAndValidate({
         "module_session_id": ws.lastModuleSessionId,
         "type": "Column",
         "schema_name": "main",
-        "table_name": "sqlite_master",
-        "name": "type"
+        "table_name": "tests_user",
+        "name": "name"
     }
 }, [
     responses.pending.executionStarted,
@@ -142,7 +141,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": { "name": "type" },
+        "result": { "name": "name", "type": "VARCHAR(45)", "not_null": false, "default": null, "is_pk": false },
     },
     {
         "request_state": {

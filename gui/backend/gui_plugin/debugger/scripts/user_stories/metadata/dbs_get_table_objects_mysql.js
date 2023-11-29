@@ -13,6 +13,10 @@ lib.dbsession.init_db.params = {
     "init": lib.init_mysql
 }
 await ws.execute(lib.dbsession.init_db.file)
+lib.dbsession.open_db_session.params = {
+    "database_settings": settings,
+    "validation": lib.dbsession.open_connection_validate_mysql
+}
 
 // Open DB session
 lib.dbsession.open_db_session.params = {
