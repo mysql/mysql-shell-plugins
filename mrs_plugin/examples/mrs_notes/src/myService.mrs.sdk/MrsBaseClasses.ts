@@ -1187,14 +1187,14 @@ export class MrsBaseObjectUpdate<T extends object | undefined> {
     };
 }
 
-export class MrsBaseObjectCall<I, P extends IMrsFetchData> {
-    public constructor(
+class MrsBaseObjectCall<I, P extends JsonObject> {
+    protected constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
         protected params: P) {
     }
 
-    public fetch = async (): Promise<IMrsProcedureResultList<I>> => {
+    protected fetch = async (): Promise<I> => {
         const input = `${this.schema.requestPath}${this.requestPath}`;
 
         const res = await this.schema.service.session.doFetch({
@@ -1204,31 +1204,37 @@ export class MrsBaseObjectCall<I, P extends IMrsFetchData> {
             errorMsg: "Failed to call item.",
         });
 
-        const responseBody = await res.json();
-
-        return responseBody as IMrsProcedureResultList<I>;
+        return await res.json() as I;
     };
 }
 
-export class MrsBaseObjectFunctionCall<I, P extends IMrsFetchData> {
+export class MrsBaseObjectProcedureCall<I, P extends JsonObject>
+    extends MrsBaseObjectCall<IMrsProcedureResultList<I>, P> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
         protected params: P) {
+        super(schema, requestPath, params);
+    }
+
+    public fetch = async (): Promise<IMrsProcedureResultList<I>> => {
+        const res = await super.fetch();
+
+        return res;
+    };
+}
+
+export class MrsBaseObjectFunctionCall<I, P extends JsonObject> extends MrsBaseObjectCall<I, P> {
+    public constructor(
+        protected schema: MrsBaseSchema,
+        protected requestPath: string,
+        protected params: P) {
+        super(schema, requestPath, params);
     }
 
     public fetch = async (): Promise<I> => {
-        const input = `${this.schema.requestPath}${this.requestPath}`;
+        const res = await super.fetch() as IMrsFunctionResult<I>;
 
-        const res = await this.schema.service.session.doFetch({
-            input,
-            method: "PUT",
-            body: this.params,
-            errorMsg: "Failed to call item.",
-        });
-
-        const responseBody = await res.json();
-
-        return (responseBody as IMrsFunctionResult<I>).result;
+        return res.result;
     };
 }
