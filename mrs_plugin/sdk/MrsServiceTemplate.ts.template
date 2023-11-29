@@ -43,7 +43,7 @@ import {
     // --- importUpdateProcedureOnlyStart
     IMrsProcedureResult,
     IMrsProcedureResultList,
-    MrsBaseObjectCall,
+    MrsBaseObjectProcedureCall,
     // --- importUpdateProcedureOnlyEnd
     // --- importReadFunctionOnlyStart
     MrsBaseObjectFunctionCall,
@@ -102,8 +102,8 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         // --- crudUpdateProcedureOnlyStart
         put: (
             ${obj_name}Params: I${obj_param_interface},
-        ): MrsBaseObjectCall<${obj_meta_interface}, I${obj_param_interface}> => {
-            return new MrsBaseObjectCall<${obj_meta_interface}, I${obj_param_interface}>(
+        ): MrsBaseObjectProcedureCall<${obj_meta_interface}, I${obj_param_interface}> => {
+            return new MrsBaseObjectProcedureCall<${obj_meta_interface}, I${obj_param_interface}>(
                 this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}Params);
         },
         // --- crudUpdateProcedureOnlyEnd

@@ -36,7 +36,7 @@ import {
     MrsBaseObjectCreate,
     IMrsProcedureResult,
     IMrsProcedureResultList,
-    MrsBaseObjectCall,
+    MrsBaseObjectProcedureCall,
     // --- importReadFunctionOnlyStart
     MrsBaseObjectFunctionCall,
     // --- importReadFunctionOnlyEnd
@@ -559,8 +559,8 @@ export class MyServiceMrsNotesNoteAcceptShareParamsRequest extends MyServiceMrsN
     public rest = {
         put: (
             noteAcceptShareParams: IMyServiceMrsNotesNoteAcceptShareParams,
-        ): MrsBaseObjectCall<IMrsProcedureResult, IMyServiceMrsNotesNoteAcceptShareParams> => {
-            return new MrsBaseObjectCall<IMrsProcedureResult, IMyServiceMrsNotesNoteAcceptShareParams>(
+        ): MrsBaseObjectProcedureCall<IMrsProcedureResult, IMyServiceMrsNotesNoteAcceptShareParams> => {
+            return new MrsBaseObjectProcedureCall<IMrsProcedureResult, IMyServiceMrsNotesNoteAcceptShareParams>(
                 this.schema, MyServiceMrsNotesNoteAcceptShareParamsRequest.#requestPath, noteAcceptShareParams);
         },
     };
@@ -591,8 +591,8 @@ export class MyServiceMrsNotesNoteDeleteParamsRequest extends MyServiceMrsNotesO
     public rest = {
         put: (
             noteDeleteParams: IMyServiceMrsNotesNoteDeleteParams,
-        ): MrsBaseObjectCall<IMrsProcedureResult, IMyServiceMrsNotesNoteDeleteParams> => {
-            return new MrsBaseObjectCall<IMrsProcedureResult, IMyServiceMrsNotesNoteDeleteParams>(
+        ): MrsBaseObjectProcedureCall<IMrsProcedureResult, IMyServiceMrsNotesNoteDeleteParams> => {
+            return new MrsBaseObjectProcedureCall<IMrsProcedureResult, IMyServiceMrsNotesNoteDeleteParams>(
                 this.schema, MyServiceMrsNotesNoteDeleteParamsRequest.#requestPath, noteDeleteParams);
         },
     };
@@ -623,8 +623,8 @@ export class MyServiceMrsNotesNoteShareRequest extends MyServiceMrsNotesObjectRe
     public rest = {
         put: (
             noteShareParams: IMyServiceMrsNotesNoteShareParams,
-        ): MrsBaseObjectCall<IMyServiceMrsNotesNoteShareMeta, IMyServiceMrsNotesNoteShareParams> => {
-            return new MrsBaseObjectCall<IMyServiceMrsNotesNoteShareMeta, IMyServiceMrsNotesNoteShareParams>(
+        ): MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteShareMeta, IMyServiceMrsNotesNoteShareParams> => {
+            return new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteShareMeta, IMyServiceMrsNotesNoteShareParams>(
                 this.schema, MyServiceMrsNotesNoteShareRequest.#requestPath, noteShareParams);
         },
     };
@@ -669,8 +669,8 @@ export class MyServiceMrsNotesNoteUpdateParamsRequest extends MyServiceMrsNotesO
     public rest = {
         put: (
             noteUpdateParams: IMyServiceMrsNotesNoteUpdateParams,
-        ): MrsBaseObjectCall<IMrsProcedureResult, IMyServiceMrsNotesNoteUpdateParams> => {
-            return new MrsBaseObjectCall<IMrsProcedureResult, IMyServiceMrsNotesNoteUpdateParams>(
+        ): MrsBaseObjectProcedureCall<IMrsProcedureResult, IMyServiceMrsNotesNoteUpdateParams> => {
+            return new MrsBaseObjectProcedureCall<IMrsProcedureResult, IMyServiceMrsNotesNoteUpdateParams>(
                 this.schema, MyServiceMrsNotesNoteUpdateParamsRequest.#requestPath, noteUpdateParams);
         },
     };
