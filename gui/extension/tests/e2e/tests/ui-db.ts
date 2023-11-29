@@ -589,6 +589,7 @@ describe("DATABASE CONNECTIONS", () => {
         const testView = `test_view`;
         const viewToDrop = "view_to_drop";
         const testRoutine = "test_routine";
+        const testEvent = "test_event";
         const dup = "duplicatedConnection";
         const commandExecutor = new CommandExecutor();
 
@@ -1121,6 +1122,19 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.pushDialogButton(`Drop ${testRoutine}`);
             await Misc.getNotification(`The object ${testRoutine} has been dropped successfully.`);
             expect(await Misc.existsTreeElement(constants.dbTreeSection, testRoutine)).to.be.false;
+        });
+
+        it("Drop Event", async () => {
+            const treeRoutines = await Misc.getTreeElement(constants.dbTreeSection, "Routines");
+            await treeRoutines.collapse();
+            const treeEvents = await Misc.getTreeElement(constants.dbTreeSection, "Events");
+            await treeEvents.expand();
+            expect(await Misc.existsTreeElement(constants.dbTreeSection, testEvent)).to.be.true;
+            const treeTestEvent = await Misc.getTreeElement(constants.dbTreeSection, testEvent);
+            await Misc.openContextMenuItem(treeTestEvent, constants.dropEvent, constants.checkDialog);
+            await Misc.pushDialogButton(`Drop ${testEvent}`);
+            await Misc.getNotification(`The object ${testEvent} has been dropped successfully.`);
+            expect(await Misc.existsTreeElement(constants.dbTreeSection, testEvent)).to.be.false;
         });
 
     });
