@@ -25,6 +25,7 @@ import { join } from "path";
 
 // EXTENSION NAME
 export const extensionName = "MySQL Shell for VS Code";
+export const feLogFile = "1-MySQL Shell for VS Code.log";
 
 // BASE PATH
 export const basePath = process.env.USERPROFILE ?? process.env.HOME;
@@ -38,9 +39,29 @@ export const ociTreeSection = "ORACLE CLOUD INFRASTRUCTURE";
 export const openEditorsTreeSection = "OPEN EDITORS";
 export const tasksTreeSection = "MYSQL SHELL TASKS";
 
+// OCI
+export const ociConfigProfile = {
+    name: process.env.OCI_PROFILE_NAME,
+    user: process.env.OCI_PROFILE_USER,
+    fingerprint: process.env.OCI_PROFILE_FINGERPRINT,
+    tenancy: process.env.OCI_PROFILE_TENANCY,
+    region: process.env.OCI_PROFILE_REGION,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    key_file: `${process.env.MYSQLSH_OCI_CONFIG_FILE.replace("config", "")}id_rsa_e2e.pem`,
+};
+
+export const dbSystemType = "ociDbSystem";
+export const bastionType = "ociBastion";
+
+// OCI E2E TESTS BASTION CREDENTIALS
+export const bastionUsername = process.env.OCI_BASTION_USERNAME;
+export const bastionPassword = process.env.OCI_BASTION_PASSWORD;
+
 // TIMEOUTS
 export const wait150MiliSeconds = 150;
+export const wait1second = 1000;
 export const wait2seconds = 2000;
+export const wait3seconds = 3000;
 export const wait5seconds = 5000;
 export const wait10seconds = 10000;
 export const wait15seconds = 15000; //queryWaits
@@ -354,3 +375,5 @@ export const openEditCtxMenu = new Map([
 export const miscCtxMenu = new Map([
     [openNotebookWithConn, 5],
 ]);
+
+
