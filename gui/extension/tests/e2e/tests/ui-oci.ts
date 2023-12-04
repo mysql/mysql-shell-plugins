@@ -38,6 +38,15 @@ import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import { CommandExecutor } from "../lib/cmdExecutor";
+const ociTree: RegExp[] = [
+    `${constants.ociConfigProfile.name} (${constants.ociConfigProfile.region})`,
+    "(Root Compartment)"]
+    .concat(process.env.OCI_OBJECTS_PATH.split("/")).map((el: string) => {
+        return new RegExp(el
+            .replace(/\(/g, "\\(")
+            .replace(/\)/g, "\\)"),
+        );
+    });
 
 if (!process.env.MYSQLSH_OCI_CONFIG_FILE) {
     throw new Error("Please define the environment variable MYSQLSH_OCI_CONFIG_FILE");
@@ -170,12 +179,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         before(async function () {
             try {
-                await Misc.expandTree(constants.ociTreeSection, [
-                    `${constants.ociConfigProfile.name} (${constants.ociConfigProfile.region})`,
-                    /(Root Compartment)/,
-                    /QA/,
-                    constants.e2eTestsCompartment,
-                ], constants.wait5seconds * 5);
+                await Misc.expandTree(constants.ociTreeSection, ociTree, constants.wait5seconds * 5);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -248,7 +252,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await treeQA.expand();
             await driver.wait(waitUntil.isNotLoading(constants.ociTreeSection), constants.wait20seconds,
                 `${constants.ociTreeSection} is still loading`);
-            const treeShellTesting = await Misc.getTreeElement(constants.ociTreeSection, constants.e2eTestsCompartment);
+            const treeShellTesting = await Misc.getTreeElement(constants.ociTreeSection, ociTree[ociTree.length - 1]);
             await treeShellTesting.expand();
             await driver.wait(waitUntil.isNotLoading(constants.ociTreeSection), constants.wait20seconds,
                 `${constants.ociTreeSection} is still loading`);
@@ -271,12 +275,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         before(async function () {
             try {
-                await Misc.expandTree(constants.ociTreeSection, [
-                    `${constants.ociConfigProfile.name} (${constants.ociConfigProfile.region})`,
-                    /(Root Compartment)/,
-                    /QA/,
-                    constants.e2eTestsCompartment,
-                ], constants.wait5seconds * 5);
+                await Misc.expandTree(constants.ociTreeSection, ociTree, constants.wait5seconds * 5);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -418,12 +417,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.sectionFocus(constants.ociTreeSection);
                 before(async function () {
                     try {
-                        await Misc.expandTree(constants.ociTreeSection, [
-                            `${constants.ociConfigProfile.name} (${constants.ociConfigProfile.region})`,
-                            /(Root Compartment)/,
-                            /QA/,
-                            constants.e2eTestsCompartment,
-                        ], constants.wait5seconds * 5);
+                        await Misc.expandTree(constants.ociTreeSection, ociTree, constants.wait5seconds * 5);
                     } catch (e) {
                         await Misc.processFailure(this);
                         throw e;

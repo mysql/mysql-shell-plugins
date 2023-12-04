@@ -41,21 +41,21 @@ export const tasksTreeSection = "MYSQL SHELL TASKS";
 
 // OCI
 export const ociConfigProfile = {
-    name: "E2ETESTS",
-    user: "ocid1.user.oc1..aaaaaaaan67cojwa52khe44xtpqsygzxlk4te6gqs7nkmyabcju2w5wlxcpq",
-    fingerprint: "15:cd:e2:11:ed:0b:97:c4:e4:41:c5:44:18:66:72:80",
-    tenancy: "ocid1.tenancy.oc1..aaaaaaaaasur3qcs245czbgrlyshd7u5joblbvmxddigtubzqcfo5mmi2z3a",
-    region: "us-ashburn-1",
+    name: process.env.OCI_PROFILE_NAME,
+    user: process.env.OCI_PROFILE_USER,
+    fingerprint: process.env.OCI_PROFILE_FINGERPRINT,
+    tenancy: process.env.OCI_PROFILE_TENANCY,
+    region: process.env.OCI_PROFILE_REGION,
     // eslint-disable-next-line @typescript-eslint/naming-convention
     key_file: `${process.env.MYSQLSH_OCI_CONFIG_FILE.replace("config", "")}id_rsa_e2e.pem`,
 };
-export const e2eTestsCompartment = "MySQLShellTesting";
+
 export const dbSystemType = "ociDbSystem";
 export const bastionType = "ociBastion";
 
 // OCI E2E TESTS BASTION CREDENTIALS
-export const bastionUsername = "dba";
-export const bastionPassword = "MySQLR0cks!";
+export const bastionUsername = process.env.OCI_BASTION_USERNAME;
+export const bastionPassword = process.env.OCI_BASTION_PASSWORD;
 
 // TIMEOUTS
 export const wait150MiliSeconds = 150;
