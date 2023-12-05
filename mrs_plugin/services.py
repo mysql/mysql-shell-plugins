@@ -859,7 +859,8 @@ def get_sdk_service_classes(**kwargs):
     service_url = kwargs.get("service_url")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        service = resolve_service(session=session, service_id=service_id, required=False, auto_select_single=True)
+        service = resolve_service(
+            session=session, service_id=service_id, required=False, auto_select_single=True)
 
         return lib.sdk.generate_service_sdk(
             service=service, sdk_language=sdk_language, session=session, prepare_for_runtime=prepare_for_runtime,
@@ -911,7 +912,8 @@ def dump_sdk_service_files(**kwargs):
     # Try to read the mrs_config from the directory
     mrs_config = get_stored_sdk_options(directory=directory)
     if mrs_config is None and options is None:
-        raise Exception(f"No SDK options given and no existing SDK config found in the directory {directory}")
+        raise Exception(
+            f"No SDK options given and no existing SDK config found in the directory {directory}")
 
     if mrs_config is None:
         mrs_config = {}
@@ -925,11 +927,14 @@ def dump_sdk_service_files(**kwargs):
         mrs_config["header"] = options.get(
             "header", "/* Copyright (c) 2023, Oracle and/or its affiliates. */")
 
-    mrs_config["generationDate"] = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    mrs_config["generationDate"] = datetime.datetime.now(
+        datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
-    serviceId = lib.core.id_to_binary(mrs_config.get("serviceId"), "mrs.config.json", True)
+    serviceId = lib.core.id_to_binary(
+        mrs_config.get("serviceId"), "mrs.config.json", True)
     if serviceId is None:
-        raise Exception("No serviceId defined in mrs.config.json. Please export the MRS SDK again.")
+        raise Exception(
+            "No serviceId defined in mrs.config.json. Please export the MRS SDK again.")
 
     if mrs_config.get("sdkLanguage") is None:
         raise Exception("No SDK Language given.")
@@ -952,7 +957,7 @@ def dump_sdk_service_files(**kwargs):
 
         add_app_base_class = mrs_config.get("addAppCaseClass")
 
-        if add_app_base_class is not None and isinstance(add_app_base_class, str) and add_app_base_class is not '':
+        if add_app_base_class is not None and isinstance(add_app_base_class, str) and add_app_base_class != '':
             path = os.path.abspath(__file__)
             filePath = Path(os.path.dirname(path), "sdk", add_app_base_class)
             shutil.copy(filePath, os.path.join(directory, add_app_base_class))
@@ -963,6 +968,7 @@ def dump_sdk_service_files(**kwargs):
         f.write(json.dumps(mrs_config, indent=4))
 
     return True
+
 
 @plugin_function('mrs.get.sdkOptions', shell=True, cli=True, web=True)
 def get_stored_sdk_options(directory):
