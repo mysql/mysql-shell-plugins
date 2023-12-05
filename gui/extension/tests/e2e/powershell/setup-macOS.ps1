@@ -25,7 +25,7 @@ $basePath = Join-Path $PSScriptRoot ".."
 Set-Location $basePath
 $basePath = Get-Location
 $env:WORKSPACE = Resolve-Path(Join-Path $basePath ".." ".." ".." "..")
-$vsCodeVersion = "1.78.1"
+$vsCodeVersion = "1.83.0"
 $testSuites = @("db", "notebook", "oci", "shell", "rest", "open-editors")
 
 if (!$env:VSIX_PATH){
