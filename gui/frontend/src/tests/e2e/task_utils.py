@@ -93,7 +93,7 @@ def get_executables(name: str) -> str:
     )
 
     if system == "Linux":
-        executables["Chrome browser"] = "google-chrome"
+        executables["Chrome browser"] = "chrome"
     elif system == "Windows":
         executables[
             "Chrome browser"

@@ -507,7 +507,7 @@ describe("NOTEBOOKS", () => {
                 expect(
                     await finder.findElement(locator.findWidget.matchesCount).getText(),
                 ).to.match(/1 of (\d+)/);
-                await Database.clearInputField(finderTextArea);
+                await Misc.clearInputField(finderTextArea);
             }
         });
 
