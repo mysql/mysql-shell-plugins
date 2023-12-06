@@ -1,12 +1,14 @@
 {
-    "compilerOptions": {
-        "target": "es6",                          
-        "module": "commonjs",                     
-        "outDir": "./output",                        
-        "esModuleInterop": true,                  
-      },
-    "include": [
-        "*/*.ts"
-    ],
-    "exclude": ["node_modules"]
-  }
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "outDir": "./output",
+    "esModuleInterop": true,
+  },
+  "include": [
+    "**/*.ts",
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

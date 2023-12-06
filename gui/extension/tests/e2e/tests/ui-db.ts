@@ -302,8 +302,8 @@ describe("DATABASE CONNECTIONS", () => {
 
             const caption = await conDialog.findElement(locator.dbConnectionDialog.caption);
             const hostname = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.hostname);
-            await Database.clearInputField(caption);
-            await Database.clearInputField(hostname);
+            await Misc.clearInputField(caption);
+            await Misc.clearInputField(hostname);
 
             await conDialog.findElement(locator.dbConnectionDialog.ok).click();
             await driver.wait(async () => {
@@ -315,9 +315,9 @@ describe("DATABASE CONNECTIONS", () => {
                 errors.map((item: WebElement) => {
                     return item.getText();
                 }));
-            expect(errorMsgs).to.include("Specify a valid host name or IP address");
-            expect(errorMsgs).to.include("The caption cannot be empty");
             expect(errorMsgs).to.include("The user name must not be empty");
+            expect(await caption.getAttribute("value")).to.include("New Connection");
+            expect(await hostname.getAttribute("value")).to.equals("localhost");
             await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
 
         });
@@ -333,7 +333,7 @@ describe("DATABASE CONNECTIONS", () => {
             await popup.findElement(locator.dbConnectionDialog.databaseTypeSqlite).click();
 
             const caption = await conDialog.findElement(locator.dbConnectionDialog.caption);
-            await Database.clearInputField(caption);
+            await Misc.clearInputField(caption);
 
             await conDialog.findElement(locator.dbConnectionDialog.ok).click();
             await driver.wait(async () => {
@@ -345,7 +345,7 @@ describe("DATABASE CONNECTIONS", () => {
                 errors.map((item: WebElement) => {
                     return item.getText();
                 }));
-            expect(errorMsgs).to.include("The caption cannot be empty");
+            expect(await caption.getAttribute("value")).to.include("New Connection");
             expect(errorMsgs).to.include("Specify the path to an existing Sqlite DB file");
             await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
 

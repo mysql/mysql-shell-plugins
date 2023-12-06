@@ -608,30 +608,42 @@ export class Misc {
         }, constants.wait5seconds, "Could not switch back to top frame");
     };
 
+    public static clearInputField = async (el: WebElement): Promise<void> => {
+        await driver.wait(async () => {
+            await el.clear();
+            await el.click();
+            if (Misc.isMacOs()) {
+                await el.sendKeys(Key.chord(Key.COMMAND, "a"));
+            } else {
+                await el.sendKeys(Key.chord(Key.CONTROL, "a"));
+            }
+            await el.sendKeys(Key.BACK_SPACE);
+
+            return (await el.getAttribute("value")).length === 0;
+        }, constants.wait5seconds, `${await el.getId()} was not cleaned`);
+    };
+
     public static getNotification = async (text: string, dismiss = true,
         expectFailure = false): Promise<Notification> => {
         let notif: Notification;
-
-        await driver.wait(waitUntil.notificationsExist(), constants.wait5seconds);
+        const escapedText = text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 
         await driver.wait(async () => {
             try {
                 const ntfs = await new Workbench().getNotifications();
-                if (ntfs.length > 0) {
-                    for (const ntf of ntfs) {
-                        if (expectFailure === false) {
-                            if (await ntf.getType() === NotificationType.Error) {
-                                throw new Error("An error has occurred");
-                            }
+                for (const ntf of ntfs) {
+                    if (expectFailure === false) {
+                        if (await ntf.getType() === NotificationType.Error) {
+                            throw new Error("An error has occurred");
                         }
-                        if ((await ntf.getMessage()).includes(text)) {
-                            notif = ntf;
-                            if (dismiss) {
-                                await Misc.dismissNotifications();
-                            }
+                    }
+                    if ((await ntf.getMessage()).match(new RegExp(escapedText)) !== null) {
+                        notif = ntf;
+                        if (dismiss) {
+                            await Misc.dismissNotifications();
+                        }
 
-                            return true;
-                        }
+                        return true;
                     }
                 }
             } catch (e) {
@@ -639,7 +651,7 @@ export class Misc {
                     throw e;
                 }
             }
-        }, constants.wait2seconds, `Could not find '${text}' notification`);
+        }, constants.wait5seconds, `Could not find '${text}' notification`);
 
         return notif;
     };
@@ -1336,7 +1348,7 @@ export class Misc {
             try {
                 const workbench = new Workbench();
                 await workbench.executeCommand("workbench.action.reloadWindow");
-                await driver.sleep(2000);
+                await driver.sleep(constants.wait2seconds);
 
                 return true;
             } catch (e) {
@@ -1371,7 +1383,7 @@ export class Misc {
         await Misc.cleanCredentials();
         await Misc.expandDBConnectionTree(dbTreeConnection,
             (dbConnection.basic as interfaces.IConnBasicMySQL).password);
-        if ((await Misc.existsNotifications(2000)) === true) {
+        if ((await Misc.existsNotifications(constants.wait2seconds)) === true) {
             return (await Misc.getNotification("This MySQL Shell version requires a new minor version")) !== undefined;
         }
     };

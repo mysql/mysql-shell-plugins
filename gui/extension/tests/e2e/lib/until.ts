@@ -28,6 +28,8 @@ import {
     WebElement,
     Locator,
     Workbench,
+    NotificationType,
+    error,
 } from "vscode-extension-tester";
 import { join } from "path";
 import fs from "fs/promises";
@@ -221,9 +223,33 @@ export const editorHasNewPrompt = (): Condition<boolean> => {
     });
 };
 
-export const notificationsExist = (): Condition<boolean> => {
-    return new Condition(`for notifications to be displayed`, async () => {
-        return (await new Workbench().getNotifications()).length > 0;
+export const notificationExists = (notification: string, dismiss = true,
+    expectFailure = false): Condition<boolean> => {
+    return new Condition(`for notication '${notification}' to be displayed`, async () => {
+        try {
+            const escapedText = notification.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+            const ntfs = await new Workbench().getNotifications();
+            for (const ntf of ntfs) {
+                if (expectFailure === false) {
+                    if (await ntf.getType() === NotificationType.Error) {
+                        throw new Error("There is a notification with error");
+                    }
+                }
+                if ((await ntf.getMessage()).match(new RegExp(escapedText)) !== null) {
+                    if (dismiss) {
+                        await Misc.dismissNotifications();
+                    }
+
+                    return true;
+                } else {
+                    console.warn(`Found notification: ${await ntf.getMessage()}`);
+                }
+            }
+        } catch (e) {
+            if (!(e instanceof error.StaleElementReferenceError)) {
+                return false;
+            }
+        }
     });
 };
 
