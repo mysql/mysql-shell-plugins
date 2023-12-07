@@ -148,7 +148,7 @@ describe("MySQL REST Service", () => {
 
         beforeEach(async function () {
             try {
-                await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
+                await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds,
                     `${constants.dbTreeSection} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -185,14 +185,14 @@ describe("MySQL REST Service", () => {
             const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
             await Misc.openContextMenuItem(treeMySQLRESTService, constants.disableRESTService, undefined);
             await Misc.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
+            await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds,
                 `${constants.dbTreeSection} is still loading`);
             await driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
                 constants.wait5seconds);
             await driver.wait(async () => {
                 await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
                     constants.reloadConnections);
-                await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
+                await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds,
                     `${constants.dbTreeSection} is still loading`);
 
                 return (await Misc.isMRSDisabled(treeMySQLRESTService)) === true;
@@ -205,14 +205,14 @@ describe("MySQL REST Service", () => {
             const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
             await Misc.openContextMenuItem(treeMySQLRESTService, constants.enableRESTService, undefined);
             await Misc.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
+            await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds,
                 `${constants.dbTreeSection} is still loading`);
             await driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
                 constants.wait5seconds);
             await driver.wait(async () => {
                 await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
                     constants.reloadConnections);
-                await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
+                await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds,
                     `${constants.dbTreeSection} is still loading`);
 
                 return (await Misc.isMRSDisabled(treeMySQLRESTService)) === false;
@@ -431,7 +431,7 @@ describe("MySQL REST Service", () => {
 
         beforeEach(async function () {
             try {
-                await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
+                await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds,
                     `${constants.dbTreeSection} is still loading`);
                 await Misc.dismissNotifications();
             } catch (e) {
@@ -562,7 +562,7 @@ describe("MySQL REST Service", () => {
             const treeRandomService = await Misc.getTreeElement(constants.dbTreeSection,
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
             await Misc.openContextMenuItem(treeRandomService, constants.setAsCurrentREST, constants.checkNotif);
-            await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait10seconds,
+            await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds,
                 `${constants.dbTreeSection} is still loading`);
             await driver.wait(waitUntil.notificationExists("The MRS service has been set as the new default service."),
                 constants.wait5seconds);

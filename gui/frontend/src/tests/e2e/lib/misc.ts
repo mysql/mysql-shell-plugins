@@ -25,8 +25,8 @@ import { platform } from "os";
 import fs from "fs/promises";
 import { join } from "path";
 
-import { By, until, Key, WebElement, Builder, WebDriver, error, Logs, logging } from "selenium-webdriver";
-import { Options } from "selenium-webdriver/chrome.js";
+import { By, until, Key, WebElement, Builder, WebDriver, error, Logs, logging, Browser } from "selenium-webdriver";
+import { Options, ServiceBuilder } from "selenium-webdriver/chrome.js";
 
 import { DBConnection } from "./dbConnection.js";
 import { execFullBlockJs, execFullBlockSql } from "./dbNotebooks.js";
@@ -78,9 +78,7 @@ export class Misc {
         const prom = async (): Promise<WebDriver> => {
             return new Promise((resolve) => {
                 const options: Options = new Options();
-
                 const headless = process.env.HEADLESS ?? "1";
-
                 let driver: WebDriver;
                 options.addArguments("--no-sandbox");
                 const outDir = process.env.USERPROFILE ?? process.env.HOME;
@@ -93,18 +91,18 @@ export class Misc {
                     },
                 });
 
+                logging.installConsoleHandler();
+
                 if (headless === String("1")) {
-                    options.headless().windowSize({ width: 1024, height: 768 });
-                    driver = new Builder()
-                        .forBrowser("chrome")
-                        .setChromeOptions(options)
-                        .build();
-                } else {
-                    driver = new Builder()
-                        .forBrowser("chrome")
-                        .setChromeOptions(options)
-                        .build();
+                    options.addArguments("--headless");
+                    options.windowSize({ width: 1024, height: 768 });
                 }
+
+                driver = new Builder()
+                    .forBrowser(Browser.CHROME)
+                    .setChromeOptions(options)
+                    .build();
+
                 resolve(driver);
             });
         };

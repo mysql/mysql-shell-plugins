@@ -30,6 +30,7 @@ import { expect } from "chai";
 import clipboard from "clipboardy";
 import { driver, Misc } from "../lib/misc";
 import { Database } from "../lib/db";
+import { Notebook } from "../lib/webviews/notebook";
 import * as constants from "../lib/constants";
 import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
@@ -267,7 +268,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         beforeEach(async function () {
             try {
-                await Database.selectCurrentEditor("DB Connection Overview", "overviewPage");
+                await Notebook.selectCurrentEditor("DB Connection Overview", "overviewPage");
                 await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
             } catch (e) {
                 await Misc.processFailure(this);
@@ -501,7 +502,7 @@ describe("DATABASE CONNECTIONS", () => {
             await (await Misc.getTreeElement(constants.dbTreeSection, constants.serverStatus)).click();
             expect(await new EditorView().getOpenEditorTitles()).to.include(constants.serverStatus);
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-            expect(await Database.getCurrentEditor()).to.equals(constants.serverStatus);
+            expect(await Notebook.getCurrentEditorName()).to.equals(constants.serverStatus);
             const sections = await driver.findElements(locator.mysqlAdministration.section);
             const headings = [];
             for (const section of sections) {
@@ -521,7 +522,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await new EditorView().getOpenEditorTitles()).to.include(constants.clientConns);
             await Misc.switchToFrame();
             await driver.wait(async () => {
-                return await Database.getCurrentEditor() === constants.clientConns;
+                return await Notebook.getCurrentEditorName() === constants.clientConns;
             }, constants.wait5seconds, "Clients Connections editor was not selected");
             const properties = await driver.findElements(locator.mysqlAdministration.clientConnections.properties);
             const props = [];
@@ -555,7 +556,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await new EditorView().getOpenEditorTitles()).to.include(constants.perfDash);
             await Misc.switchToFrame();
             await driver.wait(async () => {
-                return await Database.getCurrentEditor() === constants.perfDash;
+                return await Notebook.getCurrentEditorName() === constants.perfDash;
             }, constants.wait5seconds, "Performance Dashboard editor was not selected");
 
             const grid = await driver.findElement(locator.mysqlAdministration.performanceDashboard.dashboardGrid);
@@ -702,7 +703,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Duplicate this MySQL connection", async () => {
 
-            await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait5seconds);
+            await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait5seconds);
             await Misc.sectionFocus(constants.dbTreeSection);
             treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
             await Misc.openContextMenuItem(treeGlobalConn, constants.duplicateConnection,
@@ -716,7 +717,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
             await okBtn.click();
             await Misc.switchBackToTopFrame();
-            await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait5seconds);
+            await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait5seconds);
             await driver.wait(async () => {
                 return (await Misc.existsTreeElement(constants.dbTreeSection, dup)) === true;
             }, constants.wait5seconds, `${dup} does not exist on the tree`);
@@ -742,12 +743,12 @@ describe("DATABASE CONNECTIONS", () => {
             await Misc.setInputPath(destFile);
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait5seconds);
             await driver.wait(async () => {
-                return (await Database.getCurrentEditor()) === "sakila.sql";
+                return (await Notebook.getCurrentEditorName()) === "sakila.sql";
             }, constants.wait5seconds, "Current editor is not sakila.sql");
-            expect(await Database.getCurrentEditorType()).to.include("Mysql");
+            expect(await Notebook.getCurrentEditorType()).to.include("Mysql");
             const scriptLines = await driver.findElements(locator.notebook.codeEditor.editor.line);
             expect(scriptLines.length).to.be.greaterThan(0);
-            await Database.selectCurrentEditor("DB Notebook", "notebook");
+            await Notebook.selectCurrentEditor("DB Notebook", "notebook");
             await commandExecutor.syncronizeResultId();
         });
 

@@ -299,7 +299,7 @@ export class Misc {
         };
 
         const treeDBSection = await Misc.getSection(constants.dbTreeSection);
-        await driver.wait(waitUntil.isNotLoading(constants.dbTreeSection), constants.wait5seconds);
+        await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait5seconds);
         await treeDBSection.click();
         const moreActions = await treeDBSection.findElement(locator.section.moreActions);
         await moreActions.click();
@@ -1103,7 +1103,7 @@ export class Misc {
         }
 
         const sectionTree = await Misc.getSection(section);
-        await driver.wait(waitUntil.isNotLoading(section), constants.wait20seconds);
+        await driver.wait(waitUntil.sectionIsNotLoading(section), constants.wait20seconds);
         let reload = false;
 
         await driver.wait(async () => {
@@ -1111,7 +1111,7 @@ export class Misc {
                 if (reload) {
                     if (section === constants.dbTreeSection || section === constants.ociTreeSection) {
                         await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
-                        await driver.wait(waitUntil.isNotLoading(section), constants.wait20seconds);
+                        await driver.wait(waitUntil.sectionIsNotLoading(section), constants.wait20seconds);
                     }
                 }
                 if (itemName instanceof RegExp) {
@@ -1162,7 +1162,7 @@ export class Misc {
         await driver.wait(async () => {
             try {
                 const sectionTree = await Misc.getSection(section);
-                await driver.wait(waitUntil.isNotLoading(section), constants.wait10seconds);
+                await driver.wait(waitUntil.sectionIsNotLoading(section), constants.wait10seconds);
                 if (section === constants.dbTreeSection || section === constants.ociTreeSection) {
                     if (section === constants.dbTreeSection) {
                         reloadLabel = "Reload the connection list";
@@ -1170,7 +1170,7 @@ export class Misc {
                         reloadLabel = "Reload the OCI Profile list";
                     }
                     await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
-                    await driver.wait(waitUntil.isNotLoading(section), constants.wait20seconds);
+                    await driver.wait(waitUntil.sectionIsNotLoading(section), constants.wait20seconds);
                 }
 
                 if (itemName instanceof RegExp) {
@@ -1473,7 +1473,7 @@ export class Misc {
             const treeItem = await Misc.getTreeElement(section, item);
             if (!(await treeItem.isExpanded())) {
                 await treeItem.expand();
-                await driver.wait(waitUntil.isNotLoading(section), loadingTimeout);
+                await driver.wait(waitUntil.sectionIsNotLoading(section), loadingTimeout);
             }
         }
     };
