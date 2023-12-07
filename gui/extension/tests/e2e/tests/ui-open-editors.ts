@@ -28,6 +28,7 @@ import { expect } from "chai";
 import { driver, Misc } from "../lib/misc";
 import { Shell } from "../lib/shell";
 import { Database } from "../lib/db";
+import { Notebook } from "../lib/webviews/notebook";
 import * as constants from "../lib/constants";
 import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
@@ -145,8 +146,8 @@ describe("OPEN EDITORS", () => {
         expect(treeItem).to.exist;
         await new EditorView().openEditor(globalConn.caption);
         await Misc.switchToFrame();
-        expect(await Database.getCurrentEditor()).to.match(/Untitled-(\d+)/);
-        expect(await Database.getCurrentEditorType()).to.include("Mysql");
+        expect(await Notebook.getCurrentEditorName()).to.match(/Untitled-(\d+)/);
+        expect(await Notebook.getCurrentEditorType()).to.include("Mysql");
         await Misc.switchBackToTopFrame();
         await (await Misc.getActionButton(treeItem, "Close Editor")).click();
 
@@ -158,9 +159,9 @@ describe("OPEN EDITORS", () => {
         const item = await Misc.getTreeElement(constants.openEditorsTreeSection, globalConn.caption);
         await Misc.openContextMenuItem(item, constants.newMySQLScript, constants.checkNewTabAndWebView);
         await driver.wait(async () => {
-            return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
+            return (await Notebook.getCurrentEditorName()).match(/Untitled-(\d+)/);
         }, constants.wait5seconds, "Current editor is not Untitled-(*)");
-        expect(await Database.getCurrentEditorType()).to.include("Mysql");
+        expect(await Notebook.getCurrentEditorType()).to.include("Mysql");
         await Misc.switchBackToTopFrame();
         const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
         const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "Mysql");
@@ -174,9 +175,9 @@ describe("OPEN EDITORS", () => {
         const item = await Misc.getTreeElement(constants.openEditorsTreeSection, globalConn.caption);
         await Misc.openContextMenuItem(item, constants.newJS, constants.checkNewTabAndWebView);
         await driver.wait(async () => {
-            return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
+            return (await Notebook.getCurrentEditorName()).match(/Untitled-(\d+)/);
         }, constants.wait5seconds, "Current editor is not Untitled-(*)");
-        expect(await Database.getCurrentEditorType()).to.include("scriptJs");
+        expect(await Notebook.getCurrentEditorType()).to.include("scriptJs");
         await Misc.switchBackToTopFrame();
         const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
         const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "scriptJs");
@@ -190,9 +191,9 @@ describe("OPEN EDITORS", () => {
         const item = await Misc.getTreeElement(constants.openEditorsTreeSection, globalConn.caption);
         await Misc.openContextMenuItem(item, constants.newTS, constants.checkNewTabAndWebView);
         await driver.wait(async () => {
-            return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
+            return (await Notebook.getCurrentEditorName()).match(/Untitled-(\d+)/);
         }, constants.wait5seconds, "Current editor is not Untitled-(*)");
-        expect(await Database.getCurrentEditorType()).to.include("scriptTs");
+        expect(await Notebook.getCurrentEditorType()).to.include("scriptTs");
         await Misc.switchBackToTopFrame();
         const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
         const treeItem = await Misc.getTreeScript(treeOpenEditorsSection, "Untitled-", "scriptTs");

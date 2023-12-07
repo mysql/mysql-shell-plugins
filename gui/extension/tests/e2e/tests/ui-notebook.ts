@@ -30,6 +30,7 @@ import { join } from "path";
 import clipboard from "clipboardy";
 import { browser, driver, Misc } from "../lib/misc";
 import { Database } from "../lib/db";
+import { Notebook } from "../lib/webviews/notebook";
 import * as constants from "../lib/constants";
 import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
@@ -154,9 +155,9 @@ describe("NOTEBOOKS", () => {
         it("Multi-cursor", async () => {
             try {
                 await commandExecutor.write("select * from sakila.actor;");
-                await Database.setNewLineOnEditor();
+                await Notebook.setNewLineOnEditor();
                 await commandExecutor.write("select * from sakila.address;");
-                await Database.setNewLineOnEditor();
+                await Notebook.setNewLineOnEditor();
                 await commandExecutor.write("select * from sakila.city;");
 
                 const clickLine = async (line: number): Promise<void> => {
@@ -242,7 +243,7 @@ describe("NOTEBOOKS", () => {
                 const query1 = "select * from sakila.actor limit 1;";
                 const query2 = "select * from sakila.address limit 2;";
                 await commandExecutor.write(query1, true);
-                await Database.setNewLineOnEditor();
+                await Notebook.setNewLineOnEditor();
                 await commandExecutor.write(query2, true);
                 await commandExecutor.findAndExecute(query1);
                 expect(commandExecutor.getResultMessage()).to.match(/OK/);
@@ -280,14 +281,14 @@ describe("NOTEBOOKS", () => {
 
         it("Connection toolbar buttons - Autocommit DB Changes", async () => {
 
-            const autoCommitBtn = await Database.getToolbarButton(constants.autoCommit);
+            const autoCommitBtn = await Notebook.getToolbarButton(constants.autoCommit);
             const style = await autoCommitBtn.findElement(locator.notebook.toolbar.button.icon).getAttribute("style");
             if (style.includes("toolbar-auto_commit-active")) {
                 await autoCommitBtn.click();
             }
             const random = (Math.random() * (10.00 - 1.00 + 1.00) + 1.00).toFixed(5);
-            const commitBtn = await Database.getToolbarButton(constants.commit);
-            const rollBackBtn = await Database.getToolbarButton(constants.rollback);
+            const commitBtn = await Notebook.getToolbarButton(constants.commit);
+            const rollBackBtn = await Notebook.getToolbarButton(constants.rollback);
 
             await driver.wait(until.elementIsEnabled(commitBtn),
                 3000, "Commit button should be enabled");
@@ -317,8 +318,8 @@ describe("NOTEBOOKS", () => {
 
             await driver.wait(
                 async () => {
-                    const commitBtn = await Database.getToolbarButton(constants.commit);
-                    const rollBackBtn = await Database.getToolbarButton(constants.rollback);
+                    const commitBtn = await Notebook.getToolbarButton(constants.commit);
+                    const rollBackBtn = await Notebook.getToolbarButton(constants.rollback);
 
                     return (await commitBtn?.getAttribute("class"))?.includes("disabled") &&
                         (await rollBackBtn?.getAttribute("class"))?.includes("disabled");
@@ -337,13 +338,13 @@ describe("NOTEBOOKS", () => {
             try {
                 const contentHost = await driver.findElement(locator.notebook.exists);
                 await commandExecutor.write(`import from xpto xpto xpto`);
-                const findBtn = await Database.getToolbarButton("Find");
+                const findBtn = await Notebook.getToolbarButton("Find");
                 await findBtn.click();
                 const finder = await driver.wait(until.elementLocated(locator.findWidget.exists),
                     constants.wait5seconds, "Find widget was not displayed");
                 expect(await finder.getAttribute("aria-hidden")).equals("false");
                 await finder.findElement(locator.notebook.codeEditor.textArea).sendKeys("xpto");
-                await Database.findInSelection(false);
+                await Notebook.widgetFindInSelection(false);
                 expect(
                     await finder.findElement(locator.findWidget.matchesCount).getText(),
                 ).to.match(/1 of (\d+)/);
@@ -352,21 +353,21 @@ describe("NOTEBOOKS", () => {
                     2000,
                     "No words found",
                 );
-                await Database.toggleFinderReplace(true);
+                await Notebook.widgetExpandFinderReplace(true);
                 const replacer = await finder.findElement(locator.findWidget.replacePart);
                 await replacer.findElement(locator.notebook.codeEditor.textArea).sendKeys("tester");
-                await (await Database.replacerGetButton("Replace (Enter)")).click();
+                await (await Notebook.widgetGetReplacerButton("Replace (Enter)")).click();
                 expect(
                     await contentHost.findElement(locator.notebook.codeEditor.textArea).getAttribute("value"),
                 ).to.include("import from tester xpto xpto");
 
                 await replacer.findElement(locator.notebook.codeEditor.textArea).clear();
                 await replacer.findElement(locator.notebook.codeEditor.textArea).sendKeys("testing");
-                await (await Database.replacerGetButton("Replace All")).click();
+                await (await Notebook.widgetGetReplacerButton("Replace All")).click();
                 expect(
                     await contentHost.findElement(locator.notebook.codeEditor.textArea).getAttribute("value"),
                 ).to.include("import from tester testing testing");
-                await Database.closeFinder();
+                await Notebook.widgetCloseFinder();
             } finally {
                 cleanEditor = true;
             }
@@ -422,18 +423,18 @@ describe("NOTEBOOKS", () => {
                 .findElement(locator.notebook.codeEditor.editor.result.status.maximize).click();
             await driver.wait(waitUntil.resultTabIsMaximized(), constants.wait5seconds);
 
-            expect(await Database.getCurrentEditor()).to.equals("Result #1");
+            expect(await Notebook.getCurrentEditorName()).to.equals("Result #1");
             try {
-                expect(await Database.isEditorStretched()).to.be.false;
+                expect(await Notebook.isResultMaximized()).to.be.false;
                 let tabArea = await driver.findElements(locator.notebook.codeEditor.editor.result.tabSection.body);
                 expect(tabArea.length, "Result tab should not be visible").to.equals(0);
                 await driver.findElement(locator.notebook.codeEditor.editor.result.status.normalize).click();
-                expect(await Database.isEditorStretched()).to.be.true;
+                expect(await Notebook.isResultMaximized()).to.be.true;
                 await driver.wait(waitUntil.resultTabIsNormalized, constants.wait5seconds);
                 tabArea = await driver.findElements(locator.notebook.codeEditor.editor.result.tabSection.body);
                 expect(tabArea.length, "Result tab should be visible").to.equals(1);
             } finally {
-                await Database.selectCurrentEditor("DB Notebook", "notebook");
+                await Notebook.selectCurrentEditor("DB Notebook", "notebook");
                 await commandExecutor.syncronizeResultId();
             }
         });
@@ -460,18 +461,18 @@ describe("NOTEBOOKS", () => {
             await commandExecutor.languageSwitch("\\sql ", true);
             await commandExecutor.write("select sak", true);
             await commandExecutor.openSuggestionMenu();
-            let els = await Database.getAutoCompleteMenuItems();
+            let els = await Notebook.getAutoCompleteMenuItems();
             expect(els.toString()).to.match(/sakila/);
             const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys(Key.ESCAPE);
             await commandExecutor.write("ila.", true);
             await commandExecutor.openSuggestionMenu();
-            els = await Database.getAutoCompleteMenuItems();
+            els = await Notebook.getAutoCompleteMenuItems();
             expect(els.toString()).to.match(/(actor|address|category)/);
             await textArea.sendKeys(Key.ESCAPE);
             await commandExecutor.write("actor.", true);
             await commandExecutor.openSuggestionMenu();
-            els = await Database.getAutoCompleteMenuItems();
+            els = await Notebook.getAutoCompleteMenuItems();
             expect(els.toString()).to.match(/(actor_id|first_name|last_name)/);
             await textArea.sendKeys(Key.ESCAPE);
         });
@@ -497,7 +498,7 @@ describe("NOTEBOOKS", () => {
             const sakilaFile = await fs.readFile(join(constants.workspace, "gui", "frontend",
                 "src", "tests", "e2e", "sql", "sakila.sql"));
             const fileLines = sakilaFile.toString().split("\n");
-            const findBtn = await Database.getToolbarButton("Find");
+            const findBtn = await Notebook.getToolbarButton("Find");
             await findBtn.click();
             const finder = await driver.wait(until.elementLocated(locator.findWidget.exists),
                 constants.wait5seconds, "Find widget was not displayed");
@@ -514,19 +515,19 @@ describe("NOTEBOOKS", () => {
         it("Cut paste into notebook", async () => {
             const sentence1 = "select * from sakila.actor";
             const sentence2 = "select * from sakila.address";
-            await Database.closeFinder();
+            await Notebook.widgetCloseFinder();
             await commandExecutor.clean();
             await commandExecutor.write(sentence1);
-            await Database.setNewLineOnEditor();
+            await Notebook.setNewLineOnEditor();
             await commandExecutor.write(sentence2);
             const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await Misc.keyboardSelectAll(textArea);
             await Misc.keyboardCut(textArea);
-            expect(await Database.existsOnNotebook(sentence1)).to.be.false;
-            expect(await Database.existsOnNotebook(sentence2)).to.be.false;
+            expect(await Notebook.existsOnNotebook(sentence1)).to.be.false;
+            expect(await Notebook.existsOnNotebook(sentence2)).to.be.false;
             await Misc.keyboardPaste(textArea);
-            expect(await Database.existsOnNotebook(sentence1)).to.be.true;
-            expect(await Database.existsOnNotebook(sentence2)).to.be.true;
+            expect(await Notebook.existsOnNotebook(sentence1)).to.be.true;
+            expect(await Notebook.existsOnNotebook(sentence2)).to.be.true;
         });
 
     });
@@ -578,9 +579,9 @@ describe("NOTEBOOKS", () => {
             const treeGlobalConn = await Misc.getTreeElement(constants.openEditorsTreeSection, globalConn.caption);
             await Misc.openContextMenuItem(treeGlobalConn, constants.newMySQLScript, constants.checkNewTabAndWebView);
             await driver.wait(async () => {
-                return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
+                return (await Notebook.getCurrentEditorName()).match(/Untitled-(\d+)/);
             }, constants.wait5seconds, "Current editor is not Untitled-(*)");
-            expect(await Database.getCurrentEditorType()).to.include("Mysql");
+            expect(await Notebook.getCurrentEditorType()).to.include("Mysql");
             await commandExecutor.executeScript("select * from sakila.actor limit 1;", undefined);
             expect(commandExecutor.getResultMessage()).to.match(/OK, (\d+) record/);
             await Misc.switchBackToTopFrame();
@@ -593,9 +594,9 @@ describe("NOTEBOOKS", () => {
             const treeGlobalConn = await Misc.getTreeElement(constants.openEditorsTreeSection, globalConn.caption);
             await Misc.openContextMenuItem(treeGlobalConn, constants.newTS, constants.checkNewTabAndWebView);
             await driver.wait(async () => {
-                return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
+                return (await Notebook.getCurrentEditorName()).match(/Untitled-(\d+)/);
             }, constants.wait5seconds, "Current editor is not Untitled-(*)");
-            expect(await Database.getCurrentEditorType()).to.include("scriptTs");
+            expect(await Notebook.getCurrentEditorType()).to.include("scriptTs");
             await commandExecutor.executeScript("Math.random()", undefined);
             expect(commandExecutor.getResultMessage()).to.match(/(\d+).(\d+)/);
             await Misc.switchBackToTopFrame();
@@ -609,9 +610,9 @@ describe("NOTEBOOKS", () => {
             const treeGlobalConn = await Misc.getTreeElement(constants.openEditorsTreeSection, globalConn.caption);
             await Misc.openContextMenuItem(treeGlobalConn, constants.newJS, constants.checkNewTabAndWebView);
             await driver.wait(async () => {
-                return (await Database.getCurrentEditor()).match(/Untitled-(\d+)/);
+                return (await Notebook.getCurrentEditorName()).match(/Untitled-(\d+)/);
             }, constants.wait5seconds, "Current editor is not Untitled-(*)");
-            expect(await Database.getCurrentEditorType()).to.include("scriptJs");
+            expect(await Notebook.getCurrentEditorType()).to.include("scriptJs");
             await commandExecutor.executeScript("Math.random()", undefined);
             expect(commandExecutor.getResultMessage()).to.match(/(\d+).(\d+)/);
             await Misc.switchBackToTopFrame();
@@ -659,7 +660,7 @@ describe("NOTEBOOKS", () => {
                 await new EditorView().closeAllEditors();
                 await fs.unlink(`${destFile}.mysql-notebook`);
                 const activityBar = new ActivityBar();
-                await (await activityBar.getViewControl("MySQL Shell for VS Code"))?.openView();
+                await (await activityBar.getViewControl(constants.extensionName))?.openView();
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -671,7 +672,7 @@ describe("NOTEBOOKS", () => {
             const commandExecutor = new CommandExecutor();
             await commandExecutor.execute("SELECT VERSION();");
             expect(commandExecutor.getResultMessage()).to.match(/1 record retrieved/);
-            await (await Database.getToolbarButton(constants.saveNotebook)).click();
+            await (await Notebook.getToolbarButton(constants.saveNotebook)).click();
             await Misc.switchBackToTopFrame();
             await Misc.setInputPath(destFile);
             await driver.wait(new Condition("", async () => {
@@ -688,11 +689,11 @@ describe("NOTEBOOKS", () => {
         it("Replace this Notebook with content from a file", async () => {
 
             await Misc.switchToFrame();
-            await (await Database.getToolbarButton(constants.loadNotebook)).click();
+            await (await Notebook.getToolbarButton(constants.loadNotebook)).click();
             await Misc.switchBackToTopFrame();
             await Misc.setInputPath(`${destFile}.mysql-notebook`);
             await Misc.switchToFrame();
-            await Database.verifyNotebook("SELECT VERSION();", "1 record retrieved");
+            await Notebook.verifyNotebook("SELECT VERSION();", "1 record retrieved");
 
         });
 
@@ -718,7 +719,7 @@ describe("NOTEBOOKS", () => {
             await new EditorView().openEditor("test.mysql-notebook");
 
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-            await Database.verifyNotebook("SELECT VERSION();", "1 record retrieved");
+            await Notebook.verifyNotebook("SELECT VERSION();", "1 record retrieved");
 
         });
 
@@ -739,7 +740,7 @@ describe("NOTEBOOKS", () => {
             await (await input.findQuickPick(globalConn.caption)).select();
             await driver.wait(waitUntil.tabIsOpened("test.mysql-notebook"), constants.wait5seconds);
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-            await Database.verifyNotebook("SELECT VERSION();", "1 record retrieved");
+            await Notebook.verifyNotebook("SELECT VERSION();", "1 record retrieved");
 
         });
 

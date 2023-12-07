@@ -27,6 +27,7 @@ import {
     WebElement,
 } from "vscode-extension-tester";
 import { Database } from "./db";
+import { Notebook } from "./webviews/notebook";
 import * as constants from "./constants";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
@@ -87,7 +88,7 @@ export class CommandExecutor {
                             await driver.sleep(10);
                         }
                         if (i !== lines.length - 1 && lines.length > 1) {
-                            await Database.setNewLineOnEditor();
+                            await Notebook.setNewLineOnEditor();
                         }
                     }
 
@@ -95,7 +96,7 @@ export class CommandExecutor {
                     for (let i = 0; i <= lines.length - 1; i++) {
                         await textArea.sendKeys(lines[i].trim());
                         if (i !== lines.length - 1 && lines.length > 1) {
-                            await Database.setNewLineOnEditor();
+                            await Notebook.setNewLineOnEditor();
                         }
                     }
                 }
@@ -137,7 +138,7 @@ export class CommandExecutor {
 
                 await textArea.sendKeys(Key.BACK_SPACE);
                 await driver.wait(async () => {
-                    return await Database.getPromptLastTextLine() === "";
+                    return await Notebook.getPromptLastTextLine() === "";
                 }, constants.wait5seconds, "Prompt was not cleaned");
 
                 return true;
@@ -212,7 +213,7 @@ export class CommandExecutor {
         }
 
         await this.write(cmd, slowWriting);
-        await (await Database.getToolbarButton(button)).click();
+        await (await Notebook.getToolbarButton(button)).click();
 
         const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
         await this.setResultMessage(cmd, nextId);
@@ -240,7 +241,7 @@ export class CommandExecutor {
         }
 
         await this.write(cmd, slowWriting);
-        await Database.clickContextItem(item);
+        await Notebook.clickContextItem(item);
 
         const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
         await this.setResultMessage(cmd, nextId);
@@ -294,13 +295,13 @@ export class CommandExecutor {
         }
         await this.setMouseCursorAt(cmd);
 
-        if (await Database.existsToolbarButton(constants.execCaret)) {
-            const toolbarButton = await Database.getToolbarButton(constants.execCaret);
+        if (await Notebook.existsToolbarButton(constants.execCaret)) {
+            const toolbarButton = await Notebook.getToolbarButton(constants.execCaret);
             await toolbarButton.click();
             await driver.wait(waitUntil.toolbarButtonIsDisabled(constants.execCaret), constants.wait5seconds);
             await driver.wait(waitUntil.toolbarButtonIsEnabled(constants.execCaret), constants.wait5seconds);
         } else {
-            await (await Database.getToolbarButton(constants.execFullBlockJs)).click();
+            await (await Notebook.getToolbarButton(constants.execFullBlockJs)).click();
         }
         const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
         await this.setResultMessage(cmd, nextId);
@@ -469,8 +470,8 @@ export class CommandExecutor {
      * @returns A promise resolving when the mouse cursor is placed at the desired spot
      */
     public setMouseCursorAt = async (word: string): Promise<void> => {
-        const mouseCursorIs = await Database.getMouseCursorLine();
-        const mouseCursorShouldBe = await Database.getLineFromWord(word);
+        const mouseCursorIs = await Notebook.getMouseCursorLine();
+        const mouseCursorShouldBe = await Notebook.getLineFromWord(word);
         const taps = mouseCursorShouldBe - mouseCursorIs;
         const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
         if (taps > 0) {

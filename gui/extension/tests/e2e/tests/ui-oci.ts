@@ -65,7 +65,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.sectionFocus(constants.ociTreeSection);
-            await driver.wait(waitUntil.isNotLoading(constants.ociTreeSection), constants.wait20seconds,
+            await driver.wait(waitUntil.sectionIsNotLoading(constants.ociTreeSection), constants.wait20seconds,
                 `${constants.ociTreeSection} is still loading`);
             await fs.writeFile(process.env.MYSQLSH_OCI_CONFIG_FILE, "");
             const treeOCISection = await Misc.getSection(constants.ociTreeSection);
@@ -119,7 +119,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         beforeEach(async function () {
             try {
-                await driver.wait(waitUntil.isNotLoading(constants.ociTreeSection), constants.wait25seconds,
+                await driver.wait(waitUntil.sectionIsNotLoading(constants.ociTreeSection), constants.wait25seconds,
                     `${constants.ociTreeSection} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -165,7 +165,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const treeE2eTests = await Misc.getTreeElement(constants.ociTreeSection,
                 `${constants.ociConfigProfile.name} (${constants.ociConfigProfile.region})`);
             await Misc.openContextMenuItem(treeE2eTests, constants.setDefaultConfigProfile, undefined);
-            await driver.wait(waitUntil.isNotLoading(constants.ociTreeSection), constants.wait25seconds,
+            await driver.wait(waitUntil.sectionIsNotLoading(constants.ociTreeSection), constants.wait25seconds,
                 `${constants.ociTreeSection} is still loading`);
             await driver.wait(waitUntil.isDefaultItem(constants.ociTreeSection,
                 `${constants.ociConfigProfile.name} (${constants.ociConfigProfile.region})`, "profile"),
@@ -243,18 +243,18 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             let treeQA = await Misc.getTreeElement(constants.ociTreeSection, /QA/);
             await Misc.openContextMenuItem(treeQA, constants.setCurrentCompartment, undefined);
-            await driver.wait(waitUntil.isNotLoading(constants.ociTreeSection), constants.wait25seconds,
+            await driver.wait(waitUntil.sectionIsNotLoading(constants.ociTreeSection), constants.wait25seconds,
                 `${constants.ociTreeSection} is still loading`);
             const treeOCISection = await Misc.getSection(constants.ociTreeSection);
             treeQA = await treeOCISection.findItem("QA (Default)", constants.ociMaxLevel);
             await driver.wait(waitUntil.isDefaultItem(constants.ociTreeSection, "QA (Default)", "compartment"),
                 constants.wait5seconds, "QA (Default) should be default");
             await treeQA.expand();
-            await driver.wait(waitUntil.isNotLoading(constants.ociTreeSection), constants.wait20seconds,
+            await driver.wait(waitUntil.sectionIsNotLoading(constants.ociTreeSection), constants.wait20seconds,
                 `${constants.ociTreeSection} is still loading`);
             const treeShellTesting = await Misc.getTreeElement(constants.ociTreeSection, ociTree[ociTree.length - 1]);
             await treeShellTesting.expand();
-            await driver.wait(waitUntil.isNotLoading(constants.ociTreeSection), constants.wait20seconds,
+            await driver.wait(waitUntil.sectionIsNotLoading(constants.ociTreeSection), constants.wait20seconds,
                 `${constants.ociTreeSection} is still loading`);
             const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
             await treeOpenEditorsSection.expand();
@@ -285,7 +285,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         beforeEach(async function () {
             try {
                 await Misc.sectionFocus(constants.ociTreeSection);
-                await driver.wait(waitUntil.isNotLoading(constants.ociTreeSection), constants.wait25seconds,
+                await driver.wait(waitUntil.sectionIsNotLoading(constants.ociTreeSection), constants.wait25seconds,
                     `${constants.ociTreeSection} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -432,7 +432,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         beforeEach(async function () {
             try {
                 await Misc.sectionFocus(constants.ociTreeSection);
-                await driver.wait(waitUntil.isNotLoading(constants.ociTreeSection), constants.wait25seconds,
+                await driver.wait(waitUntil.sectionIsNotLoading(constants.ociTreeSection), constants.wait25seconds,
                     `${constants.ociTreeSection} is still loading`);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -494,7 +494,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await new ModalDialog().pushButton("Don't Save");
 
             await Misc.openContextMenuItem(treeBastion, constants.setAsCurrentBastion, undefined);
-            await driver.wait(waitUntil.isNotLoading(constants.ociTreeSection), constants.wait25seconds,
+            await driver.wait(waitUntil.sectionIsNotLoading(constants.ociTreeSection), constants.wait25seconds,
                 `${constants.ociTreeSection} is still loading`);
 
             await driver.wait(waitUntil.isDefaultItem(constants.ociTreeSection, bastionName,

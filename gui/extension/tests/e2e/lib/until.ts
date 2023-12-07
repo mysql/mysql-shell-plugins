@@ -35,13 +35,14 @@ import { join } from "path";
 import fs from "fs/promises";
 import * as constants from "./constants";
 import { Misc, driver } from "./misc";
+import { Notebook } from "./webviews/notebook";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
 import { Database } from "./db";
 export let credentialHelperOk = true;
 
 
-export const isNotLoading = (section: string): Condition<boolean> => {
+export const sectionIsNotLoading = (section: string): Condition<boolean> => {
     return new Condition(`for ${section} to NOT be loading`, async () => {
         const sec = await Misc.getSection(section);
         const loading = await sec.findElements(locator.section.loadingBar);
@@ -188,7 +189,7 @@ export const elementLocated = (context: WebElement, locator: Locator): Condition
 
 export const toolbarButtonIsDisabled = (button: string): Condition<boolean> => {
     return new Condition(`for button ${button} to be disabled`, async () => {
-        const btn = await Database.getToolbarButton(button);
+        const btn = await Notebook.getToolbarButton(button);
 
         return (await btn.getAttribute("class")).includes("disabled");
     });
@@ -196,7 +197,7 @@ export const toolbarButtonIsDisabled = (button: string): Condition<boolean> => {
 
 export const toolbarButtonIsEnabled = (button: string): Condition<boolean> => {
     return new Condition(`for button ${button} to be enabled`, async () => {
-        const btn = await Database.getToolbarButton(button);
+        const btn = await Notebook.getToolbarButton(button);
 
         return !(await btn.getAttribute("class")).includes("disabled");
     });
@@ -263,7 +264,7 @@ export const routerIconIsActive = (): Condition<boolean> => {
     return new Condition(`for router icon to be active`, async () => {
         const dbSection = await Misc.getSection(constants.dbTreeSection);
         await Misc.clickSectionToolbarButton(dbSection, constants.reloadConnections);
-        await driver.wait(isNotLoading(constants.dbTreeSection), constants.wait5seconds);
+        await driver.wait(sectionIsNotLoading(constants.dbTreeSection), constants.wait5seconds);
 
         return Misc.isRouterIconActive();
     });
@@ -273,7 +274,7 @@ export const routerIconIsInactive = (): Condition<boolean> => {
     return new Condition(`for router icon to be inactive`, async () => {
         const dbSection = await Misc.getSection(constants.dbTreeSection);
         await Misc.clickSectionToolbarButton(dbSection, constants.reloadConnections);
-        await driver.wait(isNotLoading(constants.dbTreeSection), constants.wait5seconds);
+        await driver.wait(sectionIsNotLoading(constants.dbTreeSection), constants.wait5seconds);
 
         return !(await Misc.isRouterIconActive());
     });
