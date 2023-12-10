@@ -710,49 +710,49 @@
             "name": "Generic string",
             "scope": "string",
             "settings": {
-                "foreground": "#e5bd46"
+                "foreground": "#a31515"
             }
         },
         {
             "name": "Generic quoted string",
             "scope": "string.quoted",
             "settings": {
-                "foreground": "#e5bd46"
+                "foreground": "#a31515"
             }
         },
         {
             "name": "Singly quoted string",
             "scope": "string.quoted.single",
             "settings": {
-                "foreground": "#e5bd46"
+                "foreground": "#a31515"
             }
         },
         {
             "name": "Doubly quoted string",
             "scope": "string.quoted.double",
             "settings": {
-                "foreground": "#e5bd46"
+                "foreground": "#a31515"
             }
         },
         {
             "name": "Triply quoted string",
             "scope": "string.quoted.triple",
             "settings": {
-                "foreground": "#e5bd46"
+                "foreground": "#a31515"
             }
         },
         {
             "name": "Other quoted string",
             "scope": "string.quoted.other",
             "settings": {
-                "foreground": "#e5bd46"
+                "foreground": "#a31515"
             }
         },
         {
             "name": "Unquoted string",
             "scope": "string.unquoted",
             "settings": {
-                "foreground": "#e5bd46"
+                "foreground": "#a31515"
             }
         },
         {
