@@ -76,29 +76,29 @@ if ($env:TEST_SUITE -eq "oci"){
     $env:MYSQLSH_OCI_CONFIG_FILE = Join-Path $env:WORKSPACE "oci" "config"
     $env:MYSQLSH_OCI_RC_FILE = Join-Path $env:WORKSPACE "oci" "e2e_cli_rc"
     if (!$env:OCI_PROFILE_NAME) {
-            Throw "Please set the OCI_PROFILE_NAME environment variable"
-        }
-        if (!$env:OCI_PROFILE_USER) {
-            Throw "Please set the OCI_PROFILE_USER environment variable"
-        }
-        if (!$env:OCI_PROFILE_FINGERPRINT) {
-            Throw "Please set the OCI_PROFILE_FINGERPRINT environment variable"
-        }
-        if (!$env:OCI_PROFILE_TENANCY) {
-            Throw "Please set the OCI_PROFILE_TENANCY environment variable"
-        }
-        if (!$env:OCI_PROFILE_REGION) {
-            Throw "Please set the OCI_PROFILE_REGION environment variable"
-        }
-        if (!$env:OCI_BASTION_USERNAME) {
-            Throw "Please set the OCI_BASTION_USERNAME environment variable"
-        }
-        if (!$env:OCI_BASTION_PASSWORD) {
-            Throw "Please set the OCI_BASTION_PASSWORD environment variable"
-        }
-        if (!$env:OCI_OBJECTS_PATH) {
-            Throw "Please set the OCI_OBJECTS_PATH environment variable. Ex QA/MySQLShellTesting"
-        }
+        Throw "Please set the OCI_PROFILE_NAME environment variable"
+    }
+    if (!$env:OCI_PROFILE_USER) {
+        Throw "Please set the OCI_PROFILE_USER environment variable"
+    }
+    if (!$env:OCI_PROFILE_FINGERPRINT) {
+        Throw "Please set the OCI_PROFILE_FINGERPRINT environment variable"
+    }
+    if (!$env:OCI_PROFILE_TENANCY) {
+        Throw "Please set the OCI_PROFILE_TENANCY environment variable"
+    }
+    if (!$env:OCI_PROFILE_REGION) {
+        Throw "Please set the OCI_PROFILE_REGION environment variable"
+    }
+    if (!$env:OCI_BASTION_USERNAME) {
+        Throw "Please set the OCI_BASTION_USERNAME environment variable"
+    }
+    if (!$env:OCI_BASTION_PASSWORD) {
+        Throw "Please set the OCI_BASTION_PASSWORD environment variable"
+    }
+    if (!$env:OCI_OBJECTS_PATH) {
+        Throw "Please set the OCI_OBJECTS_PATH environment variable. Ex QA/MySQLShellTesting"
+    }
 } else {
     $env:MYSQLSH_OCI_CONFIG_FILE = Join-Path $env:WORKSPACE "oci_dummy" "config"
     $env:MYSQLSH_OCI_RC_FILE = Join-Path $env:WORKSPACE "oci_dummy" "e2e_cli_rc"

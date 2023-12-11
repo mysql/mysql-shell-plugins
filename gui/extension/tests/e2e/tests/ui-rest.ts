@@ -32,7 +32,6 @@ import {
     EditorView,
 } from "vscode-extension-tester";
 import { driver, Misc } from "../lib/misc";
-import { Database } from "../lib/db";
 import { Rest } from "../lib/webviews/rest";
 import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
@@ -84,7 +83,7 @@ describe("MySQL REST Service", () => {
             await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
             await Misc.toggleBottomBar(false);
             await Misc.sectionFocus(constants.dbTreeSection);
-            await Database.createConnection(globalConn);
+            await Misc.createConnection(globalConn);
             await new EditorView().closeAllEditors();
             expect(await Misc.existsTreeElement(constants.dbTreeSection, globalConn.caption)).to.be.true;
             await Misc.cleanCredentials();

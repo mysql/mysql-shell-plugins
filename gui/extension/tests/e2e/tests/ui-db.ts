@@ -29,7 +29,7 @@ import {
 import { expect } from "chai";
 import clipboard from "clipboardy";
 import { driver, Misc } from "../lib/misc";
-import { Database } from "../lib/db";
+import { DatabaseConnection } from "../lib/webviews/dbConnection";
 import { Notebook } from "../lib/webviews/notebook";
 import * as constants from "../lib/constants";
 import * as waitUntil from "../lib/until";
@@ -87,7 +87,7 @@ describe("DATABASE CONNECTIONS", () => {
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
             await Misc.dismissNotifications();
             await Misc.toggleBottomBar(false);
-            await Database.createConnection(globalConn);
+            await Misc.createConnection(globalConn);
             const edView = new EditorView();
             await edView.closeAllEditors();
             await new BottomBarPanel().toggle(false);
@@ -156,8 +156,9 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Create New DB Connection", async () => {
 
-            await Database.createConnection(localConn);
-            expect(await Database.getWebViewConnection(localConn.caption)).to.exist;
+            await Misc.createConnection(localConn);
+            expect(await DatabaseConnection.getConnection(localConn.caption)).to.exist;
+            await Misc.switchBackToTopFrame();
             await new EditorView().closeEditor(constants.dbDefaultEditor);
 
         });
@@ -369,14 +370,14 @@ describe("DATABASE CONNECTIONS", () => {
                 dbName: "SQLite",
             };
 
-            await Database.setConnection(
+            await DatabaseConnection.setConnection(
                 sqliteConn.dbType,
                 sqliteConn.caption,
                 undefined,
                 sqliteConn.basic,
             );
 
-            const sqliteWebConn = await Database.getWebViewConnection(sqliteConn.caption, false);
+            const sqliteWebConn = await DatabaseConnection.getConnection(sqliteConn.caption);
             expect(sqliteWebConn).to.exist;
 
             await driver.executeScript(
@@ -431,7 +432,7 @@ describe("DATABASE CONNECTIONS", () => {
                 clientKeyPath: String(process.env.SSL_CLIENT_KEY_PATH),
             };
 
-            await Database.setConnection(
+            await DatabaseConnection.setConnection(
                 sslConn.dbType,
                 sslConn.caption,
                 undefined,
@@ -439,7 +440,7 @@ describe("DATABASE CONNECTIONS", () => {
                 sslConn.ssl,
             );
 
-            const dbConn = await Database.getWebViewConnection(sslConn.caption, false);
+            const dbConn = await DatabaseConnection.getConnection(sslConn.caption);
             expect(dbConn).to.exist;
 
             await driver.executeScript(
@@ -684,12 +685,13 @@ describe("DATABASE CONNECTIONS", () => {
 
             const localConn = Object.assign({}, globalConn);
             localConn.caption = `connectionToEdit`;
-            await Database.createConnection(localConn);
-            expect(await Database.getWebViewConnection(localConn.caption, true)).to.exist;
+            await Misc.createConnection(localConn);
+            expect(await DatabaseConnection.getConnection(localConn.caption)).to.exist;
+            await Misc.switchBackToTopFrame();
             const treeLocalConn = await Misc.getTreeElement(constants.dbTreeSection, localConn.caption);
             await Misc.openContextMenuItem(treeLocalConn, constants.editDBConnection,
                 constants.checkNewTabAndWebView);
-            await Database.setConnection(
+            await DatabaseConnection.setConnection(
                 "MySQL",
                 localConn.caption,
                 undefined,
@@ -856,7 +858,7 @@ describe("DATABASE CONNECTIONS", () => {
                 (globalConn.basic as interfaces.IConnBasicMySQL).schema);
             await Misc.openContextMenuItem(sakilaItem, constants.loadDataToHW, constants.checkNewTabAndWebView);
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-            await Database.setDataToHw();
+            await DatabaseConnection.setDataToHeatWave();
             await Misc.switchBackToTopFrame();
             await Misc.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Misc.getNotification("The data load to the HeatWave cluster operation has finished");

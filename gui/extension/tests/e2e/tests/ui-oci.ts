@@ -31,7 +31,7 @@ import {
     OutputView,
 } from "vscode-extension-tester";
 import { driver, Misc } from "../lib/misc";
-import { Database } from "../lib/db";
+import { DatabaseConnection } from "../lib/webviews/dbConnection";
 import { Shell } from "../lib/shell";
 import * as constants from "../lib/constants";
 import * as waitUntil from "../lib/until";
@@ -414,15 +414,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         before(async function () {
             try {
-                await Misc.sectionFocus(constants.ociTreeSection);
-                before(async function () {
-                    try {
-                        await Misc.expandTree(constants.ociTreeSection, ociTree, constants.wait5seconds * 5);
-                    } catch (e) {
-                        await Misc.processFailure(this);
-                        throw e;
-                    }
-                });
+                await Misc.expandTree(constants.ociTreeSection, ociTree, constants.wait5seconds * 5);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -590,10 +582,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 bastionOCID = await driver
                     .findElement(locator.dbConnectionDialog.mysql.mds.bastionId).getAttribute("value");
                 await newConDialog.findElement(locator.dbConnectionDialog.ok).click();
-                await Misc.switchBackToTopFrame();
-                const mds = await Database.getWebViewConnection(bastionConn.caption);
+                const mds = await DatabaseConnection.getConnection(bastionConn.caption);
                 expect(mds).to.exist;
-                await Misc.switchToFrame();
                 await mds.click();
                 try {
                     await driver.wait(waitUntil.mdsConnectionIsOpened(bastionConn), constants.wait25seconds,
@@ -643,7 +633,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Misc.sectionFocus(constants.dbTreeSection);
             const treeMDSConn = await Misc.getTreeElementByType(constants.dbTreeSection, constants.dbSystemType);
             await Misc.openContextMenuItem(treeMDSConn, constants.editDBConnection, constants.checkNewTabAndWebView);
-            await Database.setConnection(
+            await DatabaseConnection.setConnection(
                 "MySQL",
                 mdsConn.caption,
                 undefined,
@@ -686,7 +676,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await Misc.sectionFocus(constants.dbTreeSection);
 
-            await Database.createConnection(localConn);
+            await Misc.createConnection(localConn);
             const treeLocalConn = await Misc.getTreeElement(constants.dbTreeSection, localConn.caption);
             await new EditorView().closeAllEditors();
             await (await Misc.getActionButton(treeLocalConn, constants.openNewConnection)).click();

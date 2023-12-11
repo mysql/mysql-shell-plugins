@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,76 +21,81 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { WebElement, By, until, Key, Condition } from "vscode-extension-tester";
-import { driver, Misc } from "./misc";
-import * as waitUntil from "./until";
-import * as constants from "./constants";
-import * as interfaces from "./interfaces";
-import * as locator from "./locators";
+import { driver, Misc } from "../misc";
+import * as waitUntil from "../until";
+import * as constants from "../constants";
+import * as interfaces from "../interfaces";
+import * as locator from "../locators";
+import { DialogHelper } from "./dialogHelper";
 
-export class Database {
+export class DatabaseConnection {
 
+    /**
+     * Sets a Database connection data
+     * @param databaseType The database type
+     * @param caption The caption
+     * @param description The description
+     * @param basic The MySQL or SQLite basic information
+     * @param ssl The SSL information
+     * @param advanced The advanced information
+     * @param mds The MDS information
+     * @returns A promise resolving when the connection dialog is set
+     */
     public static setConnection = async (
-        dbType: string | undefined,
-        caption: string | undefined,
-        description: string | undefined,
-        basic: interfaces.IConnBasicMySQL | interfaces.IConnBasicSqlite | undefined,
+        databaseType: string,
+        caption: string,
+        description: string,
+        basic: interfaces.IConnBasicMySQL | interfaces.IConnBasicSqlite,
         ssl?: interfaces.IConnSSL,
         advanced?: interfaces.IConnAdvanced,
         mds?: interfaces.IConnMDS,
     ): Promise<void> => {
 
+        if ((await Misc.insideIframe()) === false) {
+            await Misc.switchToFrame();
+        }
+
         const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
             constants.wait25seconds, "Connection dialog was not displayed");
 
-        if (dbType) {
+        if (databaseType) {
             const inDBType = await dialog.findElement(locator.dbConnectionDialog.databaseType);
             await inDBType.click();
             const popup = await driver.wait(until.elementLocated(locator.dbConnectionDialog.databaseTypeList),
                 constants.wait5seconds, "Database type popup was not found");
-            await popup.findElement(By.id(dbType)).click();
+            await popup.findElement(By.id(databaseType)).click();
         }
-
         if (caption) {
-            const inCaption = await dialog.findElement(locator.dbConnectionDialog.caption);
-            await inCaption.clear();
-            await inCaption.sendKeys(caption);
+            await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.caption, caption);
         }
-
         if (description) {
-            const inDesc = await dialog.findElement(locator.dbConnectionDialog.description);
-            await inDesc.clear();
-            await inDesc.sendKeys(description);
+            await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.description, description);
         }
 
-        if (dbType === "MySQL") {
-
+        if (databaseType === "MySQL") {
+            const mysqlData = (basic as interfaces.IConnBasicMySQL);
             if (basic) {
                 await dialog.findElement(locator.dbConnectionDialog.basicTab).click();
-                if ((basic as interfaces.IConnBasicMySQL).hostname) {
-                    const inHostname = await dialog.findElement(locator.dbConnectionDialog.mysql.basic.hostname);
-                    await inHostname.clear();
-                    await inHostname.sendKeys((basic as interfaces.IConnBasicMySQL).hostname);
+                if (mysqlData.hostname) {
+                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.hostname,
+                        mysqlData.hostname);
                 }
-                if ((basic as interfaces.IConnBasicMySQL).username) {
-                    const inUserName = await dialog.findElement(locator.dbConnectionDialog.mysql.basic.username);
-                    await inUserName.clear();
-                    await inUserName.sendKeys((basic as interfaces.IConnBasicMySQL).username);
+                if (mysqlData.username) {
+                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.username,
+                        mysqlData.username);
                 }
-                if ((basic as interfaces.IConnBasicMySQL).schema) {
-                    const inSchema = await dialog.findElement(locator.dbConnectionDialog.mysql.basic.defaultSchema);
-                    await inSchema.clear();
-                    await inSchema.sendKeys((basic as interfaces.IConnBasicMySQL).schema);
+                if (mysqlData.schema) {
+                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.defaultSchema,
+                        mysqlData.schema);
                 }
-                if ((basic as interfaces.IConnBasicMySQL).port) {
-                    const inPort = await dialog.findElement(locator.dbConnectionDialog.mysql.basic.port);
-                    await inPort.clear();
-                    await inPort.sendKeys((basic as interfaces.IConnBasicMySQL).port);
+                if (mysqlData.port) {
+                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.port,
+                        String(mysqlData.port));
                 }
-                if ((basic as interfaces.IConnBasicMySQL).ociBastion !== undefined) {
-                    await Database.toggleCheckBox("useMDS", (basic as interfaces.IConnBasicMySQL).ociBastion);
+                if (mysqlData.ociBastion !== undefined) {
+                    await DialogHelper.setCheckboxValue("useMDS", mysqlData.ociBastion);
                 }
             }
-
             if (ssl) {
                 await dialog.findElement(locator.dbConnectionDialog.sslTab).click();
                 if (ssl.mode) {
@@ -100,36 +105,30 @@ export class Database {
                     await popup.findElement(By.id(ssl.mode)).click();
                 }
                 if (ssl.caPath) {
-                    const inCaPath = await dialog.findElement(locator.dbConnectionDialog.mysql.ssl.ca);
-                    await inCaPath.clear();
-                    await inCaPath.sendKeys(ssl.caPath);
+                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssl.ca, ssl.caPath);
                 }
                 if (ssl.clientCertPath) {
-                    const inClientCertPath = await dialog.findElement(locator.dbConnectionDialog.mysql.ssl.cert);
-                    await inClientCertPath.clear();
-                    await inClientCertPath.sendKeys(ssl.clientCertPath);
+                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssl.cert,
+                        ssl.clientCertPath);
                 }
                 if (ssl.clientKeyPath) {
-                    const inClientKeyPath = await dialog.findElement(locator.dbConnectionDialog.mysql.ssl.key);
-                    await inClientKeyPath.clear();
-                    await inClientKeyPath.sendKeys(ssl.clientKeyPath);
+                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssl.key,
+                        ssl.clientKeyPath);
                 }
             }
-
             if (mds) {
                 await dialog.findElement(locator.dbConnectionDialog.mdsTab).click();
                 if (mds.profile) {
                     const inProfile = await dialog.findElement(locator.dbConnectionDialog.mysql.mds.profileName);
                     await inProfile.click();
                     await driver.wait(until
-                        .elementLocated(locator.dbConnectionDialog.mysql.mds.profileNameList), constants.wait5seconds);
+                        .elementLocated(locator.dbConnectionDialog.mysql.mds.profileNameList),
+                        constants.wait5seconds);
                     await driver.wait(until.elementLocated(By.id(mds.profile)), constants.wait5seconds).click();
                 }
                 if (mds.dbSystemOCID) {
-                    const inDBSystem = await dialog.findElement(locator.dbConnectionDialog.mysql.mds.dbDystemId);
-                    await inDBSystem.clear();
-                    await inDBSystem.sendKeys(mds.dbSystemOCID);
-
+                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.dbDystemId,
+                        mds.dbSystemOCID);
                     await dialog.click();
                     const dbSystemName = dialog.findElement(locator.dbConnectionDialog.mysql.mds.dbDystemName);
                     await driver.wait(new Condition("", async () => {
@@ -137,10 +136,8 @@ export class Database {
                     }), constants.wait10seconds, "DB System name is still loading");
                 }
                 if (mds.bastionOCID) {
-                    const inDBSystem = await dialog.findElement(locator.dbConnectionDialog.mysql.mds.bastionId);
-                    await inDBSystem.clear();
-                    await inDBSystem.sendKeys(mds.bastionOCID);
-
+                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.bastionId,
+                        mds.bastionOCID);
                     await dialog.click();
                     const bastionName = dialog.findElement(locator.dbConnectionDialog.mysql.mds.bastionName);
                     await driver.wait(new Condition("", async () => {
@@ -148,29 +145,24 @@ export class Database {
                     }), constants.wait10seconds, "Bastion name is still loading");
                 }
             }
-
-        } else if (dbType === "Sqlite") {
-
+        } else if (databaseType === "Sqlite") {
+            const sqliteData = (basic as interfaces.IConnBasicSqlite);
             if (basic) {
                 await dialog.findElement(locator.dbConnectionDialog.basicTab).click();
-                if ((basic as interfaces.IConnBasicSqlite).dbPath) {
-                    const inPath = await dialog.findElement(locator.dbConnectionDialog.sqlite.basic.dbFilePath);
-                    await inPath.clear();
-                    await inPath.sendKeys((basic as interfaces.IConnBasicSqlite).dbPath);
+                if (sqliteData.dbPath) {
+                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.sqlite.basic.dbFilePath,
+                        sqliteData.dbPath);
                 }
-                if ((basic as interfaces.IConnBasicSqlite).dbName) {
-                    const indbName = await dialog.findElement(locator.dbConnectionDialog.sqlite.basic.dbName);
-                    await indbName.clear();
-                    await indbName.sendKeys((basic as interfaces.IConnBasicSqlite).dbName);
+                if (sqliteData.dbName) {
+                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.sqlite.basic.dbName,
+                        sqliteData.dbName);
                 }
             }
-
             if (advanced) {
                 await dialog.findElement(locator.dbConnectionDialog.advancedTab).click();
-                if ((basic as interfaces.IConnBasicSqlite).dbPath) {
-                    const inParams = await dialog.findElement(locator.dbConnectionDialog.sqlite.advanced.otherParams);
-                    await inParams.clear();
-                    await inParams.sendKeys((basic as interfaces.IConnBasicSqlite).advanced.params);
+                if (sqliteData.advanced.params) {
+                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.sqlite.advanced.otherParams,
+                        sqliteData.advanced.params);
                 }
             }
         } else {
@@ -179,32 +171,14 @@ export class Database {
 
         await dialog.findElement(locator.dbConnectionDialog.ok).click();
     };
+    /**
+     * Gets a Database connection from the connection browser
+     * @param name The database connection caption
+     * @returns A promise resolving with the connection
+     */
+    public static getConnection = async (name: string): Promise<WebElement> => {
 
-    public static createConnection = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
-
-        await Misc.switchBackToTopFrame();
-        await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
-            constants.createDBConnection);
-        await driver.wait(waitUntil.tabIsOpened(constants.dbDefaultEditor), constants.wait5seconds);
-        await Misc.switchToFrame();
-        await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists), constants.wait10seconds);
-
-        await Database.setConnection(
-            dbConfig.dbType,
-            dbConfig.caption,
-            dbConfig.description,
-            dbConfig.basic,
-            dbConfig.ssl,
-            undefined,
-            dbConfig.mds,
-        );
-
-        await Misc.switchBackToTopFrame();
-    };
-
-    public static getWebViewConnection = async (name: string, useFrame = true): Promise<WebElement> => {
-
-        if (useFrame) {
+        if ((await Misc.insideIframe()) === false) {
             await Misc.switchToFrame();
         }
 
@@ -225,22 +199,36 @@ export class Database {
             return undefined;
         }, constants.wait5seconds, "No DB was found");
 
-        if (useFrame) {
-            await Misc.switchBackToTopFrame();
-        }
-
         return db;
     };
 
-    public static setDBConnectionCredentials = async (data: interfaces.IDBConnection,
+    /**
+     * Sets the database credentials on the password dialog
+     * @param data The credentials
+     * @param timeout The max number of time the function should wait until the connection is successful
+     * @returns A promise resolving when the credentials are set
+     */
+    public static setCredentials = async (data: interfaces.IDBConnection,
         timeout?: number): Promise<void> => {
-        await Database.setPassword(data);
+        await DatabaseConnection.setPassword(data);
         if (waitUntil.credentialHelperOk) {
-            await Misc.setConfirmDialog("no", timeout);
+            await DatabaseConnection.setConfirm("no", timeout);
         }
     };
 
-    public static setDataToHw = async (
+    /**
+     * Sets the database schema data to Heat Wave
+     * @param schemas The schemas
+     * @param opMode The operational mode
+     * @param output The output
+     * @param disableCols True to disable unsupported columnds, false otherwise
+     * @param optimize True to optimze load parallelism, false otherwise
+     * @param enableMemory True to enable memory check, false otherwise
+     * @param sqlMode The SQL mode
+     * @param exludeList The exclude list
+     * @returns A promise resolving when the schema data is set
+     */
+    public static setDataToHeatWave = async (
         schemas?: string[],
         opMode?: string,
         output?: string,
@@ -250,6 +238,10 @@ export class Database {
         sqlMode?: string,
         exludeList?: string,
     ): Promise<void> => {
+
+        if ((await Misc.insideIframe()) === false) {
+            await Misc.switchToFrame();
+        }
 
         const dialog = await driver.wait(until.elementLocated(locator.hwDialog.exists),
             constants.wait5seconds, "MDS dialog was not found");
@@ -298,32 +290,59 @@ export class Database {
         await dialog.findElement(locator.hwDialog.ok).click();
     };
 
-    public static toggleCheckBox = async (elId: string, checked: boolean): Promise<void> => {
-        const isUnchecked = async () => {
-            return (await driver.findElement(By.id(elId)).getAttribute("class")).split(" ")
-                .includes("unchecked");
-        };
-
-        if (checked && (await isUnchecked())) {
-            await driver.findElement(By.id(elId)).findElement(locator.checkBox.checkMark).click();
-        } else {
-            if (!checked && !(await isUnchecked())) {
-                await driver.findElement(By.id(elId)).findElement(locator.checkBox.checkMark).click();
-            }
-        }
-    };
-
-    public static getCheckBoxValue = async (elId: string): Promise<boolean> => {
-        const classes = (await driver.findElement(By.id(elId)).getAttribute("class")).split(" ");
-
-        return !classes.includes("unchecked");
-    };
-
+    /**
+     * Sets the database connection password
+     * @param dbConfig The database configuration
+     * @returns A promise resolving when the password is set
+     */
     private static setPassword = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
+        if ((await Misc.insideIframe()) === false) {
+            await Misc.switchToFrame();
+        }
+
         const dialog = await driver.wait(until.elementLocated((locator.passwordDialog.exists)),
             constants.wait5seconds, "No password dialog was found");
         await dialog.findElement(locator.passwordDialog.password)
             .sendKeys((dbConfig.basic as interfaces.IConnBasicMySQL).password);
         await dialog.findElement(locator.passwordDialog.ok).click();
+    };
+
+    /**
+     * Sets the database connection confirm dialog
+     * @param value The value. (Y, N, A)
+     * @param timeoutDialog The time to wait for the confirm dialog
+     * @returns A promise resolving when the password is set
+     */
+    private static setConfirm = async (value: string,
+        timeoutDialog = constants.wait10seconds): Promise<void> => {
+
+        if ((await Misc.insideIframe()) === false) {
+            await Misc.switchToFrame();
+        }
+
+        const confirmDialog = await driver.wait(until.elementsLocated(locator.confirmDialog.exists),
+            timeoutDialog, "No confirm dialog was found");
+
+        const noBtn = await confirmDialog[0].findElement(locator.confirmDialog.refuse);
+        const yesBtn = await confirmDialog[0].findElement(locator.confirmDialog.accept);
+        const neverBtn = await confirmDialog[0].findElement(locator.confirmDialog.alternative);
+
+        switch (value) {
+            case "yes": {
+                await yesBtn.click();
+                break;
+            }
+            case "no": {
+                await noBtn.click();
+                break;
+            }
+            case "never": {
+                await neverBtn.click();
+                break;
+            }
+            default: {
+                break;
+            }
+        }
     };
 }
