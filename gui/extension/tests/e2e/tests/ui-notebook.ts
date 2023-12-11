@@ -29,7 +29,6 @@ import {
 import { join } from "path";
 import clipboard from "clipboardy";
 import { browser, driver, Misc } from "../lib/misc";
-import { Database } from "../lib/db";
 import { Notebook } from "../lib/webviews/notebook";
 import * as constants from "../lib/constants";
 import * as waitUntil from "../lib/until";
@@ -85,7 +84,7 @@ describe("NOTEBOOKS", () => {
         try {
             await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes);
             await Misc.toggleBottomBar(false);
-            await Database.createConnection(globalConn);
+            await Misc.createConnection(globalConn);
             await new EditorView().closeAllEditors();
             expect(await Misc.existsTreeElement(constants.dbTreeSection, globalConn.caption)).to.be.true;
             await Misc.cleanCredentials();

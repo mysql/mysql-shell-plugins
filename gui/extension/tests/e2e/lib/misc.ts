@@ -38,6 +38,7 @@ import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 import * as waitUntil from "./until";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
+import { DatabaseConnection } from "./webviews/dbConnection";
 export let driver: WebDriver;
 export let browser: VSBrowser;
 
@@ -475,6 +476,29 @@ export class Misc {
         return join(fileContent.match(/logging_folder=(.*)/)[1], "mysqlrouter.log");
     };
 
+    public static createConnection = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
+
+        await Misc.switchBackToTopFrame();
+        await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
+            constants.createDBConnection);
+        await driver.wait(waitUntil.tabIsOpened(constants.dbDefaultEditor), constants.wait5seconds);
+        await Misc.switchToFrame();
+        await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists), constants.wait10seconds);
+
+        await DatabaseConnection.setConnection(
+            dbConfig.dbType,
+            dbConfig.caption,
+            dbConfig.description,
+            dbConfig.basic,
+            dbConfig.ssl,
+            undefined,
+            dbConfig.mds,
+        );
+
+        await Misc.switchBackToTopFrame();
+    };
+
+
     public static processFailure = async (testContext: Mocha.Context): Promise<void> => {
 
         await Misc.expandNotifications();
@@ -797,35 +821,6 @@ export class Misc {
                     return true;
                 }
             }, constants.wait5seconds, "Save password dialog was not displayed");
-        }
-    };
-
-    public static setConfirmDialog = async (value: string,
-        timeoutDialog = constants.wait10seconds): Promise<void> => {
-
-        const confirmDialog = await driver.wait(until.elementsLocated(locator.confirmDialog.exists),
-            timeoutDialog, "No confirm dialog was found");
-
-        const noBtn = await confirmDialog[0].findElement(locator.confirmDialog.refuse);
-        const yesBtn = await confirmDialog[0].findElement(locator.confirmDialog.accept);
-        const neverBtn = await confirmDialog[0].findElement(locator.confirmDialog.alternative);
-
-        switch (value) {
-            case "yes": {
-                await yesBtn.click();
-                break;
-            }
-            case "no": {
-                await noBtn.click();
-                break;
-            }
-            case "never": {
-                await neverBtn.click();
-                break;
-            }
-            default: {
-                break;
-            }
         }
     };
 

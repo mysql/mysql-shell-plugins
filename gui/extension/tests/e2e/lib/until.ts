@@ -38,7 +38,7 @@ import { Misc, driver } from "./misc";
 import { Notebook } from "./webviews/notebook";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
-import { Database } from "./db";
+import { DatabaseConnection } from "./webviews/dbConnection";
 export let credentialHelperOk = true;
 
 
@@ -91,7 +91,7 @@ export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Cond
         const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
         const existsGenericDialog = (await driver.findElements(locator.genericDialog.exists)).length > 0;
         if (existsPasswordDialog) {
-            await Database.setDBConnectionCredentials(connection);
+            await DatabaseConnection.setCredentials(connection);
             await driver.wait(dbConnectionIsSuccessful(), constants.wait15seconds);
         }
 
@@ -112,7 +112,7 @@ export const mdsConnectionIsOpened = (connection: interfaces.IDBConnection): Con
             await driver.findElement(locator.confirmDialog.accept).click();
         }
         if (existsPasswordDialog) {
-            await Database.setDBConnectionCredentials(connection);
+            await DatabaseConnection.setCredentials(connection);
         }
         if (existsErrorDialog) {
             const errorDialog = await driver.findElement(locator.errorDialog.exists);
@@ -133,7 +133,7 @@ export const shellSessionIsOpened = (connection: interfaces.IDBConnection): Cond
         const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
 
         if (existsPasswordDialog) {
-            await Database.setDBConnectionCredentials(connection);
+            await DatabaseConnection.setCredentials(connection);
             await driver.wait(shellSessionIsSuccessful(),
                 constants.wait15seconds, "Shell session was not successful");
         }

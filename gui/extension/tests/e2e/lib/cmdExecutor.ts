@@ -26,7 +26,7 @@ import {
     Key, until,
     WebElement,
 } from "vscode-extension-tester";
-import { Database } from "./db";
+import { DatabaseConnection } from "./webviews/dbConnection";
 import { Notebook } from "./webviews/notebook";
 import * as constants from "./constants";
 import * as locator from "./locators";
@@ -270,7 +270,7 @@ export class CommandExecutor {
 
         await this.write(cmd, slowWriting);
         await this.exec();
-        await Database.setDBConnectionCredentials(dbConnection);
+        await DatabaseConnection.setCredentials(dbConnection);
 
         const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
         await this.setResultMessage(cmd, nextId);

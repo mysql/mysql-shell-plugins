@@ -21,13 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, Key, error, WebElement, Locator } from "vscode-extension-tester";
+import { By, until, Key, error } from "vscode-extension-tester";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 import { driver, Misc } from "../misc";
 import * as constants from "../constants";
 import * as interfaces from "../interfaces";
 import * as locator from "../locators";
-import { Database } from "../db";
+import { DialogHelper } from "./dialogHelper";
 
 export class Rest {
 
@@ -45,19 +45,19 @@ export class Rest {
             constants.wait5seconds, "MRS Service dialog was not displayed");
 
         // Main settings
-        await Rest.setFieldText(dialog, locator.mrsServiceDialog.servicePath, restService.servicePath);
+        await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.servicePath, restService.servicePath);
 
-        await Database.toggleCheckBox("makeDefault", restService.default);
-        await Database.toggleCheckBox("enabled", restService.enabled);
+        await DialogHelper.setCheckboxValue("makeDefault", restService.default);
+        await DialogHelper.setCheckboxValue("enabled", restService.enabled);
 
         // Settings
         if (restService.settings) {
             if (restService.settings.comments) {
-                await Rest.setFieldText(dialog, locator.mrsServiceDialog.settings.comments,
+                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.comments,
                     restService.settings.comments);
             }
             if (restService.settings.hostNameFilter) {
-                await Rest.setFieldText(dialog, locator.mrsServiceDialog.settings.hostNameFilter,
+                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.hostNameFilter,
                     restService.settings.hostNameFilter);
             }
         }
@@ -65,26 +65,28 @@ export class Rest {
         // Options
         if (restService.options) {
             await dialog.findElement(locator.mrsServiceDialog.optionsTab).click();
-            await Rest.setFieldText(dialog, locator.mrsServiceDialog.options.options,
+            await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.options.options,
                 restService.options);
         }
         if (restService.authentication) {
             await dialog.findElement(locator.mrsServiceDialog.authenticationTab).click();
             if (restService.authentication.authenticationPath) {
-                await Rest.setFieldText(dialog, locator.mrsServiceDialog.authentication.authPath,
+                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.authentication.authPath,
                     restService.authentication.authenticationPath);
             }
             if (restService.authentication.redirectionUrl) {
-                await Rest.setFieldText(dialog, locator.mrsServiceDialog.authentication.authCompletedUrl,
+                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.authentication.authCompletedUrl,
                     restService.authentication.redirectionUrl);
 
             }
             if (restService.authentication.redirectionUrlValid) {
-                await Rest.setFieldText(dialog, locator.mrsServiceDialog.authentication.authCompletedUrlValidation,
+                await DialogHelper.setFieldText(dialog,
+                    locator.mrsServiceDialog.authentication.authCompletedUrlValidation,
                     restService.authentication.redirectionUrlValid);
             }
             if (restService.authentication.authCompletedChangeCont) {
-                await Rest.setFieldText(dialog, locator.mrsServiceDialog.authentication.authCompletedPageContent,
+                await DialogHelper.setFieldText(dialog,
+                    locator.mrsServiceDialog.authentication.authCompletedPageContent,
                     restService.authentication.authCompletedChangeCont);
             }
         }
@@ -108,35 +110,36 @@ export class Rest {
                 await popup.findElement(By.id(restService.authenticationApps.vendor)).click();
             }
             if (restService.authenticationApps.name) {
-                await Rest.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsName,
+                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsName,
                     restService.authenticationApps.name);
             }
             if (restService.authenticationApps.description) {
-                await Rest.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsDescription,
+                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsDescription,
                     restService.authenticationApps.description);
             }
             if (restService.authenticationApps.enabled !== undefined) {
-                await Database.toggleCheckBox("authApps.enabled", restService.authenticationApps.enabled);
+                await DialogHelper.setCheckboxValue("authApps.enabled", restService.authenticationApps.enabled);
             }
             if (restService.authenticationApps.limitToRegisteredUsers !== undefined) {
-                await Database.toggleCheckBox("authApps.limitToRegisteredUsers",
+                await DialogHelper.setCheckboxValue("authApps.limitToRegisteredUsers",
                     restService.authenticationApps.limitToRegisteredUsers);
 
             }
             if (restService.authenticationApps.appId) {
-                await Rest.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsId,
+                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsId,
                     restService.authenticationApps.appId);
             }
             if (restService.authenticationApps.accessToken) {
-                await Rest.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsAccessToken,
+                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsAccessToken,
                     restService.authenticationApps.accessToken);
             }
             if (restService.authenticationApps.customUrl) {
-                await Rest.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsUrl,
+                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsUrl,
                     restService.authenticationApps.customUrl);
             }
             if (restService.authenticationApps.customUrlForAccessToken) {
-                await Rest.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsurlDirectAuth,
+                await DialogHelper.setFieldText(dialog,
+                    locator.mrsServiceDialog.authenticationApps.authAppsurlDirectAuth,
                     restService.authenticationApps.customUrlForAccessToken);
             }
         }
@@ -162,35 +165,36 @@ export class Rest {
 
         // Main settings
         const restService: interfaces.IRestService = {
-            servicePath: await Rest.getFieldValue(dialog, locator.mrsServiceDialog.servicePath),
+            servicePath: await DialogHelper.getFieldValue(dialog, locator.mrsServiceDialog.servicePath),
         };
 
-        restService.default = await Database.getCheckBoxValue("makeDefault");
-        restService.enabled = await Database.getCheckBoxValue("enabled");
+        restService.default = await DialogHelper.getCheckBoxValue("makeDefault");
+        restService.enabled = await DialogHelper.getCheckBoxValue("enabled");
 
         // Settings
 
         const restServiceSettings: interfaces.IRestServiceSettings = {};
-        restServiceSettings.comments = await Rest.getFieldValue(dialog, locator.mrsServiceDialog.settings.comments);
-        restServiceSettings.hostNameFilter = await Rest.getFieldValue(dialog,
+        restServiceSettings.comments = await DialogHelper.getFieldValue(dialog,
+            locator.mrsServiceDialog.settings.comments);
+        restServiceSettings.hostNameFilter = await DialogHelper.getFieldValue(dialog,
             locator.mrsServiceDialog.settings.hostNameFilter);
         restService.settings = restServiceSettings;
 
         // Options
         await dialog.findElement(locator.mrsServiceDialog.optionsTab).click();
-        restService.options = (await Rest.getFieldValue(dialog, locator.mrsServiceDialog.options.options))
+        restService.options = (await DialogHelper.getFieldValue(dialog, locator.mrsServiceDialog.options.options))
             .replace(/\r?\n|\r|\s+/gm, "").trim();
 
         // Authentication
         await dialog.findElement(locator.mrsServiceDialog.authenticationTab).click();
         const authentication: interfaces.IRestServiceAuthentication = {};
-        authentication.authenticationPath = await Rest.getFieldValue(dialog,
+        authentication.authenticationPath = await DialogHelper.getFieldValue(dialog,
             locator.mrsServiceDialog.authentication.authPath);
-        authentication.redirectionUrl = await Rest.getFieldValue(dialog,
+        authentication.redirectionUrl = await DialogHelper.getFieldValue(dialog,
             locator.mrsServiceDialog.authentication.authCompletedUrl);
-        authentication.redirectionUrlValid = await Rest.getFieldValue(dialog,
+        authentication.redirectionUrlValid = await DialogHelper.getFieldValue(dialog,
             locator.mrsServiceDialog.authentication.authCompletedUrlValidation);
-        authentication.authCompletedChangeCont = await Rest.getFieldValue(dialog,
+        authentication.authCompletedChangeCont = await DialogHelper.getFieldValue(dialog,
             locator.mrsServiceDialog.authentication.authCompletedPageContent);
         restService.authentication = authentication;
 
@@ -199,16 +203,17 @@ export class Rest {
         const authenticationApps: interfaces.IRestServiceAuthApps = {
             vendor: await dialog.findElement(locator.mrsServiceDialog.authenticationApps.vendorName)
                 .findElement(locator.htmlTag.label).getText(),
-            name: await Rest.getFieldValue(dialog, locator.mrsServiceDialog.authenticationApps.authAppsName),
-            description: await Rest.getFieldValue(dialog,
+            name: await DialogHelper.getFieldValue(dialog, locator.mrsServiceDialog.authenticationApps.authAppsName),
+            description: await DialogHelper.getFieldValue(dialog,
                 locator.mrsServiceDialog.authenticationApps.authAppsDescription),
-            enabled: await Database.getCheckBoxValue("authApps.enabled"),
-            limitToRegisteredUsers: await Database.getCheckBoxValue("authApps.limitToRegisteredUsers"),
-            appId: await Rest.getFieldValue(dialog, locator.mrsServiceDialog.authenticationApps.authAppsId),
-            accessToken: await Rest.getFieldValue(dialog,
+            enabled: await DialogHelper.getCheckBoxValue("authApps.enabled"),
+            limitToRegisteredUsers: await DialogHelper.getCheckBoxValue("authApps.limitToRegisteredUsers"),
+            appId: await DialogHelper.getFieldValue(dialog, locator.mrsServiceDialog.authenticationApps.authAppsId),
+            accessToken: await DialogHelper.getFieldValue(dialog,
                 locator.mrsServiceDialog.authenticationApps.authAppsAccessToken),
-            customUrl: await Rest.getFieldValue(dialog, locator.mrsServiceDialog.authenticationApps.authAppsUrl),
-            customUrlForAccessToken: await Rest.getFieldValue(dialog,
+            customUrl: await DialogHelper.getFieldValue(dialog,
+                locator.mrsServiceDialog.authenticationApps.authAppsUrl),
+            customUrlForAccessToken: await DialogHelper.getFieldValue(dialog,
                 locator.mrsServiceDialog.authenticationApps.authAppsurlDirectAuth),
         };
 
@@ -254,29 +259,29 @@ export class Rest {
         }
 
         if (restSchema.restSchemaPath) {
-            await Rest.setFieldText(dialog, locator.mrsSchemaDialog.requestPath, restSchema.restSchemaPath);
+            await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.requestPath, restSchema.restSchemaPath);
         }
 
         if (restSchema.enabled !== undefined) {
-            await Database.toggleCheckBox("enabled", restSchema.enabled);
+            await DialogHelper.setCheckboxValue("enabled", restSchema.enabled);
         }
 
         if (restSchema.requiresAuth !== undefined) {
-            await Database.toggleCheckBox("requiresAuth", restSchema.requiresAuth);
+            await DialogHelper.setCheckboxValue("requiresAuth", restSchema.requiresAuth);
         }
 
         // Settings
         if (restSchema.settings) {
             if (restSchema.settings.schemaName) {
-                await Rest.setFieldText(dialog, locator.mrsSchemaDialog.settings.dbSchemaName,
+                await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.settings.dbSchemaName,
                     restSchema.settings.schemaName);
             }
             if (restSchema.settings.itemsPerPage) {
-                await Rest.setFieldText(dialog, locator.mrsSchemaDialog.settings.itemsPerPage,
+                await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.settings.itemsPerPage,
                     restSchema.settings.itemsPerPage);
             }
             if (restSchema.settings.comments) {
-                await Rest.setFieldText(dialog, locator.mrsSchemaDialog.settings.comments,
+                await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.settings.comments,
                     restSchema.settings.comments);
             }
         }
@@ -284,7 +289,7 @@ export class Rest {
         // Options
         await dialog.findElement(locator.mrsSchemaDialog.optionsTab).click();
         if (restSchema.options) {
-            await Rest.setFieldText(dialog, locator.mrsSchemaDialog.options.options,
+            await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.options.options,
                 restSchema.options);
         }
 
@@ -311,11 +316,11 @@ export class Rest {
         // Main settings
         const restShema: interfaces.IRestSchema = {
             restServicePath: await dialog.findElement(locator.mrsSchemaDialog.serviceLabel).getText(),
-            restSchemaPath: await Rest.getFieldValue(dialog, locator.mrsSchemaDialog.requestPath),
+            restSchemaPath: await DialogHelper.getFieldValue(dialog, locator.mrsSchemaDialog.requestPath),
         };
 
-        restShema.enabled = await Database.getCheckBoxValue("enabled");
-        restShema.requiresAuth = await Database.getCheckBoxValue("requiresAuth");
+        restShema.enabled = await DialogHelper.getCheckBoxValue("enabled");
+        restShema.requiresAuth = await DialogHelper.getCheckBoxValue("requiresAuth");
 
         // Settings
         const restSchemaSettings: interfaces.IRestSchemaSettings = {};
@@ -323,12 +328,13 @@ export class Rest {
             .getAttribute("value");
         restSchemaSettings.itemsPerPage = await dialog.findElement(locator.mrsSchemaDialog.settings.itemsPerPage)
             .getAttribute("value");
-        restSchemaSettings.comments = await Rest.getFieldValue(dialog, locator.mrsSchemaDialog.settings.comments);
+        restSchemaSettings.comments = await DialogHelper.getFieldValue(dialog,
+            locator.mrsSchemaDialog.settings.comments);
         restShema.settings = restSchemaSettings;
 
         // Options
         await dialog.findElement(locator.mrsSchemaDialog.optionsTab).click();
-        restShema.options = (await Rest.getFieldValue(dialog, locator.mrsSchemaDialog.options.options))
+        restShema.options = (await DialogHelper.getFieldValue(dialog, locator.mrsSchemaDialog.options.options))
             .replace(/\r?\n|\r|\s+/gm, "").trim();
 
         await driver.wait(async () => {
@@ -362,22 +368,24 @@ export class Rest {
         }
 
         if (authApp.name) {
-            await Rest.setFieldText(dialog, locator.mrsAuthenticationAppDialog.authAppName, authApp.name);
+            await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.authAppName, authApp.name);
         }
         if (authApp.description) {
-            await Rest.setFieldText(dialog, locator.mrsAuthenticationAppDialog.description, authApp.description);
+            await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.description,
+                authApp.description);
         }
         if (authApp.accessToken) {
-            await Rest.setFieldText(dialog, locator.mrsAuthenticationAppDialog.accessToken, authApp.accessToken);
+            await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.accessToken,
+                authApp.accessToken);
         }
         if (authApp.appId) {
-            await Rest.setFieldText(dialog, locator.mrsAuthenticationAppDialog.authAppId, authApp.appId);
+            await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.authAppId, authApp.appId);
         }
         if (authApp.customURL) {
-            await Rest.setFieldText(dialog, locator.mrsAuthenticationAppDialog.authAppUrl, authApp.customURL);
+            await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.authAppUrl, authApp.customURL);
         }
         if (authApp.customURLforAccessToken) {
-            await Rest.setFieldText(dialog, locator.mrsAuthenticationAppDialog.urlDirectAuth,
+            await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.urlDirectAuth,
                 authApp.customURLforAccessToken);
         }
         if (authApp.defaultRole) {
@@ -389,12 +397,12 @@ export class Rest {
         }
 
         if (authApp.enabled !== undefined) {
-            await Database.toggleCheckBox("enabled", authApp.enabled);
+            await DialogHelper.setCheckboxValue("enabled", authApp.enabled);
             await dialog.click();
         }
 
         if (authApp.limitToRegisteredUsers !== undefined) {
-            await Database.toggleCheckBox("limitToRegisteredUsers", authApp.limitToRegisteredUsers);
+            await DialogHelper.setCheckboxValue("limitToRegisteredUsers", authApp.limitToRegisteredUsers);
             await dialog.click();
         }
 
@@ -420,18 +428,18 @@ export class Rest {
 
         const authenticationApp: interfaces.IRestAuthenticationApp = {
             vendor: await dialog.findElement(locator.mrsAuthenticationAppDialog.authVendorNameLabel).getText(),
-            name: await Rest.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.authAppName),
-            description: await Rest.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.description),
-            accessToken: await Rest.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.accessToken),
-            appId: await Rest.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.authAppId),
-            customURL: await Rest.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.authAppUrl),
+            name: await DialogHelper.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.authAppName),
+            description: await DialogHelper.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.description),
+            accessToken: await DialogHelper.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.accessToken),
+            appId: await DialogHelper.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.authAppId),
+            customURL: await DialogHelper.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.authAppUrl),
             customURLforAccessToken: await dialog.findElement(locator.mrsAuthenticationAppDialog.urlDirectAuth)
                 .getAttribute("value"),
             defaultRole: await dialog.findElement(locator.mrsAuthenticationAppDialog.defaultRoleNameLabel).getText(),
         };
 
-        authenticationApp.enabled = await Database.getCheckBoxValue("enabled");
-        authenticationApp.limitToRegisteredUsers = await Database.getCheckBoxValue("limitToRegisteredUsers");
+        authenticationApp.enabled = await DialogHelper.getCheckBoxValue("enabled");
+        authenticationApp.limitToRegisteredUsers = await DialogHelper.getCheckBoxValue("limitToRegisteredUsers");
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.ok).click();
@@ -455,8 +463,8 @@ export class Rest {
         const dialog = await driver.wait(until.elementLocated(locator.mrsUserDialog.exists),
             constants.wait10seconds, "User dialog was not displayed");
 
-        await Rest.setFieldText(dialog, locator.mrsUserDialog.username, restUser.username);
-        await Rest.setFieldText(dialog, locator.mrsUserDialog.password, restUser.password);
+        await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.username, restUser.username);
+        await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.password, restUser.password);
 
         if (restUser.authenticationApp) {
             await dialog.findElement(locator.mrsUserDialog.authApp).click();
@@ -466,7 +474,7 @@ export class Rest {
             await driver.wait(until.elementLocated(By.id(restUser.authenticationApp)), constants.wait5seconds).click();
         }
         if (restUser.email) {
-            await Rest.setFieldText(dialog, locator.mrsUserDialog.email, restUser.email);
+            await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.email, restUser.email);
         }
         if (restUser.assignedRoles) {
             await dialog.findElement(locator.mrsUserDialog.roles).click();
@@ -488,16 +496,16 @@ export class Rest {
         }
 
         if (restUser.permitLogin !== undefined) {
-            await Database.toggleCheckBox("loginPermitted", restUser.permitLogin);
+            await DialogHelper.setCheckboxValue("loginPermitted", restUser.permitLogin);
         }
         if (restUser.userOptions) {
-            await Rest.setFieldText(dialog, locator.mrsUserDialog.appOptions, restUser.userOptions);
+            await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.appOptions, restUser.userOptions);
         }
         if (restUser.vendorUserId) {
-            await Rest.setFieldText(dialog, locator.mrsUserDialog.vendorUserId, restUser.vendorUserId);
+            await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.vendorUserId, restUser.vendorUserId);
         }
         if (restUser.mappedUserId) {
-            await Rest.setFieldText(dialog, locator.mrsUserDialog.mappedUserId, restUser.mappedUserId);
+            await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.mappedUserId, restUser.mappedUserId);
         }
 
         await driver.wait(async () => {
@@ -520,18 +528,18 @@ export class Rest {
             constants.wait10seconds, "User dialog was not displayed");
 
         const restUser: interfaces.IRestUser = {
-            username: await Rest.getFieldValue(dialog, locator.mrsUserDialog.username),
-            password: await Rest.getFieldValue(dialog, locator.mrsUserDialog.password),
+            username: await DialogHelper.getFieldValue(dialog, locator.mrsUserDialog.username),
+            password: await DialogHelper.getFieldValue(dialog, locator.mrsUserDialog.password),
             authenticationApp: await dialog.findElement(locator.mrsUserDialog.authAppLabel).getText(),
-            email: await Rest.getFieldValue(dialog, locator.mrsUserDialog.email),
+            email: await DialogHelper.getFieldValue(dialog, locator.mrsUserDialog.email),
             assignedRoles: await dialog.findElement(locator.mrsUserDialog.rolesLabel).getText(),
             userOptions: (await dialog.findElement(locator.mrsUserDialog.appOptions)
                 .getAttribute("value")).replace(/\r?\n|\r|\s+/gm, "").trim(),
-            vendorUserId: await Rest.getFieldValue(dialog, locator.mrsUserDialog.vendorUserId),
-            mappedUserId: await Rest.getFieldValue(dialog, locator.mrsUserDialog.mappedUserId),
+            vendorUserId: await DialogHelper.getFieldValue(dialog, locator.mrsUserDialog.vendorUserId),
+            mappedUserId: await DialogHelper.getFieldValue(dialog, locator.mrsUserDialog.mappedUserId),
         };
 
-        restUser.permitLogin = await Database.getCheckBoxValue("loginPermitted");
+        restUser.permitLogin = await DialogHelper.getCheckBoxValue("loginPermitted");
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsUserDialog.ok).click();
@@ -712,17 +720,17 @@ export class Rest {
             }
         }
         if (restObject.restObjectPath) {
-            await Rest.setFieldText(dialog, locator.mrsDbObjectDialog.requestPath, restObject.restObjectPath);
+            await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.requestPath, restObject.restObjectPath);
         }
         if (restObject.enabled !== undefined) {
-            await Database.toggleCheckBox("enabled", restObject.enabled);
+            await DialogHelper.setCheckboxValue("enabled", restObject.enabled);
         }
         if (restObject.requiresAuth !== undefined) {
-            await Database.toggleCheckBox("requiresAuth", restObject.requiresAuth);
+            await DialogHelper.setCheckboxValue("requiresAuth", restObject.requiresAuth);
         }
         if (restObject.jsonRelDuality) {
             if (restObject.jsonRelDuality.dbObject) {
-                await Rest.setFieldText(dialog, locator.mrsDbObjectDialog.jsonDuality.dbObject,
+                await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.jsonDuality.dbObject,
                     restObject.jsonRelDuality.dbObject);
             }
             if (restObject.jsonRelDuality.sdkLanguage) {
@@ -798,19 +806,19 @@ export class Rest {
                 await popup.findElement(By.id(restObject.settings.resultFormat)).click();
             }
             if (restObject.settings.itemsPerPage) {
-                await Rest.setFieldText(dialog, locator.mrsDbObjectDialog.settings.itemsPerPage,
+                await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.settings.itemsPerPage,
                     restObject.settings.itemsPerPage);
             }
             if (restObject.settings.comments) {
-                await Rest.setFieldText(dialog, locator.mrsDbObjectDialog.settings.comments,
+                await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.settings.comments,
                     restObject.settings.comments);
             }
             if (restObject.settings.mediaType) {
-                await Rest.setFieldText(dialog, locator.mrsDbObjectDialog.settings.mediaType,
+                await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.settings.mediaType,
                     restObject.settings.mediaType);
             }
             if (restObject.settings.autoDetectMediaType !== undefined) {
-                await Database.toggleCheckBox("autoDetectMediaType", restObject.settings.autoDetectMediaType);
+                await DialogHelper.setCheckboxValue("autoDetectMediaType", restObject.settings.autoDetectMediaType);
             }
         }
         if (restObject.authorization) {
@@ -821,7 +829,8 @@ export class Rest {
                     .getAttribute("class")).includes("selected");
             }, constants.wait5seconds, "Authorization tab was not selected");
             if (restObject.authorization.enforceRowUserOwner !== undefined) {
-                await Database.toggleCheckBox("rowUserOwnershipEnforced", restObject.authorization.enforceRowUserOwner);
+                await DialogHelper.setCheckboxValue("rowUserOwnershipEnforced",
+                    restObject.authorization.enforceRowUserOwner);
             }
             if (restObject.authorization.rowOwnerShipField) {
                 const inOwner = await dialog
@@ -847,7 +856,7 @@ export class Rest {
                     .getAttribute("class")).includes("selected");
             }, constants.wait5seconds, "Options tab was not selected");
 
-            await Rest.setFieldText(dialog, locator.mrsDbObjectDialog.options.options,
+            await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.options.options,
                 restObject.options);
         }
 
@@ -873,15 +882,15 @@ export class Rest {
         const restObject: interfaces.IRestObject = {
             restServicePath: await dialog.findElement(locator.mrsDbObjectDialog.serviceLabel).getText(),
             restSchemaPath: await dialog.findElement(locator.mrsDbObjectDialog.schemaLabel).getText(),
-            restObjectPath: await Rest.getFieldValue(dialog, locator.mrsDbObjectDialog.requestPath),
+            restObjectPath: await DialogHelper.getFieldValue(dialog, locator.mrsDbObjectDialog.requestPath),
             jsonRelDuality: {
-                dbObject: await Rest.getFieldValue(dialog, locator.mrsDbObjectDialog.jsonDuality.dbObject),
+                dbObject: await DialogHelper.getFieldValue(dialog, locator.mrsDbObjectDialog.jsonDuality.dbObject),
                 sdkLanguage: await dialog.findElement(locator.mrsDbObjectDialog.jsonDuality.sdkLanguageLabel).getText(),
             },
         };
 
-        restObject.enabled = await Database.getCheckBoxValue("enabled");
-        restObject.requiresAuth = await Database.getCheckBoxValue("requiresAuth");
+        restObject.enabled = await DialogHelper.getCheckBoxValue("enabled");
+        restObject.requiresAuth = await DialogHelper.getCheckBoxValue("requiresAuth");
 
         const inColumns = await driver.wait(until.elementsLocated(locator.mrsDbObjectDialog.jsonDuality.dbObjJsonField),
             constants.wait5seconds);
@@ -950,11 +959,11 @@ export class Rest {
             resultFormat: await dialog.findElement(locator.mrsDbObjectDialog.settings.resultFormat).getText(),
             itemsPerPage: await dialog
                 .findElement(locator.mrsDbObjectDialog.settings.itemsPerPage).getAttribute("value"),
-            comments: await Rest.getFieldValue(dialog, locator.mrsDbObjectDialog.settings.comments),
-            mediaType: await Rest.getFieldValue(dialog, locator.mrsDbObjectDialog.settings.mediaType),
+            comments: await DialogHelper.getFieldValue(dialog, locator.mrsDbObjectDialog.settings.comments),
+            mediaType: await DialogHelper.getFieldValue(dialog, locator.mrsDbObjectDialog.settings.mediaType),
         };
 
-        restObject.settings.autoDetectMediaType = await Database.getCheckBoxValue("autoDetectMediaType");
+        restObject.settings.autoDetectMediaType = await DialogHelper.getCheckBoxValue("autoDetectMediaType");
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsDbObjectDialog.authorizationTab).click();
@@ -964,7 +973,7 @@ export class Rest {
         }, constants.wait5seconds, "Authorization tab was not selected");
         restObject.authorization = {};
 
-        restObject.authorization.enforceRowUserOwner = await Database.getCheckBoxValue("rowUserOwnershipEnforced");
+        restObject.authorization.enforceRowUserOwner = await DialogHelper.getCheckBoxValue("rowUserOwnershipEnforced");
 
         restObject.authorization.rowOwnerShipField = await dialog
             .findElement(locator.mrsDbObjectDialog.authorization.rowUserOwnershipColumnLabel)
@@ -1006,10 +1015,10 @@ export class Rest {
 
         if (data) {
             if (data.directory) {
-                await Rest.setFieldText(dialog, locator.mrsSdkDialog.directory, data.directory);
+                await DialogHelper.setFieldText(dialog, locator.mrsSdkDialog.directory, data.directory);
             }
             if (data.url) {
-                await Rest.setFieldText(dialog, locator.mrsSdkDialog.serviceUrl, data.url);
+                await DialogHelper.setFieldText(dialog, locator.mrsSdkDialog.serviceUrl, data.url);
             }
             if (data.apiLanguage) {
                 const inputSdkLanguage = await dialog.findElement(locator.mrsSdkDialog.sdkLanguage);
@@ -1026,35 +1035,10 @@ export class Rest {
                 await driver.actions().sendKeys(Key.ESCAPE).perform();
             }
             if (data.sdkFileHeader) {
-                await Rest.setFieldText(dialog, locator.mrsSdkDialog.sdkFileHeader, data.sdkFileHeader);
+                await DialogHelper.setFieldText(dialog, locator.mrsSdkDialog.sdkFileHeader, data.sdkFileHeader);
             }
         }
 
         await dialog.findElement(locator.mrsSdkDialog.ok).click();
-    };
-
-    /**
-     * Sets a text on an input field, by clearing it first
-     * @param dialog The dialog where the input belongs to
-     * @param fieldLocator The field locator
-     * @param text The text
-     * @returns A promise resolving when the field it cleared
-     */
-    private static setFieldText = async (dialog: WebElement, fieldLocator: Locator, text: string): Promise<void> => {
-        const field = await dialog.findElement(fieldLocator);
-        await Misc.clearInputField(field);
-        await field.sendKeys(text);
-    };
-
-    /**
-     * Gets the value from an input field
-     * @param dialog The dialog where the input belongs to
-     * @param fieldLocator The field locator
-     * @returns A promise resolving when the field text is returned
-     */
-    private static getFieldValue = async (dialog: WebElement, fieldLocator: Locator): Promise<string> => {
-        const field = await dialog.findElement(fieldLocator);
-
-        return field.getAttribute("value");
     };
 }

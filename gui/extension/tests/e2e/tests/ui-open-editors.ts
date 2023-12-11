@@ -27,7 +27,6 @@ import {
 import { expect } from "chai";
 import { driver, Misc } from "../lib/misc";
 import { Shell } from "../lib/shell";
-import { Database } from "../lib/db";
 import { Notebook } from "../lib/webviews/notebook";
 import * as constants from "../lib/constants";
 import * as waitUntil from "../lib/until";
@@ -81,7 +80,7 @@ describe("OPEN EDITORS", () => {
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
             await Misc.dismissNotifications();
             await Misc.toggleBottomBar(false);
-            await Database.createConnection(globalConn);
+            await Misc.createConnection(globalConn);
             const edView = new EditorView();
             await edView.closeAllEditors();
             await new BottomBarPanel().toggle(false);
