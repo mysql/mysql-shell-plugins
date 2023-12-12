@@ -251,7 +251,7 @@ def main() -> None:
             task_utils.BEServer(executor.environment, 8002),
             task_utils.BEServer(executor.environment, 8005, True),
         ]
-
+  
         executor.add_task(SetEnvironmentVariablesTask(
             executor.environment, tmp_dirname, be_servers))
         executor.add_task(SetFrontendTask(executor.environment))
@@ -261,6 +261,7 @@ def main() -> None:
             executor.environment, tmp_dirname, True))
         executor.add_task(task_utils.StartBeServersTask(be_servers))
         executor.add_task(task_utils.AddUserToBE(executor.environment, tmp_dirname, be_servers))
+        executor.add_task(task_utils.ClearCredentials(executor.environment)) 
         executor.add_task(NPMScript(executor.environment, "e2e-tests-run", [f"--maxWorkers={MAX_WORKERS}"]))
 
         if executor.check_prerequisites():

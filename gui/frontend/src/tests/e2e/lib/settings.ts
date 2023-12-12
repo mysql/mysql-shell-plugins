@@ -21,8 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, WebElement } from "selenium-webdriver";
-import { driver } from "../lib/misc.js";
+import { By, until, WebElement, WebDriver } from "selenium-webdriver";
 
 export class Settings {
 
@@ -34,9 +33,9 @@ export class Settings {
      * @param value Language
      * @returns Promise resolving when the language is set
      */
-    public static setStartLanguage = async (section: string, value: string): Promise<void> => {
+    public static setStartLanguage = async (driver: WebDriver, section: string, value: string): Promise<void> => {
         await driver.findElement(By.id("settings")).click();
-        await (await Settings.getSettingArea(section))!.click();
+        await (await Settings.getSettingArea(driver, section))!.click();
         if (section === "DB Editor") {
             await driver.findElement(By.id("dbEditor.startLanguage")).click();
         } else {
@@ -53,19 +52,19 @@ export class Settings {
      * @param settingId Setting name
      * @returns A promise resolving when the click is made
      */
-    public static clickSettingArea = async (settingId: string): Promise<void> => {
+    public static clickSettingArea = async (driver: WebDriver, settingId: string): Promise<void> => {
         if (settingId.indexOf("settings") !== -1) {
-            await (await Settings.getSettingArea("Settings"))!.click();
+            await (await Settings.getSettingArea(driver, "Settings"))!.click();
         } else if (settingId.indexOf("theming.") !== -1) {
-            await (await Settings.getSettingArea("Theme Settings"))!.click();
+            await (await Settings.getSettingArea(driver, "Theme Settings"))!.click();
         } else if (settingId.indexOf("editor.") !== -1) {
-            await (await Settings.getSettingArea("Code Editor"))!.click();
+            await (await Settings.getSettingArea(driver, "Code Editor"))!.click();
         } else if (settingId.indexOf("dbEditor.") !== -1) {
-            await (await Settings.getSettingArea("DB Editor"))!.click();
+            await (await Settings.getSettingArea(driver, "DB Editor"))!.click();
         } else if (settingId.indexOf("sql") !== -1) {
-            await (await Settings.getSettingArea("SQL Execution"))!.click();
+            await (await Settings.getSettingArea(driver, "SQL Execution"))!.click();
         } else if (settingId.indexOf("session") !== -1) {
-            await (await Settings.getSettingArea("Shell Session"))!.click();
+            await (await Settings.getSettingArea(driver, "Shell Session"))!.click();
         } else {
             throw new Error("unknown settingId: " + settingId);
         }
@@ -78,7 +77,7 @@ export class Settings {
      * @param title name of the Setting
      * @returns Promise resolving with the setting area
      */
-    private static getSettingArea = async (title: string): Promise<WebElement> => {
+    private static getSettingArea = async (driver: WebDriver, title: string): Promise<WebElement> => {
         const settings = await driver.findElement(By.id("settingsHost"));
         const settingsTreeRows = await settings.findElements(
             By.css(".settingsTreeCell label"),

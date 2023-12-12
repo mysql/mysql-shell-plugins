@@ -21,9 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, WebElement } from "selenium-webdriver";
+import { By, until, WebElement, WebDriver } from "selenium-webdriver";
 
-import { driver, Misc } from "./misc.js";
+import { Misc } from "./misc.js";
 import { Settings } from "./settings.js";
 
 export class Profile {
@@ -33,7 +33,7 @@ export class Profile {
      *
      * @returns Promise resolving with the the profile
      */
-    public static getCurrentProfile = async (): Promise<string | undefined> => {
+    public static getCurrentProfile = async (driver: WebDriver): Promise<string | undefined> => {
         const btns = await driver.findElements(By.css(".leftItems button"));
         for (const button of btns) {
             if ((await button.getAttribute("title")) === "Change profile") {
@@ -47,7 +47,7 @@ export class Profile {
      *
      * @returns Promise resolving with the the menu
      */
-    public static openProfileMenu = async (): Promise<WebElement | undefined> => {
+    public static openProfileMenu = async (driver: WebDriver): Promise<WebElement | undefined> => {
         let isOpened;
         if ((await driver.findElements(By.css(".noArrow.menu"))).length > 0) {
             isOpened = true;
@@ -78,8 +78,8 @@ export class Profile {
      * @param profile profile name
      * @returns Promise resolving with the the menu
      */
-    public static getProfile = async (profile: string): Promise<WebElement | undefined> => {
-        await Profile.openProfileMenu();
+    public static getProfile = async (driver: WebDriver, profile: string): Promise<WebElement | undefined> => {
+        await Profile.openProfileMenu(driver);
         const menu = await driver.findElement(By.css(".noArrow.menu"));
         const items = await menu.findElements(By.css("div.menuItem"));
 
@@ -100,9 +100,9 @@ export class Profile {
      * @param profile2copy profile to copy from
      * @returns Promise resolving when the script is added
      */
-    public static addProfile = async (
+    public static addProfile = async (driver: WebDriver,
         profile: string, profile2copy: string | undefined): Promise<void> => {
-        await Profile.openProfileMenu();
+        await Profile.openProfileMenu(driver);
         await driver.findElement(By.id("add")).click();
         const dialog = await driver.findElement(By.css(".valueEditDialog"));
         await dialog.findElement(By.id("profileName")).sendKeys(profile);
@@ -126,7 +126,7 @@ export class Profile {
      * @param profs profiles to mark to remove
      * @returns Promise resolving when the profiles are marked
      */
-    public static setProfilesToRemove = async (profs: string[]): Promise<void> => {
+    public static setProfilesToRemove = async (driver: WebDriver, profs: string[]): Promise<void> => {
         let els;
         let label;
         const profiles = await driver.findElements(
@@ -165,9 +165,9 @@ export class Profile {
      * @param value text to set
      * @returns A promise resolving with the set is made
      */
-    public static setSetting = async (settingId: string, type: string, value: string): Promise<void> => {
+    public static setSetting = async (driver: WebDriver, settingId: string, type: string, value: string): Promise<void> => {
         const settingsValueList = driver.findElement(By.id("settingsValueList"));
-        await Settings.clickSettingArea(settingId);
+        await Settings.clickSettingArea(driver, settingId);
         const el = settingsValueList.findElement(By.id(settingId));
         await driver.executeScript("arguments[0].scrollIntoView(true)", el);
         const dropDownList = await driver.findElement(By.css(".dropdownList"));
@@ -177,10 +177,10 @@ export class Profile {
                 await driver.executeScript("arguments[0].click()", el);
                 if ((await el.getTagName()) === "input") {
                     await el.clear();
-                    await Misc.setInputValue(settingId, undefined, value);
+                    await Misc.setInputValue(driver, settingId, undefined, value);
                 } else {
                     await el.findElement(By.css(type)).clear();
-                    await Misc.setInputValue(settingId, type, value);
+                    await Misc.setInputValue(driver, settingId, type, value);
                 }
                 break;
             case "selectList":
@@ -228,9 +228,9 @@ export class Profile {
      * @param type input/selectList/checkbox
      * @returns A promise resolving with the value of the setting
      */
-    public static getSettingValue = async (settingId: string, type: string): Promise<string> => {
+    public static getSettingValue = async (driver: WebDriver, settingId: string, type: string): Promise<string> => {
         const settingsValueList = driver.findElement(By.id("settingsValueList"));
-        await Settings.clickSettingArea(settingId);
+        await Settings.clickSettingArea(driver, settingId);
         const el = settingsValueList.findElement(By.id(settingId));
         await driver.executeScript("arguments[0].scrollIntoView(true)", el);
         let settingValue = "";

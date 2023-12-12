@@ -21,8 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, Key, WebElement } from "selenium-webdriver";
-import { driver } from "../lib/misc.js";
+import { By, Key, WebElement, WebDriver } from "selenium-webdriver";
 
 export class ThemeEditor {
 
@@ -32,7 +31,7 @@ export class ThemeEditor {
      * @param theme name of the theme
      * @returns Promise resolving when the select is made
      */
-    public static selectAppColorTheme = async (theme: string): Promise<void> => {
+    public static selectAppColorTheme = async (driver: WebDriver, theme: string): Promise<void> => {
         await driver.findElement(By.id("theming.currentTheme")).click();
         const dropDownList = await driver.findElement(By.css(".dropdownList"));
         await dropDownList.findElement(By.id(theme)).click();
@@ -46,7 +45,7 @@ export class ThemeEditor {
      * @param scroll True to scroll down (menu is invisible)
      * @returns A promise resolving when the toggel is made
      */
-    public static toggleUiColorsMenu = async (menu: string,
+    public static toggleUiColorsMenu = async (driver: WebDriver, menu: string,
         action: string, scroll?: boolean): Promise<void> => {
         const isTabOpened = async (tab: WebElement) => {
             return (await tab.getAttribute("class")).includes("expanded");
@@ -117,6 +116,7 @@ export class ThemeEditor {
      * @returns A promise resolving to true if it's expanded, false otherwise. Undefined if the menu is not found
      */
     public static isUiColorsMenuExpanded = async (
+        driver: WebDriver,
         menuName: string, scroll?: boolean): Promise<boolean | undefined> => {
         const isTabOpened = async (tab: WebElement) => {
             return (await tab.getAttribute("class")).includes("expanded");
@@ -173,10 +173,10 @@ export class ThemeEditor {
      * @param scroll True to scroll down (menu is invisible)
      * @returns A promise resolving when the set is made
      */
-    public static setThemeEditorColors = async (sectionColors: string, optionId: string,
+    public static setThemeEditorColors = async (driver: WebDriver, sectionColors: string, optionId: string,
         detail: string, value: string, scroll?: boolean): Promise<void> => {
 
-        await ThemeEditor.toggleUiColorsMenu(sectionColors, "open", scroll);
+        await ThemeEditor.toggleUiColorsMenu(driver, sectionColors, "open", scroll);
 
         const openColorPad = async () => {
             await driver.wait(async () => {
@@ -189,7 +189,7 @@ export class ThemeEditor {
         try {
             await openColorPad();
         } catch (e) {
-            await ThemeEditor.toggleUiColorsMenu(sectionColors, "open", scroll);
+            await ThemeEditor.toggleUiColorsMenu(driver, sectionColors, "open", scroll);
             await openColorPad();
         }
 
@@ -199,7 +199,7 @@ export class ThemeEditor {
         await colorPopup.findElement(By.id(detail)).sendKeys(Key.ESCAPE);
 
         await driver.wait(async () => {
-            return !(await ThemeEditor.isUiColorsMenuExpanded(sectionColors, scroll));
+            return !(await ThemeEditor.isUiColorsMenuExpanded(driver, sectionColors, scroll));
         }, 7000, `${sectionColors} menu is not collapsed`);
     };
 
@@ -209,7 +209,7 @@ export class ThemeEditor {
      * @param position position of the color pad (1 for first, 2 for second...)
      * @returns A promise resolving with the css value
      */
-    public static getColorPadCss = async (position: number): Promise<string> => {
+    public static getColorPadCss = async (driver: WebDriver, position: number): Promise<string> => {
         const colors = await driver.findElements(By.css("#colorPadCell > div"));
         await colors[position].click();
         const colorPopup = await driver.findElement(By.css(".colorPopup"));

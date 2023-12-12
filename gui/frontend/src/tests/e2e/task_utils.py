@@ -528,6 +528,15 @@ class SetMySQLServerTask(ShellTask):
             )
             Logger.success("Successfully deleted MySQL instance")
 
+class ClearCredentials(ShellTask):
+    def __init__(self, environment: typing.Dict[str, str]) -> None:
+        super().__init__(environment)
+
+    def run(self) -> None:
+        self.shell_command_execute(
+            command="shell.delete_all_credentials()"
+        )
+        Logger.success("Shell credentials were cleaned")
 
 class StartBeServersTask:
     """Runs two BE servers for e2e tests"""

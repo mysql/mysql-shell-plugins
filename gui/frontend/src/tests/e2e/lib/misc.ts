@@ -24,14 +24,13 @@
 import { platform } from "os";
 import fs from "fs/promises";
 import { join } from "path";
-
 import { By, until, Key, WebElement, Builder, WebDriver, error, Logs, logging, Browser } from "selenium-webdriver";
-import { Options, ServiceBuilder } from "selenium-webdriver/chrome.js";
-
+import { Options } from "selenium-webdriver/chrome.js";
 import { DBConnection } from "./dbConnection.js";
 import { execFullBlockJs, execFullBlockSql } from "./dbNotebooks.js";
 
-export let driver: WebDriver;
+const logger = logging.getLogger("webdriver");
+logging.installConsoleHandler();
 export const explicitWait = 5000;
 export const feLog = "fe.log";
 
@@ -74,41 +73,29 @@ export class Misc {
      *
      * @returns A promise resolving when the webdriver is loaded
      */
-    public static loadDriver = async (): Promise<void> => {
-        const prom = async (): Promise<WebDriver> => {
-            return new Promise((resolve) => {
-                const options: Options = new Options();
-                const headless = process.env.HEADLESS ?? "1";
-                let driver: WebDriver;
-                options.addArguments("--no-sandbox");
-                const outDir = process.env.USERPROFILE ?? process.env.HOME;
-                options.setUserPreferences({
-                    download: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        default_directory: `${String(outDir)}`,
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        prompt_for_download: "false",
-                    },
-                });
+    public static loadDriver = async (): Promise<WebDriver> => {
 
-                logging.installConsoleHandler();
+        const options: Options = new Options();
+        const headless = process.env.HEADLESS ?? "1";
+        options.addArguments("--no-sandbox");
+        const outDir = process.env.USERPROFILE ?? process.env.HOME;
+        options.setUserPreferences({
+            download: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                default_directory: `${String(outDir)}`,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                prompt_for_download: "false",
+            },
+        });
 
-                if (headless === String("1")) {
-                    options.addArguments("--headless");
-                    options.windowSize({ width: 1024, height: 768 });
-                }
+        if (headless === String("1")) {
+            options.headless().windowSize({ width: 1024, height: 768 });
+        }
 
-                driver = new Builder()
-                    .forBrowser(Browser.CHROME)
-                    .setChromeOptions(options)
-                    .build();
-
-                resolve(driver);
-            });
-        };
-
-        driver = await prom();
+        const driver = await new Builder().forBrowser(Browser.CHROME).setChromeOptions(options).build();
         await driver.manage().setTimeouts({ implicit: 0 });
+
+        return driver;
     };
 
     /**
@@ -168,40 +155,26 @@ export class Misc {
     };
 
     /**
-     * Waits until a page loads
+     * Waits until the homepage loads
      *
      * @param url URL of the page
      * @returns A promise resolving when the page is loaded
      */
-    public static loadPage = async (url: String): Promise<void> => {
-        await driver.get(String(url));
-        await driver.wait(until.elementLocated(By.id("root")), 10000);
-    };
-
-    /**
-     * Waits for the homepage to be loaded
-     *
-     * @returns A promise resolving when the homepage is loaded.
-     */
-    public static waitForHomePage = async (): Promise<void> => {
-        await driver.wait(until.elementLocated(By.id("mainActivityBar")), 10000, "Blank page was displayed");
-    };
-
-    /**
-     * Waits for the login page to be loaded
-     *
-     * @returns A promise resolving when the login page is loaded
-     */
-    public static waitForLoginPage = async (): Promise<void> => {
-        await driver.findElement(By.id("loginDialogSakilaLogo"));
-    };
+    public static waitForHomePage = async (driver: WebDriver, url: string, loginPage = false): Promise<void> => {
+        await driver.get(url);
+        if (loginPage) {
+            await driver.wait(until.elementLocated(By.id("loginDialogSakilaLogo")), 10000, "Sakila logo was not found");
+        } else {
+            await driver.wait(until.elementLocated(By.id("mainActivityBar")), 10000, "Activity bar was not found");
+        }
+    }
 
     /**
      * Returns the background color of the page
      *
      * @returns Promise resolving to the background color
      */
-    public static getBackgroundColor = async (): Promise<string> => {
+    public static getBackgroundColor = async (driver: WebDriver): Promise<string> => {
         const script =
             "return window.getComputedStyle(document.getElementById('root')).getPropertyValue('--background'); ";
 
@@ -213,7 +186,7 @@ export class Misc {
      *
      * @returns Promise resolving when the key combination is pressed
      */
-    public static pressEnter = async (): Promise<void> => {
+    public static pressEnter = async (driver: WebDriver): Promise<void> => {
         if (platform() === "darwin") {
             await driver
                 .actions()
@@ -244,6 +217,7 @@ export class Misc {
      * @returns Promise resolving when the command is executed
      */
     public static execCmd = async (
+        driver: WebDriver,
         textArea: WebElement,
         cmd: string,
         timeout?: number,
@@ -272,17 +246,17 @@ export class Misc {
         if (useBtn) {
             try {
                 await (
-                    await DBConnection.getToolbarButton(execFullBlockSql))!.click();
+                    await DBConnection.getToolbarButton(driver, execFullBlockSql))!.click();
 
             } catch (e) {
                 if (String(e).includes("Could not find button")) {
                     await (
-                        await DBConnection.getToolbarButton(execFullBlockJs))!.click();
+                        await DBConnection.getToolbarButton(driver, execFullBlockJs))!.click();
                 }
             }
 
         } else {
-            await Misc.pressEnter();
+            await Misc.pressEnter(driver);
         }
 
 
@@ -321,7 +295,7 @@ export class Misc {
      * @param style The style
      * @returns A promise resolving with the element style
      */
-    public static getElementStyle = async (element: WebElement, style: string): Promise<string> => {
+    public static getElementStyle = async (driver: WebDriver, element: WebElement, style: string): Promise<string> => {
         return driver.executeScript("return window.getComputedStyle(arguments[0])." + style, element);
     };
 
@@ -353,7 +327,7 @@ export class Misc {
      * @param dbConfig connection object
      * @returns A promise resolving when the password is set
      */
-    public static setPassword = async (dbConfig: IDBConnection): Promise<void> => {
+    public static setPassword = async (driver: WebDriver, dbConfig: IDBConnection): Promise<void> => {
         const dialog = await driver.wait(until.elementsLocated(By.css(".passwordDialog")),
             500, "No Password dialog was found");
 
@@ -373,9 +347,7 @@ export class Misc {
 
         expect(service).toBe(`${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}`);
         expect(username).toBe(dbConfig.username);
-
         expect(await title.getText()).toBe("Open MySQL Connection");
-
         await dialog[0].findElement(By.css("input")).sendKeys(String(dbConfig.password));
         await dialog[0].findElement(By.id("ok")).click();
     };
@@ -387,7 +359,7 @@ export class Misc {
      * @param value yes/no/never
      * @returns A promise resolving when the set is made
      */
-    public static setConfirmDialog = async (dbConfig: IDBConnection, value: string): Promise<void> => {
+    public static setConfirmDialog = async (driver: WebDriver, dbConfig: IDBConnection, value: string): Promise<void> => {
         const confirmDialog = await driver.wait(until.elementsLocated(By.css(".confirmDialog")),
             explicitWait, "No confirm dialog was found");
 
@@ -425,7 +397,7 @@ export class Misc {
      * @param value text to set
      * @returns A promise resolving with the set is made
      */
-    public static setInputValue = async (inputId: string,
+    public static setInputValue = async (driver: WebDriver, inputId: string,
         type: string | undefined, value: string): Promise<void> => {
         let el = await driver.findElement(By.id(inputId));
         const letters = value.split("");
@@ -445,7 +417,7 @@ export class Misc {
      * @param prompt last (last line), last-1 (line before the last line), last-2 (line before the 2 last lines)
      * @returns Promise resolving with the text on the selected line
      */
-    public static getPromptTextLine = async (prompt: string): Promise<String> => {
+    public static getPromptTextLine = async (driver: WebDriver, prompt: string): Promise<String> => {
         const context = await driver.findElement(By.css(".monaco-editor-background"));
 
         let position: number;
@@ -483,7 +455,6 @@ export class Misc {
             }
         }, explicitWait, "Elements were stale");
 
-
         return sentence;
     };
 
@@ -492,7 +463,7 @@ export class Misc {
      *
      * @returns A promise resolving when the clean is made
      */
-    public static cleanPrompt = async (): Promise<void> => {
+    public static cleanPrompt = async (driver: WebDriver): Promise<void> => {
         const textArea = await driver.findElement(By.css("textarea"));
         if (platform() === "win32") {
             await textArea
@@ -503,7 +474,7 @@ export class Misc {
         }
         await textArea.sendKeys(Key.BACK_SPACE);
         await driver.wait(async () => {
-            return await Misc.getPromptTextLine("last") === "";
+            return await Misc.getPromptTextLine(driver, "last") === "";
         }, 3000, "Prompt was not cleaned");
     };
 
@@ -513,7 +484,7 @@ export class Misc {
      *
      * @returns A promise resolving when the blue dot (statement start) is displayed
      */
-    public static waitForEditorToStart = async (): Promise<void> => {
+    public static waitForEditorToStart = async (driver: WebDriver): Promise<void> => {
         const word = "it";
         const letters = word.split("").length;
         const textArea = await driver.findElement(By.css("textarea"));
@@ -547,7 +518,7 @@ export class Misc {
      * @param name test name
      * @returns file path
      */
-    public static async storeScreenShot(name?: string): Promise<string> {
+    public static async storeScreenShot(driver: WebDriver, name?: string): Promise<string> {
         const img = await driver.takeScreenshot();
         let testName = "";
         if (!name) {
@@ -560,5 +531,4 @@ export class Misc {
 
         return `screenshots/${testName}_screenshot.png`;
     }
-
 }

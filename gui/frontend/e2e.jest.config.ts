@@ -231,7 +231,7 @@ const config: Config = {
     // testRunner: "jest-circus/runner",
 
     // CI machines can be slow.
-    testTimeout: 30000,
+    testTimeout: 60000,
 
     // A map from regular expressions to paths to transformers
     transform: {

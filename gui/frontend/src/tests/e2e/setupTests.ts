@@ -32,8 +32,7 @@ import Adapter from "enzyme-adapter-preact-pure";
 // @ts-ignore, because TS does not infer the correct use of the `Adapter` type.
 Enzyme.configure({ adapter: new Adapter() });
 
-jest.setTimeout(60000);
-
+jest.useRealTimers();
 // Check required environment variables before any test starts.
 if (process.env.SHELL_UI_HOSTNAME!.includes("docker")) {
     process.env.HOSTNAME_PORT = "8000";

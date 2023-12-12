@@ -21,8 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, WebElement } from "selenium-webdriver";
-import { driver } from "./misc.js";
+import { By, until, WebElement, WebDriver } from "selenium-webdriver";
 
 export class GuiConsole {
 
@@ -34,7 +33,7 @@ export class GuiConsole {
      * the session with the provided id
      * @returns Promise resolving when session is opened
      */
-    public static openSession = async (id?: number): Promise<void> => {
+    public static openSession = async (driver: WebDriver, id?: number): Promise<void> => {
         if (id) {
             const buttons = await driver.findElements(By.css("#shellModuleHost #tilesHost button"));
             for (const button of buttons) {
@@ -60,7 +59,7 @@ export class GuiConsole {
      * @param sessionNbr the session number
      * @returns Promise resolving with the session button
      */
-    public static getSession = async (sessionNbr: string): Promise<WebElement | undefined> => {
+    public static getSession = async (driver: WebDriver, sessionNbr: string): Promise<WebElement | undefined> => {
         try {
             const buttons = await driver.findElements(By.css("#shellModuleHost #tilesHost .sessionTile"));
             for (const button of buttons) {
