@@ -20,34 +20,36 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { Misc, explicitWait, driver } from "../../lib/misc.js";
-import { By, until } from "selenium-webdriver";
+import { Misc, explicitWait } from "../../lib/misc.js";
+import { By, until, WebDriver } from "selenium-webdriver";
 import { basename } from "path";
+
+let driver: WebDriver;
 
 describe("Login", () => {
 
     let testFailed = false;
 
     beforeAll(async () => {
-        await Misc.loadDriver();
-        try {
+        driver = await Misc.loadDriver();
+        await driver.wait(async () => {
             try {
-                await Misc.loadPage(String(process.env.SHELL_UI_MU_HOSTNAME));
-                await Misc.waitForLoginPage();
+                await Misc.waitForHomePage(driver, String(process.env.SHELL_UI_MU_HOSTNAME), true);
+
+                return true;
             } catch (e) {
                 await driver.navigate().refresh();
-                await Misc.waitForLoginPage();
             }
-        } catch (e) {
-            await Misc.storeScreenShot("beforeAll_Login");
+        }, explicitWait * 4, "Login page was not loaded").catch(async (e) => {
+            await Misc.storeScreenShot(driver, "beforeAll_Login");
             throw e;
-        }
+        });
     });
 
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot();
+            await Misc.storeScreenShot(driver);
         }
     });
 

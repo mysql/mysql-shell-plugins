@@ -21,12 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, WebElement } from "selenium-webdriver";
+import { By, WebElement, WebDriver } from "selenium-webdriver";
 import { basename } from "path";
-
 import { GuiConsole } from "../../lib/guiConsole.js";
-import { IDBConnection, Misc, driver, explicitWait } from "../../lib/misc.js";
+import { IDBConnection, Misc, explicitWait } from "../../lib/misc.js";
 import { ShellSession } from "../../lib/shellSession.js";
+
+let driver: WebDriver;
+const filename = basename(__filename);
+const url = Misc.getUrl(basename(filename));
 
 describe("Sessions", () => {
 
@@ -52,24 +55,21 @@ describe("Sessions", () => {
     };
 
     beforeAll(async () => {
-
-        await Misc.loadDriver();
+        driver = await Misc.loadDriver();
         try {
             await driver.wait(async () => {
                 try {
-                    const url = Misc.getUrl(basename(__filename));
                     console.log(`${basename(__filename)} : ${url}`);
-                    await Misc.loadPage(url);
-                    await Misc.waitForHomePage();
-                    await driver.findElement(By.id("gui.shell")).click();
+                    await Misc.waitForHomePage(driver, url);
 
                     return true;
                 } catch (e) {
                     await driver.navigate().refresh();
                 }
-            }, explicitWait * 3, "Start Page was not loaded correctly");
+            }, explicitWait * 4, "Home Page was not loaded");
 
-            await GuiConsole.openSession();
+            await driver.findElement(By.id("gui.shell")).click();
+            await GuiConsole.openSession(driver);
             const editor = await driver.findElement(By.id("shellEditorHost"));
             await driver.executeScript(
                 "arguments[0].click();",
@@ -81,23 +81,23 @@ describe("Sessions", () => {
             let uri = `\\c ${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
             uri += `${String(globalConn.portX)}/${globalConn.schema}`;
 
-            await Misc.execCmd(textArea, uri);
+            await Misc.execCmd(driver, textArea, uri);
 
             uri = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
             uri += `${String(globalConn.portX)}/${globalConn.schema}'`;
 
-            await ShellSession.waitForResult(uri);
-            await ShellSession.waitForResult("(X protocol)");
-            await ShellSession.waitForResult(/Server version: (\d+).(\d+).(\d+)/);
-            await ShellSession.waitForResult(`Default schema \`${globalConn.schema}\` accessible through db.`);
+            await ShellSession.waitForResult(driver, uri);
+            await ShellSession.waitForResult(driver, "(X protocol)");
+            await ShellSession.waitForResult(driver, /Server version: (\d+).(\d+).(\d+)/);
+            await ShellSession.waitForResult(driver, `Default schema \`${globalConn.schema}\` accessible through db.`);
 
             let toCheck = `Connection to server ${globalConn.hostname} at port ${String(globalConn.portX)}`;
             toCheck += `, using the X protocol`;
 
-            await ShellSession.waitForConnectionTabValue("server", toCheck);
-            await ShellSession.waitForConnectionTabValue("schema", globalConn.schema);
+            await ShellSession.waitForConnectionTabValue(driver, "server", toCheck);
+            await ShellSession.waitForConnectionTabValue(driver, "schema", globalConn.schema);
         } catch (e) {
-            await Misc.storeScreenShot("beforeAll_Sessions");
+            await Misc.storeScreenShot(driver, "beforeAll_Sessions");
             throw e;
         }
     });
@@ -105,7 +105,7 @@ describe("Sessions", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot();
+            await Misc.storeScreenShot(driver);
         }
     });
 
@@ -116,26 +116,26 @@ describe("Sessions", () => {
 
     it("Verify collections - json format", async () => {
         try {
-            await ShellSession.changeSchemaOnTab("world_x_cst");
-            await ShellSession.waitForConnectionTabValue("schema", "world_x_cst");
-            await Misc.execCmd(textArea, "db.countryinfo.find()");
+            await ShellSession.changeSchemaOnTab(driver, "world_x_cst");
+            await ShellSession.waitForConnectionTabValue(driver, "schema", "world_x_cst");
+            await Misc.execCmd(driver, textArea, "db.countryinfo.find()");
             await driver.wait(async () => {
-                return ShellSession.isJSON();
+                return ShellSession.isJSON(driver);
             }, explicitWait, "JSON was not found on the result");
         } catch (e) {
             testFailed = true;
             throw e;
         } finally {
-            await ShellSession.changeSchemaOnTab("sakila");
-            await ShellSession.waitForConnectionTabValue("schema", "sakila");
+            await ShellSession.changeSchemaOnTab(driver, "sakila");
+            await ShellSession.waitForConnectionTabValue(driver, "schema", "sakila");
         }
     });
 
     it("Verify help command", async () => {
         try {
             textArea = await driver.findElement(By.css("textarea"));
-            await Misc.execCmd(textArea, "\\h");
-            await ShellSession.waitForResult("Displays the main SQL help categories");
+            await Misc.execCmd(driver, textArea, "\\h");
+            await ShellSession.waitForResult(driver, "Displays the main SQL help categories");
         } catch (e) {
             testFailed = true;
             throw e;
@@ -144,15 +144,15 @@ describe("Sessions", () => {
 
     it("Switch session language", async () => {
         try {
-            await Misc.execCmd(textArea, "\\py");
-            await ShellSession.waitForResult("Switching to Python mode...");
-            expect(await ShellSession.getTech()).toBe("python");
-            await Misc.execCmd(textArea, "\\js");
-            await ShellSession.waitForResult("Switching to JavaScript mode...");
-            expect(await ShellSession.getTech()).toBe("javascript");
-            await Misc.execCmd(textArea, "\\sql");
-            await ShellSession.waitForResult("Switching to SQL mode...");
-            expect(await ShellSession.getTech()).toBe("mysql");
+            await Misc.execCmd(driver, textArea, "\\py");
+            await ShellSession.waitForResult(driver, "Switching to Python mode...");
+            expect(await ShellSession.getTech(driver)).toBe("python");
+            await Misc.execCmd(driver, textArea, "\\js");
+            await ShellSession.waitForResult(driver, "Switching to JavaScript mode...");
+            expect(await ShellSession.getTech(driver)).toBe("javascript");
+            await Misc.execCmd(driver, textArea, "\\sql");
+            await ShellSession.waitForResult(driver, "Switching to SQL mode...");
+            expect(await ShellSession.getTech(driver)).toBe("mysql");
         } catch (e) {
             testFailed = true;
             throw e;
@@ -162,26 +162,26 @@ describe("Sessions", () => {
     it("Check query result content", async () => {
         try {
             await driver.wait(async () => {
-                await Misc.execCmd(textArea, "select * from actor limit 1;", undefined, undefined, true);
+                await Misc.execCmd(driver, textArea, "select * from actor limit 1;", undefined, undefined, true);
 
                 return driver.wait(async () => {
-                    return ShellSession.isValueOnDataSet("PENELOPE");
+                    return ShellSession.isValueOnDataSet(driver, "PENELOPE");
                 }, 2000).catch(() => {
                     // continue
                 }).then(() => { return true; });
             }, explicitWait * 2, "Query result was empty");
-            await Misc.execCmd(textArea, "\\js");
-            await ShellSession.changeSchemaOnTab("sakila");
-            await Misc.execCmd(textArea, `shell.options.resultFormat="json/raw" `);
-            await ShellSession.waitForResult("json/raw");
-            await Misc.execCmd(textArea, `shell.options.showColumnTypeInfo=false `);
-            await ShellSession.waitForResult("false", true);
-            await Misc.execCmd(textArea, `shell.options.resultFormat="json/pretty" `);
-            await ShellSession.waitForResult("json/pretty");
-            await Misc.execCmd(textArea, "db.category.select().limit(1)");
+            await Misc.execCmd(driver, textArea, "\\js");
+            await ShellSession.changeSchemaOnTab(driver, "sakila");
+            await Misc.execCmd(driver, textArea, `shell.options.resultFormat="json/raw" `);
+            await ShellSession.waitForResult(driver, "json/raw");
+            await Misc.execCmd(driver, textArea, `shell.options.showColumnTypeInfo=false `);
+            await ShellSession.waitForResult(driver, "false", true);
+            await Misc.execCmd(driver, textArea, `shell.options.resultFormat="json/pretty" `);
+            await ShellSession.waitForResult(driver, "json/pretty");
+            await Misc.execCmd(driver, textArea, "db.category.select().limit(1)");
             await driver.wait(async () => {
                 try {
-                    const result = await ShellSession.getJsonResult();
+                    const result = await ShellSession.getJsonResult(driver);
 
                     return (result.includes("category_id")) &&
                         (result.includes("name")) &&
@@ -191,14 +191,14 @@ describe("Sessions", () => {
                     return false;
                 }
             }, explicitWait, "json content was not found");
-            await Misc.execCmd(textArea, `shell.options.resultFormat="table" `);
-            await ShellSession.waitForResult("table");
+            await Misc.execCmd(driver, textArea, `shell.options.resultFormat="table" `);
+            await ShellSession.waitForResult(driver, "table");
 
             await driver.wait(async () => {
-                await Misc.execCmd(textArea, "db.category.select().limit(1)", undefined, undefined, true);
+                await Misc.execCmd(driver, textArea, "db.category.select().limit(1)", undefined, undefined, true);
 
                 return driver.wait(async () => {
-                    return ShellSession.isValueOnDataSet("Action");
+                    return ShellSession.isValueOnDataSet(driver, "Action");
                 }, 2000).catch(() => {
                     // continue
                 }).then(() => { return true; });
@@ -211,10 +211,10 @@ describe("Sessions", () => {
 
     it("Using db global variable", async () => {
         try {
-            await Misc.execCmd(textArea, "db.actor.select().limit(1)");
-            await ShellSession.waitForResult(/1 row in set/);
-            await Misc.execCmd(textArea, "db.category.select().limit(1)");
-            await ShellSession.waitForResult(/1 row in set/);
+            await Misc.execCmd(driver, textArea, "db.actor.select().limit(1)");
+            await ShellSession.waitForResult(driver, /1 row in set/);
+            await Misc.execCmd(driver, textArea, "db.category.select().limit(1)");
+            await ShellSession.waitForResult(driver, /1 row in set/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -223,14 +223,14 @@ describe("Sessions", () => {
 
     it("Using util global variable", async () => {
         try {
-            await Misc.execCmd(textArea, 'util.exportTable("actor", "test.txt")');
-            await ShellSession.waitForResult("The dump can be loaded using");
-            await ShellSession.waitForResult("Running data dump using 1 thread.");
-            await ShellSession.waitForResult(/Total duration: (\d+)(\d+):(\d+)(\d+):(\d+)(\d+)s/);
-            await ShellSession.waitForResult(/Data size: (\d+).(\d+)(\d+) KB/);
-            await ShellSession.waitForResult(/Rows written: (\d+)/);
-            await ShellSession.waitForResult(/Bytes written: (\d+).(\d+)(\d+) KB/);
-            await ShellSession.waitForResult(/Average throughput: (\d+).(\d+)(\d+) KB/);
+            await Misc.execCmd(driver, textArea, 'util.exportTable("actor", "test.txt")');
+            await ShellSession.waitForResult(driver, "The dump can be loaded using");
+            await ShellSession.waitForResult(driver, "Running data dump using 1 thread.");
+            await ShellSession.waitForResult(driver, /Total duration: (\d+)(\d+):(\d+)(\d+):(\d+)(\d+)s/);
+            await ShellSession.waitForResult(driver, /Data size: (\d+).(\d+)(\d+) KB/);
+            await ShellSession.waitForResult(driver, /Rows written: (\d+)/);
+            await ShellSession.waitForResult(driver, /Bytes written: (\d+).(\d+)(\d+) KB/);
+            await ShellSession.waitForResult(driver, /Average throughput: (\d+).(\d+)(\d+) KB/);
         } catch (e) {
             testFailed = true;
             throw e;

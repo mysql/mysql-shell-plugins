@@ -21,8 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, WebElement, Key, error } from "selenium-webdriver";
-import { driver, explicitWait, IDBConnection } from "./misc.js";
+import { By, until, WebElement, Key, error, WebDriver } from "selenium-webdriver";
+import { explicitWait, IDBConnection } from "./misc.js";
 
 export const execFullBlockSql = "Execute the selection or everything in the current block and create a new block";
 export const execFullBlockJs = "Execute everything in the current block and create a new block";
@@ -42,7 +42,7 @@ export class DBNotebooks {
      * @param value database type
      * @returns Promise resolving when the select is made
      */
-    public static selectDBType = async (value: string): Promise<void> => {
+    public static selectDBType = async (driver: WebDriver, value: string): Promise<void> => {
         await driver.findElement(By.id("databaseType")).click();
         const dropDownList = await driver.findElement(By.css(".dropdownList"));
         const els = await dropDownList.findElements(By.css("div"));
@@ -57,7 +57,7 @@ export class DBNotebooks {
      * @param value protocol
      * @returns Promise resolving when the select is made
      */
-    public static setProtocol = async (value: string): Promise<void> => {
+    public static setProtocol = async (driver: WebDriver, value: string): Promise<void> => {
         await driver.findElement(By.id("scheme")).click();
         const dropDownList = await driver.findElement(By.css(".dropdownList"));
         await dropDownList.findElement(By.id(value)).click();
@@ -69,7 +69,7 @@ export class DBNotebooks {
      * @param value SSL Mode
      * @returns Promise resolving when the select is made
      */
-    public static setSSLMode = async (value: string): Promise<void> => {
+    public static setSSLMode = async (driver: WebDriver, value: string): Promise<void> => {
         await driver.findElement(By.id("sslMode")).click();
         const dropDownList = await driver.findElement(By.css(".dropdownList"));
         await dropDownList.findElement(By.id(value)).click();
@@ -82,7 +82,7 @@ export class DBNotebooks {
      * @param dbConfig SSL Mode
      * @returns Promise resolving with the connection created
      */
-    public static createDBconnection = async (dbConfig: IDBConnection): Promise<WebElement | undefined> => {
+    public static createDBconnection = async (driver: WebDriver, dbConfig: IDBConnection): Promise<WebElement | undefined> => {
         const ctx = await driver.wait(until.elementLocated(By.css(".connectionBrowser")),
             explicitWait, "DB Connection Overview page was not loaded");
 
@@ -117,7 +117,7 @@ export class DBNotebooks {
             .sendKeys(dbConfig.description);
         await newConDialog.findElement(By.id("hostName")).clear();
         await newConDialog.findElement(By.id("hostName")).sendKeys(String(dbConfig.hostname));
-        await DBNotebooks.setProtocol(dbConfig.protocol);
+        await DBNotebooks.setProtocol(driver, dbConfig.protocol);
         await driver.findElement(By.css("#port input")).clear();
         await driver.findElement(By.css("#port input")).sendKeys(String(dbConfig.port));
         await newConDialog.findElement(By.id("userName")).sendKeys(String(dbConfig.username));
@@ -126,7 +126,7 @@ export class DBNotebooks {
             .sendKeys(String(dbConfig.schema));
 
         if (dbConfig.dbType) {
-            await DBNotebooks.selectDBType(dbConfig.dbType);
+            await DBNotebooks.selectDBType(driver, dbConfig.dbType);
         }
 
         if (dbConfig.sslMode) {
@@ -167,7 +167,7 @@ export class DBNotebooks {
      * @param name Connection caption
      * @returns @returns Promise resolving with the DB Connection
      */
-    public static getConnection = async (name: string): Promise<WebElement | undefined> => {
+    public static getConnection = async (driver: WebDriver, name: string): Promise<WebElement | undefined> => {
 
         return driver.wait(async () => {
             const connections = await driver.findElements(By.css("#tilesHost .connectionTile"));
@@ -181,7 +181,7 @@ export class DBNotebooks {
 
     };
 
-    public static clickConnectionItem = async (conn: WebElement, item: string): Promise<void> => {
+    public static clickConnectionItem = async (driver: WebDriver, conn: WebElement, item: string): Promise<void> => {
         const moreActions = await conn.findElement(By.id("tileMoreActionsAction"));
         const moreActionsRect = await moreActions.getRect();
         await driver.actions().move({
@@ -225,7 +225,7 @@ export class DBNotebooks {
      *
      * @returns A promise resolving when the list is fulfilled
      */
-    public static getAutoCompleteMenuItems = async (): Promise<string[]> => {
+    public static getAutoCompleteMenuItems = async (driver: WebDriver,): Promise<string[]> => {
         const els = [];
         let items = await driver.wait(until.elementsLocated(By.css(".monaco-list .monaco-highlighted-label")),
             explicitWait, "Auto complete items were not displayed");
