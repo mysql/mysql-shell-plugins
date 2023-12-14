@@ -37,6 +37,7 @@ import time
 import sys
 import types
 import tempfile
+import mysqlsh
 
 port, nossl = config.Config.get_instance().get_server_params()
 
@@ -159,7 +160,7 @@ def shell_authenticate(socket, user):
     socket.send(json.dumps(request))
     data = json.loads(socket.recv())
 
-    assert(data['request_id'] == request['request_id'])
+    assert (data['request_id'] == request['request_id'])
     assert data['request_state']['type'] == "OK", data['request_state']['msg']
     assert data['request_state']['msg'] == f"User {user} was successfully authenticated."
 
@@ -242,7 +243,12 @@ def start_server(request, server_token=None):
     from pathlib import Path
     command_script = Path(command_script).as_posix()
     logger.debug(f"conftest - command_script: {command_script}")
-    command_args = [sys.executable, '--py', '-e', command_script]
+
+    executable = sys.executable
+    if 'executable' in dir(mysqlsh):
+        executable = mysqlsh.executable
+
+    command_args = [executable, '--py', '-e', command_script]
     logger.debug(command_args)
     p = None
     try:

@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -137,7 +137,14 @@ def create_test_schema():
     path, _ = os.path.split(os.path.abspath(__file__))
     sql_script_create_path = os.path.join(
         path, "data", "create_test_schema.sql")
-    command = sys.executable if sys.executable else "mysqlsh"
+
+    executable = sys.executable
+    if 'executable' in dir(mysqlsh):
+        executable = mysqlsh.executable
+
+    command = executable if executable.endswith(
+        "mysqlsh") or executable.endswith("mysqlsh.exe") else "mysqlsh"
+
     subprocess.run([command, default_server_connection_string, '-f',
                     f'{sql_script_create_path}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
