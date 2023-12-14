@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -35,6 +35,7 @@ from tests.tests_timeouts import response_timeout
 import tempfile
 from pathlib import Path
 import sys
+import mysqlsh
 
 # To support null as value for JSON
 null = None
@@ -180,7 +181,13 @@ class TWebSocket:
         self._script_reader = script_reader
 
         temp_dir = tempfile.mkdtemp()
-        command = sys.executable if sys.executable else "mysqlsh"
+
+        executable = sys.executable
+        if 'executable' in dir(mysqlsh):
+            executable = mysqlsh.executable
+
+        command = executable if executable.endswith(
+            "mysqlsh") or executable.endswith("mysqlsh.exe") else "mysqlsh"
 
         # Lets see if we have a credentials manager available
         credential_manager = subprocess.run(

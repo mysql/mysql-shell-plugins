@@ -258,8 +258,12 @@ class ShellModuleSession(ModuleSession):
                 prompt_file,
                 indent=4)
 
-        exec_name = sys.executable if sys.executable.endswith(
-            "mysqlsh") or sys.executable.endswith("mysqlsh.exe") else "mysqlsh"
+        executable = sys.executable
+        if 'executable' in dir(mysqlsh):
+            executable = mysqlsh.executable
+
+        exec_name = executable if executable.endswith(
+            "mysqlsh") or executable.endswith("mysqlsh.exe") else "mysqlsh"
 
         # Temporarily passing --no-defaults until it is a configurable option in FE and is received as parameter in the BE
         popen_args = ["--no-defaults", "--interactive=full", "--passwords-from-stdin",
