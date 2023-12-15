@@ -42,16 +42,16 @@ export class DatabaseConnection {
      * @returns A promise resolving when the connection dialog is set
      */
     public static setConnection = async (
-        databaseType: string,
-        caption: string,
-        description: string,
-        basic: interfaces.IConnBasicMySQL | interfaces.IConnBasicSqlite,
+        databaseType?: string,
+        caption?: string,
+        description?: string,
+        basic?: interfaces.IConnBasicMySQL | interfaces.IConnBasicSqlite,
         ssl?: interfaces.IConnSSL,
         advanced?: interfaces.IConnAdvanced,
         mds?: interfaces.IConnMDS,
     ): Promise<void> => {
 
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -72,101 +72,101 @@ export class DatabaseConnection {
             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.description, description);
         }
 
-        if (databaseType === "MySQL") {
-            const mysqlData = (basic as interfaces.IConnBasicMySQL);
-            if (basic) {
-                await dialog.findElement(locator.dbConnectionDialog.basicTab).click();
-                if (mysqlData.hostname) {
-                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.hostname,
-                        mysqlData.hostname);
+        if (databaseType) {
+            if (databaseType === "MySQL") {
+                const mysqlData = (basic as interfaces.IConnBasicMySQL);
+                if (basic) {
+                    await dialog.findElement(locator.dbConnectionDialog.basicTab).click();
+                    if (mysqlData.hostname) {
+                        await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.hostname,
+                            mysqlData.hostname);
+                    }
+                    if (mysqlData.username) {
+                        await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.username,
+                            mysqlData.username);
+                    }
+                    if (mysqlData.schema) {
+                        await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.defaultSchema,
+                            mysqlData.schema);
+                    }
+                    if (mysqlData.port) {
+                        await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.port,
+                            String(mysqlData.port));
+                    }
+                    if (mysqlData.ociBastion !== undefined) {
+                        await DialogHelper.setCheckboxValue("useMDS", mysqlData.ociBastion);
+                    }
                 }
-                if (mysqlData.username) {
-                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.username,
-                        mysqlData.username);
+                if (ssl) {
+                    await dialog.findElement(locator.dbConnectionDialog.sslTab).click();
+                    if (ssl.mode) {
+                        const inMode = await dialog.findElement(locator.dbConnectionDialog.mysql.ssl.mode);
+                        await inMode.click();
+                        const popup = await driver.findElement(locator.dbConnectionDialog.mysql.ssl.modeList);
+                        await popup.findElement(By.id(ssl.mode)).click();
+                    }
+                    if (ssl.caPath) {
+                        await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssl.ca, ssl.caPath);
+                    }
+                    if (ssl.clientCertPath) {
+                        await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssl.cert,
+                            ssl.clientCertPath);
+                    }
+                    if (ssl.clientKeyPath) {
+                        await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssl.key,
+                            ssl.clientKeyPath);
+                    }
                 }
-                if (mysqlData.schema) {
-                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.defaultSchema,
-                        mysqlData.schema);
+                if (mds) {
+                    await dialog.findElement(locator.dbConnectionDialog.mdsTab).click();
+                    if (mds.profile) {
+                        const inProfile = await dialog.findElement(locator.dbConnectionDialog.mysql.mds.profileName);
+                        await inProfile.click();
+                        await driver.wait(until
+                            .elementLocated(locator.dbConnectionDialog.mysql.mds.profileNameList),
+                            constants.wait5seconds);
+                        await driver.wait(until.elementLocated(By.id(mds.profile)), constants.wait5seconds).click();
+                    }
+                    if (mds.dbSystemOCID) {
+                        await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.dbDystemId,
+                            mds.dbSystemOCID);
+                        await dialog.click();
+                        const dbSystemName = dialog.findElement(locator.dbConnectionDialog.mysql.mds.dbDystemName);
+                        await driver.wait(new Condition("", async () => {
+                            return !(await dbSystemName.getAttribute("value")).includes("Loading");
+                        }), constants.wait10seconds, "DB System name is still loading");
+                    }
+                    if (mds.bastionOCID) {
+                        await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.bastionId,
+                            mds.bastionOCID);
+                        await dialog.click();
+                        const bastionName = dialog.findElement(locator.dbConnectionDialog.mysql.mds.bastionName);
+                        await driver.wait(new Condition("", async () => {
+                            return !(await bastionName.getAttribute("value")).includes("Loading");
+                        }), constants.wait10seconds, "Bastion name is still loading");
+                    }
                 }
-                if (mysqlData.port) {
-                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.port,
-                        String(mysqlData.port));
+            } else if (databaseType === "Sqlite") {
+                const sqliteData = (basic as interfaces.IConnBasicSqlite);
+                if (basic) {
+                    await dialog.findElement(locator.dbConnectionDialog.basicTab).click();
+                    if (sqliteData.dbPath) {
+                        await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.sqlite.basic.dbFilePath,
+                            sqliteData.dbPath);
+                    }
+                    if (sqliteData.dbName) {
+                        await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.sqlite.basic.dbName,
+                            sqliteData.dbName);
+                    }
                 }
-                if (mysqlData.ociBastion !== undefined) {
-                    await DialogHelper.setCheckboxValue("useMDS", mysqlData.ociBastion);
+                if (advanced) {
+                    await dialog.findElement(locator.dbConnectionDialog.advancedTab).click();
+                    if (sqliteData.advanced.params) {
+                        await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.sqlite.advanced.otherParams,
+                            sqliteData.advanced.params);
+                    }
                 }
             }
-            if (ssl) {
-                await dialog.findElement(locator.dbConnectionDialog.sslTab).click();
-                if (ssl.mode) {
-                    const inMode = await dialog.findElement(locator.dbConnectionDialog.mysql.ssl.mode);
-                    await inMode.click();
-                    const popup = await driver.findElement(locator.dbConnectionDialog.mysql.ssl.modeList);
-                    await popup.findElement(By.id(ssl.mode)).click();
-                }
-                if (ssl.caPath) {
-                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssl.ca, ssl.caPath);
-                }
-                if (ssl.clientCertPath) {
-                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssl.cert,
-                        ssl.clientCertPath);
-                }
-                if (ssl.clientKeyPath) {
-                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssl.key,
-                        ssl.clientKeyPath);
-                }
-            }
-            if (mds) {
-                await dialog.findElement(locator.dbConnectionDialog.mdsTab).click();
-                if (mds.profile) {
-                    const inProfile = await dialog.findElement(locator.dbConnectionDialog.mysql.mds.profileName);
-                    await inProfile.click();
-                    await driver.wait(until
-                        .elementLocated(locator.dbConnectionDialog.mysql.mds.profileNameList),
-                        constants.wait5seconds);
-                    await driver.wait(until.elementLocated(By.id(mds.profile)), constants.wait5seconds).click();
-                }
-                if (mds.dbSystemOCID) {
-                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.dbDystemId,
-                        mds.dbSystemOCID);
-                    await dialog.click();
-                    const dbSystemName = dialog.findElement(locator.dbConnectionDialog.mysql.mds.dbDystemName);
-                    await driver.wait(new Condition("", async () => {
-                        return !(await dbSystemName.getAttribute("value")).includes("Loading");
-                    }), constants.wait10seconds, "DB System name is still loading");
-                }
-                if (mds.bastionOCID) {
-                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.bastionId,
-                        mds.bastionOCID);
-                    await dialog.click();
-                    const bastionName = dialog.findElement(locator.dbConnectionDialog.mysql.mds.bastionName);
-                    await driver.wait(new Condition("", async () => {
-                        return !(await bastionName.getAttribute("value")).includes("Loading");
-                    }), constants.wait10seconds, "Bastion name is still loading");
-                }
-            }
-        } else if (databaseType === "Sqlite") {
-            const sqliteData = (basic as interfaces.IConnBasicSqlite);
-            if (basic) {
-                await dialog.findElement(locator.dbConnectionDialog.basicTab).click();
-                if (sqliteData.dbPath) {
-                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.sqlite.basic.dbFilePath,
-                        sqliteData.dbPath);
-                }
-                if (sqliteData.dbName) {
-                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.sqlite.basic.dbName,
-                        sqliteData.dbName);
-                }
-            }
-            if (advanced) {
-                await dialog.findElement(locator.dbConnectionDialog.advancedTab).click();
-                if (sqliteData.advanced.params) {
-                    await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.sqlite.advanced.otherParams,
-                        sqliteData.advanced.params);
-                }
-            }
-        } else {
-            throw new Error("Unknown DB Type");
         }
 
         await dialog.findElement(locator.dbConnectionDialog.ok).click();
@@ -177,8 +177,7 @@ export class DatabaseConnection {
      * @returns A promise resolving with the connection
      */
     public static getConnection = async (name: string): Promise<WebElement> => {
-
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -239,7 +238,7 @@ export class DatabaseConnection {
         exludeList?: string,
     ): Promise<void> => {
 
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -296,7 +295,7 @@ export class DatabaseConnection {
      * @returns A promise resolving when the password is set
      */
     private static setPassword = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -316,7 +315,7 @@ export class DatabaseConnection {
     private static setConfirm = async (value: string,
         timeoutDialog = constants.wait10seconds): Promise<void> => {
 
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 

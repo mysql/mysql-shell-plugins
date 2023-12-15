@@ -426,7 +426,7 @@ export const inputBox = {
 
 export const iframe = {
     exists: By.css("iframe"),
-    container: By.css(".file-icons-enabled > div"),
+    container: By.xpath("//div[@data-parent-flow-to-element-id]"),
     isActive: By.id("active-frame"),
     isLoading: By.id("waitForContent"),
 };

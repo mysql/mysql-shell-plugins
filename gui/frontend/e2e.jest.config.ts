@@ -228,7 +228,7 @@ const config: Config = {
     //testResultsProcessor: "./node_modules/jest-html-reporters",
 
     // This option allows use of a custom test runner
-    // testRunner: "jest-circus/runner",
+    testRunner: "jest-circus/runner",
 
     // CI machines can be slow.
     testTimeout: 60000,

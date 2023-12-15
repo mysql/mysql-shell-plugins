@@ -103,6 +103,7 @@ export const editAuthApp = "Edit Auth App";
 export const addUser = "Add MRS User";
 export const editUser = "Edit MRS User";
 export const mrsDocs = "MRS Docs";
+export const welcomeTab = "Welcome to MySQL Shell";
 
 // MISC
 export const openEditorsDBNotebook = "DB Notebook";

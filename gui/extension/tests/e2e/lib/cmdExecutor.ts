@@ -70,6 +70,9 @@ export class CommandExecutor {
      * @returns A promise resolving when the command is written
      */
     public write = async (cmd: string, slowWriting?: boolean): Promise<void> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
         await driver.wait(async () => {
             try {
                 const textArea = await driver.wait(until.elementLocated(locator.notebook.codeEditor.textArea),
@@ -318,6 +321,10 @@ export class CommandExecutor {
      * @returns A promise resolving with the last cmd result
      */
     public loadLastExistingCommandResult = async (reset = false): Promise<void> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
+
         if (reset) {
             this.setResultId(undefined);
         }
@@ -414,6 +421,9 @@ export class CommandExecutor {
      * @returns A promise resolving with the script result
      */
     public loadLastScriptResult = async (): Promise<void> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
         await this.setResultMessage(undefined, undefined, true);
         await this.setResultContent(undefined, undefined, true);
         await this.setResultToolbar(undefined, undefined, true);

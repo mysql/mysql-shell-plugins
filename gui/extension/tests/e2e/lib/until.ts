@@ -23,13 +23,13 @@
 import {
     Condition,
     ActivityBar,
-    EditorView,
     logging,
     WebElement,
     Locator,
     Workbench,
     NotificationType,
     error,
+    ModalDialog,
 } from "vscode-extension-tester";
 import { join } from "path";
 import fs from "fs/promises";
@@ -39,12 +39,14 @@ import { Notebook } from "./webviews/notebook";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
 import { DatabaseConnection } from "./webviews/dbConnection";
-export let credentialHelperOk = true;
+import { Section } from "./treeViews/section";
+import { Tree } from "./treeViews/tree";
 
+export let credentialHelperOk = true;
 
 export const sectionIsNotLoading = (section: string): Condition<boolean> => {
     return new Condition(`for ${section} to NOT be loading`, async () => {
-        const sec = await Misc.getSection(section);
+        const sec = await Section.getSection(section);
         const loading = await sec.findElements(locator.section.loadingBar);
         const activityBar = new ActivityBar();
         const icon = await activityBar.getViewControl(constants.extensionName);
@@ -54,9 +56,26 @@ export const sectionIsNotLoading = (section: string): Condition<boolean> => {
     });
 };
 
+export const modalDialogIsOpened = (): Condition<boolean> => {
+    return new Condition(`for vscode dialog to be opened`, async () => {
+        try {
+            const dialog = new ModalDialog();
+
+            return (await dialog.getMessage()).length > 0;
+        } catch (e) {
+            if (!(e instanceof error.NoSuchElementError) &&
+                !(e instanceof error.StaleElementReferenceError) &&
+                !(e instanceof error.ElementNotInteractableError)
+            ) {
+                throw e;
+            }
+        }
+    });
+};
+
 export const tabIsOpened = (tabName: string): Condition<boolean> => {
     return new Condition(`for ${tabName} to be opened`, async () => {
-        return (await new EditorView().getOpenEditorTitles()).includes(tabName);
+        return (await Misc.getOpenEditorTitles()).includes(tabName);
     });
 };
 
@@ -76,6 +95,12 @@ const dbConnectionIsSuccessful = (): Condition<boolean> => {
     });
 };
 
+export const webViewIsReady = (iframe: WebElement): Condition<boolean> => {
+    return new Condition("for web view to be ready", async () => {
+        return (await iframe.getAttribute("class")).includes("webview ready");
+    });
+};
+
 const shellSessionIsSuccessful = (): Condition<boolean> => {
     return new Condition("for DB Connection is successful", async () => {
         return (await driver.findElements(locator.shellSession.exists)).length > 0;
@@ -84,16 +109,17 @@ const shellSessionIsSuccessful = (): Condition<boolean> => {
 
 export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
     return new Condition(`for DB connection ${connection.caption} to be opened`, async () => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
+
         const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
-        const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
-        const existsGenericDialog = (await driver.findElements(locator.genericDialog.exists)).length > 0;
         if (existsPasswordDialog) {
             await DatabaseConnection.setCredentials(connection);
             await driver.wait(dbConnectionIsSuccessful(), constants.wait15seconds);
         }
+        const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
+        const existsGenericDialog = (await driver.findElements(locator.genericDialog.exists)).length > 0;
 
         return existsNotebook || existsGenericDialog;
     });
@@ -101,7 +127,7 @@ export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Cond
 
 export const mdsConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
     return new Condition(`for MDS connection ${connection.caption} to be opened`, async () => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
         const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
@@ -126,12 +152,10 @@ export const mdsConnectionIsOpened = (connection: interfaces.IDBConnection): Con
 
 export const shellSessionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
     return new Condition(`for Shell session ${connection.caption} to be opened`, async () => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
-
         const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
-
         if (existsPasswordDialog) {
             await DatabaseConnection.setCredentials(connection);
             await driver.wait(shellSessionIsSuccessful(),
@@ -150,7 +174,7 @@ export const webElementIsUpdated = (el: WebElement, lastDetailValue: string, det
 
 export const dbSectionHasConnections = (): Condition<boolean> => {
     return new Condition("for DATABASE CONNECTIONS section to have connections", async () => {
-        return (await Misc.getDBConnections()).length > 0;
+        return (await Tree.getDatabaseConnections()).length > 0;
     });
 };
 
@@ -177,7 +201,7 @@ export const existsOnRouterLog = (text: string | RegExp): Condition<boolean> => 
 
 export const isDefaultItem = (section: string, treeItemName: string, itemType: string): Condition<boolean> => {
     return new Condition(`for ${treeItemName} to be marked as default`, async () => {
-        return Misc.isDefaultItem(section, treeItemName, itemType);
+        return Tree.isElementDefault(section, treeItemName, itemType);
     });
 };
 
@@ -228,6 +252,7 @@ export const notificationExists = (notification: string, dismiss = true,
     expectFailure = false): Condition<boolean> => {
     return new Condition(`for notication '${notification}' to be displayed`, async () => {
         try {
+            await Misc.switchBackToTopFrame();
             const escapedText = notification.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
             const ntfs = await new Workbench().getNotifications();
             for (const ntf of ntfs) {
@@ -262,21 +287,21 @@ export const routerProcessIsRunning = (): Condition<boolean> => {
 
 export const routerIconIsActive = (): Condition<boolean> => {
     return new Condition(`for router icon to be active`, async () => {
-        const dbSection = await Misc.getSection(constants.dbTreeSection);
-        await Misc.clickSectionToolbarButton(dbSection, constants.reloadConnections);
+        const dbSection = await Section.getSection(constants.dbTreeSection);
+        await Section.clickToolbarButton(dbSection, constants.reloadConnections);
         await driver.wait(sectionIsNotLoading(constants.dbTreeSection), constants.wait5seconds);
 
-        return Misc.isRouterIconActive();
+        return Tree.isRouterActive();
     });
 };
 
 export const routerIconIsInactive = (): Condition<boolean> => {
     return new Condition(`for router icon to be inactive`, async () => {
-        const dbSection = await Misc.getSection(constants.dbTreeSection);
-        await Misc.clickSectionToolbarButton(dbSection, constants.reloadConnections);
+        const dbSection = await Section.getSection(constants.dbTreeSection);
+        await Section.clickToolbarButton(dbSection, constants.reloadConnections);
         await driver.wait(sectionIsNotLoading(constants.dbTreeSection), constants.wait5seconds);
 
-        return !(await Misc.isRouterIconActive());
+        return !(await Tree.isRouterActive());
     });
 };
 

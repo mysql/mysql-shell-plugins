@@ -33,7 +33,7 @@ export class Notebook {
      * @returns A promise resolving with the text
      */
     public static getPromptLastTextLine = async (): Promise<String> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -65,7 +65,7 @@ export class Notebook {
      * @returns A promise resolving when the click is performed
      */
     public static clickContextItem = async (item: string): Promise<void> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -105,7 +105,7 @@ export class Notebook {
      * @returns A promise resolving with true if the button exists, false otherwise
      */
     public static existsToolbarButton = async (button: string): Promise<boolean> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -126,7 +126,7 @@ export class Notebook {
      * @returns A promise resolving with the line number
      */
     public static getMouseCursorLine = async (): Promise<number> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
         const lines = await driver.findElements(locator.notebook.codeEditor.editor.lines);
@@ -144,7 +144,7 @@ export class Notebook {
      * @returns A promise resolving with the line number
      */
     public static getLineFromWord = async (wordRef: string): Promise<number> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -169,7 +169,7 @@ export class Notebook {
      * @returns A promise resolving with the button
      */
     public static getToolbarButton = async (button: string): Promise<WebElement | undefined> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -190,7 +190,7 @@ export class Notebook {
      * @returns A promise resolving when the new line is set
      */
     public static setNewLineOnEditor = async (): Promise<void> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -224,7 +224,7 @@ export class Notebook {
      * @returns A promise resolving when button is clicked
      */
     public static widgetFindInSelection = async (flag: boolean): Promise<void> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -254,7 +254,7 @@ export class Notebook {
      * @returns A promise resolving when replacer is expanded or collapsed
      */
     public static widgetExpandFinderReplace = async (expand: boolean): Promise<void> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -278,7 +278,7 @@ export class Notebook {
      * @returns A promise resolving when button is returned
      */
     public static widgetGetReplacerButton = async (button: string): Promise<WebElement | undefined> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -296,7 +296,7 @@ export class Notebook {
      * @returns A promise resolving when finder is closed
      */
     public static widgetCloseFinder = async (): Promise<void> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -318,7 +318,7 @@ export class Notebook {
      * @returns A promise resolving with the editor type
      */
     public static getCurrentEditorType = async (): Promise<string> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -341,7 +341,7 @@ export class Notebook {
      * @returns A promise resolving with the editor name
      */
     public static getCurrentEditorName = async (): Promise<string> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -372,7 +372,7 @@ export class Notebook {
      * @returns A promise resolving with the menu items
      */
     public static getAutoCompleteMenuItems = async (): Promise<string[]> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -401,7 +401,7 @@ export class Notebook {
      * @returns A promise resolving with true if the query is maximized, false otherwise
      */
     public static isResultMaximized = async (): Promise<boolean> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -419,7 +419,7 @@ export class Notebook {
      * @returns A promise resolving when the editor is selected
      */
     public static selectCurrentEditor = async (editorName: string, editorType: string): Promise<void> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -481,7 +481,7 @@ export class Notebook {
      * @returns A promise resolving when the notebook is verified
      */
     public static verifyNotebook = async (sql: string, resultStatus: string): Promise<void> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -535,7 +535,7 @@ export class Notebook {
      * @returns A promise resolving with true if the word is found, false otherwise
      */
     public static existsOnNotebook = async (word: string): Promise<boolean> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
