@@ -37,7 +37,7 @@ export class Rest {
      * @returns A promise resolving when the service is set and the dialog is closed
      */
     public static setService = async (restService: interfaces.IRestService): Promise<void> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -156,7 +156,7 @@ export class Rest {
      * @returns A promise resolving with the rest service
      */
     public static getService = async (): Promise<interfaces.IRestService> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -234,7 +234,7 @@ export class Rest {
      * @returns A promise resolving when the schema is set and the dialog is closed
      */
     public static setSchema = async (restSchema: interfaces.IRestSchema): Promise<void> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -306,7 +306,7 @@ export class Rest {
      * @returns A promise resolving with the rest schema
      */
     public static getSchema = async (): Promise<interfaces.IRestSchema> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -352,7 +352,7 @@ export class Rest {
      * @returns A promise resolving when the authentication app is set and the dialog is closed
      */
     public static setAuthenticationApp = async (authApp: interfaces.IRestAuthenticationApp): Promise<void> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -419,7 +419,7 @@ export class Rest {
      * @returns A promise resolving with the authentication app
      */
     public static getAuthenticationApp = async (): Promise<interfaces.IRestAuthenticationApp> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -456,7 +456,7 @@ export class Rest {
      * @returns A promise resolving when the user is set and the dialog is closed
      */
     public static setUser = async (restUser: interfaces.IRestUser): Promise<void> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -520,7 +520,7 @@ export class Rest {
      * @returns A promise resolving with the user
      */
     public static getUser = async (): Promise<interfaces.IRestUser> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -557,7 +557,7 @@ export class Rest {
      * @returns A promise resolving when the object is set and the dialog is closed
      */
     public static setObject = async (restObject: interfaces.IRestObject): Promise<void> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -872,7 +872,7 @@ export class Rest {
      * @returns A promise resolving with the object
      */
     public static getObject = async (): Promise<interfaces.IRestObject> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -1006,7 +1006,7 @@ export class Rest {
      * @returns A promise resolving when the MRS data is set and the dialog is closed
      */
     public static setExportMRSSDK = async (data: interfaces.IExportMRSSDK): Promise<void> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 

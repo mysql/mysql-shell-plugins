@@ -24,21 +24,18 @@
 import { join } from "path";
 import * as fs from "fs/promises";
 import { expect } from "chai";
-import {
-    Workbench,
-    until,
-    BottomBarPanel,
-    ModalDialog,
-    EditorView,
-} from "vscode-extension-tester";
+import { Workbench, BottomBarPanel, ModalDialog } from "vscode-extension-tester";
+import clipboard from "clipboardy";
 import { driver, Misc } from "../lib/misc";
+import { Section } from "../lib/treeViews/section";
+import { Tree } from "../lib/treeViews/tree";
 import { Rest } from "../lib/webviews/rest";
+import { DatabaseConnection } from "../lib/webviews/dbConnection";
+import { hostname } from "os";
 import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
 import * as waitUntil from "../lib/until";
 import * as locator from "../lib/locators";
-import { hostname } from "os";
-import clipboard from "clipboardy";
 
 describe("MySQL REST Service", () => {
 
@@ -77,26 +74,21 @@ describe("MySQL REST Service", () => {
     const actorTable = "actor";
 
     before(async function () {
-
         await Misc.loadDriver();
         try {
             await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
             await Misc.toggleBottomBar(false);
-            await Misc.sectionFocus(constants.dbTreeSection);
-            await Misc.createConnection(globalConn);
-            await new EditorView().closeAllEditors();
-            expect(await Misc.existsTreeElement(constants.dbTreeSection, globalConn.caption)).to.be.true;
+            await Section.focus(constants.dbTreeSection);
+            await Section.createDatabaseConnection(globalConn);
+            await (await DatabaseConnection.getConnection(globalConn.caption)).click();
+            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait10seconds);
+            expect(await Tree.existsElement(constants.dbTreeSection, globalConn.caption)).to.be.true;
             await Misc.cleanCredentials();
-            await Misc.openContextMenuItem(await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption),
-                constants.openNewConnection, constants.checkNewTabAndWebView);
-            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds,
-                "DB Connection was not loaded");
-            await Misc.switchBackToTopFrame();
             if (await Misc.requiresMRSMetadataUpgrade(globalConn)) {
                 await Misc.upgradeMRSMetadata();
             }
-            const treeGlobalConn = await Misc.getTreeElement(constants.dbTreeSection, globalConn.caption);
-            await Misc.openContextMenuItem(treeGlobalConn, constants.configureREST, constants.checkNotif);
+            const treeGlobalConn = await Tree.getElement(constants.dbTreeSection, globalConn.caption);
+            await Tree.openContextMenuAndSelect(treeGlobalConn, constants.configureREST);
             const ntf = await Misc.getNotification(
                 `Do you want to configure this instance for MySQL REST Service Support?`, false);
             await Misc.clickOnNotificationButton(ntf, "Yes");
@@ -113,8 +105,8 @@ describe("MySQL REST Service", () => {
             }, constants.wait10seconds, `MySQL REST Service was not configured`);
             await driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
                 constants.wait5seconds);
-            await Misc.openContextMenuItem(treeGlobalConn, constants.showSystemSchemas, undefined);
-            expect(await Misc.existsTreeElement(constants.dbTreeSection, "mysql_rest_service_metadata")).to.be.true;
+            await Tree.openContextMenuAndSelect(treeGlobalConn, constants.showSystemSchemas, undefined);
+            expect(await Tree.existsElement(constants.dbTreeSection, "mysql_rest_service_metadata")).to.be.true;
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -124,9 +116,9 @@ describe("MySQL REST Service", () => {
     after(async function () {
         try {
             await Misc.prepareExtensionLogsForExport(process.env.TEST_SUITE);
-            const dbConnections = await Misc.getDBConnections();
+            const dbConnections = await Tree.getDatabaseConnections();
             for (const dbConnection of dbConnections) {
-                await Misc.deleteConnection(dbConnection.name, dbConnection.isMySQL, false);
+                await Tree.deleteDatabaseConnection(dbConnection.name, dbConnection.isMySQL, false);
             }
         } catch (e) {
             await Misc.processFailure(this);
@@ -145,17 +137,7 @@ describe("MySQL REST Service", () => {
             }
         });
 
-        beforeEach(async function () {
-            try {
-                await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds,
-                    `${constants.dbTreeSection} is still loading`);
-            } catch (e) {
-                await Misc.processFailure(this);
-            }
-        });
-
         afterEach(async function () {
-            await Misc.switchBackToTopFrame();
             if (this.currentTest.state === "failed") {
                 const notifications = await new Workbench().getNotifications();
                 if (notifications.length > 0) {
@@ -181,40 +163,40 @@ describe("MySQL REST Service", () => {
 
         it("Disable MySQL REST Service", async () => {
 
-            const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
-            await Misc.openContextMenuItem(treeMySQLRESTService, constants.disableRESTService, undefined);
+            const treeMySQLRESTService = await Tree.getElement(constants.dbTreeSection, constants.mysqlRestService);
+            await Tree.openContextMenuAndSelect(treeMySQLRESTService, constants.disableRESTService, undefined);
             await Misc.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds,
                 `${constants.dbTreeSection} is still loading`);
             await driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
                 constants.wait5seconds);
             await driver.wait(async () => {
-                await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
+                await Section.clickToolbarButton(await Section.getSection(constants.dbTreeSection),
                     constants.reloadConnections);
                 await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds,
                     `${constants.dbTreeSection} is still loading`);
 
-                return (await Misc.isMRSDisabled(treeMySQLRESTService)) === true;
+                return (await Tree.isMRSDisabled(treeMySQLRESTService)) === true;
             }, constants.wait5seconds, "MySQL REST Service was not disabled");
-            expect(await Misc.isMRSDisabled(treeMySQLRESTService)).to.equals(true);
+            expect(await Tree.isMRSDisabled(treeMySQLRESTService)).to.equals(true);
         });
 
         it("Enable MySQL REST Service", async () => {
 
-            const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
-            await Misc.openContextMenuItem(treeMySQLRESTService, constants.enableRESTService, undefined);
+            const treeMySQLRESTService = await Tree.getElement(constants.dbTreeSection, constants.mysqlRestService);
+            await Tree.openContextMenuAndSelect(treeMySQLRESTService, constants.enableRESTService, undefined);
             await Misc.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds,
                 `${constants.dbTreeSection} is still loading`);
             await driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
                 constants.wait5seconds);
             await driver.wait(async () => {
-                await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
+                await Section.clickToolbarButton(await Section.getSection(constants.dbTreeSection),
                     constants.reloadConnections);
                 await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds,
                     `${constants.dbTreeSection} is still loading`);
 
-                return (await Misc.isMRSDisabled(treeMySQLRESTService)) === false;
+                return (await Tree.isMRSDisabled(treeMySQLRESTService)) === false;
             }, constants.wait5seconds, "MySQL REST Service was not enabled");
 
         });
@@ -223,9 +205,9 @@ describe("MySQL REST Service", () => {
 
             expect(await Misc.isRouterInstalled(), "Please install MySQL Router manually").to.be.true;
             Misc.killRouterFromTerminal();
-            const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
+            const treeMySQLRESTService = await Tree.getElement(constants.dbTreeSection, constants.mysqlRestService);
             await treeMySQLRESTService.expand();
-            await Misc.openContextMenuItem(treeMySQLRESTService, constants.bootstrapRouter, constants.checkTerminal);
+            await Tree.openContextMenuAndSelect(treeMySQLRESTService, constants.bootstrapRouter);
             await Misc.waitForTerminalText("Please enter MySQL password for root:", constants.wait10seconds);
             await Misc.execOnTerminal((globalConn.basic as interfaces.IConnBasicMySQL).password,
                 constants.wait10seconds);
@@ -233,9 +215,9 @@ describe("MySQL REST Service", () => {
             await Misc.execOnTerminal("1234", constants.wait10seconds);
             await Misc.waitForTerminalText("Once the MySQL Router is started", constants.wait10seconds);
             expect(await Misc.terminalHasErrors()).to.be.false;
-            expect(await Misc.existsTreeElement(constants.dbTreeSection, new RegExp(hostname()))).to.be.true;
-            const router = await Misc.getTreeElement(constants.dbTreeSection, new RegExp(hostname()));
-            expect(await Misc.routerHasError(router), "Please update Router").to.be.false;
+            expect(await Tree.existsElement(constants.dbTreeSection, new RegExp(hostname()))).to.be.true;
+            const router = await Tree.getElement(constants.dbTreeSection, new RegExp(hostname()));
+            expect(await Tree.routerHasError(router), "Please update Router").to.be.false;
             await driver.wait(waitUntil.routerIconIsInactive(), constants.wait20seconds);
             await Misc.setRouterConfig({
                 sinks: "filelog",
@@ -245,28 +227,28 @@ describe("MySQL REST Service", () => {
 
         it("Start Local MySQL Router Instance", async () => {
 
-            const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
+            const treeMySQLRESTService = await Tree.getElement(constants.dbTreeSection, constants.mysqlRestService);
             await treeMySQLRESTService.expand();
-            await Misc.openContextMenuItem(treeMySQLRESTService, constants.startRouter, constants.checkTerminal);
+            await Tree.openContextMenuAndSelect(treeMySQLRESTService, constants.startRouter);
             await driver.wait(waitUntil.routerIconIsActive(), constants.wait20seconds);
         });
 
         it("Stop Local MySQL Router Instance", async () => {
-
-            const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
+            const treeMySQLRESTService = await Tree.getElement(constants.dbTreeSection, constants.mysqlRestService);
             await treeMySQLRESTService.expand();
             await fs.truncate(await Misc.getRouterLogFile());
-            await Misc.openContextMenuItem(treeMySQLRESTService, constants.stopRouter, constants.checkTerminal);
+            await Tree.openContextMenuAndSelect(treeMySQLRESTService, constants.stopRouter);
             await driver.wait(waitUntil.routerIconIsInactive(), constants.wait20seconds);
         });
 
         it("Browse the MySQL REST Service Documentation", async () => {
 
-            const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
-            await Misc.openContextMenuItem(treeMySQLRESTService, constants.browseRESTDocs,
-                constants.checkNewTabAndWebView);
+            const treeMySQLRESTService = await Tree.getElement(constants.dbTreeSection, constants.mysqlRestService);
+            await Tree.openContextMenuAndSelect(treeMySQLRESTService, constants.browseRESTDocs);
             try {
                 await driver.wait(async () => {
+                    await Misc.switchBackToTopFrame();
+                    await Misc.switchToFrame();
                     const titles = await driver.findElements(locator.mrsDocumentation.title);
                     for (const title of titles) {
                         if ((await title.getText()).includes("MRS Developer's Guide")) {
@@ -275,8 +257,7 @@ describe("MySQL REST Service", () => {
                     }
                 }, constants.wait5seconds, "Could not find the title 'MRS Developer's Guide'");
             } finally {
-                await Misc.switchBackToTopFrame();
-                await new EditorView().closeEditor(constants.mrsDocs);
+                await Misc.closeEditor(constants.mrsDocs);
             }
         });
 
@@ -407,21 +388,19 @@ describe("MySQL REST Service", () => {
 
         before(async function () {
             try {
-                const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection,
+                const treeMySQLRESTService = await Tree.getElement(constants.dbTreeSection,
                     constants.mysqlRestService);
                 await treeMySQLRESTService.expand();
                 const services = [globalService, serviceToEdit];
                 for (const service of services) {
-                    await Misc.openContextMenuItem(treeMySQLRESTService, constants.addRESTService,
-                        constants.checkWebViewDialog);
+                    await Tree.openContextMenuAndSelect(treeMySQLRESTService, constants.addRESTService);
                     await Rest.setService(service);
-                    await Misc.switchBackToTopFrame();
                     await driver.wait(waitUntil.notificationExists("The MRS service has been created"),
                         constants.wait5seconds);
-                    expect(await Misc.existsTreeElement(constants.dbTreeSection,
+                    expect(await Tree.existsElement(constants.dbTreeSection,
                         `${service.servicePath} (${service.settings.hostNameFilter})`)).to.be.true;
                 }
-                await Misc.sectionFocus(constants.dbTreeSection);
+                await Section.focus(constants.dbTreeSection);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -439,7 +418,6 @@ describe("MySQL REST Service", () => {
         });
 
         afterEach(async function () {
-            await Misc.switchBackToTopFrame();
             if (this.currentTest.state === "failed") {
                 await Misc.expandNotifications();
                 await Misc.processFailure(this);
@@ -453,9 +431,9 @@ describe("MySQL REST Service", () => {
 
         it("Edit REST Service", async () => {
 
-            let treeRandomService = await Misc.getTreeElement(constants.dbTreeSection,
+            let treeRandomService = await Tree.getElement(constants.dbTreeSection,
                 `${serviceToEdit.servicePath} (${serviceToEdit.settings.hostNameFilter})`);
-            await Misc.openContextMenuItem(treeRandomService, constants.editRESTService, constants.checkWebViewDialog);
+            await Tree.openContextMenuAndSelect(treeRandomService, constants.editRESTService);
             const editedService = {
                 servicePath: `/edited`,
                 enabled: true,
@@ -485,14 +463,12 @@ describe("MySQL REST Service", () => {
             };
 
             await Rest.setService(editedService);
-
-            await Misc.switchBackToTopFrame();
             await driver.wait(waitUntil.notificationExists("The MRS service has been successfully updated."),
                 constants.wait5seconds);
-            treeRandomService = await Misc
-                .getTreeElement(constants.dbTreeSection,
+            treeRandomService = await Tree
+                .getElement(constants.dbTreeSection,
                     `${editedService.servicePath} (${editedService.settings.hostNameFilter})`);
-            await Misc.openContextMenuItem(treeRandomService, constants.editRESTService, constants.checkWebViewDialog);
+            await Tree.openContextMenuAndSelect(treeRandomService, constants.editRESTService);
             const service = await Rest.getService();
             expect(editedService).to.deep.equal(service);
             serviceToEdit = editedService;
@@ -504,16 +480,15 @@ describe("MySQL REST Service", () => {
             const schemas = [sakilaRestSchema, worldRestSchema, restSchemaToDump];
 
             for (const schema of schemas) {
-                const treeSchema = await Misc.getTreeElement(constants.dbTreeSection, schema.settings.schemaName);
-                await Misc.openContextMenuItem(treeSchema, constants.addSchemaToREST, constants.checkWebViewDialog);
+                const treeSchema = await Tree.getElement(constants.dbTreeSection, schema.settings.schemaName);
+                await Tree.openContextMenuAndSelect(treeSchema, constants.addSchemaToREST);
                 await Rest.setSchema(schema);
-                await Misc.switchBackToTopFrame();
                 await driver.wait(waitUntil.notificationExists("The MRS schema has been added successfully."),
                     constants.wait5seconds);
-                const treeService = await Misc.getTreeElement(constants.dbTreeSection,
+                const treeService = await Tree.getElement(constants.dbTreeSection,
                     `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
                 await treeService.expand();
-                expect(await Misc.existsTreeElement(constants.dbTreeSection,
+                expect(await Tree.existsElement(constants.dbTreeSection,
                     `${schema.restSchemaPath} (${schema.settings.schemaName})`)).to.exist;
             }
 
@@ -521,15 +496,15 @@ describe("MySQL REST Service", () => {
 
         it("Edit REST Schema", async () => {
 
-            const treeRandomService = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeRandomService = await Tree.getElement(constants.dbTreeSection,
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
             const randomServiceLabel = await treeRandomService.getLabel();
-            const treeService = await Misc.getTreeElement(constants.dbTreeSection, String(randomServiceLabel));
+            const treeService = await Tree.getElement(constants.dbTreeSection, String(randomServiceLabel));
             await treeService.expand();
-            const treeRestSchemaToEdit = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeRestSchemaToEdit = await Tree.getElement(constants.dbTreeSection,
                 `${worldRestSchema.restSchemaPath} (${worldRestSchema.settings.schemaName})`);
-            await Misc.openContextMenuItem(treeRestSchemaToEdit,
-                constants.editRESTSchema, constants.checkWebViewDialog);
+            await Tree.openContextMenuAndSelect(treeRestSchemaToEdit,
+                constants.editRESTSchema);
 
             const editedSchema = {
                 restServicePath: `${globalService.settings.hostNameFilter}${globalService.servicePath}`,
@@ -545,12 +520,11 @@ describe("MySQL REST Service", () => {
             };
 
             await Rest.setSchema(editedSchema);
-            await Misc.switchBackToTopFrame();
             await driver.wait(waitUntil.notificationExists("The MRS schema has been updated successfully"),
                 constants.wait5seconds);
-            const treeEdited = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeEdited = await Tree.getElement(constants.dbTreeSection,
                 `${editedSchema.restSchemaPath} (${editedSchema.settings.schemaName})`);
-            await Misc.openContextMenuItem(treeEdited, constants.editRESTSchema, constants.checkWebViewDialog);
+            await Tree.openContextMenuAndSelect(treeEdited, constants.editRESTSchema);
             const thisSchema = await Rest.getSchema();
             expect(thisSchema).to.deep.equal(editedSchema);
 
@@ -558,11 +532,9 @@ describe("MySQL REST Service", () => {
 
         it("Set as Current REST Service", async () => {
 
-            const treeRandomService = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeRandomService = await Tree.getElement(constants.dbTreeSection,
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
-            await Misc.openContextMenuItem(treeRandomService, constants.setAsCurrentREST, constants.checkNotif);
-            await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds,
-                `${constants.dbTreeSection} is still loading`);
+            await Tree.openContextMenuAndSelect(treeRandomService, constants.setAsCurrentREST);
             await driver.wait(waitUntil.notificationExists("The MRS service has been set as the new default service."),
                 constants.wait5seconds);
             await driver.wait(waitUntil.isDefaultItem(constants.dbTreeSection
@@ -572,38 +544,37 @@ describe("MySQL REST Service", () => {
 
         it("Add Tables to REST Service", async () => {
 
-            const treeRestSakila = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeRestSakila = await Tree.getElement(constants.dbTreeSection,
                 `${sakilaRestSchema.restSchemaPath} (${sakilaRestSchema.settings.schemaName})`);
             await treeRestSakila.collapse();
-            const treeSakila = await Misc.getTreeElement(constants.dbTreeSection, sakilaRestSchema.settings.schemaName);
+            const treeSakila = await Tree.getElement(constants.dbTreeSection, sakilaRestSchema.settings.schemaName);
             await treeSakila.expand();
-            const treeTables = await Misc.getTreeElement(constants.dbTreeSection, "Tables");
+            const treeTables = await Tree.getElement(constants.dbTreeSection, "Tables");
             await treeTables.expand();
 
             const tables = ["actor", "address", tableToDump];
 
             for (const table of tables) {
-                const treeTable = await Misc.getTreeElement(constants.dbTreeSection, table);
-                await Misc.openContextMenuItem(treeTable, constants.addDBObjToREST, constants.checkNewTabAndWebView);
+                const treeTable = await Tree.getElement(constants.dbTreeSection, table);
+                await Tree.openContextMenuAndSelect(treeTable, constants.addDBObjToREST);
                 await Rest.setObject({
                     restServicePath: `${globalService.settings.hostNameFilter}${globalService.servicePath}`,
                 });
-                await Misc.switchBackToTopFrame();
                 await driver.wait(waitUntil
                     .notificationExists(`The MRS Database Object ${table} was updated successfully`),
                     constants.wait5seconds);
                 await treeRestSakila.expand();
-                expect(await Misc.existsTreeElement(constants.dbTreeSection, `/${table} (${table})`)).to.be.true;
+                expect(await Tree.existsElement(constants.dbTreeSection, `/${table} (${table})`)).to.be.true;
             }
 
         });
 
         it("Dump Rest Schema to Json file", async () => {
 
-            const treeMySQLRESTSchema = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeMySQLRESTSchema = await Tree.getElement(constants.dbTreeSection,
                 `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`);
             await fs.rm(`${destDumpSchema}.mrs.json`, { recursive: true, force: true });
-            await Misc.openContextMenuItem(treeMySQLRESTSchema, constants.dumpRESTSchemaToJSON, constants.checkInput);
+            await Tree.openContextMenuAndSelect(treeMySQLRESTSchema, constants.dumpRESTSchemaToJSON);
             await Misc.setInputPath(destDumpSchema);
             await driver.wait(waitUntil.notificationExists(`The REST Schema has been dumped successfully`),
                 constants.wait5seconds);
@@ -612,10 +583,10 @@ describe("MySQL REST Service", () => {
 
         it("Dump REST Object to JSON file", async () => {
 
-            const treeDumpTable = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeDumpTable = await Tree.getElement(constants.dbTreeSection,
                 `/${tableToDump} (${tableToDump})`);
             await fs.rm(`${destDumpTable}.mrs.json`, { recursive: true, force: true });
-            await Misc.openContextMenuItem(treeDumpTable, constants.dumpRESTObjToJSON, constants.checkInput);
+            await Tree.openContextMenuAndSelect(treeDumpTable, constants.dumpRESTObjToJSON);
             await Misc.setInputPath(destDumpTable);
             await driver.wait(waitUntil.notificationExists(`The REST Database Object has been dumped successfully`),
                 constants.wait5seconds);
@@ -624,7 +595,7 @@ describe("MySQL REST Service", () => {
         });
 
         it("Edit REST Object", async () => {
-            const treeTable = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeTable = await Tree.getElement(constants.dbTreeSection,
                 `/${tableToDump} (${tableToDump})`);
             const editedObject: interfaces.IRestObject = {
                 restServicePath: `${globalService.settings.hostNameFilter}${globalService.servicePath}`,
@@ -677,24 +648,23 @@ describe("MySQL REST Service", () => {
                 },
                 options: `{"test":"value"}`,
             };
-            await Misc.openContextMenuItem(treeTable, constants.editRESTObj, constants.checkWebViewDialog);
+            await Tree.openContextMenuAndSelect(treeTable, constants.editRESTObj);
             await Rest.setObject(editedObject);
-            await Misc.switchBackToTopFrame();
             let ntf = `The MRS Database Object ${editedObject.jsonRelDuality.dbObject}`;
             ntf += ` was updated successfully`;
             await driver.wait(waitUntil.notificationExists(ntf), constants.wait5seconds);
-            const treeEdited = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeEdited = await Tree.getElement(constants.dbTreeSection,
                 `${editedObject.restObjectPath} (${editedObject.jsonRelDuality.dbObject})`);
-            await Misc.openContextMenuItem(treeEdited, constants.editRESTObj, constants.checkWebViewDialog);
+            await Tree.openContextMenuAndSelect(treeEdited, constants.editRESTObj);
             const thisObject = await Rest.getObject();
             expect(thisObject).to.deep.equal(editedObject);
             tableToEdit = editedObject;
         });
 
         it("Copy REST Object Request Path to Clipboard", async () => {
-            const actorTree = await Misc.getTreeElement(constants.dbTreeSection,
+            const actorTree = await Tree.getElement(constants.dbTreeSection,
                 `/${actorTable} (${actorTable})`);
-            await Misc.openContextMenuItem(actorTree, constants.copyRESTObjReqPath, constants.checkNotif);
+            await Tree.openContextMenuAndSelect(actorTree, constants.copyRESTObjReqPath);
             await driver.wait(waitUntil.notificationExists("The DB Object was copied to the system clipboard"),
                 constants.wait5seconds);
             const expected = `${sakilaRestSchema.restServicePath}${sakilaRestSchema.restSchemaPath}/${actorTable}`;
@@ -706,67 +676,66 @@ describe("MySQL REST Service", () => {
 
         it("Delete REST Object", async () => {
 
-            const treeTableToDump = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeTableToDump = await Tree.getElement(constants.dbTreeSection,
                 `${tableToEdit.restObjectPath} (${tableToEdit.jsonRelDuality.dbObject})`);
-            await Misc.openContextMenuItem(treeTableToDump, constants.deleteRESTObj, constants.checkDialog);
-            const dialog = new ModalDialog();
-            await dialog.pushButton(`Delete DB Object`);
+            await Tree.openContextMenuAndSelect(treeTableToDump, constants.deleteRESTObj);
+            await driver.wait(waitUntil.modalDialogIsOpened(), constants.wait5seconds);
+            await new ModalDialog().pushButton(`Delete DB Object`);
             await driver.wait(waitUntil.notificationExists("The REST DB Object abc has been deleted"),
                 constants.wait5seconds);
-            expect(await Misc.existsTreeElement(constants.dbTreeSection,
+            expect(await Tree.existsElement(constants.dbTreeSection,
                 `${tableToEdit.restObjectPath} (${tableToEdit.jsonRelDuality.dbObject})`)).to.be.false;
 
         });
 
         it("Delete REST Schema", async () => {
 
-            const treeRandomService = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeRandomService = await Tree.getElement(constants.dbTreeSection,
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
             await treeRandomService.expand();
-            const treeMySQLRESTSchema = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeMySQLRESTSchema = await Tree.getElement(constants.dbTreeSection,
                 `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`);
 
             // first we click to delete the schema but we change our mind later (BUG#35377927)
-            await Misc.openContextMenuItem(treeMySQLRESTSchema, constants.deleteRESTSchema, constants.checkNotif);
+            await Tree.openContextMenuAndSelect(treeMySQLRESTSchema, constants.deleteRESTSchema);
             const txt = `Are you sure the MRS schema ${restSchemaToDump.settings.schemaName} should be deleted?`;
             let ntf = await Misc.getNotification(txt, false);
             await Misc.clickOnNotificationButton(ntf, "No");
-            expect(await Misc.existsTreeElement(constants.dbTreeSection,
+            expect(await Tree.existsElement(constants.dbTreeSection,
                 `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`)).to.be.true;
 
             // now we try again, but we really want to delete the schema
-            await Misc.openContextMenuItem(treeMySQLRESTSchema, constants.deleteRESTSchema, constants.checkNotif);
+            await Tree.openContextMenuAndSelect(treeMySQLRESTSchema, constants.deleteRESTSchema);
             ntf = await Misc.getNotification(txt, false);
             await Misc.clickOnNotificationButton(ntf, "Yes");
             await driver.wait(waitUntil.notificationExists("The MRS schema has been deleted successfully"),
                 constants.wait5seconds);
-            expect(await Misc.existsTreeElement(constants.dbTreeSection,
+            expect(await Tree.existsElement(constants.dbTreeSection,
                 `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`)).to.be.false;
         });
 
         it("Load REST Schema from JSON file", async () => {
 
-            const treeRandomService = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeRandomService = await Tree.getElement(constants.dbTreeSection,
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
-            await Misc.openContextMenuItem(treeRandomService, constants.loadRESTSchemaFromJSON, constants.checkInput);
+            await Tree.openContextMenuAndSelect(treeRandomService, constants.loadRESTSchemaFromJSON);
             await Misc.setInputPath(`${destDumpSchema}.mrs.json`);
             await driver.wait(waitUntil.notificationExists("The REST Schema has been loaded successfully"),
                 constants.wait5seconds);
-            expect(await Misc.existsTreeElement(constants.dbTreeSection,
+            expect(await Tree.existsElement(constants.dbTreeSection,
                 `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`)).to.be.true;
 
         });
 
         it("Export Rest Service SDK files", async () => {
 
-            const treeRandomService = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeRandomService = await Tree.getElement(constants.dbTreeSection,
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
-            await Misc.openContextMenuItem(treeRandomService, constants.exportRESTSDK, constants.checkInput);
+            await Tree.openContextMenuAndSelect(treeRandomService, constants.exportRESTSDK);
 
             await fs.rm(destDumpSdk, { force: true, recursive: true });
             await Misc.setInputPath(destDumpSdk);
             await Rest.setExportMRSSDK(undefined);
-            await Misc.switchBackToTopFrame();
             await driver.wait(waitUntil.notificationExists("MRS SDK Files exported successfully"),
                 constants.wait5seconds);
             const files = await fs.readdir(destDumpSdk);
@@ -775,22 +744,22 @@ describe("MySQL REST Service", () => {
 
         it("Load REST Object from JSON file", async () => {
 
-            const treeMySQLRESTSchema = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeMySQLRESTSchema = await Tree.getElement(constants.dbTreeSection,
                 `${sakilaRestSchema.restSchemaPath} (${sakilaRestSchema.settings.schemaName})`);
-            await Misc.openContextMenuItem(treeMySQLRESTSchema, constants.loadRESTObjFromJSON, constants.checkInput);
+            await Tree.openContextMenuAndSelect(treeMySQLRESTSchema, constants.loadRESTObjFromJSON);
             await Misc.setInputPath(`${destDumpTable}.mrs.json`);
             await driver.wait(waitUntil.notificationExists("The REST Database Object has been loaded successfully"),
                 constants.wait5seconds);
-            expect(await Misc.existsTreeElement(constants.dbTreeSection,
+            expect(await Tree.existsElement(constants.dbTreeSection,
                 `/${tableToDump} (${tableToDump})`)).to.be.true;
 
         });
 
         it("Delete Authentication App", async () => {
 
-            const treeAuthApp = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeAuthApp = await Tree.getElement(constants.dbTreeSection,
                 `${globalService.authenticationApps.name} (${globalService.authenticationApps.vendor})`);
-            await Misc.openContextMenuItem(treeAuthApp, constants.deleteAuthenticationApp, constants.checkNotif);
+            await Tree.openContextMenuAndSelect(treeAuthApp, constants.deleteAuthenticationApp);
             const ntf = await Misc.getNotification(
                 `Are you sure the MRS authentication app ${globalService.authenticationApps.name} should be deleted`,
                 false);
@@ -799,38 +768,36 @@ describe("MySQL REST Service", () => {
             notif += ` has been deleted`;
             await driver.wait(waitUntil.notificationExists(notif), constants.wait5seconds);
 
-            expect(await Misc.existsTreeElement(constants.dbTreeSection,
+            expect(await Tree.existsElement(constants.dbTreeSection,
                 `${globalService.authenticationApps.name} (${globalService.authenticationApps.vendor})`)).to.be.false;
 
         });
 
         it("Add New Authentication App", async () => {
 
-            let treeRandomService = await Misc.getTreeElement(constants.dbTreeSection,
+            let treeRandomService = await Tree.getElement(constants.dbTreeSection,
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
-            await Misc.openContextMenuItem(treeRandomService, constants.addNewAuthApp, constants.checkWebViewDialog);
+            await Tree.openContextMenuAndSelect(treeRandomService, constants.addNewAuthApp);
             await Rest.setAuthenticationApp(restAuthenticationApp);
-            await Misc.switchBackToTopFrame();
             await driver.wait(waitUntil.notificationExists("The MRS Authentication App has been added"),
                 constants.wait5seconds);
-            treeRandomService = await Misc.getTreeElement(constants.dbTreeSection,
+            treeRandomService = await Tree.getElement(constants.dbTreeSection,
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
             await treeRandomService.expand();
-            expect(await Misc.existsTreeElement(constants.dbTreeSection,
+            expect(await Tree.existsElement(constants.dbTreeSection,
                 `${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`)).to.be.true;
 
         });
 
         it("Add User", async () => {
 
-            let treeAuthApp = await Misc.getTreeElement(constants.dbTreeSection,
+            let treeAuthApp = await Tree.getElement(constants.dbTreeSection,
                 `${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`);
-            await Misc.openContextMenuItem(treeAuthApp, constants.addRESTUser, constants.checkWebViewDialog);
+            await Tree.openContextMenuAndSelect(treeAuthApp, constants.addRESTUser);
             await Rest.setUser(restUser);
-            await Misc.switchBackToTopFrame();
             await driver.wait(waitUntil.notificationExists("The MRS User has been added"),
                 constants.wait5seconds);
-            treeAuthApp = await Misc.getTreeElement(constants.dbTreeSection,
+            treeAuthApp = await Tree.getElement(constants.dbTreeSection,
                 `${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`);
             await driver.wait(async () => {
                 await treeAuthApp.expand();
@@ -838,15 +805,15 @@ describe("MySQL REST Service", () => {
                 return (await treeAuthApp.isExpanded()) && (await treeAuthApp.getChildren()).length > 0;
             }, constants.wait10seconds,
                 `${restAuthenticationApp.name} (${restAuthenticationApp.vendor}) was not expanded`);
-            expect(await Misc.existsTreeElement(constants.dbTreeSection, restUser.username)).to.be.true;
+            expect(await Tree.existsElement(constants.dbTreeSection, restUser.username)).to.be.true;
 
         });
 
         it("Edit Authentication App", async () => {
 
-            let treeAuthApp = await Misc.getTreeElement(constants.dbTreeSection,
+            let treeAuthApp = await Tree.getElement(constants.dbTreeSection,
                 `${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`);
-            await Misc.openContextMenuItem(treeAuthApp, constants.editAuthenticationApp, constants.checkWebViewDialog);
+            await Tree.openContextMenuAndSelect(treeAuthApp, constants.editAuthenticationApp);
 
             const editedApp: interfaces.IRestAuthenticationApp = {
                 vendor: "Facebook",
@@ -862,12 +829,11 @@ describe("MySQL REST Service", () => {
             };
 
             await Rest.setAuthenticationApp(editedApp);
-            await Misc.switchBackToTopFrame();
             await driver.wait(waitUntil.notificationExists("The MRS Authentication App has been updated"),
                 constants.wait5seconds);
-            treeAuthApp = await Misc.getTreeElement(constants.dbTreeSection,
+            treeAuthApp = await Tree.getElement(constants.dbTreeSection,
                 `${editedApp.name} (${editedApp.vendor})`);
-            await Misc.openContextMenuItem(treeAuthApp, constants.editAuthenticationApp, constants.checkWebViewDialog);
+            await Tree.openContextMenuAndSelect(treeAuthApp, constants.editAuthenticationApp);
             const authApp = await Rest.getAuthenticationApp();
             expect(editedApp).to.deep.equal(authApp);
             restAuthenticationApp = editedApp;
@@ -876,11 +842,11 @@ describe("MySQL REST Service", () => {
 
         it("Edit User", async () => {
 
-            const treeAuthApp = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeAuthApp = await Tree.getElement(constants.dbTreeSection,
                 `${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`);
             await treeAuthApp.expand();
-            let treeUser = await Misc.getTreeElement(constants.dbTreeSection, restUser.username);
-            await Misc.openContextMenuItem(treeUser, constants.editRESTUser, constants.checkWebViewDialog);
+            let treeUser = await Tree.getElement(constants.dbTreeSection, restUser.username);
+            await Tree.openContextMenuAndSelect(treeUser, constants.editRESTUser);
             const editedUser: interfaces.IRestUser = {
                 username: "testuser",
                 password: "[Stored Password]",
@@ -894,11 +860,10 @@ describe("MySQL REST Service", () => {
             };
 
             await Rest.setUser(editedUser);
-            await Misc.switchBackToTopFrame();
             await driver.wait(waitUntil.notificationExists(`The MRS User has been updated`),
                 constants.wait5seconds);
-            treeUser = await Misc.getTreeElement(constants.dbTreeSection, editedUser.username);
-            await Misc.openContextMenuItem(treeUser, constants.editRESTUser, constants.checkWebViewDialog);
+            treeUser = await Tree.getElement(constants.dbTreeSection, editedUser.username);
+            await Tree.openContextMenuAndSelect(treeUser, constants.editRESTUser);
             const user = await Rest.getUser();
             editedUser.assignedRoles = "Full Access";
             expect(editedUser).to.deep.equal(user);
@@ -907,42 +872,44 @@ describe("MySQL REST Service", () => {
 
         it("MRS Service Documentation", async () => {
 
-            const treeRandomService = await Misc.getTreeElement(constants.dbTreeSection,
+            const treeRandomService = await Tree.getElement(constants.dbTreeSection,
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
-            await Misc.openContextMenuItem(treeRandomService, constants.mrsServiceDocs,
-                constants.checkNewTabAndWebView);
-            await driver.wait(until
-                .elementLocated(locator.mrsDocumentation.restServiceProperties), constants.wait5seconds);
-            await Misc.switchBackToTopFrame();
-            await new EditorView().closeEditor(constants.mrsDocs);
+            await Tree.openContextMenuAndSelect(treeRandomService, constants.mrsServiceDocs);
+            await driver.wait(async () => {
+                await Misc.switchBackToTopFrame();
+                await Misc.switchToFrame();
+
+                return (await driver.findElements(locator.mrsDocumentation.restServiceProperties)).length > 0;
+            }, constants.wait5seconds, "MRS Service Docs tab was not opened");
+            await Misc.closeEditor(constants.mrsDocs);
 
         });
 
         it("Delete User", async () => {
 
-            const treeUser = await Misc.getTreeElement(constants.dbTreeSection, restUser.username);
-            await Misc.openContextMenuItem(treeUser, constants.deleteRESTUser, constants.checkNotif);
+            const treeUser = await Tree.getElement(constants.dbTreeSection, restUser.username);
+            await Tree.openContextMenuAndSelect(treeUser, constants.deleteRESTUser);
             const ntf = await Misc.getNotification(`Are you sure the MRS user ${restUser.username} should be deleted`,
                 false);
             await Misc.clickOnNotificationButton(ntf, "Yes");
             await driver.wait(waitUntil.notificationExists(`The MRS User ${restUser.username} has been deleted`),
                 constants.wait5seconds);
-            expect(await Misc.existsTreeElement(constants.dbTreeSection, restUser.username)).to.be.false;
+            expect(await Tree.existsElement(constants.dbTreeSection, restUser.username)).to.be.false;
         });
 
         it("Delete REST Services", async () => {
 
             const services = [globalService, serviceToEdit];
             for (const service of services) {
-                const treeRestService = await Misc.getTreeElement(constants.dbTreeSection,
+                const treeRestService = await Tree.getElement(constants.dbTreeSection,
                     `${service.servicePath} (${service.settings.hostNameFilter})`);
-                await Misc.openContextMenuItem(treeRestService, constants.deleteRESTService, constants.checkNotif);
+                await Tree.openContextMenuAndSelect(treeRestService, constants.deleteRESTService);
                 const ntf = await Misc
                     .getNotification(`Are you sure the MRS service ${service.servicePath} should be deleted`, false);
                 await Misc.clickOnNotificationButton(ntf, "Yes");
                 await driver.wait(waitUntil.notificationExists("The MRS service has been deleted successfully"),
                     constants.wait5seconds);
-                expect(await Misc.existsTreeElement(constants.dbTreeSection,
+                expect(await Tree.existsElement(constants.dbTreeSection,
                     `${service.servicePath} (${service.settings.hostNameFilter})`)).to.be.false;
             }
 
@@ -994,39 +961,35 @@ describe("MySQL REST Service", () => {
             try {
                 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
                 await Misc.cleanCredentials();
-                let treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection,
+                let treeMySQLRESTService = await Tree.getElement(constants.dbTreeSection,
                     constants.mysqlRestService);
                 await treeMySQLRESTService.expand();
-                await Misc.openContextMenuItem(treeMySQLRESTService, constants.addRESTService,
-                    constants.checkNewTabAndWebView);
+                await Tree.openContextMenuAndSelect(treeMySQLRESTService, constants.addRESTService);
                 await Rest.setService(crudService);
-                await Misc.switchBackToTopFrame();
                 await driver.wait(waitUntil.notificationExists("The MRS service has been created."),
                     constants.wait5seconds);
                 await driver.wait(async () => {
-                    const refSchema = await Misc.getTreeElement(constants.dbTreeSection,
+                    const refSchema = await Tree.getElement(constants.dbTreeSection,
                         crudSchema.settings.schemaName);
                     await refSchema.expand();
 
                     return (await refSchema.isExpanded()) && (refSchema.hasChildren());
                 }, constants.wait5seconds, "sakila tree item was not expanded");
-                const treeSchema = await Misc.getTreeElement(constants.dbTreeSection, crudSchema.settings.schemaName);
-                await Misc.openContextMenuItem(treeSchema, constants.addSchemaToREST, constants.checkWebViewDialog);
+                const treeSchema = await Tree.getElement(constants.dbTreeSection, crudSchema.settings.schemaName);
+                await Tree.openContextMenuAndSelect(treeSchema, constants.addSchemaToREST);
                 await Rest.setSchema(crudSchema);
-                await Misc.switchBackToTopFrame();
                 await driver.wait(waitUntil.notificationExists("The MRS schema has been added successfully."),
                     constants.wait5seconds);
-                const treeService = await Misc.getTreeElement(constants.dbTreeSection,
+                const treeService = await Tree.getElement(constants.dbTreeSection,
                     `${crudService.servicePath} (${crudService.settings.hostNameFilter})`);
                 await treeService.expand();
-                expect(await Misc.existsTreeElement(constants.dbTreeSection,
+                expect(await Tree.existsElement(constants.dbTreeSection,
                     `${crudSchema.restSchemaPath} (${crudSchema.settings.schemaName})`)).to.exist;
-                await (await Misc.getTreeElement(constants.dbTreeSection, "Tables")).expand();
-                const treeTable = await Misc.getTreeElement(constants.dbTreeSection,
+                await (await Tree.getElement(constants.dbTreeSection, "Tables")).expand();
+                const treeTable = await Tree.getElement(constants.dbTreeSection,
                     crudObject.restObjectPath.replace("/", ""));
-                await Misc.openContextMenuItem(treeTable, constants.addDBObjToREST, constants.checkWebViewDialog);
+                await Tree.openContextMenuAndSelect(treeTable, constants.addDBObjToREST);
                 await Rest.setObject(crudObject);
-                await Misc.switchBackToTopFrame();
                 let ntf = `The MRS Database Object ${crudObject.restObjectPath.replace("/", "")}`;
                 ntf += ` was updated successfully`;
                 await driver.wait(waitUntil.notificationExists(ntf),
@@ -1034,8 +997,8 @@ describe("MySQL REST Service", () => {
 
                 // Check Router
                 await fs.truncate(await Misc.getRouterLogFile());
-                treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection, constants.mysqlRestService);
-                await Misc.openContextMenuItem(treeMySQLRESTService, constants.startRouter, undefined);
+                treeMySQLRESTService = await Tree.getElement(constants.dbTreeSection, constants.mysqlRestService);
+                await Tree.openContextMenuAndSelect(treeMySQLRESTService, constants.startRouter, undefined);
                 await driver.wait(waitUntil.routerIconIsActive(), constants.wait20seconds);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -1057,17 +1020,16 @@ describe("MySQL REST Service", () => {
 
         after(async function () {
             try {
-                const treeMySQLRESTService = await Misc.getTreeElement(constants.dbTreeSection,
+                const treeMySQLRESTService = await Tree.getElement(constants.dbTreeSection,
                     constants.mysqlRestService);
-                await Misc.openContextMenuItem(treeMySQLRESTService, constants.killRouters, undefined);
-                const router = await Misc.getTreeElement(constants.dbTreeSection, new RegExp(hostname()));
+                await Tree.openContextMenuAndSelect(treeMySQLRESTService, constants.killRouters, undefined);
+                const router = await Tree.getElement(constants.dbTreeSection, new RegExp(hostname()));
                 const routerName = await router.getLabel();
-                await Misc.openContextMenuItem(router, constants.deleteRouter, undefined);
+                await Tree.openContextMenuAndSelect(router, constants.deleteRouter, undefined);
                 const ntf = await Misc.getNotification(`Are you sure the MRS router ${routerName} should be deleted?`,
                     false);
                 await Misc.clickOnNotificationButton(ntf, "Yes");
-                expect(await Misc.existsTreeElement(constants.dbTreeSection, routerName)).to.be.false;
-
+                expect(await Tree.existsElement(constants.dbTreeSection, routerName)).to.be.false;
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;

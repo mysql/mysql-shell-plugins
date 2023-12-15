@@ -25,20 +25,21 @@ import { spawnSync, execSync } from "child_process";
 import clipboard from "clipboardy";
 import fs from "fs/promises";
 import addContext from "mochawesome/addContext";
-import { hostname, platform } from "os";
+import { platform } from "os";
 import { join } from "path";
 import {
-    Condition, CustomTreeSection, EditorView, error, InputBox, ITimeouts,
-    Key, OutputView, SideBarView, TreeItem, until, VSBrowser,
-    WebDriver, ModalDialog, NotificationType,
-    WebElement, Workbench, Button, Notification, TerminalView,
+    EditorView, error, InputBox, ITimeouts,
+    Key, OutputView, until, VSBrowser,
+    WebDriver, NotificationType,
+    WebElement, Workbench, Notification, TerminalView, EditorTab,
 } from "vscode-extension-tester";
 import * as constants from "./constants";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 import * as waitUntil from "./until";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
-import { DatabaseConnection } from "./webviews/dbConnection";
+import { Section } from "./treeViews/section";
+import { Tree } from "./treeViews/tree";
 export let driver: WebDriver;
 export let browser: VSBrowser;
 
@@ -54,10 +55,6 @@ export class Misc {
 
     public static isWindows = (): boolean => {
         return platform() === "win32";
-    };
-
-    public static getSection = async (name: string): Promise<CustomTreeSection> => {
-        return new SideBarView().getContent().getSection(name);
     };
 
     public static insideIframe = async (): Promise<boolean> => {
@@ -83,38 +80,6 @@ export class Misc {
         }
 
         await fs.writeFile(configFile, text);
-    };
-
-    public static isDefaultItem = async (
-        section: string,
-        treeItemName: string,
-        itemType: string,
-    ): Promise<boolean | undefined> => {
-
-        const treeItem = await Misc.getTreeElement(section, treeItemName);
-        const el = await treeItem.findElement(locator.section.itemIcon);
-        const backImage = await el.getCssValue("background-image");
-
-        switch (itemType) {
-            case "profile": {
-                return backImage.includes("ociProfileCurrent");
-            }
-            case "compartment": {
-                return backImage.includes("folderCurrent");
-            }
-            case "bastion": {
-                return backImage.includes("ociBastionCurrent");
-            }
-            case "rest": {
-                return backImage.includes("mrsServiceDefault");
-            }
-            case "schema": {
-                return backImage.includes("schemaMySQLCurrent");
-            }
-            default: {
-                break;
-            }
-        }
     };
 
     public static toggleBottomBar = async (expand: boolean): Promise<void> => {
@@ -158,148 +123,12 @@ export class Misc {
         throw new Error(`Could not find button ${buttonName}`);
     };
 
-    public static openContextMenuItem = async (
-        treeItem: TreeItem,
-        ctxMenuItem: string | string[],
-        verifyOption: string | undefined,
-        map?: Map<string, number>,
-    ): Promise<void> => {
-
-        switch (verifyOption) {
-            case constants.checkNewTabAndWebView: {
-                await driver.wait(async () => {
-                    try {
-                        const prevOpenedTabs = await new EditorView().getOpenEditorTitles();
-                        await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
-                        if (await Misc.existsNewTab(prevOpenedTabs.length)) {
-                            await Misc.switchToFrame();
-
-                            return true;
-                        }
-                    } catch (e) {
-                        if (e instanceof Error) {
-                            if (!e.message.includes("Could not find a visible iframe div")) {
-                                throw e;
-                            } else {
-                                const activeTab = await (await new EditorView().getActiveTab()).getTitle();
-                                await new EditorView().closeEditor(activeTab);
-                            }
-                        }
-                    }
-                }, constants.wait10seconds, `No new tab was opened after selecting ${ctxMenuItem.toString()}`);
-                break;
-            }
-            case constants.checkNewTab: {
-                await driver.wait(async () => {
-                    const prevOpenedTabs = await new EditorView().getOpenEditorTitles();
-                    await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
-
-                    return Misc.existsNewTab(prevOpenedTabs.length);
-                }, constants.wait10seconds, `No new tab was opened after selecting ${ctxMenuItem.toString()}`);
-                break;
-            }
-            case constants.checkWebView: {
-                await driver.wait(async () => {
-                    try {
-                        await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
-                        await Misc.switchToFrame();
-
-                        return true;
-                    } catch (e) {
-                        if (e instanceof Error) {
-                            if (!e.message.includes("Could not find a visible iframe div")) {
-                                throw e;
-                            } else {
-                                const activeTab = await (await new EditorView().getActiveTab()).getTitle();
-                                await new EditorView().closeEditor(activeTab);
-                            }
-                        }
-                    }
-                }, constants.wait10seconds, `Could not switch to webview after selecting ${ctxMenuItem.toString()}`);
-                break;
-            }
-            case constants.checkNotif: {
-                await driver.wait(async () => {
-                    await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
-
-                    return Misc.existsNotifications();
-                }, constants.wait10seconds,
-                    `No notification was displayed after selecting ${ctxMenuItem.toString()}`);
-                break;
-            }
-            case constants.checkInput: {
-                await driver.wait(async () => {
-                    await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
-
-                    return Misc.existsInput();
-                }, constants.wait10seconds, `No input box was opened after selecting ${ctxMenuItem.toString()}`);
-                break;
-            }
-            case constants.checkWebViewDialog: {
-                const msg = `No Dialog inside a Web view was opened after selecting ${ctxMenuItem.toString()}`;
-                await driver.wait(async () => {
-                    try {
-                        await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
-                        await Misc.switchToFrame();
-
-                        return await Misc.existsWebViewDialog(true);
-                    } catch (e) {
-                        await driver.switchTo().defaultContent();
-                    }
-                }, constants.wait10seconds, msg);
-                break;
-            }
-            case constants.checkDialog: {
-                await driver.wait(async () => {
-                    await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
-
-                    return Misc.existsDialog();
-                }, constants.wait10seconds, `No Dialog was opened after selecting ${ctxMenuItem.toString()}`);
-                break;
-            }
-            case constants.checkTerminal: {
-                await driver.wait(async () => {
-                    await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
-
-                    return Misc.existsTerminal();
-                }, constants.wait10seconds, `No Dialog was opened after selecting ${ctxMenuItem.toString()}`);
-                break;
-            }
-            default: {
-                await Misc.selectContextMenuItem(treeItem, ctxMenuItem, map);
-                break;
-            }
-        }
-    };
-
-    public static clickSectionToolbarButton = async (section: CustomTreeSection, button: string): Promise<void> => {
-        let sectionActions: WebElement;
-        await driver.wait(async () => {
-            await driver.actions().move({ origin: section }).perform();
-            sectionActions = await driver
-                .findElement(locator.section.actions(await section.getTitle()));
-
-            return sectionActions.isDisplayed();
-        }, constants.wait5seconds, `Toolbar buttons for ${await section.getTitle()} were not displayed`);
-
-        const actionItems = await sectionActions.findElements(locator.htmlTag.li);
-        for (const action of actionItems) {
-            const title = await action.getAttribute("title");
-            if (title === button) {
-                await action.findElement(locator.htmlTag.a).click();
-
-                return;
-            }
-        }
-        throw new Error(`Could not find the ${button} button`);
-    };
-
     public static restartShell = async (): Promise<void> => {
         const existsRootHost = async (): Promise<boolean> => {
             return (await driver.findElements(locator.contextMenu.exists)).length > 0;
         };
 
-        const treeDBSection = await Misc.getSection(constants.dbTreeSection);
+        const treeDBSection = await Section.getSection(constants.dbTreeSection);
         await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait5seconds);
         await treeDBSection.click();
         const moreActions = await treeDBSection.findElement(locator.section.moreActions);
@@ -335,35 +164,6 @@ export class Misc {
         await driver.wait(async () => {
             return Misc.findOnMySQLShLog(/Info/);
         }, constants.wait5seconds * 3, "Shell server did not start");
-    };
-
-    public static selectMoreActionsItem = async (
-        section: CustomTreeSection,
-        item: string,
-    ): Promise<void> => {
-
-        const button = await section?.getAction("More Actions...");
-
-        await driver.wait(async () => {
-            await section.click();
-
-            return button?.isDisplayed();
-        }, constants.wait5seconds, `'More Actions...' button was not visible`);
-
-        if (Misc.isMacOs()) {
-            const moreActions = await section.findElement(locator.section.moreActions);
-            await moreActions.click();
-            await driver.sleep(500);
-            const taps = Misc.getValueFromMap(item);
-            for (let i = 0; i <= taps - 1; i++) {
-                await keyboard.type(nutKey.Down);
-            }
-            await keyboard.type(nutKey.Enter);
-        } else {
-            const moreActions = await section?.moreActions();
-            const moreActionsItem = await moreActions?.getItem(item);
-            await moreActionsItem?.select();
-        }
     };
 
     public static cleanCredentials = async (): Promise<void> => {
@@ -476,29 +276,6 @@ export class Misc {
         return join(fileContent.match(/logging_folder=(.*)/)[1], "mysqlrouter.log");
     };
 
-    public static createConnection = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
-
-        await Misc.switchBackToTopFrame();
-        await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection),
-            constants.createDBConnection);
-        await driver.wait(waitUntil.tabIsOpened(constants.dbDefaultEditor), constants.wait5seconds);
-        await Misc.switchToFrame();
-        await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists), constants.wait10seconds);
-
-        await DatabaseConnection.setConnection(
-            dbConfig.dbType,
-            dbConfig.caption,
-            dbConfig.description,
-            dbConfig.basic,
-            dbConfig.ssl,
-            undefined,
-            dbConfig.mds,
-        );
-
-        await Misc.switchBackToTopFrame();
-    };
-
-
     public static processFailure = async (testContext: Mocha.Context): Promise<void> => {
 
         await Misc.expandNotifications();
@@ -516,72 +293,39 @@ export class Misc {
         addContext(testContext, { title: "Failure", value: `../screenshots/${String(testName)}_screenshot.png` });
     };
 
-    public static expandDBConnectionTree = async (conn: TreeItem, password: string): Promise<void> => {
-        await driver.wait(async () => {
-            await conn.expand();
-
-            return conn.isExpanded();
-        }, constants.wait5seconds, `Could not expand ${await conn.getLabel()}`);
-
-        await driver.wait(async () => {
-            const inputWidget = await driver.wait(until.elementLocated(locator.inputBox.exists), 500)
-                .catch(() => { return undefined; });
-            if (inputWidget && (await (inputWidget as WebElement).isDisplayed())) {
-                await Misc.setInputPassword(password);
-
-                return driver.wait(async () => {
-                    return conn.hasChildren();
-                }, constants.wait10seconds,
-                    `${await conn.getLabel()} should have children after setting the password`);
-            } else if (await conn.hasChildren()) {
-                return true;
-            }
-        }, constants.wait20seconds,
-            `The input password was not displayed nor the ${await conn.getLabel()} has children`);
-    };
-
     public static switchToFrame = async (): Promise<void> => {
         await driver.wait(async () => {
             try {
-                const visibleDiv = await driver.wait(async () => {
+                let visibleDiv: WebElement;
+                await driver.wait(async () => {
                     const divs = await driver.findElements(locator.iframe.container);
                     for (const div of divs) {
-                        try {
-                            const id = await div.getAttribute("id");
-                            if (id !== "") {
-                                const visibility = await div.getCssValue("visibility");
-                                if (visibility.includes("visible")) {
-                                    return div;
-                                }
-                            }
-                        } catch (e) {
-                            // continue
+                        const visibility = await div.getCssValue("visibility");
+                        if (visibility.includes("visible")) {
+                            visibleDiv = div;
+
+                            return true;
                         }
                     }
                 }, constants.wait5seconds, "Could not find a visible iframe div");
-
                 const parentIframe = await visibleDiv.findElement(locator.iframe.exists);
+                await driver.wait(waitUntil.webViewIsReady(parentIframe), constants.wait10seconds);
                 await driver.wait(until.ableToSwitchToFrame(parentIframe),
                     constants.wait5seconds, "Could not enter the first iframe");
                 const activeFrame = await driver.wait(until.elementLocated(locator.iframe.isActive),
                     constants.wait5seconds, "Web View content was not loaded");
                 await driver.wait(until.ableToSwitchToFrame(activeFrame),
                     constants.wait5seconds, "Could not enter the active iframe");
-
-                let iframe: WebElement[];
-                while (true) {
-                    iframe = await driver.findElements(locator.iframe.exists);
-                    if (iframe.length > 0) {
-                        await driver.wait(until.ableToSwitchToFrame(iframe[0]),
-                            constants.wait150MiliSeconds);
-                        const deepestFrame = await driver.findElements(locator.iframe.exists);
-                        if (deepestFrame.length > 0) {
-                            await driver.executeScript("arguments[0].style.width='100%';", deepestFrame[0]);
-                            await driver.executeScript("arguments[0].style.height='100%';", deepestFrame[0]);
-                            await driver.executeScript("arguments[0].style.transform='scale(1)';", deepestFrame[0]);
-                        }
+                const iframe = await driver.findElements(locator.iframe.exists);
+                if (iframe.length > 0) {
+                    await driver.wait(until.ableToSwitchToFrame(iframe[0]),
+                        constants.wait150MiliSeconds);
+                    const deepestFrame = await driver.findElements(locator.iframe.exists);
+                    if (deepestFrame.length > 0) {
+                        await driver.executeScript("arguments[0].style.width='100%';", deepestFrame[0]);
+                        await driver.executeScript("arguments[0].style.height='100%';", deepestFrame[0]);
+                        await driver.executeScript("arguments[0].style.transform='scale(1)';", deepestFrame[0]);
                     }
-                    break;
                 }
 
                 return true;
@@ -799,7 +543,7 @@ export class Misc {
 
     public static setInputPassword = async (password: string): Promise<void> => {
         let inputBox: InputBox;
-
+        await Misc.switchBackToTopFrame();
         try {
             inputBox = await InputBox.create(constants.wait1second);
         } catch (e) {
@@ -891,42 +635,6 @@ export class Misc {
 
     };
 
-    public static isDBSystemStopped = async (dbSystem: TreeItem): Promise<boolean> => {
-        const itemIcon = await dbSystem.findElement(locator.section.itemIcon);
-        const itemStyle = await itemIcon.getAttribute("style");
-
-        return itemStyle.includes("ociDbSystemStopped");
-    };
-
-    public static isMRSDisabled = async (mrsTreeItem: TreeItem): Promise<boolean> => {
-        const itemIcon = await mrsTreeItem.findElement(locator.section.itemIcon);
-        const itemStyle = await itemIcon.getAttribute("style");
-
-        return itemStyle.includes("mrsDisabled");
-    };
-
-    public static getActionButton = async (treeItem: TreeItem, actionButton: string): Promise<WebElement> => {
-        return driver.wait(async () => {
-            try {
-                const btn = await treeItem.findElement(locator.section.itemAction(actionButton));
-
-                const treeItemCoord = await treeItem.getRect();
-                await driver.actions().move({
-                    x: Math.floor(treeItemCoord.x),
-                    y: Math.floor(treeItemCoord.y),
-                }).perform();
-                await driver.wait(until.elementIsVisible(btn),
-                    constants.wait5seconds, `'${actionButton}' button was not visible`);
-
-                return btn;
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
-                }
-            }
-        }, constants.wait5seconds, `Could not get icon for '${await treeItem.getLabel()}' (button was always stale)`);
-    };
-
     public static getMysqlshLog = (): string => {
         if (process.env.TEST_SUITE !== undefined) {
             return join(constants.basePath, `mysqlsh-${String(process.env.TEST_SUITE)}`, "mysqlsh.log");
@@ -959,124 +667,6 @@ export class Misc {
         }
     };
 
-    public static isRouterIconActive = async (): Promise<boolean> => {
-        const routerItem = await Misc.getTreeElement(constants.dbTreeSection, new RegExp(hostname()));
-        const icon = await routerItem.findElement(locator.section.itemIcon);
-
-        return (await icon.getCssValue("background-image")).match(/router.svg/) !== null;
-    };
-
-    public static routerHasError = async (treeItem: TreeItem): Promise<boolean> => {
-        const icon = await treeItem.findElement(locator.section.itemIcon);
-        const style = await icon.getAttribute("style");
-
-        return style.includes("routerError");
-    };
-
-    public static sectionFocus = async (section: string): Promise<void> => {
-        const treeDBSection = await Misc.getSection(constants.dbTreeSection);
-        const treeOCISection = await Misc.getSection(constants.ociTreeSection);
-        const treeOpenEditorsSection = await Misc.getSection(constants.openEditorsTreeSection);
-        const treeTasksSection = await Misc.getSection(constants.tasksTreeSection);
-        await driver.actions().move({ origin: treeTasksSection }).perform();
-
-        if ((await treeDBSection.getTitle()) === section) {
-            await driver.wait(new Condition("", async () => {
-                try {
-                    await treeDBSection.expand();
-                    await treeOCISection.collapse();
-                    await treeOpenEditorsSection.collapse();
-                    await treeTasksSection.collapse();
-
-                    return (await treeDBSection.isExpanded()) &&
-                        !(await treeOCISection.isExpanded()) &&
-                        !(await treeOpenEditorsSection.isExpanded()) &&
-                        !(await treeTasksSection.isExpanded());
-                } catch (e) {
-                    if (!(e instanceof error.TimeoutError || e instanceof error.ElementClickInterceptedError)) {
-                        throw e;
-                    }
-                }
-            }), constants.wait5seconds, `${section} was not focused`);
-        } else if ((await treeOCISection.getTitle()) === section) {
-            await driver.wait(new Condition("", async () => {
-                try {
-                    await treeOCISection.expand();
-                    await treeDBSection.collapse();
-                    await treeOpenEditorsSection.collapse();
-                    await treeTasksSection.collapse();
-
-                    return (await treeOCISection.isExpanded()) &&
-                        !(await treeDBSection.isExpanded()) &&
-                        !(await treeOpenEditorsSection.isExpanded()) &&
-                        !(await treeTasksSection.isExpanded());
-                } catch (e) {
-                    console.log("error");
-                    console.log(e);
-                    if (!(e instanceof error.TimeoutError || e instanceof error.ElementClickInterceptedError)) {
-                        throw e;
-                    }
-                }
-            }), constants.wait5seconds, `${section} was not focused`);
-        } else if ((await treeOpenEditorsSection.getTitle()) === section) {
-            await driver.wait(new Condition("", async () => {
-                try {
-                    await treeOpenEditorsSection.expand();
-                    await treeDBSection.collapse();
-                    await treeOCISection.collapse();
-                    await treeTasksSection.collapse();
-
-                    return (await treeOpenEditorsSection.isExpanded()) &&
-                        !(await treeDBSection.isExpanded()) &&
-                        !(await treeOCISection.isExpanded()) &&
-                        !(await treeTasksSection.isExpanded());
-                } catch (e) {
-                    if (!(e instanceof error.TimeoutError || e instanceof error.ElementClickInterceptedError)) {
-                        throw e;
-                    }
-                }
-            }), constants.wait5seconds, `${section} was not focused`);
-        } else if ((await treeTasksSection.getTitle()) === section) {
-            await driver.wait(new Condition("", async () => {
-                try {
-                    await treeTasksSection.expand();
-                    await treeDBSection.collapse();
-                    await treeOCISection.collapse();
-                    await treeOpenEditorsSection.collapse();
-
-                    return (await treeTasksSection.isExpanded()) &&
-                        !(await treeDBSection.isExpanded()) &&
-                        !(await treeOCISection.isExpanded()) &&
-                        !(await treeOpenEditorsSection.isExpanded());
-                } catch (e) {
-                    if (!(e instanceof error.TimeoutError || e instanceof error.ElementClickInterceptedError)) {
-                        throw e;
-                    }
-                }
-
-            }), constants.wait5seconds, `${section} was not focused`);
-        } else {
-            throw new Error(`Unknow section: ${section}`);
-        }
-    };
-
-    public static getTreeScript = async (section: CustomTreeSection,
-        partialName: string, type: string): Promise<TreeItem> => {
-        return driver.wait(new Condition("", async () => {
-            section = await Misc.getSection(await section.getTitle());
-            const treeVisibleItems = await section.getVisibleItems();
-            for (const item of treeVisibleItems) {
-                if ((await item.getLabel()).includes(partialName)) {
-                    const itemIcon = await item.findElement(locator.section.itemIcon);
-                    if ((await itemIcon.getAttribute("style")).includes(type)) {
-                        return item;
-                    }
-                }
-            }
-        }), constants.wait5seconds,
-            `Could not find the script '${partialName}' with type '${type}' on the Open Editors tree`);
-    };
-
     public static expandNotifications = async (): Promise<void> => {
         const notifs = await new Workbench().getNotifications();
         for (const notif of notifs) {
@@ -1084,143 +674,8 @@ export class Misc {
         }
     };
 
-    public static getTreeElement = async (
-        section: string,
-        itemName: string | RegExp,
-    ): Promise<TreeItem> => {
-        let el: TreeItem;
-        let reloadLabel: string;
-
-        if (section === constants.dbTreeSection) {
-            reloadLabel = constants.reloadConnections;
-        } else if (section === constants.ociTreeSection) {
-            reloadLabel = constants.reloadOci;
-        }
-
-        const sectionTree = await Misc.getSection(section);
-        await driver.wait(waitUntil.sectionIsNotLoading(section), constants.wait20seconds);
-        let reload = false;
-
-        await driver.wait(async () => {
-            try {
-                if (reload) {
-                    if (section === constants.dbTreeSection || section === constants.ociTreeSection) {
-                        await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
-                        await driver.wait(waitUntil.sectionIsNotLoading(section), constants.wait20seconds);
-                    }
-                }
-                if (itemName instanceof RegExp) {
-                    const treeItems = await sectionTree.getVisibleItems();
-                    for (const item of treeItems) {
-                        if ((await item.getLabel()).match(itemName) !== null) {
-                            el = item;
-                            break;
-                        }
-                    }
-                } else {
-                    el = await sectionTree.findItem(itemName, 5);
-                }
-
-                if (el === undefined) {
-                    reload = true;
-                } else {
-                    return true;
-                }
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
-                }
-            }
-        }, constants.wait10seconds, `${itemName.toString()} on section ${section} was not found`);
-
-        return el;
-    };
-
-    public static getTreeElementByType = async (section: string, type: string): Promise<TreeItem> => {
-
-        const sectionTree = await Misc.getSection(section);
-        const treeItems = await sectionTree.getVisibleItems();
-        for (const treeItem of treeItems) {
-            const el = await treeItem.findElement(locator.section.itemIcon);
-            const backImage = await el.getCssValue("background-image");
-            if (backImage.match(new RegExp(type)) !== null) {
-                return treeItem;
-            }
-        }
-
-        throw new Error(`Could not find the item type ${type} on section ${section}`);
-    };
-
-    public static existsTreeElement = async (section: string, itemName: string | RegExp): Promise<boolean> => {
-        let reloadLabel: string;
-        let exists: boolean;
-        await driver.wait(async () => {
-            try {
-                const sectionTree = await Misc.getSection(section);
-                await driver.wait(waitUntil.sectionIsNotLoading(section), constants.wait10seconds);
-                if (section === constants.dbTreeSection || section === constants.ociTreeSection) {
-                    if (section === constants.dbTreeSection) {
-                        reloadLabel = "Reload the connection list";
-                    } else if (section === constants.ociTreeSection) {
-                        reloadLabel = "Reload the OCI Profile list";
-                    }
-                    await Misc.clickSectionToolbarButton(sectionTree, reloadLabel);
-                    await driver.wait(waitUntil.sectionIsNotLoading(section), constants.wait20seconds);
-                }
-
-                if (itemName instanceof RegExp) {
-                    const treeItems = await sectionTree.getVisibleItems();
-                    for (const item of treeItems) {
-                        if ((await item.getLabel()).match(itemName) !== null) {
-                            exists = true;
-
-                            return true;
-                        }
-                    }
-                    exists = false;
-
-                    return true;
-                } else {
-                    exists = (await sectionTree.findItem(itemName, 5)) !== undefined;
-
-                    return true;
-                }
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
-                }
-            }
-        }, constants.wait5seconds, `Could not determine if ${itemName} exists`);
-
-        return exists;
-    };
-
-    public static getDBConnections = async (): Promise<interfaces.ITreeDBConnection[]> => {
-        const dbConnections: interfaces.ITreeDBConnection[] = [];
-        await Misc.switchBackToTopFrame();
-        await Misc.sectionFocus(constants.dbTreeSection);
-        await Misc.clickSectionToolbarButton(await Misc.getSection(constants.dbTreeSection), constants.collapseAll);
-        const treeItems = await driver.findElements(locator.section.item);
-        for (const item of treeItems) {
-            const icon = await item.findElement(locator.section.itemIcon);
-            const backgroundImage = await icon.getCssValue("background-image");
-            if (backgroundImage.match(/connection/) !== null || backgroundImage.match(/ociDbSystem/) !== null) {
-                const itemName = await (await item.findElement(locator.section.itemName)).getText();
-                let mysql = false;
-                if (backgroundImage.match(/Sqlite/) === null) {
-                    mysql = true;
-                }
-                dbConnections.push({
-                    name: itemName,
-                    isMySQL: mysql,
-                });
-            }
-        }
-
-        return dbConnections;
-    };
-
     public static setInputPath = async (path: string): Promise<void> => {
+        await Misc.switchBackToTopFrame();
         const input = await InputBox.create();
         await driver.wait(async () => {
             try {
@@ -1235,42 +690,6 @@ export class Misc {
                 // continue trying
             }
         }, constants.wait10seconds, `Could not set ${path} on input box`);
-    };
-
-    public static deleteConnection = async (dbName: string, isMySQL = true, verifyDelete = true): Promise<void> => {
-
-        const treeItem = await Misc.getTreeElement(constants.dbTreeSection, dbName);
-        if (isMySQL === true) {
-            await Misc.selectContextMenuItem(treeItem, constants.deleteDBConnection, constants.dbConnectionCtxMenu);
-        } else {
-            await Misc.selectContextMenuItem(treeItem, constants.deleteDBConnection,
-                constants.dbConnectionSqliteCtxMenu);
-        }
-
-        const editorView = new EditorView();
-        await driver.wait(async () => {
-            const activeTab = await editorView.getActiveTab();
-
-            return await activeTab?.getTitle() === constants.dbDefaultEditor;
-        }, 3000, "error");
-
-        await Misc.switchToFrame();
-        const dialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists),
-            constants.wait10seconds, "confirm dialog was not found");
-
-        await dialog.findElement(locator.confirmDialog.accept).click();
-        await Misc.switchBackToTopFrame();
-        if (verifyDelete === true) {
-            await driver.wait(async () => {
-                try {
-                    return !(await Misc.existsTreeElement(constants.dbTreeSection, dbName));
-                } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
-                        throw e;
-                    }
-                }
-            }, constants.wait5seconds, `${dbName} was not deleted`);
-        }
     };
 
     public static loadDriver = async (): Promise<void> => {
@@ -1316,28 +735,6 @@ export class Misc {
         return out;
     };
 
-    public static expandTreeSection = async (section: string): Promise<void> => {
-        const sec = await Misc.getSection(section);
-        if (!(await sec.isExpanded())) {
-            await driver.wait(async () => {
-                await sec.expand();
-
-                return sec.isExpanded();
-            }, constants.wait5seconds, `Could not expand '${section}' section`);
-        }
-    };
-
-    public static collapseTreeSection = async (section: string): Promise<void> => {
-        const sec = await Misc.getSection(section);
-        if (await sec.isExpanded()) {
-            await driver.wait(async () => {
-                await sec.collapse();
-
-                return (await sec.isExpanded()) === false;
-            }, constants.wait5seconds, `Could not expand '${section}' section`);
-        }
-    };
-
     public static reloadVSCode = async (): Promise<void> => {
         await driver.wait(async () => {
             try {
@@ -1372,11 +769,40 @@ export class Misc {
         }
     };
 
+    public static closeEditor = async (editor: string): Promise<void> => {
+        await Misc.switchBackToTopFrame();
+        await new EditorView().closeEditor(editor);
+    };
+
+    public static closeAllEditors = async (): Promise<void> => {
+        await Misc.switchBackToTopFrame();
+        await new EditorView().closeAllEditors();
+    };
+
+    public static getOpenEditorTitles = async (): Promise<string[]> => {
+        await Misc.switchBackToTopFrame();
+
+        return new EditorView().getOpenEditorTitles();
+    };
+
+    public static getActiveTab = async (): Promise<EditorTab> => {
+        await Misc.switchBackToTopFrame();
+
+        return new EditorView().getActiveTab();
+    };
+
+    public static openEditor = async (editor: string): Promise<void> => {
+        await Misc.switchBackToTopFrame();
+        await new EditorView().openEditor(editor);
+    };
+
     public static requiresMRSMetadataUpgrade = async (dbConnection: interfaces.IDBConnection): Promise<boolean> => {
+        await Misc.switchBackToTopFrame();
+
         await Misc.dismissNotifications();
-        const dbTreeConnection = await Misc.getTreeElement(constants.dbTreeSection, dbConnection.caption);
+        const dbTreeConnection = await Tree.getElement(constants.dbTreeSection, dbConnection.caption);
         await Misc.cleanCredentials();
-        await Misc.expandDBConnectionTree(dbTreeConnection,
+        await Tree.expandDatabaseConnection(dbTreeConnection,
             (dbConnection.basic as interfaces.IConnBasicMySQL).password);
         if ((await Misc.existsNotifications(constants.wait2seconds)) === true) {
             return (await Misc.getNotification("This MySQL Shell version requires a new minor version")) !== undefined;
@@ -1387,59 +813,6 @@ export class Misc {
         const notification = await Misc.getNotification("This MySQL Shell version requires a new minor version");
         await Misc.clickOnNotificationButton(notification, "Yes");
         await Misc.getNotification("The MySQL REST Service Metadata Schema has been updated");
-    };
-
-    public static selectContextMenuItem = async (
-        treeItem: TreeItem,
-        ctxMenuItem: string | string[],
-        itemMap?: Map<string, number>,
-    ): Promise<void> => {
-
-        if (treeItem) {
-            await driver.wait(async () => {
-                if (Misc.isMacOs()) {
-                    await driver.actions()
-                        .move({ origin: treeItem })
-                        .press(Button.RIGHT)
-                        .pause(500)
-                        .perform();
-                    if (Array.isArray(ctxMenuItem)) {
-                        for (const item of ctxMenuItem) {
-                            await Misc.selectItemMacOS(item, itemMap);
-                        }
-                    } else {
-                        await Misc.selectItemMacOS(ctxMenuItem, itemMap);
-                    }
-
-                    return true;
-                } else {
-                    try {
-                        let ctxMenuItems: string | string[];
-                        if (Array.isArray(ctxMenuItem)) {
-                            ctxMenuItems = [ctxMenuItem[0], ctxMenuItem[1]];
-                        } else {
-                            ctxMenuItems = [ctxMenuItem];
-                        }
-
-                        const menu = await treeItem.openContextMenu();
-                        const menuItem = await menu.getItem(ctxMenuItems[0].trim());
-                        const anotherMenu = await menuItem.select();
-                        if (ctxMenuItems.length > 1) {
-                            await (await anotherMenu.getItem(ctxMenuItems[1].trim())).select();
-                        }
-
-                        return true;
-                    } catch (e) {
-                        console.log(e);
-
-                        return false;
-                    }
-                }
-            }, constants.wait5seconds,
-                `Could not select '${ctxMenuItem.toString()}' for tree item '${await treeItem.getLabel()}'`);
-        } else {
-            throw new Error(`TreeItem for context menu '${ctxMenuItem.toString()}' is undefined`);
-        }
     };
 
     public static existsWebViewDialog = async (wait = false): Promise<boolean> => {
@@ -1454,22 +827,6 @@ export class Misc {
             }, constants.wait5seconds).catch(() => {
                 return false;
             });
-        }
-    };
-
-    public static expandTree = async (section: string, treeItems: Array<string | RegExp>,
-        loadingTimeout = constants.wait10seconds): Promise<void> => {
-        const sec = await Misc.getSection(section);
-        if (!(await sec.isExpanded())) {
-            await sec.expand();
-        }
-
-        for (const item of treeItems) {
-            const treeItem = await Misc.getTreeElement(section, item);
-            if (!(await treeItem.isExpanded())) {
-                await treeItem.expand();
-                await driver.wait(waitUntil.sectionIsNotLoading(section), loadingTimeout);
-            }
         }
     };
 
@@ -1525,80 +882,7 @@ export class Misc {
         }
     };
 
-    private static existsNewTab = async (prevTabs: number): Promise<boolean> => {
-        return driver.wait(async () => {
-            const currentOpenedTabs = await new EditorView().getOpenEditorTitles();
-
-            return currentOpenedTabs.length > prevTabs || currentOpenedTabs.length > 0;
-        }, constants.wait5seconds).catch(() => {
-            return false;
-        });
-
-    };
-
-    private static existsNotifications = async (timeout = constants.wait5seconds): Promise<boolean> => {
-        return driver.wait(async () => {
-            return (await new Workbench().getNotifications()).length > 0;
-        }, timeout).catch(() => {
-            return false;
-        });
-    };
-
-    private static existsInput = async (): Promise<boolean> => {
-        return driver.wait(async () => {
-            const widget = await driver.findElement(locator.inputBox.exists);
-            const display = await widget.getCssValue("display");
-
-            return !display.includes("none");
-        }, constants.wait5seconds).catch(() => {
-            return false;
-        });
-    };
-
-    private static existsTerminal = async (): Promise<boolean> => {
-        return driver.wait(async () => {
-            return (await driver.findElements(locator.terminal.exists)).length > 0;
-        }, constants.wait5seconds).catch(() => {
-            return false;
-        });
-    };
-
-    private static existsDialog = (): Promise<boolean> => {
-        return driver.wait(async () => {
-            try {
-                const dialog = new ModalDialog();
-
-                return (await dialog.getMessage()).length > 0;
-            } catch (e) {
-                if (!(e instanceof error.NoSuchElementError) &&
-                    !(e instanceof error.StaleElementReferenceError) &&
-                    !(e instanceof error.ElementNotInteractableError)
-                ) {
-                    throw e;
-                }
-            }
-        }, constants.wait5seconds, "The dialog was not opened").catch(() => {
-            return false;
-        });
-    };
-
-    private static getCmdResultToolbar = async (zoneHost: WebElement): Promise<WebElement | undefined> => {
-        let context: WebElement;
-        if (zoneHost) {
-            context = zoneHost;
-        } else {
-            const blocks = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.result.exists),
-                constants.wait5seconds, "No zone hosts were found");
-            context = blocks[blocks.length - 1];
-        }
-
-        const toolbar = await context.findElements(locator.notebook.codeEditor.editor.result.status.toolbar);
-        if (toolbar.length > 0) {
-            return toolbar[0];
-        }
-    };
-
-    private static getValueFromMap = (item: string, map?: Map<string, number>): number => {
+    public static getValueFromMap = (item: string, map?: Map<string, number>): number => {
         if (map) {
             return map.get(item);
         } else {
@@ -1616,7 +900,61 @@ export class Misc {
         }
     };
 
-    private static selectItemMacOS = async (item: string, map?: Map<string, number>): Promise<void> => {
+    public static existsNewTab = async (prevTabs: number): Promise<boolean> => {
+        return driver.wait(async () => {
+            const currentOpenedTabs = await new EditorView().getOpenEditorTitles();
+
+            return currentOpenedTabs.length > prevTabs || currentOpenedTabs.length > 0;
+        }, constants.wait5seconds).catch(() => {
+            return false;
+        });
+
+    };
+
+    public static existsInput = async (): Promise<boolean> => {
+        return driver.wait(async () => {
+            const widget = await driver.findElement(locator.inputBox.exists);
+            const display = await widget.getCssValue("display");
+
+            return !display.includes("none");
+        }, constants.wait5seconds).catch(() => {
+            return false;
+        });
+    };
+
+    public static existsNotifications = async (timeout = constants.wait5seconds): Promise<boolean> => {
+        return driver.wait(async () => {
+            return (await new Workbench().getNotifications()).length > 0;
+        }, timeout).catch(() => {
+            return false;
+        });
+    };
+
+    public static existsTerminal = async (): Promise<boolean> => {
+        return driver.wait(async () => {
+            return (await driver.findElements(locator.terminal.exists)).length > 0;
+        }, constants.wait5seconds).catch(() => {
+            return false;
+        });
+    };
+
+    public static getCmdResultToolbar = async (zoneHost: WebElement): Promise<WebElement | undefined> => {
+        let context: WebElement;
+        if (zoneHost) {
+            context = zoneHost;
+        } else {
+            const blocks = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.result.exists),
+                constants.wait5seconds, "No zone hosts were found");
+            context = blocks[blocks.length - 1];
+        }
+
+        const toolbar = await context.findElements(locator.notebook.codeEditor.editor.result.status.toolbar);
+        if (toolbar.length > 0) {
+            return toolbar[0];
+        }
+    };
+
+    public static selectItemMacOS = async (item: string, map?: Map<string, number>): Promise<void> => {
         const taps = Misc.getValueFromMap(item, map);
         for (let i = 0; i <= taps - 1; i++) {
             await keyboard.type(nutKey.Down);

@@ -33,7 +33,7 @@ export class DialogHelper {
      * @returns A promise resolving with the text
      */
     public static setCheckboxValue = async (id: string, checked: boolean): Promise<void> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -57,7 +57,7 @@ export class DialogHelper {
      * @returns A promise resolving with the checkbox value (true if checked, false otherwise)
      */
     public static getCheckBoxValue = async (id: string): Promise<boolean> => {
-        if ((await Misc.insideIframe()) === false) {
+        if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
@@ -74,9 +74,20 @@ export class DialogHelper {
      * @returns A promise resolving when the field it cleared
      */
     public static setFieldText = async (dialog: WebElement, fieldLocator: Locator, text: string): Promise<void> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
+
         const field = await dialog.findElement(fieldLocator);
-        await Misc.clearInputField(field);
-        await field.sendKeys(text);
+        const fieldValue = await field.getAttribute("value");
+        if (fieldValue.trim() !== "") {
+            if (fieldValue !== text) {
+                await Misc.clearInputField(field);
+                await field.sendKeys(text);
+            }
+        } else {
+            await field.sendKeys(text);
+        }
     };
 
     /**
@@ -86,6 +97,9 @@ export class DialogHelper {
      * @returns A promise resolving when the field text is returned
      */
     public static getFieldValue = async (dialog: WebElement, fieldLocator: Locator): Promise<string> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
         const field = await dialog.findElement(fieldLocator);
 
         return field.getAttribute("value");
