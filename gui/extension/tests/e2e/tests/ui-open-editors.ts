@@ -27,6 +27,8 @@ import { Shell } from "../lib/shell";
 import { Notebook } from "../lib/webviews/notebook";
 import { Section } from "../lib/treeViews/section";
 import { Tree } from "../lib/treeViews/tree";
+import { Os } from "../lib/os";
+import { Workbench } from "../lib/workbench";
 import * as constants from "../lib/constants";
 import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
@@ -77,13 +79,13 @@ describe("OPEN EDITORS", () => {
             await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
-            await Misc.dismissNotifications();
-            await Misc.toggleBottomBar(false);
+            await Workbench.dismissNotifications();
+            await Workbench.toggleBottomBar(false);
             await Section.createDatabaseConnection(globalConn);
-            await Misc.closeAllEditors();
+            await Workbench.closeAllEditors();
             await new BottomBarPanel().toggle(false);
-            if (await Misc.requiresMRSMetadataUpgrade(globalConn)) {
-                await Misc.upgradeMRSMetadata();
+            if (await Workbench.requiresMRSMetadataUpgrade(globalConn)) {
+                await Workbench.upgradeMRSMetadata();
             }
         } catch (e) {
             await Misc.processFailure(this);
@@ -93,7 +95,7 @@ describe("OPEN EDITORS", () => {
 
     after(async function () {
         try {
-            await Misc.prepareExtensionLogsForExport(process.env.TEST_SUITE);
+            await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
             const dbConnections = await Tree.getDatabaseConnections();
             for (const dbConnection of dbConnections) {
                 await Tree.deleteDatabaseConnection(dbConnection.name, dbConnection.isMySQL, false);
@@ -131,7 +133,7 @@ describe("OPEN EDITORS", () => {
         await (await Tree.getActionButton(treeOEGlobalConn, "New MySQL Script")).click();
         const treeItem = await Tree.getScript(/Untitled-/, "Mysql");
         expect(treeItem).to.exist;
-        await Misc.openEditor(globalConn.caption);
+        await Workbench.openEditor(globalConn.caption);
         expect(await Notebook.getCurrentEditorName()).to.match(/Untitled-(\d+)/);
         expect(await Notebook.getCurrentEditorType()).to.include("Mysql");
         await (await Tree.getActionButton(treeItem, "Close Editor")).click();

@@ -28,6 +28,9 @@ import * as interfaces from "../interfaces";
 import * as locator from "../locators";
 import { DialogHelper } from "./dialogHelper";
 
+/**
+ * This class aggregates the functions that perform database related operations
+ */
 export class DatabaseConnection {
 
     /**

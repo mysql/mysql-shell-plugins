@@ -26,6 +26,9 @@ import { driver, Misc } from "../misc";
 import * as constants from "../constants";
 import * as locator from "../locators";
 
+/**
+ * This class aggregates the functions that perform operations inside notebooks
+ */
 export class Notebook {
 
     /**

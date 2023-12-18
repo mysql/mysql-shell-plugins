@@ -34,10 +34,13 @@ import { CommandExecutor } from "../lib/cmdExecutor";
 import { Section } from "../lib/treeViews/section";
 import { Tree } from "../lib/treeViews/tree";
 import { DatabaseConnection } from "../lib/webviews/dbConnection";
+import { Os } from "../lib/os";
+import { Workbench } from "../lib/workbench";
 import * as constants from "../lib/constants";
 import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
+import { DialogHelper } from "../lib/webviews/dialogHelper";
 
 
 describe("NOTEBOOKS", () => {
@@ -85,13 +88,13 @@ describe("NOTEBOOKS", () => {
         await Misc.loadDriver();
         try {
             await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes);
-            await Misc.toggleBottomBar(false);
+            await Workbench.toggleBottomBar(false);
             await Section.createDatabaseConnection(globalConn);
             await (await DatabaseConnection.getConnection(globalConn.caption)).click();
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait10seconds);
             await Section.focus(constants.dbTreeSection);
-            if (await Misc.requiresMRSMetadataUpgrade(globalConn)) {
-                await Misc.upgradeMRSMetadata();
+            if (await Workbench.requiresMRSMetadataUpgrade(globalConn)) {
+                await Workbench.upgradeMRSMetadata();
             }
         } catch (e) {
             await Misc.processFailure(this);
@@ -101,7 +104,7 @@ describe("NOTEBOOKS", () => {
 
     after(async function () {
         try {
-            await Misc.prepareExtensionLogsForExport(process.env.TEST_SUITE);
+            await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
             const dbConnections = await Tree.getDatabaseConnections();
             for (const dbConnection of dbConnections) {
                 await Tree.deleteDatabaseConnection(dbConnection.name, dbConnection.isMySQL, false);
@@ -119,7 +122,7 @@ describe("NOTEBOOKS", () => {
 
         before(async function () {
             try {
-                await Misc.cleanCredentials();
+                await Os.deleteCredentials();
                 await Tree.openContextMenuAndSelect(await Tree.getElement(constants.dbTreeSection, globalConn.caption),
                     constants.openNewConnection);
                 await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
@@ -145,7 +148,7 @@ describe("NOTEBOOKS", () => {
             try {
                 const treeGlobalConn = await Tree.getElement(constants.dbTreeSection, globalConn.caption);
                 await treeGlobalConn.collapse();
-                await Misc.closeAllEditors();
+                await Workbench.closeAllEditors();
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -484,16 +487,16 @@ describe("NOTEBOOKS", () => {
                 "src", "tests", "e2e", "sql", "sakila.sql"));
             await driver.wait(waitUntil.tabIsOpened("sakila.sql"));
             let textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-            await Misc.keyboardSelectAll(textArea);
-            await Misc.keyboardCopy(textArea);
-            await Misc.openEditor(globalConn.caption);
+            await Os.keyboardSelectAll(textArea);
+            await Os.keyboardCopy(textArea);
+            await Workbench.openEditor(globalConn.caption);
             await Misc.switchToFrame();
             textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await driver.executeScript("arguments[0].click()", textArea);
             let clipboardText = await clipboard.read();
             clipboardText = clipboardText.replace(/`|;/gm, "");
             await clipboard.write(clipboardText);
-            await Misc.keyboardPaste(textArea);
+            await Os.keyboardPaste(textArea);
 
             const sakilaFile = await fs.readFile(join(constants.workspace, "gui", "frontend",
                 "src", "tests", "e2e", "sql", "sakila.sql"));
@@ -508,7 +511,7 @@ describe("NOTEBOOKS", () => {
                 expect(
                     await finder.findElement(locator.findWidget.matchesCount).getText(),
                 ).to.match(/1 of (\d+)/);
-                await Misc.clearInputField(finderTextArea);
+                await DialogHelper.clearInputField(finderTextArea);
             }
         });
 
@@ -521,11 +524,11 @@ describe("NOTEBOOKS", () => {
             await Notebook.setNewLineOnEditor();
             await commandExecutor.write(sentence2);
             const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-            await Misc.keyboardSelectAll(textArea);
-            await Misc.keyboardCut(textArea);
+            await Os.keyboardSelectAll(textArea);
+            await Os.keyboardCut(textArea);
             expect(await Notebook.existsOnNotebook(sentence1)).to.be.false;
             expect(await Notebook.existsOnNotebook(sentence2)).to.be.false;
-            await Misc.keyboardPaste(textArea);
+            await Os.keyboardPaste(textArea);
             expect(await Notebook.existsOnNotebook(sentence1)).to.be.true;
             expect(await Notebook.existsOnNotebook(sentence2)).to.be.true;
         });
@@ -539,7 +542,7 @@ describe("NOTEBOOKS", () => {
 
         before(async function () {
             try {
-                await Misc.cleanCredentials();
+                await Os.deleteCredentials();
                 await Section.focus(constants.dbTreeSection);
                 const treeGlobalConn = await Tree.getElement(constants.dbTreeSection, globalConn.caption);
                 await (await Tree.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
@@ -564,7 +567,7 @@ describe("NOTEBOOKS", () => {
                 await Section.focus(constants.dbTreeSection);
                 const treeGlobalConn = await Tree.getElement(constants.dbTreeSection, globalConn.caption);
                 await treeGlobalConn.collapse();
-                await Misc.closeAllEditors();
+                await Workbench.closeAllEditors();
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -648,7 +651,7 @@ describe("NOTEBOOKS", () => {
 
         after(async function () {
             try {
-                await Misc.closeAllEditors();
+                await Workbench.closeAllEditors();
                 await fs.unlink(`${destFile}.mysql-notebook`);
                 const activityBar = new ActivityBar();
                 await (await activityBar.getViewControl(constants.extensionName))?.openView();
@@ -664,7 +667,7 @@ describe("NOTEBOOKS", () => {
             await commandExecutor.execute("SELECT VERSION();");
             expect(commandExecutor.getResultMessage()).to.match(/1 record retrieved/);
             await (await Notebook.getToolbarButton(constants.saveNotebook)).click();
-            await Misc.setInputPath(destFile);
+            await Workbench.setInputPath(destFile);
             await driver.wait(new Condition("", async () => {
                 try {
                     await fs.access(`${destFile}.mysql-notebook`);
@@ -679,16 +682,16 @@ describe("NOTEBOOKS", () => {
         it("Replace this Notebook with content from a file", async () => {
 
             await (await Notebook.getToolbarButton(constants.loadNotebook)).click();
-            await Misc.setInputPath(`${destFile}.mysql-notebook`);
+            await Workbench.setInputPath(`${destFile}.mysql-notebook`);
             await Notebook.verifyNotebook("SELECT VERSION();", "1 record retrieved");
 
         });
 
         it("Open the Notebook from file", async () => {
 
-            await Misc.closeAllEditors();
+            await Workbench.closeAllEditors();
             await browser.openResources(process.cwd());
-            await Misc.dismissNotifications();
+            await Workbench.dismissNotifications();
             let section: CustomTreeSection;
             await driver.wait(async () => {
                 section = await Section.getSection("e2e");
@@ -702,7 +705,7 @@ describe("NOTEBOOKS", () => {
 
             const input = await InputBox.create(constants.wait5seconds * 4);
             await (await input.findQuickPick(globalConn.caption)).select();
-            await Misc.openEditor("test.mysql-notebook");
+            await Workbench.openEditor("test.mysql-notebook");
 
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
             await Notebook.verifyNotebook("SELECT VERSION();", "1 record retrieved");
@@ -710,7 +713,7 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Open the Notebook from file with connection", async () => {
-            await Misc.closeAllEditors();
+            await Workbench.closeAllEditors();
             await browser.openResources(process.cwd());
             let section: CustomTreeSection;
             await driver.wait(async () => {
@@ -730,7 +733,7 @@ describe("NOTEBOOKS", () => {
 
         it("Auto close notebook tab when DB connection is deleted", async () => {
 
-            await Misc.closeEditor("test.mysql-notebook");
+            await Workbench.closeEditor("test.mysql-notebook");
             // The file may be dirty
             try {
                 const dialog = new ModalDialog();
@@ -748,11 +751,11 @@ describe("NOTEBOOKS", () => {
             const file = await section.findItem("test.mysql-notebook", 3);
             await file.click();
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-            await Misc.openEditor("test.mysql-notebook");
+            await Workbench.openEditor("test.mysql-notebook");
             const activityBar = new ActivityBar();
             await (await activityBar.getViewControl(constants.extensionName))?.openView();
             await Tree.deleteDatabaseConnection(globalConn.caption);
-            const tabs = await Misc.getOpenEditorTitles();
+            const tabs = await Workbench.getOpenEditorTitles();
             expect(tabs).to.not.include("test.mysql-notebook");
         });
 
@@ -775,13 +778,13 @@ describe("NOTEBOOKS", () => {
             }, constants.wait5seconds, "E2E section was not found");
             const file = await section.findItem("test.mysql-notebook", 3);
             await file.click();
-            await Misc.openEditor("test.mysql-notebook");
-            await Misc.getNotification("Please create a MySQL Database Connection first.", undefined, true);
+            await Workbench.openEditor("test.mysql-notebook");
+            await Workbench.getNotification("Please create a MySQL Database Connection first.", undefined, true);
             await Misc.switchToFrame();
             expect(await driver.findElement(locator.htmlTag.h2).getText()).to.equals("No connection selected");
-            await Misc.closeAllEditors();
+            await Workbench.closeAllEditors();
             await Tree.openContextMenuAndSelect(file, constants.openNotebookWithConn);
-            await Misc.getNotification("Please create a MySQL Database Connection first.", undefined, true);
+            await Workbench.getNotification("Please create a MySQL Database Connection first.", undefined, true);
         });
 
     });

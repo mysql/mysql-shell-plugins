@@ -30,7 +30,9 @@ import * as waitUntil from "../until";
 import * as locator from "../locators";
 import * as interfaces from "../interfaces";
 import { Misc, driver } from "../misc";
+import { Workbench } from "../workbench";
 import { Section } from "./section";
+import { Os } from "../os";
 import { hostname } from "os";
 
 export class Tree {
@@ -242,7 +244,7 @@ export class Tree {
             const inputWidget = await driver.wait(until.elementLocated(locator.inputBox.exists), 500)
                 .catch(() => { return undefined; });
             if (inputWidget && (await (inputWidget as WebElement).isDisplayed())) {
-                await Misc.setInputPassword(password);
+                await Workbench.setInputPassword(password);
 
                 return driver.wait(async () => {
                     return conn.hasChildren();
@@ -503,7 +505,7 @@ export class Tree {
 
         if (element) {
             await driver.wait(async () => {
-                if (Misc.isMacOs()) {
+                if (Os.isMacOs()) {
                     await driver.actions()
                         .move({ origin: element })
                         .press(Button.RIGHT)
@@ -511,10 +513,10 @@ export class Tree {
                         .perform();
                     if (Array.isArray(ctxMenuItem)) {
                         for (const item of ctxMenuItem) {
-                            await Misc.selectItemMacOS(item, itemMap);
+                            await Os.selectItemMacOS(item, itemMap);
                         }
                     } else {
-                        await Misc.selectItemMacOS(ctxMenuItem, itemMap);
+                        await Os.selectItemMacOS(ctxMenuItem, itemMap);
                     }
 
                     return true;

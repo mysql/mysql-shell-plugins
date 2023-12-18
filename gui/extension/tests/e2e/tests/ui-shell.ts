@@ -26,6 +26,8 @@ import { driver, Misc } from "../lib/misc";
 import { Shell } from "../lib/shell";
 import { CommandExecutor } from "../lib/cmdExecutor";
 import { Tree } from "../lib/treeViews/tree";
+import { Os } from "../lib/os";
+import { Workbench } from "../lib/workbench";
 import * as constants from "../lib/constants";
 import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
@@ -76,7 +78,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         try {
             await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes, "Extension was not ready");
-            await Misc.toggleBottomBar(false);
+            await Workbench.toggleBottomBar(false);
             await Misc.switchToFrame();
             await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),
                 constants.wait10seconds).click();
@@ -90,7 +92,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
     after(async function () {
         try {
-            await Misc.prepareExtensionLogsForExport(process.env.TEST_SUITE);
+            await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -104,7 +106,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                 await Misc.processFailure(this);
             }
 
-            await Misc.closeAllEditors();
+            await Workbench.closeAllEditors();
         });
 
         it("Open multiple sessions", async () => {
@@ -150,7 +152,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         after(async function () {
             try {
-                await Misc.closeAllEditors();
+                await Workbench.closeAllEditors();
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -289,7 +291,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         after(async function () {
             try {
-                await Misc.closeAllEditors();
+                await Workbench.closeAllEditors();
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;

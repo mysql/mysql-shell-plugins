@@ -29,6 +29,8 @@ import * as locator from "../locators";
 import * as interfaces from "../interfaces";
 import { DatabaseConnection } from "../webviews/dbConnection";
 import { Misc, driver } from "../misc";
+import { Os } from "../os";
+import { Workbench } from "..//workbench";
 
 export class Section {
 
@@ -108,7 +110,7 @@ export class Section {
             return button?.isDisplayed();
         }, constants.wait5seconds, `'More Actions...' button was not visible`);
 
-        if (Misc.isMacOs()) {
+        if (Os.isMacOs()) {
             const moreActions = await section.findElement(locator.section.moreActions);
             await moreActions.click();
             await driver.sleep(500);
@@ -285,6 +287,53 @@ export class Section {
                 return (await sec.isExpanded()) === false;
             }, constants.wait5seconds, `Could not expand '${section}' section`);
         }
+    };
+
+    /**
+     * Restarts MySQL Shell from the toolbar context mnenu
+     * @returns A promise resolving when MySQL Shell is restarted
+     */
+    public static restartShell = async (): Promise<void> => {
+        const existsRootHost = async (): Promise<boolean> => {
+            return (await driver.findElements(locator.contextMenu.exists)).length > 0;
+        };
+
+        const treeDBSection = await Section.getSection(constants.dbTreeSection);
+        await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait5seconds);
+        await treeDBSection.click();
+        const moreActions = await treeDBSection.findElement(locator.section.moreActions);
+        await moreActions.click();
+
+        if (Os.isMacOs()) {
+            await keyboard.type(nutKey.Right);
+            await keyboard.type(nutKey.Enter);
+        } else {
+            const rootHost = await driver.findElement(locator.contextMenu.exists);
+            const shadowRoot = await rootHost.getShadowRoot();
+            const menu = await shadowRoot.findElement(locator.contextMenu.menuContainer);
+            const menuItems = await menu.findElements(locator.contextMenu.menuItem);
+            for (const item of menuItems) {
+                if ((await item.getText()) === constants.restartInternalShell) {
+                    await driver.wait(async () => {
+                        try {
+                            await item.click();
+
+                            return (await existsRootHost()) === false;
+                        } catch (e) {
+                            if (e instanceof error.StaleElementReferenceError) {
+                                return true;
+                            }
+                        }
+                    }, constants.wait5seconds, "Could not click on Restart MySQL Shell");
+                    break;
+                }
+            }
+        }
+        const notification = await Workbench.getNotification("This will close all MySQL Shell tabs", false);
+        await Workbench.clickOnNotificationButton(notification, "Restart MySQL Shell");
+        await driver.wait(async () => {
+            return Os.findOnMySQLShLog(/Info/);
+        }, constants.wait5seconds * 3, "Shell server did not start");
     };
 
 }

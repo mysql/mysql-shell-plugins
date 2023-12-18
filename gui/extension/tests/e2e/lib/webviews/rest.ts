@@ -29,6 +29,9 @@ import * as interfaces from "../interfaces";
 import * as locator from "../locators";
 import { DialogHelper } from "./dialogHelper";
 
+/**
+ * This class aggregates the functions that perform operations related to REST
+ */
 export class Rest {
 
     /**
@@ -147,7 +150,7 @@ export class Rest {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsServiceDialog.ok).click();
 
-            return (await Misc.existsWebViewDialog()) === false;
+            return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS Service dialog was not closed");
     };
 
@@ -222,7 +225,7 @@ export class Rest {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsServiceDialog.cancel).click();
 
-            return (await Misc.existsWebViewDialog()) === false;
+            return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS Service dialog was not closed");
 
         return restService;
@@ -296,7 +299,7 @@ export class Rest {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsSchemaDialog.ok).click();
 
-            return (await Misc.existsWebViewDialog()) === false;
+            return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The REST Schema Dialog was not closed");
 
     };
@@ -340,7 +343,7 @@ export class Rest {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsSchemaDialog.cancel).click();
 
-            return (await Misc.existsWebViewDialog()) === false;
+            return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS Service dialog was not closed");
 
         return restShema;
@@ -409,7 +412,7 @@ export class Rest {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.ok).click();
 
-            return (await Misc.existsWebViewDialog()) === false;
+            return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The Authentication App Dialog was not closed");
 
     };
@@ -444,7 +447,7 @@ export class Rest {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.ok).click();
 
-            return (await Misc.existsWebViewDialog()) === false;
+            return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The Authentication App Dialog was not closed");
 
         return authenticationApp;
@@ -511,7 +514,7 @@ export class Rest {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsUserDialog.ok).click();
 
-            return (await Misc.existsWebViewDialog()) === false;
+            return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS User dialog was not closed");
     };
 
@@ -544,7 +547,7 @@ export class Rest {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsUserDialog.ok).click();
 
-            return (await Misc.existsWebViewDialog()) === false;
+            return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS User dialog was not closed");
 
         return restUser;
@@ -863,7 +866,7 @@ export class Rest {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsDbObjectDialog.ok).click();
 
-            return (await Misc.existsWebViewDialog()) === false;
+            return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS Object dialog was not closed");
     };
 
@@ -994,7 +997,7 @@ export class Rest {
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsDbObjectDialog.ok).click();
 
-            return (await Misc.existsWebViewDialog()) === false;
+            return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS Object dialog was not closed");
 
         return restObject;

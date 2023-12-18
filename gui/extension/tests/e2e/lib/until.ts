@@ -26,7 +26,7 @@ import {
     logging,
     WebElement,
     Locator,
-    Workbench,
+    Workbench as extWorkbench,
     NotificationType,
     error,
     ModalDialog,
@@ -41,7 +41,8 @@ import * as interfaces from "./interfaces";
 import { DatabaseConnection } from "./webviews/dbConnection";
 import { Section } from "./treeViews/section";
 import { Tree } from "./treeViews/tree";
-
+import { Os } from "./os";
+import { Workbench } from "./workbench";
 export let credentialHelperOk = true;
 
 export const sectionIsNotLoading = (section: string): Condition<boolean> => {
@@ -75,7 +76,7 @@ export const modalDialogIsOpened = (): Condition<boolean> => {
 
 export const tabIsOpened = (tabName: string): Condition<boolean> => {
     return new Condition(`for ${tabName} to be opened`, async () => {
-        return (await Misc.getOpenEditorTitles()).includes(tabName);
+        return (await Workbench.getOpenEditorTitles()).includes(tabName);
     });
 };
 
@@ -166,39 +167,6 @@ export const shellSessionIsOpened = (connection: interfaces.IDBConnection): Cond
     });
 };
 
-export const webElementIsUpdated = (el: WebElement, lastDetailValue: string, detail: string): Condition<boolean> => {
-    return new Condition(`for Web Element to be Updated from ${lastDetailValue}, on detail ${detail}`, async () => {
-        return (await el.getCssValue(detail)) !== lastDetailValue;
-    });
-};
-
-export const dbSectionHasConnections = (): Condition<boolean> => {
-    return new Condition("for DATABASE CONNECTIONS section to have connections", async () => {
-        return (await Tree.getDatabaseConnections()).length > 0;
-    });
-};
-
-export const existsOnRouterLog = (text: string | RegExp): Condition<boolean> => {
-    return new Condition(`for ${String(text)} to exist on Router log`, async () => {
-        const routerLogFile = await Misc.getRouterLogFile();
-        await driver.wait(async () => {
-            try {
-                await fs.access(routerLogFile);
-
-                return true;
-            } catch (e) {
-                // continue
-            }
-        }, constants.wait10seconds, `Could not find '${routerLogFile}'`);
-        const logFileContent = (await fs.readFile(routerLogFile)).toString();
-        if (text instanceof RegExp) {
-            return logFileContent.match(text) !== null;
-        } else {
-            return logFileContent.match(new RegExp(text)) !== null;
-        }
-    });
-};
-
 export const isDefaultItem = (section: string, treeItemName: string, itemType: string): Condition<boolean> => {
     return new Condition(`for ${treeItemName} to be marked as default`, async () => {
         return Tree.isElementDefault(section, treeItemName, itemType);
@@ -254,7 +222,7 @@ export const notificationExists = (notification: string, dismiss = true,
         try {
             await Misc.switchBackToTopFrame();
             const escapedText = notification.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-            const ntfs = await new Workbench().getNotifications();
+            const ntfs = await new extWorkbench().getNotifications();
             for (const ntf of ntfs) {
                 if (expectFailure === false) {
                     if (await ntf.getType() === NotificationType.Error) {
@@ -263,7 +231,7 @@ export const notificationExists = (notification: string, dismiss = true,
                 }
                 if ((await ntf.getMessage()).match(new RegExp(escapedText)) !== null) {
                     if (dismiss) {
-                        await Misc.dismissNotifications();
+                        await Workbench.dismissNotifications();
                     }
 
                     return true;
@@ -276,12 +244,6 @@ export const notificationExists = (notification: string, dismiss = true,
                 return false;
             }
         }
-    });
-};
-
-export const routerProcessIsRunning = (): Condition<boolean> => {
-    return new Condition("for Router to be running", () => {
-        return Misc.isRouterProcessRunning();
     });
 };
 
@@ -331,42 +293,29 @@ export const extensionIsReady = (): Condition<boolean> => {
             } catch (e) {
                 tryNumber++;
                 await Misc.switchBackToTopFrame();
-                await Misc.reloadVSCode();
+                await Workbench.reloadVSCode();
             }
         }
 
         if (feWasLoaded === false) {
             console.log("<<<<MYSQLSH Logs>>>>");
-            await Misc.writeMySQLshLogs();
+            await Os.writeMySQLshLogs();
             const logs = driver.manage().logs();
             console.log("<<<<<DEV TOOLS Console log>>>>");
             console.log(await logs.get(logging.Type.BROWSER));
 
             const text = `Extension was not loaded successfully after ${feLoadTries} tries. Check the logs.`;
             // one last try to recover
-            const path = join(await Misc.getExtentionOutputLogsFolder(), constants.feLogFile);
+            const path = join(await Os.getExtentionOutputLogsFolder(), constants.feLogFile);
             const output = (await fs.readFile(path)).toString();
             console.log("-----OUTPUT LOGS------");
             console.log(output);
             throw new Error(text);
-            /*if (output.match(/(ERROR|error)/) !== null) {
-                console.log("An error was found on the OUTPUT tab, removing Internal DB");
-                await Misc.removeInternalDB();
-                text += `Internal DB was removed. Please re-run the tests`;
-                await Misc.reloadVSCode();
-                try {
-                    await loadTry();
-                } catch (e) {
-                    throw new Error(text);
-                }
-            } else {
-                throw new Error(text);
-            }*/
         }
 
-        credentialHelperOk = await Misc.findOnMySQLShLog(/Failed to initialize the default helper/);
+        credentialHelperOk = await Os.findOnMySQLShLog(/Failed to initialize the default helper/);
         credentialHelperOk = !credentialHelperOk;
-        await Misc.dismissNotifications();
+        await Workbench.dismissNotifications();
         await Misc.switchBackToTopFrame();
 
         return true;
