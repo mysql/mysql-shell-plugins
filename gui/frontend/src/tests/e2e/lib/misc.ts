@@ -24,7 +24,10 @@
 import { platform } from "os";
 import fs from "fs/promises";
 import { join } from "path";
-import { By, until, Key, WebElement, Builder, WebDriver, error, Logs, logging, Browser } from "selenium-webdriver";
+import {
+    By, until, Key, WebElement, Builder, WebDriver, error, Logs, logging, Browser
+} from "selenium-webdriver";
+
 import { Options } from "selenium-webdriver/chrome.js";
 import { DBConnection } from "./dbConnection.js";
 import { execFullBlockJs, execFullBlockSql } from "./dbNotebooks.js";
@@ -91,8 +94,12 @@ export class Misc {
         if (headless === String("1")) {
             options.headless().windowSize({ width: 1024, height: 768 });
         }
-
-        const driver = await new Builder().forBrowser(Browser.CHROME).setChromeOptions(options).build();
+        console.log("Trying to create webdriver ....");
+        const driver = await new Builder()
+            .forBrowser(Browser.CHROME)
+            .setChromeOptions(options)
+            .build();
+        console.log("done!");
         await driver.manage().setTimeouts({ implicit: 0 });
 
         return driver;

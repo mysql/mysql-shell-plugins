@@ -21,17 +21,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import {
-    error,
-    Key, until,
-    WebElement,
-} from "vscode-extension-tester";
+import { error, Key, until, WebElement } from "vscode-extension-tester";
 import { DatabaseConnection } from "./webviews/dbConnection";
 import { Notebook } from "./webviews/notebook";
 import * as constants from "./constants";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
 import { Misc, driver } from "./misc";
+import { Os } from "./os";
 import * as waitUntil from "./until";
 
 /**
@@ -133,7 +130,7 @@ export class CommandExecutor {
         await driver.wait(async () => {
             try {
                 const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-                if (Misc.isMacOs()) {
+                if (Os.isMacOs()) {
                     await textArea.sendKeys(Key.chord(Key.COMMAND, "a", "a"));
                 } else {
                     await textArea.sendKeys(Key.chord(Key.CONTROL, "a", "a"));
@@ -396,7 +393,7 @@ export class CommandExecutor {
      * @returns A promise resolving when the command is executed
      */
     public exec = async (): Promise<void> => {
-        if (Misc.isMacOs()) {
+        if (Os.isMacOs()) {
             await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.chord(Key.COMMAND, Key.ENTER));
         } else {
             await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.chord(Key.CONTROL, Key.ENTER));

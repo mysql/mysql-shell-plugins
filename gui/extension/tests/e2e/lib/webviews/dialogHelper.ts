@@ -20,10 +20,15 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { By, WebElement, Locator } from "vscode-extension-tester";
+import { By, WebElement, Locator, Key } from "vscode-extension-tester";
 import { driver, Misc } from "../misc";
+import { Os } from "../os";
 import * as locator from "../locators";
+import * as constants from "../constants";
 
+/**
+ * This class aggregates the functions that perform operations inside web view dialogs
+ */
 export class DialogHelper {
 
     /**
@@ -82,7 +87,7 @@ export class DialogHelper {
         const fieldValue = await field.getAttribute("value");
         if (fieldValue.trim() !== "") {
             if (fieldValue !== text) {
-                await Misc.clearInputField(field);
+                await DialogHelper.clearInputField(field);
                 await field.sendKeys(text);
             }
         } else {
@@ -103,6 +108,53 @@ export class DialogHelper {
         const field = await dialog.findElement(fieldLocator);
 
         return field.getAttribute("value");
+    };
+
+    /**
+     * Clears an input field
+     * @param el The element
+     * @returns A promise resolving when the field is cleared
+     */
+    public static clearInputField = async (el: WebElement): Promise<void> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
+
+        await driver.wait(async () => {
+            await el.clear();
+            await el.click();
+            if (Os.isMacOs()) {
+                await el.sendKeys(Key.chord(Key.COMMAND, "a"));
+            } else {
+                await el.sendKeys(Key.chord(Key.CONTROL, "a"));
+            }
+            await el.sendKeys(Key.BACK_SPACE);
+
+            return (await el.getAttribute("value")).length === 0;
+        }, constants.wait5seconds, `${await el.getId()} was not cleaned`);
+    };
+
+    /**
+     * Verifies if a dialog exists inside the web view
+     * @param wait wait 5 seconds for the dialog to be displayed
+     * @returns A promise resolving with true if the dialog exists, false otherwise
+     */
+    public static existsDialog = async (wait = false): Promise<boolean> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
+        if (wait === false) {
+            return (await driver.findElements(locator.genericDialog.exists)).length > 0;
+        } else {
+            return driver.wait(async () => {
+                const genericDialog = await driver.findElements(locator.genericDialog.exists);
+                const confirmDialog = await driver.findElements(locator.confirmDialog.exists);
+
+                return (genericDialog).length > 0 || confirmDialog.length > 0;
+            }, constants.wait5seconds).catch(() => {
+                return false;
+            });
+        }
     };
 
 }
