@@ -118,6 +118,9 @@ $runConfig = "$shell -u $env:DBUSERNAME -p$env:DBPASSWORD -h localhost --file sq
 Invoke-Expression $runConfig
 write-host "DONE"
 
+# DEFINE THE RESOURCES DIRECTORY
+$env:RESOURCES_DIR = $home
+
 # EXECUTE TESTS
 $env:NODE_ENV = "test"
 

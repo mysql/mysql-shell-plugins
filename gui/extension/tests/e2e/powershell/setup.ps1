@@ -113,9 +113,15 @@ try {
     writeMsg "BASE PATH: $basePath"
     writeMsg "PROXY: $env:HTTPS_PROXY"
 
+    $resourcesDir = Join-Path $env:userprofile "clientqa"
+
+    if (!(Test-Path -Path $resourcesDir)) {
+        New-Item -ItemType "directory" -Path $resourcesDir 
+    }
+
     # REMOVE INSTALLED EXTENSION
     ForEach ($testSuite in $testSuites) {
-        $testResources = Join-Path $env:userprofile "test-resources-$($testSuite)"
+        $testResources = Join-Path $resourcesDir "test-resources-$($testSuite)"
         $extPath = Join-Path $env:WORKSPACE "ext-$($testSuite)"
         if(Test-Path -Path $extPath) {
             writeMsg "Removing VSCode extension from $testSuite ..." "-NoNewLine"
@@ -130,7 +136,7 @@ try {
 
     # CHECK IF VSCODE EXISTS
     ForEach ($testSuite in $testSuites) {
-        $path = Join-Path $env:userprofile "test-resources-$($testSuite)"
+        $path = Join-Path $resourcesDir "test-resources-$($testSuite)"
         if (!(Test-Path -Path $path)) {
             writeMsg "Creating folder $path ..." "-NoNewLine"
             New-Item -ItemType "directory" -Path $path
@@ -153,7 +159,7 @@ try {
     # CHECK VSCODE VERSION
     writeMsg "Checking VSCode version..." "-NoNewLine"
     ForEach ($testSuite in $testSuites) {
-        $path = Join-Path $env:userprofile "test-resources-$($testSuite)"
+        $path = Join-Path $resourcesDir "test-resources-$($testSuite)"
         $version = getVSCodeVersion $path
         if ($version -ne $env:VSCODE_VERSION) {
             writeMsg "'$version', requested version is '$env:VSCODE_VERSION'. Updating on $path" "-NoNewLine"
@@ -168,7 +174,7 @@ try {
 
     # CHECK CHROMEDRIVER
     ForEach ($testSuite in $testSuites) {
-        $path = Join-Path $env:userprofile "test-resources-$($testSuite)"
+        $path = Join-Path $resourcesDir "test-resources-$($testSuite)"
         $chromedriver = Join-Path $path "chromedriver*"
         writeMsg "Checking if Chromedriver exists at $path ..." "-NoNewLine"
         if (!(Test-Path -Path $chromedriver)) {
@@ -245,7 +251,7 @@ try {
     # INSTALL VSIX
     writeMsg "Start installing the extension into vscode instances..." "-NoNewLine"
     ForEach ($testSuite in $testSuites) {
-        $testResources = Join-Path $env:userprofile "test-resources-$($testSuite)"
+        $testResources = Join-Path $resourcesDir "test-resources-$($testSuite)"
         $extLocation = Join-Path $env:WORKSPACE "ext-$testSuite"
         Start-Job -Name "install-vsix" -ScriptBlock { 
             npm run e2e-tests-install-vsix -- -s $using:testResources -e $using:extLocation -f $using:dest
@@ -285,7 +291,7 @@ try {
     }
 
     ForEach ($testSuite in $testSuites) {
-        $config = Join-Path $env:userprofile "mysqlsh-$testSuite"
+        $config = Join-Path $resourcesDir "mysqlsh-$testSuite"
         if (!(Test-Path $config)) {
             New-Item -ItemType "directory" -Path $config
             writeMsg "Created $config"

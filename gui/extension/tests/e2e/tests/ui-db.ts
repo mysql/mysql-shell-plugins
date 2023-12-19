@@ -352,7 +352,7 @@ describe("DATABASE CONNECTIONS", () => {
             }
 
             sqliteConn.basic = {
-                dbPath: join(constants.basePath,
+                dbPath: join(process.env.RESOURCES_DIR,
                     `mysqlsh-${String(process.env.TEST_SUITE)}`,
                     "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3"),
                 dbName: "SQLite",
