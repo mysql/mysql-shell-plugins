@@ -94,7 +94,7 @@ export class Os {
         try {
             await fs.access(extDir);
         } catch (e) {
-            extDir = join(constants.basePath, `test-resources`, "ext");
+            extDir = join(process.env.RESOURCES_DIR, `test-resources`, "ext");
         }
         const items = await fs.readdir(extDir);
         let extDirName = "";
@@ -203,7 +203,7 @@ export class Os {
      * @returns A promise resolving with the location of the router configuration file
      */
     public static getRouterConfigFile = (): string => {
-        return join(constants.basePath, `mysqlsh-${process.env.TEST_SUITE}`,
+        return join(process.env.RESOURCES_DIR, `mysqlsh-${process.env.TEST_SUITE}`,
             "plugin_data", "mrs_plugin", "router_configs", "1", "mysqlrouter", "mysqlrouter.conf");
     };
 
@@ -224,7 +224,7 @@ export class Os {
      */
     public static getMysqlshLog = (): string => {
         if (process.env.TEST_SUITE !== undefined) {
-            return join(constants.basePath, `mysqlsh-${String(process.env.TEST_SUITE)}`, "mysqlsh.log");
+            return join(process.env.RESOURCES_DIR, `mysqlsh-${String(process.env.TEST_SUITE)}`, "mysqlsh.log");
         } else {
             throw new Error("TEST_SUITE env variable is not defined");
         }
