@@ -199,4 +199,29 @@ export class Misc {
         }
     };
 
+    /**
+     * Reads the oci configuration file from process.env.MYSQLSH_OCI_CONFIG_FILE and maps it
+     * into a key=value pair object
+     *  @returns A promise resolving with the configuration object
+     */
+    public static mapOciConfig = async (): Promise<{ [key: string]: string }> => {
+        const config = await fs.readFile(process.env.MYSQLSH_OCI_CONFIG_FILE, "utf-8");
+        const configLines = config.split("\n");
+        const ociConfig = { name: "" };
+        for (let line of configLines) {
+            line = line.trim();
+            if (line.length > 0) {
+                if (line.startsWith("[")) {
+                    ociConfig.name = line.match(/\[(.*)\]/)[1];
+                } else if (!line.startsWith("#")) {
+                    let [key, val] = line.split("=");
+                    key = key.trim();
+                    val = val.trim();
+                    ociConfig[key] = val;
+                }
+            }
+        }
+
+        return ociConfig;
+    };
 }
