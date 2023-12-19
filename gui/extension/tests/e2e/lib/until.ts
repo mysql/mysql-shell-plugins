@@ -168,7 +168,10 @@ export const shellSessionIsOpened = (connection: interfaces.IDBConnection): Cond
 };
 
 export const isDefaultItem = (section: string, treeItemName: string, itemType: string): Condition<boolean> => {
-    return new Condition(`for ${treeItemName} to be marked as default`, async () => {
+    return new Condition(`for ${treeItemName} to be marked as default on section ${section}`, async () => {
+        await driver.wait(sectionIsNotLoading(section), constants.wait25seconds,
+            `${section} is still loading`);
+
         return Tree.isElementDefault(section, treeItemName, itemType);
     });
 };

@@ -40,16 +40,6 @@ export const openEditorsTreeSection = "OPEN EDITORS";
 export const tasksTreeSection = "MYSQL SHELL TASKS";
 
 // OCI
-export const ociConfigProfile = {
-    name: process.env.OCI_PROFILE_NAME,
-    user: process.env.OCI_PROFILE_USER,
-    fingerprint: process.env.OCI_PROFILE_FINGERPRINT,
-    tenancy: process.env.OCI_PROFILE_TENANCY,
-    region: process.env.OCI_PROFILE_REGION,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    key_file: `${process.env.MYSQLSH_OCI_CONFIG_FILE.replace("config", "")}id_rsa_e2e.pem`,
-};
-
 export const dbSystemType = "ociDbSystem";
 export const bastionType = "ociBastion";
 

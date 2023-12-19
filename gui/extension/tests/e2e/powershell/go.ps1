@@ -169,39 +169,19 @@ try {
 
     # DEFINE OCI ENV VARS
     if ($env:TEST_SUITE -eq "oci"){
-        $env:MYSQLSH_OCI_CONFIG_FILE = Join-Path $workspace "oci" "config"
-        $env:MYSQLSH_OCI_RC_FILE = Join-Path $workspace "oci" "e2e_cli_rc"
-        if (!$env:OCI_PROFILE_NAME) {
-            Throw "Please set the OCI_PROFILE_NAME environment variable"
-        }
-        if (!$env:OCI_PROFILE_USER) {
-            Throw "Please set the OCI_PROFILE_USER environment variable"
-        }
-        if (!$env:OCI_PROFILE_FINGERPRINT) {
-            Throw "Please set the OCI_PROFILE_FINGERPRINT environment variable"
-        }
-        if (!$env:OCI_PROFILE_TENANCY) {
-            Throw "Please set the OCI_PROFILE_TENANCY environment variable"
-        }
-        if (!$env:OCI_PROFILE_REGION) {
-            Throw "Please set the OCI_PROFILE_REGION environment variable"
-        }
-        if (!$env:OCI_BASTION_USERNAME) {
-            Throw "Please set the OCI_BASTION_USERNAME environment variable"
-        }
-        if (!$env:OCI_BASTION_PASSWORD) {
-            Throw "Please set the OCI_BASTION_PASSWORD environment variable"
+        if (!$env:MYSQLSH_OCI_CONFIG_FILE) {
+            Throw "Please set the MYSQLSH_OCI_CONFIG_FILE environment variable"
         }
         if (!$env:OCI_OBJECTS_PATH) {
             Throw "Please set the OCI_OBJECTS_PATH environment variable. Ex QA/MySQLShellTesting"
         }
+        $env:MYSQLSH_OCI_RC_FILE = Join-Path $workspace "oci" "e2e_cli_rc"
     } 
     else {
         $env:MYSQLSH_OCI_CONFIG_FILE = Join-Path $workspace "oci_dummy" "config"
         $env:MYSQLSH_OCI_RC_FILE = Join-Path $workspace "oci_dummy" "e2e_cli_rc"
     }
 
-    New-Item -Path $env:MYSQLSH_OCI_CONFIG_FILE -Force -ItemType "file"
     New-Item -Path $env:MYSQLSH_OCI_RC_FILE -Force -ItemType "file"
 
     # DEFINE THE RESOURCES DIRECTORY

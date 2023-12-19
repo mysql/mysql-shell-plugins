@@ -81,6 +81,7 @@ export class Misc {
         const options: Options = new Options();
         const headless = process.env.HEADLESS ?? "1";
         options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
         const outDir = process.env.USERPROFILE ?? process.env.HOME;
         options.setUserPreferences({
             download: {

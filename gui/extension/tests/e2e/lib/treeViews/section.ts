@@ -58,6 +58,9 @@ export class Section {
             await Misc.switchBackToTopFrame();
         }
 
+        await driver.wait(waitUntil.sectionIsNotLoading(await section.getTitle()), constants.wait20seconds,
+            `${constants.ociTreeSection} is still loading`);
+
         let sectionActions: WebElement;
         await driver.wait(async () => {
             try {
