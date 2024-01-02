@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -75,13 +75,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Workbench.toggleBottomBar(false);
             await Section.focus(constants.ociTreeSection);
             const treeOCISection = await Section.getSection(constants.ociTreeSection);
-            await Section.clickToolbarButton(treeOCISection,
-                "Configure the OCI Profile list");
-
+            await Section.clickToolbarButton(treeOCISection, constants.configureOci);
             await driver.wait(async () => {
                 return (await new EditorView().getOpenEditorTitles()).includes("config");
             }, constants.wait5seconds, "config editor was not opened");
-            await Section.clickToolbarButton(treeOCISection, "Reload the OCI Profile list");
+            await Section.clickToolbarButton(treeOCISection, constants.reloadOci);
         } catch (e) {
             await Misc.processFailure(this);
             throw e;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023 Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -98,6 +98,7 @@ describe("DATABASE CONNECTIONS", () => {
             if (await Workbench.requiresMRSMetadataUpgrade(globalConn)) {
                 await Workbench.upgradeMRSMetadata();
             }
+            await Section.focus(constants.dbTreeSection);
         } catch (e) {
             await Misc.processFailure(this);
             await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
@@ -109,6 +110,7 @@ describe("DATABASE CONNECTIONS", () => {
         try {
             await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
             const dbConnections = await Tree.getDatabaseConnections();
+            await Workbench.closeAllEditors();
             for (const dbConnection of dbConnections) {
                 await Tree.deleteDatabaseConnection(dbConnection.name, dbConnection.isMySQL, false);
             }
@@ -122,35 +124,9 @@ describe("DATABASE CONNECTIONS", () => {
 
         let treeConn: TreeItem;
 
-        before(async function () {
-            try {
-                await Section.focus(constants.dbTreeSection);
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
-
         afterEach(async function () {
             if (this.currentTest.state === "failed") {
                 await Misc.processFailure(this);
-            }
-
-            const notifications = await new extWorkbench().getNotifications();
-            if (notifications.length > 0) {
-                await notifications[notifications.length - 1].dismiss();
-            }
-
-            await Workbench.closeAllEditors();
-
-        });
-
-        after(async function () {
-            try {
-                await new BottomBarPanel().toggle(false);
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
             }
         });
 
@@ -210,7 +186,7 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("Relaunch Welcome Wizard", async () => {
-
+            await Workbench.closeAllEditors();
             const treeDBSection = await Section.getSection(constants.dbTreeSection);
             await Section.selectMoreActionsItem(treeDBSection, constants.relaunchWelcomeWizard);
             await driver.wait(waitUntil.tabIsOpened(constants.welcomeTab), constants.wait5seconds);
@@ -226,13 +202,13 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("Reset MySQL Shell for VS Code Extension", async () => {
-
+            await Workbench.closeAllEditors();
             const treeDBSection = await Section.getSection(constants.dbTreeSection);
             await Section.selectMoreActionsItem(treeDBSection, constants.resetExtension);
             let notif = "This will completely reset the MySQL Shell for VS Code extension by ";
             notif += "deleting the web certificate and user settings directory.";
             const ntf = await Workbench.getNotification(notif, false);
-            await Workbench.clickOnNotificationButton(ntf, "Cancel");
+            await Workbench.clickOnNotificationButton(ntf, constants.cancel);
 
         });
     });
@@ -241,6 +217,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         before(async function () {
             try {
+                await new BottomBarPanel().toggle(false);
                 await Os.deleteCredentials();
                 await Section.focus(constants.openEditorsTreeSection);
                 await (await Tree.getElement(constants.openEditorsTreeSection,
@@ -271,19 +248,6 @@ describe("DATABASE CONNECTIONS", () => {
                 await Misc.processFailure(this);
             }
         });
-
-        after(async function () {
-            try {
-                await Workbench.closeAllEditors();
-                await Section.focus(constants.dbTreeSection);
-                const treeDBSection = await Section.getSection(constants.dbTreeSection);
-                await Section.clickToolbarButton(treeDBSection, constants.collapseAll);
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
-
 
         it("MySQL - Verify mandatory fields", async () => {
 
@@ -453,7 +417,10 @@ describe("DATABASE CONNECTIONS", () => {
         before(async function () {
             try {
                 await Os.deleteCredentials();
+                await Workbench.closeAllEditors();
                 await Section.focus(constants.dbTreeSection);
+                const treeDBSection = await Section.getSection(constants.dbTreeSection);
+                await Section.clickToolbarButton(treeDBSection, constants.collapseAll);
                 const treeGlobalConn = await Tree.getElement(constants.dbTreeSection, globalConn.caption);
                 await Tree.expandDatabaseConnection(treeGlobalConn,
                     (globalConn.basic as interfaces.IConnBasicMySQL).password);
@@ -583,13 +550,13 @@ describe("DATABASE CONNECTIONS", () => {
             try {
                 await Os.deleteCredentials();
                 await Section.focus(constants.dbTreeSection);
+                const treeGlobalConn = await Tree.getElement(constants.dbTreeSection, globalConn.caption);
+                await treeGlobalConn.collapse();
+                await Workbench.closeAllEditors();
                 const treeDBSection = await Section.getSection(constants.dbTreeSection);
                 await Section.clickToolbarButton(treeDBSection, constants.collapseAll);
-                const treeGlobalConn = await Tree.getElement(constants.dbTreeSection, globalConn.caption);
                 await Tree.expandDatabaseConnection(treeGlobalConn,
                     (globalConn.basic as interfaces.IConnBasicMySQL).password);
-                await new BottomBarPanel().toggle(false);
-                await Workbench.closeAllEditors();
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -612,16 +579,8 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-        after(async function () {
-            try {
-                await fs.rm(dumpFolder, { force: true, recursive: true });
-                await Workbench.closeAllEditors();
-                const treeDBSection = await Section.getSection(constants.dbTreeSection);
-                await Section.clickToolbarButton(treeDBSection, constants.collapseAll);
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
+        after(async () => {
+            await fs.rm(dumpFolder, { force: true, recursive: true });
         });
 
         it("Set this DB Connection as Default", async () => {
@@ -1077,6 +1036,8 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("Routines - Drop Routine", async () => {
+            const treeTables = await Tree.getElement(constants.dbTreeSection, "Tables");
+            await treeTables.collapse();
             const treeTestRoutine = await Tree.getElement(constants.dbTreeSection, testRoutine);
             await Tree.openContextMenuAndSelect(treeTestRoutine, constants.dropStoredRoutine);
             await Workbench.pushDialogButton(`Drop ${testRoutine}`);

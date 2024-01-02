@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -153,9 +153,8 @@ export const mdsConnectionIsOpened = (connection: interfaces.IDBConnection): Con
 
 export const shellSessionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
     return new Condition(`for Shell session ${connection.caption} to be opened`, async () => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
+        await Misc.switchBackToTopFrame();
+        await Misc.switchToFrame();
         const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
         if (existsPasswordDialog) {
             await DatabaseConnection.setCredentials(connection);

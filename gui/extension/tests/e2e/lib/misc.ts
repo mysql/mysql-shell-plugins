@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,6 +25,7 @@ import fs from "fs/promises";
 import addContext from "mochawesome/addContext";
 import { join } from "path";
 import { ITimeouts, until, VSBrowser, WebDriver, WebElement } from "vscode-extension-tester";
+import { existsSync } from "fs";
 import { Workbench } from "./workbench";
 import * as constants from "./constants";
 import * as waitUntil from "./until";
@@ -54,14 +55,11 @@ export class Misc {
         const img = await driver.takeScreenshot();
         const testName = testContext.currentTest?.title ?? String(process.env.TEST_SUITE);
         const ssDir = join(process.cwd(), "../../../../", "screenshots");
-        try {
-            await fs.access(ssDir);
-        } catch (e) {
+        if (!existsSync(ssDir)) {
             await fs.mkdir(ssDir);
         }
         const imgPath = join(ssDir, `${String(testName)}_screenshot.png`);
         await fs.writeFile(imgPath, img, "base64");
-
         addContext(testContext, { title: "Failure", value: `../screenshots/${String(testName)}_screenshot.png` });
     };
 

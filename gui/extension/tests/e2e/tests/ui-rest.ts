@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023 Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -130,27 +130,13 @@ describe("MySQL REST Service", () => {
 
     describe("Main Context Menus", () => {
 
-        before(async function () {
-            try {
-                await Os.deleteCredentials();
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
+        before(async () => {
+            await Os.deleteCredentials();
         });
 
         afterEach(async function () {
             if (this.currentTest.state === "failed") {
-                const notifications = await new extWorkbench().getNotifications();
-                if (notifications.length > 0) {
-                    await notifications[notifications.length - 1].expand();
-                }
-
                 await Misc.processFailure(this);
-
-                if (notifications.length > 0) {
-                    await notifications[notifications.length - 1].dismiss();
-                }
             }
         });
 
@@ -420,9 +406,7 @@ describe("MySQL REST Service", () => {
 
         afterEach(async function () {
             if (this.currentTest.state === "failed") {
-                await Workbench.expandNotifications();
                 await Misc.processFailure(this);
-                await Workbench.dismissNotifications();
             }
         });
 
@@ -1006,18 +990,6 @@ describe("MySQL REST Service", () => {
                 await Misc.processFailure(this);
                 throw e;
             }
-        });
-
-        afterEach(async function () {
-            if (this.currentTest.state === "failed") {
-                if (response) {
-                    console.log("---CURL RESULT---");
-                    console.log(response.status);
-                    console.log(response.json());
-                }
-                await Misc.processFailure(this);
-            }
-            response = undefined;
         });
 
         after(async function () {
