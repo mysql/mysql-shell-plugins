@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -59,7 +59,6 @@ export const wait20seconds = 20000; //loadingBarWait
 export const wait25seconds = 25000; //ociTasksExplicitWait
 export const wait2minutes = 120000; //extensionReadyWait
 
-
 // TREE SEARCH LEVELS
 export const dbMaxLevel = 5;
 export const ociMaxLevel = 5;
@@ -80,6 +79,8 @@ export const loadNotebook = "Replace this Notebook With Content from a file";
 export const reloadConnections = "Reload the connection list";
 export const reloadOci = "Reload the OCI Profile list";
 export const createDBConnection = "Create New DB Connection";
+export const configureOci = "Configure the OCI Profile list";
+export const cancel = "Cancel";
 
 // TABS
 export const dbDefaultEditor = "MySQL Shell";

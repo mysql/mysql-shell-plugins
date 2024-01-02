@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,6 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { WebElement, Key } from "vscode-extension-tester";
+import { existsSync } from "fs";
 import { spawnSync, execSync } from "child_process";
 import fs from "fs/promises";
 import { platform } from "os";
@@ -91,9 +92,7 @@ export class Os {
     public static deleteCredentials = async (): Promise<void> => {
         const params = ["--js", "-e", "shell.deleteAllCredentials()"];
         let extDir = join(constants.workspace, `ext-${String(process.env.TEST_SUITE)}`);
-        try {
-            await fs.access(extDir);
-        } catch (e) {
+        if (!existsSync(extDir)) {
             extDir = join(process.env.RESOURCES_DIR, `test-resources`, "ext");
         }
         const items = await fs.readdir(extDir);
@@ -300,6 +299,7 @@ export class Os {
         const taps = Misc.getValueFromMap(item, map);
         for (let i = 0; i <= taps - 1; i++) {
             await keyboard.type(nutKey.Down);
+            await driver.sleep(50);
         }
         await keyboard.type(nutKey.Enter);
     };
