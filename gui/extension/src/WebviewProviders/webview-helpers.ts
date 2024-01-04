@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -189,6 +189,30 @@ export const prepareWebviewContent = (panel: WebviewPanel, url: URL): void => {
 <script>
     let frame;
     let vscode;
+
+    // Forward paste clipboard events to the iframe.
+    document.addEventListener("paste", (event) => {
+        const data = event.clipboardData.getData("text/plain");
+        frame.contentWindow.postMessage({
+            source: "host",
+            command: "paste",
+            data: { "text/plain" : data },
+        }, "*");
+    });
+
+    document.addEventListener("cut", (event) => {
+        frame.contentWindow.postMessage({
+            source: "host",
+            command: "cut",
+        }, "*");
+    });
+
+    document.addEventListener("copy", (event) => {
+        frame.contentWindow.postMessage({
+            source: "host",
+            command: "copy",
+        }, "*");
+    });
 
     window.addEventListener('message', (event) => {
         if (!frame) {

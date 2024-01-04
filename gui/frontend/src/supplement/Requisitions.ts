@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -830,14 +830,52 @@ export class RequisitionHub {
      * @param message The message to distribute.
      */
     public handleRemoteMessage(message: IEmbeddedMessage): void {
-        const requestType = message.command as keyof IRequestTypeMap;
-        const parameter = message.data as IRequisitionCallbackValues<typeof requestType>;
+        switch (message.command) {
+            case "paste": {
+                const text = message.data?.["text/plain"] as string ?? "";
+                const element = document.activeElement;
+                if (element) {
+                    if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
+                        const oldValue = element.value;
+                        const start = element.selectionStart ?? oldValue.length;
+                        element.value = oldValue.substring(0, start) + text +
+                            oldValue.substring(element.selectionEnd ?? start);
 
-        const list = this.registry.get(requestType);
-        if (list) {
-            list.forEach((callback) => {
-                void callback(parameter as never);
-            });
+                        element.selectionStart = start + text.length; // Set the caret at the end of the new text.
+                        element.selectionEnd = start + text.length;
+
+                        // Send an input event to trigger internal handling of the change.
+                        const event = new Event("input", { bubbles: true });
+                        element.dispatchEvent(event);
+                    }
+                }
+
+                break;
+            }
+
+            case "cut": {
+                this.handleCutCopy(true);
+
+                break;
+            }
+
+            case "copy": {
+                this.handleCutCopy(false);
+
+                break;
+            }
+
+            default: {
+                const requestType = message.command as keyof IRequestTypeMap;
+                const parameter = message.data as IRequisitionCallbackValues<typeof requestType>;
+
+                const list = this.registry.get(requestType);
+                if (list) {
+                    list.forEach((callback) => {
+                        void callback(parameter as never);
+                    });
+                }
+            }
         }
     }
 
@@ -858,6 +896,34 @@ export class RequisitionHub {
             this.remoteTarget?.postMessage?.(message, "*");
         } else {
             void navigator.clipboard.writeText(text);
+        }
+    }
+
+    /**
+     * Handles cut and copy events in the application, which require special handling in embedded mode.
+     *
+     * @param e The original keyboard event.
+     */
+    private handleCutCopy(cut: boolean): void {
+        const selection = window.getSelection();
+        if (selection) {
+            this.writeToClipboard(selection.toString());
+            const element = document.activeElement;
+            if (cut && (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) {
+                if (element.selectionStart !== null) {
+                    const oldValue = element.value;
+                    const caret = Math.min(element.selectionStart, element.selectionEnd ?? 1000);
+                    element.value = oldValue.substring(0, element.selectionStart) + oldValue
+                        .substring(element.selectionEnd as number ?? element.selectionStart);
+
+                    element.selectionStart = caret;
+                    element.selectionEnd = caret;
+
+                    // Send an input event to trigger internal handling of the change.
+                    const event = new Event("input", { bubbles: true });
+                    element.dispatchEvent(event);
+                }
+            }
         }
     }
 }
