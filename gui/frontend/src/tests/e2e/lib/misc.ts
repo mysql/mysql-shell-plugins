@@ -82,6 +82,7 @@ export class Misc {
         const headless = process.env.HEADLESS ?? "1";
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-gpu");
         const outDir = process.env.USERPROFILE ?? process.env.HOME;
         options.setUserPreferences({
             download: {
