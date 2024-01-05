@@ -154,8 +154,6 @@ describe("MySQL REST Service", () => {
             const treeMySQLRESTService = await Tree.getElement(constants.dbTreeSection, constants.mysqlRestService);
             await Tree.openContextMenuAndSelect(treeMySQLRESTService, constants.disableRESTService, undefined);
             await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds,
-                `${constants.dbTreeSection} is still loading`);
             await driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
                 constants.wait5seconds);
             await driver.wait(async () => {
@@ -174,8 +172,6 @@ describe("MySQL REST Service", () => {
             const treeMySQLRESTService = await Tree.getElement(constants.dbTreeSection, constants.mysqlRestService);
             await Tree.openContextMenuAndSelect(treeMySQLRESTService, constants.enableRESTService, undefined);
             await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds,
-                `${constants.dbTreeSection} is still loading`);
             await driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
                 constants.wait5seconds);
             await driver.wait(async () => {

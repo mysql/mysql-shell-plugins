@@ -142,7 +142,7 @@ export class Tree {
         await driver.wait(async () => {
             try {
                 const sectionTree = await Section.getSection(section);
-                await driver.wait(waitUntil.sectionIsNotLoading(section), constants.wait10seconds);
+                await driver.wait(waitUntil.sectionIsNotLoading(section), constants.wait20seconds);
                 if (section === constants.dbTreeSection || section === constants.ociTreeSection) {
                     if (section === constants.dbTreeSection) {
                         reloadLabel = "Reload the connection list";

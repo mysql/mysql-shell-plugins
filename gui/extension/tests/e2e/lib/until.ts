@@ -243,7 +243,7 @@ export const notificationExists = (notification: string, dismiss = true,
             }
         } catch (e) {
             if (!(e instanceof error.StaleElementReferenceError)) {
-                return false;
+                throw e;
             }
         }
     });
