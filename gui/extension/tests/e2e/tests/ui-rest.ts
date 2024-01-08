@@ -38,6 +38,7 @@ import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
 import * as waitUntil from "../lib/until";
 import * as locator from "../lib/locators";
+import * as errors from "../lib/errors";
 
 describe("MySQL REST Service", () => {
 
@@ -84,7 +85,8 @@ describe("MySQL REST Service", () => {
             await Section.createDatabaseConnection(globalConn);
             await (await DatabaseConnection.getConnection(globalConn.caption)).click();
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait10seconds);
-            expect(await Tree.existsElement(constants.dbTreeSection, globalConn.caption)).to.be.true;
+            expect(await Tree.existsElement(constants.dbTreeSection, globalConn.caption),
+                errors.doesNotExistOnTree(globalConn.caption)).to.be.true;
             await Os.deleteCredentials();
             if (await Workbench.requiresMRSMetadataUpgrade(globalConn)) {
                 await Workbench.upgradeMRSMetadata();
@@ -108,7 +110,8 @@ describe("MySQL REST Service", () => {
             await driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
                 constants.wait5seconds);
             await Tree.openContextMenuAndSelect(treeGlobalConn, constants.showSystemSchemas, undefined);
-            expect(await Tree.existsElement(constants.dbTreeSection, "mysql_rest_service_metadata")).to.be.true;
+            expect(await Tree.existsElement(constants.dbTreeSection, "mysql_rest_service_metadata"),
+                errors.doesNotExistOnTree("mysql_rest_service_metadata")).to.be.true;
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -164,7 +167,6 @@ describe("MySQL REST Service", () => {
 
                 return (await Tree.isMRSDisabled(treeMySQLRESTService)) === true;
             }, constants.wait5seconds, "MySQL REST Service was not disabled");
-            expect(await Tree.isMRSDisabled(treeMySQLRESTService)).to.equals(true);
         });
 
         it("Enable MySQL REST Service", async () => {
@@ -197,8 +199,9 @@ describe("MySQL REST Service", () => {
             await Workbench.waitForTerminalText("JWT secret:", constants.wait10seconds);
             await Workbench.execOnTerminal("1234", constants.wait10seconds);
             await Workbench.waitForTerminalText("Once the MySQL Router is started", constants.wait10seconds);
-            expect(await Workbench.terminalHasErrors()).to.be.false;
-            expect(await Tree.existsElement(constants.dbTreeSection, new RegExp(hostname()))).to.be.true;
+            expect(await Workbench.terminalHasErrors(), "Terminal has errors").to.be.false;
+            expect(await Tree.existsElement(constants.dbTreeSection, new RegExp(hostname())),
+                errors.doesNotExistOnTree(hostname())).to.be.true;
             const router = await Tree.getElement(constants.dbTreeSection, new RegExp(hostname()));
             expect(await Tree.routerHasError(router), "Please update Router").to.be.false;
             await driver.wait(waitUntil.routerIconIsInactive(), constants.wait20seconds);
@@ -381,7 +384,9 @@ describe("MySQL REST Service", () => {
                     await driver.wait(waitUntil.notificationExists("The MRS service has been created"),
                         constants.wait5seconds);
                     expect(await Tree.existsElement(constants.dbTreeSection,
-                        `${service.servicePath} (${service.settings.hostNameFilter})`)).to.be.true;
+                        `${service.servicePath} (${service.settings.hostNameFilter})`),
+                        errors.doesNotExistOnTree(`${service.servicePath} (${service.settings.hostNameFilter})`))
+                        .to.be.true;
                 }
                 await Section.focus(constants.dbTreeSection);
             } catch (e) {
@@ -470,7 +475,8 @@ describe("MySQL REST Service", () => {
                     `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
                 await treeService.expand();
                 expect(await Tree.existsElement(constants.dbTreeSection,
-                    `${schema.restSchemaPath} (${schema.settings.schemaName})`)).to.exist;
+                    `${schema.restSchemaPath} (${schema.settings.schemaName})`),
+                    errors.doesNotExistOnTree(`${schema.restSchemaPath} (${schema.settings.schemaName})`)).to.be.true;
             }
 
         });
@@ -545,7 +551,8 @@ describe("MySQL REST Service", () => {
                     .notificationExists(`The MRS Database Object ${table} was updated successfully`),
                     constants.wait5seconds);
                 await treeRestSakila.expand();
-                expect(await Tree.existsElement(constants.dbTreeSection, `/${table} (${table})`)).to.be.true;
+                expect(await Tree.existsElement(constants.dbTreeSection, `/${table} (${table})`),
+                    errors.doesNotExistOnTree(`/${table} (${table})`)).to.be.true;
             }
 
         });
@@ -665,7 +672,9 @@ describe("MySQL REST Service", () => {
             await driver.wait(waitUntil.notificationExists("The REST DB Object abc has been deleted"),
                 constants.wait5seconds);
             expect(await Tree.existsElement(constants.dbTreeSection,
-                `${tableToEdit.restObjectPath} (${tableToEdit.jsonRelDuality.dbObject})`)).to.be.false;
+                `${tableToEdit.restObjectPath} (${tableToEdit.jsonRelDuality.dbObject})`),
+                errors.existsOnTree(`${tableToEdit.restObjectPath} (${tableToEdit.jsonRelDuality.dbObject})`))
+                .to.be.false;
 
         });
 
@@ -682,17 +691,18 @@ describe("MySQL REST Service", () => {
             const txt = `Are you sure the MRS schema ${restSchemaToDump.settings.schemaName} should be deleted?`;
             let ntf = await Workbench.getNotification(txt, false);
             await Workbench.clickOnNotificationButton(ntf, "No");
-            expect(await Tree.existsElement(constants.dbTreeSection,
-                `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`)).to.be.true;
-
+            let itemName = `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`;
+            expect(await Tree.existsElement(constants.dbTreeSection, itemName),
+                errors.doesNotExistOnTree(itemName)).to.be.true;
             // now we try again, but we really want to delete the schema
             await Tree.openContextMenuAndSelect(treeMySQLRESTSchema, constants.deleteRESTSchema);
             ntf = await Workbench.getNotification(txt, false);
             await Workbench.clickOnNotificationButton(ntf, "Yes");
             await driver.wait(waitUntil.notificationExists("The MRS schema has been deleted successfully"),
                 constants.wait5seconds);
+            itemName = `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`;
             expect(await Tree.existsElement(constants.dbTreeSection,
-                `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`)).to.be.false;
+                itemName), errors.existsOnTree(itemName)).to.be.false;
         });
 
         it("Load REST Schema from JSON file", async () => {
@@ -703,8 +713,9 @@ describe("MySQL REST Service", () => {
             await Workbench.setInputPath(`${destDumpSchema}.mrs.json`);
             await driver.wait(waitUntil.notificationExists("The REST Schema has been loaded successfully"),
                 constants.wait5seconds);
+            const itemName = `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`;
             expect(await Tree.existsElement(constants.dbTreeSection,
-                `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`)).to.be.true;
+                itemName), errors.doesNotExistOnTree(itemName)).to.be.true;
 
         });
 
@@ -720,7 +731,7 @@ describe("MySQL REST Service", () => {
             await driver.wait(waitUntil.notificationExists("MRS SDK Files exported successfully"),
                 constants.wait5seconds);
             const files = await fs.readdir(destDumpSdk);
-            expect(files.length).to.be.greaterThan(0);
+            expect(files.length, `No exported files found at ${destDumpSdk}`).to.be.greaterThan(0);
         });
 
         it("Load REST Object from JSON file", async () => {
@@ -732,7 +743,8 @@ describe("MySQL REST Service", () => {
             await driver.wait(waitUntil.notificationExists("The REST Database Object has been loaded successfully"),
                 constants.wait5seconds);
             expect(await Tree.existsElement(constants.dbTreeSection,
-                `/${tableToDump} (${tableToDump})`)).to.be.true;
+                `/${tableToDump} (${tableToDump})`), errors.doesNotExistOnTree(`/${tableToDump} (${tableToDump})`))
+                .to.be.true;
 
         });
 
@@ -749,8 +761,9 @@ describe("MySQL REST Service", () => {
             notif += ` has been deleted`;
             await driver.wait(waitUntil.notificationExists(notif), constants.wait5seconds);
 
+            const itemName = `${globalService.authenticationApps.name} (${globalService.authenticationApps.vendor})`;
             expect(await Tree.existsElement(constants.dbTreeSection,
-                `${globalService.authenticationApps.name} (${globalService.authenticationApps.vendor})`)).to.be.false;
+                itemName), errors.existsOnTree(itemName)).to.be.false;
 
         });
 
@@ -766,7 +779,9 @@ describe("MySQL REST Service", () => {
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
             await treeRandomService.expand();
             expect(await Tree.existsElement(constants.dbTreeSection,
-                `${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`)).to.be.true;
+                `${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`),
+                errors.doesNotExistOnTree(`${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`))
+                .to.be.true;
 
         });
 
@@ -786,7 +801,8 @@ describe("MySQL REST Service", () => {
                 return (await treeAuthApp.isExpanded()) && (await treeAuthApp.getChildren()).length > 0;
             }, constants.wait10seconds,
                 `${restAuthenticationApp.name} (${restAuthenticationApp.vendor}) was not expanded`);
-            expect(await Tree.existsElement(constants.dbTreeSection, restUser.username)).to.be.true;
+            expect(await Tree.existsElement(constants.dbTreeSection, restUser.username),
+                errors.doesNotExistOnTree(restUser.username)).to.be.true;
 
         });
 
@@ -876,7 +892,8 @@ describe("MySQL REST Service", () => {
             await Workbench.clickOnNotificationButton(ntf, "Yes");
             await driver.wait(waitUntil.notificationExists(`The MRS User ${restUser.username} has been deleted`),
                 constants.wait5seconds);
-            expect(await Tree.existsElement(constants.dbTreeSection, restUser.username)).to.be.false;
+            expect(await Tree.existsElement(constants.dbTreeSection, restUser.username),
+                errors.existsOnTree(restUser.username)).to.be.false;
         });
 
         it("Delete REST Services", async () => {
@@ -892,7 +909,8 @@ describe("MySQL REST Service", () => {
                 await driver.wait(waitUntil.notificationExists("The MRS service has been deleted successfully"),
                     constants.wait5seconds);
                 expect(await Tree.existsElement(constants.dbTreeSection,
-                    `${service.servicePath} (${service.settings.hostNameFilter})`)).to.be.false;
+                    `${service.servicePath} (${service.settings.hostNameFilter})`),
+                    errors.existsOnTree(`${service.servicePath} (${service.settings.hostNameFilter})`)).to.be.false;
             }
 
         });
@@ -966,7 +984,9 @@ describe("MySQL REST Service", () => {
                     `${crudService.servicePath} (${crudService.settings.hostNameFilter})`);
                 await treeService.expand();
                 expect(await Tree.existsElement(constants.dbTreeSection,
-                    `${crudSchema.restSchemaPath} (${crudSchema.settings.schemaName})`)).to.exist;
+                    `${crudSchema.restSchemaPath} (${crudSchema.settings.schemaName})`),
+                    errors.doesNotExistOnTree(`${crudSchema.restSchemaPath} (${crudSchema.settings.schemaName})`))
+                    .to.be.true;
                 await (await Tree.getElement(constants.dbTreeSection, "Tables")).expand();
                 const treeTable = await Tree.getElement(constants.dbTreeSection,
                     crudObject.restObjectPath.replace("/", ""));
@@ -1000,7 +1020,8 @@ describe("MySQL REST Service", () => {
                     .getNotification(`Are you sure the MRS router ${routerName} should be deleted?`,
                         false);
                 await Workbench.clickOnNotificationButton(ntf, "Yes");
-                expect(await Tree.existsElement(constants.dbTreeSection, routerName)).to.be.false;
+                expect(await Tree.existsElement(constants.dbTreeSection, routerName), errors.existsOnTree(routerName))
+                    .to.be.false;
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1010,14 +1031,14 @@ describe("MySQL REST Service", () => {
         it("Get schema metadata", async () => {
             response = await fetch(`${baseUrl}/metadata-catalog`);
             const data = await response.json();
-            expect(response.ok).to.be.true;
-            expect(data.items).to.exist;
+            expect(response.ok, `response should be OK`).to.be.true;
+            expect(data.items, "response data does not have any items").to.exist;
         });
 
         it("Get object metadata", async () => {
             response = await fetch(`${baseUrl}/metadata-catalog/${crudObject.restObjectPath.replace("/", "")}`);
             const data = await response.json();
-            expect(response.ok).to.be.true;
+            expect(response.ok, `response should be OK`).to.be.true;
             expect(data.name).equals(`/${crudObject.restObjectPath.replace("/", "")}`);
             expect(data.primaryKey[0]).to.equals("actor_id");
         });
@@ -1025,7 +1046,7 @@ describe("MySQL REST Service", () => {
         it("Get object data", async () => {
             response = await fetch(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}`);
             const data = await response.json();
-            expect(response.ok).to.be.true;
+            expect(response.ok, `response should be OK`).to.be.true;
             expect(data.items[0].firstName).to.equals("PENELOPE");
         });
 
@@ -1038,7 +1059,7 @@ describe("MySQL REST Service", () => {
                 headers: { "Content-Type": "application/json" },
             });
             const data = await response.json();
-            expect(response.ok).to.be.true;
+            expect(response.ok, `response should be OK`).to.be.true;
             actorId = data.actorId;
             expect(data.actorId).to.exist;
             expect(data.firstName).to.equals("Doctor");
@@ -1067,7 +1088,7 @@ describe("MySQL REST Service", () => {
             response = await fetch(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}?q={${query}}`,
                 { method: "delete" });
             const data = await response.json();
-            expect(response.ok).to.be.true;
+            expect(response.ok, `response should be OK`).to.be.true;
             expect(data.itemsDeleted).to.equals(1);
         });
 
@@ -1075,7 +1096,7 @@ describe("MySQL REST Service", () => {
             const query = `"firstName":"PENELOPE"`;
             response = await fetch(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}?q={${query}}`);
             const data = await response.json();
-            expect(response.ok).to.be.true;
+            expect(response.ok, `response should be OK`).to.be.true;
             expect(data.items).to.exist;
         });
 

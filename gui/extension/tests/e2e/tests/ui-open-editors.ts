@@ -33,6 +33,7 @@ import * as constants from "../lib/constants";
 import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
+import * as errors from "../lib/errors";
 
 describe("OPEN EDITORS", () => {
 
@@ -120,7 +121,7 @@ describe("OPEN EDITORS", () => {
         await driver.wait(Shell.isShellLoaded(), constants.wait15seconds, "Shell Console was not loaded");
         const treeOEShellConsoles = await Tree.getElement(constants.openEditorsTreeSection,
             constants.mysqlShellConsoles);
-        expect(await treeOEShellConsoles.findChildItem("Session 1")).to.exist;
+        expect(await treeOEShellConsoles.findChildItem("Session 1"), errors.doesNotExistOnTree("Session 1")).to.exist;
     });
 
     it("Icon - New MySQL Script", async () => {
@@ -131,11 +132,11 @@ describe("OPEN EDITORS", () => {
         const treeOEGlobalConn = await Tree.getElement(constants.openEditorsTreeSection,
             globalConn.caption);
         await (await Tree.getActionButton(treeOEGlobalConn, "New MySQL Script")).click();
-        const treeItem = await Tree.getScript(/Untitled-/, "Mysql");
-        expect(treeItem).to.exist;
         await Workbench.openEditor(globalConn.caption);
-        expect(await Notebook.getCurrentEditorName()).to.match(/Untitled-(\d+)/);
-        expect(await Notebook.getCurrentEditorType()).to.include("Mysql");
+        expect(await Notebook.getCurrentEditorName(), `The current editor name should match 'Untitled-(\\d+)'`)
+            .to.match(/Untitled-(\d+)/);
+        expect(await Notebook.getCurrentEditorType(), `The current editor type should be 'Mysql'`).to.include("Mysql");
+        const treeItem = await Tree.getScript(/Untitled-/, "Mysql");
         await (await Tree.getActionButton(treeItem, "Close Editor")).click();
 
     });
@@ -148,9 +149,8 @@ describe("OPEN EDITORS", () => {
         await driver.wait(async () => {
             return (await Notebook.getCurrentEditorName()).match(/Untitled-(\d+)/);
         }, constants.wait5seconds, "Current editor is not Untitled-(*)");
-        expect(await Notebook.getCurrentEditorType()).to.include("Mysql");
+        expect(await Notebook.getCurrentEditorType(), `The current editor type should be 'Mysql'`).to.include("Mysql");
         const treeItem = await Tree.getScript(/Untitled-/, "Mysql");
-        expect(treeItem).to.exist;
         await (await Tree.getActionButton(treeItem, "Close Editor")).click();
 
     });
@@ -162,9 +162,9 @@ describe("OPEN EDITORS", () => {
         await driver.wait(async () => {
             return (await Notebook.getCurrentEditorName()).match(/Untitled-(\d+)/);
         }, constants.wait5seconds, "Current editor is not Untitled-(*)");
-        expect(await Notebook.getCurrentEditorType()).to.include("scriptJs");
+        expect(await Notebook.getCurrentEditorType(), `The current editor type should be 'scriptJs'`)
+            .to.include("scriptJs");
         const treeItem = await Tree.getScript(/Untitled-/, "scriptJs");
-        expect(treeItem).to.exist;
         await (await Tree.getActionButton(treeItem, "Close Editor")).click();
 
     });
@@ -176,9 +176,9 @@ describe("OPEN EDITORS", () => {
         await driver.wait(async () => {
             return (await Notebook.getCurrentEditorName()).match(/Untitled-(\d+)/);
         }, constants.wait5seconds, "Current editor is not Untitled-(*)");
-        expect(await Notebook.getCurrentEditorType()).to.include("scriptTs");
+        expect(await Notebook.getCurrentEditorType(), `The current editor type should be 'scriptTs'`)
+            .to.include("scriptTs");
         const treeItem = await Tree.getScript(/Untitled-/, "scriptTs");
-        expect(treeItem).to.exist;
         await (await Tree.getActionButton(treeItem, "Close Editor")).click();
 
     });
@@ -188,10 +188,14 @@ describe("OPEN EDITORS", () => {
         const treeOpenEditorsSection = await Section.getSection(constants.openEditorsTreeSection);
         await Section.clickToolbarButton(treeOpenEditorsSection, constants.collapseAll);
         const treeVisibleItems = await treeOpenEditorsSection.getVisibleItems();
-        expect(treeVisibleItems.length).to.equals(3);
-        expect(await treeVisibleItems[0].getLabel()).to.equals(constants.dbConnectionsLabel);
-        expect(await treeVisibleItems[1].getLabel()).to.equals(globalConn.caption);
-        expect(await treeVisibleItems[2].getLabel()).to.equals(constants.mysqlShellConsoles);
+        expect(treeVisibleItems.length, `The tree items were not collapsed`).to.equals(3);
+        expect(await treeVisibleItems[0].getLabel(), errors.doesNotExistOnTree(constants.dbConnectionsLabel))
+            .to.equals(constants.dbConnectionsLabel);
+        expect(await treeVisibleItems[1].getLabel(), errors.doesNotExistOnTree(globalConn.caption))
+            .to.equals(globalConn.caption);
+
+        expect(await treeVisibleItems[2].getLabel(), errors.doesNotExistOnTree(constants.mysqlShellConsoles))
+            .to.equals(constants.mysqlShellConsoles);
 
     });
 

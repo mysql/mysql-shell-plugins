@@ -41,6 +41,7 @@ import * as constants from "../lib/constants";
 import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
+import * as errors from "../lib/errors";
 
 let ociConfig: { [key: string]: string };
 let ociTree: RegExp[];
@@ -214,7 +215,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(Shell.isShellLoaded(), constants.wait5seconds * 3, "Shell Console was not loaded");
             const commandExecutor = new CommandExecutor();
             await commandExecutor.execute("mds.get.currentCompartmentId()");
-            expect(commandExecutor.getResultMessage()).to.equal(compartmentId);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError(compartmentId,
+                commandExecutor.getResultMessage())).to.equal(compartmentId);
 
         });
 
@@ -266,7 +268,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Section.expand(constants.tasksTreeSection);
             try {
                 expect(await Tree.existsElement(constants.tasksTreeSection,
-                    "Start DB System (running)")).to.be.true;
+                    "Start DB System (running)"), errors.doesNotExistOnTree("Start DB System (running)")).to.be.true;
                 const ntf = await Workbench.getNotification("Are you sure you want to start the DB System", false);
                 await Workbench.clickOnNotificationButton(ntf, "NO");
                 await driver.wait(async () => {
@@ -285,7 +287,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Section.expand(constants.tasksTreeSection);
             try {
                 expect(await Tree.existsElement(constants.tasksTreeSection,
-                    "Restart DB System (running)")).to.be.true;
+                    "Restart DB System (running)"), errors.doesNotExistOnTree("Restart DB System (running)"))
+                    .to.be.true;
                 const ntf = await Workbench.getNotification("Are you sure you want to restart the DB System", false);
                 await Workbench.clickOnNotificationButton(ntf, "NO");
                 await driver.wait(async () => {
@@ -303,7 +306,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Tree.openContextMenuAndSelect(treeDbSystem, constants.stopDBSytem);
             await Section.expand(constants.tasksTreeSection);
             try {
-                expect(await Tree.existsElement(constants.tasksTreeSection, "Stop DB System (running)")).to.be.true;
+                expect(await Tree.existsElement(constants.tasksTreeSection, "Stop DB System (running)"),
+                    errors.doesNotExistOnTree("Stop DB System (running)")).to.be.true;
                 const ntf = await Workbench.getNotification("Are you sure you want to stop the DB System", false);
                 await Workbench.clickOnNotificationButton(ntf, "NO");
                 await driver.wait(async () => {
@@ -322,7 +326,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Section.expand(constants.tasksTreeSection);
             try {
                 expect(await Tree.existsElement(constants.tasksTreeSection,
-                    "Delete DB System (running)")).to.be.true;
+                    "Delete DB System (running)"), errors.doesNotExistOnTree("Delete DB System (running)")).to.be.true;
                 const ntf = await Workbench.getNotification("Are you sure you want to delete", false);
                 await Workbench.clickOnNotificationButton(ntf, "NO");
                 await driver.wait(async () => {
@@ -405,7 +409,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Tree.openContextMenuAndSelect(treeBastion, constants.setAsCurrentBastion, undefined);
             await driver.wait(waitUntil.isDefaultItem(constants.ociTreeSection, bastionName,
                 "bastion"),
-                constants.wait10seconds, "Bastion is not the deault item");
+                constants.wait10seconds, "Bastion is not the default item");
             const treeOpenEditorsSection = await Section.getSection(constants.openEditorsTreeSection);
             await treeOpenEditorsSection.expand();
             const treeDBConnections = await Tree.getElement(constants.openEditorsTreeSection,
@@ -415,7 +419,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(Shell.isShellLoaded(), constants.wait15seconds, "Shell Console was not loaded");
             const commandExecutor = new CommandExecutor();
             await commandExecutor.execute("mds.get.currentBastionId()");
-            expect(commandExecutor.getResultMessage()).to.equal(bastionId);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError(bastionId as string,
+                commandExecutor.getResultMessage())).to.equal(bastionId);
 
 
         });
@@ -428,7 +433,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await treeTasksSection.expand();
             await Workbench.waitForOutputText("Task 'Refresh Bastion' completed successfully", constants.wait20seconds);
             await new OutputView().clearText();
-            expect(await Tree.existsElement(constants.tasksTreeSection, "Refresh Bastion (done)")).to.be.true;
+            expect(await Tree.existsElement(constants.tasksTreeSection, "Refresh Bastion (done)"),
+                errors.doesNotExistOnTree("Refresh Bastion (done)")).to.be.true;
         });
 
         it("Delete Bastion", async () => {
@@ -437,12 +443,14 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Tree.openContextMenuAndSelect(treeBastion, constants.deleteBastion, undefined);
             const treeTasksSection = await Section.getSection(constants.tasksTreeSection);
             await treeTasksSection.expand();
-            expect(await Tree.existsElement(constants.tasksTreeSection, "Delete Bastion (running)")).to.be.true;
+            expect(await Tree.existsElement(constants.tasksTreeSection, "Delete Bastion (running)"),
+                errors.doesNotExistOnTree("Delete Bastion (running)")).to.be.true;
             await Workbench.waitForOutputText("OCI profile 'E2ETESTS' loaded.", constants.wait25seconds);
             const ntf = await Workbench.getNotification("Are you sure you want to delete", false);
             await Workbench.clickOnNotificationButton(ntf, "NO");
             await Workbench.waitForOutputText("Deletion aborted", constants.wait5seconds);
-            expect(await Tree.existsElement(constants.tasksTreeSection, "Delete Bastion (error)")).to.be.true;
+            expect(await Tree.existsElement(constants.tasksTreeSection, "Delete Bastion (error)"),
+                errors.doesNotExistOnTree("Delete Bastion (error)")).to.be.true;
             await new OutputView().clearText();
             await new BottomBarPanel().toggle(false);
 
@@ -469,17 +477,19 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     constants.wait5seconds);
                 const newConDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
                     constants.wait10seconds, "Connection dialog was not loaded");
-                expect(await newConDialog.findElement(locator.dbConnectionDialog.caption).getAttribute("value"))
+                expect(await newConDialog.findElement(locator.dbConnectionDialog.caption).getAttribute("value"),
+                    `Caption should be ${bastionConn.caption}`)
                     .to.equal(bastionConn.caption);
-                expect(await newConDialog.findElement(locator.dbConnectionDialog.description).getAttribute("value"))
+                expect(await newConDialog.findElement(locator.dbConnectionDialog.description).getAttribute("value"),
+                    `Description should be ${bastionConn.description}`)
                     .to.equal(bastionConn.description);
                 mdsEndPoint = await newConDialog
                     .findElement(locator.dbConnectionDialog.mysql.basic.hostname).getAttribute("value");
-                expect(mdsEndPoint).to.match(/(\d+).(\d+).(\d+).(\d+)/);
+                expect(mdsEndPoint, `MDS endpoint should match '(\\d+).(\\d+).(\\d+).(\\d+)`)
+                    .to.match(/(\d+).(\d+).(\d+).(\d+)/);
                 await newConDialog.findElement(locator.dbConnectionDialog.mysql.basic.username)
                     .sendKeys((bastionConn.basic as interfaces.IConnBasicMySQL).username);
                 const mdsTab = await newConDialog.findElement(locator.dbConnectionDialog.mdsTab);
-                expect(mdsTab).to.exist;
                 await mdsTab.click();
                 await driver.wait(async () => {
                     return await driver
@@ -495,7 +505,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     .findElement(locator.dbConnectionDialog.mysql.mds.bastionId).getAttribute("value");
                 await newConDialog.findElement(locator.dbConnectionDialog.ok).click();
                 const mds = await DatabaseConnection.getConnection(bastionConn.caption);
-                expect(mds).to.exist;
                 await mds.click();
                 try {
                     await driver.wait(waitUntil.mdsConnectionIsOpened(bastionConn), constants.wait25seconds);
@@ -508,7 +517,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 }
                 const commandExecutor = new CommandExecutor();
                 await commandExecutor.execute("select version();");
-                expect(commandExecutor.getResultMessage()).to.match(/OK/);
+                expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
+                    commandExecutor.getResultMessage())).to.match(/OK/);
             } else {
                 await Tree.openContextMenuAndSelect(treeDbSystem, constants.startDBSystem);
                 const ntf = await Workbench.getNotification("Are you sure you want to start the DB System", false);
@@ -552,7 +562,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 localMDSInfo,
             );
 
-            expect(await Tree.existsElement(constants.dbTreeSection, mdsConn.caption)).to.be.true;
+            expect(await Tree.existsElement(constants.dbTreeSection, mdsConn.caption),
+                errors.doesNotExistOnTree(mdsConn.caption)).to.be.true;
         });
 
         it("Create a new MDS Connection", async function () {
@@ -591,7 +602,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 constants.wait25seconds, "Connection was not opened");
             const commandExecutor = new CommandExecutor();
             await commandExecutor.execute("select version();");
-            expect(commandExecutor.getResultMessage()).to.match(/OK/);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
+                commandExecutor.getResultMessage())).to.match(/OK/);
 
         });
 
