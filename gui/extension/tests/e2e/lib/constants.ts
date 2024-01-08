@@ -106,6 +106,7 @@ export const mysqlAdmin = "MySQL Administration";
 export const vscodeChannel = "MySQL Shell for VS Code";
 export const collapseAll = "Collapse All";
 export const mysqlRestService = "MySQL REST Service";
+export const welcome = "Welcome to MySQL Shell for VS Code.";
 
 // CONTEXT MENUS ITEMS
 export const executeBlock = "Execute Block";

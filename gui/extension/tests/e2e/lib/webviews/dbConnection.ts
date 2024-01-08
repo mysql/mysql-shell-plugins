@@ -199,7 +199,7 @@ export class DatabaseConnection {
             }
 
             return undefined;
-        }, constants.wait5seconds, "No DB was found");
+        }, constants.wait5seconds, `The connection ${name} was not found on the Connection Browser`);
 
         return db;
     };
