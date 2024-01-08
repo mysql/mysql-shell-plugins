@@ -32,6 +32,7 @@ import * as constants from "../lib/constants";
 import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
+import * as errors from "../lib/errors";
 
 describe("MYSQL SHELL CONSOLES", () => {
 
@@ -116,7 +117,8 @@ describe("MYSQL SHELL CONSOLES", () => {
                     constants.dbConnectionsLabel);
                 await Tree.openContextMenuAndSelect(treeDBConnections, constants.openNewShellConsole);
                 await driver.wait(Shell.isShellLoaded(), constants.wait15seconds, "Shell Console was not loaded");
-                expect(await Tree.existsElement(constants.openEditorsTreeSection, `Session ${i}`)).to.be.true;
+                expect(await Tree.existsElement(constants.openEditorsTreeSection, `Session ${i}`),
+                    errors.doesNotExistOnTree(`Session ${i}`)).to.be.true;
             }
 
         });
@@ -164,9 +166,14 @@ describe("MYSQL SHELL CONSOLES", () => {
             let connUri = `\\c ${username}:${password}@${hostname}:${port}/${schema}`;
             await commandExecutor.execute(connUri);
             connUri = `Creating a session to '${username}@${hostname}:${port}/${schema}'`;
-            expect(commandExecutor.getResultMessage()).to.match(new RegExp(connUri));
-            expect(commandExecutor.getResultMessage()).to.match(/Server version: (\d+).(\d+).(\d+)/);
-            expect(commandExecutor.getResultMessage()).to.match(new RegExp(`Default schema set to \`${schema}\``));
+            expect(commandExecutor.getResultMessage(), errors.queryResultError(connUri,
+                commandExecutor.getResultMessage())).to.match(new RegExp(connUri));
+            expect(commandExecutor.getResultMessage(),
+                errors.queryResultError("Server version: (\\d+).(\\d+).(\\d+)", ""))
+                .to.match(/Server version: (\d+).(\d+).(\d+)/);
+            expect(commandExecutor.getResultMessage(),
+                errors.queryResultError(`Default schema set to \`${schema}\``,
+                    commandExecutor.getResultMessage())).to.match(new RegExp(`Default schema set to \`${schema}\``));
 
             const server = await driver.wait(until
                 .elementLocated(locator.shellConsole.connectionTab.server), constants.wait5seconds);
@@ -182,9 +189,11 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Change schemas using menu", async () => {
 
             await commandExecutor.changeSchemaOnTab("world_x_cst");
-            expect(commandExecutor.getResultMessage()).to.match(/Default schema set to `world_x_cst`/);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("Default schema set to`world_x_cst`",
+                commandExecutor.getResultMessage())).to.match(/Default schema set to `world_x_cst`/);
             await commandExecutor.changeSchemaOnTab("sakila");
-            expect(commandExecutor.getResultMessage()).to.match(/Default schema set to `sakila`/);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("Default schema set to`sakila`",
+                commandExecutor.getResultMessage())).to.match(/Default schema set to `sakila`/);
 
         });
 
@@ -193,9 +202,12 @@ describe("MYSQL SHELL CONSOLES", () => {
             let uri = `\\c ${shellUsername}@${hostname}:${port}/${schema}`;
             await commandExecutor.executeExpectingCredentials(uri, shellConn);
             uri = `Creating a session to '${shellUsername}@${hostname}:${port}/${schema}'`;
-            expect(commandExecutor.getResultMessage()).to.match(new RegExp(uri));
-            expect(commandExecutor.getResultMessage()).to.match(/Server version: (\d+).(\d+).(\d+)/);
-            expect(commandExecutor.getResultMessage()).to.match(new RegExp(`Default schema set to \`${schema}\`.`));
+            expect(commandExecutor.getResultMessage(), errors.queryResultError(uri,
+                commandExecutor.getResultMessage())).to.match(new RegExp(uri));
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("Server version: (\\d+).(\\d+).(\\d+)",
+                commandExecutor.getResultMessage())).to.match(/Server version: (\d+).(\d+).(\d+)/);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError(`Default schema set to \`${schema}\`.`,
+                commandExecutor.getResultMessage())).to.match(new RegExp(`Default schema set to \`${schema}\`.`));
 
             const server = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.server),
                 constants.wait5seconds, "Server tab was not found");
@@ -211,13 +223,17 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Connect using shell global variable", async () => {
 
             await commandExecutor.execute("shell.status()", true);
-            expect(commandExecutor.getResultMessage()).to.match(/MySQL Shell version (\d+).(\d+).(\d+)/);
+            expect(commandExecutor.getResultMessage(),
+                errors.queryResultError("MySQL Shell version (\\d+).(\\d+).(\\d+)",
+                    commandExecutor.getResultMessage())).to.match(/MySQL Shell version (\d+).(\d+).(\d+)/);
 
             let uri = `shell.connect('${username}:${password}@${hostname}:${portX}/${schema}')`;
             await commandExecutor.execute(uri, true);
             uri = `Creating a session to '${username}@${hostname}:${portX}/${schema}'`;
-            expect(commandExecutor.getResultMessage()).to.match(new RegExp(uri));
-            expect(commandExecutor.getResultMessage()).to.match(/Server version: (\d+).(\d+).(\d+)/);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError(uri,
+                commandExecutor.getResultMessage())).to.match(new RegExp(uri));
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("Server version: (\\d+).(\\d+).(\\d+)",
+                commandExecutor.getResultMessage())).to.match(/Server version: (\d+).(\d+).(\d+)/);
             expect(commandExecutor.getResultMessage())
                 .to.match(new RegExp(`Default schema \`${schema}\` accessible through db`));
 
@@ -236,10 +252,12 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             let cmd = `mysql.getClassicSession('${username}:${password}@${hostname}:${port}/${schema}')`;
             await commandExecutor.execute(cmd, true);
-            expect(commandExecutor.getResultMessage()).to.match(/ClassicSession/);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("ClassicSession",
+                commandExecutor.getResultMessage())).to.match(/ClassicSession/);
             cmd = `mysqlx.getSession('${username}:${password}@${hostname}:${portX}/${schema}')`;
             await commandExecutor.execute(cmd, true);
-            expect(commandExecutor.getResultMessage()).to.match(/Session/);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("Session",
+                commandExecutor.getResultMessage())).to.match(/Session/);
 
         });
 
@@ -265,7 +283,8 @@ describe("MYSQL SHELL CONSOLES", () => {
 
                 await commandExecutor.execute(uri);
                 uri = `Creating a session to '${username}@${hostname}:${portX}/${schema}'`;
-                expect(commandExecutor.getResultMessage()).to.match(new RegExp(uri));
+                expect(commandExecutor.getResultMessage(), errors.queryResultError(uri,
+                    commandExecutor.getResultMessage())).to.match(new RegExp(uri));
                 uri = `Connection to server ${hostname} at port ${portX},`;
                 uri += ` using the X protocol`;
                 const server = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.server),
@@ -301,33 +320,38 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Verify help command", async () => {
 
             await commandExecutor.execute("\\help ");
-            expect(commandExecutor.getResultMessage()).to.match(
+            const regex = [
                 /The Shell Help is organized in categories and topics/,
-            );
-            expect(commandExecutor.getResultMessage()).to.match(/SHELL COMMANDS/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\connect/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\disconnect/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\edit/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\exit/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\help/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\history/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\js/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\nopager/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\nowarnings/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\option/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\pager/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\py/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\quit/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\reconnect/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\rehash/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\show/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\source/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\sql/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\status/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\system/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\use/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\warning/);
-            expect(commandExecutor.getResultMessage()).to.match(/\\watch/);
+                /SHELL COMMANDS/,
+                /\\connect/,
+                /\\disconnect/,
+                /\\edit/,
+                /\\exit/,
+                /\\help/,
+                /\\history/,
+                /\\js/,
+                /\\nopager/,
+                /\\nowarnings/,
+                /\\option/,
+                /\\pager/,
+                /\\py/,
+                /\\quit/,
+                /\\reconnect/,
+                /\\rehash/,
+                /\\show/,
+                /\\source/,
+                /\\sql/,
+                /\\status/,
+                /\\system/,
+                /\\use/,
+                /\\warning/,
+                /\\watch/,
+            ];
+
+            for (const reg of regex) {
+                expect(commandExecutor.getResultMessage(), errors.queryResultError(reg.toString(),
+                    commandExecutor.getResultMessage())).to.match(reg);
+            }
 
         });
 
@@ -336,16 +360,19 @@ describe("MYSQL SHELL CONSOLES", () => {
             await driver.wait(until.elementLocated(locator.shellConsole.editor),
                 constants.wait10seconds, "Console was not loaded");
             await commandExecutor.languageSwitch("\\py ", true);
-            expect(commandExecutor.getResultMessage()).to.match(/Python/);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("Python",
+                commandExecutor.getResultMessage())).to.match(/Python/);
             await commandExecutor.languageSwitch("\\js ", true);
-            expect(commandExecutor.getResultMessage()).to.match(/JavaScript/);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("JavaScript",
+                commandExecutor.getResultMessage())).to.match(/JavaScript/);
 
         });
 
         it("Using db global variable", async () => {
 
             await commandExecutor.execute("db.actor.select().limit(1)");
-            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"),
+                errors.queryDataSetError("PENELOPE"))
                 .to.match(/PENELOPE/);
 
         });
@@ -353,7 +380,8 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Using util global variable", async () => {
 
             await commandExecutor.execute('util.exportTable("actor", "test.txt")');
-            expect(commandExecutor.getResultMessage()).to.match(/Running data dump using 1 thread/);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("Running data dump using 1 thread",
+                commandExecutor.getResultMessage())).to.match(/Running data dump using 1 thread/);
             const matches = [
                 /Total duration: (\d+)(\d+):(\d+)(\d+):(\d+)(\d+)s/,
                 /Data size: (\d+).(\d+)(\d+) KB/,
@@ -363,7 +391,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             ];
             for (const match of matches) {
                 expect(commandExecutor.getResultMessage(),
-                    `${commandExecutor.getResultMessage()} did not match ${String(match)}`).to.match(match);
+                    errors.queryResultError(match.toString(), commandExecutor.getResultMessage())).to.match(match);
             }
 
         });
@@ -372,7 +400,8 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             await commandExecutor.changeSchemaOnTab("world_x_cst");
             await commandExecutor.execute("db.countryinfo.find()");
-            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"),
+                errors.queryDataSetError("Yugoslavia"))
                 .to.match(/Yugoslavia/);
 
         });
@@ -381,26 +410,36 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             await commandExecutor.languageSwitch("\\sql ");
             await commandExecutor.execute("SHOW DATABASES;", true);
-            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"),
+                errors.queryDataSetError("sakila"))
                 .to.match(/sakila/);
-            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"),
+                errors.queryDataSetError("mysql"))
                 .to.match(/mysql/);
             await commandExecutor.languageSwitch("\\js ");
             await commandExecutor.execute(`shell.options.resultFormat="json/raw" `);
-            expect(commandExecutor.getResultMessage()).to.match(/json\/raw/);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("json\\/raw",
+                commandExecutor.getResultMessage())).to.match(/json\/raw/);
             await commandExecutor.execute(`shell.options.showColumnTypeInfo=false `);
-            expect(commandExecutor.getResultMessage()).to.match(/false/);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("false",
+                commandExecutor.getResultMessage())).to.match(/false/);
             await commandExecutor.execute(`shell.options.resultFormat="json/pretty" `);
-            expect(commandExecutor.getResultMessage()).to.match(/json\/pretty/);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("json\\/pretty",
+                commandExecutor.getResultMessage())).to.match(/json\/pretty/);
             await commandExecutor.changeSchemaOnTab("sakila");
-            expect(commandExecutor.getResultMessage()).to.match(/Default schema `sakila` accessible through db/);
+            expect(commandExecutor.getResultMessage(),
+                errors.queryResultError("Default schema `sakila` accessible through db",
+                    commandExecutor.getResultMessage())).to.match(/Default schema `sakila` accessible through db/);
             await commandExecutor.execute("db.category.select().limit(1)");
-            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"),
+                errors.queryDataSetError("Action"))
                 .to.match(/Action/);
             await commandExecutor.execute(`shell.options.resultFormat="table" `);
-            expect(commandExecutor.getResultMessage()).to.match(/table/);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("table",
+                commandExecutor.getResultMessage())).to.match(/table/);
             await commandExecutor.execute("db.category.select().limit(1)");
-            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"),
+                errors.queryDataSetError("Action"))
                 .to.match(/Action/);
 
         });
