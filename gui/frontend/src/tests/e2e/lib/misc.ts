@@ -83,6 +83,8 @@ export class Misc {
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--disable-gpu");
+        options.addArguments("--disable-features=NetworkService");
+        options.addArguments("--disable-features=VizDisplayCompositor");
         const outDir = process.env.USERPROFILE ?? process.env.HOME;
         options.setUserPreferences({
             download: {
