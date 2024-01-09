@@ -1,5 +1,5 @@
 <#
- * Copyright (c) 2022, 2023 Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -75,6 +75,10 @@ try {
         Throw "Please define the TEST_SUITE to run"
     }
 
+    if (!$env:TEST_RESOURCES_PATH){
+        Throw "Please define 'TEST_RESOURCES_PATH' env variable (location to store vscode and chromedriver)"
+    }
+
     if ($isLinux) {
         $env:userprofile = $env:HOME
     }
@@ -85,9 +89,7 @@ try {
     $env:MOCHAWESOME_REPORTFILENAME = "test-report-$env:TEST_SUITE.json"
     writeMsg "REPORT FILENAME: $env:MOCHAWESOME_REPORTFILENAME"
 
-    $resourcesDir = Join-Path $env:userprofile "clientqa"
-
-    $env:MYSQLSH_GUI_CUSTOM_CONFIG_DIR = Join-Path $resourcesDir "mysqlsh-$env:TEST_SUITE"
+    $env:MYSQLSH_GUI_CUSTOM_CONFIG_DIR = Join-Path $env:TEST_RESOURCES_PATH "mysqlsh-$env:TEST_SUITE"
     writeMsg "Using config dir: $env:MYSQLSH_GUI_CUSTOM_CONFIG_DIR"
 
     switch ($env:TEST_SUITE) {
@@ -120,7 +122,7 @@ try {
         }
     }
 
-    $testResources = Join-Path $resourcesDir "test-resources-$env:TEST_SUITE"
+    $testResources = Join-Path $env:TEST_RESOURCES_PATH "test-resources-$env:TEST_SUITE"
     $extPath = Join-Path $workspace "ext-$env:TEST_SUITE"
     $testFile = "./tests/e2e/output/tests/ui-$env:TEST_SUITE.js"
 
@@ -129,7 +131,7 @@ try {
     writeMsg "Using test file: $testFile"
 
     ## TRUNCATE MYSQLSH FILE
-    $msqlsh = Join-Path $resourcesDir "mysqlsh-$env:TEST_SUITE" "mysqlsh.log"
+    $msqlsh = Join-Path $env:TEST_RESOURCES_PATH "mysqlsh-$env:TEST_SUITE" "mysqlsh.log"
     writeMsg "Truncating $msqlsh ..." "-NoNewLine"
     if (Test-Path -Path $msqlsh){
         Clear-Content $msqlsh
@@ -139,7 +141,7 @@ try {
     }
 
     # REMOVE SHELL INSTANCE HOME
-    $shellInstanceHome = Join-Path $resourcesDir "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin" "shell_instance_home"
+    $shellInstanceHome = Join-Path $env:TEST_RESOURCES_PATH "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin" "shell_instance_home"
     writeMsg "Removing $shellInstanceHome ..." "-NoNewLine"
     if (Test-Path -Path $shellInstanceHome){
         Remove-Item -Path $shellInstanceHome -Force -Recurse
@@ -150,9 +152,9 @@ try {
 
     if ($env:TEST_SUITE -eq "rest"){
         if ($isLinux) {
-            $mysqlrouterConfig = Join-Path $resourcesDir "mysqlsh-$env:TEST_SUITE" "plugin_data" "mrs_plugin" "router_configs"
+            $mysqlrouterConfig = Join-Path $env:TEST_RESOURCES_PATH "mysqlsh-$env:TEST_SUITE" "plugin_data" "mrs_plugin" "router_configs"
         } else {
-            $mysqlrouterConfig = Join-Path $resourcesDir "mysqlsh-$env:TEST_SUITE" "plugin_data" "mrs_plugin" "router_configs"
+            $mysqlrouterConfig = Join-Path $env:TEST_RESOURCES_PATH "mysqlsh-$env:TEST_SUITE" "plugin_data" "mrs_plugin" "router_configs"
         }
 
         if (Test-Path -Path $mysqlrouterConfig) {
@@ -185,7 +187,7 @@ try {
     New-Item -Path $env:MYSQLSH_OCI_RC_FILE -Force -ItemType "file"
 
     # DEFINE THE RESOURCES DIRECTORY
-    $env:RESOURCES_DIR = $resourcesDir
+    $env:RESOURCES_DIR = $env:TEST_RESOURCES_PATH
 
     # EXECUTE TESTS
     $result = runTests $testResources

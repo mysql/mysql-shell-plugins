@@ -247,5 +247,64 @@ export class DBNotebooks {
 
     };
 
+    /**
+     * Gets the line number where the mouse cursor is
+     * @param driver The webdriver
+     * @returns A promise resolving with the line number
+     */
+    public static getMouseCursorLine = async (driver: WebDriver): Promise<number | undefined> => {
+        const lines = await driver.findElements(By.css(".view-overlays > div"));
+        for (let i = 0; i <= lines.length - 1; i++) {
+            const curLine = await lines[i].findElements(By.className("current-line"));
+            if (curLine.length > 0) {
+                return i;
+            }
+        }
+    };
 
+    /**
+     * Gets the line number where a word is found
+     * @param driver The webdriver
+     * @param wordRef The word
+     * @returns A promise resolving with the line number
+     */
+    public static getLineFromWord = async (driver: WebDriver, wordRef: string): Promise<number> => {
+        const regex = wordRef
+            .replace(/\*/g, "\\*")
+            .replace(/\./g, ".*")
+            .replace(/;/g, ".*")
+            .replace(/\s/g, ".*");
+        const lines = await driver.findElements(By.css(".view-lines.monaco-mouse-cursor-text > div"));
+        for (let i = 0; i <= lines.length - 1; i++) {
+            const lineContent = await lines[i].getAttribute("innerHTML");
+            if (lineContent.match(regex)) {
+                return i;
+            }
+        }
+        throw new Error(`Could not find '${wordRef}' in the code editor`);
+    };
+
+    /**
+     * Sets the mouse cursor at the editor line where the specified word is
+     * @param driver The webdriver
+     * @param word The word or command
+     * @returns A promise resolving when the mouse cursor is placed at the desired spot
+     */
+    public static setMouseCursorAt = async (driver: WebDriver, word: string): Promise<void> => {
+        const mouseCursorIs = await DBNotebooks.getMouseCursorLine(driver);
+        const mouseCursorShouldBe = await DBNotebooks.getLineFromWord(driver, word);
+        const taps = mouseCursorShouldBe - mouseCursorIs!;
+        const textArea = await driver.findElement(By.css("textarea"));
+        if (taps > 0) {
+            for (let i = 0; i < taps; i++) {
+                await textArea.sendKeys(Key.ARROW_DOWN);
+                await driver.sleep(300);
+            }
+        } else if (taps < 0) {
+            for (let i = 0; i < Math.abs(taps); i++) {
+                await textArea.sendKeys(Key.ARROW_UP);
+                await driver.sleep(300);
+            }
+        }
+    };
 }

@@ -85,7 +85,7 @@ SAKILA_SQL_PATH = os.path.join(WORKING_DIR, "sql", "sakila.sql")
 WORLD_SQL_PATH = os.path.join(WORKING_DIR, "sql", "world_x_cst.sql")
 USERS_PATH = os.path.join(WORKING_DIR, "sql", "users.sql")
 PROCEDURES_PATH = os.path.join(WORKING_DIR, "sql", "procedures.sql")
-MAX_WORKERS = "3"
+MAX_WORKERS = os.getenv('MAX_WORKERS') if os.getenv('MAX_WORKERS') != None else "3"
 TOKEN = "1234test"
 
 TESTS_TIMEOUT = 30*60

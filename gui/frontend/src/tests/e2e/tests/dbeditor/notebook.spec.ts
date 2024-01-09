@@ -272,14 +272,17 @@ describe("Notebook", () => {
 
     it("Connection toolbar buttons - Execute statement at the caret position", async () => {
         try {
+            const query1 = "select * from actor limit 1;";
+            const query2 = "select * from address limit 1;";
+            const query3 = "select * from category limit 1;";
+
             const textArea = await driver.findElement(By.css("textarea"));
-            await DBConnection.writeSQL(driver, "select * from actor limit 1;");
+            await DBConnection.writeSQL(driver, query1);
             await textArea.sendKeys(Key.RETURN);
-            await DBConnection.writeSQL(driver, "select * from address limit 1;");
+            await DBConnection.writeSQL(driver, query2);
             await textArea.sendKeys(Key.RETURN);
-            await DBConnection.writeSQL(driver, "select * from category limit 1;");
-            await textArea.sendKeys(Key.ARROW_UP);
-            await driver.sleep(500);
+            await DBConnection.writeSQL(driver, query3);
+            await DBNotebooks.setMouseCursorAt(driver, query2);
 
             let execCaretBtn = await DBConnection.getToolbarButton(driver, execCaret);
             await execCaretBtn?.click();
@@ -289,8 +292,7 @@ describe("Notebook", () => {
                 return DBConnection.getResultColumnName(driver, "address_id") !== undefined;
             }, 3000, "No new results block was displayed");
 
-            await textArea.sendKeys(Key.ARROW_UP);
-            await driver.sleep(500);
+            await DBNotebooks.setMouseCursorAt(driver, query1);
             execCaretBtn = await DBConnection.getToolbarButton(driver, execCaret);
             await driver.wait(new Condition("", async () => {
                 await execCaretBtn?.click();
@@ -298,10 +300,7 @@ describe("Notebook", () => {
                 return await DBConnection.getResultColumnName(driver, "actor_id") !== undefined;
             }), explicitWait, "actor_id column was not found");
 
-            await textArea.sendKeys(Key.ARROW_DOWN);
-            await driver.sleep(500);
-            await textArea.sendKeys(Key.ARROW_DOWN);
-            await driver.sleep(500);
+            await DBNotebooks.setMouseCursorAt(driver, query3);
             execCaretBtn = await DBConnection.getToolbarButton(driver, execCaret);
             await driver.wait(new Condition("", async () => {
                 await execCaretBtn?.click();
