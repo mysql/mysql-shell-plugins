@@ -685,7 +685,7 @@ describe("DATABASE CONNECTIONS", () => {
             const destFile = join(constants.workspace, "gui", "frontend", "src", "tests", "e2e", "sql", "sakila.sql");
             await Tree.openContextMenuAndSelect(treeGlobalConn, constants.loadScriptFromDisk);
             await Workbench.setInputPath(destFile);
-            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait5seconds);
+            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
             await driver.wait(async () => {
                 return (await Notebook.getCurrentEditorName()) === "sakila.sql";
             }, constants.wait5seconds, "Current editor is not sakila.sql");

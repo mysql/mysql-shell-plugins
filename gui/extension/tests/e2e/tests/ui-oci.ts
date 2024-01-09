@@ -513,6 +513,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                         await Workbench.closeEditor(constants.dbDefaultEditor);
                         skip = true;
                         this.skip();
+                    } else {
+                        throw e;
                     }
                 }
                 const commandExecutor = new CommandExecutor();

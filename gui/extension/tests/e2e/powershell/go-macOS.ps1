@@ -1,5 +1,5 @@
 <#
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -29,8 +29,11 @@ $env:WORKSPACE = Resolve-Path(Join-Path $basePath ".." ".." ".." "..")
 if (!$env:TEST_SUITE){
     Throw "Please define the TEST_SUITE (db, notebook, oci, shell, rest, open-editors)"
 }
+if (!$env:TEST_RESOURCES_PATH){
+    Throw "Please define 'TEST_RESOURCES_PATH' env variable (location to store vscode and chromedriver)"
+}
 
-$env:MYSQLSH_GUI_CUSTOM_CONFIG_DIR = Join-Path $home "mysqlsh-$env:TEST_SUITE"
+$env:MYSQLSH_GUI_CUSTOM_CONFIG_DIR = Join-Path $env:TEST_RESOURCES_PATH "mysqlsh-$env:TEST_SUITE"
 
 ## REMOVE EXISTING EXTENSION DATABASES
 $guiPluginFolder = Join-Path $home "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin"
@@ -53,7 +56,7 @@ if (Test-Path -Path $msqlsh){
 
 # REMOVE ROUTER LEFTOVERS
 if ($env:TEST_SUITE -eq "rest"){
-    $mysqlrouterConfig = Join-Path $home "mysqlsh-$env:TEST_SUITE" "plugin_data" "mrs_plugin" "router_configs"
+    $mysqlrouterConfig = Join-Path $env:TEST_RESOURCES_PATH "mysqlsh-$env:TEST_SUITE" "plugin_data" "mrs_plugin" "router_configs"
     if (Test-Path -Path $mysqlrouterConfig) {
         write-host "Removing router config folder..."
         Remove-Item -Path $mysqlrouterConfig -Force -Recurse
@@ -62,7 +65,7 @@ if ($env:TEST_SUITE -eq "rest"){
 }
 
 # REMOVE SHELL INSTANCE HOME
-$shellInstanceHome = Join-Path $home "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin" "shell_instance_home"
+$shellInstanceHome = Join-Path $env:TEST_RESOURCES_PATH "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin" "shell_instance_home"
 write-host "Removing $shellInstanceHome ..." -NoNewLine
 if (Test-Path -Path $shellInstanceHome){
     Remove-Item -Path $shellInstanceHome -Force -Recurse
@@ -88,7 +91,7 @@ else {
 
 New-Item -Path $env:MYSQLSH_OCI_RC_FILE -Force -ItemType "file"
 
-$testResources = Join-Path $home "test-resources"
+$testResources = Join-Path $env:TEST_RESOURCES_PATH "test-resources"
 
 # RUN SQL CONFIGURATIONS FOR TESTS
 $refExt = Join-Path $testResources "ext"
@@ -98,9 +101,6 @@ write-host "Running SQL configurations for tests..." "-NoNewLine"
 $runConfig = "$shell -u $env:DBUSERNAME -p$env:DBPASSWORD -h localhost --file sql/setup.sql"
 Invoke-Expression $runConfig
 write-host "DONE"
-
-# DEFINE THE RESOURCES DIRECTORY
-$env:RESOURCES_DIR = $home
 
 # EXECUTE TESTS
 $env:NODE_ENV = "test"

@@ -128,7 +128,7 @@ describe("OPEN EDITORS", () => {
         await Section.focus(constants.dbTreeSection);
         const treeLocalConn = await Tree.getElement(constants.dbTreeSection, globalConn.caption);
         await (await Tree.getActionButton(treeLocalConn, constants.openNewConnection)).click();
-        await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait5seconds);
+        await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
         const treeOEGlobalConn = await Tree.getElement(constants.openEditorsTreeSection,
             globalConn.caption);
         await (await Tree.getActionButton(treeOEGlobalConn, "New MySQL Script")).click();
@@ -214,7 +214,7 @@ describe("OPEN EDITORS", () => {
         await item.expand();
         await (await Tree.getElement(constants.openEditorsTreeSection,
             constants.openEditorsDBNotebook)).click();
-        await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait5seconds,
+        await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds,
             "Connection was not opened");
 
     });

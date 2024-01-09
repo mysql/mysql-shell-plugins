@@ -1,5 +1,5 @@
 <#
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,11 +31,14 @@ $testSuites = @("db", "notebook", "oci", "shell", "rest", "open-editors")
 if (!$env:VSIX_PATH){
     Throw "Please define the VSIX_PATH"
 }
+if (!$env:TEST_RESOURCES_PATH){
+    Throw "Please define 'TEST_RESOURCES_PATH' env variable (location to store vscode and chromedriver)"
+}
 
 $targetWebCerts = Join-Path $home ".mysqlsh-gui" "plugin_data" "gui_plugin" "web_certs"
 write-host "Creating config dirs..."
 ForEach ($testSuite in $testSuites) {
-    $config = Join-Path $home "mysqlsh-$testSuite"
+    $config = Join-Path $env:TEST_RESOURCES_PATH "mysqlsh-$testSuite"
     if (!(Test-Path $config)) {
         New-Item -ItemType "directory" -Path $config
         write-host "Created $config"
@@ -52,7 +55,7 @@ ForEach ($testSuite in $testSuites) {
     }
 } 
 write-host "DONE"
-$testResources = Join-Path $home "test-resources"
+$testResources = Join-Path $env:TEST_RESOURCES_PATH "test-resources"
 npm run e2e-tests-get-vscode -- -s $testResources -c $vscodeVersion
 npm run e2e-tests-get-chromedriver -- -s $testResources -c $vscodeVersion
 

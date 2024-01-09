@@ -25,10 +25,10 @@ import { platform } from "os";
 import fs from "fs/promises";
 import { join } from "path";
 import {
-    By, until, Key, WebElement, Builder, WebDriver, error, Logs, logging, Browser
+    By, until, Key, WebElement, Builder, WebDriver, error, Logs, logging, Browser, Capabilities,
 } from "selenium-webdriver";
 
-import { Options } from "selenium-webdriver/chrome.js";
+import { Options, ServiceBuilder, setDefaultService } from "selenium-webdriver/chrome.js";
 import { DBConnection } from "./dbConnection.js";
 import { execFullBlockJs, execFullBlockSql } from "./dbNotebooks.js";
 
@@ -83,8 +83,10 @@ export class Misc {
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--disable-gpu");
+        options.addArguments("--disable-infobars");
         options.addArguments("--disable-features=NetworkService");
         options.addArguments("--disable-features=VizDisplayCompositor");
+
         const outDir = process.env.USERPROFILE ?? process.env.HOME;
         options.setUserPreferences({
             download: {
@@ -98,11 +100,22 @@ export class Misc {
         if (headless === String("1")) {
             options.headless().windowSize({ width: 1024, height: 768 });
         }
+        let driver: WebDriver;
         console.log("Trying to create webdriver ....");
-        const driver = await new Builder()
-            .forBrowser(Browser.CHROME)
-            .setChromeOptions(options)
-            .build();
+        if (process.env.CHROMEDRIVER_PATH) {
+            console.log(`Using chromedriver path at: ${process.env.CHROMEDRIVER_PATH}`);
+            const builder = new ServiceBuilder(process.env.CHROMEDRIVER_PATH);
+            driver = await new Builder()
+                .forBrowser(Browser.CHROME)
+                .setChromeOptions(options)
+                .setChromeService(builder)
+                .build();
+        } else {
+            driver = await new Builder()
+                .forBrowser(Browser.CHROME)
+                .setChromeOptions(options)
+                .build();
+        }
         console.log("done!");
         await driver.manage().setTimeouts({ implicit: 0 });
 
