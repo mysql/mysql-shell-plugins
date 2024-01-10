@@ -6,6 +6,7 @@
 
 - BUG#36027690 Connection error when opening REST Object Request Path in Web Browser
 - BUG#36032142 Unexpected error when deleting records with filter containing nullables
+- BUG#36173373 Parent class field not accessible in the child class in the TypeScript SDK
 
 ## Changes in 1.14.2+8.1.1
 
