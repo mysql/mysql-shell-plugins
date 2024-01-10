@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -1194,7 +1194,7 @@ class MrsBaseObjectCall<I, P extends JsonObject> {
         protected params: P) {
     }
 
-    protected fetch = async (): Promise<I> => {
+    protected async fetch (): Promise<I> {
         const input = `${this.schema.requestPath}${this.requestPath}`;
 
         const res = await this.schema.service.session.doFetch({
@@ -1205,7 +1205,7 @@ class MrsBaseObjectCall<I, P extends JsonObject> {
         });
 
         return await res.json() as I;
-    };
+    }
 }
 
 export class MrsBaseObjectProcedureCall<I, P extends JsonObject>
@@ -1217,11 +1217,11 @@ export class MrsBaseObjectProcedureCall<I, P extends JsonObject>
         super(schema, requestPath, params);
     }
 
-    public fetch = async (): Promise<IMrsProcedureResultList<I>> => {
+    public async fetch (): Promise<IMrsProcedureResultList<I>> {
         const res = await super.fetch();
 
         return res;
-    };
+    }
 }
 
 export class MrsBaseObjectFunctionCall<I, P extends JsonObject> extends MrsBaseObjectCall<I, P> {
@@ -1232,9 +1232,9 @@ export class MrsBaseObjectFunctionCall<I, P extends JsonObject> extends MrsBaseO
         super(schema, requestPath, params);
     }
 
-    public fetch = async (): Promise<I> => {
+    public async fetch (): Promise<I> {
         const res = await super.fetch() as IMrsFunctionResult<I>;
 
         return res.result;
-    };
+    }
 }
