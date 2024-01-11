@@ -22,13 +22,14 @@
  */
 
 import {
-    Condition, error, until, WebElement,
+    Condition, until, WebElement,
     TreeItem, EditorView, Button,
 } from "vscode-extension-tester";
 import * as constants from "../constants";
 import * as waitUntil from "../until";
 import * as locator from "../locators";
 import * as interfaces from "../interfaces";
+import * as errors from "../errors";
 import { Misc, driver } from "../misc";
 import { Workbench } from "../workbench";
 import { Section } from "./section";
@@ -90,7 +91,7 @@ export class Tree {
                     return true;
                 }
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
+                if (!(errors.isStaleError(e as Error))) {
                     throw e;
                 }
             }
@@ -171,7 +172,7 @@ export class Tree {
                     return true;
                 }
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
+                if (!(errors.isStaleError(e as Error))) {
                     throw e;
                 }
             }
@@ -313,7 +314,7 @@ export class Tree {
 
                 return btn;
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
+                if (!(errors.isStaleError(e as Error))) {
                     throw e;
                 }
             }
@@ -447,7 +448,7 @@ export class Tree {
                 try {
                     return !(await Tree.existsElement(constants.dbTreeSection, name));
                 } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
+                    if (!(errors.isStaleError(e as Error))) {
                         throw e;
                     }
                 }

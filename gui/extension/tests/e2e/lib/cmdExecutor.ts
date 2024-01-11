@@ -30,6 +30,7 @@ import * as interfaces from "./interfaces";
 import { Misc, driver } from "./misc";
 import { Os } from "./os";
 import * as waitUntil from "./until";
+import * as errors from "../lib/errors";
 
 /**
  * This class aggregates the functions that will execute commands on notebooks or shell sessions, as well as its results
@@ -106,7 +107,7 @@ export class CommandExecutor {
                 if (e instanceof error.ElementNotInteractableError) {
                     const editorLines = await driver.findElements(locator.notebook.codeEditor.editor.currentLine);
                     await editorLines[editorLines.length - 1].click();
-                } else if (!(e instanceof error.StaleElementReferenceError)) {
+                } else if (!(errors.isStaleError(e as Error))) {
                     throw e;
                 }
             }
@@ -143,7 +144,7 @@ export class CommandExecutor {
 
                 return true;
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
+                if (!(errors.isStaleError(e as Error))) {
                     throw e;
                 }
             }
@@ -631,7 +632,7 @@ export class CommandExecutor {
                     return true;
                 }
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
+                if (!(errors.isStaleError(e as Error))) {
                     throw e;
                 }
             }
@@ -761,7 +762,7 @@ export class CommandExecutor {
                     return true;
                 }
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError) ||
+                if (!(errors.isStaleError(e as Error)) ||
                     !(e instanceof error.ElementNotInteractableError)) {
                     throw e;
                 }
@@ -794,7 +795,7 @@ export class CommandExecutor {
 
                     return true;
                 } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
+                    if (!(errors.isStaleError(e as Error))) {
                         throw e;
                     }
                 }
@@ -863,7 +864,7 @@ export class CommandExecutor {
 
                 return true;
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
+                if (!(errors.isStaleError(e as Error))) {
                     throw e;
                 }
             }

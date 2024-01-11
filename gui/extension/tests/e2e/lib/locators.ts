@@ -365,6 +365,7 @@ export const errorDialog = {
 
 export const dbConnectionOverview = {
     exists: By.id("connectionOverviewToolbar"),
+    title: By.id("title"),
     newConsoleButton: By.id("newConsoleMenuButton"),
     browser: By.className("connectionBrowser"),
     newDBConnection: By.id("-1"),
@@ -429,6 +430,7 @@ export const iframe = {
     container: By.xpath("//div[@data-parent-flow-to-element-id]"),
     isActive: By.id("active-frame"),
     isLoading: By.id("waitForContent"),
+    frameMsg: By.id("frame-msg"),
 };
 
 export const shellForVscode = {

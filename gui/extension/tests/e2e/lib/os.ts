@@ -21,6 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { WebElement, Key } from "vscode-extension-tester";
+import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
+import clipboard from "clipboardy";
 import { existsSync } from "fs";
 import { spawnSync, execSync } from "child_process";
 import fs from "fs/promises";
@@ -28,7 +30,7 @@ import { platform } from "os";
 import { join } from "path";
 import * as constants from "./constants";
 import { driver, Misc } from "./misc";
-import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
+
 
 /**
  * This class aggregates the functions that perform operating system related operations
@@ -250,13 +252,17 @@ export class Os {
      * @returns A promise resolving when the command is executed
      */
     public static keyboardCopy = async (el?: WebElement): Promise<void> => {
-        if (Os.isMacOs()) {
-            await driver.executeScript("arguments[0].click()", el);
-            await el.sendKeys(Key.chord(Key.COMMAND, "c"));
-        } else {
-            await driver.executeScript("arguments[0].click()", el);
-            await el.sendKeys(Key.chord(Key.CONTROL, "c"));
-        }
+        await driver.wait(async () => {
+            if (Os.isMacOs()) {
+                await driver.executeScript("arguments[0].click()", el);
+                await el.sendKeys(Key.chord(Key.COMMAND, "c"));
+            } else {
+                await driver.executeScript("arguments[0].click()", el);
+                await el.sendKeys(Key.chord(Key.CONTROL, "c"));
+            }
+
+            return clipboard.readSync() !== "";
+        }, constants.wait5seconds, `The clipboard is empty`);
     };
 
     /**
@@ -282,10 +288,10 @@ export class Os {
     public static keyboardCut = async (el?: WebElement): Promise<void> => {
         if (Os.isMacOs()) {
             await driver.executeScript("arguments[0].click()", el);
-            await el.sendKeys(Key.chord(Key.COMMAND, "x"));
+            await el.sendKeys(Key.chord(Key.COMMAND, "X"));
         } else {
             await driver.executeScript("arguments[0].click()", el);
-            await el.sendKeys(Key.chord(Key.CONTROL, "x"));
+            await el.sendKeys(Key.chord(Key.CONTROL, "X"));
         }
     };
 

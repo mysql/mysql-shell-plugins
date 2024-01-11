@@ -43,6 +43,8 @@ import { Section } from "./treeViews/section";
 import { Tree } from "./treeViews/tree";
 import { Os } from "./os";
 import { Workbench } from "./workbench";
+import * as errors from "../lib/errors";
+
 export let credentialHelperOk = true;
 
 export const sectionIsNotLoading = (section: string): Condition<boolean> => {
@@ -65,7 +67,7 @@ export const modalDialogIsOpened = (): Condition<boolean> => {
             return (await dialog.getMessage()).length > 0;
         } catch (e) {
             if (!(e instanceof error.NoSuchElementError) &&
-                !(e instanceof error.StaleElementReferenceError) &&
+                !(errors.isStaleError(e as Error)) &&
                 !(e instanceof error.ElementNotInteractableError)
             ) {
                 throw e;
@@ -110,9 +112,8 @@ const shellSessionIsSuccessful = (): Condition<boolean> => {
 
 export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
     return new Condition(`for DB connection ${connection.caption} to be opened`, async () => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
+        await Misc.switchBackToTopFrame();
+        await Misc.switchToFrame();
 
         const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
         if (existsPasswordDialog) {
@@ -128,9 +129,9 @@ export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Cond
 
 export const mdsConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
     return new Condition(`for MDS connection ${connection.caption} to be opened`, async () => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
+        await Misc.switchBackToTopFrame();
+        await Misc.switchToFrame();
+
         const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
         const existsFingerPrintDialog = (await driver.findElements(locator.confirmDialog.exists)).length > 0;
         const existsEditor = (await driver.findElements(locator.notebook.codeEditor.textArea)).length > 0;
@@ -222,7 +223,10 @@ export const notificationExists = (notification: string, dismiss = true,
     expectFailure = false): Condition<boolean> => {
     return new Condition(`for notication '${notification}' to be displayed`, async () => {
         try {
-            await Misc.switchBackToTopFrame();
+            if (Misc.insideIframe) {
+                await Misc.switchBackToTopFrame();
+            }
+
             const escapedText = notification.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
             const ntfs = await new extWorkbench().getNotifications();
             for (const ntf of ntfs) {
@@ -242,7 +246,7 @@ export const notificationExists = (notification: string, dismiss = true,
                 }
             }
         } catch (e) {
-            if (!(e instanceof error.StaleElementReferenceError)) {
+            if (!errors.isStaleError(e as Error)) {
                 throw e;
             }
         }
@@ -278,8 +282,7 @@ export const extensionIsReady = (): Condition<boolean> => {
         const loadTry = async (): Promise<void> => {
             console.log("<<<<Try to load FE>>>>>");
             await driver.wait(tabIsOpened("Welcome"), constants.wait10seconds, "Welcome tab was not opened");
-            const activityBare = new ActivityBar();
-            await (await activityBare.getViewControl(constants.extensionName))?.openView();
+            await Workbench.openMySQLShellForVSCode();
             await driver.wait(tabIsOpened(constants.dbDefaultEditor), constants.wait25seconds,
                 `${constants.dbDefaultEditor} tab was not opened`);
             await Misc.switchToFrame();

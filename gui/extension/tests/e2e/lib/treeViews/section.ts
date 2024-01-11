@@ -27,6 +27,7 @@ import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 import * as waitUntil from "../until";
 import * as locator from "../locators";
 import * as interfaces from "../interfaces";
+import * as errors from "../errors";
 import { DatabaseConnection } from "../webviews/dbConnection";
 import { Misc, driver } from "../misc";
 import { Os } from "../os";
@@ -323,7 +324,7 @@ export class Section {
 
                             return (await existsRootHost()) === false;
                         } catch (e) {
-                            if (e instanceof error.StaleElementReferenceError) {
+                            if (errors.isStaleError(e as Error)) {
                                 return true;
                             }
                         }

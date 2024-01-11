@@ -24,7 +24,7 @@ import { join } from "path";
 import fs from "fs/promises";
 import {
     BottomBarPanel, Condition, TreeItem,
-    until, WebElement, Workbench as extWorkbench, error, ActivityBar, CustomTreeItem,
+    until, WebElement, Workbench as extWorkbench, ActivityBar, CustomTreeItem,
 } from "vscode-extension-tester";
 import { expect } from "chai";
 import clipboard from "clipboardy";
@@ -255,6 +255,10 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
+        after(async () => {
+            await Workbench.openMySQLShellForVSCode();
+        });
+
         it("MySQL - Verify mandatory fields", async () => {
 
             const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
@@ -328,7 +332,7 @@ describe("DATABASE CONNECTIONS", () => {
             }
 
             sqliteConn.basic = {
-                dbPath: join(process.env.RESOURCES_DIR,
+                dbPath: join(process.env.TEST_RESOURCES_PATH,
                     `mysqlsh-${String(process.env.TEST_SUITE)}`,
                     "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3"),
                 dbName: "SQLite",
@@ -421,6 +425,32 @@ describe("DATABASE CONNECTIONS", () => {
                 cmdExecutor.getResultMessage()))
                 .to.match(/1 record retrieved/);
 
+        });
+
+        it("Copy paste and cut paste into the DB Connection dialog", async () => {
+            const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
+                constants.wait5seconds, "Connection dialog was not displayed");
+            const hostNameInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.hostname);
+            const valueToCopy = await hostNameInput.getAttribute("value");
+            await Os.keyboardSelectAll(hostNameInput);
+            await Os.keyboardCopy(hostNameInput);
+            const usernameInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.username);
+            await Os.keyboardPaste(usernameInput);
+            expect(await usernameInput.getAttribute("value"), "Hostname value was not copied to the username field")
+                .to.include(valueToCopy);
+            expect(await hostNameInput.getAttribute("value"),
+                "Hostname value should stay the same after copying it to the clipboard").to.equal(valueToCopy);
+            const descriptionInput = await conDialog.findElement(locator.dbConnectionDialog.description);
+            await DialogHelper.clearInputField(descriptionInput);
+            await descriptionInput.sendKeys("testing");
+            const valueToCut = await descriptionInput.getAttribute("value");
+            await Os.keyboardSelectAll(descriptionInput);
+            await Os.keyboardCut(descriptionInput);
+            expect(await descriptionInput.getAttribute("value"), "Description value was not cut").to.equals("");
+            const schemaInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.defaultSchema);
+            await Os.keyboardPaste(schemaInput);
+            expect(await schemaInput.getAttribute("value"),
+                "Hostname value was not pasted to the description field").to.include(valueToCut);
         });
 
     });
@@ -843,7 +873,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                     return clipboard.readSync() === (globalConn.basic as interfaces.IConnBasicMySQL).schema;
                 } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
+                    if (!(errors.isStaleError(e as Error))) {
                         throw e;
                     }
                 }
@@ -859,7 +889,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                     return clipboard.readSync().includes("CREATE DATABASE");
                 } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
+                    if (!(errors.isStaleError(e as Error))) {
                         throw e;
                     }
                 }
@@ -891,7 +921,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                     return clipboard.readSync() === "actor";
                 } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
+                    if (!(errors.isStaleError(e as Error))) {
                         throw e;
                     }
                 }
@@ -906,7 +936,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                     return clipboard.readSync().includes("idx_actor_last_name");
                 } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
+                    if (!(errors.isStaleError(e as Error))) {
                         throw e;
                     }
                 }
@@ -945,7 +975,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                     return clipboard.readSync() === testView;
                 } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
+                    if (!(errors.isStaleError(e as Error))) {
                         throw e;
                     }
                 }
@@ -961,7 +991,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                     return clipboard.readSync().includes("DEFINER VIEW");
                 } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
+                    if (!(errors.isStaleError(e as Error))) {
                         throw e;
                     }
                 }
@@ -1020,7 +1050,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                     return clipboard.readSync() === testRoutine;
                 } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
+                    if (!(errors.isStaleError(e as Error))) {
                         throw e;
                     }
                 }
@@ -1036,7 +1066,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                     return clipboard.readSync().includes("CREATE DEFINER");
                 } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
+                    if (!(errors.isStaleError(e as Error))) {
                         throw e;
                     }
                 }
@@ -1051,7 +1081,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                     return clipboard.readSync().includes("DELIMITER");
                 } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
+                    if (!(errors.isStaleError(e as Error))) {
                         throw e;
                     }
                 }
@@ -1067,7 +1097,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                     return clipboard.readSync().includes("DROP") && clipboard.readSync().includes("DELIMITER");
                 } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
+                    if (!(errors.isStaleError(e as Error))) {
                         throw e;
                     }
                 }

@@ -79,6 +79,8 @@ export const dbConnections = {
         return By.xpath(`//label[contains(text(), '${name}')]`);
     },
     newConnection: By.id("-1"),
+    title: By.id("title"),
+    tabName: By.css("#connections > label")
 };
 
 // NOTEBOOK

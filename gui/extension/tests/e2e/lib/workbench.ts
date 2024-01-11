@@ -24,7 +24,7 @@
 import clipboard from "clipboardy";
 import {
     EditorView, error, InputBox, Key, until, NotificationType, OutputView, WebElement,
-    Workbench as extWorkbench, Notification, TerminalView, EditorTab,
+    Workbench as extWorkbench, Notification, TerminalView, EditorTab, ActivityBar,
 } from "vscode-extension-tester";
 import * as constants from "./constants";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
@@ -34,6 +34,7 @@ import * as interfaces from "./interfaces";
 import { Tree } from "./treeViews/tree";
 import { Os } from "./os";
 import { Misc, driver } from "./misc";
+import * as errors from "../lib/errors";
 
 /**
  * This class aggregates the functions that perform vscode workbench operations
@@ -123,7 +124,7 @@ export class Workbench {
                     }
                 }
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
+                if (!errors.isStaleError(e as Error)) {
                     throw e;
                 }
             }
@@ -145,7 +146,7 @@ export class Workbench {
 
                 return (await new extWorkbench().getNotifications()).length === 0;
             } catch (e) {
-                if (e instanceof error.StaleElementReferenceError) {
+                if (errors.isStaleError(e as Error)) {
                     return true;
                 } else if (e instanceof error.ElementNotInteractableError) {
                     return false;
@@ -170,7 +171,7 @@ export class Workbench {
                     try {
                         await ntf.dismiss();
                     } catch (e) {
-                        if (e instanceof error.StaleElementReferenceError) {
+                        if (errors.isStaleError(e as Error)) {
                             return true;
                         } else {
                             if (e instanceof error.ElementNotInteractableError) {
@@ -250,7 +251,7 @@ export class Workbench {
                 return true;
             } catch (e) {
                 if (!(String(e).includes("Command failed")) &&
-                    !(e instanceof error.StaleElementReferenceError) &&
+                    !(errors.isStaleError(e as Error)) &&
                     !(e instanceof error.ElementNotInteractableError)
                 ) {
                     throw e;
@@ -486,6 +487,15 @@ export class Workbench {
         }, timeout).catch(() => {
             return false;
         });
+    };
+
+    /**
+     * Opens the MySQL Shell for VSCode Extension
+     * @returns A promise resolving when the extension view is opened
+     */
+    public static openMySQLShellForVSCode = async (): Promise<void> => {
+        await Misc.switchBackToTopFrame();
+        await (await new ActivityBar().getViewControl(constants.extensionName))?.openView();
     };
 
 }
