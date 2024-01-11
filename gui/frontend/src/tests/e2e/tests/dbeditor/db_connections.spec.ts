@@ -21,10 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, Key, WebElement, until, WebDriver } from "selenium-webdriver";
+import { Key, WebElement, until, WebDriver } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import { IDBConnection, Misc, explicitWait, shellServers } from "../../lib/misc.js";
+import * as locator from "../../lib/locators.js";
 import { basename, join } from "path";
 
 let driver: WebDriver;
@@ -66,9 +67,9 @@ describe("Database Connections", () => {
                 }
             }, explicitWait * 4, "Home Page was not loaded");
 
-            await driver.findElement(By.id("gui.sqleditor")).click();
+            await driver.findElement(locator.sqlEditor).click();
             await DBNotebooks.createDBconnection(driver, globalConn);
-            await driver.findElement(By.id("closeButton")).click();
+            await driver.findElement(locator.databaseConnectionConfiguration.close).click();
         } catch (e) {
             await Misc.storeScreenShot(driver, "beforeAll_DBConnections");
             throw e;
@@ -94,38 +95,30 @@ describe("Database Connections", () => {
     it("Duplicate a database connection", async () => {
         try {
             const host = await DBNotebooks.getConnection(driver, globalConn.caption);
-
             await DBNotebooks.clickConnectionItem(driver, host!, "duplicate");
-
-            const conDialog = await driver.findElement(By.css(".valueEditDialog"));
+            const conDialog = await driver.findElement(locator.databaseConnectionConfiguration.exists);
 
             await driver.wait(async () => {
-                await conDialog.findElement(By.id("caption")).clear();
+                await conDialog.findElement(locator.databaseConnectionConfiguration.caption).clear();
 
                 return !(await driver.executeScript("return document.querySelector('#caption').value"));
             }, 3000, "caption was not cleared in time");
 
             const dup = `Dup${String(Math.floor(Math.random() * 100))}`;
-
-            await conDialog.findElement(By.id("caption")).sendKeys(dup);
-
-            await conDialog.findElement(By.id("description")).clear();
-
+            await conDialog.findElement(locator.databaseConnectionConfiguration.caption).sendKeys(dup);
+            await conDialog.findElement(locator.databaseConnectionConfiguration.description).clear();
             await conDialog
-                .findElement(By.id("description"))
+                .findElement(locator.databaseConnectionConfiguration.description)
                 .sendKeys("my other connection");
 
-            const okBtn = await driver.findElement(By.id("ok"));
+            const okBtn = await driver.findElement(locator.databaseConnectionConfiguration.ok);
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
             await okBtn.click();
 
-            expect((await driver.findElements(By.css(".valueEditDialog"))).length).toBe(0);
-
+            expect((await driver.findElements(locator.databaseConnectionConfiguration.exists)).length).toBe(0);
             const conn = await DBNotebooks.getConnection(driver, dup);
-
             expect(conn).toBeDefined();
-
-            expect(await conn!.findElement(By.css(".tileDescription")).getText())
+            expect(await conn!.findElement(locator.dbConnections.description).getText())
                 .toBe("my other connection");
         } catch (e) {
             testFailed = true;
@@ -154,77 +147,60 @@ describe("Database Connections", () => {
             };
 
             let host = await DBNotebooks.createDBconnection(driver, localConn);
-
             await DBNotebooks.clickConnectionItem(driver, host!, "edit");
-
-            let conDialog = await driver.findElement(By.css(".valueEditDialog"));
+            let conDialog = await driver.findElement(locator.databaseConnectionConfiguration.exists);
 
             await driver.wait(async () => {
-                await conDialog.findElement(By.id("caption")).clear();
+                await conDialog.findElement(locator.databaseConnectionConfiguration.caption).clear();
 
                 return !(await driver.executeScript("return document.querySelector('#caption').value"));
             }, 3000, "caption was not cleared in time");
 
             const conName = `Wex${String(Math.floor(Math.random() * 100))}`;
-
-            await conDialog.findElement(By.id("caption")).sendKeys(conName);
-
-            await conDialog.findElement(By.id("description")).clear();
-
+            await conDialog.findElement(locator.databaseConnectionConfiguration.caption).sendKeys(conName);
+            await conDialog.findElement(locator.databaseConnectionConfiguration.description).clear();
             await conDialog
-                .findElement(By.id("description"))
+                .findElement(locator.databaseConnectionConfiguration.description)
                 .sendKeys("Another description");
 
-            await conDialog.findElement(By.id("hostName")).clear();
-
-            await conDialog.findElement(By.id("hostName")).sendKeys("1.1.1.1");
-
+            await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).clear();
+            await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).sendKeys("1.1.1.1");
             await DBNotebooks.setProtocol(driver, "mysqlx");
 
-            expect(await conDialog.findElement(By.css("#scheme label")).getText()).toBe("mysqlx");
+            expect(await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol).getText()).toBe("mysqlx");
 
-            let okBtn = await driver.findElement(By.id("ok"));
+            let okBtn = await driver.findElement(locator.databaseConnectionConfiguration.ok);
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
             await okBtn.click();
-
-            expect((await driver.findElements(By.css(".valueEditDialog"))).length).toBe(0);
-
+            expect((await driver.findElements(locator.databaseConnectionConfiguration.exists)).length).toBe(0);
             const conn = await DBNotebooks.getConnection(driver, conName);
-
             expect(conn).toBeDefined();
-
-            expect(await conn!.findElement(By.css(".tileDescription")).getText())
+            expect(await conn!.findElement(locator.dbConnections.description).getText())
                 .toBe("Another description");
 
             host = await DBNotebooks.getConnection(driver, conName);
-
             await DBNotebooks.clickConnectionItem(driver, host!, "edit");
-
-            conDialog = await driver.findElement(By.css(".valueEditDialog"));
-
+            conDialog = await driver.findElement(locator.databaseConnectionConfiguration.exists);
             expect(
-                await conDialog.findElement(By.css("#databaseType label")).getText(),
+                await conDialog.findElement(locator.databaseConnectionConfiguration.type).getText(),
             ).toBe("MySQL");
-
             expect(
-                await conDialog.findElement(By.id("caption")).getAttribute("value"),
+                await conDialog.findElement(locator.databaseConnectionConfiguration.caption).getAttribute("value"),
             ).toBe(conName);
-
             expect(
-                await conDialog.findElement(By.id("description")).getAttribute("value"),
+                await conDialog.findElement(locator.databaseConnectionConfiguration.description).getAttribute("value"),
             ).toBe("Another description");
 
-            expect(await conDialog.findElement(By.css("#scheme label")).getText()).toBe("mysqlx");
+            expect(await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol).getText()).toBe("mysqlx");
 
             expect(
-                await conDialog.findElement(By.id("hostName")).getAttribute("value"),
+                await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).getAttribute("value"),
             ).toBe("1.1.1.1");
 
-            okBtn = await driver.findElement(By.id("ok"));
+            okBtn = await driver.findElement(locator.databaseConnectionConfiguration.ok);
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
             await okBtn.click();
-
-            expect((await driver.findElements(By.css(".valueEditDialog"))).length).toBe(0);
+            expect((await driver.findElements(locator.databaseConnectionConfiguration.exists)).length).toBe(0);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -233,13 +209,9 @@ describe("Database Connections", () => {
 
     it("Edit a database connection and verify issues", async () => {
         try {
-
             const host = await DBNotebooks.getConnection(driver, globalConn.caption);
-
             await DBNotebooks.clickConnectionItem(driver, host!, "edit");
-
-            const conDialog = await driver.findElement(By.css(".valueEditDialog"));
-
+            const conDialog = await driver.findElement(locator.databaseConnectionConfiguration.exists);
             const customClear = async (el: WebElement) => {
                 const textLength = (await el.getAttribute("value")).length;
                 for (let i = 0; i <= textLength - 1; i++) {
@@ -248,42 +220,31 @@ describe("Database Connections", () => {
                 }
             };
 
-            await customClear(await conDialog.findElement(By.id("caption")));
-
-            const okBtn = await conDialog.findElement(By.id("ok"));
+            await customClear(await conDialog.findElement(locator.databaseConnectionConfiguration.caption));
+            const okBtn = await conDialog.findElement(locator.databaseConnectionConfiguration.ok);
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
             await okBtn.click();
 
             const error = await driver.wait(
-                until.elementLocated(By.css(".message.error")),
+                until.elementLocated(locator.databaseConnectionConfiguration.errors),
                 2000,
             );
 
             expect(await error.getText()).toBe("The caption cannot be empty");
-
-            await conDialog.findElement(By.id("caption")).sendKeys("WexQA");
-
-            await customClear(await conDialog.findElement(By.id("hostName")));
-
+            await conDialog.findElement(locator.databaseConnectionConfiguration.caption).sendKeys("WexQA");
+            await customClear(await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname));
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
             await okBtn.click();
-
-            expect(await conDialog.findElement(By.css(".message.error")).getText())
+            expect(await conDialog.findElement(locator.databaseConnectionConfiguration.errors).getText())
                 .toBe("Specify a valid host name or IP address");
-
-            await conDialog.findElement(By.id("hostName")).sendKeys("1.1.1.1");
-
-            await customClear(await conDialog.findElement(By.id("userName")));
-
+            await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).sendKeys("1.1.1.1");
+            await customClear(await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.username));
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
-            await driver.findElement(By.id("ok")).click();
-
-            expect(await conDialog.findElement(By.css(".message.error")).getText())
+            await driver.findElement(locator.databaseConnectionConfiguration.ok).click();
+            expect(await conDialog.findElement(locator.databaseConnectionConfiguration.errors).getText())
                 .toBe("The user name must not be empty");
-
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
-
-            await driver.findElement(By.id("cancel")).click();
+            await driver.findElement(locator.databaseConnectionConfiguration.cancel).click();
         } catch (e) {
             testFailed = true;
             throw e;
@@ -312,25 +273,19 @@ describe("Database Connections", () => {
             };
 
             const host = await DBNotebooks.createDBconnection(driver, localConn);
-
             await DBNotebooks.clickConnectionItem(driver, host!, "remove");
-
-            const dialog = await driver.findElement(By.css(".confirmDialog"));
-
+            const dialog = await driver.findElement(locator.confirmDialog.exists);
             expect(dialog).toBeDefined();
-
             await driver.executeScript(
                 "arguments[0].click();",
-                await dialog.findElement(By.id("accept")),
+                await dialog.findElement(locator.confirmDialog.accept),
             );
-
             await driver.wait(
                 async () => {
-                    return (await driver.findElements(
-                        By.xpath("//label[contains(text(), '" + localConn.caption + "')]"))).length === 0;
+                    return (await driver.findElements(locator.dbConnections.existsByCaption(localConn.caption))).length === 0;
                 },
                 2000,
-                `${localConn.caption} DB still exists`,
+                `${localConn.caption} Database Connection still exists`,
             );
         } catch (e) {
             testFailed = true;
@@ -340,15 +295,15 @@ describe("Database Connections", () => {
 
     it("Connect to SQLite database", async () => {
         try {
-            const connBrowser = await driver.wait(until.elementLocated(By.css(".connectionBrowser")),
+            const connBrowser = await driver.wait(until.elementLocated(locator.dbConnections.browser),
                 explicitWait, "Connection browser was not found");
-            await connBrowser.findElement(By.id("-1")).click();
+            await connBrowser.findElement(locator.dbConnections.newConnection).click();
 
-            const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
+            const newConDialog = await driver.wait(until.elementLocated(locator.databaseConnectionConfiguration.exists),
                 explicitWait, "Dialog was not displayed");
             await DBNotebooks.selectDBType(driver, "Sqlite");
             await driver.wait(async () => {
-                await newConDialog.findElement(By.id("caption")).clear();
+                await newConDialog.findElement(locator.databaseConnectionConfiguration.caption).clear();
 
                 return !(await driver.executeScript("return document.querySelector('#caption').value"));
             }, 3000, "caption was not cleared in time");
@@ -370,14 +325,14 @@ describe("Database Connections", () => {
                 sslClientKey: undefined,
             };
 
-            await newConDialog.findElement(By.id("caption")).sendKeys(localConn.caption);
+            await newConDialog.findElement(locator.databaseConnectionConfiguration.caption).sendKeys(localConn.caption);
 
-            await newConDialog.findElement(By.id("description")).clear();
+            await newConDialog.findElement(locator.databaseConnectionConfiguration.description).clear();
             await newConDialog
-                .findElement(By.id("description"))
+                .findElement(locator.databaseConnectionConfiguration.description)
                 .sendKeys("Local Sqlite connection");
 
-            const dbPath = await driver.findElement(By.id("dbFilePath"));
+            const dbPath = await driver.findElement(locator.databaseConnectionConfiguration.sqlite.basic.dbFilePath);
             let sqlitePath = join(process.cwd(), "src", "tests", "e2e",
                 `port_800${String(shellServers.get(basename(__filename)))}`,
                 "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3");
@@ -387,63 +342,47 @@ describe("Database Connections", () => {
             }
 
             await dbPath.sendKeys(sqlitePath);
-            await newConDialog.findElement(By.id("dbName")).sendKeys("SQLite");
-            await newConDialog.findElement(By.id("ok")).click();
-
+            await newConDialog.findElement(locator.databaseConnectionConfiguration.sqlite.basic.dbName).sendKeys("SQLite");
+            await newConDialog.findElement(locator.databaseConnectionConfiguration.ok).click();
             const conn = await DBNotebooks.getConnection(driver, localConn.caption);
             expect(conn).toBeDefined();
-            expect(await conn!.findElement(By.css(".tileDescription")).getText()).toBe(
+            expect(await conn!.findElement(locator.dbConnections.description).getText()).toBe(
                 "Local Sqlite connection",
             );
-
             await driver.executeScript(
                 "arguments[0].click();",
                 conn,
             );
-
             expect(await DBConnection.getSelectedConnectionTab(driver,)).toBe(localConn.caption);
-
             await DBConnection.toggleSchemaObject(driver, "Schema", "main");
-
             const main = await DBConnection.getSchemaObject(driver, "Schema", "main");
             const attr = await main!.getAttribute("class");
             expect(attr.split(" ").includes("expanded")).toBe(true);
-
             await DBConnection.toggleSchemaObject(driver, "Tables", "Tables");
-
             const tables = await DBConnection.getSchemaObject(driver, "Tables", "Tables");
-
             expect(
                 await (
-                    await tables!.findElement(By.css("span.treeToggle"))
+                    await tables!.findElement(locator.treeToggle)
                 ).getAttribute("class"),
             ).toContain("expanded");
 
             await Misc.cleanPrompt(driver,);
-
             const table = await DBConnection.getSchemaObject(driver, "obj", "db_connection");
-
             await driver.wait(async () => {
                 await driver
                     .actions()
                     .contextClick(table)
                     .perform();
 
-                return (await driver.findElements(By.css(".noArrow.menu"))).length > 0;
+                return (await driver.findElements(locator.treeContextMenu.exists)).length > 0;
             }, 4000, "Context menu was not opened");
 
-            await driver.findElement(By.id("selectRowsMenuItem")).click();
+            await driver.findElement(locator.treeContextMenu.selectRows).click();
 
             expect(await DBConnection.getResultStatus(driver, true)).toContain("OK");
-
-            const resultSet = await driver.findElement(
-                By.css(".resultHost .tabulator-headers"),
-            );
-
-            const resultHeaderRows = await resultSet.findElements(
-                By.css(".tabulator-col-title"),
-            );
-
+            const results = await driver.findElements(locator.notebook.result.exists);
+            const resultTableHeaders = await results[results.length - 1].findElement(locator.notebook.result.tableHeaders);
+            const resultHeaderRows = await resultTableHeaders.findElements(locator.notebook.result.tableColumnTitle);
             expect(await resultHeaderRows[0].getText()).toBe("id");
             expect(await resultHeaderRows[1].getText()).toBe("db_type");
             expect(await resultHeaderRows[2].getText()).toBe("caption");
@@ -457,61 +396,59 @@ describe("Database Connections", () => {
 
     it("Connect to MySQL database using SSL", async () => {
         try {
-            const connBrowser = await driver.wait(until.elementLocated(By.css(".connectionBrowser")),
+            const connBrowser = await driver.wait(until.elementLocated(locator.dbConnections.browser),
                 explicitWait, "Connection browser was not found");
 
-            await connBrowser.findElement(By.id("-1")).click();
+            await connBrowser.findElement(locator.dbConnections.newConnection).click();
 
-            const newConDialog = await driver.wait(until.elementLocated(By.css(".valueEditDialog")),
+            const newConDialog = await driver.wait(until.elementLocated(locator.databaseConnectionConfiguration.exists),
                 explicitWait, "Dialog was not displayed");
             await driver.wait(async () => {
-                await newConDialog.findElement(By.id("caption")).clear();
+                await newConDialog.findElement(locator.databaseConnectionConfiguration.caption).clear();
 
                 return !(await driver.executeScript("return document.querySelector('#caption').value"));
             }, 3000, "caption was not cleared in time");
 
             const conName = `SSL Connection${String(Math.floor(Math.random() * 100))}`;
-            await newConDialog.findElement(By.id("caption")).sendKeys(conName);
-
-            await newConDialog.findElement(By.id("description")).clear();
-
+            await newConDialog.findElement(locator.databaseConnectionConfiguration.caption).sendKeys(conName);
+            await newConDialog.findElement(locator.databaseConnectionConfiguration.description).clear();
             await newConDialog
-                .findElement(By.id("description"))
+                .findElement(locator.databaseConnectionConfiguration.description)
                 .sendKeys("New SSL Connection");
 
-            await newConDialog.findElement(By.id("hostName")).clear();
+            await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).clear();
 
             await newConDialog
-                .findElement(By.id("hostName"))
+                .findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname)
                 .sendKeys(String(globalConn.hostname));
 
             await newConDialog
-                .findElement(By.id("userName"))
+                .findElement(locator.databaseConnectionConfiguration.mysql.basic.username)
                 .sendKeys(String(globalConn.username));
 
             await newConDialog
-                .findElement(By.id("defaultSchema"))
+                .findElement(locator.databaseConnectionConfiguration.mysql.basic.schema)
                 .sendKeys(String(globalConn.schema));
 
-            await driver.findElement(By.css("#port input")).clear();
-            await driver.findElement(By.css("#port input")).sendKeys(String(globalConn.port));
+            await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port).clear();
+            await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port).sendKeys(String(globalConn.port));
 
-            await newConDialog.findElement(By.id("page1")).click();
-            await newConDialog.findElement(By.id("sslMode")).click();
-            const dropDownList = await driver.findElement(By.css(".noArrow.dropdownList"));
-            await dropDownList.findElement(By.id("Require and Verify CA")).click();
-            expect(await newConDialog.findElement(By.css("#sslMode label"))
+            await newConDialog.findElement(locator.databaseConnectionConfiguration.sslTab).click();
+            await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.ssl.mode).click();
+            const dropDownList = await driver.findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeList.exists);
+            await dropDownList.findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeList.requireAndVerifyCA).click();
+            expect(await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeLabel)
                 .getText()).toBe("Require and Verify CA");
 
-            const sslCaFile = await driver.findElement(By.id("sslCaFile"));
-            const sslCertFile = await driver.findElement(By.id("sslCertFile"));
-            const sslKeyFile = await driver.findElement(By.id("sslKeyFile"));
+            const sslCaFile = await driver.findElement(locator.databaseConnectionConfiguration.mysql.ssl.ca);
+            const sslCertFile = await driver.findElement(locator.databaseConnectionConfiguration.mysql.ssl.cert);
+            const sslKeyFile = await driver.findElement(locator.databaseConnectionConfiguration.mysql.ssl.key);
 
             await sslCaFile.sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/ca.pem`);
             await sslCertFile.sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/client-cert.pem`);
             await sslKeyFile.sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/client-key.pem`);
 
-            const okBtn = await driver.findElement(By.id("ok"));
+            const okBtn = await driver.findElement(locator.databaseConnectionConfiguration.ok);
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
             await okBtn.click();
 
@@ -536,13 +473,13 @@ describe("Database Connections", () => {
             let query = `select * from performance_schema.session_status where variable_name in `;
             query += `("ssl_cipher") and variable_value like "%TLS%"`;
 
-            await Misc.execCmd(driver, await driver.findElement(By.css("textarea")), query, undefined, true, true);
+            await Misc.execCmd(driver, await driver.findElement(locator.notebook.codeEditor.textArea), query, undefined, true, true);
 
-            const resultHost = await driver.wait(until.elementLocated(By.css(".resultHost")),
+            const resultHost = await driver.wait(until.elementLocated(locator.notebook.result.host),
                 explicitWait, "Result host was not found");
 
             const result = await driver.wait(until.elementLocated(async () => {
-                return resultHost.findElements(By.css(".resultStatus label"));
+                return resultHost.findElements(locator.notebook.result.status.text);
             }), explicitWait, "Label not found");
 
             expect(await result.getText()).toContain("1 record retrieved");

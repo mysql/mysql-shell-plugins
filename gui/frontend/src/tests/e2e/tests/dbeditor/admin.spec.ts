@@ -21,10 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, WebDriver, until } from "selenium-webdriver";
+import { WebDriver, until } from "selenium-webdriver";
 import { Misc, explicitWait, IDBConnection } from "../../lib/misc.js";
 import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
+import * as locator from "../../lib/locators.js";
 import { basename } from "path";
 
 let driver: WebDriver;
@@ -65,7 +66,7 @@ describe("MySQL Administration", () => {
                     await driver.navigate().refresh();
                 }
             }, explicitWait * 4, "Home Page was not loaded");
-            await driver.findElement(By.id("gui.sqleditor")).click();
+            await driver.findElement(locator.sqlEditor).click();
             const db = await DBNotebooks.createDBconnection(driver, globalConn);
             await driver.executeScript("arguments[0].click();", db);
             await Misc.setPassword(driver, globalConn);
@@ -94,7 +95,7 @@ describe("MySQL Administration", () => {
             await DBConnection.clickAdminItem(driver, "Server Status");
             expect(await DBConnection.getCurrentEditor(driver)).toBe("Server Status");
 
-            const sections = await driver?.findElements(By.css(".grid .heading label"));
+            const sections = await driver?.findElements(locator.serverStatusHeadings);
             const headings = [];
             for (const section of sections) {
                 headings.push(await section.getText());
@@ -114,7 +115,7 @@ describe("MySQL Administration", () => {
         try {
             await DBConnection.clickAdminItem(driver, "Client Connections");
             expect(await DBConnection.getCurrentEditor(driver)).toBe("Client Connections");
-            const properties = await driver?.findElements(By.css("#connectionProps label"));
+            const properties = await driver?.findElements(locator.clientConnections.properties);
             const props = [];
             for (const item of properties) {
                 props.push(await item.getAttribute("innerHTML"));
@@ -131,7 +132,7 @@ describe("MySQL Administration", () => {
             expect(test).toContain("Aborted Clients");
             expect(test).toContain("Aborted Connections");
             expect(test).toContain("Errors");
-            await driver.wait(until.elementsLocated(By.css("#connectionList .tabulator-row")),
+            await driver.wait(until.elementsLocated(locator.clientConnections.connectionListRows),
                 explicitWait, "Connections list items were not found");
         } catch (e) {
             testFailed = true;
@@ -146,12 +147,12 @@ describe("MySQL Administration", () => {
 
             expect(await DBConnection.getCurrentEditor(driver)).toBe("Performance Dashboard");
 
-            const grid = await driver?.findElement(By.id("dashboardGrid"));
-            const gridItems = await grid?.findElements(By.css(".gridCell.title"));
+            const grid = await driver?.findElement(locator.performanceDashboardGrid.exists);
+            const gridItems = await grid?.findElements(locator.performanceDashboardGrid.headings);
             const listItems = [];
 
             for (const item of gridItems) {
-                const label = await item.findElement(By.css("label"));
+                const label = await item.findElement(locator.htmlTag.label);
                 listItems.push(await label.getAttribute("innerHTML"));
             }
 

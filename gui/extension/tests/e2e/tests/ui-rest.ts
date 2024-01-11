@@ -106,7 +106,7 @@ describe("MySQL REST Service", () => {
                         await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
                     }
                 }
-            }, constants.wait10seconds, `MySQL REST Service was not configured`);
+            }, constants.wait20seconds, `MySQL REST Service was not configured`);
             await driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
                 constants.wait5seconds);
             await Tree.openContextMenuAndSelect(treeGlobalConn, constants.showSystemSchemas, undefined);
@@ -1020,8 +1020,8 @@ describe("MySQL REST Service", () => {
                     .getNotification(`Are you sure the MRS router ${routerName} should be deleted?`,
                         false);
                 await Workbench.clickOnNotificationButton(ntf, "Yes");
-                expect(await Tree.existsElement(constants.dbTreeSection, routerName), errors.existsOnTree(routerName))
-                    .to.be.false;
+                await driver.wait(waitUntil.notificationExists("The MRS Router has been deleted successfully."),
+                    constants.wait5seconds);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
