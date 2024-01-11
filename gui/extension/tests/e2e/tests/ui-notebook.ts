@@ -24,7 +24,7 @@ import fs from "fs/promises";
 import { expect } from "chai";
 import {
     ActivityBar, Condition, CustomTreeSection, InputBox, Key, TreeItem,
-    until, WebElement, ModalDialog, error,
+    until, WebElement, ModalDialog,
 } from "vscode-extension-tester";
 import { join } from "path";
 import clipboard from "clipboardy";
@@ -126,7 +126,6 @@ describe("NOTEBOOKS", () => {
                 await Tree.openContextMenuAndSelect(await Tree.getElement(constants.dbTreeSection, globalConn.caption),
                     constants.openNewConnection);
                 await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-                console.log(4);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -146,6 +145,7 @@ describe("NOTEBOOKS", () => {
 
         after(async function () {
             try {
+                await Workbench.openMySQLShellForVSCode();
                 const treeGlobalConn = await Tree.getElement(constants.dbTreeSection, globalConn.caption);
                 await treeGlobalConn.collapse();
                 await Workbench.closeAllEditors();
@@ -172,7 +172,7 @@ describe("NOTEBOOKS", () => {
 
                             return true;
                         } catch (e) {
-                            if (!(e instanceof error.StaleElementReferenceError)) {
+                            if (!(errors.isStaleError(e as Error))) {
                                 throw e;
                             }
                         }

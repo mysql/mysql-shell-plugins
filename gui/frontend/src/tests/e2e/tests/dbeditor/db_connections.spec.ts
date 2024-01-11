@@ -27,6 +27,7 @@ import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import { IDBConnection, Misc, explicitWait, shellServers } from "../../lib/misc.js";
 import * as locator from "../../lib/locators.js";
 import { basename, join } from "path";
+import { platform } from "os";
 
 let driver: WebDriver;
 const filename = basename(__filename);
@@ -484,6 +485,71 @@ describe("Database Connections", () => {
 
             expect(await result.getText()).toContain("1 record retrieved");
 
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Copy, cut paste into the DB Connection dialog", async () => {
+        try {
+            const browser = await driver.wait(until.elementLocated(locator.dbConnections.browser),
+                explicitWait, "DB Connection Overview page was not loaded");
+
+            await browser.findElement(locator.dbConnections.newConnection).click();
+            const newConDialog = await driver.wait(until.elementLocated(locator.databaseConnectionConfiguration.exists),
+                explicitWait);
+            const hostname = await newConDialog
+                .findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname);
+            const hostnameValue = await hostname.getAttribute("value");
+            await hostname.click();
+            if (platform() === "darwin") {
+                await hostname.sendKeys(Key.chord(Key.COMMAND, "a"));
+                await hostname.sendKeys(Key.chord(Key.COMMAND, "c"));
+            } else {
+                await hostname.sendKeys(Key.chord(Key.CONTROL, "a"));
+                await hostname.sendKeys(Key.chord(Key.CONTROL, "c"));
+            }
+
+            const inputCaption = await newConDialog.findElement(locator.databaseConnectionConfiguration.caption);
+
+            await driver.wait(async () => {
+                await inputCaption.clear();
+
+                return !(await driver.executeScript("return document.querySelector('#caption').value"));
+            }, 3000, "caption was not cleared in time");
+            if (platform() === "darwin") {
+                await inputCaption.sendKeys(Key.chord(Key.COMMAND, "v"));
+            } else {
+                await inputCaption.sendKeys(Key.chord(Key.CONTROL, "v"));
+            }
+
+            const newValue = await inputCaption.getAttribute("value");
+            expect(newValue).toBe(hostnameValue);
+            const valueToCut = await inputCaption.getAttribute("value");
+
+            if (platform() === "darwin") {
+                await hostname.sendKeys(Key.chord(Key.COMMAND, "a"));
+                await hostname.sendKeys(Key.chord(Key.COMMAND, "x"));
+            } else {
+                await hostname.sendKeys(Key.chord(Key.CONTROL, "a"));
+                await hostname.sendKeys(Key.chord(Key.CONTROL, "x"));
+            }
+
+            expect(await (await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname))
+                .getAttribute("value")).toBe("");
+
+            const description = await newConDialog
+                .findElement(locator.databaseConnectionConfiguration.description);
+            await description.click();
+
+            if (platform() === "darwin") {
+                await description.sendKeys(Key.chord(Key.COMMAND, "v"));
+            } else {
+                await description.sendKeys(Key.chord(Key.CONTROL, "v"));
+            }
+
+            expect(await description.getAttribute("value")).toContain(valueToCut);
         } catch (e) {
             testFailed = true;
             throw e;

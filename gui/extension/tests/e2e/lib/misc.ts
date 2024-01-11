@@ -86,7 +86,7 @@ export class Misc {
                 await driver.wait(waitUntil.webViewIsReady(parentIframe), constants.wait10seconds);
                 await driver.wait(until.ableToSwitchToFrame(parentIframe),
                     constants.wait5seconds, "Could not enter the first iframe");
-                const activeFrame = await driver.wait(until.elementLocated(locator.iframe.isActive),
+                const activeFrame = await driver.wait(until.elementLocated(locator.iframe.exists),
                     constants.wait5seconds, "Web View content was not loaded");
                 await driver.wait(until.ableToSwitchToFrame(activeFrame),
                     constants.wait5seconds, "Could not enter the active iframe");
@@ -94,22 +94,15 @@ export class Misc {
                 if (iframe.length > 0) {
                     await driver.wait(until.ableToSwitchToFrame(iframe[0]),
                         constants.wait150MiliSeconds);
-                    const deepestFrame = await driver.findElements(locator.iframe.exists);
-                    if (deepestFrame.length > 0) {
-                        await driver.executeScript("arguments[0].style.width='100%';", deepestFrame[0]);
-                        await driver.executeScript("arguments[0].style.height='100%';", deepestFrame[0]);
-                        await driver.executeScript("arguments[0].style.transform='scale(1)';", deepestFrame[0]);
-                    }
                 }
 
                 return true;
             } catch (e: unknown) {
-                if (e instanceof Error && e.message.includes("target frame detached")) {
+                if (e instanceof Error && !e.message.includes("target frame detached")) {
                     throw e;
                 }
             }
         }, constants.wait10seconds, "target frame detached");
-
     };
 
     /**

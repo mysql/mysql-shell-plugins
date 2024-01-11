@@ -28,6 +28,7 @@ import * as constants from "../constants";
 import * as interfaces from "../interfaces";
 import * as locator from "../locators";
 import { DialogHelper } from "./dialogHelper";
+import * as errors from "../errors";
 
 /**
  * This class aggregates the functions that perform operations related to REST
@@ -783,7 +784,7 @@ export class Rest {
                     try {
                         await processCrudItem({ name: key, value: restObject.jsonRelDuality.crud[key] });
                     } catch (e) {
-                        if (!(e instanceof error.StaleElementReferenceError)) {
+                        if (!(errors.isStaleError(e as Error))) {
                             throw e;
                         } else {
                             await processCrudItem({ name: key, value: restObject.jsonRelDuality.crud[key] });

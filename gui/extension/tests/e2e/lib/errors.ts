@@ -21,6 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { error } from "vscode-extension-tester";
+
 export const doesNotExistOnTree = (label: string): string => {
     return `${label} does not exist on the tree`;
 };
@@ -55,4 +57,8 @@ export const notDefault = (name: string): string => {
 
 export const isDefault = (name: string): string => {
     return `The ${name} is marked as default on the tree`;
+};
+
+export const isStaleError = (err: Error): boolean => {
+    return err instanceof error.StaleElementReferenceError || String(err.message).includes("-32000");
 };

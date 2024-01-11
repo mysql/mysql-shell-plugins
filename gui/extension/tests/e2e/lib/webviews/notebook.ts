@@ -20,11 +20,12 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { WebElement, until, Key, error } from "vscode-extension-tester";
+import { WebElement, until, Key } from "vscode-extension-tester";
 import { basename } from "path";
 import { driver, Misc } from "../misc";
 import * as constants from "../constants";
 import * as locator from "../locators";
+import * as errors from "../errors";
 
 /**
  * This class aggregates the functions that perform operations inside notebooks
@@ -53,7 +54,7 @@ export class Notebook {
                     return true;
                 }
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
+                if (!(errors.isStaleError(e as Error))) {
                     throw e;
                 }
             }
@@ -214,7 +215,7 @@ export class Notebook {
 
                 return (await getLastLineNumber()) > lastLineNumber;
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
+                if (!(errors.isStaleError(e as Error))) {
                     throw e;
                 }
             }
@@ -360,7 +361,7 @@ export class Notebook {
         try {
             result = await getData();
         } catch (e) {
-            if (e instanceof error.StaleElementReferenceError) {
+            if (errors.isStaleError(e as Error)) {
                 result = await getData();
             } else {
                 throw e;
@@ -505,7 +506,7 @@ export class Notebook {
 
                 return commands.length > 0;
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
+                if (!(errors.isStaleError(e as Error))) {
                     throw e;
                 }
             }
@@ -559,7 +560,7 @@ export class Notebook {
 
                 return true;
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
+                if (!(errors.isStaleError(e as Error))) {
                     throw e;
                 }
             }
