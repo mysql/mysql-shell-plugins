@@ -124,7 +124,64 @@ await ws.sendAndValidate(
         }
     ])
 
+await ws.sendAndValidate(
+    Object.assign(Object(), requests.sqleditor.execute, {
+        "args": {
+            "sql": "CREATE TABLE `test_table` (`id` INTEGER PRIMARY KEY, `text_column` TEXT, `integer_column` INTEGER, `real_column` REAL, `numeric_column` NUMERIC, `blob_column` BLOB, `boolean_column` BOOLEAN, `date_column` DATE, `time_column` TIME, `datetime_column` DATETIME)",
+        }
+    })
+    , [
+        responses.pending.executionStarted,
+        {
+            "request_state": {
+                "type": "PENDING",
+                "msg": ""
+            },
+            "request_id": ws.lastGeneratedRequestId,
+            "result": {
+                "rows": [],
+                "total_row_count": 0,
+                "execution_time": ws.ignore,
+            }
+        },
+        {
+            "request_state": {
+                "type": "OK",
+                "msg": ""
+            },
+            "request_id": ws.lastGeneratedRequestId,
+            "done": true
+        }
+    ])
 
-
+await ws.sendAndValidate(
+    Object.assign(Object(), requests.sqleditor.execute, {
+        "args": {
+            "sql": "INSERT INTO test_table(text_column, integer_column, real_column, numeric_column, blob_column, boolean_column, date_column, time_column, datetime_column) VALUES('Sample text', 42, 3.14, 123.456, X'01020304', 1, '2024-01-11', '12:34:56', '2024-01-11 12:34:56');"
+        }
+    })
+    , [
+        responses.pending.executionStarted,
+        {
+            "request_state": {
+                "type": "PENDING",
+                "msg": ""
+            },
+            "request_id": ws.lastGeneratedRequestId,
+            "result": {
+                "rows": [],
+                "total_row_count": 0,
+                "execution_time": ws.ignore,
+            }
+        },
+        {
+            "request_state": {
+                "type": "OK",
+                "msg": ""
+            },
+            "request_id": ws.lastGeneratedRequestId,
+            "done": true
+        }
+    ])
 
 lib.init_mysql = lib.noop

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -228,6 +228,14 @@ class DbSqliteSession(DbSession):
             row = self.cursor.fetchone()
 
     def get_column_info(self, row=None):
+        # Because of limitation of Sqlite cursor, we cannot get info about Sqlite column type.
+        # There is also no known workaround for this, so only way to get info about column type is
+        # to use build-in python type function and accept python type instead Sqlite type.
+        # However there is few limitations for this approach:
+        #   - date, time and datetime becomes str
+        #   - boolean cannot be distinguished from int
+        #   - both real and numeric becomes float
+        #   - if value is None, we have no clue about type, so we assume is str
         return [{"name": description[0], "type": "str" if type(row[i]).__name__ is None else type(row[i]).__name__}
                 for i, description in enumerate(self.cursor.description)]
 
