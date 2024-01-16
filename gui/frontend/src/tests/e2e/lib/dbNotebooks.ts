@@ -274,14 +274,30 @@ export class DBNotebooks {
             .replace(/\./g, ".*")
             .replace(/;/g, ".*")
             .replace(/\s/g, ".*");
-        const lines = await driver.findElements(By.css(".view-lines.monaco-mouse-cursor-text > div"));
-        for (let i = 0; i <= lines.length - 1; i++) {
-            const lineContent = await lines[i].getAttribute("innerHTML");
-            if (lineContent.match(regex)) {
-                return i;
+        let line;
+        await driver.wait(async () => {
+            try {
+                const lines = await driver.findElements(By.css(".view-lines.monaco-mouse-cursor-text > div"));
+                for (let i = 0; i <= lines.length - 1; i++) {
+                    const lineContent = await lines[i].getAttribute("innerHTML");
+                    if (lineContent.match(regex)) {
+                        line = i;
+
+                        return true;
+                    }
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
             }
+        }, explicitWait, "The lines were always stale");
+
+        if (!line) {
+            throw `Could not find the line of word ${wordRef}`;
+        } else {
+            return line;
         }
-        throw new Error(`Could not find '${wordRef}' in the code editor`);
     };
 
     /**
