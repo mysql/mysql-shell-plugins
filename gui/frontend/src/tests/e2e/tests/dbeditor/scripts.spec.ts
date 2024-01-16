@@ -21,11 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, WebDriver } from "selenium-webdriver";
+import { until, WebDriver } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks, execCaret, execFullScript } from "../../lib/dbNotebooks.js";
 import { IDBConnection, Misc, explicitWait } from "../../lib/misc.js";
 import { basename } from "path";
+import * as locator from "../../lib/locators.js";
 
 let driver: WebDriver;
 const url = Misc.getUrl(basename(basename(__filename)));
@@ -66,12 +67,12 @@ describe("Scripts", () => {
                 }
             }, explicitWait * 4, "Home Page was not loaded");
 
-            await driver.findElement(By.id("gui.sqleditor")).click();
+            await driver.findElement(locator.sqlEditor).click();
             const db = await DBNotebooks.createDBconnection(driver, globalConn);
             await driver.executeScript("arguments[0].click();", db);
             await Misc.setPassword(driver, globalConn);
             await Misc.setConfirmDialog(driver, globalConn, "no");
-            await driver.wait(until.elementLocated(By.id("dbEditorToolbar")), explicitWait * 2,
+            await driver.wait(until.elementLocated(locator.notebook.toolbar.exists), explicitWait * 2,
                 "Notebook was not loaded");
         } catch (e) {
             await Misc.storeScreenShot(driver, "beforeAll_Scripts");
@@ -101,15 +102,15 @@ describe("Scripts", () => {
             expect(await DBConnection.existsScript(driver, script, "scriptJs")).toBe(true);
             expect(
                 await driver
-                    .findElement(By.id("documentSelector"))
-                    .findElement(By.css("img"))
+                    .findElement(locator.notebook.toolbar.exists)
+                    .findElement(locator.notebook.toolbar.editorSelector.currentImage)
                     .getAttribute("src"),
             ).toContain("scriptJs");
 
             expect(
                 await driver
-                    .findElement(By.id("documentSelector"))
-                    .findElement(By.css("label"))
+                    .findElement(locator.notebook.toolbar.editorSelector.exists)
+                    .findElement(locator.notebook.toolbar.editorSelector.currentValue)
                     .getText(),
             ).toBe(script);
 
@@ -119,11 +120,12 @@ describe("Scripts", () => {
 
             expect(
                 await (await DBConnection.getOpenEditor(driver, script))!
-                    .findElement(By.css("img"))
+                    .findElement(locator.notebook.toolbar.editorSelector.currentImage)
                     .getAttribute("src"),
             ).toContain("scriptJs");
 
-            const textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            const textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
+                .findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys("M");
             await textArea.sendKeys("ath.random()");
 
@@ -146,11 +148,12 @@ describe("Scripts", () => {
             await DBConnection.selectCurrentEditor(driver, script, "scriptTs");
             expect(await DBConnection.existsScript(driver, script, "scriptTs")).toBe(true);
             expect(
-                await driver.findElement(By.css(".editorHost")).getAttribute("data-mode-id"),
+                await driver.findElement(locator.notebook.codeEditor.editor.editorHost).getAttribute("data-mode-id"),
 
             ).toBe("typescript");
 
-            let src = await driver.findElement(By.id("documentSelector")).findElement(By.css("img"))
+            let src = await driver.findElement(locator.notebook.toolbar.editorSelector.exists)
+                .findElement(locator.notebook.toolbar.editorSelector.currentImage)
                 .getAttribute("src");
 
             expect(
@@ -159,8 +162,8 @@ describe("Scripts", () => {
 
             expect(
                 await driver
-                    .findElement(By.id("documentSelector"))
-                    .findElement(By.css("label"))
+                    .findElement(locator.notebook.toolbar.editorSelector.exists)
+                    .findElement(locator.notebook.toolbar.editorSelector.currentValue)
                     .getText(),
             ).toBe(script);
 
@@ -168,12 +171,13 @@ describe("Scripts", () => {
                 await (await DBConnection.getOpenEditor(driver, script))!.getAttribute("class"),
             ).toContain("selected");
 
-            src = (await (await DBConnection.getOpenEditor(driver, script))!.findElement(By.css("img"))
+            src = (await (await DBConnection.getOpenEditor(driver, script))!.findElement(locator.notebook.toolbar.editorSelector.currentImage)
                 .getAttribute("src"));
 
             expect(src.indexOf("scriptTs") !== -1).toBe(true);
 
-            const textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            const textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
+                .findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys("M");
             await textArea.sendKeys("ath.random()");
 
@@ -182,7 +186,11 @@ describe("Scripts", () => {
             )!.click();
 
             await driver.wait(async () => {
-                return (await DBConnection.getScriptResult(driver)).match(/(\d+).(\d+)/);
+                try {
+                    return (await DBConnection.getScriptResult(driver)).match(/(\d+).(\d+)/);
+                } catch (e) {
+                    // continue
+                }
             }, explicitWait, "No results from query were found");
         } catch (e) {
             testFailed = true;
@@ -199,21 +207,21 @@ describe("Scripts", () => {
 
             expect(
                 await driver
-                    .findElement(By.css(".editorHost"))
+                    .findElement(locator.notebook.codeEditor.editor.editorHost)
                     .getAttribute("data-mode-id"),
             ).toBe("mysql");
 
             expect(
                 await driver
-                    .findElement(By.id("documentSelector"))
-                    .findElement(By.css("img"))
+                    .findElement(locator.notebook.toolbar.editorSelector.exists)
+                    .findElement(locator.notebook.toolbar.editorSelector.currentImage)
                     .getAttribute("src"),
             ).toContain("Mysql");
 
             expect(
                 await driver
-                    .findElement(By.id("documentSelector"))
-                    .findElement(By.css("label"))
+                    .findElement(locator.notebook.toolbar.editorSelector.exists)
+                    .findElement(locator.notebook.toolbar.editorSelector.currentValue)
                     .getText(),
             ).toBe(script);
 
@@ -223,11 +231,12 @@ describe("Scripts", () => {
 
             expect(
                 await (await DBConnection.getOpenEditor(driver, script))!
-                    .findElement(By.css("img"))
+                    .findElement(locator.notebook.toolbar.editorSelector.currentImage)
                     .getAttribute("src"),
             ).toContain("Mysql");
 
-            const textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            const textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
+                .findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys("S");
             await textArea.sendKeys("ELECT * FROM sakila.actor;");
 
@@ -257,7 +266,8 @@ describe("Scripts", () => {
                 }
             }
 
-            let textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            let textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
+                .findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys("c");
             await textArea.sendKeys("onsole.log('Hello JavaScript')");
 
@@ -273,7 +283,8 @@ describe("Scripts", () => {
                 }
             }
 
-            textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
+                .findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys("c");
             await textArea.sendKeys("onsole.log('Hello Typescript')");
 
@@ -289,7 +300,8 @@ describe("Scripts", () => {
                 }
             }
 
-            textArea = await driver.findElement(By.id("editorPaneHost")).findElement(By.css("textarea"));
+            textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
+                .findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys("S");
             await textArea.sendKeys("ELECT * FROM sakila.actor;");
 
@@ -306,8 +318,8 @@ describe("Scripts", () => {
 
             expect(
                 await driver
-                    .findElement(By.id("editorPaneHost"))
-                    .findElement(By.css("textarea"))
+                    .findElement(locator.notebook.codeEditor.editor.host)
+                    .findElement(locator.notebook.codeEditor.textArea)
                     .getAttribute("value"),
             ).toBe("console.log('Hello JavaScript')");
 
@@ -323,8 +335,8 @@ describe("Scripts", () => {
 
             expect(
                 await driver
-                    .findElement(By.id("editorPaneHost"))
-                    .findElement(By.css("textarea"))
+                    .findElement(locator.notebook.codeEditor.editor.host)
+                    .findElement(locator.notebook.codeEditor.textArea)
                     .getAttribute("value"),
             ).toBe("console.log('Hello Typescript')");
 
@@ -340,8 +352,8 @@ describe("Scripts", () => {
 
             expect(
                 await driver
-                    .findElement(By.id("editorPaneHost"))
-                    .findElement(By.css("textarea"))
+                    .findElement(locator.notebook.codeEditor.editor.host)
+                    .findElement(locator.notebook.codeEditor.textArea)
                     .getAttribute("value"),
             ).toBe("SELECT * FROM sakila.actor;");
         } catch (e) {
