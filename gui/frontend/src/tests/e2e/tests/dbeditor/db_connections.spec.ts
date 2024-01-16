@@ -381,9 +381,9 @@ describe("Database Connections", () => {
             await driver.findElement(locator.treeContextMenu.selectRows).click();
 
             expect(await DBConnection.getResultStatus(driver, true)).toContain("OK");
-            const results = await driver.findElements(locator.notebook.result.exists);
-            const resultTableHeaders = await results[results.length - 1].findElement(locator.notebook.result.tableHeaders);
-            const resultHeaderRows = await resultTableHeaders.findElements(locator.notebook.result.tableColumnTitle);
+            const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
+            const resultTableHeaders = await results[results.length - 1].findElement(locator.notebook.codeEditor.editor.result.tableHeaders);
+            const resultHeaderRows = await resultTableHeaders.findElements(locator.notebook.codeEditor.editor.result.tableColumnTitle);
             expect(await resultHeaderRows[0].getText()).toBe("id");
             expect(await resultHeaderRows[1].getText()).toBe("db_type");
             expect(await resultHeaderRows[2].getText()).toBe("caption");
@@ -476,11 +476,11 @@ describe("Database Connections", () => {
 
             await Misc.execCmd(driver, await driver.findElement(locator.notebook.codeEditor.textArea), query, undefined, true, true);
 
-            const resultHost = await driver.wait(until.elementLocated(locator.notebook.result.host),
+            const resultHost = await driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.host),
                 explicitWait, "Result host was not found");
 
             const result = await driver.wait(until.elementLocated(async () => {
-                return resultHost.findElements(locator.notebook.result.status.text);
+                return resultHost.findElements(locator.notebook.codeEditor.editor.result.status.text);
             }), explicitWait, "Label not found");
 
             expect(await result.getText()).toContain("1 record retrieved");

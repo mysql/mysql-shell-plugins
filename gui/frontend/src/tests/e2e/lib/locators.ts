@@ -104,21 +104,81 @@ export const treeContextMenu = {
 
 // NOTEBOOK
 export const notebook = {
+    exists: By.id("contentHost"),
+    toolbar: {
+        exists: By.id("dbEditorToolbar"),
+        editorSelector: {
+            exists: By.id("documentSelector"),
+            currentValue: By.css("label"),
+            currentIcon: By.className("icon"),
+            currentImage: By.css("img"),
+        },
+    },
     codeEditor: {
         textArea: By.css("textarea"),
-    },
-    result: {
-        exists: By.className("zoneHost"),
-        tableHeaders: By.className("tabulator-headers"),
-        tableColumnTitle: By.className("tabulator-col-title"),
-        host: By.className("resultHost"),
-        status: {
-            exists: By.className("resultStatus"),
-            text: By.css(".resultStatus > label"),
+        editor: {
+            exists: By.className("monaco-editor-background"),
+            line: By.css("#contentHost .editorHost .view-line"),
+            linesContent: By.className("lines-content"),
+            currentLine: By.className("current-line"),
+            host: By.id("editorPaneHost"),
+            editorHost: By.className("editorHost"),
+            result: {
+                exists: By.className("zoneHost"),
+                tableHeaders: By.className("tabulator-headers"),
+                tableColumnTitle: By.className("tabulator-col-title"),
+                host: By.className("resultHost"),
+                status: {
+                    exists: By.className("resultStatus"),
+                    text: By.css(".resultStatus > label"),
+                    copy: By.className("copyButton"),
+                },
+                graphHost: {
+                    exists: By.className("graphHost"),
+                    column: By.css("rect"),
+                },
+                singleOutput: By.className("outputHost"),
+            },
         }
+    },
+    explorerHost: {
+        exists: By.id("explorerHost"),
+        openEditors: {
+            exists: By.id("editorSectionHost"),
+            container: By.css("div.container.section"),
+            addConsole: By.id("addConsole"),
+            textBox: By.css("#editorSectionHost input"),
+            close: By.css("span.codicon-close"),
+        },
+        schemas: {
+            exists: By.id("schemaSectionHost"),
+            container: By.css("div.container.section"),
+            default: By.css("#schemaSectionHost div.marked label"),
+            treeToggle: By.css("span.treeToggle"),
+        },
+        administration: {
+            exists: By.id("adminSectionHost"),
+            scrollBar: By.className("fixedScrollbar")
+        },
+        scripts: {
+            exists: By.id("scriptSectionHost"),
+            container: By.css("div.container.section"),
+        }
+    },
+    serverStatus: {
+        tableCells: By.css("#statusBoxHost .gridCell")
     }
+}
+
+export const findWidget = {
+    exists: By.className("find-widget"),
+    textArea: By.css("textarea"),
+    matchesCount: By.className("matchesCount"),
+    findMatch: By.css(".cdr.findMatch"),
+    replacePart: By.className("replace-part"),
 }
 
 export const htmlTag = {
     label: By.css("label"),
+    span: By.css("span"),
 };

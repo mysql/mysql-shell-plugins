@@ -23,7 +23,7 @@
 
 import fs from "fs/promises";
 import { join, basename } from "path";
-import { By, Condition, Key, error, until, WebDriver } from "selenium-webdriver";
+import { Condition, Key, error, until, WebDriver } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection.js";
 import {
     DBNotebooks,
@@ -37,6 +37,7 @@ import {
 } from "../../lib/dbNotebooks.js";
 import { IDBConnection, Misc, explicitWait } from "../../lib/misc.js";
 import { ShellSession } from "../../lib/shellSession.js";
+import * as locator from "../../lib/locators.js";
 
 let driver: WebDriver;
 const filename = basename(__filename);
@@ -78,18 +79,18 @@ describe("Notebook", () => {
                 }
             }, explicitWait * 4, "Home Page was not loaded");
 
-            await driver.findElement(By.id("gui.sqleditor")).click();
+            await driver.findElement(locator.sqlEditor).click();
             const db = await DBNotebooks.createDBconnection(driver, globalConn);
             await driver.executeScript("arguments[0].click();", db);
             await Misc.setPassword(driver, globalConn);
             await Misc.setConfirmDialog(driver, globalConn, "no");
-            await driver.wait(until.elementLocated(By.id("dbEditorToolbar")),
+            await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
                 explicitWait * 2, "Notebook was not loaded");
         } catch (e) {
             await Misc.storeScreenShot(driver, "beforeAll_Notebook");
             throw e;
         }
-        await driver.wait(until.elementLocated(By.id("dbEditorToolbar")), explicitWait * 2, "Notebook was not loaded");
+        await driver.wait(until.elementLocated(locator.notebook.toolbar.exists), explicitWait * 2, "Notebook was not loaded");
 
     });
 
@@ -123,9 +124,9 @@ describe("Notebook", () => {
             const clickLine = async (line: number): Promise<void> => {
                 await driver.wait(async () => {
                     try {
-                        const lines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
+                        const lines = await driver.findElements(locator.notebook.codeEditor.editor.line);
                         lines.shift();
-                        const spans = await lines[line].findElements(By.css("span"));
+                        const spans = await lines[line].findElements(locator.htmlTag.span);
                         await spans[spans.length - 1].click();
 
                         return true;
@@ -140,14 +141,14 @@ describe("Notebook", () => {
 
             await driver.actions().keyUp(Key.ALT).perform();
 
-            const ctx = await driver.findElement(By.css(".lines-content"));
-            expect((await ctx.findElements(By.css(".current-line"))).length).toBe(3);
+            const ctx = await driver.findElement(locator.notebook.codeEditor.editor.linesContent);
+            expect((await ctx.findElements(locator.notebook.codeEditor.editor.currentLine)).length).toBe(3);
 
-            const textArea = await driver.findElement(By.css("textarea"));
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys("testing");
 
-            const context = await driver.findElement(By.css(".monaco-editor-background"));
-            const lines = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
+            const context = await driver.findElement(locator.notebook.codeEditor.editor.exists);
+            const lines = await context.findElements(locator.notebook.codeEditor.editor.line);
             try {
                 // is stale ?
                 await lines[lines.length - 1].click();
@@ -160,7 +161,6 @@ describe("Notebook", () => {
             expect(await Misc.getPromptTextLine(driver, "last-2")).toContain("testing");
             expect(await Misc.getPromptTextLine(driver, "last-1")).toContain("testing");
             expect(await Misc.getPromptTextLine(driver, "last")).toContain("testing");
-
         } catch (e) {
             testFailed = true;
             await driver.actions().sendKeys(Key.ESCAPE).perform();
@@ -171,7 +171,7 @@ describe("Notebook", () => {
     it("Context Menu - Execute", async () => {
         try {
 
-            const textArea = await driver.findElement(By.css("textarea"));
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await Misc.execCmd(driver, textArea, "select version();", 20000, true);
             await DBConnection.writeSQL(driver, "select * from actor limit 1");
             let lastId = await DBConnection.getLastQueryResultId(driver);
@@ -240,9 +240,9 @@ describe("Notebook", () => {
     it("Verify default schema", async () => {
         try {
             const defaultSchema = await driver.findElement(
-                By.css("#schemaSectionHost div.marked"),
+                locator.notebook.explorerHost.schemas.default,
             );
-            expect(await defaultSchema.findElement(By.css("label")).getText()).toBe(String(globalConn.schema));
+            expect(await defaultSchema.getText()).toBe(String(globalConn.schema));
         } catch (e) {
             testFailed = true;
             throw e;
@@ -276,7 +276,7 @@ describe("Notebook", () => {
             const query2 = "select * from address limit 1;";
             const query3 = "select * from category limit 1;";
 
-            const textArea = await driver.findElement(By.css("textarea"));
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await DBConnection.writeSQL(driver, query1);
             await textArea.sendKeys(Key.RETURN);
             await DBConnection.writeSQL(driver, query2);
@@ -403,40 +403,40 @@ describe("Notebook", () => {
 
     it("Connection toolbar buttons - Find and Replace", async () => {
         try {
-            const contentHost = await driver.findElement(By.id("contentHost"));
+            const contentHost = await driver.findElement(locator.notebook.exists);
             await DBConnection.writeSQL(driver, `import from xpto xpto xpto`);
             const findBtn = await DBConnection.getToolbarButton(driver, find);
             await findBtn!.click();
-            const finder = await driver.wait(until.elementLocated(By.css(".find-widget")),
+            const finder = await driver.wait(until.elementLocated(locator.findWidget.exists),
                 explicitWait, "Finder was not found");
             expect(await finder.getAttribute("aria-hidden")).toBe("false");
-            const textArea = await finder.findElement(By.css("textarea"));
+            const textArea = await finder.findElement(locator.findWidget.textArea);
             await driver.wait(until.elementIsVisible(textArea),
                 explicitWait, "Finder textarea is not visible");
             await textArea.sendKeys("xpto");
             await DBConnection.findInSelection(driver, finder, false);
             expect(
-                await finder.findElement(By.css(".matchesCount")).getText(),
+                await finder.findElement(locator.findWidget.matchesCount).getText(),
             ).toMatch(new RegExp(/1 of (\d+)/));
             await driver.wait(
-                until.elementsLocated(By.css(".cdr.findMatch")),
+                until.elementsLocated(locator.findWidget.matchesCount),
                 2000,
                 "No words found",
             );
 
             await DBConnection.expandFinderReplace(finder, true);
-            const replacer = await finder.findElement(By.css(".replace-part"));
-            await replacer.findElement(By.css("textarea")).sendKeys("tester");
+            const replacer = await finder.findElement(locator.findWidget.replacePart);
+            await replacer.findElement(locator.findWidget.textArea).sendKeys("tester");
             await (await DBConnection.replacerGetButton(replacer, "Replace (Enter)"))!.click();
             expect(
-                await contentHost.findElement(By.css("textarea")).getAttribute("value"),
+                await contentHost.findElement(locator.findWidget.textArea).getAttribute("value"),
             ).toContain("import from tester xpto xpto");
 
-            await replacer.findElement(By.css("textarea")).clear();
-            await replacer.findElement(By.css("textarea")).sendKeys("testing");
+            await replacer.findElement(locator.findWidget.textArea).clear();
+            await replacer.findElement(locator.findWidget.textArea).sendKeys("testing");
             await (await DBConnection.replacerGetButton(replacer, "Replace All"))!.click();
             expect(
-                await contentHost.findElement(By.css("textarea")).getAttribute("value"),
+                await contentHost.findElement(locator.findWidget.textArea).getAttribute("value"),
             ).toContain("import from tester testing testing");
 
             await DBConnection.closeFinder(driver);
@@ -455,7 +455,7 @@ describe("Notebook", () => {
             const sakila = await DBConnection.getSchemaObject(driver, "Schema", "sakila");
             expect(
                 await (
-                    await sakila!.findElement(By.css("span.treeToggle"))
+                    await sakila!.findElement(locator.notebook.explorerHost.schemas.treeToggle)
                 ).getAttribute("class"),
             ).toContain("expanded");
 
@@ -464,7 +464,7 @@ describe("Notebook", () => {
 
             await driver.wait(async () => {
                 try {
-                    const treeToggle = await tables!.findElement(By.css("span.treeToggle"));
+                    const treeToggle = await tables!.findElement(locator.notebook.explorerHost.schemas.treeToggle);
 
                     return ((await treeToggle.getAttribute("class")).includes("expanded"));
                 } catch (e) {
@@ -517,8 +517,8 @@ describe("Notebook", () => {
             await DBConnection.expandCollapseMenus(driver, "open editors", true, 0);
             expect(
                 await driver
-                    .findElement(By.id("editorSectionHost"))
-                    .findElement(By.css("div.container.section"))
+                    .findElement(locator.notebook.explorerHost.openEditors.exists)
+                    .findElement(locator.notebook.explorerHost.openEditors.container)
                     .getAttribute("class"),
             ).toContain("expanded");
 
@@ -527,8 +527,8 @@ describe("Notebook", () => {
                 async () => {
                     return !(
                         await driver
-                            .findElement(By.id("editorSectionHost"))
-                            .findElement(By.css("div.container.section"))
+                            .findElement(locator.notebook.explorerHost.openEditors.exists)
+                            .findElement(locator.notebook.explorerHost.openEditors.container)
                             .getAttribute("class")
                     ).includes("expanded");
                 },
@@ -542,8 +542,8 @@ describe("Notebook", () => {
                 async () => {
                     return (
                         await driver
-                            .findElement(By.id("editorSectionHost"))
-                            .findElement(By.css("div.container.section"))
+                            .findElement(locator.notebook.explorerHost.openEditors.exists)
+                            .findElement(locator.notebook.explorerHost.openEditors.container)
                             .getAttribute("class")
                     ).includes("expanded");
                 },
@@ -553,8 +553,8 @@ describe("Notebook", () => {
 
             expect(
                 await driver
-                    .findElement(By.id("schemaSectionHost"))
-                    .findElement(By.css("div.container.section"))
+                    .findElement(locator.notebook.explorerHost.schemas.exists)
+                    .findElement(locator.notebook.explorerHost.schemas.container)
                     .getAttribute("class"),
             ).toContain("expanded");
 
@@ -564,8 +564,8 @@ describe("Notebook", () => {
                 async () => {
                     return !(
                         await driver
-                            .findElement(By.id("schemaSectionHost"))
-                            .findElement(By.css("div.container.section"))
+                            .findElement(locator.notebook.explorerHost.schemas.exists)
+                            .findElement(locator.notebook.explorerHost.schemas.container)
                             .getAttribute("class")
                     ).includes("expanded");
                 },
@@ -579,8 +579,8 @@ describe("Notebook", () => {
                 async () => {
                     return (
                         await driver
-                            .findElement(By.id("schemaSectionHost"))
-                            .findElement(By.css("div.container.section"))
+                            .findElement(locator.notebook.explorerHost.schemas.exists)
+                            .findElement(locator.notebook.explorerHost.schemas.container)
                             .getAttribute("class")
                     ).includes("expanded");
                 },
@@ -594,8 +594,8 @@ describe("Notebook", () => {
                 async () => {
                     return !(
                         await driver
-                            .findElement(By.id("adminSectionHost"))
-                            .findElement(By.css(".fixedScrollbar"))
+                            .findElement(locator.notebook.explorerHost.administration.exists)
+                            .findElement(locator.notebook.explorerHost.administration.scrollBar)
                             .getAttribute("class")
                     ).includes("expanded");
                 },
@@ -609,8 +609,8 @@ describe("Notebook", () => {
                 async () => {
                     return (
                         await driver
-                            .findElement(By.id("adminSectionHost"))
-                            .findElement(By.css(".fixedScrollbar"))
+                            .findElement(locator.notebook.explorerHost.administration.exists)
+                            .findElement(locator.notebook.explorerHost.administration.scrollBar)
                             .getAttribute("class")
                     ).includes("expanded");
                 },
@@ -624,8 +624,8 @@ describe("Notebook", () => {
                 async () => {
                     return !(
                         await driver
-                            .findElement(By.id("scriptSectionHost"))
-                            .findElement(By.css("div.container.section"))
+                            .findElement(locator.notebook.explorerHost.scripts.exists)
+                            .findElement(locator.notebook.explorerHost.scripts.container)
                             .getAttribute("class")
                     ).includes("expanded");
                 },
@@ -639,8 +639,8 @@ describe("Notebook", () => {
                 async () => {
                     return (
                         await driver
-                            .findElement(By.id("scriptSectionHost"))
-                            .findElement(By.css("div.container.section"))
+                            .findElement(locator.notebook.explorerHost.scripts.exists)
+                            .findElement(locator.notebook.explorerHost.scripts.container)
                             .getAttribute("class")
                     ).includes("expanded");
                 },
@@ -656,8 +656,8 @@ describe("Notebook", () => {
     it("Using Math_random on js_py blocks", async () => {
         try {
 
-            const contentHost = await driver.findElement(By.id("contentHost"));
-            const textArea = await contentHost.findElement(By.css("textarea"));
+            const contentHost = await driver.findElement(locator.notebook.exists);
+            const textArea = await contentHost.findElement(locator.notebook.codeEditor.textArea);
             await Misc.execCmd(driver, textArea, "\\javascript", undefined, true);
             await Misc.execCmd(driver, textArea, "Math.random();", undefined, true);
             const result2 = await DBConnection.getOutput(driver);
@@ -706,7 +706,7 @@ describe("Notebook", () => {
                 return (await DBConnection.getCurrentEditor(driver)) === "Server Status";
             }, explicitWait, "Current Editor is not Server Status");
 
-            const tableItems = await driver.findElements(By.css("#statusBoxHost .gridCell"));
+            const tableItems = await driver.findElements(locator.notebook.serverStatus.tableCells);
             let server = "";
             for (let i = 0; i <= tableItems.length - 1; i++) {
                 if ((await tableItems[i].getText()) === "Version:") {
@@ -721,9 +721,9 @@ describe("Notebook", () => {
             digits[2].length === 1 ? serverVer += "0" + digits[2] : serverVer += digits[2];
 
             await DBConnection.openNewNotebook(driver);
-            const contentHost = await driver.wait(until.elementLocated(By.id("contentHost")),
+            const contentHost = await driver.wait(until.elementLocated(locator.notebook.exists),
                 explicitWait, "Content host not found");
-            const textArea = await contentHost.findElement(By.css("textarea"));
+            const textArea = await contentHost.findElement(locator.notebook.codeEditor.textArea);
             await Misc.execCmd(driver, textArea, `/*!${serverVer} select * from actor limit 1;*/`, undefined, true);
 
             expect(await DBConnection.getResultStatus(driver, true)).toMatch(
@@ -744,8 +744,8 @@ describe("Notebook", () => {
     it("Pie Graph based on DB table", async () => {
         try {
 
-            const contentHost = await driver.findElement(By.id("contentHost"));
-            const textArea = await contentHost.findElement(By.css("textarea"));
+            const contentHost = await driver.findElement(locator.notebook.exists);
+            const textArea = await contentHost.findElement(locator.notebook.codeEditor.textArea);
             await Misc.execCmd(driver, textArea, "\\typescript", undefined, true);
 
             const cmd = `
@@ -764,7 +764,7 @@ Graph.render(options);
 
             await Misc.execCmd(driver, textArea, cmd.trim(), undefined, true, false);
             const pieChart = await DBConnection.getGraphHost(driver);
-            const chartColumns = await pieChart.findElements(By.css("rect"));
+            const chartColumns = await pieChart.findElements(locator.notebook.codeEditor.editor.result.graphHost.column);
             for (const col of chartColumns) {
                 expect(parseInt(await col.getAttribute("width"), 10)).toBeGreaterThan(0);
             }
@@ -778,7 +778,7 @@ Graph.render(options);
         try {
 
             await DBConnection.writeSQL(driver, "DELIMITER $$ ", true);
-            const textArea = await driver.findElement(By.css("textarea"));
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys(Key.RETURN);
             await DBConnection.writeSQL(driver, "SELECT actor_id", true);
             await textArea.sendKeys(Key.RETURN);
@@ -824,34 +824,32 @@ Graph.render(options);
 
             await driver.executeScript(
                 "arguments[0].click()",
-                await driver.findElement(By.id("addConsole")),
+                await driver.findElement(locator.notebook.explorerHost.openEditors.addConsole),
             );
 
-            const input = await driver.wait(until.elementLocated(By.css("#editorSectionHost input")),
+            const input = await driver.wait(until.elementLocated(locator.notebook.explorerHost.openEditors.textBox),
                 explicitWait, "Editor host input was not found");
+            await input.sendKeys(Key.BACK_SPACE)
             await input.sendKeys("myNewConsole");
             await input.sendKeys(Key.ENTER);
             expect(await DBConnection.getOpenEditor(driver, "myNewConsole")).toBeDefined();
-            expect(
-                await driver.findElement(By.css("#documentSelector label")).getText(),
-            ).toBe("myNewConsole");
-            expect(
-                await driver
-                    .findElement(By.css("#documentSelector .icon"))
-                    .getAttribute("style"),
-            ).toContain("notebook");
+            const documentSelector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
+            const currentValue = await documentSelector.findElement(locator.notebook.toolbar.editorSelector.currentValue);
+            expect(await currentValue.getText()).toBe("myNewConsole");
+            const currentIcon = documentSelector.findElement(locator.notebook.toolbar.editorSelector.currentIcon);
+            expect(await currentIcon.getAttribute("style")).toContain("notebook");
             await driver
-                .findElement(By.id("contentHost"))
-                .findElement(By.css("textarea"))
+                .findElement(locator.notebook.exists)
+                .findElement(locator.notebook.codeEditor.textArea)
                 .sendKeys("select actor from actor");
 
             await DBConnection.selectCurrentEditor(driver, "DB Notebook", "notebook");
             await DBConnection.selectCurrentEditor(driver, "myNewConsole", "notebook");
             const console = await DBConnection.getOpenEditor(driver, "myNewConsole");
-            await console!.findElement(By.css("span.codicon-close")).click();
+            await console!.findElement(locator.notebook.explorerHost.openEditors.close).click();
             expect(await DBConnection.getOpenEditor(driver, "myNewConsole")).toBeUndefined();
             expect(
-                await driver.findElement(By.css("#documentSelector label")).getText(),
+                await documentSelector.findElement(locator.notebook.toolbar.editorSelector.currentValue).getText(),
             ).toContain("DB Notebook");
         } catch (e) {
             testFailed = true;
@@ -862,7 +860,7 @@ Graph.render(options);
     it("Schema autocomplete context menu", async () => {
         try {
             await DBConnection.writeSQL(driver, "select * from ");
-            const textArea = await driver.findElement(By.css("textarea"));
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys(Key.chord(Key.CONTROL, Key.SPACE));
             const els = await DBNotebooks.getAutoCompleteMenuItems(driver);
             expect(els).toContain("information_schema");
@@ -914,22 +912,22 @@ Graph.render(options);
 
     it("Valid and invalid json", async () => {
         try {
-            const textArea = await driver.findElement(By.css("textarea"));
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await Misc.execCmd(driver, textArea, "\\typescript", undefined, true);
             await Misc.execCmd(driver, textArea, `print('{"a": "b"}')`, undefined);
             await driver.wait(async () => {
                 return ShellSession.isJSON(driver);
             }, explicitWait, "Result is not a valid json");
 
-            const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-            const outputHost = await zoneHosts[zoneHosts.length - 1].findElement(By.className("outputHost"));
+            const zoneHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
+            const outputHost = await zoneHosts[zoneHosts.length - 1].findElement(locator.notebook.codeEditor.editor.result.singleOutput);
             const rect = await outputHost.getRect();
             await driver.actions().move({
                 x: rect.x,
                 y: rect.y,
             }).perform();
 
-            await zoneHosts[zoneHosts.length - 1].findElement(By.css(".copyButton"));
+            await zoneHosts[zoneHosts.length - 1].findElement(locator.notebook.codeEditor.editor.result.status.copy);
 
             await Misc.execCmd(driver, textArea, `print('{ a: b }')`, undefined);
             await ShellSession.waitForResult(driver, "{ a: b }");
