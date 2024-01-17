@@ -308,7 +308,9 @@ export class DBNotebooks {
      */
     public static setMouseCursorAt = async (driver: WebDriver, word: string): Promise<void> => {
         const mouseCursorIs = await DBNotebooks.getMouseCursorLine(driver);
+        console.log(`mouseCursorIs: ${mouseCursorIs}`);
         const mouseCursorShouldBe = await DBNotebooks.getLineFromWord(driver, word);
+        console.log(`mouseCursorShouldBe: ${mouseCursorShouldBe}`);
         const taps = mouseCursorShouldBe - mouseCursorIs!;
         const textArea = await driver.findElement(By.css("textarea"));
         if (taps > 0) {

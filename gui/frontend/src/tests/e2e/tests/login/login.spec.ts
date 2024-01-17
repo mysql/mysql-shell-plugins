@@ -21,7 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { Misc, explicitWait } from "../../lib/misc.js";
-import { By, until, WebDriver } from "selenium-webdriver";
+import * as locator from "../../lib/locators.js";
+import { until, WebDriver } from "selenium-webdriver";
 import { basename } from "path";
 
 let driver: WebDriver;
@@ -60,11 +61,11 @@ describe("Login", () => {
 
     it("Verify page", async () => {
         try {
-            const text = await (await driver.findElement(By.id("headingSubLabel"))).getText();
+            const text = await (await driver.findElement(locator.adminPage.headingText)).getText();
             expect(text).toContain("Welcome to the MySQL Shell GUI.");
             expect(text).toContain("Please provide your MySQL Shell GUI credentials to log into the shell interface.");
 
-            const links = await driver.findElements(By.css("#loginDialogLinks a"));
+            const links = await driver.findElements(locator.adminPage.links);
 
             expect(links.length).toBe(3);
 
@@ -72,8 +73,8 @@ describe("Login", () => {
             expect(await links[1].getText()).toBe("Browse Tutorial >");
             expect(await links[2].getText()).toBe("Read Docs >");
 
-            expect(await driver.findElement(By.id("loginUsername"))).toBeDefined();
-            expect(await driver.findElement(By.id("loginPassword"))).toBeDefined();
+            expect(await driver.findElement(locator.adminPage.username)).toBeDefined();
+            expect(await driver.findElement(locator.adminPage.password)).toBeDefined();
         } catch (e) {
             testFailed = true;
             throw e;
@@ -82,11 +83,11 @@ describe("Login", () => {
 
     it("Invalid login", async () => {
         try {
-            await driver.findElement(By.id("loginUsername")).sendKeys("client");
-            await driver.findElement(By.id("loginPassword")).sendKeys("root");
-            await driver.findElement(By.id("loginButton")).click();
+            await driver.findElement(locator.adminPage.username).sendKeys("client");
+            await driver.findElement(locator.adminPage.password).sendKeys("root");
+            await driver.findElement(locator.adminPage.loginButton).click();
 
-            const error = await driver.wait(until.elementLocated(By.css("div.message.error")),
+            const error = await driver.wait(until.elementLocated(locator.adminPage.error),
                 explicitWait * 2, "Error was not found");
 
             expect(await error.getText()).toBe("User could not be authenticated. Incorrect username or password.");
@@ -96,19 +97,19 @@ describe("Login", () => {
         }
     });
 
-    it("Successfull login", async () => {
+    it("Successful login", async () => {
         try {
-            const username = await driver.findElement(By.id("loginUsername"));
+            const username = await driver.findElement(locator.adminPage.username);
             await username.clear();
             await username.sendKeys("client");
 
-            const password = await driver.findElement(By.id("loginPassword"));
+            const password = await driver.findElement(locator.adminPage.password);
             await password.clear();
             await password.sendKeys("client");
-            await driver.findElement(By.id("loginButton")).click();
+            await driver.findElement(locator.adminPage.loginButton).click();
 
             const result = await driver.wait(async () => {
-                return (await driver.findElements(By.id("mainActivityBarItemstepDown"))).length > 0;
+                return (await driver.findElements(locator.sqlEditorPage.icon)).length > 0;
             }, 5000, "Login was unsuccessful");
 
             expect(result).toBe(true);
