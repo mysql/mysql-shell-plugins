@@ -21,10 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, WebDriver } from "selenium-webdriver";
+import { until, WebDriver } from "selenium-webdriver";
 import { basename } from "path";
 import { Misc, explicitWait } from "../../lib/misc.js";
 import { ThemeEditor } from "../../lib/themeEditor.js";
+import * as locator from "../../lib/locators.js";
 
 let driver: WebDriver;
 const filename = basename(__filename);
@@ -65,25 +66,25 @@ describe("Main pages", () => {
 
     it("Verify GUI Console page", async () => {
         try {
-            await driver.findElement(By.id("gui.shell")).click();
-            expect(await driver.findElement(By.css("#shellModuleHost #title")).getText())
+            await driver.findElement(locator.shellPage.icon).click();
+            expect(await driver.findElement(locator.shellPage.title).getText())
                 .toBe("MySQL Shell - GUI Console");
             expect(
-                (await driver.findElements(By.linkText("Learn More >"))).length,
+                (await driver.findElements(locator.shellPage.links.learnMore)).length,
             ).toBe(1);
             expect(
-                (await driver.findElements(By.linkText("Browse Tutorial >"))).length,
+                (await driver.findElements(locator.shellPage.links.browseTutorial)).length,
             ).toBe(1);
-            expect((await driver.findElements(By.linkText("Read Docs >"))).length).toBe(
+            expect((await driver.findElements(locator.shellPage.links.readDocs)).length).toBe(
                 1,
             );
-            expect(await driver.findElement(By.css("#shellModuleHost #contentTitle")).getText()).toBe(
+            expect(await driver.findElement(locator.shellPage.contentTitle).getText()).toBe(
                 "MySQL Shell Sessions",
             );
-            expect((await driver.findElements(By.id("gui.shell"))).length).toBe(1);
-            expect((await driver.findElements(By.id("gui.sqleditor"))).length).toBe(1);
-            expect((await driver.findElements(By.id("debugger"))).length).toBe(1);
-            expect((await driver.findElements(By.id("settings"))).length).toBe(1);
+            expect((await driver.findElements(locator.shellPage.icon)).length).toBe(1);
+            expect((await driver.findElements(locator.sqlEditorPage.icon)).length).toBe(1);
+            expect((await driver.findElements(locator.debuggerPage.icon)).length).toBe(1);
+            expect((await driver.findElements(locator.settingsPage.icon)).length).toBe(1);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -92,24 +93,23 @@ describe("Main pages", () => {
 
     it("Verify Connections page", async () => {
         try {
-            await driver.findElement(By.id("gui.sqleditor")).click();
+            await driver.findElement(locator.sqlEditorPage.icon).click();
             expect(
-                await driver.wait(until.elementLocated(By.css("#connections > .label")),
+                await driver.wait(until.elementLocated(locator.sqlEditorPage.tabName),
                     explicitWait, "Connection Overview was not found").getText(),
             ).toBe("Connection Overview");
             expect(
-                await driver.findElement(By.css(".connectionBrowser #title")).getText(),
+                await driver.findElement(locator.sqlEditorPage.title).getText(),
             ).toBe("MySQL Shell - DB Connections");
             expect(
                 await driver
-                    .findElement(By.css(".connectionBrowser #contentTitle"))
+                    .findElement(locator.sqlEditorPage.contentTitle)
                     .getText(),
             ).toBe("Database Connections");
-            const addButton = await driver.findElement(By.css(".connectionBrowser"),
-            ).findElement(By.id("-1"));
-            expect(await addButton.findElement(By.css(".tileCaption"),
+            const addButton = await driver.findElement(locator.dbConnections.newConnection);
+            expect(await addButton.findElement(locator.dbConnections.connections.caption,
             ).getAttribute("innerHTML")).toContain("New Connection");
-            expect(await addButton.findElement(By.css(".tileDescription"),
+            expect(await addButton.findElement(locator.dbConnections.connections.description,
             ).getAttribute("innerHTML")).toContain("Add a new database connection");
         } catch (e) {
             testFailed = true;
@@ -119,21 +119,21 @@ describe("Main pages", () => {
 
     it("Verify Debugger page", async () => {
         try {
-            await driver.findElement(By.id("debugger")).click();
+            await driver.findElement(locator.debuggerPage.icon).click();
             expect(
-                await driver.findElement(By.css("#scriptSectionHost .label")).getText(),
+                await driver.findElement(locator.debuggerPage.scripts).getText(),
             ).toBe("SCRIPTS");
-            const outputPanel = await driver.findElements(By.id("outputPaneHost"));
+            const outputPanel = await driver.findElements(locator.debuggerPage.outputHost);
             expect(outputPanel.length).toBe(1);
             const upperLabels = await outputPanel[0].findElements(
-                By.css("#messageOutputHost .label"),
+                locator.debuggerPage.toolbar.item,
             );
             expect(upperLabels.length).toBe(3);
             expect(await upperLabels[0].getText()).toBe("Message");
             expect(await upperLabels[1].getText()).toBe("Tools:");
             expect(await upperLabels[2].getText()).toBe("Clear Output");
             const downLabels = await outputPanel[0].findElements(
-                By.css("#inputAreaHost .label"),
+                locator.debuggerPage.inputConsoleItem,
             );
             expect(downLabels.length).toBe(6);
             expect(await downLabels[0].getText()).toBe("INPUT CONSOLE");
@@ -150,53 +150,53 @@ describe("Main pages", () => {
 
     it("Verify Settings page", async () => {
         try {
-            await driver.findElement(By.id("settings")).click();
-            const settings = await driver.findElement(By.id("settingsHost"));
+            await driver.findElement(locator.settingsPage.icon).click();
+            const settings = await driver.findElement(locator.settingsPage.exists);
             const settingsTreeRows = await settings.findElements(
-                By.css(".settingsTreeCell label"),
+                locator.settingsPage.menuItem,
             );
             expect(await settingsTreeRows[0].getText()).toBe("Theme Settings");
             expect(await settingsTreeRows[1].getText()).toBe("Code Editor");
             expect(await settingsTreeRows[2].getText()).toBe("DB Editor");
             expect(await settingsTreeRows[3].getText()).toBe("SQL Execution");
             expect(await settingsTreeRows[4].getText()).toBe("Shell Session");
-            const settingsValueList = driver.findElement(By.id("settingsValueList"));
+            const settingsValueList = driver.findElement(locator.settingsPage.settingsList.exists);
 
             //click theme settings
             await settingsTreeRows[0].click();
 
             expect(
-                await settingsValueList.findElement(By.id("theming.currentTheme")),
+                await settingsValueList.findElement(locator.settingsPage.settingsList.currentTheme),
             ).toBeDefined();
             expect(
                 await settingsValueList.findElement(
-                    By.xpath("//div[contains(@caption, 'Click to Open the Theme Editor')]")),
+                    locator.settingsPage.settingsList.openThemeEditorButton),
             ).toBeDefined();
 
             //click code editor
             await settingsTreeRows[1].click();
 
             expect(
-                await settingsValueList.findElement(By.id("editor.wordWrap")),
+                await settingsValueList.findElement(locator.settingsPage.settingsList.wordWrap),
             ).toBeDefined();
             expect(
-                await settingsValueList.findElement(By.id("editor.wordWrapColumn")),
-            ).toBeDefined();
-
-            expect(
-                await settingsValueList.findElement(By.id("editor.showHidden")),
+                await settingsValueList.findElement(locator.settingsPage.settingsList.wordWrapColumn),
             ).toBeDefined();
 
             expect(
-                await settingsValueList.findElement(By.id("editor.dbVersion")),
+                await settingsValueList.findElement(locator.settingsPage.settingsList.invisibleCharacters),
             ).toBeDefined();
 
             expect(
-                await settingsValueList.findElement(By.id("editor.sqlMode")),
+                await settingsValueList.findElement(locator.settingsPage.settingsList.mysqlDBVersion),
             ).toBeDefined();
 
             expect(
-                await settingsValueList.findElement(By.id("editor.stopOnErrors")),
+                await settingsValueList.findElement(locator.settingsPage.settingsList.sqlMode),
+            ).toBeDefined();
+
+            expect(
+                await settingsValueList.findElement(locator.settingsPage.settingsList.stopOnErrors),
             ).toBeDefined();
 
             //click DB Editor
@@ -204,7 +204,7 @@ describe("Main pages", () => {
 
             expect(
                 await settingsValueList.findElement(
-                    By.id("dbEditor.connectionBrowser.showGreeting"),
+                    locator.settingsPage.settingsList.dbEditorShowGreeting,
                 ),
             ).toBeDefined();
 
@@ -212,14 +212,14 @@ describe("Main pages", () => {
             await settingsTreeRows[3].click();
 
             expect(
-                await settingsValueList.findElement(By.id("sql.limitRowCount")),
+                await settingsValueList.findElement(locator.settingsPage.settingsList.limitRowCount),
             ).toBeDefined();
 
             //click session browser
             await settingsTreeRows[4].click();
 
             expect(
-                await settingsValueList.findElement(By.id("shellSession.sessionBrowser.showGreeting")),
+                await settingsValueList.findElement(locator.settingsPage.settingsList.shellShowGreeting),
             ).toBeDefined();
 
             //change background color
@@ -240,28 +240,28 @@ describe("Main pages", () => {
     it("Verify About page", async () => {
         try {
 
-            if ((await driver.findElements(By.id("about"))).length === 0) {
-                await driver.findElement(By.id("settings")).click();
+            if ((await driver.findElements(locator.aboutPage.tab)).length === 0) {
+                await driver.findElement(locator.settingsPage.icon).click();
             }
 
-            await driver.findElement(By.id("about")).click();
-            expect(await driver.findElement(By.id("headingLabel")).getAttribute("outerHTML"))
+            await driver.findElement(locator.aboutPage.tab).click();
+            expect(await driver.findElement(locator.aboutPage.title).getAttribute("outerHTML"))
                 .toContain("About MySQL Shell");
-            expect((await driver.findElements(By.id("sakilaLogo"))).length).toBe(1);
-            const aboutLinks = await driver.findElements(By.css("#aboutBoxLinks a"));
+            expect((await driver.findElements(locator.aboutPage.sakilaLogo)).length).toBe(1);
+            const aboutLinks = await driver.findElements(locator.aboutPage.links);
             expect(await aboutLinks[0].getAttribute("outerHTML")).toContain("Learn More");
             expect(await aboutLinks[1].getAttribute("outerHTML")).toContain("Browse Tutorial");
             expect(await aboutLinks[2].getAttribute("outerHTML")).toContain("Read Docs");
-            const heading = await driver.wait(until.elementLocated(By.css(".gridCell.heading > label")),
+            const heading = await driver.wait(until.elementLocated(locator.aboutPage.otherTitle),
                 explicitWait, "Shell Build Information was not found");
             expect(await heading.getText()).toBe("Shell Build Information");
-            const leftElements = await driver.findElements(By.css(".gridCell.left"));
+            const leftElements = await driver.findElements(locator.aboutPage.leftTableCells);
             expect(await leftElements[0].getText()).toBe("Version:")
             expect(await leftElements[1].getText()).toBe("Architecture:");
             expect(await leftElements[2].getText()).toBe("Platform:");
             expect(await leftElements[3].getText()).toBe("Server Distribution:");
             expect(await leftElements[4].getText()).toBe("Server Version:");
-            const rightElements = await driver.findElements(By.css(".gridCell.right"));
+            const rightElements = await driver.findElements(locator.aboutPage.rightTableCells);
             expect(await rightElements[0].getText()).toMatch(
                 new RegExp(/(\d+).(\d+).(\d+)/g),
             );
@@ -275,14 +275,14 @@ describe("Main pages", () => {
             );
             expect(
                 await (
-                    await driver.findElements(By.css(".gridCell.heading > label"))
+                    await driver.findElements(locator.aboutPage.otherTitle)
                 )[1].getText(),
             ).toBe("Frontend Information");
             expect(await leftElements[5].getText()).toBe("Version:");
             expect(await rightElements[5].getText()).toMatch(
                 new RegExp(/(\d+).(\d+).(\d+)/g),
             );
-            expect((await driver.findElements(By.css(".copyright"))).length).toBe(1);
+            expect((await driver.findElements(locator.aboutPage.copyright)).length).toBe(1);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -291,28 +291,26 @@ describe("Main pages", () => {
 
     it("Verify Theme Editor page", async () => {
         try {
-            if ((await driver.findElements(By.id("themeEditor"))).length === 0) {
-                await driver.findElement(By.id("settings")).click();
+            if ((await driver.findElements(locator.themeEditorPage.tab)).length === 0) {
+                await driver.findElement(locator.settingsPage.icon).click();
             }
-            await driver.findElement(By.id("themeEditor")).click();
+            await driver.findElement(locator.themeEditorPage.tab).click();
             expect(
-                await driver.findElement(By.css(".themeEditor > label")).getText(),
+                await driver.findElement(locator.themeEditorPage.themeEditorTitle).getText(),
             ).toBe("THEME EDITOR");
             expect(
-                (await driver.findElements(By.id("themeSelectorContainer"))).length,
+                (await driver.findElements(locator.themeEditorPage.themeSelectorArea.exists)).length,
             ).toBe(1);
-            const themeEditorLabels = await driver.findElements(By.css("#themeSelectorContainer .gridCell label"));
+            const themeEditorLabels = await driver.findElements(locator.themeEditorPage.themeSelectorArea.sectionTitle);
             expect(await themeEditorLabels[0].getText()).toBe("Theme");
             expect(await themeEditorLabels[2].getText()).toBe("Color Pad");
-            expect((await driver.findElements(By.id("colorPadCell"))).length).toBe(1);
-            expect((await driver.findElements(By.id("syntaxColors"))).length).toBe(1);
-            expect((await driver.findElements(By.id("uiColors"))).length).toBe(1);
-            expect(await driver.findElement(By.id("previewTitle")).getText()).toBe(
+            expect((await driver.findElements(locator.themeEditorPage.themeSelectorArea.colorPad)).length).toBe(1);
+            expect((await driver.findElements(locator.themeEditorPage.themeEditorTabs.syntaxColors)).length).toBe(1);
+            expect((await driver.findElements(locator.themeEditorPage.themeEditorTabs.uiColors)).length).toBe(1);
+            expect(await driver.findElement(locator.themeEditorPage.themePreview.title).getText()).toBe(
                 "THEME PREVIEW",
             );
-            const themePreviewLabels = await driver.findElements(
-                By.css("#previewRoot p"),
-            );
+            const themePreviewLabels = await driver.findElements(locator.themeEditorPage.themePreview.section);
             expect(await themePreviewLabels[0].getText()).toBe("Base Colors");
             expect(await themePreviewLabels[1].getText()).toBe("Window / Dialog");
             expect(await themePreviewLabels[2].getText()).toBe("Plain Text / Label");
@@ -350,18 +348,16 @@ describe("Main pages", () => {
         try {
             const url = Misc.getUrl(basename(__filename));
             await driver.get(`${String(url)}xpto`);
-            const errorPanel = await driver.wait(until.elementLocated(By.css(".visible.errorPanel")),
+            const errorPanel = await driver.wait(until.elementLocated(locator.errorPanel.exists),
                 explicitWait, "Error label was not found");
 
-            expect(await (await errorPanel.findElement(
-                By.css(".title label"))).getText()).toBe("Communication Error");
-
+            expect(await (await errorPanel.findElement(locator.errorPanel.title)).getText()).toBe("Communication Error");
             let regex = "Could not establish a connection to the backend.";
             regex += " Make sure you use valid user credentials and the MySQL Shell is running.";
             regex += " Trying to reconnect in (\\d+) seconds.";
 
             expect(await (await errorPanel.findElement(
-                By.css(".content label"))).getText())
+                locator.errorPanel.content)).getText())
                 .toMatch(new RegExp(regex));
         } catch (e) {
             testFailed = true;
@@ -374,18 +370,16 @@ describe("Main pages", () => {
             const url = Misc.getUrl(basename(__filename));
             await driver.get(String(url).replace(String(process.env.TOKEN), ""));
 
-            const errorPanel = await driver.wait(until.elementLocated(By.css(".visible.errorPanel")),
+            const errorPanel = await driver.wait(until.elementLocated(locator.errorPanel.exists),
                 explicitWait, "Error label was not found");
 
-            expect(await (await errorPanel.findElement(
-                By.css(".title label"))).getText()).toBe("Communication Error");
-
+            expect(await (await errorPanel.findElement(locator.errorPanel.title)).getText()).toBe("Communication Error");
             let regex = "Could not establish a connection to the backend.";
             regex += " Make sure you use valid user credentials and the MySQL Shell is running.";
             regex += " Trying to reconnect in (\\d+) seconds.";
 
             expect(await (await errorPanel.findElement(
-                By.css(".content label"))).getText())
+                locator.errorPanel.content)).getText())
                 .toMatch(new RegExp(regex));
         } catch (e) {
             testFailed = true;

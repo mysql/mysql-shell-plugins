@@ -68,7 +68,7 @@ describe("Database Connections", () => {
                 }
             }, explicitWait * 4, "Home Page was not loaded");
 
-            await driver.findElement(locator.sqlEditor).click();
+            await driver.findElement(locator.sqlEditorPage.icon).click();
             await DBNotebooks.createDBconnection(driver, globalConn);
             await driver.findElement(locator.databaseConnectionConfiguration.close).click();
         } catch (e) {

@@ -23,9 +23,6 @@
 
 import { By } from "selenium-webdriver";
 
-// MAIN PAGE
-export const sqlEditor = By.id("gui.sqleditor");
-
 // DATABASE CONNECTION CONFIGURATION
 export const databaseConnectionConfiguration = {
     exists: By.css(".valueEditDialog"),
@@ -80,7 +77,11 @@ export const dbConnections = {
     },
     newConnection: By.id("-1"),
     title: By.id("title"),
-    tabName: By.css("#connections > label")
+    tabName: By.css("#connections > label"),
+    connections: {
+        caption: By.className("tileCaption"),
+        description: By.className("tileDescription")
+    }
 };
 
 // NOTEBOOK
@@ -182,3 +183,97 @@ export const htmlTag = {
     label: By.css("label"),
     span: By.css("span"),
 };
+
+export const adminPage = {
+    headingText: By.id("headingSubLabel"),
+    links: By.css("#loginDialogLinks a"),
+    username: By.id("loginUsername"),
+    password: By.id("loginPassword"),
+    loginButton: By.id("loginButton"),
+    error: By.css("div.message.error"),
+};
+
+export const shellPage = {
+    icon: By.id("gui.shell"),
+    title: By.css("#shellModuleHost #title"),
+    links: {
+        learnMore: By.linkText("Learn More >"),
+        browseTutorial: By.linkText("Browse Tutorial >"),
+        readDocs: By.linkText("Read Docs >"),
+    },
+    contentTitle: By.css("#shellModuleHost #contentTitle"),
+};
+
+export const sqlEditorPage = {
+    icon: By.id("gui.sqleditor"),
+    tabName: By.css("#connections > .label"),
+    title: By.css(".connectionBrowser #title"),
+    contentTitle: By.css(".connectionBrowser #contentTitle")
+};
+
+export const debuggerPage = {
+    icon: By.id("debugger"),
+    scripts: By.css("#scriptSectionHost .label"),
+    toolbar: {
+        item: By.css("#messageOutputHost .label")
+    },
+    outputHost: By.id("outputPaneHost"),
+    inputConsoleItem: By.css("#inputAreaHost .label"),
+};
+
+export const settingsPage = {
+    exists: By.id("settingsHost"),
+    icon: By.id("settings"),
+    menuItem: By.css(".settingsTreeCell label"),
+    settingsList: {
+        exists: By.id("settingsValueList"),
+        currentTheme: By.id("theming.currentTheme"),
+        openThemeEditorButton: By.xpath("//div[contains(@caption, 'Click to Open the Theme Editor')]"),
+        wordWrap: By.id("editor.wordWrap"),
+        wordWrapColumn: By.id("editor.wordWrapColumn"),
+        invisibleCharacters: By.id("editor.showHidden"),
+        mysqlDBVersion: By.id("editor.dbVersion"),
+        sqlMode: By.id("editor.sqlMode"),
+        stopOnErrors: By.id("editor.stopOnErrors"),
+        dbEditorShowGreeting: By.id("dbEditor.connectionBrowser.showGreeting"),
+        limitCount: By.id("sql.limitRowCount"),
+        limitRowCount: By.id("sql.limitRowCount"),
+        shellShowGreeting: By.id("shellSession.sessionBrowser.showGreeting"),
+    }
+}
+
+export const aboutPage = {
+    tab: By.id("about"),
+    title: By.id("headingLabel"),
+    sakilaLogo: By.id("sakilaLogo"),
+    links: By.css("#aboutBoxLinks a"),
+    otherTitle: By.css(".gridCell.heading > label"),
+    leftTableCells: By.css(".gridCell.left"),
+    rightTableCells: By.css(".gridCell.right"),
+    copyright: By.css(".copyright"),
+}
+
+export const themeEditorPage = {
+    tab: By.id("themeEditor"),
+    themeEditorTitle: By.css(".themeEditor > label"),
+    themeSelectorArea: {
+        exists: By.id("themeSelectorContainer"),
+        sectionTitle: By.css("#themeSelectorContainer .gridCell label"),
+        colorPad: By.id("colorPadCell"),
+
+    },
+    themeEditorTabs: {
+        syntaxColors: By.id("syntaxColors"),
+        uiColors: By.id("uiColors")
+    },
+    themePreview: {
+        title: By.id("previewTitle"),
+        section: By.css("#previewRoot p"),
+    }
+}
+
+export const errorPanel = {
+    exists: By.css(".visible.errorPanel"),
+    title: By.css(".title label"),
+    content: By.css(".content label")
+}
