@@ -96,8 +96,10 @@ import { IGenericResponse } from "../../communication/Protocol.js";
 
 import scriptingRuntime from "./assets/typings/scripting-runtime.d.ts?raw";
 
-// Details generated while adding a new tab. These are used in the render method to fill the tab page details.
-interface IDBEditorTabInfo {
+/**
+ * Details generated while adding a new tab. These are used in the render method to fill the tab page details.
+ */
+export interface IDBEditorTabInfo {
     details: IConnectionDetails;
     tabId: string;
     caption: string;
