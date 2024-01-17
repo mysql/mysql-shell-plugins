@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,6 +23,33 @@
 
 import { IDictionary } from "../app-logic/Types.js";
 import { convertHexToBase64 } from "./string-helpers.js";
+
+/**
+ * Checks if the given version is at least the expected version.
+ *
+ * @param version The version to check.
+ * @param expected The expected version.
+ *
+ * @returns True if the version is at least the minimum version, otherwise false.
+ */
+export const versionMatchesExpected = (version: string | number[], expected: number[]): boolean => {
+    if (typeof version === "string") {
+        const parts = version.split(".");
+        version = parts.map((v) => { return parseInt(v, 10); });
+    }
+
+    if (version.length < expected.length) {
+        return false;
+    }
+
+    for (let i = 0; i < Math.min(expected.length, version.length); ++i) {
+        if (version[i] < expected[i]) {
+            return false;
+        }
+    }
+
+    return true;
+};
 
 /**
  * Allows the user to select a local file.

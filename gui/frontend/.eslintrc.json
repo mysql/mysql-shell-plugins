@@ -9,7 +9,6 @@
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
-        "plugin:react/recommended",
         "plugin:jsx-a11y/recommended",
         "plugin:jsdoc/recommended"
     ],
@@ -28,17 +27,11 @@
     },
     "plugins": [
         "@typescript-eslint",
-        "react",
         "jsx-a11y",
         "jsdoc",
         "prefer-arrow",
         "eslint-plugin-import"
     ],
-    "settings": {
-        "react": {
-            "version": "17.0.0"
-        }
-    },
     "rules": {
         // Some base rules must be disabled as they return wrong results.
         // There are specialized rules instead in the tslint rule section.
@@ -362,19 +355,6 @@
         ],
         "use-isnan": "error",
         "valid-typeof": "off",
-        "no-restricted-properties": [
-            "error",
-            {
-                "object": "require",
-                "property": "ensure",
-                "message": "Please use import() instead. More info: https://facebook.github.io/create-react-app/docs/code-splitting"
-            },
-            {
-                "object": "System",
-                "property": "import",
-                "message": "Please use import() instead. More info: https://facebook.github.io/create-react-app/docs/code-splitting"
-            }
-        ],
         "getter-return": [
             "warn"
         ],
@@ -467,65 +447,6 @@
             "never"
         ],
         "indent": "off",
-        "react/no-unescaped-entities": "off",
-        "react/forbid-foreign-prop-types": [
-            "warn",
-            {
-                "allowInPropTypes": true
-            }
-        ],
-        "react/jsx-no-comment-textnodes": [
-            "warn"
-        ],
-        "react/jsx-no-duplicate-props": [
-            "warn"
-        ],
-        "react/jsx-no-target-blank": [
-            "warn"
-        ],
-        "react/jsx-no-undef": [
-            "error"
-        ],
-        "react/jsx-pascal-case": [
-            "warn",
-            {
-                "allowAllCaps": true,
-                "ignore": []
-            }
-        ],
-        "react/jsx-uses-react": [
-            "warn"
-        ],
-        "react/jsx-uses-vars": [
-            "warn"
-        ],
-        "react/no-danger-with-children": [
-            "warn"
-        ],
-        "react/no-direct-mutation-state": [
-            "warn"
-        ],
-        "react/no-is-mounted": [
-            "warn"
-        ],
-        "react/no-typos": [
-            "error"
-        ],
-        "react/react-in-jsx-scope": [
-            "off"
-        ],
-        "react/require-render-return": [
-            "error"
-        ],
-        "react/style-prop-object": [
-            "warn"
-        ],
-        "react/display-name": [
-            "off",
-            {
-                "ignoreTranspilerName": false
-            }
-        ],
         "jsx-a11y/accessible-emoji": [
             "warn"
         ],

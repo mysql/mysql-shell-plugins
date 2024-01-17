@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,6 +26,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import * as codicon from "../components/ui/Codicon.js";
+
+/** This is the preferred MySQL shell version for the app and associated tests. */
+export const preferredShellVersion = [8, 2, 0];
+
+/** This is the minimum MySQL shell version this app needs to work properly. */
+export const minimumShellVersion = [8, 1];
 
 // Types used in different places in the application (modules, parser, scripting etc.).
 
