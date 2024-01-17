@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,6 +30,8 @@ import { ShellInterfaceCore } from "../../../../supplement/ShellInterface/ShellI
 
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
 import { setupShellForTests } from "../../test-helpers.js";
+import { versionMatchesExpected } from "../../../../utilities/helpers.js";
+import { preferredShellVersion } from "../../../../app-logic/Types.js";
 
 describe("ShellInterfaceCore Tests", () => {
     let launcher: MySQLShellLauncher;
@@ -100,8 +102,7 @@ describe("ShellInterfaceCore Tests", () => {
                 }
             }
 
-            expect(info.major).toBe(8);
-            expect(info.minor).toBe(2);
+            expect(versionMatchesExpected([info.major, info.minor, 0], preferredShellVersion)).toBeTruthy();
         }
     });
 

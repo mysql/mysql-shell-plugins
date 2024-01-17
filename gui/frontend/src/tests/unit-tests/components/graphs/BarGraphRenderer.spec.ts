@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -86,7 +86,7 @@ describe("BarGraphRenderer Tests", () => {
 
         expect(svg).toMatchSnapshot();
 
-        configuration.data = [{ xValue: new Date("2022-05-13"), yValue: 42 }];
+        configuration.data = [{ xValue: new Date("2022-05-13T11:30:45"), yValue: 42 }];
         configuration.xDomain = undefined;
         renderer.render(svg, configuration);
         await nextProcessTick();

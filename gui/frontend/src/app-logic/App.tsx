@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -41,7 +41,7 @@ import { ShellModule } from "../modules/shell/ShellModule.js";
 import { DBEditorModule } from "../modules/db-editor/DBEditorModule.js";
 import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModule.js";
 import { ApplicationDB } from "./ApplicationDB.js";
-import { IDialogResponse } from "./Types.js";
+import { IDialogResponse, minimumShellVersion } from "./Types.js";
 import { MessageScheduler } from "../communication/MessageScheduler.js";
 import { IShellProfile } from "../communication/ProtocolGui.js";
 import { ColorPopup } from "../components/ui/ColorPicker/ColorPopup.js";
@@ -49,6 +49,7 @@ import { IComponentState } from "../components/ui/Component/ComponentBase.js";
 import { ProgressIndicator } from "../components/ui/ProgressIndicator/ProgressIndicator.js";
 import { IStatusbarItem, ControlType, Statusbar } from "../components/ui/Statusbar/Statusbar.js";
 import { MessagePanel } from "../components/Dialogs/MessagePanel.js";
+import { versionMatchesExpected } from "../utilities/helpers.js";
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;
@@ -158,7 +159,18 @@ export class App extends Component<{}, IAppState> {
             return Promise.resolve(true);
         });
 
-        requisitions.register("userAuthenticated", (profile: IShellProfile): Promise<boolean> => {
+        requisitions.register("userAuthenticated", async (profile: IShellProfile): Promise<boolean> => {
+            // Check if the connected shell has the minimum required version.
+            const info = await ShellInterface.core.backendInformation ?? { major: 0, minor: 0, patch: 0 };
+            if (!versionMatchesExpected([info.major, info.minor, info.patch], minimumShellVersion)) {
+                void requisitions.execute("showError", [
+                    "Backend Error",
+                    `The connected shell has an unsupported version: ${info.major}.${info.minor}.${info.patch}`,
+                ]);
+
+                return Promise.resolve(false);
+            }
+
             this.defaultProfile = profile;
             if (this.defaultProfile) {
                 webSession.loadProfile(this.defaultProfile);

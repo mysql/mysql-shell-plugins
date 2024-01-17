@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -75,7 +75,7 @@ export class AboutBox extends ComponentBase<{}, IAboutBoxState> {
             );
         }
 
-        // The version + build numbers will be injected by webpack (see also config-overrides.js).
+        // The version is injected by the vite config.
         const versionParts: string[] = process.env.versionNumber?.split(".") ?? [];
         if (versionParts.length === 0) {
             versionParts.push("1", "0", "0");
