@@ -20,11 +20,12 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { By, WebDriver } from "selenium-webdriver";
+import { WebDriver } from "selenium-webdriver";
 import { basename } from "path";
 import { Misc, explicitWait } from "../../lib/misc.js";
 import { GuiConsole } from "../../lib/guiConsole.js";
 import { ShellSession } from "../../lib/shellSession.js";
+import * as locator from "../../lib/locators.js";
 
 let driver: WebDriver;
 const filename = basename(__filename);
@@ -47,7 +48,7 @@ describe("GUI Console", () => {
                     await driver.navigate().refresh();
                 }
             }, explicitWait * 4, "Home Page was not loaded");
-            await driver.findElement(By.id("gui.shell")).click();
+            await driver.findElement(locator.shellPage.icon).click();
         } catch (e) {
             await Misc.storeScreenShot(driver, "beforeAll_GuiConsole");
             throw e;
@@ -69,20 +70,20 @@ describe("GUI Console", () => {
     it("Open multiple sessions", async () => {
         try {
             await GuiConsole.openSession(driver);
-            await driver.findElement(By.id("sessions")).click();
+            await driver.findElement(locator.shellPage.guiConsoleTab).click();
 
             let session = await GuiConsole.getSession(driver, "1");
-            expect(await session!.findElement(By.css(".tileCaption")).getText()).toBe("Session 1");
+            expect(await session!.findElement(locator.shellPage.sessions.caption).getText()).toBe("Session 1");
             await GuiConsole.openSession(driver);
-            await driver.findElement(By.id("sessions")).click();
+            await driver.findElement(locator.shellPage.guiConsoleTab).click();
 
             session = await GuiConsole.getSession(driver, "2");
-            expect(await session!.findElement(By.css(".tileCaption")).getText()).toBe("Session 2");
+            expect(await session!.findElement(locator.shellPage.sessions.caption).getText()).toBe("Session 2");
 
             await GuiConsole.openSession(driver);
-            await driver.findElement(By.id("sessions")).click();
+            await driver.findElement(locator.shellPage.guiConsoleTab).click();
             session = await GuiConsole.getSession(driver, "3");
-            expect(await session!.findElement(By.css(".tileCaption")).getText()).toBe("Session 3");
+            expect(await session!.findElement(locator.shellPage.sessions.caption).getText()).toBe("Session 3");
 
             await ShellSession.closeSession(driver, "1");
             await driver.wait(async () => {

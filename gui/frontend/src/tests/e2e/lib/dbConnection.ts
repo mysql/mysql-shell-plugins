@@ -21,8 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, Key, WebElement, error, WebDriver } from "selenium-webdriver";
+import { until, Key, WebElement, error, WebDriver } from "selenium-webdriver";
 import { explicitWait, Misc } from "./misc.js";
+import * as locator from "../lib/locators.js";
 
 export class DBConnection {
 
@@ -32,7 +33,7 @@ export class DBConnection {
      * @returns Promise resolving to true if it's opened, false otherwise
      */
     public static isConnectionOverviewOpened = async (driver: WebDriver): Promise<boolean> => {
-        const connections = await driver.findElement(By.id("connections"));
+        const connections = await driver.findElement(locator.dbConnections.tab);
         const classes = await connections.getAttribute("class");
 
         return classes.includes("selected");
@@ -47,14 +48,14 @@ export class DBConnection {
      */
     public static closeDBconnection = async (driver: WebDriver, name: string): Promise<void> => {
         if (name === "current") {
-            const tab = await driver.findElement(By.css(".hasAuxillary.selected"));
-            await tab.findElement(By.css("#auxillary .closeButton")).click();
+            const tab = await driver.findElement(locator.notebook.connectionTab.opened);
+            await tab.findElement(locator.notebook.connectionTab.close).click();
         } else {
-            const tabs = await driver.findElements(By.css(".hasAuxillary"));
+            const tabs = await driver.findElements(locator.notebook.connectionTab.exists);
             for (const tab of tabs) {
-                const text = await tab.findElement(By.css("label")).getAttribute("innerHTML");
+                const text = await tab.findElement(locator.htmlTag.label).getAttribute("innerHTML");
                 if (text.trim() === name) {
-                    await tab.findElement(By.css("#auxillary .closeButton")).click();
+                    await tab.findElement(locator.notebook.connectionTab.close).click();
 
                     return;
                 }
@@ -71,7 +72,8 @@ export class DBConnection {
      * @returns Promise resolving with the Toolbar button
      */
     public static getToolbarButton = async (driver: WebDriver, button: string): Promise<WebElement | undefined> => {
-        const buttons = await driver.findElements(By.css("#contentHost .button"));
+        const buttons = await driver.findElement(locator.notebook.toolbar.exists)
+            .findElements(locator.notebook.toolbar.button);
         for (const btn of buttons) {
             if ((await btn.getAttribute("data-tooltip")) === button) {
                 return btn;
@@ -90,24 +92,20 @@ export class DBConnection {
     public static getResultStatus = async (driver: WebDriver, isSelect?: boolean): Promise<string> => {
         let results: WebElement[] | undefined;
         let obj = "";
-        if (isSelect) {
-            obj = "label";
-        } else {
-            obj = "span";
-        }
+
         await driver.wait(
             async (driver) => {
-                results = await driver.wait(until.elementsLocated(By.css(".zoneHost")),
+                results = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.result.exists),
                     explicitWait, "Zone hosts were not found");
 
-                const about = await results[0].findElements(By.css("span"));
+                const about = await results[0].findElements(locator.htmlTag.span);
 
                 //first element is usually the about info
                 if (about.length > 0 && (await about[0].getText()).indexOf("Welcome") !== -1) {
                     results.shift();
                 }
                 if (results.length > 0) {
-                    if ((await results[0].findElements(By.css(".message.info"))).length > 0) {
+                    if ((await results[0].findElements(locator.notebook.codeEditor.editor.result.info)).length > 0) {
                         //if language has been changed...
                         results.shift();
                     }
@@ -122,7 +120,11 @@ export class DBConnection {
         );
 
         const block = await driver.wait(until.elementLocated(async () => {
-            return results![results!.length - 1].findElements(By.css(obj));
+            if (isSelect) {
+                return results![results!.length - 1].findElements(locator.htmlTag.label);
+            } else {
+                return results![results!.length - 1].findElements(locator.htmlTag.span);
+            }
         }), explicitWait, `${obj} was not found`);
 
         return block.getAttribute("innerHTML");
@@ -134,21 +136,12 @@ export class DBConnection {
      * @returns Promise resolving with the Connection tab name
      */
     public static getSelectedConnectionTab = async (driver: WebDriver): Promise<string> => {
-        const tab = await driver.wait(until.elementLocated(By.css(".selected.hasAuxillary")),
+        const tab = await driver.wait(until.elementLocated(locator.notebook.connectionTab.opened),
             explicitWait, "Selected tab was not found");
 
-        const label = await tab.findElement(By.css(".label"));
+        const label = await tab.findElement(locator.htmlTag.label);
 
         return label.getText();
-    };
-
-    /**
-     * Returns the number of statement starts (blue dots) on the editor
-     *
-     * @returns Promise resolving with the number of statement starts
-     */
-    public static getStatementStarts = async (driver: WebDriver): Promise<number> => {
-        return (await driver.findElements(By.css(".statementStart"))).length;
     };
 
     /**
@@ -160,7 +153,7 @@ export class DBConnection {
     public static isStatementStart = async (driver: WebDriver, statement: string): Promise<boolean | undefined> => {
 
         const getLineSentence = async (ctx: WebElement): Promise<string> => {
-            const spans = await ctx.findElements(By.css("span"));
+            const spans = await ctx.findElements(locator.htmlTag.span);
             let sentence = "";
             for (const span of spans) {
                 sentence += (await span.getText()).replace("&nbsp;", " ");
@@ -173,12 +166,9 @@ export class DBConnection {
 
         await driver.wait(async () => {
             try {
-                const leftSideLines = await driver.findElements(By.css(".margin-view-overlays > div"));
-                const rightSideLines = await driver.findElements(
-                    By.css(".view-lines.monaco-mouse-cursor-text > div > span"));
-
+                const leftSideLines = await driver.findElements(locator.notebook.codeEditor.editor.promptLine);
+                const rightSideLines = await driver.findElements(locator.notebook.codeEditor.editor.editorLine);
                 let index = -1;
-
                 for (let i = 0; i <= rightSideLines.length - 1; i++) {
                     const lineSentence = await getLineSentence(rightSideLines[i]);
                     if (lineSentence.includes(statement)) {
@@ -186,12 +176,10 @@ export class DBConnection {
                         break;
                     }
                 }
-
                 if (index === -1) {
                     throw new Error(`Could not find statement ${statement}`);
                 }
-
-                flag = (await leftSideLines[index].findElements(By.css(".statementStart"))).length > 0;
+                flag = (await leftSideLines[index].findElements(locator.notebook.codeEditor.editor.statementStart)).length > 0;
 
                 return true;
             } catch (e) {
@@ -214,7 +202,7 @@ export class DBConnection {
      * @returns Promise resolving when the sql query is written
      */
     public static writeSQL = async (driver: WebDriver, cmd: string, slowWriting?: boolean): Promise<void> => {
-        const textArea = await driver.wait(until.elementLocated(By.css("textarea")),
+        const textArea = await driver.wait(until.elementLocated(locator.notebook.codeEditor.textArea),
             explicitWait, "Could not find the textarea");
         await driver.wait(async () => {
             try {
@@ -231,7 +219,7 @@ export class DBConnection {
                 return true;
             } catch (e) {
                 if (e instanceof error.ElementNotInteractableError) {
-                    const editorLines = await driver.findElements(By.css("#appHostPaneHost .view-line"));
+                    const editorLines = await driver.findElements(locator.notebook.codeEditor.editor.line);
                     await editorLines[editorLines.length - 1].click();
                 } else {
                     throw e;
@@ -248,7 +236,7 @@ export class DBConnection {
      * @returns Promise resolving when the find is made
      */
     public static findInSelection = async (driver: WebDriver, el: WebElement, flag: boolean): Promise<void> => {
-        const actions = await el.findElements(By.css(".find-actions div"));
+        const actions = await el.findElements(locator.findWidget.actions);
         for (const action of actions) {
             if (
                 (await action.getAttribute("title")).indexOf("Find in selection") !==
@@ -277,12 +265,12 @@ export class DBConnection {
      */
     public static closeFinder = async (driver: WebDriver): Promise<void> => {
         await driver.wait(async () => {
-            const findWidget = await driver.findElements(By.css(".find-widget.visible"));
+            const findWidget = await driver.findElements(locator.findWidget.isVisible);
             if (findWidget.length > 0) {
-                const closeButton = await findWidget[0].findElement(By.xpath(".//div[contains(@title, 'Close')]"));
+                const closeButton = await findWidget[0].findElement(locator.findWidget.close);
                 await driver.executeScript("arguments[0].click()", closeButton);
 
-                return (await driver.findElements(By.css(".find-widget.visible"))).length === 0;
+                return (await driver.findElements(locator.findWidget.isVisible)).length === 0;
             } else {
                 return true;
             }
@@ -297,7 +285,7 @@ export class DBConnection {
      * @returns Promise resolving when the action is made
      */
     public static expandFinderReplace = async (el: WebElement, flag: boolean): Promise<void> => {
-        const divs = await el.findElements(By.css("div"));
+        const divs = await el.findElements(locator.htmlTag.div);
         for (const div of divs) {
             if ((await div.getAttribute("title")) === "Toggle Replace") {
                 const expanded = await div.getAttribute("aria-expanded");
@@ -322,9 +310,7 @@ export class DBConnection {
      * @returns Promise resolving with the button
      */
     public static replacerGetButton = async (el: WebElement, button: string): Promise<WebElement | undefined> => {
-        const replaceActions = await el.findElements(
-            By.css(".replace-actions div"),
-        );
+        const replaceActions = await el.findElements(locator.findWidget.replacerActions);
         for (const action of replaceActions) {
             if (
                 (await action.getAttribute("title")).indexOf(button) !== -1
@@ -345,12 +331,12 @@ export class DBConnection {
         driver: WebDriver,
         objType: string,
         objName: string): Promise<WebElement | undefined> => {
-        const scroll = await driver.wait(until.elementLocated(By.css("#schemaSectionHost .tabulator-tableholder")),
+        const scroll = await driver.wait(until.elementLocated(locator.notebook.explorerHost.schemas.scroll),
             explicitWait, "Table scroll was not found");
 
         await driver.executeScript("arguments[0].scrollBy(0,-1000)", scroll);
 
-        const sectionHost = await driver.findElement(By.id("schemaSectionHost"));
+        const sectionHost = await driver.findElement(locator.notebook.explorerHost.schemas.exists);
         let level: number;
         switch (objType) {
             case "Schema":
@@ -373,11 +359,11 @@ export class DBConnection {
             async () => {
                 try {
                     const objects = await sectionHost.findElements(
-                        By.css(`.tabulator-table .tabulator-tree-level-${level}`),
+                        locator.notebook.explorerHost.schemas.objectByLevel(level),
                     );
 
                     return (
-                        (await objects[0].findElement(By.css("label")).getText()) !==
+                        (await objects[0].findElement(locator.htmlTag.label).getText()) !==
                         "loading..."
                     );
                 } catch (e) {
@@ -390,14 +376,14 @@ export class DBConnection {
 
         const findItem = async (scrollNumber: number): Promise<WebElement | undefined> => {
             if (scrollNumber <= 4) {
-                const sectionHost = await driver.findElement(By.id("schemaSectionHost"));
+                const sectionHost = await driver.findElement(locator.notebook.explorerHost.schemas.exists);
                 const objects = await sectionHost.findElements(
-                    By.css(`.tabulator-table .tabulator-tree-level-${level}`),
+                    locator.notebook.explorerHost.schemas.objectByLevel(level),
                 );
                 let ref;
                 try {
                     for (const object of objects) {
-                        ref = object.findElement(By.css("label"));
+                        ref = object.findElement(locator.htmlTag.label);
                         await driver.executeScript("arguments[0].scrollIntoView(true);", ref);
                         if (await ref.getText() === objName) {
                             return object;
@@ -425,7 +411,7 @@ export class DBConnection {
      */
     public static toggleSchemaObject = async (driver: WebDriver, objType: string, objName: string): Promise<void> => {
         const obj = await DBConnection.getSchemaObject(driver, objType, objName);
-        const toggle = await obj!.findElement(By.css(".treeToggle"));
+        const toggle = await obj!.findElement(locator.notebook.explorerHost.schemas.treeToggle);
         await driver.executeScript("arguments[0].click()", toggle);
         await driver.sleep(1000);
     };
@@ -441,30 +427,30 @@ export class DBConnection {
 
         await driver.wait(async () => {
             try {
-                const context = await driver.findElement(By.id("scriptSectionHost"));
-                const items = await context.findElements(By.css("div.tabulator-row"));
+                const context = await driver.findElement(locator.notebook.explorerHost.scripts.exists);
+                const items = await context.findElements(locator.notebook.explorerHost.scripts.script);
                 await driver.executeScript(
                     "arguments[0].click()",
-                    await context.findElement(By.id("addScript")),
+                    await context.findElement(locator.notebook.explorerHost.scripts.addScript),
                 );
-                const menu = await driver.findElement(By.css("div.visible.noArrow.menu"));
+                const menu = await driver.findElement(locator.notebook.explorerHost.scripts.contextMenu.exists);
                 switch (scriptType) {
                     case "JS":
-                        await menu.findElement(By.id("addJSScript")).click();
+                        await menu.findElement(locator.notebook.explorerHost.scripts.contextMenu.addJSScript).click();
                         break;
                     case "TS":
-                        await menu.findElement(By.id("addTSScript")).click();
+                        await menu.findElement(locator.notebook.explorerHost.scripts.contextMenu.addTSScript).click();
                         break;
                     case "SQL":
-                        await menu.findElement(By.id("addSQLScript")).click();
+                        await menu.findElement(locator.notebook.explorerHost.scripts.contextMenu.addSQLScript).click();
                         break;
                     default:
                         break;
                 }
                 await driver.wait(async () => {
-                    return (await context.findElements(By.css("div.tabulator-row"))).length > items.length;
+                    return (await context.findElements(locator.notebook.explorerHost.scripts.script)).length > items.length;
                 }, 2000, "No script was created");
-                const entries = await context.findElements(By.css(".schemaTreeEntry label"));
+                const entries = await context.findElements(locator.notebook.explorerHost.schemas.object);
                 toReturn = await entries[entries.length - 1].getText();
 
                 return true;
@@ -484,11 +470,11 @@ export class DBConnection {
      * @returns Promise resolving with true if exists, false otherwise
      */
     public static existsScript = async (driver: WebDriver, scriptName: string, scriptType: string): Promise<boolean> => {
-        const context = await driver.findElement(By.id("scriptSectionHost"));
-        const items = await context.findElements(By.css("div.tabulator-row"));
+        const context = await driver.findElement(locator.notebook.explorerHost.scripts.exists);
+        const items = await context.findElements(locator.notebook.explorerHost.scripts.script);
         for (const item of items) {
-            const label = await (await item.findElement(By.css(".schemaTreeEntry label"))).getText();
-            const src = await (await item.findElement(By.css(".schemaTreeEntry img"))).getAttribute("src");
+            const label = await (await item.findElement(locator.notebook.explorerHost.scripts.object)).getText();
+            const src = await (await item.findElement(locator.notebook.explorerHost.scripts.objectImage)).getAttribute("src");
             if (label === scriptName && src.indexOf(scriptType) !== -1) {
                 return true;
             }
@@ -504,12 +490,12 @@ export class DBConnection {
      * @returns Promise resolving with the Editor
      */
     public static getOpenEditor = async (driver: WebDriver, editor: string): Promise<WebElement | undefined> => {
-        const context = await driver.findElement(By.id("editorSectionHost"));
+        const context = await driver.findElement(locator.notebook.explorerHost.openEditors.exists);
         const editors = await context.findElements(
-            By.css("div.accordionItem.closable"),
+            locator.notebook.explorerHost.openEditors.item,
         );
         for (const edtr of editors) {
-            if ((await edtr.findElement(By.css("label")).getText()) === editor) {
+            if ((await edtr.findElement(locator.htmlTag.label).getText()) === editor) {
                 return edtr;
             }
         }
@@ -523,35 +509,33 @@ export class DBConnection {
      * @returns Promise resolving when the select is made
      */
     public static selectCurrentEditor = async (driver: WebDriver, editorName: string, editorType: string): Promise<void> => {
-        const selector = await driver.findElement(By.id("documentSelector"));
+        const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
         await driver.executeScript("arguments[0].click()", selector);
 
         await driver.wait(async () => {
-            return (await driver.findElements(By.css("div.visible.dropdownList > div"))).length > 1;
+            return (await driver.findElements(locator.notebook.toolbar.editorSelector.items)).length > 1;
         }, 2000, "No elements located on dropdown");
 
-        const dropDownItems = await driver.findElements(
-            By.css("div.visible.dropdownList > div"),
-        );
+        const dropDownItems = await driver.findElements(locator.notebook.toolbar.editorSelector.items);
 
         for (const item of dropDownItems) {
-            const name = await item.findElement(By.css("label")).getText();
-            const el = await item.findElements(By.css("img"));
+            const name = await item.findElement(locator.htmlTag.label).getText();
+            const el = await item.findElements(locator.htmlTag.img);
 
             let type = "";
 
             if (el.length > 0) {
                 type = await el[0].getAttribute("src");
             } else {
-                type = await item.findElement(By.css(".msg.icon")).getAttribute("style");
+                type = await item.findElement(locator.notebook.toolbar.editorSelector.iconType).getAttribute("style");
             }
 
             if (name === editorName) {
                 if (type.indexOf(editorType) !== -1) {
                     await driver.wait(async () => {
                         await item.click();
-                        const selector = await driver.findElement(By.id("documentSelector"));
-                        const selected = await selector.findElement(By.css("label")).getText();
+                        const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
+                        const selected = await selector.findElement(locator.htmlTag.label).getText();
 
                         return selected === editorName;
                     }, explicitWait, `${editorName} with type ${editorType} was not properly selected`);
@@ -561,7 +545,7 @@ export class DBConnection {
                             return (
                                 (
                                     await driver.findElements(
-                                        By.css("div.visible.dropdownList > div"),
+                                        locator.notebook.toolbar.editorSelector.items,
                                     )
                                 ).length === 0
                             );
@@ -584,13 +568,13 @@ export class DBConnection {
      * @returns Promise resolving with the tab
      */
     public static getResultTab = async (driver: WebDriver, tabName: string): Promise<WebElement | undefined> => {
-        const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-        const tabs = await zoneHosts[zoneHosts.length - 1].findElements(By.css(".resultHost .tabArea div"));
+        const zoneHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
+        const tabs = await zoneHosts[zoneHosts.length - 1].findElements(locator.notebook.codeEditor.editor.result.tabSection.tabs);
 
         for (const tab of tabs) {
             if (await tab.getAttribute("id") !== "selectorItemstepDown" &&
                 await tab.getAttribute("id") !== "selectorItemstepUp") {
-                const label = await tab.findElement(By.css("label"));
+                const label = await tab.findElement(locator.htmlTag.label);
                 if ((await label.getAttribute("innerHTML")).indexOf(tabName) !== -1) {
                     return tab;
                 }
@@ -604,14 +588,14 @@ export class DBConnection {
      * @returns Promise resolving with the tab names
      */
     public static getResultTabs = async (driver: WebDriver): Promise<String[]> => {
-        const zoneHosts = await driver.findElements(By.css(".zoneHost"));
-        const tabs = await zoneHosts[zoneHosts.length - 1].findElements(By.css(".resultHost .tabArea div"));
+        const zoneHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
+        const tabs = await zoneHosts[zoneHosts.length - 1].findElements(locator.notebook.codeEditor.editor.result.tabSection.tabs);
         const resultTabs = [];
 
         for (const tab of tabs) {
             if (await tab.getAttribute("id") !== "selectorItemstepDown" &&
                 await tab.getAttribute("id") !== "selectorItemstepUp") {
-                const label = await tab.findElement(By.css("label"));
+                const label = await tab.findElement(locator.htmlTag.label);
                 resultTabs.push(await label.getAttribute("innerHTML"));
             }
         }
@@ -638,15 +622,15 @@ export class DBConnection {
             }
         }
         try {
-            const resultHosts = await driver.wait(until.elementsLocated(By.css(".resultHost")),
+            const resultHosts = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.result.exists),
                 explicitWait, "Result host was not found");
 
             const resultSet = await driver.wait(until.elementLocated(async () => {
-                return resultHosts[resultHosts.length - 1].findElements(By.css(".tabulator-headers"));
+                return resultHosts[resultHosts.length - 1].findElements(locator.notebook.codeEditor.editor.result.tableHeaders);
             }), explicitWait, "Table headers not found");
 
             const resultHeaderRows = await driver.wait(until.elementsLocated(async () => {
-                return resultSet.findElements(By.css(".tabulator-col-title"));
+                return resultSet.findElements(locator.notebook.codeEditor.editor.result.tableColumnTitle);
             }), explicitWait, "Table column titles not found");
 
             for (const row of resultHeaderRows) {
@@ -672,11 +656,11 @@ export class DBConnection {
      * @returns A promise resolving with the graph
      */
     public static getGraphHost = async (driver: WebDriver,): Promise<WebElement> => {
-        const resultHosts = await driver.findElements(By.css(".zoneHost"));
+        const resultHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
         const lastResult = resultHosts[resultHosts.length - 1];
 
         return driver.wait(async () => {
-            return lastResult.findElement(By.css(".graphHost"));
+            return lastResult.findElement(locator.notebook.codeEditor.editor.result.graphHost.exists);
         }, 10000, "Pie Chart was not displayed");
     };
 
@@ -690,7 +674,7 @@ export class DBConnection {
         let text = "";
         await driver.wait(async () => {
             try {
-                const zoneHosts = await driver.findElements(By.css(".zoneHost"));
+                const zoneHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
                 let context;
                 if (penultimate) {
                     context = zoneHosts[zoneHosts.length - 2];
@@ -698,19 +682,19 @@ export class DBConnection {
                     context = zoneHosts[zoneHosts.length - 1];
                 }
 
-                let items = await context.findElements(By.css("label"));
+                let items = await context.findElements(locator.htmlTag.label);
                 if (items.length > 0) {
                     text = await items[0].getText();
                 } else {
-                    items = await context.findElements(By.css(".textHost span"));
+                    items = await context.findElements(locator.notebook.codeEditor.editor.result.text.exists);
                     if (items.length > 0) {
                         text = await items[items.length - 1].getText();
                     } else {
-                        items = await context.findElements(By.css(".entry > span"));
+                        items = await context.findElements(locator.notebook.codeEditor.editor.result.text.entry);
                         if (items.length) {
                             text = await items[items.length - 1].getText();
                         } else {
-                            items = await context.findElements(By.css(".info"));
+                            items = await context.findElements(locator.notebook.codeEditor.editor.result.text.info);
                             text = await items[0].getText();
                         }
                     }
@@ -733,7 +717,7 @@ export class DBConnection {
      * @returns A promise resolving with the language
      */
     public static getEditorLanguage = async (driver: WebDriver,): Promise<string> => {
-        const editors = await driver.wait(until.elementsLocated(By.css(".editorPromptFirst")),
+        const editors = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.prompt.current),
             explicitWait, "Could not find the editor prompts");
         const editorClasses = (await editors[editors.length - 1].getAttribute("class")).split(" ");
 
@@ -749,10 +733,10 @@ export class DBConnection {
     public static setEditorLanguage = async (driver: WebDriver, language: string): Promise<void> => {
         const curLang = await DBConnection.getEditorLanguage(driver);
         if (curLang !== language) {
-            const contentHost = await driver.findElement(By.id("contentHost"));
-            const textArea = await contentHost.findElement(By.css("textarea"));
+            const contentHost = await driver.findElement(locator.notebook.exists);
+            const textArea = await contentHost.findElement(locator.notebook.codeEditor.textArea);
             await Misc.execCmd(driver, textArea, "\\" + language.replace("my", ""));
-            const results = await driver.findElements(By.css(".message.info"));
+            const results = await driver.findElements(locator.notebook.codeEditor.editor.result.info);
             switch (language) {
                 case "sql":
                     expect(await results[results.length - 1].getText()).toBe("Switched to MySQL mode");
@@ -785,7 +769,7 @@ export class DBConnection {
         };
 
         await driver.wait(async () => {
-            const textArea = await driver.findElement(By.css("textarea"));
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await driver.actions().contextClick(textArea).perform();
 
             return isCtxMenuDisplayed();
@@ -826,32 +810,42 @@ export class DBConnection {
 
             switch (menu) {
                 case "open editors":
-                    elToClick = await driver.findElement(
-                        By.id("editorSectionHost")).findElement(By.css("div.container.section label"));
-                    elToVerify = await driver.findElement(By.css("#editorSectionHost .accordionItem"));
+                    elToClick = await driver
+                        .findElement(locator.notebook.explorerHost.openEditors.exists)
+                        .findElement(locator.notebook.explorerHost.openEditors.container)
+                        .findElement(locator.htmlTag.label)
+                    elToVerify = await driver.findElement(locator.notebook.explorerHost.openEditors.item);
                     break;
                 case "schemas":
-                    elToClick = await driver.findElement(
-                        By.id("schemaSectionHost")).findElement(By.css("div.container.section label"));
-                    elToVerify = await driver.findElement(
-                        By.id("schemaSectionHost")).findElement(By.css(".tabulator-table"));
-
+                    elToClick = await driver
+                        .findElement(locator.notebook.explorerHost.schemas.exists)
+                        .findElement(locator.notebook.explorerHost.schemas.container)
+                        .findElement(locator.htmlTag.label)
+                    elToVerify = await driver
+                        .findElement(locator.notebook.explorerHost.schemas.exists)
+                        .findElement(locator.notebook.explorerHost.schemas.table);
                     break;
                 case "admin":
-                    elToClick = await driver.findElement(
-                        By.id("adminSectionHost")).findElement(By.css("div.container.section label"));
-                    elToVerify = await driver.findElement(
-                        By.id("adminSectionHost")).findElement(By.css(".accordionItem"));
+                    elToClick = await driver
+                        .findElement(locator.notebook.explorerHost.administration.exists)
+                        .findElement(locator.notebook.explorerHost.administration.container)
+                        .findElement(locator.htmlTag.label)
+                    elToVerify = await driver
+                        .findElement(locator.notebook.explorerHost.administration.exists)
+                        .findElement(locator.notebook.explorerHost.administration.item);
                     break;
                 case "scripts":
-                    elToClick = await driver.findElement(
-                        By.id("scriptSectionHost")).findElement(By.css("div.container.section label"));
-
-                    elToVerify = await driver.findElement(
-                        By.id("scriptSectionHost")).findElements(By.css(".tabulator-table"));
+                    elToClick = await driver
+                        .findElement(locator.notebook.explorerHost.scripts.exists)
+                        .findElement(locator.notebook.explorerHost.scripts.container)
+                        .findElement(locator.htmlTag.label)
+                    elToVerify = await driver
+                        .findElement(locator.notebook.explorerHost.scripts.exists)
+                        .findElements(locator.notebook.explorerHost.scripts.table);
                     if (elToVerify.length === 0) {
-                        elToVerify = await driver.findElement(
-                            By.id("scriptSectionHost")).findElement(By.css(".accordionItem"));
+                        elToVerify = await driver
+                            .findElement(locator.notebook.explorerHost.scripts.exists)
+                            .findElement(locator.notebook.explorerHost.scripts.item);
                     } else {
                         elToVerify = elToVerify[0];
                     }
@@ -892,7 +886,7 @@ export class DBConnection {
      * @returns A promise resolving when the scroll is made
      */
     public static promptScrollDown = async (driver: WebDriver): Promise<void> => {
-        const el = await driver.findElement(By.css(".codeEditor .monaco-scrollable-element"));
+        const el = await driver.findElement(locator.notebook.codeEditor.scroll);
         await driver.executeScript("arguments[0].scrollBy(0, 5000)", el);
     };
 
@@ -905,9 +899,11 @@ export class DBConnection {
         let text: String;
         try {
             await DBConnection.promptScrollDown(driver);
-            const context = await driver.findElement(By.css(".monaco-editor-background"));
-            const prompts = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
-            const lastPrompt = await prompts[prompts.length - 1].findElement(By.css("span > span"));
+            const context = await driver.findElement(locator.notebook.codeEditor.editor.exists);
+            const prompts = await context.findElements(locator.notebook.codeEditor.editor.editorPrompt);
+            const lastPrompt = await prompts[prompts.length - 1]
+                .findElement(locator.htmlTag.span)
+                .findElement(locator.htmlTag.span);
             text = await lastPrompt.getText();
         } catch (e) {
             if (e instanceof Error) {
@@ -915,10 +911,12 @@ export class DBConnection {
                     throw new Error(String(e.stack));
                 } else {
                     await driver.sleep(500);
-                    const context = await driver.findElement(By.css(".monaco-editor-background"));
+                    const context = await driver.findElement(locator.notebook.codeEditor.editor.exists);
                     const prompts = await context
-                        .findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
-                    const lastPrompt = await prompts[prompts.length - 1].findElement(By.css("span > span"));
+                        .findElements(locator.notebook.codeEditor.editor.editorPrompt);
+                    const lastPrompt = await prompts[prompts.length - 1]
+                        .findElement(locator.htmlTag.span)
+                        .findElement(locator.htmlTag.span);
                     text = await lastPrompt.getText();
                 }
             }
@@ -934,9 +932,9 @@ export class DBConnection {
      * @returns A promise resolving with the Id
      */
     public static getLastQueryResultId = async (driver: WebDriver): Promise<number> => {
-        const zoneHosts = await driver.findElements(By.css(".zoneHost"));
+        const zoneHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
         if (zoneHosts.length > 0) {
-            const zones = await driver.findElements(By.css(".zoneHost"));
+            const zones = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
 
             return parseInt((await zones[zones.length - 1].getAttribute("monaco-view-zone")).match(/\d+/)![0], 10);
         } else {
@@ -954,10 +952,10 @@ export class DBConnection {
         let toReturn = "";
         await driver.wait(async () => {
             try {
-                const resultHost = await driver.findElements(By.css(".resultHost"));
+                const resultHost = await driver.findElements(locator.notebook.codeEditor.editor.result.host);
                 if (resultHost.length > 0) {
                     const content = await resultHost[0]
-                        .findElements(By.css(".resultStatus .label,.actionOutput span > span"));
+                        .findElements(locator.notebook.codeEditor.editor.result.anyResult);
 
                     if (content.length) {
                         toReturn = await content[0].getAttribute("innerHTML");
@@ -983,8 +981,8 @@ export class DBConnection {
      * @returns A promise resolving when the click is made
      */
     public static clickAdminItem = async (driver: WebDriver, item: string): Promise<void> => {
-        const els = await driver.wait(until.elementsLocated(By.css("#adminSectionHost .accordionItem .label")),
-            explicitWait, "Admin items not found");
+        const els = await driver.wait(until.elementsLocated(locator.notebook.explorerHost.administration.itemToClick),
+            explicitWait, "Admin section not found");
         for (const el of els) {
             const label = await el.getText();
             if (label === item) {
@@ -1002,8 +1000,8 @@ export class DBConnection {
      * @returns A promise resolving whith the editor
      */
     public static getCurrentEditor = async (driver: WebDriver): Promise<string> => {
-        const selector = await driver.findElement(By.id("documentSelector"));
-        const label = await selector.findElement(By.css("label"));
+        const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
+        const label = await selector.findElement(locator.htmlTag.label);
 
         return label.getText();
     };
@@ -1015,13 +1013,12 @@ export class DBConnection {
      * @returns A promise resolving when the select is made
      */
     public static selectEditor = async (driver: WebDriver, editor: string): Promise<void> => {
-        const selector = await driver.findElement(By.id("documentSelector"));
+        const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
         await selector.click();
-        const list = await driver.findElement(By.css(".dropdownList"));
-        const items = await list.findElements(By.css(".dropdownItem"));
+        const items = await driver.findElements(locator.notebook.toolbar.editorSelector.items);
 
         for (const item of items) {
-            const label = await item.findElement(By.css("label"));
+            const label = await item.findElement(locator.htmlTag.label);
             const text = await label.getAttribute("innerHTML");
             if (text === editor) {
                 await item.click();
@@ -1043,10 +1040,10 @@ export class DBConnection {
             try {
                 await driver.executeScript(
                     "arguments[0].click()",
-                    await driver.findElement(By.id("addConsole")),
+                    await driver.findElement(locator.notebook.explorerHost.openEditors.addConsole),
                 );
 
-                const input = await driver.wait(until.elementLocated(By.css("#editorSectionHost input")),
+                const input = await driver.wait(until.elementLocated(locator.notebook.explorerHost.openEditors.textBox),
                     explicitWait, "Editor host input was not found");
 
                 await input.sendKeys(Key.ESCAPE);

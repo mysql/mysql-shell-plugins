@@ -21,11 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, WebElement, WebDriver } from "selenium-webdriver";
+import { WebElement, WebDriver } from "selenium-webdriver";
 import { basename } from "path";
 import { GuiConsole } from "../../lib/guiConsole.js";
 import { IDBConnection, Misc, explicitWait } from "../../lib/misc.js";
 import { ShellSession } from "../../lib/shellSession.js";
+import * as locator from "../../lib/locators.js";
 
 let driver: WebDriver;
 const filename = basename(__filename);
@@ -68,15 +69,15 @@ describe("Sessions", () => {
                 }
             }, explicitWait * 4, "Home Page was not loaded");
 
-            await driver.findElement(By.id("gui.shell")).click();
+            await driver.findElement(locator.shellPage.icon).click();
             await GuiConsole.openSession(driver);
-            const editor = await driver.findElement(By.id("shellEditorHost"));
+            const editor = await driver.findElement(locator.shellSession.exists);
             await driver.executeScript(
                 "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
+                await editor.findElement(locator.shellSession.currentLine),
             );
 
-            textArea = await editor.findElement(By.css("textArea"));
+            textArea = await editor.findElement(locator.shellSession.textArea);
 
             let uri = `\\c ${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
             uri += `${String(globalConn.portX)}/${globalConn.schema}`;
@@ -133,7 +134,7 @@ describe("Sessions", () => {
 
     it("Verify help command", async () => {
         try {
-            textArea = await driver.findElement(By.css("textarea"));
+            textArea = await driver.findElement(locator.shellSession.textArea);
             await Misc.execCmd(driver, textArea, "\\h");
             await ShellSession.waitForResult(driver, "Displays the main SQL help categories");
         } catch (e) {
