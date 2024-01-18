@@ -84,6 +84,24 @@ export class DBConnection {
     };
 
     /**
+     * Clicks on a toolbar button and waits for the button to be active again.
+     * Throws an exception if the button is not found.
+     * @param driver The webdriver
+     * @param button Toolbar button tooltip
+     * @returns Promise resolving with the Toolbar button
+     */
+    public static clickToolbarButton = async (driver: WebDriver, button: string): Promise<void> => {
+        const toolbarButton = await DBConnection.getToolbarButton(driver, button);
+        await toolbarButton?.click();
+        await driver.wait(async () => {
+            return (await toolbarButton?.getAttribute("class"))?.includes("disabled");
+        }, explicitWait, `The button ${button} should be disabled after clicking it`);
+        await driver.wait(async () => {
+            return (await toolbarButton?.getAttribute("class"))?.includes("disabled") === false;
+        }, explicitWait, `The button ${button} should be enabled`);
+    };
+
+    /**
      * Returns the result status of a query or instruction on the DB Editor
      *
      * @param isSelect if the expected result is from a select statement
