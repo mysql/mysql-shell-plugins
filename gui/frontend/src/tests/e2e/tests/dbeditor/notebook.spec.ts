@@ -283,30 +283,14 @@ describe("Notebook", () => {
             await textArea.sendKeys(Key.RETURN);
             await DBConnection.writeSQL(driver, query3);
             await DBNotebooks.setMouseCursorAt(driver, query2);
-
-            let execCaretBtn = await DBConnection.getToolbarButton(driver, execCaret);
-            await execCaretBtn?.click();
-            await driver.wait(async () => {
-                await execCaretBtn?.click();
-
-                return DBConnection.getResultColumnName(driver, "address_id") !== undefined;
-            }, 3000, "No new results block was displayed");
-
+            await DBConnection.clickToolbarButton(driver, execCaret);
+            expect(await DBConnection.getResultColumnName(driver, "address_id")).toBeDefined();
             await DBNotebooks.setMouseCursorAt(driver, query1);
-            execCaretBtn = await DBConnection.getToolbarButton(driver, execCaret);
-            await driver.wait(new Condition("", async () => {
-                await execCaretBtn?.click();
-
-                return await DBConnection.getResultColumnName(driver, "actor_id") !== undefined;
-            }), explicitWait, "actor_id column was not found");
-
+            await DBConnection.clickToolbarButton(driver, execCaret);
+            expect(await DBConnection.getResultColumnName(driver, "actor_id")).toBeDefined();
             await DBNotebooks.setMouseCursorAt(driver, query3);
-            execCaretBtn = await DBConnection.getToolbarButton(driver, execCaret);
-            await driver.wait(new Condition("", async () => {
-                await execCaretBtn?.click();
-
-                return await DBConnection.getResultColumnName(driver, "category_id") !== undefined;
-            }), explicitWait, "category_id column was not found");
+            await DBConnection.clickToolbarButton(driver, execCaret);
+            expect(await DBConnection.getResultColumnName(driver, "category_id")).toBeDefined();
         } catch (e) {
             testFailed = true;
             throw e;
