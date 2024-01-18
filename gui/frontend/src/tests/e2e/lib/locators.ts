@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By } from "selenium-webdriver";
+import { By, Locator } from "selenium-webdriver";
 
 // DATABASE CONNECTION CONFIGURATION
 export const databaseConnectionConfiguration = {
@@ -77,6 +77,7 @@ export const dbConnections = {
     },
     newConnection: By.id("-1"),
     title: By.id("title"),
+    tab: By.id("connections"),
     tabName: By.css("#connections > label"),
     connections: {
         caption: By.className("tileCaption"),
@@ -113,7 +114,10 @@ export const notebook = {
             currentValue: By.css("label"),
             currentIcon: By.className("icon"),
             currentImage: By.css("img"),
+            items: By.css("div.visible.dropdownList > div"),
+            iconType: By.css(".msg.icon")
         },
+        button: By.className("button")
     },
     codeEditor: {
         textArea: By.css("textarea"),
@@ -139,8 +143,26 @@ export const notebook = {
                     column: By.css("rect"),
                 },
                 singleOutput: By.className("outputHost"),
+                info: By.css(".message.info"),
+                tabSection: {
+                    tabs: By.css(".resultHost .tabArea div"),
+                },
+                text: {
+                    exists: By.css(".textHost span"),
+                    entry: By.css(".entry > span"),
+                    info: By.className("info")
+                },
+                anyResult: By.css(".resultStatus .label,.actionOutput span > span"),
             },
-        }
+            promptLine: By.css(".margin-view-overlays > div"),
+            editorLine: By.css(".view-lines.monaco-mouse-cursor-text > div > span"),
+            editorPrompt: By.css(".view-lines.monaco-mouse-cursor-text .view-line"),
+            statementStart: By.className("statementStart")
+        },
+        prompt: {
+            current: By.className("editorPromptFirst"),
+        },
+        scroll: By.css(".codeEditor .monaco-scrollable-element")
     },
     explorerHost: {
         exists: By.id("explorerHost"),
@@ -150,38 +172,71 @@ export const notebook = {
             addConsole: By.id("addConsole"),
             textBox: By.css("#editorSectionHost input"),
             close: By.css("span.codicon-close"),
+            item: By.css("div.accordionItem.closable")
         },
         schemas: {
             exists: By.id("schemaSectionHost"),
             container: By.css("div.container.section"),
             default: By.css("#schemaSectionHost div.marked label"),
             treeToggle: By.css("span.treeToggle"),
+            scroll: By.css("#schemaSectionHost .tabulator-tableholder"),
+            objectByLevel: (level: number): By => {
+                return By.css(`.tabulator-table .tabulator-tree-level-${level}`)
+            },
+            object: By.css(".schemaTreeEntry label"),
+            table: By.className("tabulator-table")
         },
         administration: {
             exists: By.id("adminSectionHost"),
-            scrollBar: By.className("fixedScrollbar")
+            container: By.css("div.container.section"),
+            scrollBar: By.className("fixedScrollbar"),
+            item: By.className("accordionItem"),
+            itemToClick: By.css("#adminSectionHost .accordionItem .label")
         },
         scripts: {
             exists: By.id("scriptSectionHost"),
             container: By.css("div.container.section"),
+            script: By.css("div.tabulator-row"),
+            object: By.css(".schemaTreeEntry label"),
+            objectImage: By.css(".schemaTreeEntry img"),
+            addScript: By.id("addScript"),
+            contextMenu: {
+                exists: By.css("div.visible.noArrow.menu"),
+                addJSScript: By.id("addJSScript"),
+                addTSScript: By.id("addTSScript"),
+                addSQLScript: By.id("addSQLScript"),
+            },
+            table: By.className("tabulator-table"),
+            item: By.className("accordionItem")
         }
     },
     serverStatus: {
         tableCells: By.css("#statusBoxHost .gridCell")
+    },
+    connectionTab: {
+        exists: By.className("hasAuxillary"),
+        opened: By.css(".hasAuxillary.selected"),
+        close: By.css("#auxillary .closeButton"),
     }
 }
 
 export const findWidget = {
     exists: By.className("find-widget"),
+    isVisible: By.css(".find-widget.visible"),
     textArea: By.css("textarea"),
     matchesCount: By.className("matchesCount"),
     findMatch: By.css(".cdr.findMatch"),
     replacePart: By.className("replace-part"),
+    actions: By.css(".find-actions div"),
+    close: By.xpath(".//div[contains(@title, 'Close')]"),
+    replacerActions: By.css(".replace-actions div"),
 }
 
 export const htmlTag = {
     label: By.css("label"),
     span: By.css("span"),
+    div: By.css("div"),
+    img: By.css("img"),
 };
 
 export const adminPage = {
@@ -195,6 +250,7 @@ export const adminPage = {
 
 export const shellPage = {
     icon: By.id("gui.shell"),
+    guiConsoleTab: By.id("sessions"),
     title: By.css("#shellModuleHost #title"),
     links: {
         learnMore: By.linkText("Learn More >"),
@@ -202,7 +258,17 @@ export const shellPage = {
         readDocs: By.linkText("Read Docs >"),
     },
     contentTitle: By.css("#shellModuleHost #contentTitle"),
+    sessions: {
+        caption: By.className("tileCaption")
+    }
 };
+
+export const shellSession = {
+    exists: By.id("shellEditorHost"),
+    currentLine: By.className("current-line"),
+    textArea: By.css("textArea"),
+    schemaTabSelector: By.id("schema"),
+}
 
 export const sqlEditorPage = {
     icon: By.id("gui.sqleditor"),
@@ -276,4 +342,9 @@ export const errorPanel = {
     exists: By.css(".visible.errorPanel"),
     title: By.css(".title label"),
     content: By.css(".content label")
+}
+
+export const passwordDialog = {
+    exists: By.css(".passwordDialog"),
+    cancel: By.id("cancel")
 }

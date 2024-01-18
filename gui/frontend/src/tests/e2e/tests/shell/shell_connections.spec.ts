@@ -21,11 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, WebElement, until, WebDriver } from "selenium-webdriver";
+import { WebElement, until, WebDriver } from "selenium-webdriver";
 import { basename } from "path";
 import { GuiConsole } from "../../lib/guiConsole.js";
 import { IDBConnection, Misc, explicitWait } from "../../lib/misc.js";
 import { ShellSession } from "../../lib/shellSession.js";
+import * as locator from "../../lib/locators.js";
 
 let driver: WebDriver;
 const filename = basename(__filename);
@@ -68,7 +69,7 @@ describe("MySQL Shell Connections", () => {
                 }
             }, explicitWait * 4, "Home Page was not loaded");
 
-            await driver.findElement(By.id("gui.shell")).click();
+            await driver.findElement(locator.shellPage.icon).click();
             await GuiConsole.openSession(driver);
         } catch (e) {
             await Misc.storeScreenShot(driver, "beforeAll_ShellConnections");
@@ -77,7 +78,7 @@ describe("MySQL Shell Connections", () => {
     });
 
     beforeEach(async () => {
-        editor = await driver.findElement(By.id("shellEditorHost"));
+        editor = await driver.findElement(locator.shellSession.exists);
     });
 
     afterEach(async () => {
@@ -96,44 +97,31 @@ describe("MySQL Shell Connections", () => {
         try {
             await driver.executeScript(
                 "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
+                await editor.findElement(locator.shellSession.currentLine),
             );
-
-            const textArea = await editor.findElement(By.css("textArea"));
-
+            const textArea = await editor.findElement(locator.shellSession.textArea);
             await Misc.execCmd(driver,
                 textArea,
                 `\\c ${globalConn.username}:${globalConn.password}@${globalConn.hostname}:${String(globalConn.port)}`);
-
             let uri = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
             uri += `${String(globalConn.port)}`;
-
             await ShellSession.waitForResult(driver, uri);
-
             await ShellSession.waitForResult(driver, "No default schema selected");
-
             let text = `Connection to server ${globalConn.hostname} at port ${String(globalConn.port)}`;
             text += `, using the classic protocol`;
-
             await ShellSession.waitForConnectionTabValue(driver, "server", text);
             await ShellSession.waitForConnectionTabValue(driver, "schema", "no schema selected");
-
             await driver.executeScript(
                 "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
+                await editor.findElement(locator.shellSession.currentLine),
             );
 
-            const schemaLabel = await driver.findElement(By.id("schema")).getText();
+            const schemaLabel = await driver.findElement(locator.shellSession.schemaTabSelector).getText();
             expect(schemaLabel.substring(1).trim()).toBe("no schema selected");
-
             await ShellSession.changeSchemaOnTab(driver, "world_x_cst");
-
             await ShellSession.waitForResult(driver, "Default schema set to `world_x_cst`.");
-
             await ShellSession.changeSchemaOnTab(driver, "sakila");
-
             await ShellSession.waitForResult(driver, "Default schema set to `sakila`.");
-
         } catch (e) {
             testFailed = true;
             throw e;
@@ -142,31 +130,24 @@ describe("MySQL Shell Connections", () => {
 
     it("Connect to host", async () => {
         try {
-
             await driver.executeScript(
                 "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
+                await editor.findElement(locator.shellSession.currentLine),
             );
 
-            const textArea = await editor.findElement(By.css("textArea"));
-
+            const textArea = await editor.findElement(locator.shellSession.textArea);
             let uri = `\\c ${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
             uri += `${globalConn.port}/${globalConn.schema}`;
-
             await Misc.execCmd(driver, textArea, uri);
             let toCheck = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
             toCheck += `${globalConn.port}/${globalConn.schema}'`;
-
             await ShellSession.waitForResult(driver, toCheck);
             await ShellSession.waitForResult(driver, /Server version: (\d+).(\d+).(\d+)/);
             await ShellSession.waitForResult(driver, `Default schema set to \`${globalConn.schema}\`.`);
-
             toCheck = `Connection to server ${globalConn.hostname} at port ${globalConn.port}`;
             toCheck += `, using the classic protocol`;
-
             await ShellSession.waitForConnectionTabValue(driver, "server", toCheck);
             await ShellSession.waitForConnectionTabValue(driver, "schema", globalConn.schema);
-
         } catch (e) {
             testFailed = true;
             throw e;
@@ -196,19 +177,16 @@ describe("MySQL Shell Connections", () => {
 
             await driver.executeScript(
                 "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
+                await editor.findElement(locator.shellSession.currentLine),
             );
 
-            const textArea = await editor.findElement(By.css("textArea"));
-
+            const textArea = await editor.findElement(locator.shellSession.textArea);
             await Misc.execCmd(driver,
                 textArea,
                 `\\c ${localConn.username}@${localConn.hostname}/${localConn.schema}`);
-
-            const dialog = await driver.wait(until.elementLocated(By.css(".passwordDialog")),
+            const dialog = await driver.wait(until.elementLocated(locator.passwordDialog.exists),
                 500, "No Password dialog was found");
-
-            await dialog.findElement(By.id("cancel")).click();
+            await dialog.findElement(locator.passwordDialog.cancel).click();
 
         } catch (e) {
             testFailed = true;
@@ -218,32 +196,23 @@ describe("MySQL Shell Connections", () => {
 
     it("Using shell global variable", async () => {
         try {
-
             await driver.executeScript(
                 "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
+                await editor.findElement(locator.shellSession.currentLine),
             );
-
-            const textArea = await editor.findElement(By.css("textArea"));
-
+            const textArea = await editor.findElement(locator.shellSession.textArea);
             let uri = `shell.connect('${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
             uri += `${String(globalConn.portX)}/${globalConn.schema}')`;
-
             await Misc.execCmd(driver, textArea, uri);
-
             uri = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
             uri += `${String(globalConn.portX)}/${globalConn.schema}'`;
-
             await ShellSession.waitForResult(driver, uri);
             await ShellSession.waitForResult(driver, /Server version: (\d+).(\d+).(\d+)/);
             await ShellSession.waitForResult(driver, `Default schema \`${globalConn.schema}\` accessible through db`);
-
             let toCheck = `Connection to server ${globalConn.hostname} at port ${String(globalConn.portX)}`;
             toCheck += `, using the X protocol`;
-
             await ShellSession.waitForConnectionTabValue(driver, "server", toCheck);
             await ShellSession.waitForConnectionTabValue(driver, "schema", globalConn.schema);
-
             await Misc.execCmd(driver, textArea, "shell.status()");
             await ShellSession.waitForResult(driver, /MySQL Shell version (\d+).(\d+).(\d+)/);
             await ShellSession.waitForResult(driver, `"CONNECTION":"${globalConn.hostname} via TCP/IP"`);
@@ -258,12 +227,11 @@ describe("MySQL Shell Connections", () => {
 
     it("Using mysql mysqlx global variable", async () => {
         try {
-
             await driver.executeScript(
                 "arguments[0].click();",
-                await editor.findElement(By.css(".current-line")),
+                await editor.findElement(locator.shellSession.currentLine),
             );
-            const textArea = await editor.findElement(By.css("textArea"));
+            const textArea = await editor.findElement(locator.shellSession.textArea);
             const cmd = `mysql.getClassicSession('${globalConn.username}:${globalConn.password}
             @${globalConn.hostname}:${globalConn.port}/${globalConn.schema}')`;
             await Misc.execCmd(driver, textArea, cmd.replace(/ /g, ""));
