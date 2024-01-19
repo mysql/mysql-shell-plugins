@@ -21,7 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, Key, WebElement, WebDriver } from "selenium-webdriver";
+import { Key, WebElement, WebDriver, error } from "selenium-webdriver";
+import * as locator from "../lib/locators.js";
+import { explicitWait } from "./misc.js";
 
 export class ThemeEditor {
 
@@ -32,9 +34,9 @@ export class ThemeEditor {
      * @returns Promise resolving when the select is made
      */
     public static selectAppColorTheme = async (driver: WebDriver, theme: string): Promise<void> => {
-        await driver.findElement(By.id("theming.currentTheme")).click();
-        const dropDownList = await driver.findElement(By.css(".dropdownList"));
-        await dropDownList.findElement(By.id(theme)).click();
+        await driver.findElement(locator.themeEditorPage.themeSelectorArea.selector).click();
+        const dropDownList = await driver.findElement(locator.themeEditorPage.themeSelectorArea.selectorList);
+        await dropDownList.findElement(locator.searchById(theme)).click();
     };
 
     /**
@@ -51,43 +53,43 @@ export class ThemeEditor {
             return (await tab.getAttribute("class")).includes("expanded");
         };
 
-        const themeTabView = await driver.findElement(By.id("themeTabview"));
+        const themeTabView = await driver.findElement(locator.themeEditorPage.themeEditorTabs.container);
 
         if (scroll) {
             await driver.executeScript("arguments[0].scrollBy(0,500)",
-                await driver.findElement(By.css("#themeTabview .tabulator-tableholder")));
+                await themeTabView.findElement(locator.themeEditorPage.themeEditorTabs.scroll));
         }
 
         await driver.wait(async () => {
-            const els = await themeTabView.findElements(By.css(".tabulator-tableholder .tabulator-selectable"));
+            const els = await themeTabView.findElements(locator.themeEditorPage.themeEditorTabs.tabElements);
 
             try {
-                await els[0].findElement(By.css("label")).getText();
+                await els[0].findElement(locator.htmlTag.label).getText();
 
                 return true;
             } catch (e) {
                 return false;
             }
-        }, 5000, "Elements are stale");
+        }, explicitWait, "Elements are stale");
 
         const toggle = async () => {
             const uiColorsItems = await themeTabView
-                .findElements(By.css(".tabulator-tableholder .tabulator-selectable"));
+                .findElements(locator.themeEditorPage.themeEditorTabs.tabElements);
             for (let i = 0; i <= uiColorsItems.length - 1; i++) {
-                if (await uiColorsItems[i].findElement(By.css("label")).getText() === menu) { //base colors
+                if (await uiColorsItems[i].findElement(locator.htmlTag.label).getText() === menu) { //base colors
                     await driver.executeScript("arguments[0].scrollIntoView(true)",
-                        await uiColorsItems[i].findElement(By.css("label")));
+                        await uiColorsItems[i].findElement(locator.htmlTag.label));
                     if (action === "open") {
                         if (!(await isTabOpened(uiColorsItems[i]))) {
                             await driver.wait(async () => {
-                                await uiColorsItems[i].findElement(By.css(".treeToggle")).click();
+                                await uiColorsItems[i].findElement(locator.themeEditorPage.themeEditorTabs.toggleElement).click();
 
                                 return isTabOpened(uiColorsItems[i]);
                             }, 3000, `${menu} did not open`);
                         }
                     } else {
                         if (await isTabOpened(uiColorsItems[i])) {
-                            await uiColorsItems[i].findElement(By.css(".treeToggle")).click();
+                            await uiColorsItems[i].findElement(locator.themeEditorPage.themeEditorTabs.toggleElement).click();
                         }
                     }
                     break;
@@ -98,12 +100,10 @@ export class ThemeEditor {
         try {
             await toggle();
         } catch (e) {
-            if (e instanceof Error) {
-                if (e.message.indexOf("StaleElementReferenceError") === -1) {
-                    await toggle();
-                } else {
-                    throw e;
-                }
+            if (!(e instanceof error.StaleElementReferenceError)) {
+                throw e;
+            } else {
+                await toggle();
             }
         }
     };
@@ -123,17 +123,17 @@ export class ThemeEditor {
         };
 
         const check = async () => {
-            const themeTabView = await driver.findElement(By.id("themeTabview"));
-            const scrollBar = await driver.findElement(By.css("#themeTabview .tabulator-tableholder"));
+            const themeTabView = await driver.findElement(locator.themeEditorPage.themeEditorTabs.container);
+            const scrollBar = await driver.findElement(locator.themeEditorPage.themeEditorTabs.scroll);
             if (scroll) {
                 await driver.executeScript("arguments[0].scrollBy(0,500)", scrollBar);
             }
             const uiColorsItems = await themeTabView
-                .findElements(By.css(".tabulator-tableholder .tabulator-selectable"));
+                .findElements(locator.themeEditorPage.themeEditorTabs.tabElements);
             for (let i = 0; i <= uiColorsItems.length - 1; i++) {
-                if (await uiColorsItems[i].findElement(By.css("label")).getText() === menuName) { //base colors
+                if (await uiColorsItems[i].findElement(locator.htmlTag.label).getText() === menuName) { //base colors
                     await driver.executeScript("arguments[0].scrollIntoView(true)",
-                        await uiColorsItems[i].findElement(By.css("label")));
+                        await uiColorsItems[i].findElement(locator.htmlTag.label));
 
                     return isTabOpened(uiColorsItems[i]);
                 }
@@ -151,14 +151,12 @@ export class ThemeEditor {
 
             return result;
         } catch (e) {
-            if (e instanceof Error) {
-                if (e.message.indexOf("StaleElementReferenceError") === -1) {
-                    const result = await check();
+            if (e instanceof error.StaleElementReferenceError) {
+                const result = await check();
 
-                    return result;
-                } else {
-                    throw e;
-                }
+                return result;
+            } else {
+                throw e;
             }
         }
     };
@@ -180,9 +178,9 @@ export class ThemeEditor {
 
         const openColorPad = async () => {
             await driver.wait(async () => {
-                await driver.findElement(By.id(optionId)).click();
+                await driver.findElement(locator.searchById(optionId)).click();
 
-                return (await driver.findElements(By.css(".colorPopup"))).length > 0;
+                return (await driver.findElements(locator.themeEditorPage.themeSelectorArea.colorPopup)).length > 0;
             }, 3000, "Color Pallete was not opened");
         };
 
@@ -193,10 +191,11 @@ export class ThemeEditor {
             await openColorPad();
         }
 
-        const colorPopup = await driver.findElement(By.css(".colorPopup"));
-        await colorPopup.findElement(By.id(detail)).clear();
-        await colorPopup.findElement(By.id(detail)).sendKeys(value);
-        await colorPopup.findElement(By.id(detail)).sendKeys(Key.ESCAPE);
+        const colorPopup = await driver.findElement(locator.themeEditorPage.themeSelectorArea.colorPopup);
+        const colorPopupDetail = await colorPopup.findElement(locator.searchById(detail));
+        await colorPopupDetail.clear();
+        await colorPopupDetail.sendKeys(value);
+        await colorPopupDetail.sendKeys(Key.ESCAPE);
 
         await driver.wait(async () => {
             return !(await ThemeEditor.isUiColorsMenuExpanded(driver, sectionColors, scroll));
@@ -210,11 +209,11 @@ export class ThemeEditor {
      * @returns A promise resolving with the css value
      */
     public static getColorPadCss = async (driver: WebDriver, position: number): Promise<string> => {
-        const colors = await driver.findElements(By.css("#colorPadCell > div"));
+        const colors = await driver.findElements(locator.themeEditorPage.themeSelectorArea.colorPad.colors);
         await colors[position].click();
-        const colorPopup = await driver.findElement(By.css(".colorPopup"));
-        const value = await colorPopup.findElement(By.id("hexValueInput")).getAttribute("value");
-        await colorPopup.findElement(By.id("hexValueInput")).sendKeys(Key.ESCAPE);
+        const colorPopup = await driver.findElement(locator.themeEditorPage.themeSelectorArea.colorPopup);
+        const value = await colorPopup.findElement(locator.searchById("hexValueInput")).getAttribute("value");
+        await colorPopup.findElement(locator.searchById("hexValueInput")).sendKeys(Key.ESCAPE);
 
         return value;
     };

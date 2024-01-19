@@ -164,6 +164,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Connect to host", async () => {
             let connUri = `\\c ${username}:${password}@${hostname}:${port}/${schema}`;
+            await driver.wait(waitUntil.shellSessionIsOpened(shellConn), constants.wait15seconds);
             await commandExecutor.execute(connUri);
             connUri = `Creating a session to '${username}@${hostname}:${port}/${schema}'`;
             expect(commandExecutor.getResultMessage(), errors.queryResultError(connUri,

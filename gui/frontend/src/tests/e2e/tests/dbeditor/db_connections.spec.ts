@@ -168,7 +168,7 @@ describe("Database Connections", () => {
             await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).sendKeys("1.1.1.1");
             await DBNotebooks.setProtocol(driver, "mysqlx");
 
-            expect(await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol).getText()).toBe("mysqlx");
+            expect(await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol.exists).getText()).toBe("mysqlx");
 
             let okBtn = await driver.findElement(locator.databaseConnectionConfiguration.ok);
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
@@ -183,7 +183,10 @@ describe("Database Connections", () => {
             await DBNotebooks.clickConnectionItem(driver, host!, "edit");
             conDialog = await driver.findElement(locator.databaseConnectionConfiguration.exists);
             expect(
-                await conDialog.findElement(locator.databaseConnectionConfiguration.type).getText(),
+                await conDialog
+                    .findElement(locator.databaseConnectionConfiguration.databaseType.exists)
+                    .findElement(locator.htmlTag.label)
+                    .getText(),
             ).toBe("MySQL");
             expect(
                 await conDialog.findElement(locator.databaseConnectionConfiguration.caption).getAttribute("value"),
@@ -192,7 +195,7 @@ describe("Database Connections", () => {
                 await conDialog.findElement(locator.databaseConnectionConfiguration.description).getAttribute("value"),
             ).toBe("Another description");
 
-            expect(await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol).getText()).toBe("mysqlx");
+            expect(await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol.exists).getText()).toBe("mysqlx");
 
             expect(
                 await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).getAttribute("value"),

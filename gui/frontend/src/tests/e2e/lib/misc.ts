@@ -25,12 +25,12 @@ import { platform } from "os";
 import fs from "fs/promises";
 import { join } from "path";
 import {
-    By, until, Key, WebElement, Builder, WebDriver, error, Logs, logging, Browser, Capabilities,
+    until, Key, WebElement, Builder, WebDriver, error, Logs, logging, Browser,
 } from "selenium-webdriver";
-
-import { Options, ServiceBuilder, setDefaultService } from "selenium-webdriver/chrome.js";
+import { Options, ServiceBuilder } from "selenium-webdriver/chrome.js";
 import { DBConnection } from "./dbConnection.js";
 import { execFullBlockJs, execFullBlockSql } from "./dbNotebooks.js";
+import * as locator from "../lib/locators.js";
 
 const logger = logging.getLogger("webdriver");
 logging.installConsoleHandler();
@@ -187,9 +187,9 @@ export class Misc {
     public static waitForHomePage = async (driver: WebDriver, url: string, loginPage = false): Promise<void> => {
         await driver.get(url);
         if (loginPage) {
-            await driver.wait(until.elementLocated(By.id("loginDialogSakilaLogo")), 10000, "Sakila logo was not found");
+            await driver.wait(until.elementLocated(locator.loginPage.sakilaLogo), 10000, "Sakila logo was not found");
         } else {
-            await driver.wait(until.elementLocated(By.id("mainActivityBar")), 10000, "Activity bar was not found");
+            await driver.wait(until.elementLocated(locator.mainActivityBar), 10000, "Activity bar was not found");
         }
     }
 
@@ -249,7 +249,7 @@ export class Misc {
         slowWriting = false,
     ): Promise<void> => {
         cmd = cmd.replace(/(\r\n|\n|\r)/gm, "");
-        const prevBlocks = await driver.findElements(By.css(".zoneHost"));
+        const prevBlocks = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
         if (slowWriting === true) {
             const items = cmd.split("");
             for (const item of items) {
@@ -261,7 +261,7 @@ export class Misc {
         }
         await textArea.sendKeys(Key.ESCAPE);
         if (cmd.indexOf("\\") !== -1) {
-            const codeMenu = await driver.findElements(By.css("div.contents"));
+            const codeMenu = await driver.findElements(locator.notebook.codeEditor.suggestionsMenu);
             if (codeMenu.length > 0) {
                 await textArea.sendKeys(Key.ENTER);
             }
@@ -290,7 +290,7 @@ export class Misc {
 
         if (cmd.match(/(\\js|\\javascript|\\ts|\\typescript|\\sql|\\q|\\d)/) === null) {
             await driver.wait(async () => {
-                const blocks = await driver.findElements(By.css(".zoneHost"));
+                const blocks = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
                 if (prevBlocks.length > 0) {
                     if (blocks.length > 0) {
                         const viewZone = await blocks[blocks.length - 1].getAttribute("monaco-view-zone");
@@ -352,28 +352,28 @@ export class Misc {
      * @returns A promise resolving when the password is set
      */
     public static setPassword = async (driver: WebDriver, dbConfig: IDBConnection): Promise<void> => {
-        const dialog = await driver.wait(until.elementsLocated(By.css(".passwordDialog")),
+        const dialog = await driver.wait(until.elementsLocated(locator.passwordDialog.exists),
             500, "No Password dialog was found");
 
-        const title = await dialog[0].findElement(By.css(".title .label"));
-        const gridDivs = await dialog[0].findElements(By.css("div.grid > div"));
+        const title = await dialog[0].findElement(locator.passwordDialog.title);
+        const gridDivs = await dialog[0].findElements(locator.passwordDialog.items);
 
         let service;
         let username;
         for (let i = 0; i <= gridDivs.length - 1; i++) {
             if (await gridDivs[i].getText() === "Service:") {
-                service = await gridDivs[i + 1].findElement(By.css(".resultText span")).getText();
+                service = await gridDivs[i + 1].findElement(locator.passwordDialog.itemsText).getText();
             }
             if (await gridDivs[i].getText() === "User Name:") {
-                username = await gridDivs[i + 1].findElement(By.css(".resultText span")).getText();
+                username = await gridDivs[i + 1].findElement(locator.passwordDialog.itemsText).getText();
             }
         }
 
         expect(service).toBe(`${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}`);
         expect(username).toBe(dbConfig.username);
         expect(await title.getText()).toBe("Open MySQL Connection");
-        await dialog[0].findElement(By.css("input")).sendKeys(String(dbConfig.password));
-        await dialog[0].findElement(By.id("ok")).click();
+        await dialog[0].findElement(locator.htmlTag.input).sendKeys(String(dbConfig.password));
+        await dialog[0].findElement(locator.passwordDialog.ok).click();
     };
 
     /**
@@ -384,19 +384,19 @@ export class Misc {
      * @returns A promise resolving when the set is made
      */
     public static setConfirmDialog = async (driver: WebDriver, dbConfig: IDBConnection, value: string): Promise<void> => {
-        const confirmDialog = await driver.wait(until.elementsLocated(By.css(".confirmDialog")),
+        const confirmDialog = await driver.wait(until.elementsLocated(locator.confirmDialog.exists),
             explicitWait, "No confirm dialog was found");
 
-        expect(await confirmDialog[0].findElement(By.css(".title label")).getText()).toBe("Confirm");
+        expect(await confirmDialog[0].findElement(locator.confirmDialog.title).getText()).toBe("Confirm");
 
         let text = `Save password for '${String(dbConfig.username)}@${String(dbConfig.hostname)}:`;
         text += `${String(dbConfig.port)}'?`;
 
-        expect(await confirmDialog[0].findElement(By.id("dialogMessage")).getText()).toContain(text);
+        expect(await confirmDialog[0].findElement(locator.confirmDialog.message).getText()).toContain(text);
 
-        const noBtn = await confirmDialog[0].findElement(By.id("refuse"));
-        const yesBtn = await confirmDialog[0].findElement(By.id("accept"));
-        const neverBtn = await confirmDialog[0].findElement(By.id("alternative"));
+        const noBtn = await confirmDialog[0].findElement(locator.confirmDialog.refuse);
+        const yesBtn = await confirmDialog[0].findElement(locator.confirmDialog.accept);
+        const neverBtn = await confirmDialog[0].findElement(locator.confirmDialog.alternative);
 
         switch (value) {
             case "yes":
@@ -423,13 +423,13 @@ export class Misc {
      */
     public static setInputValue = async (driver: WebDriver, inputId: string,
         type: string | undefined, value: string): Promise<void> => {
-        let el = await driver.findElement(By.id(inputId));
+        let el = await driver.findElement(locator.searchById(inputId));
         const letters = value.split("");
         for (const letter of letters) {
             if (type) {
-                el = await driver.findElement(By.id(inputId)).findElement(By.css(type));
+                el = await driver.findElement(locator.searchById(inputId)).findElement(locator.searchByCss(type));
             } else {
-                el = await driver.findElement(By.id(inputId));
+                el = await driver.findElement(locator.searchById(inputId));
             }
             await el.sendKeys(letter);
         }
@@ -442,7 +442,7 @@ export class Misc {
      * @returns Promise resolving with the text on the selected line
      */
     public static getPromptTextLine = async (driver: WebDriver, prompt: string): Promise<String> => {
-        const context = await driver.findElement(By.css(".monaco-editor-background"));
+        const context = await driver.findElement(locator.notebook.codeEditor.editor.exists);
 
         let position: number;
         let tags;
@@ -463,9 +463,10 @@ export class Misc {
         let sentence = "";
         await driver.wait(async () => {
             try {
-                const lines = await context.findElements(By.css(".view-lines.monaco-mouse-cursor-text .view-line"));
+                const lines = await context.findElements(locator.notebook.codeEditor.editor.editorPrompt);
+                const words = locator.htmlTag.mix(locator.htmlTag.span.value, locator.htmlTag.span.value)
                 if (lines.length > 0) {
-                    tags = await lines[lines.length - position].findElements(By.css("span > span"));
+                    tags = await lines[lines.length - position].findElements(words);
                     for (const tag of tags) {
                         sentence += (await tag.getText()).replace("&nbsp;", " ");
                     }
@@ -488,7 +489,7 @@ export class Misc {
      * @returns A promise resolving when the clean is made
      */
     public static cleanPrompt = async (driver: WebDriver): Promise<void> => {
-        const textArea = await driver.findElement(By.css("textarea"));
+        const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
         if (platform() === "win32") {
             await textArea
                 .sendKeys(Key.chord(Key.CONTROL, "a", "a"));
@@ -511,8 +512,8 @@ export class Misc {
     public static waitForEditorToStart = async (driver: WebDriver): Promise<void> => {
         const word = "it";
         const letters = word.split("").length;
-        const textArea = await driver.findElement(By.css("textarea"));
-        const promptLines = await driver.findElements(By.css("#contentHost .editorHost .view-line"));
+        const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+        const promptLines = await driver.findElements(locator.notebook.codeEditor.editor.line);
         await promptLines[promptLines.length - 1].click();
 
         await driver.wait(async () => {
@@ -522,7 +523,7 @@ export class Misc {
                 await driver.sleep(500);
             }
 
-            return (await driver.findElements(By.css(".statementStart"))).length > 1;
+            return (await driver.findElements(locator.notebook.codeEditor.editor.statementStart)).length > 1;
         }, 30000, "Editor did not started");
 
     };
