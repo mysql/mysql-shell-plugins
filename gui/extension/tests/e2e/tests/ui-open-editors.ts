@@ -82,6 +82,7 @@ describe("OPEN EDITORS", () => {
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
             await Workbench.dismissNotifications();
             await Workbench.toggleBottomBar(false);
+            await Workbench.removeAllDatabaseConnections();
             await Section.createDatabaseConnection(globalConn);
             await Workbench.closeAllEditors();
             await new BottomBarPanel().toggle(false);
@@ -97,10 +98,7 @@ describe("OPEN EDITORS", () => {
     after(async function () {
         try {
             await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
-            const dbConnections = await Tree.getDatabaseConnections();
-            for (const dbConnection of dbConnections) {
-                await Tree.deleteDatabaseConnection(dbConnection.name, dbConnection.isMySQL, false);
-            }
+            await Workbench.removeAllDatabaseConnections();
         } catch (e) {
             await Misc.processFailure(this);
             throw e;

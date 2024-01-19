@@ -498,4 +498,15 @@ export class Workbench {
         await (await new ActivityBar().getViewControl(constants.extensionName))?.openView();
     };
 
+    /**
+     * Removes all existing database connections from the DATABASE CONNECTIONS section
+     * @returns A promise resolving when all connections are deleted
+     */
+    public static removeAllDatabaseConnections = async (): Promise<void> => {
+        const dbConnections = await Tree.getDatabaseConnections();
+        await Workbench.closeAllEditors();
+        for (const dbConnection of dbConnections) {
+            await Tree.deleteDatabaseConnection(dbConnection.name, dbConnection.isMySQL, false);
+        }
+    };
 }
