@@ -90,7 +90,8 @@ describe("Notebook", () => {
             await Misc.storeScreenShot(driver, "beforeAll_Notebook");
             throw e;
         }
-        await driver.wait(until.elementLocated(locator.notebook.toolbar.exists), explicitWait * 2, "Notebook was not loaded");
+        await driver.wait(until.elementLocated(locator.notebook.toolbar.exists), explicitWait * 2,
+            "Notebook was not loaded");
 
     });
 
@@ -748,7 +749,8 @@ Graph.render(options);
 
             await Misc.execCmd(driver, textArea, cmd.trim(), undefined, true, false);
             const pieChart = await DBConnection.getGraphHost(driver);
-            const chartColumns = await pieChart.findElements(locator.notebook.codeEditor.editor.result.graphHost.column);
+            const chartColumns = await pieChart
+                .findElements(locator.notebook.codeEditor.editor.result.graphHost.column);
             for (const col of chartColumns) {
                 expect(parseInt(await col.getAttribute("width"), 10)).toBeGreaterThan(0);
             }
@@ -813,12 +815,13 @@ Graph.render(options);
 
             const input = await driver.wait(until.elementLocated(locator.notebook.explorerHost.openEditors.textBox),
                 explicitWait, "Editor host input was not found");
-            await input.sendKeys(Key.BACK_SPACE)
+            await input.sendKeys(Key.BACK_SPACE);
             await input.sendKeys("myNewConsole");
             await input.sendKeys(Key.ENTER);
             expect(await DBConnection.getOpenEditor(driver, "myNewConsole")).toBeDefined();
             const documentSelector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
-            const currentValue = await documentSelector.findElement(locator.notebook.toolbar.editorSelector.currentValue);
+            const currentValue = await documentSelector
+                .findElement(locator.notebook.toolbar.editorSelector.currentValue);
             expect(await currentValue.getText()).toBe("myNewConsole");
             const currentIcon = documentSelector.findElement(locator.notebook.toolbar.editorSelector.currentIcon);
             expect(await currentIcon.getAttribute("style")).toContain("notebook");
@@ -904,7 +907,8 @@ Graph.render(options);
             }, explicitWait, "Result is not a valid json");
 
             const zoneHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
-            const outputHost = await zoneHosts[zoneHosts.length - 1].findElement(locator.notebook.codeEditor.editor.result.singleOutput);
+            const outputHost = await zoneHosts[zoneHosts.length - 1]
+                .findElement(locator.notebook.codeEditor.editor.result.singleOutput);
             const rect = await outputHost.getRect();
             await driver.actions().move({
                 x: rect.x,

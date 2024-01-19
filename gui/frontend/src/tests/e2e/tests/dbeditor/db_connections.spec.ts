@@ -165,10 +165,12 @@ describe("Database Connections", () => {
                 .sendKeys("Another description");
 
             await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).clear();
-            await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).sendKeys("1.1.1.1");
+            await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname)
+                .sendKeys("1.1.1.1");
             await DBNotebooks.setProtocol(driver, "mysqlx");
 
-            expect(await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol.exists).getText()).toBe("mysqlx");
+            expect(await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol.exists)
+                .getText()).toBe("mysqlx");
 
             let okBtn = await driver.findElement(locator.databaseConnectionConfiguration.ok);
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
@@ -195,10 +197,12 @@ describe("Database Connections", () => {
                 await conDialog.findElement(locator.databaseConnectionConfiguration.description).getAttribute("value"),
             ).toBe("Another description");
 
-            expect(await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol.exists).getText()).toBe("mysqlx");
+            expect(await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol.exists)
+                .getText()).toBe("mysqlx");
 
             expect(
-                await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).getAttribute("value"),
+                await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname)
+                    .getAttribute("value"),
             ).toBe("1.1.1.1");
 
             okBtn = await driver.findElement(locator.databaseConnectionConfiguration.ok);
@@ -236,13 +240,16 @@ describe("Database Connections", () => {
 
             expect(await error.getText()).toBe("The caption cannot be empty");
             await conDialog.findElement(locator.databaseConnectionConfiguration.caption).sendKeys("WexQA");
-            await customClear(await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname));
+            await customClear(await conDialog
+                .findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname));
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
             await okBtn.click();
             expect(await conDialog.findElement(locator.databaseConnectionConfiguration.errors).getText())
                 .toBe("Specify a valid host name or IP address");
-            await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).sendKeys("1.1.1.1");
-            await customClear(await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.username));
+            await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname)
+                .sendKeys("1.1.1.1");
+            await customClear(await conDialog
+                .findElement(locator.databaseConnectionConfiguration.mysql.basic.username));
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
             await driver.findElement(locator.databaseConnectionConfiguration.ok).click();
             expect(await conDialog.findElement(locator.databaseConnectionConfiguration.errors).getText())
@@ -286,7 +293,8 @@ describe("Database Connections", () => {
             );
             await driver.wait(
                 async () => {
-                    return (await driver.findElements(locator.dbConnections.existsByCaption(localConn.caption))).length === 0;
+                    return (await driver.findElements(locator.dbConnections
+                        .existsByCaption(localConn.caption))).length === 0;
                 },
                 2000,
                 `${localConn.caption} Database Connection still exists`,
@@ -346,7 +354,8 @@ describe("Database Connections", () => {
             }
 
             await dbPath.sendKeys(sqlitePath);
-            await newConDialog.findElement(locator.databaseConnectionConfiguration.sqlite.basic.dbName).sendKeys("SQLite");
+            await newConDialog.findElement(locator.databaseConnectionConfiguration.sqlite.basic.dbName)
+                .sendKeys("SQLite");
             await newConDialog.findElement(locator.databaseConnectionConfiguration.ok).click();
             const conn = await DBNotebooks.getConnection(driver, localConn.caption);
             expect(conn).toBeDefined();
@@ -357,7 +366,7 @@ describe("Database Connections", () => {
                 "arguments[0].click();",
                 conn,
             );
-            expect(await DBConnection.getSelectedConnectionTab(driver,)).toBe(localConn.caption);
+            expect(await DBConnection.getSelectedConnectionTab(driver)).toBe(localConn.caption);
             await DBConnection.toggleSchemaObject(driver, "Schema", "main");
             const main = await DBConnection.getSchemaObject(driver, "Schema", "main");
             const attr = await main!.getAttribute("class");
@@ -370,7 +379,7 @@ describe("Database Connections", () => {
                 ).getAttribute("class"),
             ).toContain("expanded");
 
-            await Misc.cleanPrompt(driver,);
+            await Misc.cleanPrompt(driver);
             const table = await DBConnection.getSchemaObject(driver, "obj", "db_connection");
             await driver.wait(async () => {
                 await driver
@@ -385,8 +394,10 @@ describe("Database Connections", () => {
 
             expect(await DBConnection.getResultStatus(driver, true)).toContain("OK");
             const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
-            const resultTableHeaders = await results[results.length - 1].findElement(locator.notebook.codeEditor.editor.result.tableHeaders);
-            const resultHeaderRows = await resultTableHeaders.findElements(locator.notebook.codeEditor.editor.result.tableColumnTitle);
+            const resultTableHeaders = await results[results.length - 1]
+                .findElement(locator.notebook.codeEditor.editor.result.tableHeaders);
+            const resultHeaderRows = await resultTableHeaders
+                .findElements(locator.notebook.codeEditor.editor.result.tableColumnTitle);
             expect(await resultHeaderRows[0].getText()).toBe("id");
             expect(await resultHeaderRows[1].getText()).toBe("db_type");
             expect(await resultHeaderRows[2].getText()).toBe("caption");
@@ -435,12 +446,15 @@ describe("Database Connections", () => {
                 .sendKeys(String(globalConn.schema));
 
             await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port).clear();
-            await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port).sendKeys(String(globalConn.port));
+            await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port)
+                .sendKeys(String(globalConn.port));
 
             await newConDialog.findElement(locator.databaseConnectionConfiguration.sslTab).click();
             await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.ssl.mode).click();
-            const dropDownList = await driver.findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeList.exists);
-            await dropDownList.findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeList.requireAndVerifyCA).click();
+            const dropDownList = await driver
+                .findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeList.exists);
+            await dropDownList
+                .findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeList.requireAndVerifyCA).click();
             expect(await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeLabel)
                 .getText()).toBe("Require and Verify CA");
 
@@ -470,14 +484,15 @@ describe("Database Connections", () => {
                 //continue
             }
 
-            expect(await DBConnection.getSelectedConnectionTab(driver,)).toBe(conName);
+            expect(await DBConnection.getSelectedConnectionTab(driver)).toBe(conName);
 
             await DBConnection.setEditorLanguage(driver, "mysql");
 
             let query = `select * from performance_schema.session_status where variable_name in `;
             query += `("ssl_cipher") and variable_value like "%TLS%"`;
 
-            await Misc.execCmd(driver, await driver.findElement(locator.notebook.codeEditor.textArea), query, undefined, true, true);
+            await Misc.execCmd(driver, await driver.findElement(locator.notebook.codeEditor.textArea),
+                query, undefined, true, true);
 
             const resultHost = await driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.host),
                 explicitWait, "Result host was not found");
