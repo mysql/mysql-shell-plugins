@@ -89,6 +89,7 @@ describe("NOTEBOOKS", () => {
         try {
             await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes);
             await Workbench.toggleBottomBar(false);
+            await Workbench.removeAllDatabaseConnections();
             await Section.createDatabaseConnection(globalConn);
             await (await DatabaseConnection.getConnection(globalConn.caption)).click();
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait10seconds);
@@ -105,10 +106,7 @@ describe("NOTEBOOKS", () => {
     after(async function () {
         try {
             await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
-            const dbConnections = await Tree.getDatabaseConnections();
-            for (const dbConnection of dbConnections) {
-                await Tree.deleteDatabaseConnection(dbConnection.name, dbConnection.isMySQL, false);
-            }
+            await Workbench.removeAllDatabaseConnections();
         } catch (e) {
             await Misc.processFailure(this);
             throw e;

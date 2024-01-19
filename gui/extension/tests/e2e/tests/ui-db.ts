@@ -93,6 +93,7 @@ describe("DATABASE CONNECTIONS", () => {
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
             await Workbench.dismissNotifications();
             await Workbench.toggleBottomBar(false);
+            await Workbench.removeAllDatabaseConnections();
             await Section.createDatabaseConnection(globalConn);
             await Workbench.closeAllEditors();
             await new BottomBarPanel().toggle(false);
@@ -110,11 +111,7 @@ describe("DATABASE CONNECTIONS", () => {
     after(async function () {
         try {
             await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
-            const dbConnections = await Tree.getDatabaseConnections();
-            await Workbench.closeAllEditors();
-            for (const dbConnection of dbConnections) {
-                await Tree.deleteDatabaseConnection(dbConnection.name, dbConnection.isMySQL, false);
-            }
+            await Workbench.removeAllDatabaseConnections();
         } catch (e) {
             await Misc.processFailure(this);
             throw e;

@@ -74,6 +74,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         try {
             await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes);
             await Workbench.toggleBottomBar(false);
+            await Workbench.removeAllDatabaseConnections();
             await Section.focus(constants.ociTreeSection);
             const treeOCISection = await Section.getSection(constants.ociTreeSection);
             await Section.clickToolbarButton(treeOCISection, constants.configureOci);
@@ -91,6 +92,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     after(async function () {
         try {
             await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
+            await Workbench.removeAllDatabaseConnections();
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -364,20 +366,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const treeTasksSection = await Section.getSection(constants.tasksTreeSection);
             await treeTasksSection?.collapse();
 
-        });
-
-        after(async function () {
-            try {
-                await Workbench.closeAllEditors();
-                await Section.focus(constants.dbTreeSection);
-                const dbConnections = await Tree.getDatabaseConnections();
-                for (const dbConnection of dbConnections) {
-                    await Tree.deleteDatabaseConnection(dbConnection.name, dbConnection.isMySQL, false);
-                }
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
         });
 
         it("Get Bastion Information and set it as current", async () => {
