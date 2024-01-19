@@ -21,7 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, until, WebElement, WebDriver } from "selenium-webdriver";
+import { until, WebElement, WebDriver, error } from "selenium-webdriver";
+import * as locator from "../lib/locators.js";
 
 export class GuiConsole {
 
@@ -35,7 +36,7 @@ export class GuiConsole {
      */
     public static openSession = async (driver: WebDriver, id?: number): Promise<void> => {
         if (id) {
-            const buttons = await driver.findElements(By.css("#shellModuleHost #tilesHost button"));
+            const buttons = await driver.findElements(locator.shellPage.sessions.open);
             for (const button of buttons) {
                 if ((await button.getAttribute("id")) === String(id)) {
                     await button.click();
@@ -43,11 +44,11 @@ export class GuiConsole {
                 }
             }
         } else {
-            await driver.findElement(By.css("#shellModuleHost #\\-1")).click();
+            await driver.findElement(locator.shellPage.sessions.newSession).click();
         }
 
         await driver.wait(
-            until.elementLocated(By.id("shellEditorHost")),
+            until.elementLocated(locator.shellSession.exists),
             15000,
             "Session was not opened",
         );
@@ -61,16 +62,14 @@ export class GuiConsole {
      */
     public static getSession = async (driver: WebDriver, sessionNbr: string): Promise<WebElement | undefined> => {
         try {
-            const buttons = await driver.findElements(By.css("#shellModuleHost #tilesHost .sessionTile"));
+            const buttons = await driver.findElements(locator.shellPage.sessions.tile);
             for (const button of buttons) {
                 if ((await button.getAttribute("id")) === sessionNbr) {
                     return button;
                 }
             }
         } catch (e) {
-            if (typeof e === "object" && String(e).includes("StaleElementReferenceError")) {
-                return undefined;
-            } else {
+            if (!(e instanceof error.StaleElementReferenceError)) {
                 throw e;
             }
         }

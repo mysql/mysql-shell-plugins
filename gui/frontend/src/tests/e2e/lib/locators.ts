@@ -21,19 +21,33 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { By, Locator } from "selenium-webdriver";
+import { By } from "selenium-webdriver";
+
+export const searchById = (id: string): By => {
+    return By.id(id);
+};
+
+export const searchByCss = (id: string): By => {
+    return By.css(id);
+};
 
 // DATABASE CONNECTION CONFIGURATION
 export const databaseConnectionConfiguration = {
-    exists: By.css(".valueEditDialog"),
-    type: By.css("#databaseType label"),
+    exists: By.className("valueEditDialog"),
+    databaseType: {
+        exists: By.id("databaseType"),
+        list: By.className("dropdownList")
+    },
     caption: By.id("caption"),
     description: By.id("description"),
     sslTab: By.id("page1"),
     mysql: {
         basic: {
             hostname: By.id("hostName"),
-            protocol: By.css("#scheme label"),
+            protocol: {
+                exists: By.id("scheme"),
+                list: By.className("dropdownList")
+            },
             username: By.id("userName"),
             schema: By.id("defaultSchema"),
             port: By.css("#port input"),
@@ -48,6 +62,7 @@ export const databaseConnectionConfiguration = {
             ca: By.id("sslCaFile"),
             cert: By.id("sslCertFile"),
             key: By.id("sslKeyFile"),
+            inputs: By.css(".tabview.top input.msg")
         },
     },
     sqlite: {
@@ -64,8 +79,12 @@ export const databaseConnectionConfiguration = {
 
 // CONFIRM DIALOG
 export const confirmDialog = {
-    exists: By.css(".confirmDialog"),
+    exists: By.className("confirmDialog"),
     accept: By.id("accept"),
+    refuse: By.id("refuse"),
+    alternative: By.id("alternative"),
+    title: By.css(".title label"),
+    message: By.id("dialogMessage")
 };
 
 // DB CONNECTIONS
@@ -80,8 +99,17 @@ export const dbConnections = {
     tab: By.id("connections"),
     tabName: By.css("#connections > label"),
     connections: {
+        item: By.css("#tilesHost .connectionTile"),
         caption: By.className("tileCaption"),
-        description: By.className("tileDescription")
+        description: By.className("tileDescription"),
+        actions: {
+            moreActions: By.id("tileMoreActionsAction"),
+            newNotebook: By.id("tileNewNotebookAction"),
+            newScript: By.id("tileNewScriptAction"),
+            edit: By.id("edit"),
+            duplicate: By.id("duplicate"),
+            remove: By.id("remove"),
+        }
     }
 };
 
@@ -157,12 +185,15 @@ export const notebook = {
             promptLine: By.css(".margin-view-overlays > div"),
             editorLine: By.css(".view-lines.monaco-mouse-cursor-text > div > span"),
             editorPrompt: By.css(".view-lines.monaco-mouse-cursor-text .view-line"),
-            statementStart: By.className("statementStart")
+            statementStart: By.className("statementStart"),
+            cursorLine: By.css(".view-overlays > div")
         },
         prompt: {
             current: By.className("editorPromptFirst"),
         },
-        scroll: By.css(".codeEditor .monaco-scrollable-element")
+        scroll: By.css(".codeEditor .monaco-scrollable-element"),
+        autoCompleteItems: By.css(".monaco-list .monaco-highlighted-label"),
+        suggestionsMenu: By.css("div.contents")
     },
     explorerHost: {
         exists: By.id("explorerHost"),
@@ -237,6 +268,10 @@ export const htmlTag = {
     span: By.css("span"),
     div: By.css("div"),
     img: By.css("img"),
+    input: By.css("input"),
+    mix: (...locators: string[]): By => {
+        return By.css(locators.join(" > "));
+    }
 };
 
 export const adminPage = {
@@ -259,7 +294,10 @@ export const shellPage = {
     },
     contentTitle: By.css("#shellModuleHost #contentTitle"),
     sessions: {
-        caption: By.className("tileCaption")
+        caption: By.className("tileCaption"),
+        open: By.css("#shellModuleHost #tilesHost button"),
+        newSession: By.css("#shellModuleHost #\\-1"),
+        tile: By.css("#shellModuleHost #tilesHost .sessionTile"),
     }
 };
 
@@ -268,6 +306,24 @@ export const shellSession = {
     currentLine: By.className("current-line"),
     textArea: By.css("textArea"),
     schemaTabSelector: By.id("schema"),
+    result: {
+        exists: By.className("zoneHost"),
+        action: By.css(".actionLabel"),
+        info: By.css(".resultStatus .info"),
+        json: By.css(".zoneHost .jsonView .arrElem, .outputHost .jsonView"),
+        tabs: By.css(".tabArea"),
+        searchBySessionId: (id: string): By => {
+            return By.xpath("//div[contains(@id, 'session_" + id + "')]")
+        },
+        dataSet: {
+            cells: By.className("tabulator-cell")
+        }
+    },
+    close: By.className("closeButton"),
+    language: By.className("editorPromptFirst"),
+    server: By.id("server"),
+    schema: By.id("schema"),
+    tabContextMenu: By.css(".shellPromptSchemaMenu .menuItem .label")
 }
 
 export const sqlEditorPage = {
@@ -325,12 +381,21 @@ export const themeEditorPage = {
     themeSelectorArea: {
         exists: By.id("themeSelectorContainer"),
         sectionTitle: By.css("#themeSelectorContainer .gridCell label"),
-        colorPad: By.id("colorPadCell"),
-
+        colorPad: {
+            exists: By.id("colorPadCell"),
+            colors: By.css("#colorPadCell > div")
+        },
+        selector: By.id("theming.currentTheme"),
+        selectorList: By.className("dropdownList"),
+        colorPopup: By.className("colorPopup"),
     },
     themeEditorTabs: {
+        container: By.id("themeTabview"),
         syntaxColors: By.id("syntaxColors"),
-        uiColors: By.id("uiColors")
+        uiColors: By.id("uiColors"),
+        scroll: By.className("tabulator-tableholder"),
+        tabElements: By.css(".tabulator-tableholder .tabulator-selectable"),
+        toggleElement: By.className("treeToggle")
     },
     themePreview: {
         title: By.id("previewTitle"),
@@ -346,5 +411,15 @@ export const errorPanel = {
 
 export const passwordDialog = {
     exists: By.css(".passwordDialog"),
-    cancel: By.id("cancel")
+    title: By.css(".title .label"),
+    cancel: By.id("cancel"),
+    ok: By.id("ok"),
+    items: By.css("div.grid > div"),
+    itemsText: By.css(".resultText span")
 }
+
+export const loginPage = {
+    sakilaLogo: By.id("loginDialogSakilaLogo")
+}
+
+export const mainActivityBar = By.id("mainActivityBar");

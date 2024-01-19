@@ -304,7 +304,7 @@ describe("Main pages", () => {
             const themeEditorLabels = await driver.findElements(locator.themeEditorPage.themeSelectorArea.sectionTitle);
             expect(await themeEditorLabels[0].getText()).toBe("Theme");
             expect(await themeEditorLabels[2].getText()).toBe("Color Pad");
-            expect((await driver.findElements(locator.themeEditorPage.themeSelectorArea.colorPad)).length).toBe(1);
+            expect((await driver.findElements(locator.themeEditorPage.themeSelectorArea.colorPad.exists)).length).toBe(1);
             expect((await driver.findElements(locator.themeEditorPage.themeEditorTabs.syntaxColors)).length).toBe(1);
             expect((await driver.findElements(locator.themeEditorPage.themeEditorTabs.uiColors)).length).toBe(1);
             expect(await driver.findElement(locator.themeEditorPage.themePreview.title).getText()).toBe(
