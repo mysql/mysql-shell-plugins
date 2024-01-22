@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -422,14 +422,7 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
         try {
             const pendingInvitation = await myService.mrsNotes.userHasNote.findFirst({
                 where: {
-                    // BUG#35899729 prevents us from sending a boolean value for invitationAccepted, so we
-                    // should coerce `false` to `0` and `true` to `1` in the meantime, and the type-checker
-                    // does not like it.
-                    // According to Lukasz, we decided that boolean values would map to BIT(1) only. So, we
-                    // need to change the sample app schema before changing this.
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    invitationAccepted: 0,
+                    invitationAccepted: false,
                     invitationKey: { not: null },
                 },
             });
