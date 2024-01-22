@@ -39,7 +39,7 @@ export class DBNotebooks {
 
     /**
      * Selects the database type on the Database Connection Configuration dialog
-     *
+     * @param driver The webdriver
      * @param value database type
      * @returns Promise resolving when the select is made
      */
@@ -54,41 +54,45 @@ export class DBNotebooks {
 
     /**
      * Selects the protocol on the Database Connection Configuration dialog
-     *
+     * @param driver The webdriver
      * @param value protocol
      * @returns Promise resolving when the select is made
      */
     public static setProtocol = async (driver: WebDriver, value: string): Promise<void> => {
         await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol.exists).click();
-        const dropDownList = await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol.list);
+        const dropDownList = await driver
+            .findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol.list);
         await dropDownList.findElement(locator.searchById(value)).click();
     };
 
     /**
      * Selects the SSL Mode on the Database Connection Configuration dialog
-     *
+     * @param driver The webdriver
      * @param value SSL Mode
      * @returns Promise resolving when the select is made
      */
     public static setSSLMode = async (driver: WebDriver, value: string): Promise<void> => {
         await driver.findElement(locator.databaseConnectionConfiguration.mysql.ssl.mode).click();
-        const dropDownList = await driver.findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeList.exists);
+        const dropDownList = await driver
+            .findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeList.exists);
         await dropDownList.findElement(locator.searchById(value)).click();
     };
 
     /**
      * Creates a new database connection, from the DB Editor main page.
      * It verifies that the Connection dialog is closed, at the end.
-     *
+     * @param driver The webdriver
      * @param dbConfig SSL Mode
      * @returns Promise resolving with the connection created
      */
-    public static createDBconnection = async (driver: WebDriver, dbConfig: IDBConnection): Promise<WebElement | undefined> => {
+    public static createDBconnection = async (driver: WebDriver, dbConfig: IDBConnection):
+        Promise<WebElement | undefined> => {
         const ctx = await driver.wait(until.elementLocated(locator.dbConnections.browser),
             explicitWait, "DB Connection Overview page was not loaded");
 
         await driver.wait(async () => {
-            const isDialogVisible = (await driver.findElements(locator.databaseConnectionConfiguration.exists)).length > 0;
+            const isDialogVisible = (await driver.findElements(locator.databaseConnectionConfiguration.exists))
+                .length > 0;
             if (isDialogVisible) {
                 return true;
             } else {
@@ -117,11 +121,14 @@ export class DBNotebooks {
             .findElement(locator.databaseConnectionConfiguration.description)
             .sendKeys(dbConfig.description);
         await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).clear();
-        await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).sendKeys(String(dbConfig.hostname));
+        await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname)
+            .sendKeys(String(dbConfig.hostname));
         await DBNotebooks.setProtocol(driver, dbConfig.protocol);
         await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port).clear();
-        await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port).sendKeys(String(dbConfig.port));
-        await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.username).sendKeys(String(dbConfig.username));
+        await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port)
+            .sendKeys(String(dbConfig.port));
+        await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.username)
+            .sendKeys(String(dbConfig.username));
         await newConDialog
             .findElement(locator.databaseConnectionConfiguration.mysql.basic.schema)
             .sendKeys(String(dbConfig.schema));
@@ -133,9 +140,11 @@ export class DBNotebooks {
         if (dbConfig.sslMode) {
             await newConDialog.findElement(locator.databaseConnectionConfiguration.sslTab).click();
             await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.ssl.mode).click();
-            const dropDownList = await driver.findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeList.exists);
+            const dropDownList = await driver
+                .findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeList.exists);
             await dropDownList.findElement(locator.searchById(dbConfig.sslMode)).click();
-            expect(await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeLabel).getText())
+            expect(await newConDialog
+                .findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeLabel).getText())
                 .toBe(dbConfig.sslMode);
 
             const certsPath = process.env.SSLCERTSPATH as string;
@@ -164,7 +173,7 @@ export class DBNotebooks {
     /**
      * Returns the WebElement that represents the DB Connection, on the DB Connection main page
      * Throws an exception if not found.
-     *
+     * @param driver The webdriver
      * @param name Connection caption
      * @returns @returns Promise resolving with the DB Connection
      */
@@ -224,10 +233,10 @@ export class DBNotebooks {
 
     /**
      * Returns the autocomplete context item list
-     *
+     * @param driver The webdriver
      * @returns A promise resolving when the list is fulfilled
      */
-    public static getAutoCompleteMenuItems = async (driver: WebDriver,): Promise<string[]> => {
+    public static getAutoCompleteMenuItems = async (driver: WebDriver): Promise<string[]> => {
         const els = [];
         let items = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.autoCompleteItems),
             explicitWait, "Auto complete items were not displayed");
@@ -295,7 +304,7 @@ export class DBNotebooks {
         }, explicitWait, "The lines were always stale");
 
         if (!line) {
-            throw `Could not find the line of word ${wordRef}`;
+            throw new Error(`Could not find the line of word ${wordRef}`);
         } else {
             return line;
         }

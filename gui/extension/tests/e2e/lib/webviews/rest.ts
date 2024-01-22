@@ -95,7 +95,7 @@ export class Rest {
             }
         }
         if (restService.authenticationApps) {
-            await dialog.findElement(locator.mrsServiceDialog.autenticationAppsTab).click();
+            await dialog.findElement(locator.mrsServiceDialog.authenticationAppsTab).click();
             if (restService.authenticationApps.vendor) {
                 await driver.wait(async () => {
                     try {
@@ -143,7 +143,7 @@ export class Rest {
             }
             if (restService.authenticationApps.customUrlForAccessToken) {
                 await DialogHelper.setFieldText(dialog,
-                    locator.mrsServiceDialog.authenticationApps.authAppsurlDirectAuth,
+                    locator.mrsServiceDialog.authenticationApps.authAppsUrlDirectAuth,
                     restService.authenticationApps.customUrlForAccessToken);
             }
         }
@@ -203,7 +203,7 @@ export class Rest {
         restService.authentication = authentication;
 
         // Authentication apps
-        await dialog.findElement(locator.mrsServiceDialog.autenticationAppsTab).click();
+        await dialog.findElement(locator.mrsServiceDialog.authenticationAppsTab).click();
         const authenticationApps: interfaces.IRestServiceAuthApps = {
             vendor: await dialog.findElement(locator.mrsServiceDialog.authenticationApps.vendorName)
                 .findElement(locator.htmlTag.label).getText(),
@@ -218,7 +218,7 @@ export class Rest {
             customUrl: await DialogHelper.getFieldValue(dialog,
                 locator.mrsServiceDialog.authenticationApps.authAppsUrl),
             customUrlForAccessToken: await DialogHelper.getFieldValue(dialog,
-                locator.mrsServiceDialog.authenticationApps.authAppsurlDirectAuth),
+                locator.mrsServiceDialog.authenticationApps.authAppsUrlDirectAuth),
         };
 
         restService.authenticationApps = authenticationApps;
@@ -318,13 +318,13 @@ export class Rest {
             constants.wait5seconds, "MRS Schema dialog was not displayed");
 
         // Main settings
-        const restShema: interfaces.IRestSchema = {
+        const restSchema: interfaces.IRestSchema = {
             restServicePath: await dialog.findElement(locator.mrsSchemaDialog.serviceLabel).getText(),
             restSchemaPath: await DialogHelper.getFieldValue(dialog, locator.mrsSchemaDialog.requestPath),
         };
 
-        restShema.enabled = await DialogHelper.getCheckBoxValue("enabled");
-        restShema.requiresAuth = await DialogHelper.getCheckBoxValue("requiresAuth");
+        restSchema.enabled = await DialogHelper.getCheckBoxValue("enabled");
+        restSchema.requiresAuth = await DialogHelper.getCheckBoxValue("requiresAuth");
 
         // Settings
         const restSchemaSettings: interfaces.IRestSchemaSettings = {};
@@ -334,11 +334,11 @@ export class Rest {
             .getAttribute("value");
         restSchemaSettings.comments = await DialogHelper.getFieldValue(dialog,
             locator.mrsSchemaDialog.settings.comments);
-        restShema.settings = restSchemaSettings;
+        restSchema.settings = restSchemaSettings;
 
         // Options
         await dialog.findElement(locator.mrsSchemaDialog.optionsTab).click();
-        restShema.options = (await DialogHelper.getFieldValue(dialog, locator.mrsSchemaDialog.options.options))
+        restSchema.options = (await DialogHelper.getFieldValue(dialog, locator.mrsSchemaDialog.options.options))
             .replace(/\r?\n|\r|\s+/gm, "").trim();
 
         await driver.wait(async () => {
@@ -347,7 +347,7 @@ export class Rest {
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS Service dialog was not closed");
 
-        return restShema;
+        return restSchema;
     };
 
     /**
@@ -1009,7 +1009,7 @@ export class Rest {
      * @param data The MRS data
      * @returns A promise resolving when the MRS data is set and the dialog is closed
      */
-    public static setExportMRSSDK = async (data: interfaces.IExportMRSSDK): Promise<void> => {
+    public static setExportMrsSDK = async (data: interfaces.IExportMrsSdk): Promise<void> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }

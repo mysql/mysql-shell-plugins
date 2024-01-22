@@ -131,10 +131,10 @@ export class DatabaseConnection {
                         await driver.wait(until.elementLocated(By.id(mds.profile)), constants.wait5seconds).click();
                     }
                     if (mds.dbSystemOCID) {
-                        await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.dbDystemId,
+                        await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.dbSystemId,
                             mds.dbSystemOCID);
                         await dialog.click();
-                        const dbSystemName = dialog.findElement(locator.dbConnectionDialog.mysql.mds.dbDystemName);
+                        const dbSystemName = dialog.findElement(locator.dbConnectionDialog.mysql.mds.dbSystemName);
                         await driver.wait(new Condition("", async () => {
                             return !(await dbSystemName.getAttribute("value")).includes("Loading");
                         }), constants.wait10seconds, "DB System name is still loading");
@@ -223,11 +223,11 @@ export class DatabaseConnection {
      * @param schemas The schemas
      * @param opMode The operational mode
      * @param output The output
-     * @param disableCols True to disable unsupported columnds, false otherwise
-     * @param optimize True to optimze load parallelism, false otherwise
+     * @param disableCols True to disable unsupported columns, false otherwise
+     * @param optimize True to optimize load parallelism, false otherwise
      * @param enableMemory True to enable memory check, false otherwise
      * @param sqlMode The SQL mode
-     * @param exludeList The exclude list
+     * @param excludeList The exclude list
      * @returns A promise resolving when the schema data is set
      */
     public static setDataToHeatWave = async (
@@ -238,7 +238,7 @@ export class DatabaseConnection {
         optimize?: boolean,
         enableMemory?: boolean,
         sqlMode?: string,
-        exludeList?: string,
+        excludeList?: string,
     ): Promise<void> => {
 
         if (!(await Misc.insideIframe())) {
@@ -284,9 +284,9 @@ export class DatabaseConnection {
             const sqlModeInput = await dialog.findElement(locator.hwDialog.sqlMode);
             await sqlModeInput.sendKeys(sqlMode);
         }
-        if (exludeList) {
-            const exludeListInput = await dialog.findElement(locator.hwDialog.excludeList);
-            await exludeListInput.sendKeys(exludeList);
+        if (excludeList) {
+            const excludeListInput = await dialog.findElement(locator.hwDialog.excludeList);
+            await excludeListInput.sendKeys(excludeList);
         }
 
         await dialog.findElement(locator.hwDialog.ok).click();

@@ -58,7 +58,7 @@ export class Notebook {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "Could not get the text from last promtp line");
+        }, constants.wait5seconds, "Could not get the text from last prompt line");
 
         return sentence;
     };
@@ -401,7 +401,7 @@ export class Notebook {
     };
 
     /**
-     * Verifies if a query result is maximezed
+     * Verifies if a query result is maximized
      * @returns A promise resolving with true if the query is maximized, false otherwise
      */
     public static isResultMaximized = async (): Promise<boolean> => {
@@ -475,7 +475,7 @@ export class Notebook {
                 }
             }
         }
-        throw new Error(`Coult not find ${editorName} with type ${editorType}`);
+        throw new Error(`Could not find ${editorName} with type ${editorType}`);
     };
 
     /**
@@ -489,19 +489,19 @@ export class Notebook {
             await Misc.switchToFrame();
         }
 
-        const commands = [];
+        const notebookCommands: string[] = [];
         await driver.wait(async () => {
             try {
-                const cmds = await driver.wait(
+                const commands = await driver.wait(
                     until.elementsLocated(locator.notebook.codeEditor.editor.sentence),
                     constants.wait5seconds, "No lines were found");
-                for (const cmd of cmds) {
+                for (const cmd of commands) {
                     const spans = await cmd.findElements(locator.htmlTag.span);
                     let sentence = "";
                     for (const span of spans) {
                         sentence += (await span.getText()).replace("&nbsp;", " ");
                     }
-                    commands.push(sentence);
+                    notebookCommands.push(sentence);
                 }
 
                 return commands.length > 0;
@@ -513,7 +513,7 @@ export class Notebook {
         }, constants.wait5seconds, "No SQL commands were found on the notebook");
 
 
-        if (!commands.includes(sql)) {
+        if (!notebookCommands.includes(sql)) {
             throw new Error(`Could not find the SQL statement ${sql} on the notebook`);
         }
 
@@ -546,10 +546,10 @@ export class Notebook {
         const commands: string[] = [];
         await driver.wait(async () => {
             try {
-                const cmds = await driver.wait(
+                const notebookCommands = await driver.wait(
                     until.elementsLocated(locator.notebook.codeEditor.editor.sentence),
                     constants.wait5seconds, "No lines were found");
-                for (const cmd of cmds) {
+                for (const cmd of notebookCommands) {
                     const spans = await cmd.findElements(locator.htmlTag.span);
                     let sentence = "";
                     for (const span of spans) {

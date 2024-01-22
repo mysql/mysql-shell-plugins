@@ -225,7 +225,7 @@ export interface ICommandResultIdHolder {
     suite?: string;
 }
 
-export interface IExportMRSSDK {
+export interface IExportMrsSdk {
     directory: string;
     url: string;
     apiLanguage: string;

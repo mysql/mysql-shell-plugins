@@ -377,7 +377,7 @@ export class Tree {
     };
 
     /**
-     * Gets the database connections from the DABATASE CONNECTIONS section
+     * Gets the database connections from the DATABASE CONNECTIONS section
      * @returns A promise resolving with the database connections
      */
     public static getDatabaseConnections = async (): Promise<interfaces.ITreeDBConnection[]> => {

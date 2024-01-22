@@ -45,7 +45,6 @@ frontend/src/app-wrapper/windows/.cr
 frontend/src/app-wrapper/windows/mysql-shell-gui/bin
 frontend/src/app-wrapper/windows/mysql-shell-gui/obj
 frontend/src/app-wrapper/windows/packages
-package-lock.json
 frontend/src/tests/e2e/selenium
 
 # Embedded Shell in Extension

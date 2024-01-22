@@ -113,7 +113,7 @@ export class CommandExecutor {
             }
         }, constants.wait5seconds, "Text area was not interactable");
 
-        await driver.wait(until.elementLocated(locator.suggestWidget.exists), constants.wait150MiliSeconds)
+        await driver.wait(until.elementLocated(locator.suggestWidget.exists), constants.wait150MilliSeconds)
             .then(async () => {
                 const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
                 await textArea.sendKeys(Key.ESCAPE);
@@ -436,9 +436,9 @@ export class CommandExecutor {
     };
 
     /**
-     * Fethces the last result id that exists on the editor and updates the current object result id
+     * Fetches the last result id that exists on the editor and updates the current object result id
      */
-    public syncronizeResultId = async (): Promise<void> => {
+    public synchronizeResultId = async (): Promise<void> => {
         const lastEditorResults = await driver.wait(until
             .elementsLocated(locator.notebook.codeEditor.editor.result.exists),
             constants.wait5seconds, "Could not find any results for sync");
@@ -496,7 +496,7 @@ export class CommandExecutor {
     };
 
     /**
-     * Checks if the command is consideres as "Special". Special means the command is one of the following:
+     * Checks if the command is considered as "Special". Special means the command is one of the following:
      * - \\js
      * - \\javascript
      * - \\ts
@@ -523,7 +523,7 @@ export class CommandExecutor {
 
     /**
      * Returns the result block for an expected result id
-     * When the nextId is undefined, the method will return the last existing comand result on the editor
+     * When the nextId is undefined, the method will return the last existing command result on the editor
      * @param cmd The command
      * @param searchOnExistingId The next expected result id
      * @returns A promise resolving when the mouse cursor is placed at the desired spot
@@ -659,7 +659,7 @@ export class CommandExecutor {
 
         try {
             await driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.hasContent),
-                constants.wait150MiliSeconds);
+                constants.wait150MilliSeconds);
         } catch (e) {
             return undefined;
         }
@@ -807,7 +807,7 @@ export class CommandExecutor {
 
     /**
      * Calculates and returns the next expected result id
-     * If the lastResultId is undefined, it will fectch the last existing result id from the editor,
+     * If the lastResultId is undefined, it will fetch the last existing result id from the editor,
      * and calculate the next one based on it
      * @param lastResultId The last known result id
      * @returns A promise resolving with the next result id

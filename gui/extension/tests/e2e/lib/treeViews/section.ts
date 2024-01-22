@@ -159,7 +159,7 @@ export class Section {
     };
 
     /**
-     * Focus a section, by expanding the section and collapsing all the otehrs
+     * Focus a section, by expanding the section and collapsing all the others
      * @param section The section
      * @returns A promise resolving when the section is focused
      */
@@ -250,7 +250,7 @@ export class Section {
 
             }), constants.wait5seconds, `${section} was not focused`);
         } else {
-            throw new Error(`Unknow section: ${section}`);
+            throw new Error(`Unknown section: ${section}`);
         }
     };
 
@@ -294,7 +294,7 @@ export class Section {
     };
 
     /**
-     * Restarts MySQL Shell from the toolbar context mnenu
+     * Restarts MySQL Shell from the toolbar context menu
      * @returns A promise resolving when MySQL Shell is restarted
      */
     public static restartShell = async (): Promise<void> => {
