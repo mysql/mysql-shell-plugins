@@ -137,7 +137,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Tree.openContextMenuAndSelect(treeE2eTests, constants.setDefaultConfigProfile, undefined);
             await driver.wait(waitUntil.isDefaultItem(constants.ociTreeSection,
                 `${ociConfig.name} (${ociConfig.region})`, "profile"),
-                constants.wait5seconds, "E2e tests is not the deault item");
+                constants.wait5seconds, "E2e tests is not the default item");
         });
     });
 
@@ -182,8 +182,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         });
 
         it("View Compartment Information", async () => {
-            const treeComparment = await Tree.getElement(constants.ociTreeSection, ociTree[2]);
-            await Tree.openContextMenuAndSelect(treeComparment, constants.viewCompartmentInfo);
+            const treeCompartment = await Tree.getElement(constants.ociTreeSection, ociTree[2]);
+            await Tree.openContextMenuAndSelect(treeCompartment, constants.viewCompartmentInfo);
             await driver.wait(waitUntil.tabIsOpened(`${ociTree[2].source} Info.json`), constants.wait5seconds);
             const textEditor = new TextEditor();
             let json = "";
@@ -285,7 +285,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         it("Restart a DB System (and cancel)", async () => {
 
             const treeDbSystem = await Tree.getOciElementByType(constants.ociTreeSection, constants.dbSystemType);
-            await Tree.openContextMenuAndSelect(treeDbSystem, constants.restartDBSytem);
+            await Tree.openContextMenuAndSelect(treeDbSystem, constants.restartDBSystem);
             await Section.expand(constants.tasksTreeSection);
             try {
                 expect(await Tree.existsElement(constants.tasksTreeSection,
@@ -305,7 +305,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         it("Stop a DB System (and cancel)", async () => {
 
             const treeDbSystem = await Tree.getOciElementByType(constants.ociTreeSection, constants.dbSystemType);
-            await Tree.openContextMenuAndSelect(treeDbSystem, constants.stopDBSytem);
+            await Tree.openContextMenuAndSelect(treeDbSystem, constants.stopDBSystem);
             await Section.expand(constants.tasksTreeSection);
             try {
                 expect(await Tree.existsElement(constants.tasksTreeSection, "Stop DB System (running)"),
@@ -481,10 +481,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await mdsTab.click();
                 await driver.wait(async () => {
                     return await driver
-                        .findElement(locator.dbConnectionDialog.mysql.mds.dbDystemId).getAttribute("value") !== "";
+                        .findElement(locator.dbConnectionDialog.mysql.mds.dbSystemId).getAttribute("value") !== "";
                 }, constants.wait5seconds, "DbSystemID field was not set");
                 dbSystemOCID = await driver
-                    .findElement(locator.dbConnectionDialog.mysql.mds.dbDystemId).getAttribute("value");
+                    .findElement(locator.dbConnectionDialog.mysql.mds.dbSystemId).getAttribute("value");
                 await driver.wait(async () => {
                     return await driver
                         .findElement(locator.dbConnectionDialog.mysql.mds.bastionId).getAttribute("value") !== "";

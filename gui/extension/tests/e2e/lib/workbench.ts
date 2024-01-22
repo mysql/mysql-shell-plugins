@@ -48,11 +48,11 @@ export class Workbench {
      */
     public static toggleBottomBar = async (expand: boolean): Promise<void> => {
 
-        const bottombar = await driver.findElement(locator.bottomBarPanel.exists);
-        const parent: WebElement = await driver.executeScript("return arguments[0].parentNode", bottombar);
+        const bottomBar = await driver.findElement(locator.bottomBarPanel.exists);
+        const parent: WebElement = await driver.executeScript("return arguments[0].parentNode", bottomBar);
         const parentClasses = (await parent.getAttribute("class")).split(" ");
         const isVisible = parentClasses.includes("visible");
-        const closeBtn = await bottombar.findElement(locator.bottomBarPanel.close);
+        const closeBtn = await bottomBar.findElement(locator.bottomBarPanel.close);
 
         if (isVisible) {
             if (expand === false) {
@@ -63,7 +63,7 @@ export class Workbench {
                 let output: WebElement;
                 await driver.wait(async () => {
                     await driver.actions().sendKeys(Key.chord(Key.CONTROL, "j")).perform();
-                    output = await bottombar.findElement(locator.bottomBarPanel.output);
+                    output = await bottomBar.findElement(locator.bottomBarPanel.output);
 
                     return output.isDisplayed();
                 }, constants.wait5seconds, "");
@@ -102,7 +102,7 @@ export class Workbench {
     public static getNotification = async (text: string, dismiss = true,
         expectFailure = false): Promise<Notification> => {
 
-        let notif: Notification;
+        let notification: Notification;
         const escapedText = text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 
         await driver.wait(async () => {
@@ -115,7 +115,7 @@ export class Workbench {
                         }
                     }
                     if ((await ntf.getMessage()).match(new RegExp(escapedText)) !== null) {
-                        notif = ntf;
+                        notification = ntf;
                         if (dismiss) {
                             await Workbench.dismissNotifications();
                         }
@@ -130,7 +130,7 @@ export class Workbench {
             }
         }, constants.wait5seconds, `Could not find '${text}' notification`);
 
-        return notif;
+        return notification;
     };
 
     /**
@@ -325,9 +325,9 @@ export class Workbench {
      * @returns A promise resolving when the notifications are expanded
      */
     public static expandNotifications = async (): Promise<void> => {
-        const notifs = await new extWorkbench().getNotifications();
-        for (const notif of notifs) {
-            await notif.expand();
+        const notifications = await new extWorkbench().getNotifications();
+        for (const notification of notifications) {
+            await notification.expand();
         }
     };
 
@@ -374,7 +374,7 @@ export class Workbench {
             } catch (e) {
                 // continue. Clipboard may be in use by other tests
             }
-        }, constants.wait10seconds, "Cliboard was in use after 10 secs");
+        }, constants.wait10seconds, "Clipboard was in use after 10 secs");
 
         return out;
     };
@@ -448,7 +448,7 @@ export class Workbench {
 
     /**
      * Verifies if a MRS Data upgrade is needed, by expanding a DB connection and checking if a
-     * specific notifiction is displayed
+     * specific notification is displayed
      * @param dbConnection The db connection
      * @returns A promise resolving with true if the upgrade is needed, false otherwise
      */
@@ -467,7 +467,7 @@ export class Workbench {
     };
 
     /**
-     * Performs the MRS metadada upgrade by clicking Yes on the specific notification
+     * Performs the MRS metadata upgrade by clicking Yes on the specific notification
      * @returns A promise resolving when the upgrade is done
      */
     public static upgradeMRSMetadata = async (): Promise<void> => {

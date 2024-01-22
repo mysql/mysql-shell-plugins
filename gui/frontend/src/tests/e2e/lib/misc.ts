@@ -32,7 +32,6 @@ import { DBConnection } from "./dbConnection.js";
 import { execFullBlockJs, execFullBlockSql } from "./dbNotebooks.js";
 import * as locator from "../lib/locators.js";
 
-const logger = logging.getLogger("webdriver");
 logging.installConsoleHandler();
 export const explicitWait = 5000;
 export const feLog = "fe.log";
@@ -180,8 +179,9 @@ export class Misc {
 
     /**
      * Waits until the homepage loads
-     *
+     * @param driver The webdriver
      * @param url URL of the page
+     * @param loginPage True if the home page is expected to be the login page, false otherwise
      * @returns A promise resolving when the page is loaded
      */
     public static waitForHomePage = async (driver: WebDriver, url: string, loginPage = false): Promise<void> => {
@@ -191,11 +191,11 @@ export class Misc {
         } else {
             await driver.wait(until.elementLocated(locator.mainActivityBar), 10000, "Activity bar was not found");
         }
-    }
+    };
 
     /**
      * Returns the background color of the page
-     *
+     * @param driver The webdriver
      * @returns Promise resolving to the background color
      */
     public static getBackgroundColor = async (driver: WebDriver): Promise<string> => {
@@ -207,7 +207,7 @@ export class Misc {
 
     /**
      * Press the combination keys to execute a statement on the DB Editor or Shell session (CTRL+ENTER)
-     *
+     * @param driver The webdriver
      * @returns Promise resolving when the key combination is pressed
      */
     public static pressEnter = async (driver: WebDriver): Promise<void> => {
@@ -232,7 +232,7 @@ export class Misc {
 
     /**
      * Writes an SQL query and executes it
-     *
+     * @param driver The webdriver
      * @param textArea text area to send the query
      * @param cmd command to execute
      * @param timeout wait for results
@@ -314,7 +314,7 @@ export class Misc {
 
     /**
      * Returns the css computed style of an element
-     *
+     * @param driver The webdriver
      * @param element The Element
      * @param style The style
      * @returns A promise resolving with the element style
@@ -347,7 +347,7 @@ export class Misc {
 
     /**
      * Sets the password for a connection, on the Password dialog
-     *
+     * @param driver The webdriver
      * @param dbConfig connection object
      * @returns A promise resolving when the password is set
      */
@@ -378,12 +378,13 @@ export class Misc {
 
     /**
      * Sets the confirm dialog value, for a password storage
-     *
+     * @param driver The webdriver
      * @param dbConfig connection object
      * @param value yes/no/never
      * @returns A promise resolving when the set is made
      */
-    public static setConfirmDialog = async (driver: WebDriver, dbConfig: IDBConnection, value: string): Promise<void> => {
+    public static setConfirmDialog = async (driver: WebDriver, dbConfig: IDBConnection, value: string):
+        Promise<void> => {
         const confirmDialog = await driver.wait(until.elementsLocated(locator.confirmDialog.exists),
             explicitWait, "No confirm dialog was found");
 
@@ -415,7 +416,7 @@ export class Misc {
 
     /**
      * Inserts texts on an input box or other element, on a safer way (avoiding Stale Elements)
-     *
+     * @param driver The webdriver
      * @param inputId html input id
      * @param type input/selectList/checkbox
      * @param value text to set
@@ -437,7 +438,7 @@ export class Misc {
 
     /**
      * Returns the prompt text within a line, on the prompt
-     *
+     * @param driver The webdriver
      * @param prompt last (last line), last-1 (line before the last line), last-2 (line before the 2 last lines)
      * @returns Promise resolving with the text on the selected line
      */
@@ -464,7 +465,7 @@ export class Misc {
         await driver.wait(async () => {
             try {
                 const lines = await context.findElements(locator.notebook.codeEditor.editor.editorPrompt);
-                const words = locator.htmlTag.mix(locator.htmlTag.span.value, locator.htmlTag.span.value)
+                const words = locator.htmlTag.mix(locator.htmlTag.span.value, locator.htmlTag.span.value);
                 if (lines.length > 0) {
                     tags = await lines[lines.length - position].findElements(words);
                     for (const tag of tags) {
@@ -485,7 +486,7 @@ export class Misc {
 
     /**
      * Removes all the existing text on the prompt
-     *
+     * @param driver The webdriver
      * @returns A promise resolving when the clean is made
      */
     public static cleanPrompt = async (driver: WebDriver): Promise<void> => {
@@ -506,7 +507,7 @@ export class Misc {
     /**
      * Waits for the blue dot to appear on the editor current line, which indicates that the editor
      * is ready to receive queries
-     *
+     * @param driver The webdriver
      * @returns A promise resolving when the blue dot (statement start) is displayed
      */
     public static waitForEditorToStart = async (driver: WebDriver): Promise<void> => {
@@ -539,7 +540,7 @@ export class Misc {
 
     /**
      * Takes a screen shot of the current browser window and stores it on disk.
-     *
+     * @param driver The webdriver
      * @param name test name
      * @returns file path
      */

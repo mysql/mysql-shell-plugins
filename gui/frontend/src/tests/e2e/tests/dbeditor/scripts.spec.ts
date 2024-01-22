@@ -171,7 +171,8 @@ describe("Scripts", () => {
                 await (await DBConnection.getOpenEditor(driver, script))!.getAttribute("class"),
             ).toContain("selected");
 
-            src = (await (await DBConnection.getOpenEditor(driver, script))!.findElement(locator.notebook.toolbar.editorSelector.currentImage)
+            src = (await (await DBConnection.getOpenEditor(driver, script))!
+                .findElement(locator.notebook.toolbar.editorSelector.currentImage)
                 .getAttribute("src"));
 
             expect(src.indexOf("scriptTs") !== -1).toBe(true);
@@ -244,7 +245,7 @@ describe("Scripts", () => {
             await execCaretBtn?.click();
 
             await driver.wait(async () => {
-                return (await DBConnection.getScriptResult(driver,)).match(/OK, (\d+) records/);
+                return (await DBConnection.getScriptResult(driver)).match(/OK, (\d+) records/);
             }, explicitWait * 2, "No results from query were found");
         } catch (e) {
             testFailed = true;

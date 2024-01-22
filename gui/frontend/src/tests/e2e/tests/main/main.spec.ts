@@ -229,7 +229,7 @@ describe("Main pages", () => {
             expect(color).toBe("#2C2C2C");
             await settingsTreeRows[0].click();
             await ThemeEditor.selectAppColorTheme(driver, "Default Light");
-            color = String((await Misc.getBackgroundColor(driver,))).trim();
+            color = String((await Misc.getBackgroundColor(driver))).trim();
             expect(color).toBe("#FFFFFF");
         } catch (e) {
             testFailed = true;
@@ -256,7 +256,7 @@ describe("Main pages", () => {
                 explicitWait, "Shell Build Information was not found");
             expect(await heading.getText()).toBe("Shell Build Information");
             const leftElements = await driver.findElements(locator.aboutPage.leftTableCells);
-            expect(await leftElements[0].getText()).toBe("Version:")
+            expect(await leftElements[0].getText()).toBe("Version:");
             expect(await leftElements[1].getText()).toBe("Architecture:");
             expect(await leftElements[2].getText()).toBe("Platform:");
             expect(await leftElements[3].getText()).toBe("Server Distribution:");
@@ -304,7 +304,8 @@ describe("Main pages", () => {
             const themeEditorLabels = await driver.findElements(locator.themeEditorPage.themeSelectorArea.sectionTitle);
             expect(await themeEditorLabels[0].getText()).toBe("Theme");
             expect(await themeEditorLabels[2].getText()).toBe("Color Pad");
-            expect((await driver.findElements(locator.themeEditorPage.themeSelectorArea.colorPad.exists)).length).toBe(1);
+            expect((await driver.findElements(locator.themeEditorPage.themeSelectorArea.colorPad.exists))
+                .length).toBe(1);
             expect((await driver.findElements(locator.themeEditorPage.themeEditorTabs.syntaxColors)).length).toBe(1);
             expect((await driver.findElements(locator.themeEditorPage.themeEditorTabs.uiColors)).length).toBe(1);
             expect(await driver.findElement(locator.themeEditorPage.themePreview.title).getText()).toBe(
@@ -351,7 +352,8 @@ describe("Main pages", () => {
             const errorPanel = await driver.wait(until.elementLocated(locator.errorPanel.exists),
                 explicitWait, "Error label was not found");
 
-            expect(await (await errorPanel.findElement(locator.errorPanel.title)).getText()).toBe("Communication Error");
+            expect(await (await errorPanel.findElement(locator.errorPanel.title)).getText())
+                .toBe("Communication Error");
             let regex = "Could not establish a connection to the backend.";
             regex += " Make sure you use valid user credentials and the MySQL Shell is running.";
             regex += " Trying to reconnect in (\\d+) seconds.";
@@ -373,7 +375,8 @@ describe("Main pages", () => {
             const errorPanel = await driver.wait(until.elementLocated(locator.errorPanel.exists),
                 explicitWait, "Error label was not found");
 
-            expect(await (await errorPanel.findElement(locator.errorPanel.title)).getText()).toBe("Communication Error");
+            expect(await (await errorPanel.findElement(locator.errorPanel.title)).getText())
+                .toBe("Communication Error");
             let regex = "Could not establish a connection to the backend.";
             regex += " Make sure you use valid user credentials and the MySQL Shell is running.";
             regex += " Trying to reconnect in (\\d+) seconds.";

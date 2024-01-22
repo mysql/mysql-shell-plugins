@@ -156,34 +156,17 @@ describe("MySQL Shell Connections", () => {
 
     it("Connect to host without password", async () => {
 
-        const localConn: IDBConnection = {
-            dbType: "MySQL",
-            caption: `ClientQA test`,
-            description: "Local connection",
-            hostname: "winguitest02.regionaliad02.mysql2iad.oraclevcn.com",
-            protocol: "mysql",
-            username: "shell",
-            port: String(process.env.DBPORT),
-            portX: String(process.env.DBPORTX),
-            schema: "sakila",
-            password: String(process.env.DBPASSWORDSHELL),
-            sslMode: undefined,
-            sslCA: undefined,
-            sslClientCert: undefined,
-            sslClientKey: undefined,
-        };
-
         try {
-
             await driver.executeScript(
                 "arguments[0].click();",
                 await editor.findElement(locator.shellSession.currentLine),
             );
 
             const textArea = await editor.findElement(locator.shellSession.textArea);
+            await Misc.execCmd(driver, textArea, "\\disconnect ");
             await Misc.execCmd(driver,
                 textArea,
-                `\\c ${localConn.username}@${localConn.hostname}/${localConn.schema}`);
+                `\\c ${globalConn.username}@${globalConn.hostname}/${globalConn.schema}`);
             const dialog = await driver.wait(until.elementLocated(locator.passwordDialog.exists),
                 500, "No Password dialog was found");
             await dialog.findElement(locator.passwordDialog.cancel).click();

@@ -29,7 +29,7 @@ export class ThemeEditor {
 
     /**
      * Selects the color theme on Theme Editor section
-     *
+     * @param driver The webdriver
      * @param theme name of the theme
      * @returns Promise resolving when the select is made
      */
@@ -41,11 +41,11 @@ export class ThemeEditor {
 
     /**
      * Toggles a Theme Editor UI Colors menu
-     *
+     * @param driver The webdriver
      * @param menu Menu name
      * @param action open/close
      * @param scroll True to scroll down (menu is invisible)
-     * @returns A promise resolving when the toggel is made
+     * @returns A promise resolving when the toggle is made
      */
     public static toggleUiColorsMenu = async (driver: WebDriver, menu: string,
         action: string, scroll?: boolean): Promise<void> => {
@@ -82,14 +82,16 @@ export class ThemeEditor {
                     if (action === "open") {
                         if (!(await isTabOpened(uiColorsItems[i]))) {
                             await driver.wait(async () => {
-                                await uiColorsItems[i].findElement(locator.themeEditorPage.themeEditorTabs.toggleElement).click();
+                                await uiColorsItems[i]
+                                    .findElement(locator.themeEditorPage.themeEditorTabs.toggleElement).click();
 
                                 return isTabOpened(uiColorsItems[i]);
                             }, 3000, `${menu} did not open`);
                         }
                     } else {
                         if (await isTabOpened(uiColorsItems[i])) {
-                            await uiColorsItems[i].findElement(locator.themeEditorPage.themeEditorTabs.toggleElement).click();
+                            await uiColorsItems[i]
+                                .findElement(locator.themeEditorPage.themeEditorTabs.toggleElement).click();
                         }
                     }
                     break;
@@ -110,7 +112,7 @@ export class ThemeEditor {
 
     /**
      * Checks if the UI Colors menu is expanded, on the Theme Editor
-     *
+     * @param driver The webdriver
      * @param menuName Menu name
      * @param scroll True to scroll down (menu is invisible)
      * @returns A promise resolving to true if it's expanded, false otherwise. Undefined if the menu is not found
@@ -163,7 +165,7 @@ export class ThemeEditor {
 
     /**
      * Sets the color (using the color pad) of a menu item, on the Theme Editor
-     *
+     * @param driver The webdriver
      * @param sectionColors Menu item name
      * @param optionId the html id of the option color
      * @param detail the field on the color pad
@@ -181,7 +183,7 @@ export class ThemeEditor {
                 await driver.findElement(locator.searchById(optionId)).click();
 
                 return (await driver.findElements(locator.themeEditorPage.themeSelectorArea.colorPopup)).length > 0;
-            }, 3000, "Color Pallete was not opened");
+            }, 3000, "Color Pallet was not opened");
         };
 
         try {
@@ -204,7 +206,7 @@ export class ThemeEditor {
 
     /**
      * Returns the CSS value of a color pad
-     *
+     * @param driver The webdriver
      * @param position position of the color pad (1 for first, 2 for second...)
      * @returns A promise resolving with the css value
      */

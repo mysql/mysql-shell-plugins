@@ -457,7 +457,7 @@ describe("Notebook", () => {
                         throw e;
                     }
                 }
-            }, explicitWait * 2, "Tables tree was not expaned");
+            }, explicitWait * 2, "Tables tree was not expanded");
 
             expect(await DBConnection.getSchemaObject(driver, "obj", "actor")).toBeDefined();
             expect(await DBConnection.getSchemaObject(driver, "obj", "address")).toBeDefined();

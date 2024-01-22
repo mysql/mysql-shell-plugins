@@ -48,7 +48,7 @@ export const bastionUsername = process.env.OCI_BASTION_USERNAME;
 export const bastionPassword = process.env.OCI_BASTION_PASSWORD;
 
 // TIMEOUTS
-export const wait150MiliSeconds = 150;
+export const wait150MilliSeconds = 150;
 export const wait1second = 1000;
 export const wait2seconds = 2000;
 export const wait3seconds = 3000;
@@ -132,7 +132,7 @@ export const browseRESTDocs = "Browse the MySQL REST Service Documentation";
 export const configureREST = "Configure Instance for MySQL REST Service Support";
 export const setCurrentDBSchema = "Set As Current Database Schema";
 export const dumpSchemaToDisk = "Dump Schema to Disk";
-export const dumpSchemaToDiskToServ = "Dump Schema to Disk for MySQL Database Service";
+export const dumpSchemaToDiskToService = "Dump Schema to Disk for MySQL Database Service";
 export const copyToClipboard = "Copy To Clipboard";
 export const copyToClipboardName = "Name";
 export const copyToClipboardStat = "CREATE Statement";
@@ -157,7 +157,7 @@ export const killRouters = "Kill Local MySQL Router Instances";
 export const editRESTService = "Edit REST Service...";
 export const setAsCurrentREST = "Set as Current REST Service";
 export const loadRESTSchemaFromJSON = "Load REST Schema From JSON File...";
-export const exportRESTSDK = "Export REST Service SDK Files ...";
+export const exportRestSdk = "Export REST Service SDK Files ...";
 export const addNewAuthApp = "Add New Authentication App";
 export const deleteRESTService = "Delete REST Service...";
 export const mrsServiceDocs = "MRS Service Documentation";
@@ -177,8 +177,8 @@ export const setCurrentCompartment = "Set as Current Compartment";
 export const viewDBSystemInfo = "View DB System Information";
 export const createConnWithBastion = "Create Connection with Bastion Service";
 export const startDBSystem = "Start the DB System";
-export const restartDBSytem = "Restart the DB System";
-export const stopDBSytem = "Stop the DB System";
+export const restartDBSystem = "Restart the DB System";
+export const stopDBSystem = "Stop the DB System";
 export const deleteDBSystem = "Delete the DB System";
 export const createRouterEndpoint = "Create MySQL Router Endpoint on new Compute Instance";
 export const openNewShellConsole = "Open New MySQL Shell Console";
@@ -200,7 +200,7 @@ export const deleteRESTUser = "Delete User";
 
 export const checkNewTabAndWebView = "Check New Tab and WebView";
 export const checkNewTab = "Check New Tab";
-export const checkNotif = "Check Notification";
+export const checkNotification = "Check Notification";
 export const checkInput = "Check Input";
 export const checkWebViewDialog = "Check Dialog inside a webview";
 export const checkDialog = "Check Dialog";
@@ -246,7 +246,7 @@ export const dbConnectionSqliteCtxMenu = new Map([
 export const schemaCtxMenu = new Map([
     [setCurrentDBSchema, 1],
     [dumpSchemaToDisk, 2],
-    [dumpSchemaToDiskToServ, 3],
+    [dumpSchemaToDiskToService, 3],
     [copyToClipboard, 4],
     [copyToClipboardName, 0],
     [copyToClipboardStat, 1],
@@ -295,7 +295,7 @@ export const restServiceCtxMenu = new Map([
     [editRESTService, 1],
     [setAsCurrentREST, 2],
     [loadRESTSchemaFromJSON, 3],
-    [exportRESTSDK, 4],
+    [exportRestSdk, 4],
     [addNewAuthApp, 5],
     [deleteRESTService, 6],
     [mrsServiceDocs, 7],
@@ -345,8 +345,8 @@ export const ociDBSCtxMenu = new Map([
     [viewDBSystemInfo, 1],
     [createConnWithBastion, 2],
     [startDBSystem, 3],
-    [restartDBSytem, 4],
-    [stopDBSytem, 5],
+    [restartDBSystem, 4],
+    [stopDBSystem, 5],
     [deleteDBSystem, 6],
     [createRouterEndpoint, 7],
 ]);

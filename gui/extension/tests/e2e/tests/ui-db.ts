@@ -72,7 +72,7 @@ describe("DATABASE CONNECTIONS", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: `globalDBConnenction`,
+        caption: `globalDBConnection`,
         description: "Local connection",
         basic: {
             hostname: String(process.env.DBHOSTNAME),
@@ -208,9 +208,9 @@ describe("DATABASE CONNECTIONS", () => {
             await Workbench.closeAllEditors();
             const treeDBSection = await Section.getSection(constants.dbTreeSection);
             await Section.selectMoreActionsItem(treeDBSection, constants.resetExtension);
-            let notif = "This will completely reset the MySQL Shell for VS Code extension by ";
-            notif += "deleting the web certificate and user settings directory.";
-            const ntf = await Workbench.getNotification(notif, false);
+            let notification = "This will completely reset the MySQL Shell for VS Code extension by ";
+            notification += "deleting the web certificate and user settings directory.";
+            const ntf = await Workbench.getNotification(notification, false);
             await Workbench.clickOnNotificationButton(ntf, constants.cancel);
 
         });
@@ -580,7 +580,7 @@ describe("DATABASE CONNECTIONS", () => {
         let treeGlobalConn: TreeItem;
         const dumpFolder = join(constants.workspace, "dump");
         const dumpSchemaToDisk = `dump_schema_to_disk`;
-        const schemaForMySQLDBService = "schema_for_mysql_db_service";
+        const schemaForMySQLDbService = "schema_for_mysql_db_service";
         const schemaToDrop = "schema_to_drop";
         const tableToDrop = `table_to_drop`;
         const testView = `test_view`;
@@ -722,7 +722,7 @@ describe("DATABASE CONNECTIONS", () => {
             const scriptLines = await driver.findElements(locator.notebook.codeEditor.editor.line);
             expect(scriptLines.length, "The script was not loaded. No lines found on the editor").to.be.greaterThan(0);
             await Notebook.selectCurrentEditor("DB Notebook", "notebook");
-            await commandExecutor.syncronizeResultId();
+            await commandExecutor.synchronizeResultId();
         });
 
         it("Set as Current Database Schema", async () => {
@@ -810,24 +810,24 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("Dump Schema to Disk for MySQL Database Service", async () => {
-            const treeTestSchema = await Tree.getElement(constants.dbTreeSection, schemaForMySQLDBService);
+            const treeTestSchema = await Tree.getElement(constants.dbTreeSection, schemaForMySQLDbService);
             treeGlobalSchema = await Tree.getElement(constants.dbTreeSection,
                 (globalConn.basic as interfaces.IConnBasicMySQL).schema);
 
             await fs.rm(dumpFolder, { force: true, recursive: true });
             await fs.mkdir(dumpFolder);
-            await Tree.openContextMenuAndSelect(treeTestSchema, constants.dumpSchemaToDiskToServ);
+            await Tree.openContextMenuAndSelect(treeTestSchema, constants.dumpSchemaToDiskToService);
             await Workbench.setInputPath(dumpFolder);
             await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Workbench
-                .waitForOutputText(`Task 'Dump Schema ${schemaForMySQLDBService} to Disk' completed successfully`,
+                .waitForOutputText(`Task 'Dump Schema ${schemaForMySQLDbService} to Disk' completed successfully`,
                     constants.wait10seconds);
             const files = await fs.readdir(dumpFolder);
             expect(files.length, `The dump did not exported any files to ${dumpFolder}`).to.be.greaterThan(0);
             await Section.focus(constants.tasksTreeSection);
             expect(await Tree.existsElement(constants.tasksTreeSection,
-                `Dump Schema ${schemaForMySQLDBService} to Disk (done)`),
-                errors.doesNotExistOnTree(`Dump Schema ${schemaForMySQLDBService} to Disk (done)`)).to.be.true;
+                `Dump Schema ${schemaForMySQLDbService} to Disk (done)`),
+                errors.doesNotExistOnTree(`Dump Schema ${schemaForMySQLDbService} to Disk (done)`)).to.be.true;
         });
 
         it("Load Data to HeatWave Cluster", async () => {

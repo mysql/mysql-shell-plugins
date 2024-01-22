@@ -36,7 +36,7 @@ export const databaseConnectionConfiguration = {
     exists: By.className("valueEditDialog"),
     databaseType: {
         exists: By.id("databaseType"),
-        list: By.className("dropdownList")
+        list: By.className("dropdownList"),
     },
     caption: By.id("caption"),
     description: By.id("description"),
@@ -46,7 +46,7 @@ export const databaseConnectionConfiguration = {
             hostname: By.id("hostName"),
             protocol: {
                 exists: By.id("scheme"),
-                list: By.className("dropdownList")
+                list: By.className("dropdownList"),
             },
             username: By.id("userName"),
             schema: By.id("defaultSchema"),
@@ -55,14 +55,14 @@ export const databaseConnectionConfiguration = {
         ssl: {
             modeList: {
                 exists: By.id("sslModePopup"),
-                requireAndVerifyCA: By.id("Require and Verify CA")
+                requireAndVerifyCA: By.id("Require and Verify CA"),
             },
             mode: By.id("sslMode"),
             modeLabel: By.css("#sslMode label"),
             ca: By.id("sslCaFile"),
             cert: By.id("sslCertFile"),
             key: By.id("sslKeyFile"),
-            inputs: By.css(".tabview.top input.msg")
+            inputs: By.css(".tabview.top input.msg"),
         },
     },
     sqlite: {
@@ -84,7 +84,7 @@ export const confirmDialog = {
     refuse: By.id("refuse"),
     alternative: By.id("alternative"),
     title: By.css(".title label"),
-    message: By.id("dialogMessage")
+    message: By.id("dialogMessage"),
 };
 
 // DB CONNECTIONS
@@ -109,13 +109,13 @@ export const dbConnections = {
             edit: By.id("edit"),
             duplicate: By.id("duplicate"),
             remove: By.id("remove"),
-        }
-    }
+        },
+    },
 };
 
 // NOTEBOOK
 
-// ADMINISTRATION 
+// ADMINISTRATION
 export const serverStatusHeadings = By.css(".grid .heading label");
 export const clientConnections = {
     properties: By.css("#connectionProps label"),
@@ -123,14 +123,14 @@ export const clientConnections = {
 };
 export const performanceDashboardGrid = {
     exists: By.id("dashboardGrid"),
-    headings: By.css(".gridCell.title")
+    headings: By.css(".gridCell.title"),
 };
 
 export const treeToggle = By.css("span.treeToggle");
 export const treeContextMenu = {
     exists: By.css(".noArrow.menu"),
-    selectRows: By.id("selectRowsMenuItem")
-}
+    selectRows: By.id("selectRowsMenuItem"),
+};
 
 // NOTEBOOK
 export const notebook = {
@@ -143,9 +143,9 @@ export const notebook = {
             currentIcon: By.className("icon"),
             currentImage: By.css("img"),
             items: By.css("div.visible.dropdownList > div"),
-            iconType: By.css(".msg.icon")
+            iconType: By.css(".msg.icon"),
         },
-        button: By.className("button")
+        button: By.className("button"),
     },
     codeEditor: {
         textArea: By.css("textarea"),
@@ -178,7 +178,7 @@ export const notebook = {
                 text: {
                     exists: By.css(".textHost span"),
                     entry: By.css(".entry > span"),
-                    info: By.className("info")
+                    info: By.className("info"),
                 },
                 anyResult: By.css(".resultStatus .label,.actionOutput span > span"),
             },
@@ -186,14 +186,14 @@ export const notebook = {
             editorLine: By.css(".view-lines.monaco-mouse-cursor-text > div > span"),
             editorPrompt: By.css(".view-lines.monaco-mouse-cursor-text .view-line"),
             statementStart: By.className("statementStart"),
-            cursorLine: By.css(".view-overlays > div")
+            cursorLine: By.css(".view-overlays > div"),
         },
         prompt: {
             current: By.className("editorPromptFirst"),
         },
         scroll: By.css(".codeEditor .monaco-scrollable-element"),
         autoCompleteItems: By.css(".monaco-list .monaco-highlighted-label"),
-        suggestionsMenu: By.css("div.contents")
+        suggestionsMenu: By.css("div.contents"),
     },
     explorerHost: {
         exists: By.id("explorerHost"),
@@ -203,7 +203,7 @@ export const notebook = {
             addConsole: By.id("addConsole"),
             textBox: By.css("#editorSectionHost input"),
             close: By.css("span.codicon-close"),
-            item: By.css("div.accordionItem.closable")
+            item: By.css("div.accordionItem.closable"),
         },
         schemas: {
             exists: By.id("schemaSectionHost"),
@@ -212,17 +212,17 @@ export const notebook = {
             treeToggle: By.css("span.treeToggle"),
             scroll: By.css("#schemaSectionHost .tabulator-tableholder"),
             objectByLevel: (level: number): By => {
-                return By.css(`.tabulator-table .tabulator-tree-level-${level}`)
+                return By.css(`.tabulator-table .tabulator-tree-level-${level}`);
             },
             object: By.css(".schemaTreeEntry label"),
-            table: By.className("tabulator-table")
+            table: By.className("tabulator-table"),
         },
         administration: {
             exists: By.id("adminSectionHost"),
             container: By.css("div.container.section"),
             scrollBar: By.className("fixedScrollbar"),
             item: By.className("accordionItem"),
-            itemToClick: By.css("#adminSectionHost .accordionItem .label")
+            itemToClick: By.css("#adminSectionHost .accordionItem .label"),
         },
         scripts: {
             exists: By.id("scriptSectionHost"),
@@ -238,18 +238,18 @@ export const notebook = {
                 addSQLScript: By.id("addSQLScript"),
             },
             table: By.className("tabulator-table"),
-            item: By.className("accordionItem")
-        }
+            item: By.className("accordionItem"),
+        },
     },
     serverStatus: {
-        tableCells: By.css("#statusBoxHost .gridCell")
+        tableCells: By.css("#statusBoxHost .gridCell"),
     },
     connectionTab: {
         exists: By.className("hasAuxillary"),
         opened: By.css(".hasAuxillary.selected"),
         close: By.css("#auxillary .closeButton"),
-    }
-}
+    },
+};
 
 export const findWidget = {
     exists: By.className("find-widget"),
@@ -261,7 +261,7 @@ export const findWidget = {
     actions: By.css(".find-actions div"),
     close: By.xpath(".//div[contains(@title, 'Close')]"),
     replacerActions: By.css(".replace-actions div"),
-}
+};
 
 export const htmlTag = {
     label: By.css("label"),
@@ -271,7 +271,7 @@ export const htmlTag = {
     input: By.css("input"),
     mix: (...locators: string[]): By => {
         return By.css(locators.join(" > "));
-    }
+    },
 };
 
 export const adminPage = {
@@ -298,7 +298,7 @@ export const shellPage = {
         open: By.css("#shellModuleHost #tilesHost button"),
         newSession: By.css("#shellModuleHost #\\-1"),
         tile: By.css("#shellModuleHost #tilesHost .sessionTile"),
-    }
+    },
 };
 
 export const shellSession = {
@@ -313,31 +313,31 @@ export const shellSession = {
         json: By.css(".zoneHost .jsonView .arrElem, .outputHost .jsonView"),
         tabs: By.css(".tabArea"),
         searchBySessionId: (id: string): By => {
-            return By.xpath("//div[contains(@id, 'session_" + id + "')]")
+            return By.xpath("//div[contains(@id, 'session_" + id + "')]");
         },
         dataSet: {
-            cells: By.className("tabulator-cell")
-        }
+            cells: By.className("tabulator-cell"),
+        },
     },
     close: By.className("closeButton"),
     language: By.className("editorPromptFirst"),
     server: By.id("server"),
     schema: By.id("schema"),
-    tabContextMenu: By.css(".shellPromptSchemaMenu .menuItem .label")
-}
+    tabContextMenu: By.css(".shellPromptSchemaMenu .menuItem .label"),
+};
 
 export const sqlEditorPage = {
     icon: By.id("gui.sqleditor"),
     tabName: By.css("#connections > .label"),
     title: By.css(".connectionBrowser #title"),
-    contentTitle: By.css(".connectionBrowser #contentTitle")
+    contentTitle: By.css(".connectionBrowser #contentTitle"),
 };
 
 export const debuggerPage = {
     icon: By.id("debugger"),
     scripts: By.css("#scriptSectionHost .label"),
     toolbar: {
-        item: By.css("#messageOutputHost .label")
+        item: By.css("#messageOutputHost .label"),
     },
     outputHost: By.id("outputPaneHost"),
     inputConsoleItem: By.css("#inputAreaHost .label"),
@@ -361,8 +361,8 @@ export const settingsPage = {
         limitCount: By.id("sql.limitRowCount"),
         limitRowCount: By.id("sql.limitRowCount"),
         shellShowGreeting: By.id("shellSession.sessionBrowser.showGreeting"),
-    }
-}
+    },
+};
 
 export const aboutPage = {
     tab: By.id("about"),
@@ -373,7 +373,7 @@ export const aboutPage = {
     leftTableCells: By.css(".gridCell.left"),
     rightTableCells: By.css(".gridCell.right"),
     copyright: By.css(".copyright"),
-}
+};
 
 export const themeEditorPage = {
     tab: By.id("themeEditor"),
@@ -383,7 +383,7 @@ export const themeEditorPage = {
         sectionTitle: By.css("#themeSelectorContainer .gridCell label"),
         colorPad: {
             exists: By.id("colorPadCell"),
-            colors: By.css("#colorPadCell > div")
+            colors: By.css("#colorPadCell > div"),
         },
         selector: By.id("theming.currentTheme"),
         selectorList: By.className("dropdownList"),
@@ -395,19 +395,19 @@ export const themeEditorPage = {
         uiColors: By.id("uiColors"),
         scroll: By.className("tabulator-tableholder"),
         tabElements: By.css(".tabulator-tableholder .tabulator-selectable"),
-        toggleElement: By.className("treeToggle")
+        toggleElement: By.className("treeToggle"),
     },
     themePreview: {
         title: By.id("previewTitle"),
         section: By.css("#previewRoot p"),
-    }
-}
+    },
+};
 
 export const errorPanel = {
     exists: By.css(".visible.errorPanel"),
     title: By.css(".title label"),
-    content: By.css(".content label")
-}
+    content: By.css(".content label"),
+};
 
 export const passwordDialog = {
     exists: By.css(".passwordDialog"),
@@ -415,11 +415,11 @@ export const passwordDialog = {
     cancel: By.id("cancel"),
     ok: By.id("ok"),
     items: By.css("div.grid > div"),
-    itemsText: By.css(".resultText span")
-}
+    itemsText: By.css(".resultText span"),
+};
 
 export const loginPage = {
-    sakilaLogo: By.id("loginDialogSakilaLogo")
-}
+    sakilaLogo: By.id("loginDialogSakilaLogo"),
+};
 
 export const mainActivityBar = By.id("mainActivityBar");

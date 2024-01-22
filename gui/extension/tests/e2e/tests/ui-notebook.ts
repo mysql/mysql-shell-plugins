@@ -462,7 +462,7 @@ describe("NOTEBOOKS", () => {
                 expect(tabArea.length, "Result tab should be visible").to.equals(1);
             } finally {
                 await Notebook.selectCurrentEditor("DB Notebook", "notebook");
-                await commandExecutor.syncronizeResultId();
+                await commandExecutor.synchronizeResultId();
             }
         });
 

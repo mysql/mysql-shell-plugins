@@ -89,7 +89,7 @@ export class Os {
 
     /**
      * Deletes all credentials for database access using shell
-     * @returns A promise resolving when the credetials are deleted
+     * @returns A promise resolving when the credentials are deleted
      */
     public static deleteCredentials = async (): Promise<void> => {
         const params = ["--js", "-e", "shell.deleteAllCredentials()"];
@@ -113,7 +113,7 @@ export class Os {
      * Gets the extension output logs folder
      * @returns A promise resolving with the location of the logs folder
      */
-    public static getExtentionOutputLogsFolder = async (): Promise<string> => {
+    public static getExtensionOutputLogsFolder = async (): Promise<string> => {
         let testResources: string;
         for (let i = 0; i <= process.argv.length - 1; i++) {
             if (process.argv[i] === "-s") {
@@ -168,7 +168,7 @@ export class Os {
      * @returns A promise resolving when the logs are prepared
      */
     public static prepareExtensionLogsForExport = async (testSuite: string): Promise<void> => {
-        const logPathFolder = await Os.getExtentionOutputLogsFolder();
+        const logPathFolder = await Os.getExtensionOutputLogsFolder();
         try {
             // rename the file
             await fs.rename(join(logPathFolder, constants.feLogFile),

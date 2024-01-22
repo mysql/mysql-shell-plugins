@@ -61,7 +61,7 @@ describe("OPEN EDITORS", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: `globalDBConnenction`,
+        caption: `globalDBConnection`,
         description: "Local connection",
         basic: {
             hostname: String(process.env.DBHOSTNAME),

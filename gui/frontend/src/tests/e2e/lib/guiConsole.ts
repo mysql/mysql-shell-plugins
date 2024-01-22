@@ -29,7 +29,7 @@ export class GuiConsole {
     /**
      * Opens a new Shell session, from the GUI Console page
      * Throws an exception if the session was not opened
-     *
+     * @param driver The webdriver
      * @param id Id of the session. If this parameter is set, the function will open.
      * the session with the provided id
      * @returns Promise resolving when session is opened
@@ -56,7 +56,7 @@ export class GuiConsole {
 
     /**
      * Returns the session with the provided session number, from the GUI Console page
-     *
+     * @param driver The webdriver
      * @param sessionNbr the session number
      * @returns Promise resolving with the session button
      */

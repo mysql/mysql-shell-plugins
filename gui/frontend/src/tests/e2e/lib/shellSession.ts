@@ -29,8 +29,8 @@ export class ShellSession {
 
     /**
      * Returns the result of a shell session query or instruction
-     *
-     * @returns Promise resolving whith the result
+     * @param driver The webdriver
+     * @returns Promise resolving width the result
      *
      */
     public static getResult = async (driver: WebDriver): Promise<string> => {
@@ -47,7 +47,8 @@ export class ShellSession {
                 }
             } else {
                 // Query results
-                const resultStatus = await zoneHosts[zoneHosts.length - 1].findElements(locator.shellSession.result.info);
+                const resultStatus = await zoneHosts[zoneHosts.length - 1]
+                    .findElements(locator.shellSession.result.info);
                 if (resultStatus.length > 0) {
                     text = await resultStatus[0].getText();
                 }
@@ -61,8 +62,8 @@ export class ShellSession {
 
     /**
      * Returns the result of a shell session query or instruction that should generate a json result
-     *
-     * @returns Promise resolving whith the result
+     * @param driver The webdriver
+     * @returns Promise resolving width the result
      *
      */
     public static getJsonResult = async (driver: WebDriver): Promise<string> => {
@@ -73,7 +74,7 @@ export class ShellSession {
 
     /**
      * Verifies if the last output result is JSON
-     *
+     * @param driver The webdriver
      * @returns Promise resolving with the result language
      */
     public static isJSON = async (driver: WebDriver): Promise<boolean> => {
@@ -88,7 +89,7 @@ export class ShellSession {
 
     /**
      * Returns the shell session tab
-     *
+     * @param driver The webdriver
      * @param sessionNbr the session number
      * @returns Promise resolving with the the Session tab
      */
@@ -115,7 +116,7 @@ export class ShellSession {
 
     /**
      * Closes a shell session
-     *
+     * @param driver The webdriver
      * @param sessionNbr the session number
      * @returns Promise resolving when the session is closed
      */
@@ -126,7 +127,7 @@ export class ShellSession {
 
     /**
      * Returns the Shell tech/language after switching to javascript/python/mysql
-     *
+     * @param driver The webdriver
      * @returns Promise resolving with the the session shell language
      */
     public static getTech = async (driver: WebDriver): Promise<string> => {
@@ -138,7 +139,7 @@ export class ShellSession {
 
     /**
      * Verifies if a value is present on a query result data set
-     *
+     * @param driver The webdriver
      * @param value value to search for
      * @returns A promise resolving with true if exists, false otherwise
      */
@@ -167,7 +168,7 @@ export class ShellSession {
 
     /**
      * Returns the text within the server tab on a shell session
-     *
+     * @param driver The webdriver
      * @returns A promise resolving with the text on the tab
      */
     public static getServerTabStatus = async (driver: WebDriver): Promise<string> => {
@@ -178,7 +179,7 @@ export class ShellSession {
 
     /**
      * Returns the text within the schema tab on a shell session
-     *
+     * @param driver The webdriver
      * @returns A promise resolving with the text on the tab
      */
     public static getSchemaTabStatus = async (driver: WebDriver): Promise<string> => {
@@ -189,7 +190,7 @@ export class ShellSession {
 
     /**
      * Verifies if a text is present on a json result, returned by a query
-     *
+     * @param driver The webdriver
      * @param value value to search for
      * @returns A promise resolving with true if exists, false otherwise
      */
@@ -199,7 +200,7 @@ export class ShellSession {
         const spans = await zoneHost.findElements(locator.htmlTag.mix(
             locator.htmlTag.label.value,
             locator.htmlTag.span.value,
-            locator.htmlTag.span.value
+            locator.htmlTag.span.value,
         ));
 
         for (const span of spans) {
@@ -214,7 +215,7 @@ export class ShellSession {
 
     /**
      * Waits for the text or regexp to include/match the result of a shell session query or instruction
-     *
+     * @param driver The webdriver
      * @param text text of regexp to verify
      * @param isJson true if expected result should be json
      * @returns Promise resolving when the text or the regexp includes/matches the query result
@@ -239,7 +240,7 @@ export class ShellSession {
 
     /**
      * Waits for the connection tab (server/schema) includes the given text
-     *
+     * @param driver The webdriver
      * @param tab server or schema
      * @param text to verify
      * @returns Promise resolving when the text of the tab includes the given text
@@ -259,7 +260,7 @@ export class ShellSession {
 
     /**
      * Clicks on the schema tab and selects a new schema
-     *
+     * @param driver The webdriver
      * @param schema schema to choose
      * @returns Promise resolving when the new schema is selected
      *

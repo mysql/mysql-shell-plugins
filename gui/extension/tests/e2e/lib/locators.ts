@@ -51,8 +51,8 @@ export const dbConnectionDialog = {
         mds: {
             profileNameList: By.id("profileNamePopup"),
             profileName: By.id("profileName"),
-            dbDystemId: By.id("mysqlDbSystemId"),
-            dbDystemName: By.id("mysqlDbSystemName"),
+            dbSystemId: By.id("mysqlDbSystemId"),
+            dbSystemName: By.id("mysqlDbSystemName"),
             bastionId: By.id("bastionId"),
             bastionName: By.id("bastionName"),
         },
@@ -201,7 +201,7 @@ export const mrsServiceDialog = {
         authCompletedUrlValidation: By.id("authCompletedUrlValidation"),
         authCompletedPageContent: By.id("authCompletedPageContent"),
     },
-    autenticationAppsTab: By.id("page3"),
+    authenticationAppsTab: By.id("page3"),
     authenticationApps: {
         vendorNameList: By.id("authApps.authVendorNamePopup"),
         vendorName: By.id("authApps.authVendorName"),
@@ -210,7 +210,7 @@ export const mrsServiceDialog = {
         authAppsId: By.id("authApps.appId"),
         authAppsAccessToken: By.id("authApps.accessToken"),
         authAppsUrl: By.id("authApps.url"),
-        authAppsurlDirectAuth: By.id("authApps.urlDirectAuth"),
+        authAppsUrlDirectAuth: By.id("authApps.urlDirectAuth"),
     },
     ok: By.id("ok"),
     cancel: By.id("cancel"),

@@ -199,13 +199,13 @@ export const toolbarButtonIsEnabled = (button: string): Condition<boolean> => {
 };
 
 export const resultTabIsMaximized = (): Condition<boolean> => {
-    return new Condition(`for result tab to be maximezed`, async () => {
+    return new Condition(`for result tab to be maximized`, async () => {
         return (await driver.findElements(locator.notebook.codeEditor.editor.result.status.normalize)).length > 0;
     });
 };
 
 export const resultTabIsNormalized = (): Condition<boolean> => {
-    return new Condition(`for result tab to be maximezed`, async () => {
+    return new Condition(`for result tab to be maximized`, async () => {
         return (await driver.findElements(locator.notebook.codeEditor.editor.result.status.normalize)).length === 0;
     });
 };
@@ -221,7 +221,7 @@ export const editorHasNewPrompt = (): Condition<boolean> => {
 
 export const notificationExists = (notification: string, dismiss = true,
     expectFailure = false): Condition<boolean> => {
-    return new Condition(`for notication '${notification}' to be displayed`, async () => {
+    return new Condition(`for notification '${notification}' to be displayed`, async () => {
         try {
             if (Misc.insideIframe) {
                 await Misc.switchBackToTopFrame();
@@ -311,7 +311,7 @@ export const extensionIsReady = (): Condition<boolean> => {
 
             const text = `Extension was not loaded successfully after ${feLoadTries} tries. Check the logs.`;
             // one last try to recover
-            const path = join(await Os.getExtentionOutputLogsFolder(), constants.feLogFile);
+            const path = join(await Os.getExtensionOutputLogsFolder(), constants.feLogFile);
             const output = (await fs.readFile(path)).toString();
             console.log("-----OUTPUT LOGS------");
             console.log(output);

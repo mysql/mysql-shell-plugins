@@ -93,7 +93,7 @@ export class Misc {
                 const iframe = await driver.findElements(locator.iframe.exists);
                 if (iframe.length > 0) {
                     await driver.wait(until.ableToSwitchToFrame(iframe[0]),
-                        constants.wait150MiliSeconds);
+                        constants.wait150MilliSeconds);
                 }
 
                 return true;
