@@ -24,6 +24,8 @@
 import { until, Key, WebElement, error, WebDriver } from "selenium-webdriver";
 import { explicitWait, Misc } from "./misc.js";
 import * as locator from "../lib/locators.js";
+import * as interfaces from "../lib/interfaces.js";
+import * as constants from "../lib/constants.js";
 
 export class DBConnection {
 
@@ -1064,15 +1066,25 @@ export class DBConnection {
      */
     public static openNewNotebook = async (driver: WebDriver): Promise<void> => {
         await driver.wait(async () => {
+            await driver.executeScript(
+                "arguments[0].click()",
+                await driver.findElement(locator.notebook.explorerHost.openEditors.addConsole),
+            );
+
             try {
-                await driver.executeScript(
-                    "arguments[0].click()",
-                    await driver.findElement(locator.notebook.explorerHost.openEditors.addConsole),
-                );
+                await driver.wait(until
+                    .elementLocated(locator.notebook.explorerHost.openEditors.textBox), explicitWait);
 
-                const input = await driver.wait(until.elementLocated(locator.notebook.explorerHost.openEditors.textBox),
-                    explicitWait, "Editor host input was not found");
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }, explicitWait * 3, "Open editors new input was not found");
 
+
+        await driver.wait(async () => {
+            try {
+                const input = await driver.findElement(locator.notebook.explorerHost.openEditors.textBox);
                 await input.sendKeys(Key.ESCAPE);
 
                 return true;
@@ -1082,6 +1094,69 @@ export class DBConnection {
                 }
             }
         }, explicitWait, "Add console or the input were not interactable");
+    };
+
+    /**
+     * Sets the database credentials on the password dialog
+     * @param driver The webdriver
+     * @param data The credentials
+     * @param timeout The max number of time the function should wait until the connection is successful
+     * @returns A promise resolving when the credentials are set
+     */
+    public static setCredentials = async (driver: WebDriver, data: interfaces.IDBConnection,
+        timeout?: number): Promise<void> => {
+        await DBConnection.setPassword(driver, data);
+        await DBConnection.setConfirm(driver, "no", timeout);
+    };
+
+    /**
+     * Sets the database connection password
+     * @param driver The webdriver
+     * @param dbConfig The database configuration
+     * @returns A promise resolving when the password is set
+     */
+    private static setPassword = async (driver: WebDriver, dbConfig: interfaces.IDBConnection): Promise<void> => {
+        const dialog = await driver.wait(until.elementLocated((locator.passwordDialog.exists)),
+            constants.wait5seconds, "No password dialog was found");
+        await dialog.findElement(locator.passwordDialog.password)
+            .sendKeys((dbConfig.basic as interfaces.IConnBasicMySQL).password as string);
+        await dialog.findElement(locator.passwordDialog.ok).click();
+    };
+
+    /**
+     * Sets the database connection confirm dialog
+     * @param driver The webdriver
+     * @param value The value. (Y, N, A)
+     * @param timeoutDialog The time to wait for the confirm dialog
+     * @returns A promise resolving when the password is set
+     */
+    private static setConfirm = async (driver: WebDriver, value: string,
+        timeoutDialog = constants.wait10seconds): Promise<void> => {
+
+        const confirmDialog = await driver.wait(until.elementsLocated(locator.confirmDialog.exists),
+            timeoutDialog, "No confirm dialog was found");
+
+        const noBtn = await confirmDialog[0].findElement(locator.confirmDialog.refuse);
+        const yesBtn = await confirmDialog[0].findElement(locator.confirmDialog.accept);
+        const neverBtn = await confirmDialog[0].findElement(locator.confirmDialog.alternative);
+
+        switch (value) {
+            case "yes": {
+                await yesBtn.click();
+                break;
+            }
+            case "no": {
+                await noBtn.click();
+                break;
+            }
+            case "never": {
+                await neverBtn.click();
+                break;
+            }
+            default: {
+                break;
+            }
+        }
     };
 
 }

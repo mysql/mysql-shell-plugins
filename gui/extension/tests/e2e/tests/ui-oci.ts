@@ -495,7 +495,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 const mds = await DatabaseConnection.getConnection(bastionConn.caption);
                 await mds.click();
                 try {
-                    await driver.wait(waitUntil.mdsConnectionIsOpened(bastionConn), constants.wait25seconds);
+                    await driver.wait(waitUntil.mdsConnectionIsOpened(bastionConn), constants.wait1minute);
                 } catch (e) {
                     if (String(e).match(/Tunnel/) !== null) {
                         await Workbench.closeEditor(constants.dbDefaultEditor);

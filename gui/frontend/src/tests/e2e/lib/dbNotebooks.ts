@@ -24,6 +24,7 @@
 import { until, WebElement, Key, error, WebDriver } from "selenium-webdriver";
 import { explicitWait, IDBConnection } from "./misc.js";
 import * as locator from "../lib/locators.js";
+import * as constants from "../lib/constants.js";
 
 export const execFullBlockSql = "Execute the selection or everything in the current block and create a new block";
 export const execFullBlockJs = "Execute everything in the current block and create a new block";
@@ -332,5 +333,101 @@ export class DBNotebooks {
                 await driver.sleep(300);
             }
         }
+    };
+
+    /**
+     * Sets a new line on the notebook editor
+     * @param driver The Webdriver
+     * @returns A promise resolving when the new line is set
+     */
+    public static setNewLineOnEditor = async (driver: WebDriver): Promise<void> => {
+        const getLastLineNumber = async (): Promise<number> => {
+            const lineNumbers = await driver.findElements(locator.notebook.codeEditor.editor.lineNumber);
+            if (lineNumbers.length === 0) {
+                return 0;
+            } else {
+                return parseInt((await lineNumbers[lineNumbers.length - 1].getText()), 10);
+            }
+        };
+
+        await driver.wait(async () => {
+            try {
+                const lastLineNumber = await getLastLineNumber();
+                const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+                await textArea.sendKeys(Key.RETURN);
+
+                return (await getLastLineNumber()) > lastLineNumber;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, "Could not set a new line on the editor");
+    };
+
+    /**
+     * Gets the last text on the last prompt/editor line
+     * @param driver The webdriver
+     * @returns A promise resolving with the text
+     */
+    public static getPromptLastTextLine = async (driver: WebDriver): Promise<String> => {
+        const context = await driver.findElement(locator.notebook.codeEditor.editor.exists);
+        let sentence = "";
+        await driver.wait(async () => {
+            try {
+                const codeLineWords = await context.findElements(locator.notebook.codeEditor.editor.wordInSentence);
+                if (codeLineWords.length > 0) {
+                    for (const word of codeLineWords) {
+                        sentence += (await word.getText()).replace("&nbsp;", " ");
+                    }
+
+                    return true;
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, "Could not get the text from last prompt line");
+
+        return sentence;
+    };
+
+    /**
+     * Gets a toolbar button
+     * @param driver The webdriver
+     * @param button The button name
+     * @returns A promise resolving with the button
+     */
+    public static getToolbarButton = async (driver: WebDriver, button: string): Promise<WebElement | undefined> => {
+        const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
+            constants.wait5seconds, "Toolbar was not found");
+        const buttons = await toolbar.findElements(locator.notebook.toolbar.button);
+        for (const btn of buttons) {
+            if ((await btn.getAttribute("data-tooltip")) === button) {
+                return btn;
+            }
+        }
+
+        throw new Error(`Could not find '${button}' button`);
+    };
+
+    /**
+     * Verifies if a toolbar button exists
+     * @param driver The webdriver
+     * @param button The button
+     * @returns A promise resolving with true if the button exists, false otherwise
+     */
+    public static existsToolbarButton = async (driver: WebDriver, button: string): Promise<boolean> => {
+        const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
+            constants.wait5seconds, "Toolbar was not found");
+        const buttons = await toolbar.findElements(locator.notebook.toolbar.button);
+        for (const btn of buttons) {
+            if ((await btn.getAttribute("data-tooltip")) === button) {
+                return true;
+            }
+        }
+
+        return false;
     };
 }
