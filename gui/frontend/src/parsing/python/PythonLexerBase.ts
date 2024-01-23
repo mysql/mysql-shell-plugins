@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -48,7 +48,11 @@ export abstract class PythonLexerBase extends Lexer {
             return super.emit();
         }
 
-        super._token = token;
+        // The _token field is handled by the parent Lexer class, however, the TypeScript compiler now prevents field
+        // assignment using "super", because fields are kept in a flat structure in the prototype chain and there are no
+        // assurances they are not rewritten by the child classes.
+        // Until the Lexer class introduces a setter for this specific field, use we can replace "super" by "this".
+        this._token = token;
         this.buffer.push(token);
         this.lastToken = token;
 
