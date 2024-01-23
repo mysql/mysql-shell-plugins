@@ -32,7 +32,6 @@ import { DBConnection } from "./dbConnection.js";
 import { execFullBlockJs, execFullBlockSql } from "./dbNotebooks.js";
 import * as locator from "../lib/locators.js";
 
-logging.installConsoleHandler();
 export const explicitWait = 5000;
 export const feLog = "fe.log";
 
@@ -76,6 +75,10 @@ export class Misc {
      * @returns A promise resolving when the webdriver is loaded
      */
     public static loadDriver = async (): Promise<WebDriver> => {
+
+        const logger = logging.getLogger("webdriver");
+        logger.setLevel(logging.Level.INFO);
+        logging.installConsoleHandler();
 
         const options: Options = new Options();
         const headless = process.env.HEADLESS ?? "1";
@@ -146,16 +149,28 @@ export class Misc {
      */
     public static writeFELogs = async (testName: string, content: Logs): Promise<void> => {
         if (await Misc.fileExists(join(process.cwd(), feLog))) {
-            await fs.appendFile(feLog, `\n---- ${testName} -----`);
+            await fs.appendFile(feLog, `\n---- ${testName} ------`);
         } else {
             await fs.writeFile(feLog, `---- ${testName} -----\n`);
         }
-        const logs = await content.get(logging.Type.BROWSER);
-        for (const log of logs) {
-            const date = new Date(log.timestamp);
-            let time = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()} `;
-            time += `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-            await fs.appendFile(feLog, `\n${time} [${String(log.level)}] ${log.message}`);
+
+        const logTypes = [
+            logging.Type.BROWSER,
+            logging.Type.DRIVER,
+        ];
+        let line = "";
+        let logs: logging.Entry[];
+        for (const logType of logTypes) {
+            line = `---> ${logType}\n`;
+            logs = await content.get(logType);
+            console.log(`Logs length for ${logType}: ${logs.length}`);
+            for (const log of logs) {
+                const date = new Date(log.timestamp);
+                let time = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()} `;
+                time += `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+                line += `\n${time} [${String(log.level)}] ${log.message}`;
+                await fs.appendFile(feLog, line);
+            }
         }
     };
 

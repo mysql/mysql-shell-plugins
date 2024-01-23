@@ -154,17 +154,36 @@ export const notebook = {
             line: By.css("#contentHost .editorHost .view-line"),
             linesContent: By.className("lines-content"),
             currentLine: By.className("current-line"),
+            lineNumber: By.css(".margin-view-overlays .line-numbers"),
             host: By.id("editorPaneHost"),
             editorHost: By.className("editorHost"),
+            scrollBar: By.className("editor-scrollable"),
             result: {
                 exists: By.className("zoneHost"),
+                hasContent: By.className("content"),
+                existsById: (view: string): By => {
+                    let xpath = `//div[@class='zoneHost' and (`;
+                    xpath += `
+                        @monaco-view-zone='b${view}' or
+                        @monaco-view-zone='c${view}' or
+                        @monaco-view-zone='d${view}' or
+                        @monaco-view-zone='e${view}')]
+                    `;
+
+                    return By.xpath(xpath);
+                },
+                table: By.className("tabulator"),
                 tableHeaders: By.className("tabulator-headers"),
                 tableColumnTitle: By.className("tabulator-col-title"),
+                tableRows: By.css(".tabulator-selectable.tabulator-row-odd"),
+                tableCell: By.className("tabulator-cell"),
                 host: By.className("resultHost"),
                 status: {
                     exists: By.className("resultStatus"),
                     text: By.css(".resultStatus > label"),
                     copy: By.className("copyButton"),
+                    message: By.css(".containsMessage > div"),
+                    toolbar: By.css(".resultStatus .toolbar"),
                 },
                 graphHost: {
                     exists: By.className("graphHost"),
@@ -173,17 +192,26 @@ export const notebook = {
                 singleOutput: By.className("outputHost"),
                 info: By.css(".message.info"),
                 tabSection: {
+                    exists: By.className("tabAreaContainer"),
                     tabs: By.css(".resultHost .tabArea div"),
+                    tab: By.css(".tabArea .tabItem > label"),
                 },
                 text: {
-                    exists: By.css(".textHost span"),
+                    exists: By.css(".textHost span, .resultText > span"),
                     entry: By.css(".entry > span"),
                     info: By.className("info"),
                 },
                 anyResult: By.css(".resultStatus .label,.actionOutput span > span"),
+                script: By.className("standaloneScriptHost"),
+                json: {
+                    exists: By.css(".actionOutput .jsonView"),
+                    field: By.css(".jsonView span > span"),
+                },
+                textOutput: By.css(".actionOutput span > span"),
             },
             promptLine: By.css(".margin-view-overlays > div"),
             editorLine: By.css(".view-lines.monaco-mouse-cursor-text > div > span"),
+            wordInSentence: By.css(".view-lines.monaco-mouse-cursor-text > div > span span"),
             editorPrompt: By.css(".view-lines.monaco-mouse-cursor-text .view-line"),
             statementStart: By.className("statementStart"),
             cursorLine: By.css(".view-overlays > div"),
@@ -318,12 +346,15 @@ export const shellSession = {
         dataSet: {
             cells: By.className("tabulator-cell"),
         },
+        outputText: By.css(".actionOutput span > span"),
     },
     close: By.className("closeButton"),
     language: By.className("editorPromptFirst"),
     server: By.id("server"),
     schema: By.id("schema"),
     tabContextMenu: By.css(".shellPromptSchemaMenu .menuItem .label"),
+    tabContextMenuItem: By.css("div.menuItem > label"),
+    schemaItem: By.css("div.menuItem > label"),
 };
 
 export const sqlEditorPage = {
@@ -416,6 +447,7 @@ export const passwordDialog = {
     ok: By.id("ok"),
     items: By.css("div.grid > div"),
     itemsText: By.css(".resultText span"),
+    password: By.css("input"),
 };
 
 export const loginPage = {
@@ -423,3 +455,7 @@ export const loginPage = {
 };
 
 export const mainActivityBar = By.id("mainActivityBar");
+
+export const suggestWidget = {
+    exists: By.css(".suggest-widget.visible"),
+};

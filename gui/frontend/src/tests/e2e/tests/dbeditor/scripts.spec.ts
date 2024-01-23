@@ -90,6 +90,7 @@ describe("Scripts", () => {
 
     afterAll(async () => {
         await Misc.writeFELogs(basename(__filename), driver.manage().logs());
+        await driver.close();
         await driver.quit();
     });
 

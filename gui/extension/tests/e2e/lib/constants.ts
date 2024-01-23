@@ -57,6 +57,7 @@ export const wait10seconds = 10000;
 export const wait15seconds = 15000; //queryWaits
 export const wait20seconds = 20000; //loadingBarWait
 export const wait25seconds = 25000; //ociTasksExplicitWait
+export const wait1minute = 60000;
 export const wait2minutes = 120000; //extensionReadyWait
 
 // TREE SEARCH LEVELS
