@@ -285,7 +285,7 @@ export class DBNotebooks {
             .replace(/\./g, ".*")
             .replace(/;/g, ".*")
             .replace(/\s/g, ".*");
-        let line;
+        let line: number | undefined;
         await driver.wait(async () => {
             try {
                 const lines = await driver.findElements(locator.notebook.codeEditor.editor.editorPrompt);
@@ -304,7 +304,7 @@ export class DBNotebooks {
             }
         }, explicitWait, "The lines were always stale");
 
-        if (!line) {
+        if (line === undefined) {
             throw new Error(`Could not find the line of word ${wordRef}`);
         } else {
             return line;
@@ -341,27 +341,40 @@ export class DBNotebooks {
      * @returns A promise resolving when the new line is set
      */
     public static setNewLineOnEditor = async (driver: WebDriver): Promise<void> => {
+        let newLineNumber: number;
         const getLastLineNumber = async (): Promise<number> => {
-            const lineNumbers = await driver.findElements(locator.notebook.codeEditor.editor.lineNumber);
-            if (lineNumbers.length === 0) {
-                return 0;
-            } else {
-                return parseInt((await lineNumbers[lineNumbers.length - 1].getText()), 10);
-            }
+            await driver.wait(async () => {
+                try {
+                    const lineNumbers = await driver.findElements(locator.notebook.codeEditor.editor.lineNumber);
+                    if (lineNumbers.length === 0) {
+                        return 0;
+                    } else {
+                        const numbers = await Promise.all(
+                            lineNumbers.map(async (lineNumber: WebElement) => {
+                                return parseInt(await lineNumber.getAttribute("innerHTML"), 10);
+                            }));
+
+                        newLineNumber = Math.max(...numbers);
+
+                        return true;
+                    }
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
+                }
+            }, constants.wait5seconds, "Line numbers were stale");
+
+            return newLineNumber;
         };
 
         await driver.wait(async () => {
-            try {
-                const lastLineNumber = await getLastLineNumber();
-                const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-                await textArea.sendKeys(Key.RETURN);
+            const lastLineNumber = await getLastLineNumber();
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+            await textArea.sendKeys(Key.ESCAPE); // close the suggestions menu if exists
+            await textArea.sendKeys(Key.ENTER);
 
-                return (await getLastLineNumber()) > lastLineNumber;
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
-                }
-            }
+            return (await getLastLineNumber()) > lastLineNumber;
         }, constants.wait5seconds, "Could not set a new line on the editor");
     };
 
@@ -402,7 +415,7 @@ export class DBNotebooks {
     public static getToolbarButton = async (driver: WebDriver, button: string): Promise<WebElement | undefined> => {
         const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
             constants.wait5seconds, "Toolbar was not found");
-        const buttons = await toolbar.findElements(locator.notebook.toolbar.button);
+        const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
         for (const btn of buttons) {
             if ((await btn.getAttribute("data-tooltip")) === button) {
                 return btn;
@@ -421,7 +434,7 @@ export class DBNotebooks {
     public static existsToolbarButton = async (driver: WebDriver, button: string): Promise<boolean> => {
         const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
             constants.wait5seconds, "Toolbar was not found");
-        const buttons = await toolbar.findElements(locator.notebook.toolbar.button);
+        const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
         for (const btn of buttons) {
             if ((await btn.getAttribute("data-tooltip")) === button) {
                 return true;
@@ -429,5 +442,123 @@ export class DBNotebooks {
         }
 
         return false;
+    };
+
+    /**
+     * Toggles the find in selection on the find widget
+     * @param driver The webdriver
+     * @param flag True to enable, false otherwise
+     * @returns A promise resolving when button is clicked
+     */
+    public static widgetFindInSelection = async (driver: WebDriver, flag: boolean): Promise<void> => {
+        const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds);
+        const actions = await findWidget.findElements(locator.findWidget.actions);
+        for (const action of actions) {
+            if ((await action.getAttribute("title")).includes("Find in selection")) {
+                const checked = await action.getAttribute("aria-checked");
+                if (checked === "true") {
+                    if (!flag) {
+                        await action.click();
+                    }
+                } else {
+                    if (flag) {
+                        await action.click();
+                    }
+                }
+
+                return;
+            }
+        }
+    };
+
+    /**
+     * Expands or collapses the find and replace on the find widget
+     * @param driver The webdriver
+     * @param expand True to expand, false to collapse
+     * @returns A promise resolving when replacer is expanded or collapsed
+     */
+    public static widgetExpandFinderReplace = async (driver: WebDriver, expand: boolean): Promise<void> => {
+        const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds);
+        const toggleReplace = await findWidget.findElement(locator.findWidget.toggleReplace);
+        const isExpanded = (await findWidget.findElements(locator.findWidget.toggleReplaceExpanded)).length > 0;
+        if (expand) {
+            if (!isExpanded) {
+                await toggleReplace.click();
+            }
+        } else {
+            if (isExpanded) {
+                await toggleReplace.click();
+            }
+        }
+    };
+
+    /**
+     * Gets the replacer buttons by their name (Replace, Replace All)
+     * @param driver The webdriver
+     * @param button The button name
+     * @returns A promise resolving when button is returned
+     */
+    public static widgetGetReplacerButton = async (driver: WebDriver, button: string):
+        Promise<WebElement | undefined> => {
+        const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds);
+        const replaceActions = await findWidget.findElements(locator.findWidget.replacerActions);
+        for (const action of replaceActions) {
+            if ((await action.getAttribute("title")).indexOf(button) !== -1) {
+                return action;
+            }
+        }
+    };
+
+    /**
+     * Closes the widget finder
+     * @param driver The webdriver
+     * @returns A promise resolving when finder is closed
+     */
+    public static widgetCloseFinder = async (driver: WebDriver): Promise<void> => {
+        await driver.wait(async () => {
+            const findWidget = await driver.findElements(locator.findWidget.exists);
+            if (findWidget.length > 0) {
+                const closeButton = await findWidget[0].findElement(locator.findWidget.close);
+                await driver.executeScript("arguments[0].click()", closeButton);
+                const widget = await driver.findElement(locator.findWidget.exists);
+
+                return (await widget.getAttribute("class")).includes("visible") === false;
+            } else {
+                return true;
+            }
+        }, constants.wait5seconds, "The finder widget was not closed");
+    };
+
+    /**
+     * Verifies if a word exists on the notebook
+     * @param driver The webdriver
+     * @param word The word
+     * @returns A promise resolving with true if the word is found, false otherwise
+     */
+    public static existsOnNotebook = async (driver: WebDriver, word: string): Promise<boolean> => {
+        const commands: string[] = [];
+        await driver.wait(async () => {
+            try {
+                const notebookCommands = await driver.wait(
+                    until.elementsLocated(locator.notebook.codeEditor.editor.editorLine),
+                    constants.wait5seconds, "No lines were found");
+                for (const cmd of notebookCommands) {
+                    const spans = await cmd.findElements(locator.htmlTag.span);
+                    let sentence = "";
+                    for (const span of spans) {
+                        sentence += (await span.getText()).replace("&nbsp;", " ");
+                    }
+                    commands.push(sentence);
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, `${word} does not exist on the notebook`);
+
+        return commands.toString().match(new RegExp(word)) !== null;
     };
 }

@@ -684,7 +684,8 @@ export class CommandExecutor {
                     .findElements(locator.notebook.codeEditor.editor.result.graphHost.exists)).length > 0;
                 const isText = (await result
                     .findElements(locator.notebook.codeEditor.editor.result.text.exists)).length > 0;
-                const isOutput = (await result.findElements(locator.notebook.codeEditor.editor.result.singleOutput))
+                const isOutput = (await result
+                    .findElements(locator.notebook.codeEditor.editor.result.singleOutput.exists))
                     .length > 0;
 
                 if (isTabResult) {
@@ -827,7 +828,7 @@ export class CommandExecutor {
             if (results.length > 0) {
                 const result = results[results.length - 1];
                 const id = (await result.getAttribute("monaco-view-zone")).match(/(\d+)/)![1];
-                resultId = String(parseInt(id, 10) + 1);
+                resultId = String(parseInt(id, 10));
             } else {
                 return undefined;
             }

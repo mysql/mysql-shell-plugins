@@ -23,6 +23,7 @@
 
 import { Condition, WebDriver, WebElement, Locator } from "selenium-webdriver";
 import { DBNotebooks } from "./dbNotebooks.js";
+import * as locator from "./locators.js";
 
 export const toolbarButtonIsDisabled = (driver: WebDriver, button: string): Condition<boolean> => {
     return new Condition(`for button ${button} to be disabled`, async () => {
@@ -43,5 +44,14 @@ export const toolbarButtonIsEnabled = (driver: WebDriver, button: string): Condi
 export const elementLocated = (context: WebElement, locator: Locator): Condition<boolean> => {
     return new Condition(`for element ${String(locator)} to be found`, async () => {
         return (await context.findElements(locator)).length > 0;
+    });
+};
+
+export const editorHasNewPrompt = (driver: WebDriver): Condition<boolean> => {
+    return new Condition(`for editor to have a new prompt`, async () => {
+        const editorSentences = await driver.findElements(locator.notebook.codeEditor.editor.editorLine);
+
+        return (await (editorSentences[editorSentences.length - 1]).getAttribute("innerHTML"))
+            .match(/<span><\/span>/) !== null;
     });
 };

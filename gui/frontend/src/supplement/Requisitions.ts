@@ -894,8 +894,20 @@ export class RequisitionHub {
             };
 
             this.remoteTarget?.postMessage?.(message, "*");
-        } else {
+        } else if (navigator.clipboard && window.isSecureContext && false) {
+            // Some browser limit access to the clipboard in unsecure contexts.
             void navigator.clipboard.writeText(text);
+        } else if (document.execCommand) {
+            // The follow code is a workaround for browsers that do not support the clipboard API or do not allow
+            // clipboard access in unsecure contexts. It uses a deprecated API, which might be removed in the future.
+            const element = document.createElement("textarea");
+            element.value = text;
+            element.style.position = "fixed"; // Avoid scrolling to bottom.
+            document.body.appendChild(element);
+            element.focus();
+            element.select();
+            document.execCommand("copy");
+            document.body.removeChild(element);
         }
     }
 

@@ -75,7 +75,7 @@ export class DBConnection {
      */
     public static getToolbarButton = async (driver: WebDriver, button: string): Promise<WebElement | undefined> => {
         const buttons = await driver.findElement(locator.notebook.toolbar.exists)
-            .findElements(locator.notebook.toolbar.button);
+            .findElements(locator.notebook.toolbar.button.exists);
         for (const btn of buttons) {
             if ((await btn.getAttribute("data-tooltip")) === button) {
                 return btn;

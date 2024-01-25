@@ -28,6 +28,7 @@ import { IDBConnection, Misc, explicitWait, shellServers } from "../../lib/misc.
 import * as locator from "../../lib/locators.js";
 import { basename, join } from "path";
 import { platform } from "os";
+import { CommandExecutor } from "../../lib/cmdExecutor.js";
 
 let driver: WebDriver;
 const filename = basename(__filename);
@@ -416,7 +417,6 @@ describe("Database Connections", () => {
                 explicitWait, "Connection browser was not found");
 
             await connBrowser.findElement(locator.dbConnections.newConnection).click();
-
             const newConDialog = await driver.wait(until.elementLocated(locator.databaseConnectionConfiguration.exists),
                 explicitWait, "Dialog was not displayed");
             await driver.wait(async () => {
@@ -462,15 +462,12 @@ describe("Database Connections", () => {
             const sslCaFile = await driver.findElement(locator.databaseConnectionConfiguration.mysql.ssl.ca);
             const sslCertFile = await driver.findElement(locator.databaseConnectionConfiguration.mysql.ssl.cert);
             const sslKeyFile = await driver.findElement(locator.databaseConnectionConfiguration.mysql.ssl.key);
-
             await sslCaFile.sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/ca.pem`);
             await sslCertFile.sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/client-cert.pem`);
             await sslKeyFile.sendKeys(`${String(process.env.SSL_ROOT_FOLDER)}/client-key.pem`);
-
             const okBtn = await driver.findElement(locator.databaseConnectionConfiguration.ok);
             await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
             await okBtn.click();
-
             const conn = await DBNotebooks.getConnection(driver, conName);
 
             await driver.executeScript(
@@ -486,24 +483,12 @@ describe("Database Connections", () => {
             }
 
             expect(await DBConnection.getSelectedConnectionTab(driver)).toBe(conName);
-
             await DBConnection.setEditorLanguage(driver, "mysql");
-
             let query = `select * from performance_schema.session_status where variable_name in `;
             query += `("ssl_cipher") and variable_value like "%TLS%"`;
-
-            await Misc.execCmd(driver, await driver.findElement(locator.notebook.codeEditor.textArea),
-                query, undefined, true, true);
-
-            const resultHost = await driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.host),
-                explicitWait, "Result host was not found");
-
-            const result = await driver.wait(until.elementLocated(async () => {
-                return resultHost.findElements(locator.notebook.codeEditor.editor.result.status.text);
-            }), explicitWait, "Label not found");
-
-            expect(await result.getText()).toContain("1 record retrieved");
-
+            const cmdExecutor = new CommandExecutor();
+            await cmdExecutor.execute(driver, query);
+            expect(cmdExecutor.getResultMessage()).toMatch(/1 record retrieved/);
         } catch (e) {
             testFailed = true;
             throw e;

@@ -118,18 +118,6 @@ describe("NOTEBOOKS", () => {
         const commandExecutor = new CommandExecutor();
         let cleanEditor = false;
 
-        before(async function () {
-            try {
-                await Os.deleteCredentials();
-                await Tree.openContextMenuAndSelect(await Tree.getElement(constants.dbTreeSection, globalConn.caption),
-                    constants.openNewConnection);
-                await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
-
         afterEach(async function () {
             if (this.currentTest.state === "failed") {
                 await Misc.processFailure(this);
@@ -241,7 +229,6 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Connection toolbar buttons - Execute statement at the caret position", async () => {
-
             try {
                 const query1 = "select * from sakila.actor limit 1;";
                 const query2 = "select * from sakila.address limit 2;";
@@ -353,7 +340,6 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Connection toolbar buttons - Find and Replace", async () => {
-
             try {
                 const contentHost = await driver.findElement(locator.notebook.exists);
                 await commandExecutor.write(`import from xpto xpto xpto`);
@@ -562,6 +548,20 @@ describe("NOTEBOOKS", () => {
             await Os.keyboardPaste(textArea);
             expect(await Notebook.existsOnNotebook(sentence1), `${sentence1} should exist on the notebook`).to.be.true;
             expect(await Notebook.existsOnNotebook(sentence2), `${sentence2} should exist on the notebook`).to.be.true;
+        });
+
+        it("Copy to clipboard button", async () => {
+            await commandExecutor.clean();
+            await commandExecutor.execute("\\about ");
+            const host = await driver.findElement(locator.notebook.codeEditor.editor.result.exists);
+            expect(await host.findElement(locator.notebook.codeEditor.editor.result.singleOutput.copy)).to.exist;
+            const output = await host.findElement(locator.notebook.codeEditor.editor.result.singleOutput.exists);
+            await driver.actions().move({ origin: output }).perform();
+            await host.findElement(locator.notebook.codeEditor.editor.result.singleOutput.copy).click();
+            await commandExecutor.clean();
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+            await Os.keyboardPaste(textArea);
+            expect(await Notebook.existsOnNotebook("Welcome")).to.be.true;
         });
 
     });

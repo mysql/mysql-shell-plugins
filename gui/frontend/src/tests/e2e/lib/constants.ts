@@ -31,3 +31,9 @@ export const wait150MilliSeconds = 150;
 // BUTTONS
 export const execCaret = "Execute the statement at the caret position";
 export const execFullBlockJs = "Execute everything in the current block and create a new block";
+export const execFullBlockSql = "Execute the selection or everything in the current block and create a new block";
+export const execFullScript = "Execute full script";
+export const autoCommit = "Auto commit DB changes";
+export const rollback = "Rollback DB changes";
+export const commit = "Commit DB changes";
+export const saveNotebook = "Save this Notebook";

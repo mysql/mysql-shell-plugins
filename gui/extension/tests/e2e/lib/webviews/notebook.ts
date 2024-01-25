@@ -544,6 +544,11 @@ export class Notebook {
         }
 
         const commands: string[] = [];
+        const regex = word
+            .replace(/\*/g, "\\*")
+            .replace(/\./g, ".*")
+            .replace(/;/g, ".*")
+            .replace(/\s/g, ".*");
         await driver.wait(async () => {
             try {
                 const notebookCommands = await driver.wait(
@@ -566,6 +571,6 @@ export class Notebook {
             }
         }, constants.wait5seconds, "No SQL commands were found on the notebook");
 
-        return commands.includes(word);
+        return commands.toString().match(regex) !== null;
     };
 }
