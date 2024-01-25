@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -22,7 +22,7 @@
 from mrs_plugin import lib
 
 # Define plugin version
-VERSION = "1.14.2"
+VERSION = "1.15.0"
 
 DB_VERSION = [2, 2, 0]
 REQUIRED_ROUTER_VERSION = [8, 1, 0]

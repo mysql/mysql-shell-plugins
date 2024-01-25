@@ -1,15 +1,19 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.14.3+8.1.1
+## Changes in 1.15.0+8.3.0
 
 ### Fixes
 
+- Fixes regression issue about clipboard operations (copy/paste)
 - BUG#36027690 Connection error when opening REST Object Request Path in Web Browser
+- BUG#36041538 Fix missing status messages during bastion connection
 - BUG#36032142 Unexpected error when deleting records with filter containing nullables
 - BUG#36173373 Parent class field not accessible in the child class in the TypeScript SDK
 - BUG#36211402 Unexpected compilation error when building the VSCode Extension
 
 ## Changes in 1.14.2+8.1.1
+
+- Updated MySQL Shell to 8.3.0
 
 ### Fixes
 
