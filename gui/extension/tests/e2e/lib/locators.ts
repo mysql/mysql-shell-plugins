@@ -104,7 +104,10 @@ export const notebook = {
                         @monaco-view-zone='b${view}' or
                         @monaco-view-zone='c${view}' or
                         @monaco-view-zone='d${view}' or
-                        @monaco-view-zone='e${view}')]
+                        @monaco-view-zone='e${view}' or
+                        @monaco-view-zone='f${view}' or
+                        @monaco-view-zone='g${view}' or
+                        @monaco-view-zone='h${view}')]
                     `;
 
                     return By.xpath(xpath);
@@ -137,7 +140,10 @@ export const notebook = {
                     exists: By.css(".actionOutput .jsonView"),
                     field: By.css(".jsonView span > span"),
                 },
-                singleOutput: By.className("outputHost"),
+                singleOutput: {
+                    exists: By.className("outputHost"),
+                    copy: By.className("copyButton"),
+                },
                 script: By.className("standaloneScriptHost"),
                 textOutput: By.css(".actionOutput span > span"),
             },

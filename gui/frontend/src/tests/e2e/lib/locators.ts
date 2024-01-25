@@ -145,7 +145,10 @@ export const notebook = {
             items: By.css("div.visible.dropdownList > div"),
             iconType: By.css(".msg.icon"),
         },
-        button: By.className("button"),
+        button: {
+            exists: By.className("button"),
+            icon: By.className("icon"),
+        },
     },
     codeEditor: {
         textArea: By.css("textarea"),
@@ -167,7 +170,10 @@ export const notebook = {
                         @monaco-view-zone='b${view}' or
                         @monaco-view-zone='c${view}' or
                         @monaco-view-zone='d${view}' or
-                        @monaco-view-zone='e${view}')]
+                        @monaco-view-zone='e${view}' or
+                        @monaco-view-zone='f${view}' or
+                        @monaco-view-zone='g${view}' or
+                        @monaco-view-zone='h${view}')]
                     `;
 
                     return By.xpath(xpath);
@@ -181,7 +187,6 @@ export const notebook = {
                 status: {
                     exists: By.className("resultStatus"),
                     text: By.css(".resultStatus > label"),
-                    copy: By.className("copyButton"),
                     message: By.css(".containsMessage > div"),
                     toolbar: By.css(".resultStatus .toolbar"),
                 },
@@ -189,7 +194,10 @@ export const notebook = {
                     exists: By.className("graphHost"),
                     column: By.css("rect"),
                 },
-                singleOutput: By.className("outputHost"),
+                singleOutput: {
+                    exists: By.className("outputHost"),
+                    copy: By.className("copyButton"),
+                },
                 info: By.css(".message.info"),
                 tabSection: {
                     exists: By.className("tabAreaContainer"),
@@ -289,6 +297,8 @@ export const findWidget = {
     actions: By.css(".find-actions div"),
     close: By.xpath(".//div[contains(@title, 'Close')]"),
     replacerActions: By.css(".replace-actions div"),
+    toggleReplace: By.css(".button.toggle"),
+    toggleReplaceExpanded: By.css(".button.toggle.codicon-find-expanded"),
 };
 
 export const htmlTag = {
