@@ -159,6 +159,7 @@ export class CommandExecutor {
     public executeScript = async (driver: WebDriver, cmd: string, slowWriting: boolean): Promise<void> => {
         await this.write(driver, cmd, slowWriting);
         await this.exec(driver);
+        await driver.sleep(constants.wait1second); // mandatory since there is no zoneHost id on scripts
         await this.setResultMessage(driver, cmd, undefined, true);
         await this.setResultContent(driver, cmd, undefined, true);
         await this.setResultToolbar(driver, cmd, undefined, true);
@@ -170,9 +171,11 @@ export class CommandExecutor {
      * @param cmd The command
      * @param slowWriting True if the command should be written with a delay between each character
      * @param searchOnExistingId Verify the result on this result id
+     * @param noOutput True if the command will generate no output, false otherwise
      * @returns A promise resolving when the command is executed
      */
-    public execute = async (driver: WebDriver, cmd: string, slowWriting = false, searchOnExistingId?: string):
+    public execute = async (driver: WebDriver, cmd: string, slowWriting = false, searchOnExistingId?: string,
+        noOutput = false):
         Promise<void> => {
 
         if (this.isSpecialCmd(cmd)) {
@@ -181,13 +184,14 @@ export class CommandExecutor {
 
         await this.write(driver, cmd, slowWriting);
         await this.exec(driver);
-
-        const nextId = searchOnExistingId ?? await this.getNextResultId(driver, this.resultId);
-        await this.setResultMessage(driver, cmd, nextId);
-        await this.setResultContent(driver, cmd, nextId);
-        await this.setResultToolbar(driver, cmd, nextId);
-        if (nextId) {
-            this.setResultId(nextId);
+        if (!noOutput) {
+            const nextId = searchOnExistingId ?? await this.getNextResultId(driver, this.resultId);
+            await this.setResultMessage(driver, cmd, nextId);
+            await this.setResultContent(driver, cmd, nextId);
+            await this.setResultToolbar(driver, cmd, nextId);
+            if (nextId) {
+                this.setResultId(nextId);
+            }
         }
     };
 
@@ -505,7 +509,7 @@ export class CommandExecutor {
      * @returns A promise resolving when the command is marked as special or not special
      */
     private isSpecialCmd = (cmd: string): boolean => {
-        return (cmd.match(/(\\js|\\javascript|\\ts|\\typescript|\\sql|\\q|\\d|\\py|\\python)/)) !== null;
+        return (cmd.match(/(\\js|\\javascript|\\ts|\\typescript|\\sql|\\py|\\python)/)) !== null;
     };
 
     /**
@@ -591,15 +595,44 @@ export class CommandExecutor {
                                 return (await textResult[textResult.length - 1].getAttribute("innerHTML"))
                                     .match(/The dump can be loaded using/) !== null;
                             }, constants.wait5seconds, "Could not find on result 'The dump can be loaded using'");
+                            resultToReturn = await textResult[textResult.length - 1].getAttribute("innerHTML");
                         } else if (cmd.match(/(\\c|connect).*@.*/) !== null) {
                             await driver.wait(async () => {
                                 resultToReturn = await textResult[textResult.length - 1].getAttribute("innerHTML");
 
                                 return resultToReturn.match(/schema/) !== null;
                             }, constants.wait5seconds, "Could not find on result ' .'");
+                            resultToReturn = await textResult[textResult.length - 1].getAttribute("innerHTML");
+                        } else if (cmd.match(/(\\d|\\disconnect)/)) {
+                            return await driver.wait(async () => {
+                                return (await textResult[textResult.length - 1].getAttribute("innerHTML"))
+                                    .match(/Already disconnected/) !== null;
+                            }, constants.wait2seconds)
+                                .then(async () => {
+                                    return textResult[textResult.length - 1].getAttribute("innerHTML");
+                                })
+                                .catch(() => {
+                                    return true;
+                                });
+                        }
+                        else {
+                            if (textResult.length > 1) {
+                                for (const text of textResult) {
+                                    resultToReturn += `${await text.getText()}\n`;
+                                }
+                            } else {
+                                resultToReturn = await textResult[textResult.length - 1].getAttribute("innerHTML");
+                            }
+                        }
+                    } else {
+                        if (textResult.length > 1) {
+                            for (const text of textResult) {
+                                resultToReturn += `${await text.getText()}\n`;
+                            }
+                        } else {
+                            resultToReturn = await textResult[textResult.length - 1].getAttribute("innerHTML");
                         }
                     }
-                    resultToReturn = await textResult[textResult.length - 1].getAttribute("innerHTML");
                 } else if (jsonResult.length > 0) {
                     resultToReturn = await jsonResult[jsonResult.length - 1].getAttribute("innerHTML");
                 } else if (resultGraph.length > 0) {

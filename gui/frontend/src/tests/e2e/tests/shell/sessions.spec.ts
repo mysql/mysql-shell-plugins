@@ -21,12 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebElement, WebDriver } from "selenium-webdriver";
+import { WebElement, WebDriver, until } from "selenium-webdriver";
 import { basename } from "path";
 import { GuiConsole } from "../../lib/guiConsole.js";
 import { IDBConnection, Misc, explicitWait } from "../../lib/misc.js";
-import { ShellSession } from "../../lib/shellSession.js";
 import * as locator from "../../lib/locators.js";
+import { CommandExecutor } from "../../lib/cmdExecutor.js";
+import * as constants from "../../lib/constants.js";
 
 let driver: WebDriver;
 const filename = basename(__filename);
@@ -35,9 +36,6 @@ const url = Misc.getUrl(basename(filename));
 describe("Sessions", () => {
 
     let testFailed: boolean;
-
-    let textArea: WebElement;
-
     const globalConn: IDBConnection = {
         dbType: "MySQL",
         caption: `ClientQA test`,
@@ -54,6 +52,15 @@ describe("Sessions", () => {
         sslClientCert: undefined,
         sslClientKey: undefined,
     };
+
+    const username = globalConn.username;
+    const password = globalConn.password;
+    const hostname = globalConn.hostname;
+    const schema = globalConn.schema;
+    const port = globalConn.port;
+    const portX = globalConn.portX;
+
+    const commandExecutor = new CommandExecutor();
 
     beforeAll(async () => {
         driver = await Misc.loadDriver();
@@ -77,26 +84,22 @@ describe("Sessions", () => {
                 await editor.findElement(locator.shellSession.currentLine),
             );
 
-            textArea = await editor.findElement(locator.shellSession.textArea);
+            let uri = `\\c ${username}:${password}@${hostname}:${portX}/${schema}`;
 
-            let uri = `\\c ${globalConn.username}:${globalConn.password}@${globalConn.hostname}:`;
-            uri += `${String(globalConn.portX)}/${globalConn.schema}`;
-
-            await Misc.execCmd(driver, textArea, uri);
-
-            uri = `Creating a session to '${globalConn.username}@${globalConn.hostname}:`;
-            uri += `${String(globalConn.portX)}/${globalConn.schema}'`;
-
-            await ShellSession.waitForResult(driver, uri);
-            await ShellSession.waitForResult(driver, "(X protocol)");
-            await ShellSession.waitForResult(driver, /Server version: (\d+).(\d+).(\d+)/);
-            await ShellSession.waitForResult(driver, `Default schema \`${globalConn.schema}\` accessible through db.`);
-
-            let toCheck = `Connection to server ${globalConn.hostname} at port ${String(globalConn.portX)}`;
-            toCheck += `, using the X protocol`;
-
-            await ShellSession.waitForConnectionTabValue(driver, "server", toCheck);
-            await ShellSession.waitForConnectionTabValue(driver, "schema", globalConn.schema);
+            await commandExecutor.execute(driver, uri);
+            uri = `Creating a session to '${username}@${hostname}:${portX}/${schema}'`;
+            expect(commandExecutor.getResultMessage()).toMatch(new RegExp(uri));
+            uri = `Connection to server ${hostname} at port ${portX},`;
+            uri += ` using the X protocol`;
+            const server = await driver.wait(until.elementLocated(locator.shellSession.server),
+                constants.wait5seconds);
+            const schemaEl = await driver.wait(until.elementLocated(locator.shellSession.schema),
+                constants.wait5seconds);
+            await driver.wait(until.elementTextContains(server,
+                `${hostname}:${String(portX)}`),
+                constants.wait5seconds, `Server tab does not contain '${hostname}:${port}'`);
+            await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
+                constants.wait5seconds, `Schema tab does not contain '${schema}'`);
         } catch (e) {
             await Misc.storeScreenShot(driver, "beforeAll_Sessions");
             throw e;
@@ -118,26 +121,54 @@ describe("Sessions", () => {
 
     it("Verify collections - json format", async () => {
         try {
-            await ShellSession.changeSchemaOnTab(driver, "world_x_cst");
-            await ShellSession.waitForConnectionTabValue(driver, "schema", "world_x_cst");
-            await Misc.execCmd(driver, textArea, "db.countryinfo.find()");
-            await driver.wait(async () => {
-                return ShellSession.isJSON(driver);
-            }, explicitWait, "JSON was not found on the result");
+            await commandExecutor.changeSchemaOnTab(driver, "world_x_cst");
+            await commandExecutor.execute(driver, "db.countryinfo.find()");
+            expect(await (commandExecutor.getResultContent() as WebElement)
+                .getAttribute("innerHTML")).toMatch(/Yugoslavia/);
         } catch (e) {
             testFailed = true;
             throw e;
         } finally {
-            await ShellSession.changeSchemaOnTab(driver, "sakila");
-            await ShellSession.waitForConnectionTabValue(driver, "schema", "sakila");
+            await commandExecutor.changeSchemaOnTab(driver, "sakila");
         }
     });
 
     it("Verify help command", async () => {
         try {
-            textArea = await driver.findElement(locator.shellSession.textArea);
-            await Misc.execCmd(driver, textArea, "\\h");
-            await ShellSession.waitForResult(driver, "Displays the main SQL help categories");
+            await commandExecutor.execute(driver, "\\help ");
+            const regex = [
+                /The Shell Help is organized in categories and topics/,
+                /SHELL COMMANDS/,
+                /\\connect/,
+                /\\disconnect/,
+                /\\edit/,
+                /\\exit/,
+                /\\help/,
+                /\\history/,
+                /\\js/,
+                /\\nopager/,
+                /\\nowarnings/,
+                /\\option/,
+                /\\pager/,
+                /\\py/,
+                /\\quit/,
+                /\\reconnect/,
+                /\\rehash/,
+                /\\show/,
+                /\\source/,
+                /\\sql/,
+                /\\status/,
+                /\\system/,
+                /\\use/,
+                /\\warning/,
+                /\\watch/,
+            ];
+
+            for (const reg of regex) {
+                console.log(commandExecutor.getResultMessage());
+                console.log("---");
+                expect(commandExecutor.getResultMessage()).toMatch(reg);
+            }
         } catch (e) {
             testFailed = true;
             throw e;
@@ -146,15 +177,10 @@ describe("Sessions", () => {
 
     it("Switch session language", async () => {
         try {
-            await Misc.execCmd(driver, textArea, "\\py");
-            await ShellSession.waitForResult(driver, "Switching to Python mode...");
-            expect(await ShellSession.getTech(driver)).toBe("python");
-            await Misc.execCmd(driver, textArea, "\\js");
-            await ShellSession.waitForResult(driver, "Switching to JavaScript mode...");
-            expect(await ShellSession.getTech(driver)).toBe("javascript");
-            await Misc.execCmd(driver, textArea, "\\sql");
-            await ShellSession.waitForResult(driver, "Switching to SQL mode...");
-            expect(await ShellSession.getTech(driver)).toBe("mysql");
+            await commandExecutor.languageSwitch(driver, "\\py ", true);
+            expect(commandExecutor.getResultMessage()).toMatch(/Python/);
+            await commandExecutor.languageSwitch(driver, "\\js ", true);
+            expect(commandExecutor.getResultMessage()).toMatch(/JavaScript/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -163,48 +189,28 @@ describe("Sessions", () => {
 
     it("Check query result content", async () => {
         try {
-            await driver.wait(async () => {
-                await Misc.execCmd(driver, textArea, "select * from actor limit 1;", undefined, undefined, true);
-
-                return driver.wait(async () => {
-                    return ShellSession.isValueOnDataSet(driver, "PENELOPE");
-                }, 2000).catch(() => {
-                    // continue
-                }).then(() => { return true; });
-            }, explicitWait * 2, "Query result was empty");
-            await Misc.execCmd(driver, textArea, "\\js");
-            await ShellSession.changeSchemaOnTab(driver, "sakila");
-            await Misc.execCmd(driver, textArea, `shell.options.resultFormat="json/raw" `);
-            await ShellSession.waitForResult(driver, "json/raw");
-            await Misc.execCmd(driver, textArea, `shell.options.showColumnTypeInfo=false `);
-            await ShellSession.waitForResult(driver, "false", true);
-            await Misc.execCmd(driver, textArea, `shell.options.resultFormat="json/pretty" `);
-            await ShellSession.waitForResult(driver, "json/pretty");
-            await Misc.execCmd(driver, textArea, "db.category.select().limit(1)");
-            await driver.wait(async () => {
-                try {
-                    const result = await ShellSession.getJsonResult(driver);
-
-                    return (result.includes("category_id")) &&
-                        (result.includes("name")) &&
-                        (result.includes("last_update"));
-
-                } catch (e) {
-                    return false;
-                }
-            }, explicitWait, "json content was not found");
-            await Misc.execCmd(driver, textArea, `shell.options.resultFormat="table" `);
-            await ShellSession.waitForResult(driver, "table");
-
-            await driver.wait(async () => {
-                await Misc.execCmd(driver, textArea, "db.category.select().limit(1)", undefined, undefined, true);
-
-                return driver.wait(async () => {
-                    return ShellSession.isValueOnDataSet(driver, "Action");
-                }, 2000).catch(() => {
-                    // continue
-                }).then(() => { return true; });
-            }, explicitWait * 2, "Query result was empty");
+            await commandExecutor.languageSwitch(driver, "\\sql ");
+            await commandExecutor.execute(driver, "SHOW DATABASES;", true);
+            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+                .toMatch(/sakila/);
+            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML")).toMatch(/mysql/);
+            await commandExecutor.languageSwitch(driver, "\\js ");
+            await commandExecutor.execute(driver, `shell.options.resultFormat="json/raw" `);
+            expect(commandExecutor.getResultMessage()).toMatch(/json\/raw/);
+            await commandExecutor.execute(driver, `shell.options.showColumnTypeInfo=false `);
+            expect(commandExecutor.getResultMessage()).toMatch(/false/);
+            await commandExecutor.execute(driver, `shell.options.resultFormat="json/pretty" `);
+            expect(commandExecutor.getResultMessage()).toMatch(/json\/pretty/);
+            await commandExecutor.changeSchemaOnTab(driver, "sakila");
+            expect(commandExecutor.getResultMessage()).toMatch(/Default schema `sakila` accessible through db/);
+            await commandExecutor.execute(driver, "db.category.select().limit(1)");
+            expect(await (commandExecutor.getResultContent() as WebElement)
+                .getAttribute("innerHTML")).toMatch(/Action/);
+            await commandExecutor.execute(driver, `shell.options.resultFormat="table" `);
+            expect(commandExecutor.getResultMessage()).toMatch(/table/);
+            await commandExecutor.execute(driver, "db.category.select().limit(1)");
+            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+                .toMatch(/Action/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -213,10 +219,9 @@ describe("Sessions", () => {
 
     it("Using db global variable", async () => {
         try {
-            await Misc.execCmd(driver, textArea, "db.actor.select().limit(1)");
-            await ShellSession.waitForResult(driver, /1 row in set/);
-            await Misc.execCmd(driver, textArea, "db.category.select().limit(1)");
-            await ShellSession.waitForResult(driver, /1 row in set/);
+            await commandExecutor.execute(driver, "db.actor.select().limit(1)");
+            expect(await (commandExecutor.getResultContent() as WebElement)
+                .getAttribute("innerHTML")).toMatch(/PENELOPE/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -225,14 +230,18 @@ describe("Sessions", () => {
 
     it("Using util global variable", async () => {
         try {
-            await Misc.execCmd(driver, textArea, 'util.exportTable("actor", "test.txt")');
-            await ShellSession.waitForResult(driver, "The dump can be loaded using");
-            await ShellSession.waitForResult(driver, "Running data dump using 1 thread.");
-            await ShellSession.waitForResult(driver, /Total duration: (\d+)(\d+):(\d+)(\d+):(\d+)(\d+)s/);
-            await ShellSession.waitForResult(driver, /Data size: (\d+).(\d+)(\d+) KB/);
-            await ShellSession.waitForResult(driver, /Rows written: (\d+)/);
-            await ShellSession.waitForResult(driver, /Bytes written: (\d+).(\d+)(\d+) KB/);
-            await ShellSession.waitForResult(driver, /Average throughput: (\d+).(\d+)(\d+) KB/);
+            await commandExecutor.execute(driver, 'util.exportTable("actor", "test.txt")');
+            expect(commandExecutor.getResultMessage()).toMatch(/Running data dump using 1 thread/);
+            const matches = [
+                /Total duration: (\d+)(\d+):(\d+)(\d+):(\d+)(\d+)s/,
+                /Data size: (\d+).(\d+)(\d+) KB/,
+                /Rows written: (\d+)/,
+                /Bytes written: (\d+).(\d+)(\d+) KB/,
+                /Average throughput: (\d+).(\d+)(\d+) KB/,
+            ];
+            for (const match of matches) {
+                expect(commandExecutor.getResultMessage()).toMatch(match);
+            }
         } catch (e) {
             testFailed = true;
             throw e;

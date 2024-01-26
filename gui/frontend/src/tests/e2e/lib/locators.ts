@@ -362,7 +362,7 @@ export const shellSession = {
     language: By.className("editorPromptFirst"),
     server: By.id("server"),
     schema: By.id("schema"),
-    tabContextMenu: By.css(".shellPromptSchemaMenu .menuItem .label"),
+    tabContextMenu: By.css(".visible.shellPromptSchemaMenu"),
     tabContextMenuItem: By.css("div.menuItem > label"),
     schemaItem: By.css("div.menuItem > label"),
 };
