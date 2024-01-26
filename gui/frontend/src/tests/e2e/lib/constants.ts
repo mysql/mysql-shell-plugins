@@ -22,7 +22,7 @@
  */
 
 // TIMEOUTS
-
+export const wait1second = 1000;
 export const wait2seconds = 2000;
 export const wait5seconds = 5000;
 export const wait10seconds = 10000;

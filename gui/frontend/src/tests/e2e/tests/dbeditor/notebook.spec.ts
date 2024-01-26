@@ -76,7 +76,7 @@ describe("Notebook", () => {
                 }
             }, explicitWait * 4, "Home Page was not loaded");
 
-            await driver.findElement(locator.sqlEditorPage.icon).click();
+            await driver.executeScript("arguments[0].click()", await driver.findElement(locator.sqlEditorPage.icon));
             const db = await DBNotebooks.createDBconnection(driver, globalConn);
             await driver.executeScript("arguments[0].click();", db);
             await Misc.setPassword(driver, globalConn);

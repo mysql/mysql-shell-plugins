@@ -23,10 +23,11 @@
 
 import { until, WebDriver } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection.js";
-import { DBNotebooks, execCaret, execFullScript } from "../../lib/dbNotebooks.js";
+import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import { IDBConnection, Misc, explicitWait } from "../../lib/misc.js";
 import { basename } from "path";
 import * as locator from "../../lib/locators.js";
+import { CommandExecutor } from "../../lib/cmdExecutor.js";
 
 let driver: WebDriver;
 const url = Misc.getUrl(basename(basename(__filename)));
@@ -51,6 +52,8 @@ describe("Scripts", () => {
         sslClientCert: undefined,
         sslClientKey: undefined,
     };
+
+    const commandExecutor = new CommandExecutor();
 
     beforeAll(async () => {
         driver = await Misc.loadDriver();
@@ -125,18 +128,47 @@ describe("Scripts", () => {
                     .getAttribute("src"),
             ).toContain("scriptJs");
 
-            const textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
-                .findElement(locator.notebook.codeEditor.textArea);
-            await textArea.sendKeys("M");
-            await textArea.sendKeys("ath.random()");
+            await commandExecutor.executeScript(driver, "Math.random()", false);
+            expect(commandExecutor.getResultMessage()).toMatch(/(\d+).(\d+)/);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
 
-            await (
-                await DBConnection.getToolbarButton(driver, execFullScript)
-            )!.click();
+    it("Add_run SQL script", async () => {
+        try {
+            const script = await DBConnection.addScript(driver, "SQL");
+            await DBConnection.selectCurrentEditor(driver, script, "Mysql");
+            expect(await DBConnection.existsScript(driver, script, "Mysql")).toBe(true);
+            expect(
+                await driver
+                    .findElement(locator.notebook.codeEditor.editor.editorHost)
+                    .getAttribute("data-mode-id"),
+            ).toBe("mysql");
 
-            await driver.wait(async () => {
-                return (await DBConnection.getScriptResult(driver)).match(/(\d+).(\d+)/);
-            }, explicitWait, "No results from query were found");
+            expect(
+                await driver
+                    .findElement(locator.notebook.toolbar.editorSelector.exists)
+                    .findElement(locator.notebook.toolbar.editorSelector.currentImage)
+                    .getAttribute("src"),
+            ).toContain("Mysql");
+            expect(
+                await driver
+                    .findElement(locator.notebook.toolbar.editorSelector.exists)
+                    .findElement(locator.notebook.toolbar.editorSelector.currentValue)
+                    .getText(),
+            ).toBe(script);
+            expect(
+                await (await DBConnection.getOpenEditor(driver, script))!.getAttribute("class"),
+            ).toContain("selected");
+            expect(
+                await (await DBConnection.getOpenEditor(driver, script))!
+                    .findElement(locator.notebook.toolbar.editorSelector.currentImage)
+                    .getAttribute("src"),
+            ).toContain("Mysql");
+            await commandExecutor.executeScript(driver, "select * from sakila.actor limit 1;", false);
+            expect(commandExecutor.getResultMessage()).toMatch(/OK, (\d+) record/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -178,76 +210,8 @@ describe("Scripts", () => {
 
             expect(src.indexOf("scriptTs") !== -1).toBe(true);
 
-            const textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
-                .findElement(locator.notebook.codeEditor.textArea);
-            await textArea.sendKeys("M");
-            await textArea.sendKeys("ath.random()");
-
-            await (
-                await DBConnection.getToolbarButton(driver, execFullScript)
-            )!.click();
-
-            await driver.wait(async () => {
-                try {
-                    return (await DBConnection.getScriptResult(driver)).match(/(\d+).(\d+)/);
-                } catch (e) {
-                    // continue
-                }
-            }, explicitWait, "No results from query were found");
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Add_run SQL script", async () => {
-        try {
-
-            const script = await DBConnection.addScript(driver, "SQL");
-            await DBConnection.selectCurrentEditor(driver, script, "Mysql");
-            expect(await DBConnection.existsScript(driver, script, "Mysql")).toBe(true);
-
-            expect(
-                await driver
-                    .findElement(locator.notebook.codeEditor.editor.editorHost)
-                    .getAttribute("data-mode-id"),
-            ).toBe("mysql");
-
-            expect(
-                await driver
-                    .findElement(locator.notebook.toolbar.editorSelector.exists)
-                    .findElement(locator.notebook.toolbar.editorSelector.currentImage)
-                    .getAttribute("src"),
-            ).toContain("Mysql");
-
-            expect(
-                await driver
-                    .findElement(locator.notebook.toolbar.editorSelector.exists)
-                    .findElement(locator.notebook.toolbar.editorSelector.currentValue)
-                    .getText(),
-            ).toBe(script);
-
-            expect(
-                await (await DBConnection.getOpenEditor(driver, script))!.getAttribute("class"),
-            ).toContain("selected");
-
-            expect(
-                await (await DBConnection.getOpenEditor(driver, script))!
-                    .findElement(locator.notebook.toolbar.editorSelector.currentImage)
-                    .getAttribute("src"),
-            ).toContain("Mysql");
-
-            const textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
-                .findElement(locator.notebook.codeEditor.textArea);
-            await textArea.sendKeys("S");
-            await textArea.sendKeys("ELECT * FROM sakila.actor;");
-
-            const execCaretBtn = await DBConnection.getToolbarButton(driver, execCaret);
-            await execCaretBtn?.click();
-
-            await driver.wait(async () => {
-                return (await DBConnection.getScriptResult(driver)).match(/OK, (\d+) records/);
-            }, explicitWait * 2, "No results from query were found");
+            await commandExecutor.executeScript(driver, "Math.random()", false);
+            expect(commandExecutor.getResultMessage()).toMatch(/(\d+).(\d+)/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -258,15 +222,7 @@ describe("Scripts", () => {
         try {
             await DBConnection.selectCurrentEditor(driver, "DB Notebook", "notebook");
             const script1 = await DBConnection.addScript(driver, "JS");
-            try {
-                await DBConnection.selectCurrentEditor(driver, script1, "scriptJs");
-            } catch (e) {
-                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
-                    await DBConnection.selectCurrentEditor(driver, script1, "scriptJs");
-                } else {
-                    throw e;
-                }
-            }
+            await DBConnection.selectCurrentEditor(driver, script1, "scriptJs");
 
             let textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
                 .findElement(locator.notebook.codeEditor.textArea);
@@ -274,49 +230,20 @@ describe("Scripts", () => {
             await textArea.sendKeys("onsole.log('Hello JavaScript')");
 
             const script2 = await DBConnection.addScript(driver, "TS");
-
-            try {
-                await DBConnection.selectCurrentEditor(driver, script2, "scriptTs");
-            } catch (e) {
-                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
-                    await DBConnection.selectCurrentEditor(driver, script2, "scriptTs");
-                } else {
-                    throw e;
-                }
-            }
-
+            await DBConnection.selectCurrentEditor(driver, script2, "scriptTs");
             textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
                 .findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys("c");
             await textArea.sendKeys("onsole.log('Hello Typescript')");
 
             const script3 = await DBConnection.addScript(driver, "SQL");
-
-            try {
-                await DBConnection.selectCurrentEditor(driver, script3, "Mysql");
-            } catch (e) {
-                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
-                    await DBConnection.selectCurrentEditor(driver, script3, "Mysql");
-                } else {
-                    throw e;
-                }
-            }
-
+            await DBConnection.selectCurrentEditor(driver, script3, "Mysql");
             textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
                 .findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys("S");
             await textArea.sendKeys("ELECT * FROM sakila.actor;");
 
-            try {
-                await DBConnection.selectCurrentEditor(driver, script1, "scriptJs");
-            } catch (e) {
-                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
-                    await DBConnection.selectCurrentEditor(driver, script1, "scriptJs");
-                } else {
-                    throw e;
-
-                }
-            }
+            await DBConnection.selectCurrentEditor(driver, script1, "scriptJs");
 
             expect(
                 await driver
@@ -325,15 +252,7 @@ describe("Scripts", () => {
                     .getAttribute("value"),
             ).toBe("console.log('Hello JavaScript')");
 
-            try {
-                await DBConnection.selectCurrentEditor(driver, script2, "scriptTs");
-            } catch (e) {
-                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
-                    await DBConnection.selectCurrentEditor(driver, script2, "scriptTs");
-                } else {
-                    throw e;
-                }
-            }
+            await DBConnection.selectCurrentEditor(driver, script2, "scriptTs");
 
             expect(
                 await driver
@@ -342,15 +261,7 @@ describe("Scripts", () => {
                     .getAttribute("value"),
             ).toBe("console.log('Hello Typescript')");
 
-            try {
-                await DBConnection.selectCurrentEditor(driver, script3, "Mysql");
-            } catch (e) {
-                if (typeof e === "string" && e.includes("StaleElementReferenceError")) {
-                    await DBConnection.selectCurrentEditor(driver, script3, "Mysql");
-                } else {
-                    throw e;
-                }
-            }
+            await DBConnection.selectCurrentEditor(driver, script3, "Mysql");
 
             expect(
                 await driver

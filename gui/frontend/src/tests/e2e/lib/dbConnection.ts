@@ -534,56 +534,67 @@ export class DBConnection {
      */
     public static selectCurrentEditor = async (driver: WebDriver, editorName: string, editorType: string):
         Promise<void> => {
-        const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
-        await driver.executeScript("arguments[0].click()", selector);
 
         await driver.wait(async () => {
-            return (await driver.findElements(locator.notebook.toolbar.editorSelector.items)).length > 1;
-        }, 2000, "No elements located on dropdown");
+            try {
+                const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
+                await driver.executeScript("arguments[0].click()", selector);
 
-        const dropDownItems = await driver.findElements(locator.notebook.toolbar.editorSelector.items);
+                await driver.wait(async () => {
+                    return (await driver.findElements(locator.notebook.toolbar.editorSelector.items)).length > 1;
+                }, 2000, "No elements located on dropdown");
 
-        for (const item of dropDownItems) {
-            const name = await item.findElement(locator.htmlTag.label).getText();
-            const el = await item.findElements(locator.htmlTag.img);
+                const dropDownItems = await driver.findElements(locator.notebook.toolbar.editorSelector.items);
 
-            let type = "";
+                for (const item of dropDownItems) {
+                    const name = await item.findElement(locator.htmlTag.label).getText();
+                    const el = await item.findElements(locator.htmlTag.img);
 
-            if (el.length > 0) {
-                type = await el[0].getAttribute("src");
-            } else {
-                type = await item.findElement(locator.notebook.toolbar.editorSelector.iconType).getAttribute("style");
-            }
+                    let type = "";
 
-            if (name === editorName) {
-                if (type.indexOf(editorType) !== -1) {
-                    await driver.wait(async () => {
-                        await item.click();
-                        const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
-                        const selected = await selector.findElement(locator.htmlTag.label).getText();
+                    if (el.length > 0) {
+                        type = await el[0].getAttribute("src");
+                    } else {
+                        type = await item.findElement(locator.notebook.toolbar.editorSelector.iconType)
+                            .getAttribute("style");
+                    }
 
-                        return selected === editorName;
-                    }, explicitWait, `${editorName} with type ${editorType} was not properly selected`);
+                    if (name === editorName) {
+                        if (type.indexOf(editorType) !== -1) {
+                            await driver.wait(async () => {
+                                await item.click();
+                                const selector = await driver
+                                    .findElement(locator.notebook.toolbar.editorSelector.exists);
+                                const selected = await selector.findElement(locator.htmlTag.label).getText();
 
-                    await driver.wait(
-                        async () => {
-                            return (
-                                (
-                                    await driver.findElements(
-                                        locator.notebook.toolbar.editorSelector.items,
-                                    )
-                                ).length === 0
+                                return selected === editorName;
+                            }, explicitWait, `${editorName} with type ${editorType} was not properly selected`);
+
+                            await driver.wait(
+                                async () => {
+                                    return (
+                                        (
+                                            await driver.findElements(
+                                                locator.notebook.toolbar.editorSelector.items,
+                                            )
+                                        ).length === 0
+                                    );
+                                },
+                                2000,
+                                "Dropdown list is still visible",
                             );
-                        },
-                        2000,
-                        "Dropdown list is still visible",
-                    );
 
-                    return;
+                            return true;
+                        }
+                    }
+                }
+                throw new Error(`Could not find ${editorName} with type ${editorType}`);
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
                 }
             }
-        }
-        throw new Error(`Could not find ${editorName} with type ${editorType}`);
+        }, constants.wait5seconds, "The elements were always stale selecting the editor");
     };
 
     /**
@@ -1118,8 +1129,8 @@ export class DBConnection {
     private static setPassword = async (driver: WebDriver, dbConfig: interfaces.IDBConnection): Promise<void> => {
         const dialog = await driver.wait(until.elementLocated((locator.passwordDialog.exists)),
             constants.wait5seconds, "No password dialog was found");
-        await dialog.findElement(locator.passwordDialog.password)
-            .sendKeys((dbConfig.basic as interfaces.IConnBasicMySQL).password as string);
+        const passwordField = await dialog.findElement(locator.passwordDialog.password);
+        await passwordField.sendKeys((dbConfig.basic as interfaces.IConnBasicMySQL).password as string);
         await dialog.findElement(locator.passwordDialog.ok).click();
     };
 
