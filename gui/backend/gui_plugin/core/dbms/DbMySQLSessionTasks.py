@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2023 Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024 Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -106,7 +106,8 @@ class MySQLColumnObjectTask(BaseObjectTask):
                 "type": row[1],
                 "not_null": row[2],
                 "default": row[3],
-                "is_pk": row[4]
+                "is_pk": row[4],
+                "auto_increment": row[5],
         }
 
     def process_result(self):

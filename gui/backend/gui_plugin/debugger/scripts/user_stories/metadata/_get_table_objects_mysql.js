@@ -265,7 +265,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": { "name": "categoryID", "type": "int", "not_null": true, "default": null, "is_pk": true }
+        "result": { "name": "categoryID", "type": "int", "not_null": true, "default": null, "is_pk": true, "auto_increment": true }
     },
     {
         "request_state": {
@@ -296,7 +296,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": { "name": "categoryName", "type": "varchar(100)", "not_null": true, "default": null, "is_pk": false }
+        "result": { "name": "categoryName", "type": "varchar(100)", "not_null": true, "default": null, "is_pk": false, "auto_increment": false }
     },
     {
         "request_state": {
