@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -152,5 +152,6 @@ class SqliteColumnObjectTask(BaseObjectTask):
                 "type": row['type'],
                 "not_null": row['not_null'],
                 "default": row['default'],
-                "is_pk": row['is_pk']
+                "is_pk": row['is_pk'],
+                "auto_increment": row['auto_increment']
         }

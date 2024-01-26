@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -654,7 +654,8 @@ class DbMysqlSession(DbSession):
         elif type == "Column":
             sql = """SELECT COLUMN_NAME as 'name', COLUMN_TYPE as 'type',
                         IS_NULLABLE='NO' as 'not_null', COLUMN_DEFAULT as 'default',
-                        COLUMN_KEY='PRI' as 'is_pk'
+                        COLUMN_KEY='PRI' as 'is_pk',
+                        EXTRA='auto_increment' as 'auto_increment'
                     FROM information_schema.COLUMNS
                     WHERE TABLE_SCHEMA = ?
                         AND TABLE_NAME = ?

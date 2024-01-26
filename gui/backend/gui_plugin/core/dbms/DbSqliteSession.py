@@ -422,7 +422,8 @@ class DbSqliteSession(DbSession):
                         AND name = ?
                     ORDER BY name;"""
         elif type == "Column":
-            sql = f"""SELECT name, type, "notnull" as 'not_null', dflt_value as 'default', pk as 'is_pk'
+            sql = f"""SELECT name, type, "notnull" as 'not_null', dflt_value as 'default',
+                        pk as 'is_pk', pk as 'auto_increment'
                     FROM pragma_table_info('{table_name}', '{schema_name}')
                     WHERE name = ?
                     ORDER BY name;"""
