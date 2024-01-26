@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,8 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-    IFindManyOptions, IFindUniqueOptions, JsonValue, MrsBaseObjectDelete, MrsBaseObjectQuery, MrsBaseSchema, MrsBaseService,
+    IFindManyOptions, IFindUniqueOptions, JsonValue, MrsBaseObjectDelete, MrsBaseObjectQuery, MrsBaseSchema,
+    MrsBaseService,
 } from "../MrsBaseClasses";
 
 // fixtures
@@ -255,7 +256,7 @@ describe("MRS SDK API", () => {
         await query.where(options.where).fetch();
 
         expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$null":"null"}}', expect.objectContaining({
-            method: "DELETE"
+            method: "DELETE",
         }));
     });
 
@@ -287,7 +288,7 @@ describe("MRS SDK API", () => {
         await query.where(options.where).fetch();
 
         expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$notnull":"null"}}', expect.objectContaining({
-            method: "DELETE"
+            method: "DELETE",
         }));
     });
 
@@ -317,5 +318,57 @@ describe("MRS SDK API", () => {
         await query.where(options.where).fetch();
 
         expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"not":{"$notnull":"null"}}', expect.anything());
+    });
+
+    it("embeds unions when the filter does not contain any", async () => {
+        interface IDatabaseObject { name?: string, age?: number }
+
+        const firstUnionItem = { name: "foo" };
+        const secondUnionItem = { age: 42 };
+
+        const query = new MrsBaseObjectQuery<unknown, IDatabaseObject>(schema, "/baz");
+
+        await query.where(firstUnionItem).or(secondUnionItem).fetch();
+        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"$or":[{"name":"foo"},{"age":42}]}', expect.anything());
+
+    });
+
+    it("aggregates unions when the filter already contains other unions", async () => {
+        interface IDatabaseObject { name?: string, age?: number }
+
+        const firstUnionItem = { name: "foo" };
+        const secondUnionItem = { age: 42 };
+
+        const query = new MrsBaseObjectQuery<unknown, IDatabaseObject>(schema, "/baz");
+
+        await query.where({ $or: [firstUnionItem] }).or(secondUnionItem).fetch();
+        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"$or":[{"name":"foo"},{"age":42}]}', expect.anything());
+    });
+
+    it("aggregates unions when the filter contains explicit intersections", async () => {
+        interface IDatabaseObject { name?: string, age?: number, isActive?: boolean }
+
+        const firstUnionItem = { name: "foo" };
+        const secondUnionItem = { age: 42 };
+
+        const query = new MrsBaseObjectQuery<unknown, IDatabaseObject>(schema, "/baz");
+
+        await query.where({ $and: [firstUnionItem, secondUnionItem] }).or({ isActive: false }).fetch();
+        expect(fetch).toHaveBeenCalledWith(
+                '/foo/bar/baz?q={"$or":[{"$and":[{"name":"foo"},{"age":42}]},{"isActive":false}]}', expect.anything());
+    });
+
+    it("aggregates unions when the filter contains implicit intersections", async () => {
+        interface IDatabaseObject { name?: string, age?: number, isActive?: boolean }
+
+        const firstUnionItem = { name: "foo" };
+        const secondUnionItem = { age: 42 };
+
+        const query = new MrsBaseObjectQuery<unknown, IDatabaseObject>(schema, "/baz");
+
+        await query.where({ ...firstUnionItem, ...secondUnionItem }).or({ isActive: false }).fetch();
+        // the router does not work with something like {"$or":[{"name":"foo","age":42},{"isActive":false}]}
+        expect(fetch).toHaveBeenCalledWith(
+                '/foo/bar/baz?q={"$or":[{"$and":[{"name":"foo"},{"age":42}]},{"isActive":false}]}', expect.anything());
     });
 });

@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -276,32 +276,6 @@ Null Ranges ($gte equivalent)
 (Supports all operators, including $and and $or)
 
 ```txt
-Column context delegation
-(Operators inside $and will use the closest context defined in the JSON tree.)
-
-{
-  "SALARY": {"$and": [{"$gt": 1000},{"$lt":4000}]}
-}
-
-Column context override
-(Example: salary greater than 1000 and name like S%)
-
-{
-  "SALARY": {"$and": [{"$gt": 1000},{"ENAME": {"$like":"S%"}} ] }
-}
-
-Implicit and in columns
-
-{
-  "SALARY": [{"$gt": 1000},{"$lt":4000}]
-}
-```
-
-## High order AND
-
-(All first columns and or high order operators -- $and and $ors -- defined at the first level of the JSON will be joined and an implicit AND)
-
-```txt
 (Example: Salary greater than 1000 and name starts with S or T)
 
 {
@@ -315,37 +289,21 @@ Invalid expression (operators $lt and $gt lack column context)
   "$and": [{"$lt": 5000},{"$gt": 1000}]
 }
 
-Valid alternatives for the previous invalid expression
+Valid alternative for the previous invalid expression
 
 {
   "$and": [{"SALARY": {"$lt": 5000}}, {"SALARY": {"$gt": 1000}}]
-}
-
-{
-  "SALARY": [{"$lt": 5000},{"$gt": 1000}]
-}
-
-{
-  "SALARY": {"$and": [{"$lt": 5000},{"$gt": 1000}]}
 }
 ```
 
 ## OR operator ($or)
 
-(Supports all operators including $and and $or)
+(Supports all operators including $and and $or. Similar to High order AND)
 
 ```txt
-Column context delegation
-(Operators inside $or will use the closest context defined in the JSON tree)
-
-{
-  "ENAME": {"$or": [{"$eq":"SMITH"},{"$eq":"KING"}]}
-}
-
-Column context override
 (Example: name starts with S or salary greater than 1000)
 
 {
-  "SALARY": {"$or": [{"$gt": 1000},{"ENAME": {"$like":"S%"}} ] }
+  "$or": [{"SALARY":{"$gt": 1000}},{"ENAME": {"$like":"S%"}}]
 }
 ```

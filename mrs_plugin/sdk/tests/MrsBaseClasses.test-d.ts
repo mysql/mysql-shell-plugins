@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,9 @@
 
 import { describe, expectTypeOf, it } from "vitest";
 import type {
-    DataFilter, BooleanFieldMapSelect, ColumnOrder, FieldNameSelect, IFindFirstOptions, IFindManyOptions,
+    PureFilter, DataFilter, BooleanFieldMapSelect, ColumnOrder, FieldNameSelect, IFindFirstOptions, IFindManyOptions,
     IFindUniqueOptions, IFindAllOptions, IMrsResultList, MaybeNull, Point, MultiPoint, LineString, MultiLineString,
-    Polygon,
-    MultiPolygon,
-    Geometry,
-    GeometryCollection,
+    Polygon, MultiPolygon, Geometry, GeometryCollection, HighOrderFilter, ComparisonOpExpr,
 } from "../MrsBaseClasses";
 
 describe("MRS SDK base types", () => {
@@ -55,6 +52,195 @@ describe("MRS SDK base types", () => {
             expectTypeOf(orderBy).toBeObject();
             expectTypeOf(orderBy).toHaveProperty("name");
             expectTypeOf(orderBy.name).toEqualTypeOf<"DESC"|"ASC"|-1|1|undefined>();
+        });
+    });
+
+    describe("ComparisonOpExpr", () => {
+        it("allows to check if some specific types of fields are equal to a given value", () => {
+            // allowed
+            expectTypeOf({ $eq: 2 }).toMatchTypeOf<ComparisonOpExpr<number>>();
+            expectTypeOf({ $eq: "foo" }).toMatchTypeOf<ComparisonOpExpr<string>>();
+            expectTypeOf({ $eq: new Date() }).toMatchTypeOf<ComparisonOpExpr<Date>>();
+            // not allowed
+            expectTypeOf({ $eq: true }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $eq: false }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $eq: null }).not.toMatchTypeOf<ComparisonOpExpr<null>>();
+        });
+
+        it("allows to check if some specific types of fields are not equal to a given value", () => {
+            // allowed
+            expectTypeOf({ $ne: 2 }).toMatchTypeOf<ComparisonOpExpr<number>>();
+            expectTypeOf({ $ne: "foo" }).toMatchTypeOf<ComparisonOpExpr<string>>();
+            expectTypeOf({ $ne: new Date() }).toMatchTypeOf<ComparisonOpExpr<Date>>();
+            // not allowed
+            expectTypeOf({ $ne: true }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $ne: false }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $ne: null }).not.toMatchTypeOf<ComparisonOpExpr<null>>();
+        });
+
+        it("allows to check if some specific types of fields are greater than a given value", () => {
+            // allowed
+            expectTypeOf({ $gt: 2 }).toMatchTypeOf<ComparisonOpExpr<number>>();
+            expectTypeOf({ $gt: new Date() }).toMatchTypeOf<ComparisonOpExpr<Date>>();
+            // not allowed
+            expectTypeOf({ $gt: "foo" }).not.toMatchTypeOf<ComparisonOpExpr<string>>();
+            expectTypeOf({ $gt: true }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $gt: false }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $gt: null }).not.toMatchTypeOf<ComparisonOpExpr<null>>();
+        });
+
+        it("allows to check if some specific types of fields are greater or equal than a given value", () => {
+            // allowed
+            expectTypeOf({ $gte: 2 }).toMatchTypeOf<ComparisonOpExpr<number>>();
+            expectTypeOf({ $gte: new Date() }).toMatchTypeOf<ComparisonOpExpr<Date>>();
+            // not allowed
+            expectTypeOf({ $gte: "foo" }).not.toMatchTypeOf<ComparisonOpExpr<string>>();
+            expectTypeOf({ $gte: true }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $gte: false }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $gte: null }).not.toMatchTypeOf<ComparisonOpExpr<null>>();
+        });
+
+        it("allows to check if some specific types of fields are lower than a given value", () => {
+            // allowed
+            expectTypeOf({ $lt: 2 }).toMatchTypeOf<ComparisonOpExpr<number>>();
+            expectTypeOf({ $lt: new Date() }).toMatchTypeOf<ComparisonOpExpr<Date>>();
+            // not allowed
+            expectTypeOf({ $lt: "foo" }).not.toMatchTypeOf<ComparisonOpExpr<string>>();
+            expectTypeOf({ $lt: true }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $lt: false }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $lt: null }).not.toMatchTypeOf<ComparisonOpExpr<null>>();
+        });
+
+        it("allows to check if some specific types of fields are lower or equal than a given value", () => {
+            // allowed
+            expectTypeOf({ $lte: 2 }).toMatchTypeOf<ComparisonOpExpr<number>>();
+            expectTypeOf({ $lte: new Date() }).toMatchTypeOf<ComparisonOpExpr<Date>>();
+            // not allowed
+            expectTypeOf({ $lte: "foo" }).not.toMatchTypeOf<ComparisonOpExpr<string>>();
+            expectTypeOf({ $lte: true }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $lte: false }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $lte: null }).not.toMatchTypeOf<ComparisonOpExpr<null>>();
+        });
+
+        it("allows to check if a textual field matches a given pattern", () => {
+            // allowed
+            expectTypeOf({ $like: "%foo%" }).toMatchTypeOf<ComparisonOpExpr<string>>();
+            // not allowed
+            expectTypeOf({ $like: 2 }).not.toMatchTypeOf<ComparisonOpExpr<number>>();
+            expectTypeOf({ $like: new Date() }).not.toMatchTypeOf<ComparisonOpExpr<Date>>();
+            expectTypeOf({ $like: true }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $like: false }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $like: null }).not.toMatchTypeOf<ComparisonOpExpr<null>>();
+        });
+
+        it("allows to check if a textual field is a substring of a given string", () => {
+            // allowed
+            expectTypeOf({ $instr: "foo" }).toMatchTypeOf<ComparisonOpExpr<string>>();
+            // not allowed
+            expectTypeOf({ $instr: 2 }).not.toMatchTypeOf<ComparisonOpExpr<number>>();
+            expectTypeOf({ $instr: new Date() }).not.toMatchTypeOf<ComparisonOpExpr<Date>>();
+            expectTypeOf({ $instr: true }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $instr: false }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $instr: null }).not.toMatchTypeOf<ComparisonOpExpr<null>>();
+        });
+
+        it("allows to check if a textual field is not a substring of a given string", () => {
+            // allowed
+            expectTypeOf({ $ninstr: "foo" }).toMatchTypeOf<ComparisonOpExpr<string>>();
+            // not allowed
+            expectTypeOf({ $ninstr: 2 }).not.toMatchTypeOf<ComparisonOpExpr<number>>();
+            expectTypeOf({ $ninstr: new Date() }).not.toMatchTypeOf<ComparisonOpExpr<Date>>();
+            expectTypeOf({ $ninstr: true }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $ninstr: false }).not.toMatchTypeOf<ComparisonOpExpr<boolean>>();
+            expectTypeOf({ $ninstr: null }).not.toMatchTypeOf<ComparisonOpExpr<null>>();
+        });
+
+        it("allows to check if a field is null", () => {
+            // allowed
+            expectTypeOf({ $null: true }).toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            expectTypeOf({ $notnull: false }).toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            expectTypeOf({ $null: null }).toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            // not allowed
+            expectTypeOf({ $null: "foo" }).not.toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            expectTypeOf({ $null: 2 }).not.toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            expectTypeOf({ $null: new Date() }).not.toMatchTypeOf<ComparisonOpExpr<unknown>>();
+        });
+
+        it("allows to check if a field is not null", () => {
+            // allowed
+            expectTypeOf({ not: null }).toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            expectTypeOf({ $null: false }).toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            expectTypeOf({ $notnull: true }).toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            expectTypeOf({ $notnull: null }).toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            // not allowed
+            expectTypeOf({ not: "foo" }).not.toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            expectTypeOf({ not: 2 }).not.toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            expectTypeOf({ not: new Date() }).not.toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            expectTypeOf({ not: true }).not.toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            expectTypeOf({ not: false }).not.toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            expectTypeOf({ $notnull: "foo" }).not.toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            expectTypeOf({ $notnull: 2 }).not.toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            expectTypeOf({ $notnull: new Date() }).not.toMatchTypeOf<ComparisonOpExpr<unknown>>();
+        });
+
+        it("allows to check if a field is between two values", () => {
+            // allowed
+            expectTypeOf({ $between: [1, 2] as const }).toMatchTypeOf<ComparisonOpExpr<number>>();
+            expectTypeOf({ $between: [1, null] as const }).toMatchTypeOf<ComparisonOpExpr<number>>(); // same as $gte
+            expectTypeOf({ $between: [null, 2] as const }).toMatchTypeOf<ComparisonOpExpr<number>>(); // same as $lte
+            expectTypeOf({ $between: ["A", "C"] as const }).toMatchTypeOf<ComparisonOpExpr<string>>();
+
+            const now = new Date(); // now
+            const then = new Date(); // 2 days from now
+            then.setUTCDate(now.getUTCDate() + 3);
+            expectTypeOf({ $between: [now, then] as const }).toMatchTypeOf<ComparisonOpExpr<Date>>();
+            expectTypeOf({ $between: [now, null] as const }).toMatchTypeOf<ComparisonOpExpr<Date>>(); // same as $lte
+            expectTypeOf({ $between: [null, then] as const }).toMatchTypeOf<ComparisonOpExpr<Date>>(); // same as $gte
+
+            // not allowed
+            expectTypeOf({ $between: [true, false] as const }).not.toMatchTypeOf<ComparisonOpExpr<unknown>>();
+            expectTypeOf({ $between: [null, null] as const }).not.toMatchTypeOf<ComparisonOpExpr<unknown>>();
+        });
+    });
+
+    describe("PureFilter", () => {
+        it("allows checking if a field is implicitly equal to a value", () => {
+            interface ITestType { x: string, y: number, z: boolean }
+            expectTypeOf<ITestType>().toMatchTypeOf<PureFilter<ITestType>>();
+        });
+
+        it("allows checking field value using an explicit operator", () => {
+            interface IImplicitFilter { x: string }
+            interface IExplicitFilter { x: ComparisonOpExpr<string> }
+            expectTypeOf<IExplicitFilter>().toMatchTypeOf<PureFilter<IImplicitFilter>>();
+        });
+    });
+
+    describe("HighOrderFilter", () => {
+        it("allows a list of items containing implicit field checks", () => {
+            expectTypeOf({ $and: [{ x: "foo" }, { y: "bar" }] })
+                .toMatchTypeOf<HighOrderFilter<{ x: string, y: string }>>();
+        });
+
+        it("allows a list of items containing explicit field checks", () => {
+            expectTypeOf({ $and: [{ x: { $eq: "foo" } }, { y: { $eq: "bar" } }] })
+                .toMatchTypeOf<HighOrderFilter<{ x: string, y: string }>>();
+        });
+
+        it("allows a list of items containing other high order filters", () => {
+            expectTypeOf({ $or: [{ $and: [{ x: "foo" }] }, { $and: [{ y: "bar" }] }] })
+                .toMatchTypeOf<HighOrderFilter<{ x: string, y: string }>>();
+
+            expectTypeOf({ $or: [{ $and: [{ x: { $eq: "foo" } }] }, { $and: [{ y: { $eq: "bar" } }] }] })
+                .toMatchTypeOf<HighOrderFilter<{ x: string, y: string }>>();
+        });
+    });
+
+    describe("DataFilter", () => {
+        it("allows AND/OR operators defined at the first level of the JSON tree", () => {
+            interface ITestType { x: string }
+            type ITestFilter = HighOrderFilter<ITestType>;
+            expectTypeOf<ITestFilter>().toMatchTypeOf<DataFilter<ITestType>>();
         });
     });
 
