@@ -491,30 +491,57 @@ export type DelegationFilter<Type> = {
     [Key in keyof Type]?: DataFilterField<Type, Type[Key]> | Type[Key] | Array<ComparisonOpExpr<Type[Key]>>
 };
 
+/**
+ * An object containing checks that should apply for the value of one or more fields.
+ * @example
+ * { name: "foo", age: 42 }
+ * { name: { $eq: "foo" }, age: 42 }
+ * { name: "foo", age: { $gte: 42 } }
+ * { name: { $like: "%foo%" }, age: { $lte: 42 } }
+ */
 export type PureFilter<Type> = {
     [Key in keyof Type]: ComparisonOpExpr<Type[Key]> | Type[Key]
 };
 
+/**
+ * An object that specifies multiple filters which must all be verified (AND) or alternatively, or in which only some
+ * of them are verified (OR).
+ * @example
+ * { $and: [{ name: "foo" }, { age: 42 }] }
+ * { $or: [{ name: { $eq: "foo" } }, { age: { $gte: 42 }}] }
+ * @see {PureFilter}
+ */
 export type HighOrderFilter<Type> = {
-    [Key in BinaryOperator]?: Array<PureFilter<Type>>
+    // $and/$or can work for a subset of fields, so we need Partial
+    [Key in BinaryOperator]?: Array<PureFilter<Partial<Type>> | HighOrderFilter<Type>>
 };
 
+/**
+ * An object that specifies an explicit operation to check against a given value.
+ * @example
+ * { $eq: "foo" }
+ * { $gte: 42 }
+ * { not: null }
+ * { $between: [1, 2] }
+ * @see {ISimpleOperatorProperty}
+ */
 export type ComparisonOpExpr<Type> = {
     [Operator in keyof ISimpleOperatorProperty]?: Type & ISimpleOperatorProperty[Operator]
 } & {
-        // eslint-disable-next-line @typescript-eslint/indent
-        [Operator in "not" | "$notnull" | "$null"]?: null
-        // eslint-disable-next-line @typescript-eslint/indent
-    } & {
-        // eslint-disable-next-line @typescript-eslint/indent
-        [Operator in "$between"]?: [Type & BetweenRegular | null, Type & BetweenRegular | null]
-        // eslint-disable-next-line @typescript-eslint/indent
-    };
+    [Operator in "$notnull" | "$null"]?: boolean | null
+} & {
+    not?: null
+} & {
+    $between?: NullStartingRange<Type & BetweenRegular> | NullEndingRange<Type & BetweenRegular>
+};
 
-export type BetweenRegular = string | number | Date;
+type NullStartingRange<Type> = readonly [Type | null, Type];
+type NullEndingRange<Type> = readonly [Type, Type | null];
+
+type BetweenRegular = string | number | Date;
 
 // cspell: ignore ninstr
-export interface ISimpleOperatorProperty {
+interface ISimpleOperatorProperty {
     "$eq": string | number | Date
     "$gt": number | Date
     "$instr": string
@@ -803,19 +830,13 @@ export type UpdateMatch<Type, PrimaryKeys extends Array<string & keyof Type>> = 
     [ColumnName in keyof Pick<Type, PrimaryKeys[number]>]-?: Type[ColumnName]
 };
 
-/**
- * This is an internal abstract class to hold common functionality related to query filters
- * between different types of MRS CRUD operations.
- */
-class MrsRequestFilter<P> {
-    protected whereCondition?: string;
+type MrsFilterObject<Fields> = DataFilter<Fields> & {
+    $orderby: ColumnOrder<Fields>
+};
 
-    public where = (filter?: DataFilter<P>): this => {
-        if (typeof filter === "undefined") {
-            return this;
-        }
-
-        this.whereCondition = JSON.stringify(filter, (key: string, value: { not?: null } & JsonValue) => {
+class MrsJSON {
+    public static stringify = (json: JsonValue): string => {
+        return JSON.stringify(json, (key: string, value: { not?: null } & JsonValue) => {
             // expand $notnull operator (lookup at the child level)
             // if we are operating at the root of the object, "not" is a field name, in which case, there is nothing
             // left to do
@@ -833,11 +854,41 @@ class MrsRequestFilter<P> {
 
             return value;
         });
+    };
+}
+
+/**
+ * @template P The set of fields of a given database object that can be used in a query filter.
+ * This is an internal abstract class to hold common functionality related to query filters
+ * between different types of MRS CRUD operations.
+ */
+abstract class MrsRequestFilter<P> {
+    protected queryFilter?: DataFilter<P>;
+
+    /**
+     * Specifies the query filter used in an MRS query.
+     * @param {DataFilter<P>} filter An object containing checks that should apply for the value of one or more fields
+     * which can, optionally, be part of high-order AND/OR operations.
+     * @see {PureFilter}
+     * @see {HighOrderFilter}
+     * @returns {MrsRequestFilter<P>} The MRS request representation as defined by the child class.
+     */
+    public where = (filter?: DataFilter<P>): this => {
+        if (typeof filter === "undefined") {
+            return this;
+        }
+
+        this.queryFilter = { ...this.queryFilter, ...filter };
 
         return this;
     };
 }
 
+/**
+ * @template C The entire set of fields of a given database object.
+ * @template P The set of fields of a given database object that can be used in a query filter.
+ * Creates an object that represents an MRS GET request.
+ */
 export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
     protected offsetCondition?: number;
     protected limitCondition?: number;
@@ -851,61 +902,59 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
         super();
     }
 
-    public whereOld = <K extends keyof P>(param: K, op: keyof IMrsOperator, value?: string): this => {
-        const ops: IMrsOperator = {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            "=": "$eq",
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            "!=": "$ne",
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            "<": "$lt",
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            "<=": "$lte",
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            ">": "$gt",
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            ">=": "$gte",
-            "like": "$like",
-            "null": "$null",
-            // cSpell:ignore notnull
-            "notNull": "$notnull",
-            "between": "$between",
-        };
-        // Example: GET http://localhost:8080/mrs/sakila/actor/?q={"last_name":{"$like":"WAW%"}}
-        value = (value === undefined || value === null) ? "null" : `"${value}"`;
-
-        this.whereCondition = `{"${String(param)}":{"${ops[op]}":${value}}}`;
-
-        return this;
-    };
-
-    // overrides top-level $or
-    public or = (filter?: DataFilter<C>): this => {
+    /**
+     * Although the query filter can already be specified by now, one can incrementally introduce other optional rules
+     * that are embedded in a top-level OR operation.
+     * @param {PureFilter<P>} filter An object containing checks that should apply for the value of one or more fields.
+     * @see {PureFilter}
+     * @example
+     * .or({ name: "foo", age: 42 })
+     * .or({ name: { $eq: "foo" }, age: 42 })
+     * .or({ name: "foo", age: { $gte: 42 } })
+     * .or({ name: { $like: "%foo%" }, age: { $lte: 42 } })
+     * @returns {MrsBaseObjectQuery<C, P>} The MRS GET request representation.
+     */
+    public or = (filter?: PureFilter<P>): this => {
         if (typeof filter === "undefined") {
             return this;
         }
 
-        const currentFilter = JSON.parse(this.whereCondition ?? "");
-        const topLevelOr: object[] = currentFilter.$or ?? [];
+        // although the method accepts a PureFilter, we always want to convert it to a HighOrderFilter
+        let queryFilter = this.queryFilter as HighOrderFilter<P> ?? {};
 
-        if (topLevelOr.length === 0) {
-            this.whereCondition = JSON.stringify({ $or: [currentFilter, filter] });
+        // if there is no OR operator, we should squeeze every filter item into one
+        if (typeof queryFilter.$or === "undefined") {
+            // an implicit AND requires more than one field
+            if (typeof queryFilter.$and === "undefined" && Object.keys(queryFilter).length > 1) {
+                // implicit AND operators do not contain high-order ops
+                const explicitAnd = Object.keys(queryFilter).map((key) => {
+                    return { [key]: (queryFilter as PureFilter<P> & { [key: string]: unknown })[key] };
+                });
+
+                queryFilter = { $or: [{ $and: explicitAnd }, filter] };
+            } else {
+                queryFilter = { $or: [queryFilter as PureFilter<P>, filter] };
+            }
         } else {
-            topLevelOr.push(filter);
-            this.whereCondition = JSON.stringify({ ...currentFilter, $or: topLevelOr });
+            // otherwise, we add the filter item to the existing OR operator
+            queryFilter.$or.push(filter);
         }
+
+        this.queryFilter = queryFilter;
 
         return this;
     };
 
     // orderBy proposal
-    public orderBy = (columnOrder?: ColumnOrder<C>): this => {
+    public orderBy = (columnOrder?: ColumnOrder<P>): this => {
         if (typeof columnOrder === "undefined") {
             return this;
         }
 
-        // we should only stringify "whereCondition" when the request is sent
-        this.whereCondition = JSON.stringify({ $orderby: columnOrder, ...JSON.parse(this.whereCondition ?? "{}") });
+        const queryFilter = this.queryFilter as MrsFilterObject<P> ?? {};
+        queryFilter.$orderby = columnOrder;
+
+        this.queryFilter = queryFilter;
 
         return this;
     };
@@ -948,8 +997,8 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
         } else if (fieldsToGet !== undefined && fieldsToGet.length > 0) {
             inputStr += `f=${fieldsToGet.join(",")}&`;
         }
-        if (this.whereCondition !== undefined) {
-            inputStr += `q=${this.whereCondition}&`;
+        if (this.queryFilter !== undefined) {
+            inputStr += `q=${MrsJSON.stringify(this.queryFilter as JsonObject)}&`;
         }
         if (this.offsetCondition !== undefined) {
             inputStr += `offset=${this.offsetCondition}&`;
@@ -957,6 +1006,9 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
         if (this.limitCondition !== undefined) {
             inputStr += `limit=${this.limitCondition}&`;
         }
+
+        // reset state
+        this.queryFilter = {};
 
         const res = await this.schema.service.session.doFetch({
             /*input: `/mrsNotes/notesAll?f=!content&offset=${offset}&limit=10${q}`,*/
@@ -1131,8 +1183,8 @@ export class MrsBaseObjectDelete<T> extends MrsRequestFilter<T> {
     public fetch = async (): Promise<IMrsDeleteResult> => {
         let inputStr = `${this.schema.requestPath}${this.requestPath}`;
 
-        if (this.whereCondition !== undefined) {
-            inputStr += `?q=${this.whereCondition}&`;
+        if (this.queryFilter !== undefined) {
+            inputStr += `?q=${MrsJSON.stringify(this.queryFilter as JsonObject)}&`;
         }
 
         const res = await this.schema.service.session.doFetch({

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-<!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.-->
+<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.-->
 
 <head>
     <meta charset="UTF-8" />
@@ -330,14 +330,9 @@
                                                 AND operator
                                                 ($and)</a></li>
                                                 <li><a
-                                                href="#high-order-and"
-                                                id="toc-high-order-and"><span
-                                                class="toc-section-number">4.16</span>
-                                                High order AND</a></li>
-                                                <li><a
                                                 href="#or-operator-or"
                                                 id="toc-or-operator-or"><span
-                                                class="toc-section-number">4.17</span>
+                                                class="toc-section-number">4.16</span>
                                                 OR operator
                                                 ($or)</a></li>
                                                 </ul></li>
@@ -392,7 +387,7 @@ REST APIs
                 REST Service SQL Extension.</li>
                 </ul>
                 <hr />
-                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -518,7 +513,7 @@ REST APIs
 }</code></pre>
                 <p>The -i option tells cURL to display the HTTP headers
                 returned by the server.</p>
-                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -897,7 +892,7 @@ REST APIs
                 <pre><code>{
     &quot;itemsDeleted&quot;: 1
 }</code></pre>
-                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -1083,7 +1078,7 @@ REST APIs
 <span id="cb35-46"><a href="#cb35-46" aria-hidden="true" tabindex="-1"></a>    E-</span></code></pre></div>
                 <p>The FilterObject must be encoded according to Section
                 2.1 of RFC3986.</p>
-                <!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -1349,77 +1344,36 @@ REST APIs
                 ($and)</h2>
                 <p>(Supports all operators, including $and and $or)</p>
                 <div class="sourceCode" id="cb50"><pre
-                class="sourceCode txt"><code class="sourceCode default"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>Column context delegation</span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>(Operators inside $and will use the closest context defined in the JSON tree.)</span>
-<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$and&quot;: [{&quot;$gt&quot;: 1000},{&quot;$lt&quot;:4000}]}</span>
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>(Example: Salary greater than 1000 and name starts with S or T)</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$gt&quot;: 1000},</span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>  &quot;ENAME&quot;: {&quot;$or&quot;: [{&quot;$like&quot;:&quot;S%&quot;}, {&quot;$like&quot;:&quot;T%&quot;}]}</span>
 <span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>Column context override</span>
-<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>(Example: salary greater than 1000 and name like S%)</span>
-<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$and&quot;: [{&quot;$gt&quot;: 1000},{&quot;ENAME&quot;: {&quot;$like&quot;:&quot;S%&quot;}} ] }</span>
-<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a>Implicit and in columns</span>
-<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: [{&quot;$gt&quot;: 1000},{&quot;$lt&quot;:4000}]</span>
-<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-                <h2 data-number="4.16" id="high-order-and"><span
-                class="header-section-number">4.16</span> High order
-                AND</h2>
-                <p>(All first columns and or high order operators – $and
-                and $ors – defined at the first level of the JSON will
-                be joined and an implicit AND)</p>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>Invalid expression (operators $lt and $gt lack column context)</span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a>  &quot;$and&quot;: [{&quot;$lt&quot;: 5000},{&quot;$gt&quot;: 1000}]</span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a>Valid alternative for the previous invalid expression</span>
+<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a>  &quot;$and&quot;: [{&quot;SALARY&quot;: {&quot;$lt&quot;: 5000}}, {&quot;SALARY&quot;: {&quot;$gt&quot;: 1000}}]</span>
+<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h2 data-number="4.16" id="or-operator-or"><span
+                class="header-section-number">4.16</span> OR operator
+                ($or)</h2>
+                <p>(Supports all operators including $and and $or.
+                Similar to High order AND)</p>
                 <div class="sourceCode" id="cb51"><pre
-                class="sourceCode txt"><code class="sourceCode default"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>(Example: Salary greater than 1000 and name starts with S or T)</span>
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>(Example: name starts with S or salary greater than 1000)</span>
 <span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$gt&quot;: 1000},</span>
-<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>  &quot;ENAME&quot;: {&quot;$or&quot;: [{&quot;$like&quot;:&quot;S%&quot;}, {&quot;$like&quot;:&quot;T%&quot;}]}</span>
-<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>Invalid expression (operators $lt and $gt lack column context)</span>
-<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a>  &quot;$and&quot;: [{&quot;$lt&quot;: 5000},{&quot;$gt&quot;: 1000}]</span>
-<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-14"><a href="#cb51-14" aria-hidden="true" tabindex="-1"></a>Valid alternatives for the previous invalid expression</span>
-<span id="cb51-15"><a href="#cb51-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-16"><a href="#cb51-16" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb51-17"><a href="#cb51-17" aria-hidden="true" tabindex="-1"></a>  &quot;$and&quot;: [{&quot;SALARY&quot;: {&quot;$lt&quot;: 5000}}, {&quot;SALARY&quot;: {&quot;$gt&quot;: 1000}}]</span>
-<span id="cb51-18"><a href="#cb51-18" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb51-19"><a href="#cb51-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-20"><a href="#cb51-20" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb51-21"><a href="#cb51-21" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: [{&quot;$lt&quot;: 5000},{&quot;$gt&quot;: 1000}]</span>
-<span id="cb51-22"><a href="#cb51-22" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb51-23"><a href="#cb51-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-24"><a href="#cb51-24" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb51-25"><a href="#cb51-25" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$and&quot;: [{&quot;$lt&quot;: 5000},{&quot;$gt&quot;: 1000}]}</span>
-<span id="cb51-26"><a href="#cb51-26" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-                <h2 data-number="4.17" id="or-operator-or"><span
-                class="header-section-number">4.17</span> OR operator
-                ($or)</h2>
-                <p>(Supports all operators including $and and $or)</p>
-                <div class="sourceCode" id="cb52"><pre
-                class="sourceCode txt"><code class="sourceCode default"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>Column context delegation</span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>(Operators inside $or will use the closest context defined in the JSON tree)</span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>  &quot;ENAME&quot;: {&quot;$or&quot;: [{&quot;$eq&quot;:&quot;SMITH&quot;},{&quot;$eq&quot;:&quot;KING&quot;}]}</span>
-<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>Column context override</span>
-<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>(Example: name starts with S or salary greater than 1000)</span>
-<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a>  &quot;SALARY&quot;: {&quot;$or&quot;: [{&quot;$gt&quot;: 1000},{&quot;ENAME&quot;: {&quot;$like&quot;:&quot;S%&quot;}} ] }</span>
-<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-                <p>Copyright (c) 2022, 2023, Oracle and/or its
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  &quot;$or&quot;: [{&quot;SALARY&quot;:{&quot;$gt&quot;: 1000}},{&quot;ENAME&quot;: {&quot;$like&quot;:&quot;S%&quot;}}]</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <p>Copyright (c) 2022, 2024, Oracle and/or its
                 affiliates.</p>
             </div>
         </div>
