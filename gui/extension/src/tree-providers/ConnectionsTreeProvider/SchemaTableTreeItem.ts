@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { MrsDbObjectType } from "../../../../frontend/src/modules/mrs/types.js";
 import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
 
@@ -43,7 +44,7 @@ export class SchemaTableTreeItem extends ConnectionsTreeBaseItem {
         return `\`${this.schema}\`.\`${this.name}\``;
     }
 
-    public get dbType(): string {
-        return "table";
+    public get dbType(): MrsDbObjectType {
+        return MrsDbObjectType.Table;
     }
 }

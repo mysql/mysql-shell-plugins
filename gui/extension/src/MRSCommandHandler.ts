@@ -41,7 +41,7 @@ import { DBEditorModuleId } from "../../frontend/src/modules/ModuleInfo.js";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { findExecutable } from "../../frontend/src/utilities/file-utilities.js";
 import { MySQLShellLauncher } from "../../frontend/src/utilities/MySQLShellLauncher.js";
-import { pathToCamelCase } from "../../frontend/src/utilities/string-helpers.js";
+import { convertPathToCamelCase } from "../../frontend/src/utilities/string-helpers.js";
 import { ExtensionHost } from "./ExtensionHost.js";
 import {
     ICdmConnectionEntry,
@@ -215,10 +215,10 @@ export class MRSCommandHandler {
                     const item = entry.treeItem;
 
                     try {
+                        const convertedUrl = convertPathToCamelCase(item.value.urlContextRoot);
                         const value = await window.showSaveDialog({
                             title: "Export REST Service SDK Files...",
-                            defaultUri: Uri.file(`${os.homedir()}/${pathToCamelCase(item.value.urlContextRoot)}` +
-                                `.mrs.sdk`),
+                            defaultUri: Uri.file(`${os.homedir()}/${convertedUrl}.mrs.sdk`),
                             saveLabel: "Export SDK Files",
                         });
 
@@ -229,8 +229,8 @@ export class MRSCommandHandler {
                                 { requestType: "showModule", parameter: DBEditorModuleId },
                                 {
                                     requestType: "showPage", parameter: {
-                                        module: DBEditorModuleId, page: connectionId
-                                    }
+                                        module: DBEditorModuleId, page: connectionId,
+                                    },
                                 },
                                 {
                                     requestType: "showMrsSdkExportDialog", parameter: {
@@ -239,7 +239,7 @@ export class MRSCommandHandler {
                                         connectionId,
                                         connectionDetails: entry.parent.parent.treeItem.details,
                                         directory: value.fsPath,
-                                    }
+                                    },
                                 },
                             ], "newConnection");
                         }
@@ -635,10 +635,11 @@ export class MRSCommandHandler {
                     if (item.value) {
                         const backend = item.backend;
 
+                        const convertedPath = convertPathToCamelCase(item.value.requestPath);
                         await window.showSaveDialog({
                             title: "REST Schema Dump...",
                             saveLabel: "Select the target file",
-                            defaultUri: Uri.file(`${os.homedir()}/${pathToCamelCase(item.value.requestPath)}.mrs.json`),
+                            defaultUri: Uri.file(`${os.homedir()}/${convertedPath}.mrs.json`),
                             filters: {
                                 // eslint-disable-next-line @typescript-eslint/naming-convention
                                 JSON: ["mrs.json"],

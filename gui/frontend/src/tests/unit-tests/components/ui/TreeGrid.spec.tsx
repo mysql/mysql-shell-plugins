@@ -64,7 +64,7 @@ describe("TreeGrid tests", (): void => {
                     { title: "col2", field: "field2" },
                 ]}
                 tableData={[]}
-                selectedIds={["a"]}
+                selectedRows={["a"]}
                 onVerticalScroll={() => { /**/ }}
             />,
         );
@@ -89,8 +89,7 @@ describe("TreeGrid tests", (): void => {
         expect(grid.getSelectedRows().length).toBe(0);
         grid.beginUpdate();
 
-        // @ts-expect-error, because we are checking an internal member here.
-        expect(grid.updateCount).toBe(0);
+        expect(grid.updateLockCount).toBe(0);
         grid.endUpdate();
 
         await grid.table;
@@ -99,7 +98,7 @@ describe("TreeGrid tests", (): void => {
         component.setProps({
             columns: [{ title: "col1" }],
             tableData: [{ id: "1", col1: "a", col2: "2" }],
-            selectedIds: ["1"],
+            selectedRows: ["1"],
         });
 
         await grid.setColumns([]);
@@ -114,11 +113,9 @@ describe("TreeGrid tests", (): void => {
         grid.beginUpdate();
         grid.beginUpdate();
 
-        // @ts-expect-error, because we are checking an internal member here.
-        expect(grid.updateCount).toBe(3);
+        expect(grid.updateLockCount).toBe(3);
         grid.endUpdate();
-        // @ts-expect-error, because we are checking an internal member here.
-        expect(grid.updateCount).toBe(2);
+        expect(grid.updateLockCount).toBe(2);
         grid.endUpdate();
         grid.endUpdate();
         grid.endUpdate();
@@ -126,8 +123,7 @@ describe("TreeGrid tests", (): void => {
         grid.endUpdate();
         grid.endUpdate();
         grid.endUpdate();
-        // @ts-expect-error, because we are checking an internal member here.
-        expect(grid.updateCount).toBe(0);
+        expect(grid.updateLockCount).toBe(0);
 
         component.unmount();
     });

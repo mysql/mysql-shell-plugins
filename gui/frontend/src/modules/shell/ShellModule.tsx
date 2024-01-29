@@ -56,6 +56,7 @@ import { ProgressIndicator } from "../../components/ui/ProgressIndicator/Progres
 import { ITabviewPage, Tabview, TabPosition } from "../../components/ui/Tabview/Tabview.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers.js";
+import type { ISqlUpdateResult } from "../../app-logic/Types.js";
 
 interface IShellTabInfo {
     details: IShellSessionDetails;
@@ -592,7 +593,13 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
     private createEditorModel(session: ShellInterfaceShellSession, text: string, language: string,
         serverVersion: number, sqlMode: string, currentSchema: string): IShellEditorModel {
         const model: IShellEditorModel = Object.assign(Monaco.createModel(text, language), {
-            executionContexts: new ExecutionContexts(StoreType.Shell, serverVersion, sqlMode, currentSchema),
+            executionContexts: new ExecutionContexts({
+                store: StoreType.Shell,
+                dbVersion: serverVersion,
+                sqlMode,
+                currentSchema,
+                runUpdates: this.sendSqlUpdatesFromModel.bind(this, session),
+            }),
 
             // Create a default symbol table with no DB connection. This will be replaced in ShellTab, depending
             // on the connection the user opens.
@@ -626,4 +633,34 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
 
         this.setState({ selectedTab: newTab, progressMessage: "" });
     };
+
+    private sendSqlUpdatesFromModel = async (session: ShellInterfaceShellSession,
+        updates: string[]): Promise<ISqlUpdateResult> => {
+        let lastIndex = 0;
+        const rowCount = 0;
+        try {
+            await session.execute("start transaction");
+            for (; lastIndex < updates.length; ++lastIndex) {
+                const update = updates[lastIndex];
+                await session.execute(update);
+
+                // TODO: we need to get the number of affected rows from the result.
+                // rowCount += result?.rowsAffected ?? 0;
+            }
+            await session.execute("commit");
+
+            return { affectedRows: rowCount, errors: [] };
+        } catch (reason) {
+            await session.execute("rollback");
+            if (reason instanceof Error) {
+                const errors: string[] = [];
+                errors[lastIndex] = reason.message; // Set the error for the query that was last executed.
+
+                return { affectedRows: rowCount, errors };
+            }
+
+            throw reason;
+        }
+    };
+
 }

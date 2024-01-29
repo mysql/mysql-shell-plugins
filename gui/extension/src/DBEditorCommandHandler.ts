@@ -59,8 +59,9 @@ import {
     IEditorConnectionEntry, IOpenEditorBaseEntry, IOpenEditorEntry, OpenEditorsTreeDataProvider,
 } from "./tree-providers/OpenEditorsTreeProvider/OpenEditorsTreeProvider.js";
 import { showMessageWithTimeout } from "./utilities.js";
-import { snakeToCamelCase } from "../../frontend/src/utilities/string-helpers.js";
+import { convertSnakeToCamelCase } from "../../frontend/src/utilities/string-helpers.js";
 import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider/OciDbSystemTreeItem.js";
+import { MrsDbObjectType } from "../../frontend/src/modules/mrs/types.js";
 
 /** A class to handle all DB editor related commands and jobs. */
 export class DBEditorCommandHandler {
@@ -601,16 +602,10 @@ export class DBEditorCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.addDbObject", (entry?: CdmSchemaGroupMember) => {
             if (entry) {
-                let objectType;
-                if (entry.type === "routine") {
-                    objectType = entry.treeItem.dbType.toUpperCase();
-                } else {
-                    objectType = entry.type.toUpperCase();
-                }
-
+                const objectType = entry.treeItem.dbType;
                 const item = entry.treeItem;
-                if (objectType === "TABLE" || objectType === "VIEW" || objectType === "PROCEDURE" ||
-                    objectType === "FUNCTION") {
+                if (objectType === MrsDbObjectType.Table || objectType === MrsDbObjectType.View
+                    || objectType === MrsDbObjectType.Procedure || objectType === MrsDbObjectType.Function) {
                     // First, create a new temporary dbObject, then call the DbObject dialog
                     this.createNewDbObject(entry.treeItem.backend, item, objectType).then((dbObject) => {
                         const provider = this.#host.currentProvider;
@@ -670,18 +665,18 @@ export class DBEditorCommandHandler {
     }
 
     private createNewDbObject = async (backend: ShellInterfaceSqlEditor,
-        item: ConnectionsTreeBaseItem, objectType: string): Promise<IMrsDbObjectData> => {
+        item: ConnectionsTreeBaseItem, objectType: MrsDbObjectType): Promise<IMrsDbObjectData> => {
 
         const dbObject: IMrsDbObjectData = {
             comments: "",
-            crudOperations: (objectType === "PROCEDURE") ? ["UPDATE"] : ["READ"],
+            crudOperations: (objectType === MrsDbObjectType.Procedure) ? ["UPDATE"] : ["READ"],
             crudOperationFormat: "FEED",
             dbSchemaId: "",
             enabled: 1,
             id: "",
             name: item.name,
             objectType,
-            requestPath: `/${snakeToCamelCase(item.name)}`,
+            requestPath: `/${convertSnakeToCamelCase(item.name)}`,
             requiresAuth: 1,
             rowUserOwnershipEnforced: 0,
             serviceId: "",
@@ -736,7 +731,7 @@ export class DBEditorCommandHandler {
                     "Yes", "No");
                 if (answer === "Yes") {
                     dbObject.dbSchemaId = await backend.mrs.addSchema(service.id,
-                        item.schema, `/${snakeToCamelCase(item.schema)}`, false, null, null, undefined);
+                        item.schema, `/${convertSnakeToCamelCase(item.schema)}`, false, null, null, undefined);
 
                     void commands.executeCommand("msg.refreshConnections");
                     showMessageWithTimeout(`The MRS schema ${item.schema} has been added successfully.`, 5000);

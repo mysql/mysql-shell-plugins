@@ -128,7 +128,7 @@ interface IExplorerProperties extends IComponentProperties {
 
     onSelectItem?: (id: string, type: EntityType, caption: string) => void;
     onCloseItem?: (id: string) => void;
-    onAddItem?: () => string | undefined;
+    onAddItem?: () => Promise<string | undefined>;
     onChangeItem?: (id: string, newCaption: string) => void;
     onAddScript?: (language: EditorLanguage) => void;
     onAddFolder?: (parent: number) => void;
@@ -1077,17 +1077,18 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
         switch (actionId) {
             case "addConsole": {
                 const { onAddItem, editors } = this.props;
-                const newId = onAddItem?.();
-                if (newId) {
-                    const item = editors.find((candidate: IEntityBase) => {
-                        return candidate.id === newId;
-                    });
+                void onAddItem?.().then((newId) => {
+                    if (newId) {
+                        const item = editors.find((candidate: IEntityBase) => {
+                            return candidate.id === newId;
+                        });
 
-                    setTimeout(() => {
-                        // Start editing after a moment, to avoid auto focus stopping an ongoing edit.
-                        this.setState({ editing: newId, tempCaption: item?.caption });
-                    }, 200);
-                }
+                        setTimeout(() => {
+                            // Start editing after a moment, to avoid auto focus stopping an ongoing edit.
+                            this.setState({ editing: newId, tempCaption: item?.caption });
+                        }, 200);
+                    }
+                });
 
                 break;
             }
@@ -1254,7 +1255,7 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
             options={scriptTreeOptions}
             columns={scriptTreeColumns}
             tableData={scripts}
-            selectedIds={[selectedEntry]}
+            selectedRows={[selectedEntry]}
 
             onRowContext={this.handleScriptTreeRowContext}
         />;
@@ -1364,7 +1365,7 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
 
         const entry = row.getData() as ISchemaTreeEntry;
         try {
-            const names = await backend.getTableObjects(schema, table, type, filter);
+            const names = await backend.getTableObjectNames(schema, table, type, filter);
             names.forEach((item) => {
                 const newChild = {
                     type: this.groupNodeToSchemaTreeTypeName(entry.id),

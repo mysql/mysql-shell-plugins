@@ -136,6 +136,11 @@
     color: var(--tag-background);
 }
 
+.msg.dialog.valueEditDialog .gridCell .image {
+    align-self: center;
+    /* Make sure images are not stretched/scaled. */
+}
+
 .msg.dialog.valueEditDialog .tabview > .content {
     padding: 16px;
 }

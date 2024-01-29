@@ -6,121 +6,121 @@ exports[`List component test Test Dynamic container list output 1`] = `
     [
       {
         "cl": "(0) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item0",
       },
       {
         "cl": "(1) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item1",
       },
       {
         "cl": "(2) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item2",
       },
       {
         "cl": "(3) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item3",
       },
       {
         "cl": "(4) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item4",
       },
       {
         "cl": "(5) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item5",
       },
       {
         "cl": "(6) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item6",
       },
       {
         "cl": "(7) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item7",
       },
       {
         "cl": "(8) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item8",
       },
       {
         "cl": "(9) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item9",
       },
       {
         "cl": "(10) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item10",
       },
       {
         "cl": "(11) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item11",
       },
       {
         "cl": "(12) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item12",
       },
       {
         "cl": "(13) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item13",
       },
       {
         "cl": "(14) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item14",
       },
       {
         "cl": "(15) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item15",
       },
       {
         "cl": "(16) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item16",
       },
       {
         "cl": "(17) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item17",
       },
       {
         "cl": "(18) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item18",
       },
       {
         "cl": "(19) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-        "iconImage": "blob.svg",
+        "iconImage": "data-blob.svg",
         "iconImage2": "add.svg",
         "id": "item19",
       },
@@ -184,121 +184,121 @@ exports[`List component test Test Dynamic container list output 1`] = `
       [
         {
           "cl": "(0) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item0",
         },
         {
           "cl": "(1) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item1",
         },
         {
           "cl": "(2) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item2",
         },
         {
           "cl": "(3) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item3",
         },
         {
           "cl": "(4) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item4",
         },
         {
           "cl": "(5) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item5",
         },
         {
           "cl": "(6) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item6",
         },
         {
           "cl": "(7) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item7",
         },
         {
           "cl": "(8) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item8",
         },
         {
           "cl": "(9) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item9",
         },
         {
           "cl": "(10) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item10",
         },
         {
           "cl": "(11) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item11",
         },
         {
           "cl": "(12) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item12",
         },
         {
           "cl": "(13) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item13",
         },
         {
           "cl": "(14) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item14",
         },
         {
           "cl": "(15) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item15",
         },
         {
           "cl": "(16) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item16",
         },
         {
           "cl": "(17) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item17",
         },
         {
           "cl": "(18) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item18",
         },
         {
           "cl": "(19) Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.",
-          "iconImage": "blob.svg",
+          "iconImage": "data-blob.svg",
           "iconImage2": "add.svg",
           "id": "item19",
         },
@@ -342,7 +342,7 @@ exports[`List component test Test Static container list output 1`] = `
       <Image
         disabled={false}
         id="img"
-        src="blob.svg"
+        src="data-blob.svg"
       />
       <Label
         dataId="cl"
@@ -406,7 +406,7 @@ exports[`List component test Test Static container list output 1`] = `
             }
             disabled={false}
             id="img"
-            src="blob.svg"
+            src="data-blob.svg"
           >
             <img
               className="msg image"
@@ -416,7 +416,7 @@ exports[`List component test Test Static container list output 1`] = `
                 }
               }
               id="img"
-              src="blob.svg"
+              src="data-blob.svg"
             />
           </Image>
           <Label
@@ -518,7 +518,7 @@ exports[`List component test Test Static container list output 1`] = `
             }
             disabled={false}
             id="img"
-            src="blob.svg"
+            src="data-blob.svg"
           >
             <img
               className="msg image"
@@ -528,7 +528,7 @@ exports[`List component test Test Static container list output 1`] = `
                 }
               }
               id="img"
-              src="blob.svg"
+              src="data-blob.svg"
             />
           </Image>
           <Label
@@ -630,7 +630,7 @@ exports[`List component test Test Static container list output 1`] = `
             }
             disabled={false}
             id="img"
-            src="blob.svg"
+            src="data-blob.svg"
           >
             <img
               className="msg image"
@@ -640,7 +640,7 @@ exports[`List component test Test Static container list output 1`] = `
                 }
               }
               id="img"
-              src="blob.svg"
+              src="data-blob.svg"
             />
           </Image>
           <Label
@@ -742,7 +742,7 @@ exports[`List component test Test Static container list output 1`] = `
             }
             disabled={false}
             id="img"
-            src="blob.svg"
+            src="data-blob.svg"
           >
             <img
               className="msg image"
@@ -752,7 +752,7 @@ exports[`List component test Test Static container list output 1`] = `
                 }
               }
               id="img"
-              src="blob.svg"
+              src="data-blob.svg"
             />
           </Image>
           <Label

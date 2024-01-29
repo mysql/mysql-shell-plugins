@@ -29,6 +29,7 @@ import "./TreeGrid.css";
 import {
     Tabulator, DataTreeModule, SelectRowModule, ReactiveDataModule, MenuModule, ResizeTableModule,
     ResizeColumnsModule, FormatModule, InteractionModule, EditModule, FilterModule, SortModule, ResizeRowsModule,
+    FrozenRowsModule,
     RowComponent, ColumnComponent, ColumnDefinition, CellComponent, Options,
 } from "tabulator-tables";
 
@@ -111,7 +112,14 @@ export interface ITreeGridOptions {
 }
 
 interface ITreeGridProperties extends IComponentProperties {
+    /**
+     * The height for the grid. Can be given as number of pixels or a CSS property.
+     * If not specified, the grid will fill the available space.
+     */
     height?: string | number;
+
+    /** The index of the row to which the table should scroll initially. */
+    topRowIndex?: number;
 
     /**
      * For convenience these fields allow to specify initial (or static) data.
@@ -121,14 +129,22 @@ interface ITreeGridProperties extends IComponentProperties {
     tableData?: unknown[];
 
     /**
-     * A list of row IDs that should be selected initially.
+     * A list of rows that should be selected initially. If a list of strings is given then the strings are
+     * interpreted as ids (they use the index field in the data for identification). If a list of numbers is given
+     * then the numbers are interpreted as row indices.
      * Note that the specified selection mode might limit that list (no selection or single selection).
      */
-    selectedIds?: string[];
+    selectedRows?: string[] | number[] | RowComponent[];
     options?: ITreeGridOptions;
 
     /** Menu entries for Tabulator provided menu. Do not mix with the `onRowContext` member. */
     rowContextMenu?: ITreeGridMenuEntry[];
+
+    /**
+     * The number of rows to freeze at the top.
+     * Note: it is not possible to update this property after the grid has been created.
+     */
+    frozenRows?: number;
 
     onRowExpanded?: (row: RowComponent, level: number) => void;
     onRowCollapsed?: (row: RowComponent, level: number) => void;
@@ -146,7 +162,13 @@ interface ITreeGridProperties extends IComponentProperties {
 
     onRowSelected?: (row: RowComponent) => void;
     onRowDeselected?: (row: RowComponent) => void;
-    onVerticalScroll?: (top: number) => void;
+
+    /**
+     * Triggered whenever the grid is vertically scrolled. `rowIndex` represents the index of the row at top of the
+     * grid at this moment.
+     */
+    onVerticalScroll?: (rowIndex: number) => void;
+
     onColumnResized?: (column: ColumnComponent) => void;
 }
 
@@ -157,109 +179,153 @@ interface ITreeGridProperties extends IComponentProperties {
  */
 export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
-    private hostRef = createRef<HTMLDivElement>();
-    private tabulator?: Tabulator;
-    private tableReady = false;
-    private timeoutId: ReturnType<typeof setTimeout> | null;
+    #hostRef = createRef<HTMLDivElement>();
+    #tabulator?: Tabulator;
+    #tableReady = false;
+    #timeoutId: ReturnType<typeof setTimeout> | null;
 
     // A counter to manage redraw blocks.
-    private updateCount = 0;
+    #updateLockCount = 0;
+
+    // True when the grid is in edit mode.
+    #isEditing = false;
 
     public constructor(props: ITreeGridProperties) {
         super(props);
 
         this.addHandledProperties(
-            "height", "columns", "tableData", "options", "selectedIds", "rowContextMenu", "onRowExpanded",
-            "onRowCollapsed", "isRowExpanded", "onFormatRow", "onRowContext", "onCellContext", "onRowSelected",
-            "onRowDeselected", "onVerticalScroll", "onColumnResized",
+            "height", "scrollTop", "columns", "tableData", "options", "selectedIds", "rowContextMenu", "frozenRows",
+            "onRowExpanded", "onRowCollapsed", "isRowExpanded", "onFormatRow", "onRowContext", "onCellContext",
+            "onRowSelected", "onRowDeselected", "onVerticalScroll", "onColumnResized",
         );
     }
 
-    public static initialize(): void {
+    static {
         Tabulator.registerModule([DataTreeModule, SelectRowModule, ReactiveDataModule, MenuModule, ResizeTableModule,
             ResizeColumnsModule, FormatModule, InteractionModule, EditModule, FilterModule, SortModule,
-            ResizeRowsModule]);
+            ResizeRowsModule, FrozenRowsModule]);
+    }
+
+    public getSnapshotBeforeUpdate(): IDictionary {
+        return {
+            currentTop: this.#tabulator?.rowManager.scrollTop ?? 0,
+        };
     }
 
     public componentDidMount(): void {
-        const { onVerticalScroll } = this.mergedProps;
-
         // Defer the creation of the table a bit, because it directly manipulates the DOM and that randomly
         // fails with preact, if the table is created directly on mount.
-        this.timeoutId = setTimeout(() => {
+        this.#timeoutId = setTimeout(() => {
             // istanbul ignore else
-            if (this.hostRef.current) {
+            if (this.#hostRef.current) {
                 // The tabulator options can contain data, passed in as properties.
-                this.timeoutId = null;
-                this.tabulator = new Tabulator(this.hostRef.current, this.tabulatorOptions);
-                this.tabulator.on("tableBuilt", () => {
-                    const { selectedIds } = this.mergedProps;
+                this.#timeoutId = null;
+                this.#tabulator = new Tabulator(this.#hostRef.current, this.tabulatorOptions);
+                this.#tabulator.on("tableBuilt", () => {
+                    const { topRowIndex, selectedRows } = this.mergedProps;
 
                     // The tabulator field must be assigned. We are in one of its events.
-                    this.tabulator!.off("tableBuilt");
-                    if (selectedIds) {
-                        this.tabulator!.selectRow(selectedIds);
+                    this.#tabulator!.off("tableBuilt");
+                    if (selectedRows && selectedRows.length > 0) {
+                        if (typeof selectedRows[0] === "number") {
+                            const rows = (selectedRows as number[]).map((rowIndex) => {
+                                return this.#tabulator!.getRowFromPosition(rowIndex + 1); // 1-based index.
+                            });
+                            this.#tabulator!.selectRow(rows);
+                        } else {
+                            this.#tabulator!.selectRow(selectedRows);
+                        }
                     }
 
                     // Assign the table holder class our fixed scrollbar class too.
-                    if (this.hostRef.current) {
-                        (this.hostRef.current?.lastChild as HTMLElement).classList.add("fixedScrollbar");
+                    if (this.#hostRef.current) {
+                        (this.#hostRef.current?.lastChild as HTMLElement).classList.add("fixedScrollbar");
                     }
-                    this.tableReady = true;
 
+                    if (topRowIndex != null) {
+                        const topRow = this.#tabulator!.getRowFromPosition(topRowIndex);
+                        void this.#tabulator!.scrollToRow(topRow, "top", false);
+                    }
+
+                    this.#tableReady = true;
                 });
-                this.tabulator.on("dataTreeRowExpanded", this.handleRowExpanded);
-                this.tabulator.on("dataTreeRowCollapsed", this.handleRowCollapsed);
-                this.tabulator.on("rowContext", this.handleRowContext);
-                this.tabulator.on("cellContext", this.handleCellContext);
-                this.tabulator.on("rowSelected", this.handleRowSelected);
-                this.tabulator.on("rowDeselected", this.handleRowDeselected);
-                this.tabulator.on("columnResized", this.handleColumnResized);
-                if (onVerticalScroll) {
-                    this.tabulator.on("scrollVertical", onVerticalScroll);
-                }
+                this.#tabulator.on("dataTreeRowExpanded", this.handleRowExpanded);
+                this.#tabulator.on("dataTreeRowCollapsed", this.handleRowCollapsed);
+                this.#tabulator.on("rowContext", this.handleRowContext);
+                this.#tabulator.on("cellContext", this.handleCellContext);
+                this.#tabulator.on("rowSelected", this.handleRowSelected);
+                this.#tabulator.on("rowDeselected", this.handleRowDeselected);
+                this.#tabulator.on("columnResized", this.handleColumnResized);
+                this.#tabulator.on("scrollVertical", this.handleVerticalScroll);
+                this.#tabulator.on("scrollHorizontal", this.handleVerticalScroll);
+                this.#tabulator.on("cellEditing", this.handleCellEditing);
+                this.#tabulator.on("cellEdited", this.handleCellEdited);
+                this.#tabulator.on("cellEditCancelled", this.handleCellEditCancelled);
             }
         }, 10);
     }
 
     public componentWillUnmount(): void {
-        if (this.timeoutId) {
-            clearTimeout(this.timeoutId);
-            this.timeoutId = null;
+        if (this.#timeoutId) {
+            clearTimeout(this.#timeoutId);
+            this.#timeoutId = null;
         }
     }
 
     public componentDidUpdate(): void {
-        if (this.tabulator && this.tableReady) {
-            const { selectedIds, columns, tableData } = this.mergedProps;
+        if (this.#tabulator && this.#tableReady) {
+            const { selectedRows, columns, tableData } = this.mergedProps;
 
-            // Determine the current vertical scroll position.
-            const scrollPosition = this.tabulator.rowManager.scrollTop;
+            // When we are editing, we don't want to update the table.
+            if (this.#isEditing) {
+                return;
+            }
+
+            // We are in a dilemma here. New table data should be set when the tableData object has been replaced
+            // (so we can do a simple comparison of the two objects). However, when changing just a field deep down
+            // in the object, we have to update the table data as well, but don't get a new object.
+            // Doing a deep comparison is too expensive, so we may set the table data even if not strictly necessary.
             if (tableData) {
                 // The call to replaceData does not change the scroll position.
-                void this.tabulator.replaceData(tableData as Array<{}>).then(() => {
+                void this.#tabulator.replaceData(tableData as Array<{}>).then(() => {
                     if (columns) {
-                        // The call to setColumns does.
-                        this.tabulator?.setColumns(columns);
+                        // The call to setColumns does. Record the current position and restore it after the update.
+                        // Also restore the column widths.
+                        const scrollTop = this.#tabulator!.rowManager.element.scrollTop as number;
+                        const scrollLeft = this.#tabulator!.columnManager.scrollLeft as number;
+
+                        const previousColumnComponents = this.#tabulator!.getColumns(true);
+                        const widths = previousColumnComponents.map((component) => { return component.getWidth(); });
+                        this.#tabulator?.setColumns(columns);
+
+                        const newColumnComponents = this.#tabulator!.getColumns(true);
+                        if (previousColumnComponents.length === newColumnComponents.length) {
+                            newColumnComponents.forEach((component, index) => {
+                                component.setWidth(widths[index]);
+                            });
+                        }
+
+                        this.#tabulator!.rowManager.element.scrollTop = scrollTop;
+
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                        this.#tabulator!.rowManager.scrollHorizontal(scrollLeft);
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                        this.#tabulator!.columnManager.scrollHorizontal(scrollLeft);
                     }
 
                     // Both columns and rows have been set. Now update the UI.
-                    this.tabulator?.redraw();
-                    if (selectedIds) {
-                        this.tabulator?.selectRow(selectedIds);
+                    this.#tabulator?.redraw();
+                    if (selectedRows) {
+                        this.#tabulator?.selectRow(selectedRows);
                     }
-
-                    // Restore the scroll position.
-                    this.tabulator!.rowManager.scrollTop = scrollPosition;
-                    this.tabulator!.rowManager.element.scrollTop = scrollPosition;
-
                 });
-            } else if (selectedIds) {
+            } else if (selectedRows) {
                 if (columns) {
-                    this.tabulator.setColumns(columns);
+                    // No data here, so no need to restore the scroll position.
+                    this.#tabulator.setColumns(columns);
                 }
 
-                this.tabulator.selectRow(selectedIds);
+                this.#tabulator.selectRow(selectedRows);
             }
         }
     }
@@ -276,7 +342,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
         return (
             <div
-                ref={this.hostRef}
+                ref={this.#hostRef}
                 className={className}
                 {...this.unhandledProperties}
             />
@@ -291,10 +357,10 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     public get table(): Promise<TabulatorProxy | undefined> {
         return new Promise((resolve) => {
             void waitFor(1000, () => {
-                return this.tableReady;
+                return this.#tableReady;
             }).then((success) => {
                 if (success) {
-                    resolve(this.tabulator);
+                    resolve(this.#tabulator);
                 } else {
                     resolve(undefined);
                 }
@@ -302,10 +368,18 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         });
     }
 
+    /**
+     * Only for testing.
+     * @returns the number of current update locks.
+     */
+    public get updateLockCount(): number {
+        return this.#updateLockCount;
+    }
+
     public setColumns(columns: ColumnDefinition[]): Promise<void> {
         return new Promise((resolve, reject) => {
             this.table.then(() => {
-                this.tabulator?.setColumns(columns);
+                this.#tabulator?.setColumns(columns);
                 resolve();
             }).catch((reason) => {
                 reject(reason);
@@ -347,8 +421,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
      * @returns all rows currently in the table.
      */
     public getRows(): RowComponent[] {
-        if (this.tableReady && this.tabulator) {
-            return this.tabulator.getRows();
+        if (this.#tableReady && this.#tabulator) {
+            return this.#tabulator.getRows();
         }
 
         return [];
@@ -356,8 +430,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
     /** @returns the currently selected rows in the table. */
     public getSelectedRows(): RowComponent[] {
-        if (this.tableReady && this.tabulator) {
-            return this.tabulator.getSelectedRows();
+        if (this.#tableReady && this.#tabulator) {
+            return this.#tabulator.getSelectedRows();
         }
 
         return [];
@@ -368,10 +442,10 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
      * Calls to `beginUpdate()` and `endUpdate()` must be balanced to avoid a complete redraw block.
      */
     public beginUpdate(): void {
-        if (this.tableReady && this.tabulator) {
-            ++this.updateCount;
-            if (this.updateCount === 1) {
-                this.tabulator.blockRedraw();
+        if (this.#tableReady && this.#tabulator) {
+            ++this.#updateLockCount;
+            if (this.#updateLockCount === 1) {
+                this.#tabulator.blockRedraw();
             }
         }
     }
@@ -381,14 +455,32 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
      * Calls to `beginUpdate()` and `endUpdate()` must be balanced to avoid a complete redraw block.
      */
     public endUpdate(): void {
-        if (this.tableReady && this.tabulator) {
-            if (this.updateCount > 0) {
-                --this.updateCount;
-                if (this.updateCount === 0) {
-                    this.tabulator.restoreRedraw();
+        if (this.#tableReady && this.#tabulator) {
+            if (this.#updateLockCount > 0) {
+                --this.#updateLockCount;
+                if (this.#updateLockCount === 0) {
+                    this.#tabulator.restoreRedraw();
                 }
             }
         }
+    }
+
+    public scrollToBottom(): Promise<void> {
+        if (this.#tableReady && this.#tabulator) {
+            const rows = this.#tabulator.getRows();
+
+            return this.#tabulator.scrollToRow(rows[rows.length - 1], "top", true);
+        }
+
+        return Promise.resolve();
+    }
+
+    public async addRow(row: {}): Promise<void> {
+        if (this.#tableReady && this.#tabulator) {
+            await this.#tabulator.addRow(row);
+        }
+
+        return Promise.resolve();
     }
 
     /**
@@ -398,7 +490,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
      */
     private get tabulatorOptions(): Options {
         const {
-            height = "100%", columns = [], tableData = [], options, rowContextMenu, isRowExpanded, onFormatRow,
+            height = "100%", columns = [], tableData = [], options, rowContextMenu, frozenRows = 0, isRowExpanded,
+            onFormatRow,
         } = this.mergedProps;
 
         let selectable: number | boolean | "highlight";
@@ -430,15 +523,15 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             index: options?.index ?? "id",
             columns,
             data: tableData,
+            frozenRows,
 
             dataTree: options?.treeColumn != null,
-            dataTreeChildIndent: options?.treeChildIndent ?? 0,
+            dataTreeChildIndent: options?.treeChildIndent ?? 8,
             dataTreeChildField: options?.childKey ?? "children",
             dataTreeElementColumn: options?.treeColumn,
             dataTreeExpandElement: "<span class='treeToggle' />",
             dataTreeCollapseElement: "<span class='treeToggle expanded' />",
             dataTreeBranchElement: true,
-            // dataTreeChildIndent: 0,
             dataTreeStartExpanded: options?.expandedLevels ?? false,
 
             rowFormatter: onFormatRow,
@@ -451,6 +544,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             rowContextMenu,
 
             autoResize: true,
+            renderVertical: "virtual",
+
             layoutColumnsOnNewData: options?.layoutColumnsOnNewData,
             resizableRows: options?.resizableRows,
 
@@ -507,9 +602,9 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         }
 
         if (options?.autoScrollOnSelect) {
-            const selected = this.tabulator?.getSelectedRows() ?? [];
+            const selected = this.#tabulator?.getSelectedRows() ?? [];
             if (selected.length > 0) {
-                void this.tabulator?.scrollToRow(selected[0], "center", false);
+                void this.#tabulator?.scrollToRow(selected[0], "center", false);
             }
         }
 
@@ -529,7 +624,30 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
         onColumnResized?.(column);
     };
-}
 
-// TODO: replace with static initializer, once we can raise eslint to support ES2022.
-TreeGrid.initialize();
+    /**
+     * Called when the vertical position of the grid changes.
+     *
+     * @param _top The new vertical position in pixels. However, that is not very useful, because this value
+     *             cannot be applied to the grid directly.
+     */
+    private handleVerticalScroll = (_top: number): void => {
+        const { onVerticalScroll } = this.mergedProps;
+
+        const topRow = this.#tabulator!.getRows("visible")[0];
+
+        onVerticalScroll?.(topRow.getPosition() as number);
+    };
+
+    private handleCellEditing = () => {
+        this.#isEditing = true;
+    };
+
+    private handleCellEdited = () => {
+        this.#isEditing = false;
+    };
+
+    private handleCellEditCancelled = () => {
+        this.#isEditing = false;
+    };
+}

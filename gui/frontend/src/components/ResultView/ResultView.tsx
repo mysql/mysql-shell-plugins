@@ -25,18 +25,25 @@
 
 import "./ResultView.css";
 
-import blobIcon from "../../assets/images/blob.svg";
-import nullIcon from "../../assets/images/null.svg";
+import blobIcon from "../../assets/images/data-icons/data-blob.svg";
+import geometryIcon from "../../assets/images/data-icons/data-geometry.svg";
+import nullIcon from "../../assets/images/data-icons/data-null.svg";
+// import vectorIcon from "../../assets/images/data-icons/data-vector.svg";
+import jsonIcon from "../../assets/images/data-icons/data-json.svg";
+
+import addRowIcon from "../../assets/images/plus.svg";
 
 import { ComponentChild, createRef, render } from "preact";
-import { CellComponent, ColumnComponent, ColumnDefinition, Formatter, FormatterParams } from "tabulator-tables";
+import {
+    CellComponent, ColumnComponent, ColumnDefinition, Editor, EditorParams, EmptyCallback, Formatter, FormatterParams,
+    RowComponent, ValueBooleanCallback, ValueVoidCallback,
+} from "tabulator-tables";
 
 import { ITreeGridOptions, SetDataAction, TreeGrid } from "../ui/TreeGrid/TreeGrid.js";
 import { IResultSet, IResultSetRows } from "../../script-execution/index.js";
 import { convertCamelToTitleCase, formatBase64ToHex } from "../../utilities/string-helpers.js";
-import { DBDataType, IColumnInfo, MessageType } from "../../app-logic/Types.js";
+import { DBDataType, DialogType, IColumnInfo, MessageType } from "../../app-logic/Types.js";
 import { requisitions } from "../../supplement/Requisitions.js";
-import { Checkbox, CheckState } from "../ui/Checkbox/Checkbox.js";
 import {
     IComponentProperties, ComponentBase, SelectionType, ComponentPlacement,
 } from "../ui/Component/ComponentBase.js";
@@ -44,24 +51,102 @@ import { Container, Orientation } from "../ui/Container/Container.js";
 import { Icon } from "../ui/Icon/Icon.js";
 import { Menu } from "../ui/Menu/Menu.js";
 import { MenuItem, IMenuItemProperties } from "../ui/Menu/MenuItem.js";
+import { Input, IInputChangeProperties } from "../ui/Input/Input.js";
+import { TextAlignment } from "../ui/Label/Label.js";
+import { UpDown } from "../ui/UpDown/UpDown.js";
+import { DateTime, IDateTimeChangeProperties, IDateTimeValueType } from "../ui/DataTime/DateTime.js";
+import { FieldEditor } from "./FieldEditor.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { Button, IButtonProperties } from "../ui/Button/Button.js";
+import { saveArrayAsFile, saveTextAsFile, selectFile } from "../../utilities/helpers.js";
+import { Dropdown } from "../ui/Dropdown/Dropdown.js";
 
-interface IResultViewProperties extends IComponentProperties {
-    resultSet: IResultSet;
+/** Records a single change in a cell. The row it belongs to is the owner of this change. */
+export interface IResultCellChange {
+    /** The field index in the data set, as string. */
+    field: string;
 
-    // Triggered when the user edited data.
-    onEdit?: (resultSet: IResultSet) => void;
+    /** The value that was set. */
+    value: unknown;
 }
 
-// Implements a table for result data.
-export class ResultView extends ComponentBase<IResultViewProperties> {
+/**
+ * A collection of all changes per row in a result set.
+ * Making use of the sparse nature of the array, the row index is used as the key.
+ */
+export type ResultRowChanges = Array<{
+    /** A list of changes the user did for that row. */
+    changes: IResultCellChange[];
 
+    /** Marks this row as a removal candidate. */
+    deleted: boolean;
+
+    /** Marks this row as being new. */
+    added: boolean;
+
+    /** The original values for PK columns. This list is empty for new rows. */
+    pkValues: unknown[];
+}>;
+
+export interface IResultViewProperties extends IComponentProperties {
+    /** The result data to show. */
+    resultSet: IResultSet;
+
+    /**
+     * Indicates of the result set can be edited. Watch out: this is more than the `resultSet.updatable`
+     * as this also takes into account the existence of a primary key.
+     */
+    editable: boolean;
+
+    /** Set by the host to indicate the user has explicitly started edit mode. */
+    editModeActive: boolean;
+
+    /** Index of the row to scroll the grid to in this view. */
+    topRowIndex?: number;
+
+    /**
+     * The list of changes in the result set. This is a sparse array, where the index of a row change is also the
+     * index into the rows list. Setting this value will override topRowIndex.
+     */
+    rowChanges?: ResultRowChanges;
+
+    /** Allows to specify the index of a row, which is selected on next render. */
+    selectRow?: number;
+
+    /** Triggered when the user has started editing a field. */
+    onFieldEditStart?: (row: number, field: string) => void;
+
+    /** Triggered when the user has finished editing a field. */
+    onFieldEdited?: (row: number, field: string, value: unknown, previousValue: unknown) => void;
+
+    /** Triggered when the user cancelled editing a field. */
+    onFieldEditCancel?: (row: number, field: string) => void;
+
+    /** Triggered when the user wants to mark rows for deletion (or remove such a mark). */
+    onToggleRowDeletionMarks?: (rows: number[]) => void;
+
+    /**
+     * Triggered whenever the grid is vertically scrolled. `rowIndex` represents the index of the row at top of the
+     * grid at this moment.
+     */
+    onVerticalScroll?: (rowIndex: number) => void;
+
+    onAction?: (action: string) => void;
+}
+
+/** Implements a table for result data. */
+export class ResultView extends ComponentBase<IResultViewProperties> {
     private gridRef = createRef<TreeGrid>();
+    private editorRef = createRef<FieldEditor>();
 
     // Keeps user defined (or computed) column widths across result set updates.
     private columnWidthCache = new Map<string, number>();
 
     private cellContextMenuRef = createRef<Menu>();
-    private currentCell?: CellComponent;
+    private selectedCell?: CellComponent;
+    private editingCell?: CellComponent;
+
+    #navigating = false;
 
     public constructor(props: IResultViewProperties) {
         super(props);
@@ -69,15 +154,12 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         this.state = {
         };
 
-        this.addHandledProperties("resultSet", "onEdit");
-    }
-
-    public componentDidUpdate(): void {
-        this.currentCell = undefined;
+        this.addHandledProperties("resultSet", "editable", "editModeActive", "topRowIndex", "rowChanges", "selectRow",
+            "onFieldEditStart", "onFieldEdited", "onFieldEditCancel", "onVerticalScroll");
     }
 
     public render(): ComponentChild {
-        const { resultSet } = this.mergedProps;
+        const { resultSet, editable, editModeActive, topRowIndex, selectRow } = this.mergedProps;
 
         const className = this.getEffectiveClassNames(["resultView"]);
 
@@ -94,6 +176,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         const gotError = executionInfo && executionInfo.type === MessageType.Error;
         const gotResponse = executionInfo && executionInfo.type === MessageType.Response;
 
+        const canEdit = Settings.get<boolean>("editor.editOnDoubleClick", true) || editModeActive;
+
         return (
             <Container
                 className={className}
@@ -104,12 +188,30 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     !gotError && !gotResponse && <TreeGrid
                         ref={this.gridRef}
                         options={options}
-                        columns={this.generateColumnDefinitions(resultSet.columns)}
+                        topRowIndex={topRowIndex}
+                        selectedRows={selectRow !== undefined ? [selectRow] : undefined}
+                        columns={this.generateColumnDefinitions(resultSet.columns, editable && canEdit)}
                         tableData={resultSet.data.rows}
                         onColumnResized={this.handleColumnResized}
                         onCellContext={this.handleCellContext}
+                        onVerticalScroll={this.handleVerticalScroll}
+                        onFormatRow={this.handleFormatRow}
                     />
                 }
+
+                <Container className="actionHost" orientation={Orientation.LeftToRight}>
+                    <Button
+                        id="addNewRow"
+                        data-tooltip="Add New Row"
+                        imageOnly={true}
+                        focusOnClick={false}
+                        onClick={this.handleAction}
+                    >
+                        <Icon src={addRowIcon} data-tooltip="inherit" />
+                    </Button>
+                </Container>
+
+                {!gotError && !gotResponse && <FieldEditor ref={this.editorRef} />}
 
                 <Menu
                     id="cellContextMenu"
@@ -236,7 +338,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
                     <MenuItem
                         id="deleteRowMenuItem"
-                        caption="Delete Row"
+                        caption="Delete Row (Mark/Unmark)"
                         disabled={this.handleCellMenuItemDisabled}
                     />
                     <MenuItem
@@ -265,9 +367,11 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     }
 
     public updateColumns(columns: IColumnInfo[]): Promise<void> {
+        const { editable } = this.mergedProps;
+
         // istanbul ignore next
         if (this.gridRef.current) {
-            return this.gridRef.current.setColumns(this.generateColumnDefinitions(columns));
+            return this.gridRef.current.setColumns(this.generateColumnDefinitions(columns, editable));
         }
 
         return Promise.resolve();
@@ -308,19 +412,18 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
      * @param cell The cell to set as current.
      */
     public setFakeCell(cell: CellComponent): void {
-        this.currentCell = cell;
+        this.selectedCell = cell;
     }
 
-    private generateColumnDefinitions = (columns: IColumnInfo[]): ColumnDefinition[] => {
-        // Map column info from the backend to column definitions for Tabulator.
+    private generateColumnDefinitions = (columns: IColumnInfo[], editable: boolean): ColumnDefinition[] => {
+        // Map column info from the backend to column definitions for
         return columns.map((info): ColumnDefinition => {
             let formatter: Formatter | undefined;
-            const formatterParams: FormatterParams = { dbDataType: info.dataType.type };
+            const formatterParams: FormatterParams = () => { return { info }; };
+            let editorParams: EditorParams = () => { return { info }; };
             let minWidth = 50;
 
-            // TODO: Enable editing related functionality again.
-            // let editor: Tabulator.Editor | undefined;
-            // let editorParams: Tabulator.EditorParams | undefined;
+            let editor: Editor | undefined;
 
             switch (info.dataType.type) {
                 case DBDataType.TinyInt:
@@ -328,9 +431,16 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 case DBDataType.MediumInt:
                 case DBDataType.Int:
                 case DBDataType.Bigint: {
-                    formatter = "plaintext";
-                    //editor = this.editorHost;
-                    //editorParams = (): { info: IColumnInfo } => { return { info }; };
+                    formatter = this.numberFormatter;
+                    editor = this.editorHost;
+
+                    break;
+                }
+
+                case DBDataType.Json: {
+                    formatter = this.jsonFormatter;
+                    editor = this.editorHost;
+                    minWidth = 150;
 
                     break;
                 }
@@ -339,12 +449,10 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 case DBDataType.Text:
                 case DBDataType.MediumText:
                 case DBDataType.LongText:
-                case DBDataType.Json:
                 case DBDataType.Enum:
                 case DBDataType.Set: {
                     formatter = this.stringFormatter;
-                    //editor = this.editorHost;
-                    //editorParams = (): { info: IColumnInfo } => { return { info }; };
+                    editor = this.editorHost;
                     minWidth = 150;
 
                     break;
@@ -352,8 +460,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
                 case DBDataType.Binary:
                 case DBDataType.Varbinary: {
-                    formatter = this.binaryFormatter;
                     // No in-place editor. Uses value editor popup.
+                    formatter = this.binaryFormatter;
 
                     break;
                 }
@@ -365,46 +473,57 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 case DBDataType.GeometryCollection:
                 case DBDataType.MultiPoint:
                 case DBDataType.MultiLineString:
-                case DBDataType.MultiPolygon:
+                case DBDataType.MultiPolygon: {
+                    // No in-place editor. Uses value editor popup.
+                    formatter = this.geometryFormatter;
+
+                    // As a temporary solution allow editing as string.
+                    editor = this.editorHost;
+                    minWidth = 150;
+
+                    break;
+                }
+
                 case DBDataType.TinyBlob:
                 case DBDataType.Blob:
                 case DBDataType.MediumBlob:
                 case DBDataType.LongBlob: {
-                    formatter = this.blobFormatter;
                     // No in-place editor. Uses value editor popup.
+                    formatter = this.blobFormatter;
+
+                    // As a temporary solution allow editing as string.
+                    editor = this.editorHost;
+                    minWidth = 150;
 
                     break;
                 }
 
                 case DBDataType.Date:
                 case DBDataType.DateTime:
-                case DBDataType.DateTime_f:
                 case DBDataType.Time:
-                case DBDataType.Time_f:
                 case DBDataType.Year: {
                     formatter = this.dateFormatter;
-                    formatterParams.type = info.dataType.type;
+                    editor = this.editorHost;
 
                     break;
                 }
 
                 case DBDataType.Boolean: {
                     formatter = this.booleanFormatter;
-                    //editor = this.editorHost;
-                    //editorParams = (): { info: IColumnInfo } => { return { info }; };
+                    editor = this.editorHost;
 
                     break;
                 }
 
                 default: {
-                    formatter = "plaintext";
-                    //editor = this.editorHost;
-                    /*editorParams = (): { info: IColumnInfo; verticalNavigation: string } => {
+                    formatter = this.stringFormatter;
+                    editor = this.editorHost;
+                    editorParams = (): { info: IColumnInfo; verticalNavigation: string; } => {
                         return {
                             info,
                             verticalNavigation: "editor",
                         };
-                    };*/
+                    };
 
                     break;
                 }
@@ -418,40 +537,90 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 formatter,
                 formatterParams,
                 formatterClipboard: formatter,
-                //editor,
-                //editorParams,
+                editor,
+                editorParams,
                 width,
                 minWidth,
                 resizable: true,
-                //editable: this.checkEditable,
+                editable: (cell: CellComponent) => {
+                    const { rowChanges } = this.mergedProps;
+                    const rowChange = rowChanges?.[cell.getRow().getPosition() as number - 1];
+                    if (rowChange?.added) {
+                        return false;
+                    }
 
-                //cellEditing: this.cellEditing,
-                //cellEdited: this.cellEdited,
+                    // Allow editing only when navigating with the keyboard or when this is a boolean column data type.
+                    if (this.#navigating) {
+                        return true;
+                    }
+
+                    return false;
+                },
+                cellDblClick: (e, cell) => {
+                    if (!this.editingCell) {
+                        const { rowChanges } = this.mergedProps;
+                        const rowChange = rowChanges?.[cell.getRow().getPosition() as number - 1];
+                        const info = this.columnInfoFromCell(cell);
+
+                        if (editable && editor != null && (!info?.autoIncrement || !rowChange?.added)) {
+                            cell.edit(true);
+                        }
+                    }
+                },
+                cellEditing: this.cellEditing,
+                cellEdited: this.cellEdited,
+                cellEditCancelled: this.cellEditCancelled,
             };
         });
     };
 
     /**
      * Triggered when the user starts editing a cell value.
+     *
+     * @param cell The cell component for the cell that will be edited now.
      */
-    /*
-    private cellEditing = (): void => {
-        if (this.currentCell) {
-            this.currentCell.getElement().classList.remove("manualFocus");
-            this.currentCell = undefined;
+    private cellEditing = (cell: CellComponent): void => {
+        const { onFieldEditStart } = this.mergedProps;
+
+        if (this.selectedCell && this.selectedCell.getElement()) {
+            this.selectedCell.getElement().classList.remove("manualFocus");
+            this.selectedCell = undefined;
         }
+
+        this.editingCell = cell;
+
+        onFieldEditStart?.(cell.getRow().getPosition() as number - 1, cell.getColumn().getField());
     };
-    */
 
     /**
      * Triggered when the user successfully edited a cell value.
+     *
+     * @param cell The component for the cell that was edited.
      */
-    /*
-    private cellEdited = (): void => {
-        const { resultSet, onEdit } = this.mergedProps;
-        onEdit?.(resultSet);
+    private cellEdited = (cell: CellComponent): void => {
+        const { onFieldEdited } = this.mergedProps;
+
+        const rowIndex = cell.getRow().getPosition() as number;
+        const field = cell.getColumn().getField();
+
+        // Rows are one-based? Odd.
+        onFieldEdited?.(rowIndex - 1, field, cell.getValue(), cell.getInitialValue());
+
+        this.editingCell = undefined;
     };
-    */
+
+    /**
+     * Triggered when the user cancelled editing a cell value.
+     */
+    private cellEditCancelled = (): void => {
+        const { onFieldEditCancel } = this.mergedProps;
+
+        if (this.editingCell) {
+            onFieldEditCancel?.(this.editingCell.getRow().getPosition() as number - 1,
+                this.editingCell.getColumn().getField());
+            this.editingCell = undefined;
+        }
+    };
 
     private handleColumnResized = (column: ColumnComponent): void => {
         const field = column.getDefinition().field;
@@ -463,29 +632,62 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     };
 
     private handleCellMenuItemDisabled = (props: IMenuItemProperties): boolean => {
+        const { editable } = this.mergedProps;
+
         // istanbul ignore next
-        if (!this.currentCell || !this.gridRef.current) {
+        if (!this.selectedCell || !this.gridRef.current) {
             return true;
         }
 
         // istanbul ignore next
         const selectCount = this.gridRef.current.getSelectedRows().length ?? 0;
 
+        //let needsValueEditor = false;
+        let canLoadSave = false;
+        const info = this.columnInfoFromCell(this.selectedCell);
+        if (info) {
+            switch (info.dataType.type) {
+                case DBDataType.Geometry:
+                case DBDataType.Point:
+                case DBDataType.LineString:
+                case DBDataType.Polygon:
+                case DBDataType.GeometryCollection:
+                case DBDataType.MultiPoint:
+                case DBDataType.MultiLineString:
+                case DBDataType.MultiPolygon:
+                case DBDataType.Json: {
+                    break;
+                }
+
+                case DBDataType.Blob:
+                case DBDataType.TinyBlob:
+                case DBDataType.MediumBlob:
+                case DBDataType.LongBlob: {
+                    //needsValueEditor = true;
+                    canLoadSave = true;
+
+                    break;
+                }
+
+                default:
+            }
+        }
+
         switch (props.id!) {
             case "openValueMenuItem": {
-                return true; // selectCount > 1;
+                return true; // !needsValueEditor || selectCount > 1; for now disable the value editor.
             }
 
             case "setNullMenuItem": {
-                return true; // selectCount > 1;
+                return !(info?.nullable ?? false);
             }
 
             case "saveToFileMenuItem": {
-                return true; // selectCount > 1;
+                return !canLoadSave || selectCount > 1;
             }
 
             case "loadFromFileMenuItem": {
-                return true; // selectCount > 1;
+                return !canLoadSave || selectCount > 1;
             }
 
             case "copyRowMenuItem1": {
@@ -557,19 +759,19 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             }
 
             case "deleteRowMenuItem": {
-                return true;
+                return !editable;
             }
 
             case "capitalizeMenuItem": {
-                return true; // selectCount > 1;
+                return selectCount > 1;
             }
 
             case "lowerCaseMenuItem": {
-                return true; // selectCount > 1;
+                return selectCount > 1;
             }
 
             case "upperCaseMenuItem": {
-                return true; // selectCount > 1;
+                return selectCount > 1;
             }
 
             default: {
@@ -578,15 +780,22 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         }
     };
 
+    /**
+     * Called when a context menu is requested for a cell.
+     *
+     * @param e The original event that triggered the context menu request.
+     * @param cell The cell component for the cell that was clicked.
+     */
     // We cannot test this method as it depends on Tabulator content (which is not rendered in tests).
     // istanbul ignore next
     private handleCellContext = (e: Event, cell: CellComponent): void => {
-        if (this.currentCell) {
-            this.currentCell.getElement().classList.remove("manualFocus");
+        if (this.selectedCell && this.selectedCell.getElement()) {
+            this.selectedCell.getElement().classList.remove("manualFocus");
         }
 
-        this.currentCell?.cancelEdit();
-        this.currentCell = cell;
+        // Need to cancel editing here, or tabulator will crash when we set a value via cell.setValue().
+        this.editingCell?.cancelEdit();
+        this.selectedCell = cell;
         cell.getElement().classList.add("manualFocus");
 
         const event = e as MouseEvent;
@@ -594,6 +803,51 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
         this.cellContextMenuRef.current?.close();
         this.cellContextMenuRef.current?.open(targetRect, false, {});
+    };
+
+    private handleVerticalScroll = (rowIndex: number): void => {
+        const { onVerticalScroll } = this.mergedProps;
+        this.cellContextMenuRef.current?.close();
+
+        onVerticalScroll?.(rowIndex);
+    };
+
+    private handleFormatRow = (row: RowComponent): void => {
+        const { rowChanges } = this.mergedProps;
+
+        if (rowChanges) {
+            const rowIndex = row.getPosition() as number - 1;
+
+            const changes = rowChanges[rowIndex];
+            if (changes) {
+                if (changes.added) {
+                    // An added row can never be marked deleted, because when deleting a new row, it is simply
+                    // removed from the changes list.
+                    row.getElement().classList.add("added");
+                } else {
+                    row.getElement().classList.remove("added");
+                    if (changes.deleted) {
+                        row.getElement().classList.add("deleted");
+                    } else {
+                        row.getElement().classList.remove("deleted");
+                    }
+                }
+            }
+        }
+    };
+
+    private handleAction = (e: Event, props: IButtonProperties): void => {
+        const { onAction } = this.mergedProps;
+
+        onAction?.(props.id!);
+
+        if (props.id === "addNewRow" && this.gridRef.current) {
+            // Add a dummy row, so we have something to scroll to.
+            void this.gridRef.current.addRow({}).then(() => {
+                // Scroll to the bottom of the grid.
+                void this.gridRef.current?.scrollToBottom();
+            });
+        }
     };
 
     /**
@@ -608,9 +862,9 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             // NULL, never gets quoted
             return "NULL";
         } else {
-            const formatterParams = cell.getColumn().getDefinition().formatterParams;
-            if (formatterParams && "dbDataType" in formatterParams) {
-                switch (formatterParams.dbDataType) {
+            const info = this.columnInfoFromCell(cell);
+            if (info) {
+                switch (info.dataType.type) {
                     // Binary data
                     case DBDataType.TinyBlob:
                     case DBDataType.Blob:
@@ -648,28 +902,73 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     };
 
     private handleCellContextMenuItemClick = (e: MouseEvent, props: IMenuItemProperties): boolean => {
-        if (this.currentCell) {
-            /*const editorParams = this.currentCell.getColumn().getDefinition().editorParams;
-            if (editorParams && editorParams instanceof Function) {
-                const params = editorParams(this.currentCell) as { info: IColumnInfo };
-
-            }*/
+        if (this.selectedCell) {
+            let dataType = DBDataType.String;
+            const info = this.columnInfoFromCell(this.selectedCell);
+            if (info) {
+                dataType = info.dataType.type;
+            }
 
             switch (props.id!) {
                 case "openValueMenuItem": {
+                    let typeString = "Blob";
+                    switch (dataType) {
+                        case DBDataType.TinyBlob:
+                        case DBDataType.Blob:
+                        case DBDataType.MediumBlob:
+                        case DBDataType.LongBlob: {
+                            typeString = "Blob";
+                            break;
+                        }
+
+                        case DBDataType.Geometry:
+                        case DBDataType.Point:
+                        case DBDataType.LineString:
+                        case DBDataType.Polygon:
+                        case DBDataType.GeometryCollection:
+                        case DBDataType.MultiPoint:
+                        case DBDataType.MultiLineString:
+                        case DBDataType.MultiPolygon: {
+                            typeString = "Geometry";
+                            break;
+                        }
+
+                        case DBDataType.Json: {
+                            typeString = "JSON";
+                            break;
+                        }
+
+                        default: {
+                            typeString = "String";
+                            break;
+                        }
+                    }
+
+                    void this.editorRef.current?.show({
+                        id: "fieldEditor",
+                        title: `Edit ${typeString} Data`,
+                        type: DialogType.Prompt,
+                        parameters: {
+                            dataType,
+                            value: this.selectedCell.getValue(),
+                        },
+                    });
+
                     break;
                 }
 
                 case "setNullMenuItem": {
-                    this.currentCell.setValue(null);
+                    this.selectedCell.setValue(null);
                     break;
                 }
 
                 case "saveToFileMenuItem": {
+                    this.saveCurrentCellToFile();
                     break;
                 }
 
                 case "loadFromFileMenuItem": {
+                    this.loadFileToCurrentCell();
                     break;
                 }
 
@@ -758,12 +1057,12 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 }
 
                 case "copyFieldMenuItem": {
-                    void requisitions.writeToClipboard(this.formatCell(this.currentCell));
+                    void requisitions.writeToClipboard(this.formatCell(this.selectedCell));
                     break;
                 }
 
                 case "copyFieldUnquotedMenuItem": {
-                    void requisitions.writeToClipboard(this.formatCell(this.currentCell, true));
+                    void requisitions.writeToClipboard(this.formatCell(this.selectedCell, true));
 
                     break;
                 }
@@ -773,38 +1072,77 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 }
 
                 case "deleteRowMenuItem": {
+                    this.markRowsDeleted();
                     break;
                 }
 
                 case "capitalizeMenuItem": {
-                    const value = this.currentCell.getValue() as string;
-                    this.currentCell.setValue(convertCamelToTitleCase(value));
+                    const value = this.selectedCell.getValue() as string;
+                    this.selectedCell.setValue(convertCamelToTitleCase(value));
 
                     break;
                 }
 
                 case "lowerCaseMenuItem": {
-                    const value = this.currentCell.getValue() as string;
-                    this.currentCell.setValue(value.toLowerCase());
+                    const value = this.selectedCell.getValue() as string;
+                    this.selectedCell.setValue(value.toLowerCase());
 
                     break;
                 }
 
                 case "upperCaseMenuItem": {
-                    const value = this.currentCell.getValue() as string;
-                    this.currentCell.setValue(value.toUpperCase());
+                    const value = this.selectedCell.getValue() as string;
+                    this.selectedCell.setValue(value.toUpperCase());
 
                     break;
                 }
 
                 default:
             }
+            this.selectedCell = undefined;
         }
 
         return true;
     };
 
-    private copyRows = (withNames: boolean, unquoted: boolean, separator = ", ", all = false): void => {
+    /**
+     * Takes the content from the current cell and saves it to a file.
+     */
+    private saveCurrentCellToFile(): void {
+        const value = this.selectedCell?.getValue();
+        if (value === null || value === undefined) {
+            return;
+        }
+
+        if (typeof value === "string") {
+            saveTextAsFile(value, "data");
+        } else if (value instanceof ArrayBuffer) {
+            saveArrayAsFile(value, "data");
+        } else {
+            saveTextAsFile(String(value), "data");
+        }
+    }
+
+    /**
+     * Lets the user select a file and loads its content into the current cell as array buffer.
+     */
+    private loadFileToCurrentCell(): void {
+        // Keep a reference to the selected cell, because it is reset while the file dialog is open.
+        const cell = this.selectedCell;
+        if (cell) {
+            void selectFile([], false).then((files) => {
+                if (files && files.length > 0) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        cell.setValue(e.target?.result);
+                    };
+                    reader.readAsArrayBuffer(files[0]);
+                }
+            });
+        }
+    }
+
+    private copyRows(withNames: boolean, unquoted: boolean, separator = ", ", all = false): void {
         // istanbul ignore next
         let rows;
         if (all) {
@@ -813,8 +1151,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             rows = this.gridRef.current?.getSelectedRows() ?? [];
         }
 
-        if (rows.length === 0 && this.currentCell) {
-            rows = [this.currentCell.getRow()];
+        if (rows.length === 0 && this.selectedCell) {
+            rows = [this.selectedCell.getRow()];
         }
 
         let content = "";
@@ -845,27 +1183,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
         requisitions.writeToClipboard(content);
 
-    };
-
-    /*
-    private checkEditable = (_cell: Tabulator.CellComponent): boolean => {
-        const { status } = this.state;
-
-        if (isNil(status) || !cell.getRow().isSelected()) {
-            // No editing while loading the result or the row is not selected (allowing so the row to select,
-            // without starting editing immediately).
-            return false;
-        }
-
-        const editorParams = cell.getColumn().getDefinition().editorParams;
-        if (editorParams && editorParams instanceof Function) {
-            const params = editorParams(cell) as { info: IColumnInfo };
-
-            return params.info.dataType.type !== DBDataType.Blob;
-        }
-
-        return true;
-    };*/
+    }
 
     /**
      * Main entry point for editing operations in the result view. It takes a column's data type and renders one of
@@ -880,10 +1198,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
      *
      * @returns The new editor HTML element.
      */
-    /*
-    private editorHost = (cell: Tabulator.CellComponent, onRendered: Tabulator.EmptyCallback,
-        success: Tabulator.ValueBooleanCallback, cancel: Tabulator.ValueVoidCallback,
-        editorParams: Tabulator.EditorParams): HTMLElement | false => {
+    private editorHost = (cell: CellComponent, onRendered: EmptyCallback, success: ValueBooleanCallback,
+        cancel: ValueVoidCallback, editorParams: EditorParams): HTMLElement | false => {
 
         cell.getTable().deselectRow();
         cell.getRow().select();
@@ -894,9 +1210,9 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         this.renderCustomEditor(cell, host, cell.getValue(), success, cancel, editorParams);
 
         onRendered(() => {
-            const inputs = host.getElementsByTagName("textarea");
+            let inputs: HTMLCollectionOf<HTMLElement> = host.getElementsByTagName("textarea");
             if (inputs.length > 0) {
-                const element = inputs[0] as HTMLElement;
+                const element = inputs[0];
 
                 element.style.height = "0"; // This line is important or the scroll height will never shrink.
                 element.style.height = `${element.scrollHeight}px`;
@@ -904,11 +1220,23 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 cell.getRow().normalizeHeight();
 
                 element.focus();
+            } else {
+                inputs = host.getElementsByTagName("input");
+                if (inputs.length > 0) {
+                    const element = inputs[0];
+                    element.focus();
+                } else {
+                    const boxes = host.getElementsByClassName("checkbox");
+                    if (boxes.length > 0) {
+                        const element = boxes[0] as HTMLInputElement;
+                        element.focus();
+                    }
+                }
             }
         });
 
         return host;
-    };*/
+    };
 
     /**
      * Renders one of our UI elements as a cell editor, if there's no built-in editor already or we need different
@@ -922,9 +1250,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
      * @param cancel A callback to be called when the user cancelled the editor operation.
      * @param editorParams Additional parameters to configure the editor.
      */
-    /*
-    private renderCustomEditor = (cell: Tabulator.CellComponent, host: HTMLDivElement, value: unknown,
-        success: Tabulator.ValueBooleanCallback, cancel: Tabulator.ValueVoidCallback, editorParams: unknown): void => {
+    private renderCustomEditor(cell: CellComponent, host: HTMLDivElement, value: unknown,
+        success: ValueBooleanCallback, cancel: ValueVoidCallback, editorParams: unknown): void {
 
         const params = (typeof editorParams === "function" ? editorParams(cell) : editorParams) as IDictionary;
         const info: IColumnInfo = params.info as IColumnInfo;
@@ -935,27 +1262,39 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             case DBDataType.SmallInt:
             case DBDataType.MediumInt:
             case DBDataType.Int:
-            case DBDataType.Bigint: {
+            case DBDataType.Bigint:
+            case DBDataType.Year: {
                 element = <UpDown
                     value={value as number ?? 0}
                     textAlignment={TextAlignment.Start}
                     onChange={(newValue): void => {
                         this.renderCustomEditor(cell, host, newValue, success, cancel, editorParams);
                     }}
-                    onConfirm={(): void => {
+                    onConfirm={(value: number): void => {
                         success(value);
+                        this.handleConfirm(cell);
                     }}
                     onCancel={(): void => {
                         cancel(undefined);
                     }}
-                    onBlur={(): void => {
-                        success(value);
-                    }}
+                    onBlur={this.handleBlurEvent.bind(this, cell, success, cancel)}
                 />;
 
                 break;
             }
 
+            case DBDataType.Enum:
+            case DBDataType.Set:
+            case DBDataType.Geometry:
+            case DBDataType.Point:
+            case DBDataType.LineString:
+            case DBDataType.Polygon:
+            case DBDataType.GeometryCollection:
+            case DBDataType.MultiPoint:
+            case DBDataType.MultiLineString:
+            case DBDataType.MultiPolygon:
+            case DBDataType.Json:
+            case DBDataType.Bit:
             case DBDataType.String:
             case DBDataType.Char:
             case DBDataType.Nchar:
@@ -964,85 +1303,106 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             case DBDataType.TinyText:
             case DBDataType.Text:
             case DBDataType.MediumText:
-            case DBDataType.LongText: {
+            case DBDataType.LongText:
+            case DBDataType.Float:
+            case DBDataType.Double:
+            case DBDataType.Decimal: {
                 element = <Input
                     value={value as string ?? ""}
-                    multiLine
-                    onChange={(e: InputEvent<Element>, props: IInputChangeProperties): void => {
+                    multiLine={this.useMultiLineEditor(info.dataType.type)}
+                    onChange={(e: InputEvent, props: IInputChangeProperties): void => {
                         // Auto grow the input field (limited by a max height CSS setting).
-                        const element = e.target as HTMLElement;
-                        element.style.height = "0";
-                        element.style.height = `${element.scrollHeight}px`;
+                        if (props.multiLine) {
+                            const element = e.target as HTMLElement;
+                            element.style.height = "0";
+                            element.style.height = `${element.scrollHeight}px`;
 
-                        cell.checkHeight();
+                            cell.checkHeight();
 
-                        this.renderCustomEditor(cell, host, props.value, success, cancel, editorParams);
+                            this.renderCustomEditor(cell, host, props.value, success, cancel, editorParams);
+                        }
                     }}
-                    onConfirm={(): void => {
-                        success(value);
-                        cell.checkHeight();
+                    onConfirm={(e: KeyboardEvent, props: IInputChangeProperties): void => {
+                        success(props.value);
+                        e.preventDefault();
+                        this.handleConfirm(cell);
                     }}
                     onCancel={(): void => {
                         cancel(undefined);
                         cell.checkHeight();
                     }}
-                    onBlur={(): void => {
-                        success(value);
-                        cell.checkHeight();
-                    }}
+                    onBlur={this.handleBlurEvent.bind(this, cell, success, cancel)}
                 />;
 
                 break;
             }
-            case DBDataType.Date:
-            case DBDataType.DateTime:
-            case DBDataType.DateTime_f: {
-                // TODO: decide if we want a custom editor here.
-                break;
-            }
 
-            case DBDataType.Time:
-            case DBDataType.Time_f:
-            case DBDataType.Year: {
-                // TODO: decide if we want a custom editor here.
-                break;
-            }
-
-            case DBDataType.Geometry:
-            case DBDataType.Point:
-            case DBDataType.LineString:
-            case DBDataType.Polygon:
-            case DBDataType.GeometryCollection:
-            case DBDataType.MultiPoint:
-            case DBDataType.MultiLineString:
-            case DBDataType.MultiPolygon: {
-                // TODO: decide if we want a custom editor here.
+            case DBDataType.Date: {
+                element = <DateTime
+                    type={IDateTimeValueType.Date}
+                    value={value as string ?? ""}
+                    onConfirm={(e: KeyboardEvent): void => {
+                        success(value);
+                        e.preventDefault();
+                        this.handleConfirm(cell);
+                    }}
+                    onCancel={(): void => {
+                        cancel(undefined);
+                    }}
+                    onBlur={this.handleBlurEvent.bind(this, cell, success, cancel)}
+                />;
 
                 break;
             }
 
-            case DBDataType.Json: {
+            case DBDataType.DateTime: {
+                element = <DateTime
+                    type={IDateTimeValueType.DateTime}
+                    value={value as string ?? ""}
+                    onConfirm={(e: KeyboardEvent, props: IDateTimeChangeProperties): void => {
+                        success(props.value);
+                        this.handleConfirm(cell);
+                    }}
+                    onCancel={(): void => {
+                        cancel(undefined);
+                    }}
+                    onBlur={this.handleBlurEvent.bind(this, cell, success, cancel)}
+                />;
 
                 break;
             }
 
-            case DBDataType.Bit: {
+            case DBDataType.Time: {
+                element = <DateTime
+                    type={IDateTimeValueType.Time}
+                    value={value as string ?? ""}
+                    onConfirm={(): void => {
+                        success(value);
+                        this.handleConfirm(cell);
+                    }}
+                    onCancel={(): void => {
+                        cancel(undefined);
+                    }}
+                    onBlur={this.handleBlurEvent.bind(this, cell, success, cancel)}
+                />;
 
                 break;
             }
 
             case DBDataType.Boolean: {
-
-                break;
-            }
-
-            case DBDataType.Enum: {
-
-                break;
-            }
-
-            case DBDataType.Set: {
-
+                element = <Dropdown
+                    selection={value === 0 ? "false" : "true"}
+                    onSelect={(selection: Set<string>): void => {
+                        success(selection.has("true") ? 1 : 0);
+                        this.handleConfirm(cell);
+                    }}
+                    onCancel={(): void => {
+                        cancel(undefined);
+                    }}
+                >
+                    <Dropdown.Item id="true" caption="true" />
+                    <Dropdown.Item id="false" caption="false" />
+                </Dropdown>;
                 break;
             }
 
@@ -1052,42 +1412,84 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         if (element) {
             render(element, host);
         }
-    };*/
+    }
 
     // Also here: cannot test if it is not rendered.
     // istanbul ignore next
     private stringFormatter = (cell: CellComponent): string | HTMLElement => {
-        let element;
+        this.markIfChanged(cell);
+
         const value = cell.getValue();
+
         if (value == null) {
             const host = document.createElement("div");
             host.className = "iconHost";
 
-            element = <Icon src={nullIcon} width={30} height={11} />;
+            const element = <Icon src={nullIcon} />;
             render(element, host);
 
             return host;
         } else {
-            return value as string;
+            return String(value);
         }
     };
 
     // istanbul ignore next
-    private binaryFormatter = (cell: CellComponent): string | HTMLElement => {
-        let element;
-        if (cell.getValue() === null) {
+    private jsonFormatter = (cell: CellComponent): string | HTMLElement => {
+        this.markIfChanged(cell);
+
+        const value = cell.getValue();
+
+        const host = document.createElement("div");
+        host.className = "iconHost";
+
+        const element = <Icon src={value == null ? nullIcon : jsonIcon} />;
+        render(element, host);
+
+        return host;
+    };
+
+    // istanbul ignore next
+    private numberFormatter = (cell: CellComponent): string | HTMLElement => {
+        const added = this.markIfChanged(cell);
+
+        const info = this.columnInfoFromCell(cell);
+        if (added && info?.autoIncrement) {
+            return "AI";
+        }
+
+        const value = cell.getValue();
+        if (value === null) {
             const host = document.createElement("div");
             host.className = "iconHost";
 
-            element = <Icon src={nullIcon} width={30} height={11} />;
+            const element = <Icon src={nullIcon} />;
+            render(element, host);
+
+            return host;
+        }
+
+        return String(value);
+    };
+
+    // istanbul ignore next
+    private binaryFormatter = (cell: CellComponent): string | HTMLElement => {
+        this.markIfChanged(cell);
+
+        let element;
+        const value = cell.getValue();
+        if (value === null) {
+            const host = document.createElement("div");
+            host.className = "iconHost";
+
+            element = <Icon src={nullIcon} />;
             render(element, host);
 
             return host;
         } else {
             // Binary data is given as a based64 encoded string
-            const val = cell.getValue();
-            if (val) {
-                return formatBase64ToHex(val, 64);
+            if (value) {
+                return formatBase64ToHex(value, 64);
             } else {
                 return "";
             }
@@ -1096,8 +1498,10 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
     // istanbul ignore next
     private blobFormatter = (cell: CellComponent): string | HTMLElement => {
+        this.markIfChanged(cell);
+
         const source = cell.getValue() === null ? nullIcon : blobIcon;
-        const icon = <Icon src={source} width={30} height={11} />;
+        const icon = <Icon src={source} />;
 
         const host = document.createElement("div");
         host.className = "iconHost";
@@ -1108,18 +1512,45 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     };
 
     // istanbul ignore next
-    private dateFormatter = (cell: CellComponent, parameters: FormatterParams): string | HTMLElement => {
+    private geometryFormatter = (cell: CellComponent): string | HTMLElement => {
+        this.markIfChanged(cell);
+
+        const source = cell.getValue() === null ? nullIcon : geometryIcon;
+        const icon = <Icon src={source} />;
+
+        const host = document.createElement("div");
+        host.className = "iconHost";
+
+        render(icon, host);
+
+        return host;
+    };
+
+    // istanbul ignore next
+    private dateFormatter = (cell: CellComponent): string | HTMLElement => {
+        this.markIfChanged(cell);
+
         const value = cell.getValue();
+        if (value === null) {
+            const host = document.createElement("div");
+            host.className = "iconHost";
+
+            const element = <Icon src={nullIcon} />;
+            render(element, host);
+
+            return host;
+        }
+
         const locale = Intl.DateTimeFormat().resolvedOptions().locale;
 
-        if ("type" in parameters) {
+        const info = this.columnInfoFromCell(cell);
+        if (info) {
             let date: Date;
             const options: Intl.DateTimeFormatOptions = {};
 
-            switch (parameters.type as DBDataType) {
+            switch (info.dataType.type) {
                 case DBDataType.Date:
-                case DBDataType.DateTime:
-                case DBDataType.DateTime_f: {
+                case DBDataType.DateTime: {
                     date = new Date(value as string);
                     options.year = "numeric";
                     options.month = "2-digit";
@@ -1128,8 +1559,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     break;
                 }
 
-                case DBDataType.Time:
-                case DBDataType.Time_f: {
+                case DBDataType.Time: {
                     date = new Date(`1970-01-01T${value as string}`);
                     const formattedTime = date.toLocaleTimeString(locale);
 
@@ -1156,21 +1586,140 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         return value as string;
     };
 
-    // istanbul ignore next
     private booleanFormatter = (cell: CellComponent): string | HTMLElement => {
+        this.markIfChanged(cell);
+
         const host = document.createElement("div");
         let element;
         if (cell.getValue() === null) {
-            element = <Icon src={nullIcon} width={30} height={11} />;
+            element = <Icon src={nullIcon} />;
             host.className = "iconHost";
+            render(element, host);
+
+            return host;
         } else {
-            element = <Checkbox checkState={cell.getValue() === 0 ? CheckState.Unchecked : CheckState.Checked} />;
-            host.className = "checkBoxHost";
+            return cell.getValue() === 0 ? "false" : "true";
         }
-
-        render(element, host);
-
-        return host;
     };
 
+    /**
+     * Sets the CSS class for changed cells on the given cell, if we have a change for that cell.
+     *
+     * @param cell The cell to check for changes.
+     *
+     * @returns True if the row the cell belongs to is new.
+     */
+    private markIfChanged(cell: CellComponent): boolean {
+        const { rowChanges } = this.mergedProps;
+        if (rowChanges) {
+            const rowIndex = cell.getRow().getPosition() as number - 1;
+            const rowChange = rowChanges[rowIndex];
+            if (rowChange && !rowChange.added) {
+                const changes = rowChanges[rowIndex]?.changes;
+                if (changes) {
+                    const field = cell.getColumn().getField();
+                    const change = changes.find((change) => {
+                        return change.field === field;
+                    });
+                    if (change !== undefined) {
+                        const element = cell.getElement();
+                        element.classList.add("changed");
+                    }
+                }
+            }
+
+            return rowChange?.added ?? false;
+        }
+
+        return false;
+    }
+
+    /**
+     * Toggles the deletion mark for the currently selected rows.
+     */
+    private markRowsDeleted(): void {
+        let rows = this.gridRef.current?.getSelectedRows();
+
+        if ((!rows || rows.length === 0) && this.selectedCell) {
+            rows = [this.selectedCell.getRow()];
+        }
+
+        if (rows) {
+            const { onToggleRowDeletionMarks } = this.mergedProps;
+            const positions = rows.map((row) => {
+                return row.getPosition() as number - 1;
+            });
+
+            onToggleRowDeletionMarks?.(positions);
+        }
+    }
+
+    /**
+     * Determines if a multi-line editor should be used for the given data type.
+     *
+     * @param type The data type to check.
+     *
+     * @returns True if a multi-line editor should be used, false otherwise.
+     */
+    private useMultiLineEditor(type: DBDataType): boolean | undefined {
+        switch (type) {
+            case DBDataType.Varchar:
+            case DBDataType.Nvarchar:
+            case DBDataType.MediumText:
+            case DBDataType.LongText: {
+                return true;
+            }
+
+            default: {
+                return false;
+            }
+        }
+    }
+
+    private handleBlurEvent = (cell: CellComponent, success: ValueBooleanCallback, cancel: ValueVoidCallback,
+        e: FocusEvent): void => {
+        const element = e.target as HTMLElement & { value: string | number; };
+        const value = cell.getValue();
+        if (String(element.value) !== String(value)) {
+            // Assume the user wants to take over any change so far.
+            success(element.value);
+            this.markIfChanged(cell);
+        } else {
+            cancel(undefined);
+        }
+
+        cell.checkHeight();
+
+        const target = (e.relatedTarget || document.activeElement) as HTMLElement;
+        if (target.closest(".tabulator")) {
+            this.#navigating = true;
+            try {
+                if (!cell.navigateRight()) {
+                    cell.navigateNext();
+                }
+            } finally {
+                this.#navigating = false;
+            }
+        }
+    };
+
+    private handleConfirm(cell: CellComponent): void {
+        this.markIfChanged(cell);
+
+        cell.checkHeight();
+        this.#navigating = true;
+        cell.navigateDown();
+        this.#navigating = false;
+    }
+
+    private columnInfoFromCell(cell: CellComponent): IColumnInfo | undefined {
+        const formatterParams = cell.getColumn().getDefinition().formatterParams;
+        if (formatterParams && typeof formatterParams === "function") {
+            const formatterParamsFunc = formatterParams as (cell: CellComponent) => { info: IColumnInfo; };
+
+            return formatterParamsFunc(cell).info;
+        }
+
+        return undefined;
+    }
 }

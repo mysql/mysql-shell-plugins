@@ -60,6 +60,6 @@ describe("HoverProvider tests", () => {
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
         const hover = jest.spyOn(services, "getHover");
         void hoverProvider.provideHover(mockModel, position);
-        expect(hover).toBeCalled();
+        expect(hover).toHaveBeenCalled();
     });
 });

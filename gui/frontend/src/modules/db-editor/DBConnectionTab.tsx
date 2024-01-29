@@ -31,7 +31,7 @@ import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from "set
 
 import { Explorer, IExplorerSectionState } from "./Explorer.js";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
-import { formatBase64ToHex, formatTime, formatWithNumber } from "../../utilities/string-helpers.js";
+import { formatBase64ToHex, formatTime, formatWithNumber, unquote } from "../../utilities/string-helpers.js";
 import { Notebook } from "./Notebook.js";
 import {
     IEntityBase, EntityType, ISchemaTreeEntry, IDBDataEntry, SchemaTreeType, IToolbarItems, ISavedGraphData,
@@ -42,13 +42,14 @@ import {
     IEditorExtendedExecutionOptions,
     IMrsDbObjectEditRequest, IMrsSchemaEditRequest, appParameters,
     requisitions,
+    type IColumnDetails,
 } from "../../supplement/Requisitions.js";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types.js";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
 import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices.js";
 import { QueryType } from "../../parsing/parser-common.js";
 import {
-    DBDataType, IColumnInfo, IDictionary, IExecutionInfo, IServicePasswordRequest, MessageType,
+    DBDataType, IColumnInfo, IDictionary, IStatusInfo, IServicePasswordRequest, MessageType,
 } from "../../app-logic/Types.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
@@ -107,7 +108,7 @@ export interface IOpenEditorState extends IEntityBase {
 export interface IDBConnectionTabPersistentState extends ISavedEditorState {
     backend: ShellInterfaceSqlEditor;
 
-    // Informations about the connected backend (where supported).
+    /** Informations about the connected backend (where supported). */
     serverVersion: number;
     serverEdition: string;
     sqlMode: string;
@@ -120,7 +121,7 @@ export interface IDBConnectionTabPersistentState extends ISavedEditorState {
 
     currentSchema: string;
 
-    // The size to be used for the explorer pane.
+    /** The size to be used for the explorer pane. */
     explorerWidth: number;
 
     /** Cached data/settings for the performance dashboard. */
@@ -236,6 +237,15 @@ interface IQueryExecutionOptions {
 
     /** Render SQL results as plain text instead of interactive tables. */
     showAsText: boolean;
+
+    /** Allow editing the result set in the UI. */
+    updatable: boolean;
+
+    /** If the query is a simple SELECT, involving only 1 table then its fully qualified name is stored here. */
+    fullTableName?: string;
+
+    /** The names of all columns that are part of the primary key in the table, if the query is updatable. */
+    pkColumns?: string[];
 }
 
 /** Metadata for the MRS SDK of the current MRS Service. */
@@ -482,6 +492,18 @@ Execute \\help or \\? for help;`;
         );
     }
 
+    /**
+     * @returns true if this tab can be deactivated/closed, false if not.
+     */
+    public canClose(): Promise<boolean> {
+        // Only if a notebook is active, we need to check if it can be closed.
+        if (this.notebookRef.current) {
+            return this.notebookRef.current.canClose();
+        }
+
+        return Promise.resolve(true);
+    }
+
     private editorStopExecution = async (): Promise<boolean> => {
         const { backend } = this.state;
 
@@ -531,7 +553,11 @@ Execute \\help or \\? for help;`;
     };
 
     private sqlShowDataAtPage = async (data: ISqlPageRequest): Promise<boolean> => {
-        const pageSize = Settings.get("sql.limitRowCount", 1000);
+        let pageSize = Settings.get("sql.limitRowCount", 1000);
+        if (pageSize < 1 || pageSize > 100000) {
+            pageSize = 1000;
+        }
+
         await this.executeQuery(data.context as SQLExecutionContext, 0, data.page, pageSize,
             {}, data.sql, data.oldResultId);
 
@@ -568,7 +594,7 @@ Execute \\help or \\? for help;`;
                 this.handleSelectItem(notebook.id, notebook.type);
             } else {
                 // Otherwise, create a new notebook.
-                this.handleAddEditor();
+                await this.handleAddEditor();
             }
 
             // Return false to indicate that the request could not be fulfilled.
@@ -783,7 +809,7 @@ Execute \\help or \\? for help;`;
 
                     let openState = this.findActiveEditor();
                     if (!openState) {
-                        const editorId = this.handleAddEditor();
+                        const editorId = await this.handleAddEditor();
                         if (editorId) {
                             // Adding a new notebook will always make it the active editor.
                             openState = this.findActiveEditor();
@@ -930,9 +956,12 @@ Execute \\help or \\? for help;`;
      * @param options Content and details for script execution.
      */
     private runSQLCode = async (context: SQLExecutionContext, options: IScriptExecutionOptions): Promise<void> => {
-        const pageSize = Settings.get("sql.limitRowCount", 1000);
+        let pageSize = Settings.get("sql.limitRowCount", 1000);
+        if (pageSize < 1 || pageSize > 100000) {
+            pageSize = 1000;
+        }
 
-        context.clearResult();
+        await context.clearResult();
         if (options.source) {
             const sql = (await context.getStatementAtPosition(options.source))?.text;
 
@@ -1013,20 +1042,29 @@ Execute \\help or \\? for help;`;
                 // exists already...
                 // plus one row - this way we can determine if another page exists after this one.
                 const offset = page * pageSize;
-                const [query, changed] = await services.preprocessStatement(context, sql, offset, pageSize + 1,
+                const result = await services.preprocessStatement(context, sql, offset, pageSize + 1,
                     options.forceSecondaryEngine);
+
+                let pkColumns: string[] | undefined;
+                if (result.updatable && result.fullTableName) {
+                    pkColumns = await this.getPrimaryKeyColumns(backend, result.fullTableName);
+                }
+
                 await this.doExecution({
                     backend,
-                    query,
+                    query: result.query,
                     original: sql,
                     queryType,
                     params: actualParams,
                     context,
                     index,
-                    explicitPaging: changed,
+                    explicitPaging: result.changed,
                     currentPage: page,
                     oldResultId,
                     showAsText: options.asText ?? false,
+                    updatable: result.updatable,
+                    fullTableName: result.fullTableName,
+                    pkColumns,
                 });
             } else {
                 await this.doExecution({
@@ -1041,6 +1079,7 @@ Execute \\help or \\? for help;`;
                     currentPage: page,
                     oldResultId,
                     showAsText: options.asText ?? false,
+                    updatable: false,
                 });
             }
         }
@@ -1087,7 +1126,7 @@ Execute \\help or \\? for help;`;
 
                 let hasMoreRows = false;
                 let rowCount = 0;
-                let status: IExecutionInfo = { text: "" };
+                let status: IStatusInfo = { text: "" };
                 let resultSummary = false;
 
                 if (data.result.totalRowCount !== undefined) {
@@ -1127,6 +1166,21 @@ Execute \\help or \\? for help;`;
                 if (data.result.columns) {
                     columns = generateColumnInfo(dbType, data.result.columns);
                     setColumns = true;
+
+                    // Check if all PK columns are part of the columns list.
+                    if (options.updatable && options.fullTableName) {
+                        if (options.pkColumns && options.pkColumns.length > 0) {
+                            for (const pkColumn of options.pkColumns) {
+                                if (!columns.find((c) => { return c.title === pkColumn; })) {
+                                    options.updatable = false;
+                                    break;
+                                }
+                            }
+                        } else {
+                            // No primary key columns found -> table is not updatable.
+                            options.updatable = false;
+                        }
+                    }
                 }
                 const rows = convertRows(columns, data.result.rows);
 
@@ -1167,9 +1221,13 @@ Execute \\help or \\? for help;`;
                         index: options.index,
                         subIndex,
                         sql: options.original,
+                        updatable: options.updatable,
+                        fullTableName: options.fullTableName,
                     });
 
-                    this.addTimedResult(options.context, {
+                    // Add row data directly to the context. Not via a timed result, as we need to ensure
+                    // proper ordering of data rendering and column info updates that follow below.
+                    void options.context.addResultData({
                         type: "resultSetRows",
                         rows,
                         columns: setColumns ? columns : undefined,
@@ -1183,10 +1241,22 @@ Execute \\help or \\? for help;`;
                         subIndex,
                         sql: options.original,
                         replaceData,
+                        updatable: options.updatable,
+                        fullTableName: options.fullTableName,
                     });
                 }
 
                 if (resultSummary) {
+                    // Trigger column details update for this result set.
+                    if (options.queryType === QueryType.Select) {
+                        if (options.updatable && !options.showAsText && options.fullTableName) {
+                            const columnNames = columns.map((c) => { return c.title; });
+
+                            // Don't wait for the update.
+                            void this.updateColumnDetails(resultId, options.fullTableName, columnNames);
+                        }
+                    }
+
                     resultId = uuid();
                     if (options.queryType === QueryType.Call) {
                         ++subIndex!;
@@ -1197,8 +1267,7 @@ Execute \\help or \\? for help;`;
                 replaceData = false;
             });
 
-            // Handling of the final response.
-            await this.handleDependentTasks(options);
+            this.handleDependentTasks(options);
         } catch (reason) {
             const resultTimer = this.resultTimers.get(resultId);
             if (resultTimer) {
@@ -1375,10 +1444,8 @@ Execute \\help or \\? for help;`;
      * and triggers actions according to that.
      *
      * @param options The query execution options.
-     *
-     * @returns A promise which resolves when the post processing is complete.
      */
-    private handleDependentTasks = async (options: IQueryExecutionOptions): Promise<void> => {
+    private handleDependentTasks = (options: IQueryExecutionOptions): void => {
         const { id, connectionId } = this.props;
         const { backend } = this.state;
 
@@ -1396,11 +1463,12 @@ Execute \\help or \\? for help;`;
             case QueryType.Use: {
                 // The user wants to change the current schema.
                 // This may have failed so query the backend for the current schema and then trigger the command.
-                const schema = await backend?.getCurrentSchema();
-                if (schema) {
-                    requisitions.executeRemote("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
-                    await requisitions.execute("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
-                }
+                void backend?.getCurrentSchema().then((schema) => {
+                    if (schema) {
+                        requisitions.executeRemote("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
+                        void requisitions.execute("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
+                    }
+                });
 
                 break;
             }
@@ -1409,9 +1477,9 @@ Execute \\help or \\? for help;`;
             case QueryType.Rest: {
                 // Enforce a refresh of the MRS Sdk Cache
                 this.cachedMrsServiceSdk.schemaMetadataVersion = undefined;
-                await this.updateMrsServiceSdkCache();
-
-                void requisitions.executeRemote("refreshConnections", undefined);
+                void this.updateMrsServiceSdkCache().then(() => {
+                    void requisitions.executeRemote("refreshConnections", undefined);
+                });
 
                 break;
             }
@@ -1421,6 +1489,71 @@ Execute \\help or \\? for help;`;
             }
         }
     };
+
+    /**
+     * Helper to asynchronously update the column details for the given table.
+     *
+     * @param requestId The ID of the request that got results and needs the column info update.
+     * @param fullTableName The full name of the table to update the column details for.
+     * @param columnNames The names of all columns in the result set.
+     */
+    private async updateColumnDetails(requestId: string, fullTableName: string,
+        columnNames: string[]): Promise<void> {
+        const { backend } = this.state;
+
+        const parts = fullTableName.split(".");
+        const table = unquote(parts.pop()!);
+        let schema = "";
+        if (parts.length > 0) {
+            schema = unquote(parts.pop()!);
+        }
+
+        if (schema.length === 0) {
+            schema = await backend?.getCurrentSchema() ?? "";
+        }
+
+        // Get all column names.
+        const tableColumns = await backend?.getTableObjectNames(schema, table, "Column");
+
+        // Retrieve the column details for each column in the result set.
+        const details: IColumnDetails = {
+            resultId: requestId,
+            columns: [],
+        };
+
+        for (const tableColumn of tableColumns ?? []) {
+            if (columnNames.includes(tableColumn)) {
+                const info = await backend?.getTableObject(schema, table, "Column", tableColumn);
+                if (info) {
+                    details.columns.push({
+                        inPK: info.isPk === 1,
+                        default: info.default,
+                        nullable: info.notNull === 0,
+                        autoIncrement: info.autoIncrement === 1,
+                    });
+                }
+            }
+        }
+
+        await requisitions.execute("sqlUpdateColumnInfo", details);
+    }
+
+    private getPrimaryKeyColumns = async (backend: ShellInterfaceSqlEditor,
+        fullTableName: string): Promise<string[]> => {
+        const parts = fullTableName.split(".");
+        const table = unquote(parts.pop()!);
+        let schema = "";
+        if (parts.length > 0) {
+            schema = unquote(parts.pop()!);
+        }
+
+        if (schema.length === 0) {
+            schema = await backend?.getCurrentSchema() ?? "";
+        }
+
+        return backend?.getTableObjectNames(schema, table, "Primary Key");
+    };
+
 
     private updateMrsServiceSdkCache = async (): Promise<boolean> => {
         const { connectionId } = this.props;
@@ -1440,6 +1573,7 @@ Execute \\help or \\? for help;`;
                     }]);
                 }
             };
+
             // Check if there is an current MRS Service set and if so, get the corresponding MRSruntime SDK
             // for that MRS Service
             try {
@@ -1592,7 +1726,7 @@ Execute \\help or \\? for help;`;
             }
         }
 
-        context.clearResult();
+        await context.clearResult();
 
         switch (context.language) {
             case "javascript": {
@@ -2088,19 +2222,33 @@ Execute \\help or \\? for help;`;
     private handleSelectItem = (itemId: string, type: EntityType, caption?: string): void => {
         const { id = "", onSelectItem } = this.props;
 
-        onSelectItem?.({ itemId, tabId: id, type, caption });
+        void this.canClose().then((canClose) => {
+            if (canClose) {
+                onSelectItem?.({ itemId, tabId: id, type, caption });
+            }
+        });
     };
 
     private handleCloseEditor = (editorId: string): void => {
         const { id, onRemoveEditor } = this.props;
 
-        onRemoveEditor?.(id ?? "", editorId);
+        void this.canClose().then((canClose) => {
+            if (canClose) {
+                onRemoveEditor?.(id ?? "", editorId);
+            }
+        });
     };
 
-    private handleAddEditor = (): string | undefined => {
+    private handleAddEditor = (): Promise<string | undefined> => {
         const { id, onAddEditor } = this.props;
 
-        return onAddEditor?.(id ?? "");
+        return new Promise((resolve) => {
+            void this.canClose().then((canClose) => {
+                if (canClose) {
+                    resolve(onAddEditor?.(id ?? ""));
+                }
+            });
+        });
     };
 
     private handleEditorRename = (editorId: string, newCaption: string): void => {

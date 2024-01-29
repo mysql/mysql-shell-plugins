@@ -88,6 +88,10 @@
     display: block;
 }
 
+.msg.checkbox.checked.disabled .checkMark::after {
+    border-color: var(--text-dimmedForeground);
+}
+
 /* This is the indicator for the checked state. */
 .msg.checkbox .checkMark::after {
     left: 4px;

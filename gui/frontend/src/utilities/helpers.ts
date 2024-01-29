@@ -83,15 +83,15 @@ export const selectFile = (acceptedExtensions: string[], multiple: boolean): Pro
 };
 
 /**
- * Stores the the text in a local file. Usually the web browser determines where the file is stored (download folder).
+ * Stores the given blob in a local file.
+ * Usually the web browser determines where the file is stored (download folder).
  *
- * @param text The content of the file.
+ * @param blob The content of the file.
  * @param fileName The name of the target file (should not contain a path).
  */
 // Testing note: this method relies on behavior which requires a real browser, so we cannot test this in a fake DOM.
 // istanbul ignore next
-export const saveTextAsFile = (text: string, fileName: string): void => {
-    const blob = new Blob([text], { type: "text/plain" }); // Will use UTF-8 encoding.
+export const saveBlobAsFile = (blob: Blob, fileName: string): void => {
     const downloadLink = document.createElement("a");
     downloadLink.download = fileName;
     downloadLink.innerHTML = "Download File";
@@ -119,6 +119,32 @@ export const saveTextAsFile = (text: string, fileName: string): void => {
 };
 
 /**
+ * Stores the text in a local file.
+ * Usually the web browser determines where the file is stored (download folder).
+ *
+ * @param text The content of the file.
+ * @param fileName The name of the target file (should not contain a path).
+ */
+// istanbul ignore next
+export const saveTextAsFile = (text: string, fileName: string): void => {
+    const blob = new Blob([text], { type: "text/plain" }); // Will use UTF-8 encoding.
+    saveBlobAsFile(blob, fileName);
+};
+
+/**
+ * Stores the array content in a local file.
+ * Usually the web browser determines where the file is stored (download folder).
+ *
+ * @param content The content of the file.
+ * @param fileName The name of the target file (should not contain a path).
+ */
+// istanbul ignore next
+export const saveArrayAsFile = (content: ArrayBuffer, fileName: string): void => {
+    const blob = new Blob([content], { type: "application/octet-stream" });
+    saveBlobAsFile(blob, fileName);
+};
+
+/**
  * Ensures a value is within a given range.
  *
  * @param value The value to check.
@@ -127,7 +153,7 @@ export const saveTextAsFile = (text: string, fileName: string): void => {
  *
  * @returns The given value, trimmed to the min and max bounds.
  */
-export const clampValue = (value: number, min?: number | undefined, max?: number | undefined): number => {
+export const clampValue = <T extends number | bigint>(value: T, min?: T, max?: T): T => {
     if (min != null && value < min) {
         return min;
     }
@@ -137,6 +163,28 @@ export const clampValue = (value: number, min?: number | undefined, max?: number
     }
 
     return value;
+};
+
+/**
+ * Same as Math.min, but supports bigint too.
+ * @param a The first value.
+ * @param b The second value.
+ *
+ * @returns The smaller of the two values.
+ */
+export const minValue = <T extends number | bigint>(a: T, b: T): T => {
+    return a < b ? a : b;
+};
+
+/**
+ * Same as Math.max, but supports bigint too.
+ * @param a The first value.
+ * @param b The second value.
+ *
+ * @returns The bigger of the two values.
+ */
+export const maxValue = <T extends number | bigint>(a: T, b: T): T => {
+    return a > b ? a : b;
 };
 
 /**

@@ -152,16 +152,14 @@ export class Notebook {
             await Misc.switchToFrame();
         }
 
-        const regex = wordRef
-            .replace(/\*/g, "\\*")
-            .replace(/\./g, ".*")
-            .replace(/;/g, ".*")
-            .replace(/\s/g, ".*");
         const lines = await driver.findElements(locator.notebook.codeEditor.editor.promptLine);
         for (let i = 0; i <= lines.length - 1; i++) {
-            const lineContent = await lines[i].getAttribute("innerHTML");
-            if (lineContent.match(regex)) {
-                return i;
+            const match = (await lines[i].getAttribute("innerHTML")).match(/(?<=">)(.*?)(?=<\/span>)/gm);
+            if (match !== null) {
+                const cmdFromEditor = match.join("").replace(/&nbsp;/g, " ");
+                if (cmdFromEditor === wordRef) {
+                    return i;
+                }
             }
         }
         throw new Error(`Could not find '${wordRef}' in the code editor`);
@@ -213,7 +211,12 @@ export class Notebook {
                 const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
                 await textArea.sendKeys(Key.RETURN);
 
-                return (await getLastLineNumber()) > lastLineNumber;
+                return driver.wait(async () => {
+                    return (await getLastLineNumber()) > lastLineNumber;
+                }, constants.wait150MilliSeconds)
+                    .catch(() => {
+                        return false;
+                    });
             } catch (e) {
                 if (!(errors.isStaleError(e as Error))) {
                     throw e;
@@ -537,11 +540,7 @@ export class Notebook {
         }
 
         const commands: string[] = [];
-        const regex = word
-            .replace(/\*/g, "\\*")
-            .replace(/\./g, ".*")
-            .replace(/;/g, ".*")
-            .replace(/\s/g, ".*");
+        const regex = Misc.transformToMatch(word);
         await driver.wait(async () => {
             try {
                 const notebookCommands = await driver.wait(

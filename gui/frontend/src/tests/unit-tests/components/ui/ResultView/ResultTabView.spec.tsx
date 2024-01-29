@@ -84,6 +84,8 @@ describe("Result Tabview Tests", (): void => {
                         sql: "select 1",
                         resultId: "123",
                         columns: [],
+                        updatable: false,
+                        fullTableName: "",
                         data: {
                             rows: [],
                             currentPage: 0,
@@ -97,6 +99,8 @@ describe("Result Tabview Tests", (): void => {
                         sql: "select 2",
                         resultId: "456",
                         columns: [],
+                        updatable: false,
+                        fullTableName: "",
                         data: {
                             rows: [],
                             currentPage: 10,
@@ -131,6 +135,8 @@ describe("Result Tabview Tests", (): void => {
                         sql: "select 1",
                         resultId: "123",
                         columns: [],
+                        updatable: false,
+                        fullTableName: "",
                         data: {
                             rows: [],
                             currentPage: 0,
@@ -140,6 +146,8 @@ describe("Result Tabview Tests", (): void => {
                         sql: "select 2",
                         resultId: "456",
                         columns: [],
+                        updatable: false,
+                        fullTableName: "",
                         data: {
                             rows: [],
                             currentPage: 10,
@@ -153,8 +161,8 @@ describe("Result Tabview Tests", (): void => {
             />,
         );
 
-        let tabs = component.find(Button);
-        expect(tabs).toHaveLength(2);
+        let tabs = component.find(Button); // Also contains the "add new row" button.
+        expect(tabs).toHaveLength(3);
 
         let found = false;
         tabs.forEach((tab) => {
@@ -214,6 +222,8 @@ describe("Result Tabview Tests", (): void => {
                     sql: "select 1",
                     resultId: "123",
                     columns: [],
+                    updatable: false,
+                    fullTableName: "",
                     data: {
                         rows: [],
                         currentPage: 111,
@@ -227,6 +237,8 @@ describe("Result Tabview Tests", (): void => {
                     sql: "select 2",
                     resultId: "456",
                     columns: [],
+                    updatable: false,
+                    fullTableName: "",
                     data: {
                         rows: [],
                         currentPage: 10,
@@ -242,7 +254,7 @@ describe("Result Tabview Tests", (): void => {
 
         // Check the output tab.
         tabs = component.find(Button);
-        expect(tabs).toHaveLength(3); // Like before, but now with the output tab.
+        expect(tabs).toHaveLength(4); // Like before, but now with the output tab.
 
         found = false;
         tabs.forEach((tab) => {
@@ -272,6 +284,8 @@ describe("Result Tabview Tests", (): void => {
                 sql: "select 1",
                 resultId: "123",
                 columns: [],
+                updatable: false,
+                fullTableName: "",
                 data: {
                     rows: [],
                     currentPage: 0,
@@ -282,6 +296,8 @@ describe("Result Tabview Tests", (): void => {
                 sql: "select 2",
                 resultId: "456",
                 columns: [],
+                updatable: false,
+                fullTableName: "",
                 data: {
                     rows: [],
                     currentPage: 1,
@@ -312,7 +328,7 @@ describe("Result Tabview Tests", (): void => {
 
         // Select the second result set.
         const tabs = component.find(Button);
-        expect(tabs).toHaveLength(5);
+        expect(tabs).toHaveLength(6);
 
         let found = false;
         tabs.forEach((tab) => {
@@ -329,7 +345,7 @@ describe("Result Tabview Tests", (): void => {
         expect(toolbars).toHaveLength(1);
 
         const buttons = component.getDOMNode().getElementsByClassName("button");
-        expect(buttons).toHaveLength(10);
+        expect(buttons).toHaveLength(13);
 
         const dividers = component.getDOMNode().getElementsByClassName("divider");
         expect(dividers).toHaveLength(3);
@@ -351,12 +367,12 @@ describe("Result Tabview Tests", (): void => {
 
         expect(button.classList.contains("disabled")).toBe(true);
         expect(resultSets.sets[1].data.currentPage).toBe(0);
-        expect(onResultPageChange).toBeCalledTimes(1);
+        expect(onResultPageChange).toHaveBeenCalledTimes(1);
 
         // Now at the first page. Cannot go further.
         button.click();
         expect(resultSets.sets[1].data.currentPage).toBe(0);
-        expect(onResultPageChange).toBeCalledTimes(1);
+        expect(onResultPageChange).toHaveBeenCalledTimes(1);
 
         // Next page.
         button = buttons.namedItem("nextPageButton") as HTMLButtonElement;
@@ -374,10 +390,10 @@ describe("Result Tabview Tests", (): void => {
         expect(button.getAttribute("data-tooltip")).toBe("Apply Changes");
 
         // Revert.
-        button = buttons.namedItem("revertButton") as HTMLButtonElement;
+        button = buttons.namedItem("rollbackButton") as HTMLButtonElement;
         expect(button).toBeDefined();
         expect(button.classList.contains("disabled")).toBe(true); // The button is currently disabled.
-        expect(button.getAttribute("data-tooltip")).toBe("Revert Changes");
+        expect(button.getAttribute("data-tooltip")).toBe("Rollback Changes");
 
         // Maximize.
         button = buttons.namedItem("toggleStateButton") as HTMLButtonElement;
@@ -402,11 +418,11 @@ describe("Result Tabview Tests", (): void => {
         expect(portals[0].id).toBe("actionMenu");
 
         const items = portals[0].getElementsByClassName("menuItem");
-        expect(items).toHaveLength(2);
+        expect(items).toHaveLength(4);
 
         // TODO: check for the success of the activations, once action handling is implemented.
-        (items[0] as HTMLButtonElement).click();
-        (items[1] as HTMLButtonElement).click();
+        (items[2] as HTMLButtonElement).click();
+        (items[3] as HTMLButtonElement).click();
 
         component.unmount();
     });

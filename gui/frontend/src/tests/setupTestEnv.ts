@@ -58,6 +58,38 @@ Object.defineProperty(window, "location", {
     },
 });
 
+Object.defineProperty(window.webkitURL, "createObjectURL", {
+    writable: true,
+    value: jest.fn().mockImplementation((query: unknown) => {
+        return {
+            matches: false,
+            media: query,
+            onchange: null,
+            addListener: jest.fn(),
+            removeListener: jest.fn(),
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+            dispatchEvent: jest.fn(),
+        };
+    }),
+});
+
+Object.defineProperty(window.webkitURL, "revokeObjectURL", {
+    writable: true,
+    value: jest.fn().mockImplementation((query: unknown) => {
+        return {
+            matches: false,
+            media: query,
+            onchange: null,
+            addListener: jest.fn(),
+            removeListener: jest.fn(),
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+            dispatchEvent: jest.fn(),
+        };
+    }),
+});
+
 Object.defineProperty(global.self, "DOMPoint", {
     writable: true,
     enumerable: true,

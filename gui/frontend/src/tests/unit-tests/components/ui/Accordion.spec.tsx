@@ -103,23 +103,23 @@ describe("Accordion component tests", (): void => {
         expect(section3).toHaveLength(1);
 
         const spyExpand = jest.spyOn(instance.props as IAccordionProperties, "onSectionExpand");
-        expect(spyExpand).not.toBeCalled();
+        expect(spyExpand).not.toHaveBeenCalled();
 
         let onClick = (section1.props() as IAccordionProperties).onClick;
         await act(() => {
             onClick?.(event as MouseEvent | KeyboardEvent, { id: "2" });
         });
-        expect(spyExpand).toBeCalled();
+        expect(spyExpand).toHaveBeenCalled();
 
         const spyAction = jest.spyOn(instance.props as IAccordionProperties, "onSectionAction");
-        expect(spyAction).not.toBeCalled();
+        expect(spyAction).not.toHaveBeenCalled();
         onClick = (component.find("#addConsole").first().props() as IAccordionProperties).onClick;
         expect(onClick).toBeDefined();
 
         await act(() => {
             onClick?.(event as MouseEvent | KeyboardEvent, { id: "2" });
         });
-        expect(spyAction).toBeCalled();
+        expect(spyAction).toHaveBeenCalled();
 
         component.unmount();
     });

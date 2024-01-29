@@ -41,17 +41,45 @@ import { ITag, TagInput } from "../TagInput/TagInput.js";
 import { KeyboardKeys } from "../../../utilities/helpers.js";
 
 export interface IDropdownProperties extends IComponentProperties {
+    /** A single id or a set of it that identify the items that shall be selected. */
     selection?: string | Set<string>;
+
+    /** The id of the default item, if nothing is selected. */
     defaultId?: string;
+
+    /**
+     * If set, no value needs to be picked and the result can be empty.
+     * Adds an extra entry to the list with no caption.
+     */
     optional?: boolean;
+
+    /**
+     * When set an extra description field is show belong the list of items, which shows the description of the
+     * currently hovered item.
+     */
     showDescription?: boolean;
+
+    /** If set, only the icon of the selected item is shown, not the caption. */
+    iconOnly?: boolean;
+
+    /**
+     * If set, the dropdown allows multiple items to be selected at once.
+     * Each item is prefaced with a checkbox which allows the user to select or deselect it.
+     */
     multiSelect?: boolean;
+
+    /**
+     * If set, the arrow is not shown.
+     */
     withoutArrow?: boolean;
+
+    /** If set this string is shown as placeholder if nothing is selected yet (only useful when optional is true). */
     placeholder?: string;
 
     autoFocus?: boolean;
 
     onSelect?: (selection: Set<string>, props: IDropdownProperties) => void;
+    onCancel?: () => void;
 }
 
 interface IDropdownState extends IComponentState {
@@ -83,8 +111,8 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         this.state = {
         };
 
-        this.addHandledProperties("selection", "defaultId", "optional", "showDescription", "multiSelect",
-            "withoutArrow", "autoFocus", "onSelect");
+        this.addHandledProperties("selection", "defaultId", "optional", "showDescription", "iconOnly", "multiSelect",
+            "withoutArrow", "autoFocus", "onSelect", "onCancel");
     }
 
     public componentDidMount(): void {
@@ -116,7 +144,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     public render(): ComponentChild {
         const {
             children, id, defaultId, selection, optional, showDescription, withoutArrow, multiSelect,
-            placeholder,
+            placeholder, iconOnly,
         } = this.mergedProps;
         const { hotId } = this.state;
 
@@ -194,9 +222,10 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                     inputContent = <Container
                         orientation={Orientation.LeftToRight}
                         crossAlignment={ContentAlignment.Center}
+                        data-tooltip="inherit"
                     >
                         {tags[0].picture}
-                        {tags[0].caption && <Label>{tags[0].caption}</Label>}
+                        {!iconOnly && tags[0].caption && <Label>{tags[0].caption}</Label>}
                     </Container>;
                 } else {
                     inputContent = <Label className="ellipsis">{tags[0].caption}</Label>;
@@ -213,6 +242,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                     onClick={this.handleClick}
                     onKeyDown={this.handleKeydown}
                     crossAlignment={ContentAlignment.Center}
+                    data-tooltip="inherit"
                     onBlur={this.handleBlur}
                     {...this.unhandledProperties}
                 >
@@ -225,13 +255,13 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 {inputControl}
                 <Popup
                     ref={this.popupRef}
+                    className="dropdownList"
                     innerRef={this.listRef}
                     id={`${id || ""}Popup`}
                     showArrow={false}
                     placement={ComponentPlacement.BottomRight}
                     onOpen={this.handleOpen}
                     onClose={this.handleClose}
-                    className="dropdownList"
                 >
                     {content}
                     {showDescription &&
@@ -417,11 +447,16 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     };
 
     private readonly handleClose = (cancelled: boolean): void => {
-        const { multiSelect } = this.mergedProps;
+        const { multiSelect, onCancel } = this.mergedProps;
 
         // In multi selection mode changes are already saved and cannot be restored here.
-        if (!multiSelect && cancelled) {
-            this.restoreSelection();
+        if (cancelled) {
+            if (!multiSelect) {
+                // Restore the previous selection.
+                this.currentSelectionIndex = this.selectionIndexBackup;
+            }
+
+            onCancel?.();
         }
 
         this.containerRef.current?.classList.remove("manualFocus");
@@ -495,13 +530,4 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         this.selectionBackup = typeof selection === "string" ? new Set<string>([selection]) : selection;
     };
 
-    /**
-     * Restores the previously saved selection values.
-     */
-    private readonly restoreSelection = (): void => {
-        const { onSelect } = this.mergedProps;
-
-        this.currentSelectionIndex = this.selectionIndexBackup;
-        onSelect?.(this.selectionBackup ?? new Set<string>(), this.props);
-    };
 }

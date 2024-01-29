@@ -123,7 +123,14 @@ export const notebook = {
                 tableColumnTitle: By.className("tabulator-col-title"),
                 tableCell: By.className("tabulator-cell"),
                 changedTableCell: By.css(".tabulator-cell.changed"),
-                tableCellCheckBox: By.css(".msg.checkbox"),
+                tableCellSelectList: {
+                    exists: By.css(".cellEditorHost .dropdown"),
+                    list: {
+                        exists: By.id("Popup"),
+                        item: By.css(".dropdownItem > label"),
+                    },
+                },
+                tableCellUpDownInput: By.id("upDownInput"),
                 tableCellDateTime: By.css("input.dateTime"),
                 tableCellIcon: By.css(".iconHost .icon"),
                 status: {

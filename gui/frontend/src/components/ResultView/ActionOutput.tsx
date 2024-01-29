@@ -94,10 +94,21 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
                 columnSpan = 2;
             }
 
+            let useLabel = false;
+
             try {
-                const json = JSON.parse(entry.content);
-                cells.push(<JsonView json={json} />);
+                // Avoid throwing an exception for something which is obviously not JSON.
+                if (entry.content.match(/^\s*{/)) {
+                    const json = JSON.parse(entry.content);
+                    cells.push(<JsonView json={json} />);
+                } else {
+                    useLabel = true;
+                }
             } catch (e) {
+                useLabel = true;
+            }
+
+            if (useLabel) {
                 cells.push(<Label
                     className={`actionLabel${index === undefined ? "" : " clickable"}`}
                     id={index?.toString()}

@@ -27,18 +27,18 @@ import { ComponentChild, createRef, render } from "preact";
 
 import { ResultTabView } from "../components/ResultView/ResultTabView.js";
 import {
-    IExecutionResult, IGraphResult, IPresentationOptions, IResponseDataOptions, IResultSetRows, IResultSets,
+    IExecutionResult, IGraphResult, IPresentationOptions, IResponseDataOptions, IResultSet, IResultSetRows, IResultSets,
     ITextResult, LoadingState,
 } from "./index.js";
 import { DiagnosticSeverity, IDiagnosticEntry, TextSpan } from "../parsing/parser-common.js";
 import { Monaco } from "../components/ui/CodeEditor/index.js";
 import { ExecutionContext } from "./ExecutionContext.js";
-import { requisitions } from "../supplement/Requisitions.js";
+import { requisitions, type IColumnDetails } from "../supplement/Requisitions.js";
 import { EditorLanguage } from "../supplement/index.js";
 
 import { GraphHost } from "../components/graphs/GraphHost.js";
 import { ActionOutput } from "../components/ResultView/ActionOutput.js";
-import { MessageType } from "../app-logic/Types.js";
+import { MessageType, type ISqlUpdateResult } from "../app-logic/Types.js";
 import { Container, Orientation } from "../components/ui/Container/Container.js";
 import { SQLExecutionContext } from "./SQLExecutionContext.js";
 import { ResultStatus } from "../components/ResultView/ResultStatus.js";
@@ -86,7 +86,10 @@ export class PresentationInterface {
      * Useful for higher level consumers to update their storage (e.g. cached results).
      * Note: this is not used when disposing of the presentation (where we want to keep the data for later restore).
      */
-    public onRemoveResult?: (resultIds: string[]) => void;
+    public onRemoveResult?: (resultIds: string[]) => Promise<void>;
+
+    public onCommitChanges?: (resultSet: IResultSet, updateSql: string[]) => Promise<ISqlUpdateResult>;
+    public onRollbackChanges?: (resultSet: IResultSet) => Promise<void>;
 
     // The target HTML element to which we render the React nodes dynamically.
     protected renderTarget?: HTMLDivElement;
@@ -120,16 +123,29 @@ export class PresentationInterface {
     public constructor(editor: Partial<Monaco.IStandaloneCodeEditor> | undefined, public language: EditorLanguage) {
         this.backend = editor;
         this.prepareRenderTarget();
+
+        requisitions.register("sqlUpdateColumnInfo", this.updateColumnInfo);
     }
 
     public dispose(): void {
+        requisitions.unregister("sqlUpdateColumnInfo", this.updateColumnInfo);
+
         this.onRemoveResult = undefined;
         const editorModel = this.backend?.getModel?.();
         if (editorModel) {
             editorModel.deltaDecorations?.(this.marginDecorationIDs, []);
         }
         this.marginDecorationIDs = [];
-        this.removeResult();
+        void this.removeResult();
+    }
+
+    /**
+     * @returns true if this presentation can be closed/disposed of, otherwise false.
+     *
+     * If there are pending changes in the result view, then the user is asked to confirm the close operation.
+     */
+    public canClose(): Promise<boolean> {
+        return this.resultRef.current?.canClose() ?? Promise.resolve(true);
     }
 
     public get model(): Monaco.ITextModel | null {
@@ -244,7 +260,7 @@ export class PresentationInterface {
      *
      * @param resultId If specified only the tab which belongs to the given ID is removed.
      */
-    public clearResult(resultId?: string): void {
+    public async clearResult(resultId?: string): Promise<void> {
         if (this.waitTimer) {
             clearTimeout(this.waitTimer);
             this.waitTimer = null;
@@ -256,9 +272,9 @@ export class PresentationInterface {
         }
 
         if (resultId) {
-            this.onRemoveResult?.([resultId]);
+            await this.onRemoveResult?.([resultId]);
         } else {
-            this.onRemoveResult?.(this.resultIds);
+            await this.onRemoveResult?.(this.resultIds);
         }
 
         if (!resultId) {
@@ -313,8 +329,8 @@ export class PresentationInterface {
         }
     }
 
-    public removeResult(): void {
-        this.clearResult();
+    public async removeResult(): Promise<void> {
+        await this.clearResult();
         this.removeRenderTarget();
     }
 
@@ -486,6 +502,8 @@ export class PresentationInterface {
                                 sql: dataOptions.sql ?? "",
                                 columns: data.columns ?? [],
                                 data,
+                                updatable: dataOptions.updatable ?? false,
+                                fullTableName: dataOptions.fullTableName ?? "",
                             }],
                         };
                     }
@@ -552,6 +570,8 @@ export class PresentationInterface {
                                         sql: dataOptions.sql ?? "",
                                         columns: data.columns ?? [],
                                         data,
+                                        updatable: dataOptions.updatable ?? false,
+                                        fullTableName: dataOptions.fullTableName ?? "",
                                     });
                                 }
                             }
@@ -573,6 +593,8 @@ export class PresentationInterface {
                                         sql: dataOptions.sql ?? "",
                                         columns: data.columns ?? [],
                                         data,
+                                        updatable: dataOptions.updatable ?? false,
+                                        fullTableName: dataOptions.fullTableName ?? "",
                                     }],
                                     output: this.resultData.text,
                                 };
@@ -592,6 +614,8 @@ export class PresentationInterface {
                                     sql: dataOptions.sql ?? "",
                                     columns: data.columns ?? [],
                                     data,
+                                    updatable: dataOptions.updatable ?? false,
+                                    fullTableName: dataOptions.fullTableName ?? "",
                                 }],
                             };
 
@@ -863,6 +887,9 @@ export class PresentationInterface {
                         onResultPageChange={this.handleResultPageChange}
                         onToggleResultPaneViewState={this.toggleResultPane}
                         onSelectTab={this.handleSelectTab}
+                        onCommitChanges={this.commitChanges}
+                        onRollbackChanges={this.rollbackChanges}
+                        onRemoveResult={this.handleRemoveResult}
                     />;
 
                     this.minHeight = 36;
@@ -878,7 +905,7 @@ export class PresentationInterface {
                             showIndexes={options?.showIndexes}
                         />
                         {this.resultData.executionInfo &&
-                            <ResultStatus executionInfo={this.resultData.executionInfo} />}
+                            <ResultStatus statusInfo={this.resultData.executionInfo} />}
                     </Container>;
                     this.minHeight = 28;
                 }
@@ -898,6 +925,9 @@ export class PresentationInterface {
                     onResultPageChange={this.handleResultPageChange}
                     onToggleResultPaneViewState={this.toggleResultPane}
                     onSelectTab={this.handleSelectTab}
+                    onCommitChanges={this.commitChanges}
+                    onRollbackChanges={this.rollbackChanges}
+                    onRemoveResult={this.handleRemoveResult}
                 />;
                 this.minHeight = 36;
 
@@ -965,4 +995,50 @@ export class PresentationInterface {
         }
     };
 
+    private commitChanges = async (resultSet: IResultSet, updateSql: string[]): Promise<ISqlUpdateResult> => {
+        // No need to re-render the result view, as the caller will run a refresh query anyway (e.g. to update auto
+        // incremented fields).
+        return this.onCommitChanges?.(resultSet, updateSql) ?? { affectedRows: 0, errors: [] };
+    };
+
+    private rollbackChanges = (resultSet: IResultSet): void => {
+        void this.onRollbackChanges?.(resultSet).then(() => {
+            this.renderResults();
+        });
+    };
+
+    private handleRemoveResult = (resultId: string): void => {
+        void this.clearResult(resultId);
+    };
+
+    /**
+     * Sent when new column details are available for a specific result set.
+     *
+     * @param data The new column details.
+     *
+     * @returns A promise resolving to true if affected one of the result sets here, otherwise false.
+     */
+    private updateColumnInfo = (data: IColumnDetails): Promise<boolean> => {
+        // Is the update relevant for our result sets?
+        if (this.resultData?.type === "resultSets") {
+            const resultSet = this.resultData.sets.find((candidate) => {
+                return candidate.resultId === data.resultId;
+            });
+
+            if (resultSet && resultSet.columns.length === data.columns.length) {
+                for (const [index, column] of data.columns.entries()) {
+                    const target = resultSet.columns[index];
+                    target.inPK = column.inPK;
+                    target.autoIncrement = column.autoIncrement;
+                    target.nullable = column.nullable;
+                    target.default = column.default;
+                }
+                this.renderResults();
+
+                return Promise.resolve(true);
+            }
+        }
+
+        return Promise.resolve(false);
+    };
 }

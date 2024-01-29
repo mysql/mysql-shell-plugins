@@ -2,351 +2,470 @@
 
 exports[`Result View Tests Render with Columns 1`] = `
 <ResultView
+  editModeActive={false}
+  editable={false}
   resultSet={
     {
       "columns": [
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 5,
           },
           "field": "0",
+          "inPK": false,
+          "nullable": false,
           "title": "col1",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 0,
           },
           "field": "1",
+          "inPK": false,
+          "nullable": false,
           "title": "col2",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 1,
           },
           "field": "2",
+          "inPK": false,
+          "nullable": false,
           "title": "col3",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 2,
           },
           "field": "3",
+          "inPK": false,
+          "nullable": false,
           "title": "col4",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 3,
           },
           "field": "4",
+          "inPK": false,
+          "nullable": false,
           "title": "col5",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 4,
           },
           "field": "5",
+          "inPK": false,
+          "nullable": false,
           "title": "col6",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 5,
           },
           "field": "6",
+          "inPK": false,
+          "nullable": false,
           "title": "col7",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 6,
           },
           "field": "7",
+          "inPK": false,
+          "nullable": false,
           "title": "col8",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 7,
           },
           "field": "8",
+          "inPK": false,
+          "nullable": false,
           "title": "col9",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 8,
           },
           "field": "9",
+          "inPK": false,
+          "nullable": false,
           "title": "col10",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 9,
           },
           "field": "10",
+          "inPK": false,
+          "nullable": false,
           "title": "col11",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 10,
           },
           "field": "11",
+          "inPK": false,
+          "nullable": false,
           "title": "col12",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 11,
           },
           "field": "12",
+          "inPK": false,
+          "nullable": false,
           "title": "col13",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 12,
           },
           "field": "13",
+          "inPK": false,
+          "nullable": false,
           "title": "col14",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 13,
           },
           "field": "14",
+          "inPK": false,
+          "nullable": false,
           "title": "col15",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 14,
           },
           "field": "15",
+          "inPK": false,
+          "nullable": false,
           "title": "col16",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 15,
           },
           "field": "16",
+          "inPK": false,
+          "nullable": false,
           "title": "col17",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 16,
           },
           "field": "17",
+          "inPK": false,
+          "nullable": false,
           "title": "col18",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 17,
           },
           "field": "18",
+          "inPK": false,
+          "nullable": false,
           "title": "col19",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 18,
           },
           "field": "19",
+          "inPK": false,
+          "nullable": false,
           "title": "col20",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 19,
           },
           "field": "20",
+          "inPK": false,
+          "nullable": false,
           "title": "col21",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 20,
           },
           "field": "21",
+          "inPK": false,
+          "nullable": false,
           "title": "col22",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 21,
           },
           "field": "22",
+          "inPK": false,
+          "nullable": false,
           "title": "col23",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 22,
           },
           "field": "23",
+          "inPK": false,
+          "nullable": false,
           "title": "col24",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 23,
           },
           "field": "24",
+          "inPK": false,
+          "nullable": false,
           "title": "col25",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 24,
           },
           "field": "25",
+          "inPK": false,
+          "nullable": false,
           "title": "col26",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 25,
           },
           "field": "26",
+          "inPK": false,
+          "nullable": false,
           "title": "col27",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 26,
           },
           "field": "27",
+          "inPK": false,
+          "nullable": false,
           "title": "col28",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 27,
           },
           "field": "28",
+          "inPK": false,
+          "nullable": false,
           "title": "col29",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 28,
           },
           "field": "29",
+          "inPK": false,
+          "nullable": false,
           "title": "col30",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 29,
           },
           "field": "30",
+          "inPK": false,
+          "nullable": false,
           "title": "col31",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 30,
           },
           "field": "31",
+          "inPK": false,
+          "nullable": false,
           "title": "col32",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 31,
           },
           "field": "32",
+          "inPK": false,
+          "nullable": false,
           "title": "col33",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 32,
           },
           "field": "33",
+          "inPK": false,
+          "nullable": false,
           "title": "col34",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 33,
           },
           "field": "34",
+          "inPK": false,
+          "nullable": false,
           "title": "col35",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 34,
           },
           "field": "35",
+          "inPK": false,
+          "nullable": false,
           "title": "col36",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 35,
           },
           "field": "36",
+          "inPK": false,
+          "nullable": false,
           "title": "col37",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 36,
           },
           "field": "37",
+          "inPK": false,
+          "nullable": false,
           "title": "col38",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 37,
           },
           "field": "38",
+          "inPK": false,
+          "nullable": false,
           "title": "col39",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 38,
           },
           "field": "39",
+          "inPK": false,
+          "nullable": false,
           "title": "col40",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 39,
           },
           "field": "40",
+          "inPK": false,
+          "nullable": false,
           "title": "col41",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 40,
           },
           "field": "41",
+          "inPK": false,
+          "nullable": false,
           "title": "col42",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 41,
           },
           "field": "42",
+          "inPK": false,
+          "nullable": false,
           "title": "col43",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 42,
           },
           "field": "43",
+          "inPK": false,
+          "nullable": false,
           "title": "col44",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 43,
           },
           "field": "44",
+          "inPK": false,
+          "nullable": false,
           "title": "col45",
         },
         {
+          "autoIncrement": false,
           "dataType": {
             "type": 44,
           },
           "field": "45",
+          "inPK": false,
+          "nullable": false,
           "title": "col46",
-        },
-        {
-          "dataType": {
-            "type": 45,
-          },
-          "field": "46",
-          "title": "col47",
-        },
-        {
-          "dataType": {
-            "type": 46,
-          },
-          "field": "47",
-          "title": "col48",
-        },
-        {
-          "dataType": {
-            "type": 47,
-          },
-          "field": "48",
-          "title": "col49",
         },
       ],
       "data": {
@@ -357,9 +476,11 @@ exports[`Result View Tests Render with Columns 1`] = `
         },
         "rows": [],
       },
+      "fullTableName": "test",
       "resultId": "123",
       "sql": "select 1",
       "type": "resultSet",
+      "updatable": false,
     }
   }
 >
@@ -382,603 +503,793 @@ exports[`Result View Tests Render with Columns 1`] = `
         columns={
           [
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "0",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 5,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col1",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "1",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 0,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col2",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "2",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 1,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col3",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "3",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 2,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col4",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "4",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 3,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col5",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "5",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 4,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col6",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "6",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 5,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col7",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "7",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 6,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col8",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "8",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 7,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col9",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "9",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 8,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col10",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "10",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 9,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col11",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "11",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 10,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col12",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": undefined,
+              "editorParams": [Function],
               "field": "12",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 11,
-              },
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col13",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": undefined,
+              "editorParams": [Function],
               "field": "13",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 12,
-              },
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col14",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "14",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 13,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col15",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "15",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 14,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col16",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "16",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 15,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col17",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "17",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 16,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col18",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "18",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 17,
-              },
+              "formatterParams": [Function],
               "minWidth": 150,
               "resizable": true,
               "title": "col19",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "19",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 18,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col20",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "20",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 19,
-              },
+              "formatterParams": [Function],
               "minWidth": 150,
               "resizable": true,
               "title": "col21",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "21",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 20,
-              },
+              "formatterParams": [Function],
               "minWidth": 150,
               "resizable": true,
               "title": "col22",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "22",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 21,
-              },
+              "formatterParams": [Function],
               "minWidth": 150,
               "resizable": true,
               "title": "col23",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "23",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 22,
-              },
-              "minWidth": 50,
+              "formatterParams": [Function],
+              "minWidth": 150,
               "resizable": true,
               "title": "col24",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "24",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 23,
-              },
-              "minWidth": 50,
+              "formatterParams": [Function],
+              "minWidth": 150,
               "resizable": true,
               "title": "col25",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "25",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 24,
-              },
-              "minWidth": 50,
+              "formatterParams": [Function],
+              "minWidth": 150,
               "resizable": true,
               "title": "col26",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "26",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 25,
-              },
-              "minWidth": 50,
+              "formatterParams": [Function],
+              "minWidth": 150,
               "resizable": true,
               "title": "col27",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "27",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 26,
-                "type": 26,
-              },
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col28",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "28",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 27,
-                "type": 27,
-              },
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col29",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "29",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 28,
-                "type": 28,
-              },
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col30",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "30",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 29,
-                "type": 29,
-              },
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col31",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "31",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 30,
-                "type": 30,
-              },
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col32",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "32",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 31,
-                "type": 31,
-              },
-              "minWidth": 50,
+              "formatterParams": [Function],
+              "minWidth": 150,
               "resizable": true,
               "title": "col33",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "33",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 32,
-              },
-              "minWidth": 50,
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
+              "minWidth": 150,
               "resizable": true,
               "title": "col34",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "34",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 33,
-              },
-              "minWidth": 50,
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
+              "minWidth": 150,
               "resizable": true,
               "title": "col35",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "35",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 34,
-              },
-              "minWidth": 50,
+              "formatterParams": [Function],
+              "minWidth": 150,
               "resizable": true,
               "title": "col36",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "36",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 35,
-              },
-              "minWidth": 50,
+              "formatterParams": [Function],
+              "minWidth": 150,
               "resizable": true,
               "title": "col37",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "37",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 36,
-              },
-              "minWidth": 50,
+              "formatterParams": [Function],
+              "minWidth": 150,
               "resizable": true,
               "title": "col38",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "38",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 37,
-              },
-              "minWidth": 50,
+              "formatterParams": [Function],
+              "minWidth": 150,
               "resizable": true,
               "title": "col39",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "39",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 38,
-              },
-              "minWidth": 50,
+              "formatterParams": [Function],
+              "minWidth": 150,
               "resizable": true,
               "title": "col40",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "40",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 39,
-              },
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col41",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "41",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 40,
-              },
-              "minWidth": 50,
+              "formatterParams": [Function],
+              "minWidth": 150,
               "resizable": true,
               "title": "col42",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "42",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 41,
-              },
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col43",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "43",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 42,
-              },
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
               "minWidth": 50,
               "resizable": true,
               "title": "col44",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "44",
               "formatter": [Function],
               "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 43,
-              },
+              "formatterParams": [Function],
               "minWidth": 150,
               "resizable": true,
               "title": "col45",
               "width": undefined,
             },
             {
+              "cellDblClick": [Function],
+              "cellEditCancelled": [Function],
+              "cellEdited": [Function],
+              "cellEditing": [Function],
+              "editable": [Function],
+              "editor": [Function],
+              "editorParams": [Function],
               "field": "45",
-              "formatter": "plaintext",
-              "formatterClipboard": "plaintext",
-              "formatterParams": {
-                "dbDataType": 44,
-              },
-              "minWidth": 50,
+              "formatter": [Function],
+              "formatterClipboard": [Function],
+              "formatterParams": [Function],
+              "minWidth": 150,
               "resizable": true,
               "title": "col46",
-              "width": undefined,
-            },
-            {
-              "field": "46",
-              "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 45,
-              },
-              "minWidth": 50,
-              "resizable": true,
-              "title": "col47",
-              "width": undefined,
-            },
-            {
-              "field": "47",
-              "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 46,
-              },
-              "minWidth": 150,
-              "resizable": true,
-              "title": "col48",
-              "width": undefined,
-            },
-            {
-              "field": "48",
-              "formatter": [Function],
-              "formatterClipboard": [Function],
-              "formatterParams": {
-                "dbDataType": 47,
-              },
-              "minWidth": 150,
-              "resizable": true,
-              "title": "col49",
               "width": undefined,
             },
           ]
         }
         onCellContext={[Function]}
         onColumnResized={[Function]}
+        onFormatRow={[Function]}
+        onVerticalScroll={[Function]}
         options={
           {
             "alternatingRowBackgrounds": false,
@@ -995,6 +1306,152 @@ exports[`Result View Tests Render with Columns 1`] = `
           className="msg treeGrid horizontalGrid verticalGrid"
         />
       </TreeGrid>
+      <Container
+        className="actionHost"
+        orientation="row"
+      >
+        <div
+          className="msg container fixedScrollbar actionHost"
+          style={
+            {
+              "alignItems": undefined,
+              "flexDirection": "row",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
+        >
+          <Button
+            data-tooltip="Add New Row"
+            focusOnClick={false}
+            id="addNewRow"
+            imageOnly={true}
+            onClick={[Function]}
+          >
+            <div
+              className="msg button imageOnly"
+              data-tooltip="Add New Row"
+              id="addNewRow"
+              onClick={[Function]}
+              onMouseDown={[Function]}
+              role="button"
+              style={
+                {
+                  "flexDirection": undefined,
+                }
+              }
+              tabIndex={0}
+            >
+              <Icon
+                data-tooltip="inherit"
+                disabled={false}
+                src="plus.svg"
+              >
+                <div
+                  className="msg icon"
+                  data-tooltip="inherit"
+                  style={
+                    {
+                      "WebkitMaskImage": "url(plus.svg)",
+                      "backgroundColor": undefined,
+                      "height": undefined,
+                      "maskImage": "url(plus.svg)",
+                      "width": undefined,
+                    }
+                  }
+                />
+              </Icon>
+            </div>
+          </Button>
+        </div>
+      </Container>
+      <FieldEditor>
+        <ValueEditDialog
+          id="fieldEditor"
+          onClose={[Function]}
+          onValidate={[Function]}
+        >
+          <Dialog
+            actions={
+              {
+                "begin": [],
+                "end": [
+                  <Button
+                    caption="OK"
+                    disabled={false}
+                    id="ok"
+                    onClick={[Function]}
+                  />,
+                  <Button
+                    caption="Cancel"
+                    id="cancel"
+                    onClick={[Function]}
+                  />,
+                ],
+              }
+            }
+            caption={
+              <k>
+                <Icon
+                  disabled={false}
+                  src={389}
+                />
+                <Label />
+              </k>
+            }
+            className="msg valueEditDialog"
+            container={
+              <body
+                theme="dark"
+              />
+            }
+            content={
+              <Grid
+                columnGap={16}
+                columns={8}
+                id="contentGrid"
+                rowGap={16}
+              />
+            }
+            id="fieldEditor"
+            onClose={[Function]}
+          >
+            <Portal
+              container={
+                <body
+                  theme="dark"
+                />
+              }
+              id="fieldEditor"
+              onClose={[Function]}
+              onOpen={[Function]}
+            />
+          </Dialog>
+          <Menu
+            onItemClick={[Function]}
+            orientation="column"
+            placement="right-start"
+          >
+            <Popup
+              className="msg menu"
+              onClose={[Function]}
+              onKeyDown={[Function]}
+              onOpen={[Function]}
+              orientation="column"
+              pinned={false}
+              placement="right-start"
+              showArrow={false}
+            >
+              <Portal
+                className="popupPortal"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+              />
+            </Popup>
+          </Menu>
+        </ValueEditDialog>
+      </FieldEditor>
       <Menu
         id="cellContextMenu"
         onItemClick={[Function]}
@@ -1028,6 +1485,8 @@ exports[`Result View Tests Render with Columns 1`] = `
 
 exports[`Result View Tests Render with Error/Response 1`] = `
 <ResultView
+  editModeActive={false}
+  editable={false}
   resultSet={
     {
       "columns": [],
@@ -1039,9 +1498,11 @@ exports[`Result View Tests Render with Error/Response 1`] = `
         },
         "rows": [],
       },
+      "fullTableName": "test",
       "resultId": "123",
       "sql": "select 1",
       "type": "resultSet",
+      "updatable": false,
     }
   }
 >
@@ -1060,6 +1521,65 @@ exports[`Result View Tests Render with Error/Response 1`] = `
         }
       }
     >
+      <Container
+        className="actionHost"
+        orientation="row"
+      >
+        <div
+          className="msg container fixedScrollbar actionHost"
+          style={
+            {
+              "alignItems": undefined,
+              "flexDirection": "row",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
+        >
+          <Button
+            data-tooltip="Add New Row"
+            focusOnClick={false}
+            id="addNewRow"
+            imageOnly={true}
+            onClick={[Function]}
+          >
+            <div
+              className="msg button imageOnly"
+              data-tooltip="Add New Row"
+              id="addNewRow"
+              onClick={[Function]}
+              onMouseDown={[Function]}
+              role="button"
+              style={
+                {
+                  "flexDirection": undefined,
+                }
+              }
+              tabIndex={0}
+            >
+              <Icon
+                data-tooltip="inherit"
+                disabled={false}
+                src="plus.svg"
+              >
+                <div
+                  className="msg icon"
+                  data-tooltip="inherit"
+                  style={
+                    {
+                      "WebkitMaskImage": "url(plus.svg)",
+                      "backgroundColor": undefined,
+                      "height": undefined,
+                      "maskImage": "url(plus.svg)",
+                      "width": undefined,
+                    }
+                  }
+                />
+              </Icon>
+            </div>
+          </Button>
+        </div>
+      </Container>
       <Menu
         id="cellContextMenu"
         onItemClick={[Function]}
@@ -1093,6 +1613,8 @@ exports[`Result View Tests Render with Error/Response 1`] = `
 
 exports[`Result View Tests Standard Rendering 1`] = `
 <ResultView
+  editModeActive={false}
+  editable={false}
   resultSet={
     {
       "columns": [],
@@ -1100,9 +1622,11 @@ exports[`Result View Tests Standard Rendering 1`] = `
         "currentPage": 0,
         "rows": [],
       },
+      "fullTableName": "test",
       "resultId": "123",
       "sql": "select 1",
       "type": "resultSet",
+      "updatable": false,
     }
   }
 >
@@ -1125,6 +1649,8 @@ exports[`Result View Tests Standard Rendering 1`] = `
         columns={[]}
         onCellContext={[Function]}
         onColumnResized={[Function]}
+        onFormatRow={[Function]}
+        onVerticalScroll={[Function]}
         options={
           {
             "alternatingRowBackgrounds": false,
@@ -1141,6 +1667,152 @@ exports[`Result View Tests Standard Rendering 1`] = `
           className="msg treeGrid horizontalGrid verticalGrid"
         />
       </TreeGrid>
+      <Container
+        className="actionHost"
+        orientation="row"
+      >
+        <div
+          className="msg container fixedScrollbar actionHost"
+          style={
+            {
+              "alignItems": undefined,
+              "flexDirection": "row",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
+        >
+          <Button
+            data-tooltip="Add New Row"
+            focusOnClick={false}
+            id="addNewRow"
+            imageOnly={true}
+            onClick={[Function]}
+          >
+            <div
+              className="msg button imageOnly"
+              data-tooltip="Add New Row"
+              id="addNewRow"
+              onClick={[Function]}
+              onMouseDown={[Function]}
+              role="button"
+              style={
+                {
+                  "flexDirection": undefined,
+                }
+              }
+              tabIndex={0}
+            >
+              <Icon
+                data-tooltip="inherit"
+                disabled={false}
+                src="plus.svg"
+              >
+                <div
+                  className="msg icon"
+                  data-tooltip="inherit"
+                  style={
+                    {
+                      "WebkitMaskImage": "url(plus.svg)",
+                      "backgroundColor": undefined,
+                      "height": undefined,
+                      "maskImage": "url(plus.svg)",
+                      "width": undefined,
+                    }
+                  }
+                />
+              </Icon>
+            </div>
+          </Button>
+        </div>
+      </Container>
+      <FieldEditor>
+        <ValueEditDialog
+          id="fieldEditor"
+          onClose={[Function]}
+          onValidate={[Function]}
+        >
+          <Dialog
+            actions={
+              {
+                "begin": [],
+                "end": [
+                  <Button
+                    caption="OK"
+                    disabled={false}
+                    id="ok"
+                    onClick={[Function]}
+                  />,
+                  <Button
+                    caption="Cancel"
+                    id="cancel"
+                    onClick={[Function]}
+                  />,
+                ],
+              }
+            }
+            caption={
+              <k>
+                <Icon
+                  disabled={false}
+                  src={389}
+                />
+                <Label />
+              </k>
+            }
+            className="msg valueEditDialog"
+            container={
+              <body
+                theme="dark"
+              />
+            }
+            content={
+              <Grid
+                columnGap={16}
+                columns={8}
+                id="contentGrid"
+                rowGap={16}
+              />
+            }
+            id="fieldEditor"
+            onClose={[Function]}
+          >
+            <Portal
+              container={
+                <body
+                  theme="dark"
+                />
+              }
+              id="fieldEditor"
+              onClose={[Function]}
+              onOpen={[Function]}
+            />
+          </Dialog>
+          <Menu
+            onItemClick={[Function]}
+            orientation="column"
+            placement="right-start"
+          >
+            <Popup
+              className="msg menu"
+              onClose={[Function]}
+              onKeyDown={[Function]}
+              onOpen={[Function]}
+              orientation="column"
+              pinned={false}
+              placement="right-start"
+              showArrow={false}
+            >
+              <Portal
+                className="popupPortal"
+                onClose={[Function]}
+                onKeyDown={[Function]}
+                onOpen={[Function]}
+              />
+            </Popup>
+          </Menu>
+        </ValueEditDialog>
+      </FieldEditor>
       <Menu
         id="cellContextMenu"
         onItemClick={[Function]}

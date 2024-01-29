@@ -74,7 +74,7 @@ describe("Selector component tests", (): void => {
         await act(() => {
             instance.props.onSelect?.("5");
         });
-        expect(spyOnChange).toBeCalled();
+        expect(spyOnChange).toHaveBeenCalled();
     });
 
     it("Test Selector properties and updates", () => {

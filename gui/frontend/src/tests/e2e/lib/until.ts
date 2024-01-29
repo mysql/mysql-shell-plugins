@@ -67,18 +67,18 @@ export const resultGridIsEditable = (resultGrid: WebElement): Condition<boolean>
 };
 
 export const cellIsEditable = (driver: WebDriver, commandExecutor: CommandExecutor, rowNumber: number,
-    columnNumber: number, expectInput: boolean): Condition<boolean | undefined> => {
+    columnName: string, expectInput: boolean): Condition<boolean | undefined> => {
     return new Condition(`for row to be editable`, async () => {
         return driver.wait(async () => {
             try {
-                const cell = await commandExecutor.getCellFromResultGrid(driver, rowNumber, columnNumber);
-                const isEditable = (await cell!.getAttribute("class")).includes("tabulator-editing");
+                const cell = await commandExecutor.getCellFromResultGrid(driver, rowNumber, columnName);
+                const isEditable = (await cell.getAttribute("class")).includes("tabulator-editing");
                 if (expectInput) {
                     if (isEditable) {
-                        return (await cell!.findElements(locator.htmlTag.input)).length > 0;
+                        return (await cell.findElements(locator.htmlTag.input)).length > 0;
                     }
                 } else {
-                    return (await cell!.getAttribute("class")).includes("changed") || isEditable;
+                    return (await cell.getAttribute("class")).includes("changed") || isEditable;
                 }
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError) ||
@@ -86,7 +86,7 @@ export const cellIsEditable = (driver: WebDriver, commandExecutor: CommandExecut
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `The cell (${rowNumber}, ${columnNumber}) was not editable`);
+        }, constants.wait5seconds, `The cell (${rowNumber}, ${columnName}) was not editable`);
     });
 };
 

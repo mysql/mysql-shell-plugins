@@ -26,7 +26,17 @@
 /* eslint-disable max-classes-per-file */
 
 import { CellComponent, ColumnComponent, ColumnDefinition, PopupPosition } from "tabulator-tables";
-import { DBDataType } from "../../../app-logic/Types.js";
+import { DBDataType, IColumnInfo } from "../../../app-logic/Types.js";
+
+const mockColumnsInfo: IColumnInfo = {
+    title: "col1",
+    field: "0",
+    dataType: { type: DBDataType.Varchar },
+    inPK: false,
+    nullable: false,
+    autoIncrement: false,
+};
+
 
 export class MockColumnComponent implements ColumnComponent {
     public getElement = jest.fn();
@@ -56,7 +66,11 @@ export class MockColumnComponent implements ColumnComponent {
     public getDefinition = (): ColumnDefinition => {
         return {
             title: "",
-            formatterParams: { dbDataType: DBDataType.Varchar },
+            formatterParams: (): { info: IColumnInfo; } => {
+                return {
+                    info: mockColumnsInfo,
+                };
+            },
         };
     };
 }

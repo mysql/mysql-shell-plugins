@@ -600,4 +600,70 @@ export class Misc {
             return (await el.getAttribute("value")).length === 0;
         }, constants.wait5seconds, `${await el.getId()} was not cleaned`);
     };
+
+    /**
+     * Transforms a given string into a string with escaped characters to be used as regex
+     * @param value The word
+     *  @returns A regex with escaped characters
+     */
+    public static transformToMatch = (value: string): RegExp => {
+        const regex = value
+            .replace(/\*/g, "\\*")
+            .replace(/\./g, ".*")
+            .replace(/;/g, ".*")
+            .replace(/\(/g, "\\(")
+            .replace(/\)/g, "\\)")
+            .replace(/\{/g, "\\{")
+            .replace(/\}/g, "\\}")
+            .replace(/\s/g, ".*");
+
+        return new RegExp(regex);
+    };
+
+    /**
+     * Gets the index of a column, from a table
+     * @param tableName The table
+     * @param columnName The column name
+     *  @returns The index of the column
+     */
+    public static getDbTableColumnIndex = (tableName: string, columnName: string): number => {
+        let index: number | undefined;
+        for (const table of constants.dbTables) {
+            if (table.name === tableName) {
+                index = table.columns.indexOf(columnName);
+                break;
+            }
+        }
+        if (!index) {
+            throw new Error(`Could not find index on table '${tableName}' and column '${columnName}'`);
+        } else {
+            return index;
+        }
+    };
+
+    /**
+     * Converts a time to a 12h time string (AM/PM)
+     * @param time The time
+     * @returns The converted time
+     */
+    public static convertTimeTo12H = (time: string): string => {
+        const timeString12hr = new Date("1970-01-01T" + time + "Z")
+            .toLocaleTimeString("en-US",
+                { timeZone: "UTC", hour12: true, hour: "numeric", minute: "numeric", second: "numeric" },
+            );
+
+        return timeString12hr;
+    };
+
+    /**
+     * Converts a date to ISO format
+     * @param date The date
+     * @returns The converted date
+     */
+    public static convertDateToISO = (date: string): string => {
+        const toReturn = new Date(date).toISOString();
+        const splitted = toReturn.split("T");
+
+        return `${splitted[0]} ${splitted[1].replace(":00.000Z", "")}`;
+    };
 }

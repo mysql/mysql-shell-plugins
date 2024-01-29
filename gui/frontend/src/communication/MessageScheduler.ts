@@ -27,7 +27,7 @@
 
 import { appParameters, requisitions } from "../supplement/Requisitions.js";
 import { webSession } from "../supplement/WebSession.js";
-import { convertCamelToSnakeCase, convertSnakeToCamelCase } from "../utilities/string-helpers.js";
+import { convertObjectKeysCamelToSnakeCase, convertObjectKeysSnakeToCamelCase } from "../utilities/string-helpers.js";
 import { uuid } from "../utilities/helpers.js";
 
 import { IProtocolParameters } from "./ProtocolParameterMapper.js";
@@ -37,6 +37,7 @@ import { multiResultAPIs, ShellAPIGui, IErrorResult, IWebSessionData } from "./P
 import { ShellAPIMds } from "./ProtocolMds.js";
 import { ShellAPIMrs } from "./ProtocolMrs.js";
 import { ResponseError } from "./ResponseError.js";
+import { JsonParser } from "./JsonParser.js";
 
 export interface IConnectionOptions {
     /** The http(s) URL to connect to. */
@@ -96,7 +97,6 @@ interface IOngoingRequest<K extends keyof IProtocolResults> {
     onData?: DataCallback<K>;
 }
 
-type IErrorInfo = IGenericResponse & { result: { info: string; }; };
 type APIListType = Protocol | ShellAPIGui | ShellAPIMds | ShellAPIMrs | "native";
 
 /** Wrapper around a web socket that performs (re)connection and message scheduling. */
@@ -370,7 +370,8 @@ export class MessageScheduler {
 
             caseConversionIgnores = caseConversionIgnores.concat(["rows"]);
 
-            const data = convertCamelToSnakeCase(record, { ignore: caseConversionIgnores }) as INativeShellRequest;
+            const data = convertObjectKeysCamelToSnakeCase(record,
+                { ignore: caseConversionIgnores }) as INativeShellRequest;
 
             if (this.traceEnabled) {
                 void requisitions.execute("debugger", { request: data });
@@ -457,7 +458,7 @@ export class MessageScheduler {
 
     /**
      * Processes the raw backend data record and converts it to a response usable in the application.
-     * This involves convert snake casing to camel case and determining the type of the response.
+     * This involves converting snake case to camel case and determining the type of the response.
      *
      * @param data The data received by the web socket.
      *
@@ -469,12 +470,12 @@ export class MessageScheduler {
             return undefined;
         }
 
-        const responseObject = JSON.parse(data) as INativeShellResponse;
+        const responseObject = JsonParser.parseJson(data) as INativeShellResponse;
         if (this.traceEnabled) {
             void requisitions.execute("debugger", { response: responseObject });
         }
 
-        const response = convertSnakeToCamelCase(responseObject, { ignore: ["rows"] }) as IGenericResponse;
+        const response = convertObjectKeysSnakeToCamelCase(responseObject, { ignore: ["rows"] }) as IGenericResponse;
 
         switch (response.requestState.type) {
             case "ERROR": {
@@ -514,16 +515,6 @@ export class MessageScheduler {
 
         return response;
     };
-
-    private isErrorInfo(response: IGenericResponse): response is IErrorInfo {
-        if (!("result" in response)) {
-            return false;
-        }
-
-        const info = response as IErrorInfo;
-
-        return typeof info.result.info === "string";
-    }
 
     private isWebSessionData(response: unknown): response is IWebSessionData {
         return (response as IWebSessionData).sessionUuid !== undefined;

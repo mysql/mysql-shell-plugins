@@ -30,7 +30,6 @@ import { defineConfig } from "vite";
 import child_process from "child_process";
 import path from "path";
 import os from "os";
-//import fs from "fs";
 
 import preact from "@preact/preset-vite";
 import monacoEditorPlugin from "vite-plugin-monaco-editor";
@@ -81,12 +80,6 @@ export default defineConfig({
     server: {
         host: "127.0.0.1",
         port: 3001,
-        /*https: {
-            key: fs.readFileSync(
-                "<repo>/shell-plugins/gui/backend/gui_plugin/internal/certificates/server.key"),
-            cert: fs.readFileSync(
-                "<repo>/shell-plugins/gui/backend/gui_plugin/internal/certificates/server.crt"),
-        },*/
     },
     define: {
         "process.env": process.env ?? {},
@@ -174,8 +167,24 @@ export default defineConfig({
                         return "tabulator-tables";
                     }
 
+                    if (id.includes("node_modules/d3")) {
+                        return "d3";
+                    }
+
+                    if (id.includes("node_modules/typescript")) {
+                        return "typescript";
+                    }
+
                     if (id.includes("node_modules")) {
                         return "dependencies";
+                    }
+
+                    if (id.includes("components/theming")) {
+                        return "theming";
+                    }
+
+                    if (id.includes("src/components")) {
+                        return "framework";
                     }
 
                     return null;

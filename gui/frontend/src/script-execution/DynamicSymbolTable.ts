@@ -92,7 +92,7 @@ export class DynamicSymbolTable extends DBSymbolTable {
 
             case SymbolKind.Column: {
                 if (parent.parent) {
-                    const data = await this.backend.getTableObjects(parent.parent.name, parent.name, "Column");
+                    const data = await this.backend.getTableObjectNames(parent.parent.name, parent.name, "Column");
                     this.handleResults(data, parent, ColumnSymbol);
                 }
 
@@ -129,7 +129,7 @@ export class DynamicSymbolTable extends DBSymbolTable {
 
             case SymbolKind.PrimaryKey: {
                 if (parent.parent) {
-                    const data = await this.backend.getTableObjects(parent.parent.name, parent.name, "Primary Key");
+                    const data = await this.backend.getTableObjectNames(parent.parent.name, parent.name, "Primary Key");
                     this.handleResults(data, parent, PrimaryKeySymbol);
                 }
 
@@ -138,7 +138,7 @@ export class DynamicSymbolTable extends DBSymbolTable {
 
             case SymbolKind.ForeignKey: {
                 if (parent.parent) {
-                    const data = await this.backend.getTableObjects(parent.parent.name, parent.name, "Foreign Key");
+                    const data = await this.backend.getTableObjectNames(parent.parent.name, parent.name, "Foreign Key");
                     this.handleResults(data, parent, ForeignKeySymbol);
                 }
 
@@ -194,7 +194,7 @@ export class DynamicSymbolTable extends DBSymbolTable {
 
             case SymbolKind.Index: {
                 if (parent.parent) {
-                    const data = await this.backend.getTableObjects(parent.parent.name, parent.name, "Index");
+                    const data = await this.backend.getTableObjectNames(parent.parent.name, parent.name, "Index");
                     this.handleResults(data, parent, IndexSymbol);
                 }
 

@@ -160,7 +160,7 @@
 
 .msg.connectionTabHost .editorHost .resultText,
 .msg.connectionTabHost .editorHost .resultText code {
-    font-family: 'SourceCodePro+Powerline+Awesome+MySQL', monospace;
+    font-family: var(--msg-monospace-font-family);
 }
 
 .msg.connectionTabHost .toolbar .divider {
@@ -369,7 +369,7 @@
     overflow: hidden;
     padding-right: 20px;
 
-    font-family: 'SourceCodePro+Powerline+Awesome+MySQL';
+    font-family: var(--msg-monospace-font-family);
 }
 
 .msg #dashboardGrid .nameValuePair .nameLabel {

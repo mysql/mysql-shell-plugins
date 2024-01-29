@@ -35,10 +35,11 @@ import {
 import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { convertToPascalCase } from "../../../utilities/string-helpers.js";
 import { IMrsObjectFieldEditorData, MrsObjectFieldEditor } from "./MrsObjectFieldEditor.js";
+import { MrsDbObjectType } from "../types.js";
 
 export class MrsDbObjectDialog extends AwaitableValueEditDialog {
     private requestValue: IMrsDbObjectData;
-    private objectType: string;
+    private objectType: MrsDbObjectType;
     private backend: ShellInterfaceSqlEditor;
     private createDbObject = false;
     private dialogValues?: IDialogValues;
@@ -54,7 +55,7 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
         const schemas = request.parameters?.schemas as IMrsSchemaData[];
         const rowOwnershipFields = request.parameters?.rowOwnershipFields as string[];
         const payload = request.values?.payload as IDictionary;
-        this.objectType = request.values?.objectType as string;
+        this.objectType = request.values?.objectType as MrsDbObjectType;
         this.backend = payload.backend as ShellInterfaceSqlEditor;
         this.createDbObject = payload.createObject as boolean;
 
@@ -229,8 +230,8 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
         };
 
         const mrsObjectSection: IDialogSection = {
-            caption: (this.requestValue.objectType === "PROCEDURE" ||
-                this.requestValue.objectType === "FUNCTION")
+            caption: (this.requestValue.objectType === MrsDbObjectType.Procedure ||
+                this.requestValue.objectType === MrsDbObjectType.Function)
                 ? "Parameters/Result Sets" : "JSON/Relational Duality",
             groupName: "group1",
             expand: true,

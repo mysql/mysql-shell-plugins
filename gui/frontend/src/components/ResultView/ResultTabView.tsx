@@ -32,11 +32,16 @@ import menuIcon from "../../assets/images/toolbar/toolbar-menu.svg";
 import previousPageIcon from "../../assets/images/toolbar/toolbar-page_previous.svg";
 import nextPageIcon from "../../assets/images/toolbar/toolbar-page_next.svg";
 
+import editIcon from "../../assets/images/toolbar/toolbar-edit.svg";
+import previewIcon from "../../assets/images/toolbar/toolbar-preview.svg";
+
 import { ComponentChild, createRef } from "preact";
 
 import { IResultSet, IResultSetRows, IResultSets } from "../../script-execution/index.js";
-import { IColumnInfo, MessageType } from "../../app-logic/Types.js";
-import { ResultView } from "./ResultView.js";
+import {
+    DialogResponseClosure, DialogType, IColumnInfo, IStatusInfo, MessageType, defaultValues, type ISqlUpdateResult,
+} from "../../app-logic/Types.js";
+import { ResultView, ResultRowChanges, IResultCellChange } from "./ResultView.js";
 import { ActionOutput } from "./ActionOutput.js";
 import {
     IComponentProperties, IComponentState, ComponentBase, ComponentPlacement,
@@ -54,6 +59,35 @@ import { ResultStatus } from "./ResultStatus.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { IScriptRequest } from "../../supplement/index.js";
 import { uuid } from "../../utilities/helpers.js";
+import { Label } from "../ui/Label/Label.js";
+import { QueryBuilder } from "./QueryBuilder.js";
+import { SQLPreview } from "../ui/SQLPreview/SQLPreview.js";
+import { DialogHost } from "../../app-logic/DialogHost.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { formatWithNumber } from "../../utilities/string-helpers.js";
+
+/** All the current changes for a result set. */
+interface IEditingInfo {
+    /** Text that can be shown when asking the user for confirmation of commit or rollback of this set of changes. */
+    description: string;
+
+    statusInfo: IStatusInfo;
+
+    /** The result set being edited. */
+    resultSet: IResultSet;
+
+    /** A record for each row that has changes. */
+    rowChanges: ResultRowChanges;
+
+    /** If true, show the SQL preview instead of the result grid. */
+    previewActive: boolean;
+
+    /**
+     * Set when the last commit action resulted in an error.
+     * Only one index is set in this (sparse) array, which is the index of the statement that caused the error.
+     */
+    errors?: string[];
+}
 
 interface IResultTabViewProperties extends IComponentProperties {
     /** One set per tab page. */
@@ -77,6 +111,17 @@ interface IResultTabViewProperties extends IComponentProperties {
     onResultPageChange?: (resultId: string, currentPage: number, sql: string) => void;
     onToggleResultPaneViewState?: () => void;
     onSelectTab?: (index: number) => void;
+
+    /**
+     * Called when changed result set data must be written to the application store and sent to the server.
+     * @returns An error message or the number of affected rows if the update was successful.
+     */
+    onCommitChanges?: (resultSet: IResultSet, updateSql: string[]) => Promise<ISqlUpdateResult>;
+
+    /** Called when the user wants to rollback all changes. */
+    onRollbackChanges?: (resultSet: IResultSet) => void;
+
+    onRemoveResult?: (resultId: string) => void;
 }
 
 interface IResultTabViewState extends IComponentState {
@@ -84,6 +129,12 @@ interface IResultTabViewState extends IComponentState {
     manualTab: boolean;
 
     currentResultSet?: IResultSet;
+
+    /** All value changes per result set. */
+    editingInfo: Map<string, IEditingInfo>;
+
+    /** Set when the user navigates from the preview pane back to the grid by clicking a change line. */
+    selectedRowIndex?: number;
 }
 
 /** Holds a collection of result views and other output in a tabbed interface. */
@@ -91,11 +142,14 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
     private actionMenuRef = createRef<Menu>();
 
-    // A set of result IDs for tabs with edited data.
-    private edited = new Set<string>();
-
     // React refs to the used ResultView instances, keyed by the result ID for the result set.
     private viewRefs = new Map<string, preact.RefObject<ResultView>>();
+
+    // Keeps the top row index for each result set, keyed by the result ID.
+    private topRowIndexes = new Map<string, number>();
+
+    /** The number of updated rows during the last commit action. */
+    #affectedRows?: number;
 
     public constructor(props: IResultTabViewProperties) {
         super(props);
@@ -103,6 +157,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         this.state = {
             manualTab: false,
             currentResultSet: props.resultSets.sets.length > 0 ? props.resultSets.sets[0] : undefined,
+            editingInfo: new Map(),
         };
 
         this.addHandledProperties("resultSets", "contextId", "currentSet", "showMaximizeButton", "hideTabs",
@@ -120,7 +175,6 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             return {
                 manualTab: false,
             };
-
         }
 
         if (resultSets.sets.length === 0) {
@@ -160,7 +214,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
     public render(): ComponentChild {
         const { resultSets, contextId, hideTabs, showMaximizeButton, showMaximized } = this.props;
-        const { currentResultSet } = this.state;
+        const { currentResultSet, editingInfo, selectedRowIndex } = this.state;
 
         const className = this.getEffectiveClassNames(["resultHost"]);
 
@@ -191,9 +245,16 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             <Icon src={showMaximized ? normalizeIcon : maximizeIcon} data-tooltip="inherit" />
         </Button>;
 
+        const currentEditingInfo = editingInfo.get(currentResultSet?.resultId ?? "");
+        const editModeActive = currentEditingInfo !== undefined;
+
+        const updatable = currentResultSet?.updatable ?? false;
+
         resultSets.sets.forEach((resultSet: IResultSet, index) => {
             const ref = createRef<ResultView>();
             this.viewRefs.set(resultSet.resultId, ref);
+
+            const topRowIndex = this.topRowIndexes.get(resultSet.resultId);
 
             if (!showMaximized || resultSet === currentResultSet) {
                 let caption;
@@ -207,35 +268,65 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                     caption += `.${resultSet.subIndex + 1}`;
                 }
 
+                let content;
+                if (resultSet === currentResultSet && currentEditingInfo?.previewActive) {
+                    content = (
+                        <SQLPreview
+                            statements={this.generateStatements(currentEditingInfo)}
+                            errors={currentEditingInfo.errors}
+                            onStatementClick={this.handleStatementClick}
+                        />
+                    );
+                } else {
+                    content = (
+                        <ResultView
+                            ref={ref}
+                            topRowIndex={topRowIndex}
+                            selectRow={selectedRowIndex}
+                            resultSet={resultSet}
+                            editable={updatable}
+                            rowChanges={currentEditingInfo?.rowChanges}
+                            editModeActive={editModeActive}
+                            onFieldEditStart={this.onFieldEditStart}
+                            onFieldEdited={this.onFieldEdited}
+                            onFieldEditCancel={this.onFieldEditCancel}
+                            onToggleRowDeletionMarks={this.onToggleRowDeletionMarks}
+                            onVerticalScroll={this.onVerticalScroll}
+                            onAction={this.onAction}
+                        />
+                    );
+                }
+
+
                 pages.push({
                     id: resultSet.resultId,
                     caption,
                     auxillary: showMaximizeButton === "tab" && toggleStateButton,
-                    content: (
-                        <ResultView
-                            ref={ref}
-                            resultSet={resultSet}
-                            onEdit={this.handleEdit}
-                        />
-                    ),
+                    content,
                 });
             }
         });
 
-
-        let executionInfo;
-        let currentPage = 0;
-        let hasMorePages = false;
-        let dirty = false;
-        if (currentResultSet) {
-            executionInfo = currentResultSet.data.executionInfo;
-            currentPage = currentResultSet.data.currentPage;
-            hasMorePages = currentResultSet.data.hasMoreRows ?? false;
-            dirty = this.edited.has(currentResultSet.resultId);
+        // Show editing information if we have it, otherwise use the execution info.
+        let statusInfo = currentEditingInfo?.statusInfo;
+        if (!statusInfo) {
+            if (this.#affectedRows !== undefined) {
+                const rowText = formatWithNumber("row", this.#affectedRows);
+                statusInfo = {
+                    text: `${rowText} updated`,
+                };
+            } else if (currentResultSet?.data.executionInfo) {
+                statusInfo = currentResultSet?.data.executionInfo;
+            }
         }
 
-        const gotError = executionInfo && executionInfo.type === MessageType.Error;
-        const gotResponse = executionInfo && executionInfo.type === MessageType.Response;
+        const currentPage = currentResultSet?.data.currentPage ?? 0;
+        const hasMorePages = currentResultSet?.data.hasMoreRows ?? false;
+
+        const gotError = statusInfo && statusInfo.type === MessageType.Error;
+        const gotResponse = statusInfo && statusInfo.type === MessageType.Response;
+
+        const editButtonTooltip = updatable ? (editModeActive ? "Editing" : "Start Editing") : "Data not editable";
 
         return (
             <Container
@@ -255,11 +346,31 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                     onSelectTab={this.handleTabSelection}
                 />
                 {
-                    executionInfo && <ResultStatus executionInfo={executionInfo}>
+                    statusInfo && <ResultStatus statusInfo={statusInfo}>
                         {
-                            !gotError && !gotResponse && <Toolbar
-                                dropShadow={false}
-                            >
+                            !gotError && !gotResponse && <Toolbar dropShadow={false} >
+                                <Label className="autoHide">View:</Label>
+                                <Dropdown
+                                    id="viewStyleDropDown"
+                                    selection={currentEditingInfo?.previewActive ? "preview" : "grid"}
+                                    iconOnly={true}
+                                    data-tooltip="Select a View Section for the Result Set"
+                                    onSelect={this.selectViewStyle}
+                                >
+                                    <Dropdown.Item
+                                        id="grid"
+                                        caption="Data Grid"
+                                        picture={<Icon src={gridIcon} data-tooltip="inherit" />}
+                                    />
+                                    <Dropdown.Item
+                                        id="preview"
+                                        caption="Preview Changes"
+                                        picture={<Icon src={previewIcon} data-tooltip="inherit" />}
+                                        disabled={!currentEditingInfo}
+                                    />
+                                </Dropdown>
+                                <Divider vertical={true} />
+                                <Label className="autoHide">Pages:</Label>
                                 <Button
                                     id="previousPageButton"
                                     imageOnly={true}
@@ -279,36 +390,46 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                     <Icon src={nextPageIcon} data-tooltip="inherit" />
                                 </Button>
                                 <Divider vertical={true} />
+                                <Label className="autoHide">Edit:</Label>
+                                <Button
+                                    id="editButton"
+                                    imageOnly={true}
+                                    disabled={!updatable || editModeActive}
+                                    data-tooltip={editButtonTooltip}
+                                    onClick={this.startEditing}
+                                >
+                                    <Icon src={editIcon} data-tooltip="inherit" />
+                                </Button>
+                                <Button
+                                    id="previewButton"
+                                    imageOnly={true}
+                                    disabled={!currentEditingInfo}
+                                    data-tooltip="Preview Changes"
+                                    onClick={this.previewChanges}
+                                >
+                                    <Icon src={previewIcon} data-tooltip="inherit" />
+                                </Button>
                                 <Button
                                     id="applyButton"
                                     imageOnly={true}
-                                    disabled={!dirty}
+                                    disabled={!currentEditingInfo}
                                     data-tooltip="Apply Changes"
+                                    onClick={() => { return this.commitChanges(); }}
                                 >
                                     <Icon src={commitIcon} data-tooltip="inherit" />
                                 </Button>
                                 <Button
-                                    id="revertButton"
+                                    id="rollbackButton"
                                     imageOnly={true}
-                                    disabled={!dirty}
-                                    data-tooltip="Revert Changes"
+                                    disabled={!currentEditingInfo}
+                                    data-tooltip="Rollback Changes"
+                                    onClick={this.cancelEditingAndRollbackChanges}
                                 >
                                     <Icon src={rollbackIcon} data-tooltip="inherit" />
                                 </Button>
                                 <Divider id="editSeparator" vertical={true} />
                                 {showMaximizeButton === "statusBar" && toggleStateButton}
                                 {showMaximizeButton === "statusBar" && <Divider vertical={true} />}
-                                <Dropdown
-                                    id="viewStyleDropDown"
-                                    selection="grid"
-                                    data-tooltip="Select a View Section for the Result Set"
-                                >
-                                    <Dropdown.Item
-                                        id="grid"
-                                        picture={<Icon src={gridIcon} data-tooltip="inherit" />}
-                                    />
-                                </Dropdown>
-                                <Divider vertical={true} />
                                 <Button
                                     id="showActionMenu"
                                     imageOnly={true}
@@ -329,6 +450,15 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                     onItemClick={this.handleActionMenuItemClick}
                 >
                     <MenuItem
+                        id="closeMenuItem"
+                        caption="Close Result Set"
+                    />
+                    <MenuItem
+                        id="separator1"
+                        caption="-"
+                        disabled
+                    />
+                    <MenuItem
                         id="exportMenuItem"
                         caption="Export Result Set"
                         disabled
@@ -342,6 +472,24 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
             </Container >
         );
+    }
+
+    /**
+     * Ask the user for confirmation if there are any pending changes.
+     *
+     * @returns true if the user can close the tab, false otherwise.
+     */
+    public async canClose(): Promise<boolean> {
+        const { editingInfo } = this.state;
+        for (const [, info] of editingInfo) {
+            const ok = await this.confirmCommitOrRollback(info);
+
+            if (!ok) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -422,6 +570,24 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
     private handleActionMenuItemClick = (e: MouseEvent, props: IMenuItemProperties): boolean => {
         switch (props.id ?? "") {
+            case "closeMenuItem": {
+                const { onRemoveResult } = this.props;
+                const { currentResultSet, editingInfo } = this.state;
+
+                const info = editingInfo.get(currentResultSet?.resultId ?? "");
+                if (info) {
+                    void this.confirmCommitOrRollback(info).then((canClose) => {
+                        if (canClose) {
+                            onRemoveResult?.(currentResultSet?.resultId ?? "");
+                        }
+                    });
+                } else {
+                    onRemoveResult?.(currentResultSet?.resultId ?? "");
+                }
+
+                break;
+            }
+
             case "exportMenuItem": {
                 break;
             }
@@ -437,33 +603,154 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     };
 
     private previousPage = (): void => {
-        const { currentResultSet } = this.state;
+        const { currentResultSet, editingInfo } = this.state;
 
-        // Testing note: currentResultSet is always set when we come here (otherwise the toolbar isn't rendered).
-        if (currentResultSet) {
-            if (currentResultSet.data.currentPage > 0) {
+        const switchPage = (): void => {
+            if (currentResultSet && currentResultSet.data.currentPage > 0) {
                 const { onResultPageChange } = this.props;
 
                 --currentResultSet.data.currentPage;
                 onResultPageChange?.(currentResultSet.resultId, currentResultSet.data.currentPage,
                     currentResultSet.sql);
             }
+        };
+
+        // istanbul ignore else
+        if (currentResultSet) {
+            const info = editingInfo.get(currentResultSet.resultId ?? "");
+            if (info) {
+                // The user is currently editing the result set, so we need to commit or rollback the changes first.
+                void this.confirmCommitOrRollback(info).then((result) => {
+                    if (result) {
+                        switchPage();
+                    }
+                });
+            } else {
+                switchPage();
+            }
         }
     };
 
     private nextPage = (): void => {
-        const { currentResultSet } = this.state;
+        const { currentResultSet, editingInfo } = this.state;
 
-        // Testing note: currentResultSet is always set when we come here (otherwise the toolbar isn't rendered).
-        if (currentResultSet) {
-            if (currentResultSet.data.hasMoreRows) {
+        const switchPage = (): void => {
+            if (currentResultSet?.data.hasMoreRows) {
                 const { onResultPageChange } = this.props;
 
                 ++currentResultSet.data.currentPage;
                 onResultPageChange?.(currentResultSet.resultId, currentResultSet.data.currentPage,
                     currentResultSet.sql);
             }
+        };
+
+        // istanbul ignore else
+        if (currentResultSet) {
+            const info = editingInfo.get(currentResultSet.resultId ?? "");
+            if (info) {
+                // The user is currently editing the result set, so we need to commit or rollback the changes first.
+                void this.confirmCommitOrRollback(info).then((result) => {
+                    if (result) {
+                        switchPage();
+                    }
+                });
+            } else {
+                switchPage();
+            }
         }
+    };
+
+    /**
+     * Called when the user wants to navigate away from current page of the current result set.
+     * This includes changing the active page, removing the result set or closing the tab.
+     *
+     * @param info The editing info for the result set.
+     *
+     * @returns true if the user can navigate away, false otherwise.
+     */
+    private confirmCommitOrRollback = async (info: IEditingInfo): Promise<boolean> => {
+        if (info.rowChanges.length === 0) {
+            return true;
+        }
+
+        // The user is currently editing the result set, so we need to commit or rollback the changes first.
+        const response = await DialogHost.showDialog({
+            id: "commitOrCancelChanges",
+            type: DialogType.Confirm,
+            parameters: {
+                title: "Confirmation",
+                prompt: `The result set for ${info.description} is currently being edited, do you want to commit or ` +
+                    `rollback the changes before continuing?`,
+                accept: "Commit",
+                refuse: "Rollback",
+                alternative: "Cancel",
+                default: "Cancel",
+            },
+        });
+
+        switch (response.closure) {
+            case DialogResponseClosure.Accept: {
+                this.commitChanges(info);
+
+                return true;
+            }
+
+            case DialogResponseClosure.Decline: {
+                const { onRollbackChanges } = this.props;
+                const { currentResultSet, editingInfo } = this.state;
+                if (currentResultSet) {
+                    onRollbackChanges?.(currentResultSet);
+
+                    editingInfo.delete(currentResultSet.resultId);
+                    this.setState({ editingInfo });
+                }
+
+                return true;
+            }
+
+            default: {
+                return false;
+            }
+        }
+    };
+
+    /**
+     * Called when the user wants to roll back all changes.
+     *
+     * @returns true if the the data can be rolled back, false otherwise.
+     */
+    private confirmRollback = async (): Promise<boolean> => {
+        const { currentResultSet, editingInfo } = this.state;
+
+        if (currentResultSet) {
+            const info = editingInfo.get(currentResultSet.resultId ?? "");
+            if (info && info.rowChanges.length > 0) {
+                // The user is currently editing the result set, so we need to commit or rollback the changes first.
+                const response = await DialogHost.showDialog({
+                    id: "cancelChanges",
+                    type: DialogType.Confirm,
+                    title: "Confirmation",
+                    parameters: {
+                        prompt: `Do you really want to rollback all changes?`,
+                        accept: "Rollback",
+                        refuse: "Cancel",
+                        default: "Cancel",
+                    },
+                });
+
+                switch (response.closure) {
+                    case DialogResponseClosure.Accept: {
+                        return true;
+                    }
+
+                    default: {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
     };
 
     /**
@@ -501,10 +788,451 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         }
     };
 
-    // Editing is not supported yet, so we cannot test it.
-    // TODO: enable coverage collection here, once editing is available.
-    /* istanbul ignore next  */
-    private handleEdit = (resultSet: IResultSet): void => {
-        this.edited.add(resultSet.resultId);
+    /**
+     * The user started editing a (new) field. Switch to edit mode, if not yet done.
+     */
+    private onFieldEditStart = (): void => {
+        const { currentResultSet, editingInfo } = this.state;
+
+        if (!currentResultSet) {
+            return;
+        }
+
+        const info = editingInfo.get(currentResultSet.resultId);
+        if (!info) {
+            this.startEditing();
+        }
+    };
+
+    /**
+     * Called when a field was edited.
+     *
+     * @param row The row index of the edited cell.
+     * @param field The field name (which determines the column) of the edited cell.
+     * @param newValue The new value of the cell.
+     * @param previousValue The previous value of the cell.
+     */
+    private onFieldEdited = (row: number, field: string, newValue: unknown, previousValue: unknown): void => {
+        const { currentResultSet, editingInfo } = this.state;
+
+        if (!currentResultSet) {
+            return;
+        }
+
+        let info = editingInfo.get(currentResultSet.resultId);
+        if (!info) {
+            // Not yet editing, initialize the editing info.
+            info = this.prepareEditingInfo(currentResultSet);
+
+            editingInfo.set(currentResultSet.resultId, info);
+        }
+
+        // Update the editing info.
+        let rowChanges = info.rowChanges[row];
+        if (!rowChanges) {
+            // If this is the first change for a row collect the original PK values, which are needed for the
+            // update statement.
+            const pkColumns = currentResultSet.columns.filter((column) => {
+                return column.inPK;
+            });
+
+            // The current result set data has been updated at his point. That means if a PK column was updated
+            // the new value is already in the data set. We need to use the previous value instead.
+            const entry = currentResultSet.data.rows[row];
+            const pkValues = pkColumns.map((column) => {
+                if (column.field === field) {
+                    return previousValue;
+                }
+
+                return entry[column.field];
+            });
+
+            rowChanges = { changes: [], deleted: false, added: false, pkValues };
+            info.rowChanges[row] = rowChanges;
+        }
+
+        rowChanges.changes.push({ field, value: newValue });
+
+        this.updateEditingStatus(info);
+        this.setState({ editingInfo, selectedRowIndex: undefined });
+    };
+
+    /**
+     * Called when the user cancels editing a field. If there are no more changes, editing is stopped.
+     * Otherwise the changes are kept and editing continues.
+     */
+    private onFieldEditCancel = (): void => {
+        const { currentResultSet, editingInfo } = this.state;
+
+        if (!currentResultSet) {
+            return;
+        }
+
+        const info = editingInfo.get(currentResultSet.resultId);
+        if (!info) {
+            return;
+        }
+
+        const { rowChanges } = info;
+        if (rowChanges.length === 0) {
+            editingInfo.delete(currentResultSet.resultId);
+            this.setState({ editingInfo });
+        }
+
+    };
+
+    /**
+     * Called when the user toggles the deletion mark for one or more rows.
+     *
+     * @param rows The row indexes to toggle.
+     */
+    private onToggleRowDeletionMarks = (rows: number[]): void => {
+        const { currentResultSet, editingInfo } = this.state;
+
+        if (currentResultSet) {
+            let info = editingInfo.get(currentResultSet.resultId);
+            if (!info) {
+                // Not yet editing, initialize the editing info.
+                info = {
+                    description: `table ${currentResultSet.fullTableName}`,
+                    statusInfo: {
+                        text: "",
+                    },
+                    resultSet: currentResultSet,
+                    rowChanges: [],
+                    previewActive: false,
+                };
+
+                editingInfo.set(currentResultSet.resultId, info);
+            }
+
+            // Update the editing info.
+            rows.forEach((row) => {
+                const rowChanges = info!.rowChanges[row];
+                if (rowChanges) {
+                    // There's a row change, toggle the deleted state.
+                    // Note: this could be a new row, in which case this row is ignored, unless the deleted state
+                    // is set to false again.
+                    rowChanges.deleted = !rowChanges.deleted;
+
+                    if (!rowChanges.deleted && rowChanges.changes.length === 0) {
+                        // No changes left, remove the row.
+                        delete info!.rowChanges[row];
+                    }
+                } else {
+                    // No row change yet, create one and set the deletion mark.
+                    const pkColumns = currentResultSet.columns.filter((column) => {
+                        return column.inPK;
+                    });
+                    const pkValues = pkColumns.map((column) => {
+                        return currentResultSet.data.rows[row][column.field];
+                    });
+
+                    info!.rowChanges[row] = { changes: [], deleted: true, added: false, pkValues };
+                }
+            });
+
+            this.updateEditingStatus(info);
+            this.setState({ editingInfo, selectedRowIndex: undefined });
+        }
+    };
+
+    /**
+     * Called when the user started editing a field in the current result set, either implicitly or via
+     * the "Start Editing" button.
+     */
+    private startEditing = (): void => {
+        const { currentResultSet, editingInfo } = this.state;
+
+        if (currentResultSet) {
+            this.prepareEditingInfo(currentResultSet);
+            this.setState({ editingInfo });
+        }
+    };
+
+    /**
+     * Called when the editing info status bar needs to be updated.
+     *
+     * @param info The editing info for the result set.
+     */
+    private updateEditingStatus(info: IEditingInfo): void {
+        let fieldChanges = 0;
+        let rowsDeleted = 0;
+        let rowsAdded = 0;
+        info.rowChanges.forEach((list) => {
+            fieldChanges += list.changes.length;
+            if (list.deleted) {
+                ++rowsDeleted;
+            }
+            if (list.added) {
+                ++rowsAdded;
+            }
+        });
+
+        // Count set rows in the (sparse) row changes list.
+        const rowCount = Object.keys(info.rowChanges).length;
+        let rowText = formatWithNumber("row", rowCount);
+        const fieldText = formatWithNumber("field", fieldChanges);
+
+        info.statusInfo.text = `Editing, ${rowText} affected (${fieldText} changed`;
+        if (rowsDeleted > 0) {
+            rowText = formatWithNumber("row", rowsDeleted);
+            info.statusInfo.text += `, ${rowText} deleted`;
+        }
+        if (rowsAdded > 0) {
+            rowText = formatWithNumber("row", rowsAdded);
+            info.statusInfo.text += `, ${rowText} added`;
+        }
+        info.statusInfo.text += ")";
+    }
+
+    private onVerticalScroll = (rowIndex: number): void => {
+        if (this.state.currentResultSet) {
+            this.topRowIndexes.set(this.state.currentResultSet.resultId, rowIndex);
+        }
+    };
+
+    private onAction = (action: string): void => {
+        const { editingInfo, currentResultSet } = this.state;
+
+        switch (action) {
+            case "addNewRow": {
+                if (currentResultSet) {
+                    const info = this.prepareEditingInfo(currentResultSet);
+
+                    // Use default values for the new row.
+                    const row: IDictionary = {};
+                    const changes: IResultCellChange[] = currentResultSet.columns.map((column) => {
+                        let value: unknown = column.default ?? undefined;
+                        if (value === "CURRENT_TIMESTAMP") {
+                            value = new Date();
+                        } else if (value === undefined) {
+                            value = column.nullable ? null : defaultValues[column.dataType.type];
+                        }
+                        row[column.field] = value;
+
+                        return { field: column.field, value };
+                    });
+
+                    // Add the row values at the end of the change list.
+                    const count = currentResultSet.data.rows.length;
+                    info.rowChanges[count] = {
+                        changes,
+                        deleted: false,
+                        added: true,
+                        pkValues: [],
+                    };
+
+                    // And add the new row to the result set.
+                    currentResultSet.data.rows.push(row);
+
+                    this.updateEditingStatus(info);
+                    this.setState({ editingInfo, selectedRowIndex: undefined });
+                }
+
+                break;
+            }
+
+            default:
+        }
+    };
+
+    private previewChanges = (): void => {
+        const { currentResultSet, editingInfo } = this.state;
+
+        const info = editingInfo.get(currentResultSet?.resultId ?? "");
+        if (info) {
+            info.previewActive = !info.previewActive;
+            this.setState({ editingInfo });
+        }
+    };
+
+    private commitChanges = (info?: IEditingInfo): void => {
+        const { onCommitChanges, onResultPageChange } = this.props;
+        const { currentResultSet, editingInfo } = this.state;
+
+        if (!info) {
+            info = editingInfo.get(currentResultSet?.resultId ?? "");
+        }
+
+        if (info) {
+            const statements = this.generateStatements(info).map((pair) => {
+                return pair[1];
+            });
+
+            void onCommitChanges?.(info.resultSet, statements).then((result) => {
+                this.#affectedRows = result.affectedRows;
+
+                if (result.errors.length > 0) {
+                    // We got an error (can only be one as execution is stopped on the first error).
+                    // Do not end editing, but show the error in the SQL preview pane.
+                    info!.errors = result.errors;
+                    info!.previewActive = true;
+                    this.setState({ editingInfo });
+                } else {
+                    editingInfo.delete(info!.resultSet.resultId);
+                    this.setState({ editingInfo });
+
+                    // Use the page switch callback to refresh the result set.
+                    onResultPageChange?.(info!.resultSet.resultId, info!.resultSet.data.currentPage,
+                        info!.resultSet.sql);
+
+                }
+            });
+        }
+    };
+
+    private cancelEditingAndRollbackChanges = (): void => {
+        const { onRollbackChanges } = this.props;
+        const { currentResultSet, editingInfo } = this.state;
+
+        if (currentResultSet) {
+            void this.confirmRollback().then((result) => {
+                if (result) {
+                    onRollbackChanges?.(currentResultSet);
+
+                    editingInfo.delete(currentResultSet.resultId);
+                    this.setState({ editingInfo });
+                }
+            });
+        }
+    };
+
+    /**
+     * @param info The editing info for the result set.
+     *
+     * @returns A statement for each row change (insert, update, delete).
+     */
+    private generateStatements = (info: IEditingInfo): Array<[number, string]> => {
+        const { rowChanges, resultSet } = info;
+
+        const uppercaseKeywords = Settings.get("dbEditor.upperCaseKeywords", true);
+        const builder = new QueryBuilder(resultSet.fullTableName, resultSet.columns, uppercaseKeywords);
+
+        const statements: Array<[number, string]> = [];
+        rowChanges.forEach((rowChange, index) => {
+            const { changes } = rowChange;
+
+            if (rowChange.deleted) {
+                // The row is marked for deletion. All other changes are ignored.
+                if (!rowChange.added) { // A new row was deleted again, so don't commit it.
+                    statements.push([index, builder.generateDeleteStatement(rowChange.pkValues)]);
+                }
+            } else if (rowChange.added) { // A new row.
+                if (changes.length >= resultSet.columns.length) {
+                    // Coalesce the changes into a single set of values.
+                    // The first n changes (where n is the number of columns) are default values to start with.
+                    const values: unknown[] = [];
+
+                    for (let i = 0; i < resultSet.columns.length; ++i) {
+                        values.push(changes[i].value);
+                    }
+
+                    // Now update each value that was changed. Start with the n-th change.
+                    for (let i = resultSet.columns.length; i < changes.length; ++i) {
+                        const change = changes[i];
+                        const columnIndex = resultSet.columns.findIndex((candidate) => {
+                            return candidate.field === change.field;
+                        });
+
+                        if (columnIndex > -1) {
+                            values[columnIndex] = change.value;
+                        }
+                    }
+
+                    statements.push([index, builder.generateInsertStatement(values)]);
+                }
+            } else if (changes.length > 0) { // An existing row got new values.
+                // Coalesce the changes into a single set of values, into the same order as the columns.
+                let newValues: unknown[] = [];
+                let changedColumns: string[] = resultSet.columns.map((column) => {
+                    return column.title;
+                });
+
+                changes.forEach((change) => {
+                    const columnIndex = resultSet.columns.findIndex((candidate) => {
+                        return candidate.field === change.field;
+                    });
+
+                    if (columnIndex > -1) {
+                        newValues[columnIndex] = change.value;
+                    }
+                });
+
+                // Remove all columns, which have no changes.
+                changedColumns = changedColumns.filter((column, index) => {
+                    return newValues[index] !== undefined;
+                });
+
+                // And remove all new values, which have no changes.
+                newValues = newValues.filter((value) => {
+                    return value !== undefined;
+                });
+
+                // At this point both the changed columns list and the new values list should have the same length.
+                statements.push(
+                    [index, builder.generateUpdateStatement(rowChange.pkValues, changedColumns, newValues)]);
+            }
+        });
+
+        return statements;
+    };
+
+    private selectViewStyle = (selection: Set<string>): void => {
+        const { currentResultSet, editingInfo } = this.state;
+
+        if (!currentResultSet) {
+            return;
+        }
+
+        const info = editingInfo.get(currentResultSet.resultId);
+        if (!info) {
+            return;
+        }
+
+        info.previewActive = selection.has("preview");
+        this.setState({ editingInfo });
+    };
+
+    private prepareEditingInfo = (resultSet: IResultSet): IEditingInfo => {
+        const { editingInfo } = this.state;
+
+        let info = editingInfo.get(resultSet.resultId);
+        if (!info) {
+            this.#affectedRows = undefined;
+            info = {
+                description: `table ${resultSet.fullTableName}`,
+                statusInfo: {
+                    text: "",
+                },
+                resultSet,
+                rowChanges: [],
+                previewActive: false,
+            };
+
+            editingInfo.set(resultSet.resultId, info);
+        }
+
+        this.updateEditingStatus(info);
+
+        return info;
+    };
+
+    /**
+     * Called when the user clicks on a statement in the SQL preview pane.
+     * It will switch the preview pane off and show the result set again, selecting the statement at the given index.
+     *
+     * @param index The index of the statement that was clicked.
+     */
+    private handleStatementClick = (index: number): void => {
+        const { editingInfo, currentResultSet } = this.state;
+
+        if (currentResultSet) {
+            const info = editingInfo.get(currentResultSet.resultId);
+            if (info) {
+                info.previewActive = false;
+                this.setState({ editingInfo, selectedRowIndex: index });
+            }
+        }
     };
 }

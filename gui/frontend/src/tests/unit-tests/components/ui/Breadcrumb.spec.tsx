@@ -53,7 +53,7 @@ describe("Breadcrumb render testing", (): void => {
         await act(() => {
             onClick?.(mouseEventMock, {});
         });
-        expect(spyOnChange).toBeCalled();
+        expect(spyOnChange).toHaveBeenCalled();
 
         component.unmount();
     });

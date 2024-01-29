@@ -43,11 +43,15 @@ describe("Result View Tests", (): void => {
                     sql: "select 1",
                     resultId: "123",
                     columns: [],
+                    updatable: false,
+                    fullTableName: "test",
                     data: {
                         rows: [],
                         currentPage: 0,
                     },
                 }}
+                editModeActive={false}
+                editable={false}
             />,
         );
 
@@ -64,6 +68,8 @@ describe("Result View Tests", (): void => {
                     sql: "select 1",
                     resultId: "123",
                     columns: [],
+                    updatable: false,
+                    fullTableName: "test",
                     data: {
                         rows: [],
                         currentPage: 0,
@@ -73,6 +79,8 @@ describe("Result View Tests", (): void => {
                         },
                     },
                 }}
+                editModeActive={false}
+                editable={false}
             />,
         );
 
@@ -84,6 +92,8 @@ describe("Result View Tests", (): void => {
                 sql: "select 1",
                 resultId: "123",
                 columns: [],
+                updatable: false,
+                fullTableName: "test",
                 data: {
                     rows: [],
                     currentPage: 0,
@@ -104,6 +114,9 @@ describe("Result View Tests", (): void => {
                 title: "col1",
                 field: "0",
                 dataType: { type: DBDataType.Bigint },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
         ];
 
@@ -112,246 +125,369 @@ describe("Result View Tests", (): void => {
                 title: "col1",
                 field: "0",
                 dataType: { type: DBDataType.Bigint },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col2",
                 field: "1",
                 dataType: { type: DBDataType.Unknown },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col3",
                 field: "2",
                 dataType: { type: DBDataType.TinyInt },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col4",
                 field: "3",
                 dataType: { type: DBDataType.SmallInt },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col5",
                 field: "4",
                 dataType: { type: DBDataType.MediumInt },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col6",
                 field: "5",
                 dataType: { type: DBDataType.Int },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col7",
                 field: "6",
                 dataType: { type: DBDataType.Bigint },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col8",
                 field: "7",
                 dataType: { type: DBDataType.UInteger },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col9",
                 field: "8",
                 dataType: { type: DBDataType.Float },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col10",
                 field: "9",
                 dataType: { type: DBDataType.Real },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col11",
                 field: "10",
                 dataType: { type: DBDataType.Double },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col12",
                 field: "11",
                 dataType: { type: DBDataType.Decimal },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col13",
                 field: "12",
                 dataType: { type: DBDataType.Binary },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col14",
                 field: "13",
                 dataType: { type: DBDataType.Varbinary },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col15",
                 field: "14",
                 dataType: { type: DBDataType.Char },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col16",
                 field: "15",
                 dataType: { type: DBDataType.Nchar },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col17",
                 field: "16",
                 dataType: { type: DBDataType.Varchar },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col18",
                 field: "17",
                 dataType: { type: DBDataType.Nvarchar },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col19",
                 field: "18",
                 dataType: { type: DBDataType.String },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col20",
                 field: "19",
                 dataType: { type: DBDataType.TinyText },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col21",
                 field: "20",
                 dataType: { type: DBDataType.Text },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col22",
                 field: "21",
                 dataType: { type: DBDataType.MediumText },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col23",
                 field: "22",
                 dataType: { type: DBDataType.LongText },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col24",
                 field: "23",
                 dataType: { type: DBDataType.TinyBlob },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col25",
                 field: "24",
                 dataType: { type: DBDataType.Blob },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col26",
                 field: "25",
                 dataType: { type: DBDataType.MediumBlob },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col27",
                 field: "26",
                 dataType: { type: DBDataType.LongBlob },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col28",
                 field: "27",
                 dataType: { type: DBDataType.DateTime },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col29",
                 field: "28",
-                dataType: { type: DBDataType.DateTime_f },
+                dataType: { type: DBDataType.Date },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col30",
                 field: "29",
-                dataType: { type: DBDataType.Date },
+                dataType: { type: DBDataType.Time },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col31",
                 field: "30",
-                dataType: { type: DBDataType.Time },
+                dataType: { type: DBDataType.Year },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col32",
                 field: "31",
-                dataType: { type: DBDataType.Time_f },
+                dataType: { type: DBDataType.Timestamp },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col33",
                 field: "32",
-                dataType: { type: DBDataType.Year },
+                dataType: { type: DBDataType.Geometry },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col34",
                 field: "33",
-                dataType: { type: DBDataType.Timestamp },
+                dataType: { type: DBDataType.Point },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col35",
                 field: "34",
-                dataType: { type: DBDataType.Timestamp_f },
+                dataType: { type: DBDataType.LineString },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col36",
                 field: "35",
-                dataType: { type: DBDataType.Geometry },
+                dataType: { type: DBDataType.Polygon },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col37",
                 field: "36",
-                dataType: { type: DBDataType.Point },
+                dataType: { type: DBDataType.GeometryCollection },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col38",
                 field: "37",
-                dataType: { type: DBDataType.LineString },
+                dataType: { type: DBDataType.MultiPoint },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col39",
                 field: "38",
-                dataType: { type: DBDataType.Polygon },
+                dataType: { type: DBDataType.MultiLineString },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col40",
                 field: "39",
-                dataType: { type: DBDataType.GeometryCollection },
+                dataType: { type: DBDataType.MultiPolygon },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col41",
                 field: "40",
-                dataType: { type: DBDataType.MultiPoint },
+                dataType: { type: DBDataType.Numeric },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col42",
                 field: "41",
-                dataType: { type: DBDataType.MultiLineString },
+                dataType: { type: DBDataType.Json },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col43",
                 field: "42",
-                dataType: { type: DBDataType.MultiPolygon },
+                dataType: { type: DBDataType.Bit },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col44",
                 field: "43",
-                dataType: { type: DBDataType.Numeric },
+                dataType: { type: DBDataType.Boolean },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col45",
                 field: "44",
-                dataType: { type: DBDataType.Json },
+                dataType: { type: DBDataType.Enum },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col46",
                 field: "45",
-                dataType: { type: DBDataType.Bit },
-            },
-            {
-                title: "col47",
-                field: "46",
-                dataType: { type: DBDataType.Boolean },
-            },
-            {
-                title: "col48",
-                field: "47",
-                dataType: { type: DBDataType.Enum },
-            },
-            {
-                title: "col49",
-                field: "48",
                 dataType: { type: DBDataType.Set },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
         ];
 
@@ -362,6 +498,8 @@ describe("Result View Tests", (): void => {
                     sql: "select 1",
                     resultId: "123",
                     columns: columns1,
+                    updatable: false,
+                    fullTableName: "test",
                     data: {
                         rows: [],
                         currentPage: 0,
@@ -371,6 +509,8 @@ describe("Result View Tests", (): void => {
                         },
                     },
                 }}
+                editModeActive={false}
+                editable={false}
             />,
         );
 
@@ -403,20 +543,26 @@ describe("Result View Tests", (): void => {
         const columns: IColumnInfo[] = [
             {
                 title: "col1",
-                field: "0",
+                field: "id",
                 dataType: { type: DBDataType.Bigint },
+                inPK: true,
+                nullable: false,
+                autoIncrement: false,
             },
             {
                 title: "col2",
                 field: "1",
                 dataType: { type: DBDataType.String },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
             },
         ];
 
         const rows = [
-            { 0: "42", 1: "abc" },
-            { 0: "43", 1: "def" },
-            { 0: "44", 1: "ghi" },
+            { id: "42", 1: "abc" },
+            { id: "43", 1: "def" },
+            { id: "44", 1: "ghi" },
         ];
 
         const wrapper = mount<ResultView>(
@@ -426,31 +572,43 @@ describe("Result View Tests", (): void => {
                     sql: "select 1",
                     resultId: "123",
                     columns,
+                    updatable: true,
+                    fullTableName: "test",
                     data: {
                         rows,
                         currentPage: 0,
                     },
                 }}
+                editModeActive={true}
+                editable={true}
             />,
         );
 
-        const contextMenu = wrapper.find<Menu>(Menu);
-        expect(contextMenu).toBeDefined();
+        const contextMenus = wrapper.find<Menu>(Menu);
+        expect(contextMenus).toBeDefined();
 
-        const cell = new MockCellComponent();
-        wrapper.instance().setFakeCell(cell);
         const grid = wrapper.find<TreeGrid>(TreeGrid);
         expect(grid).toBeDefined();
         const table = await grid.instance().table;
         expect(table).toBeDefined();
-        table?.selectRow(); // Selects all rows.
+        table?.selectRow(["43"]); // Select second row.
 
         // We can show the cell context menu only by explicitly calling its open method, because we have no real cell
         // to trigger a context menu event on. That is possible only when Tabulator actually renders its content
         // (which doesn't happen because of the zero sized host).
         const rect = wrapper.getDOMNode().getBoundingClientRect();
-        contextMenu.instance().open(rect, false);
 
+        // Find the cell context menu and open it.
+        let menu!: ReturnType<typeof wrapper.find<Menu>>;
+        contextMenus.forEach((contextMenu) => {
+            const menuProps = contextMenu.props();
+            if (menuProps.id === "cellContextMenu") {
+                menu = contextMenu;
+            }
+        });
+
+        const cell = new MockCellComponent();
+        menu.instance().open(rect, false);
         await nextProcessTick();
 
         // Check the enabled state of each menu entry.
@@ -467,7 +625,7 @@ describe("Result View Tests", (): void => {
 
         try {
             // @ts-ignore, finding the menu items via enzyme does not work, so we have to do it manually.
-            const menuItems = contextMenu.instance().itemRefs.map((item) => { return item.current; });
+            const menuItems = menu.instance().itemRefs.map((item) => { return item.current; });
             expect(elements.length).toEqual(menuItems.length);
 
             for (let i = 0; i < menuItems.length; ++i) {
@@ -478,6 +636,9 @@ describe("Result View Tests", (): void => {
                 if (item && item.props.caption !== "-") {
                     expect(item.props.id).toEqual(element.id);
                 }
+
+                // Set the fake cell for each menu item, as it is reset when the action handler is called.
+                wrapper.instance().setFakeCell(cell);
 
                 switch (element.id) {
                     case "openValueMenuItem": {
@@ -494,7 +655,7 @@ describe("Result View Tests", (): void => {
 
                         expect(cell.getValue()).toBe("Animal");
                         element.click();
-                        expect(cell.getValue()).toBe(null);
+                        expect(cell.getValue()).toBe("Animal"); // Can't be changed. It's disabled.
 
                         // Restore value.
                         cell.setValue("Animal");
@@ -535,57 +696,51 @@ describe("Result View Tests", (): void => {
                             const subItem = subItems!.item(i) as HTMLButtonElement;
                             expect(subItem).not.toBeNull();
 
+                            wrapper.instance().setFakeCell(cell);
                             switch (subItem.id) {
                                 case "copyRowMenuItem1": {
-                                    expect(subItem.classList.contains("disabled")).toBe(true);
                                     subItem.click();
-                                    expect(clipboardSpy).toHaveBeenLastCalledWith(
-                                        "42, 'abc'\n43, 'def'\n44, 'ghi'\n");
+                                    expect(clipboardSpy).toHaveBeenLastCalledWith("43, 'def'\n");
 
                                     break;
                                 }
 
                                 case "copyRowMenuItem2": {
-                                    expect(subItem.classList.contains("disabled")).toBe(true);
                                     subItem.click();
                                     expect(clipboardSpy).toHaveBeenLastCalledWith(
-                                        "# col1, col2\n42, 'abc'\n43, 'def'\n44, 'ghi'\n");
+                                        "# col1, col2\n43, 'def'\n");
 
                                     break;
                                 }
 
                                 case "copyRowMenuItem3": {
-                                    expect(subItem.classList.contains("disabled")).toBe(true);
                                     subItem.click();
                                     expect(clipboardSpy).toHaveBeenLastCalledWith(
-                                        "42, abc\n43, def\n44, ghi\n");
+                                        "43, def\n");
 
                                     break;
                                 }
 
                                 case "copyRowMenuItem4": {
-                                    expect(subItem.classList.contains("disabled")).toBe(true);
                                     subItem.click();
                                     expect(clipboardSpy).toHaveBeenLastCalledWith(
-                                        "# col1, col2\n42, abc\n43, def\n44, ghi\n");
+                                        "# col1, col2\n43, def\n");
 
                                     break;
                                 }
 
                                 case "copyRowMenuItem5": {
-                                    expect(subItem.classList.contains("disabled")).toBe(true);
                                     subItem.click();
                                     expect(clipboardSpy).toHaveBeenLastCalledWith(
-                                        "# col1\tcol2\n42\t'abc'\n43\t'def'\n44\t'ghi'\n");
+                                        "# col1\tcol2\n43\t'def'\n");
 
                                     break;
                                 }
 
                                 case "copyRowMenuItem6": {
-                                    expect(subItem.classList.contains("disabled")).toBe(true);
                                     subItem.click();
                                     expect(clipboardSpy).toHaveBeenLastCalledWith(
-                                        "42\t'abc'\n43\t'def'\n44\t'ghi'\n");
+                                        "43\t'def'\n");
 
                                     break;
                                 }
@@ -614,6 +769,7 @@ describe("Result View Tests", (): void => {
                             const subItem = subItems!.item(i) as HTMLButtonElement;
                             expect(subItem).not.toBeNull();
 
+                            wrapper.instance().setFakeCell(cell);
                             switch (subItem.id) {
                                 case "copyRowsMenuItem1": {
                                     expect(subItem.classList.contains("disabled")).toBe(false);
@@ -763,7 +919,7 @@ describe("Result View Tests", (): void => {
         } catch (e) {
             // Close the menu first before handling the error or we get an error when the portal
             // is closed implicitly, when no document is available anymore.
-            contextMenu.instance().close();
+            menu.instance().close();
             throw e;
         }
 

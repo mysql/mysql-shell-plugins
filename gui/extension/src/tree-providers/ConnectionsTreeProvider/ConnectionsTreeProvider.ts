@@ -77,6 +77,7 @@ import { SchemaTableTriggerTreeItem } from "./SchemaTableTriggerTreeItem.js";
 import { SchemaViewMySQLTreeItem } from "./SchemaViewMySQLTreeItem.js";
 import { SchemaViewSqliteTreeItem } from "./SchemaViewSqliteTreeItem.js";
 import { DBConnectionViewProvider } from "../../WebviewProviders/DBConnectionViewProvider.js";
+import { MrsDbObjectType } from "../../../../frontend/src/modules/mrs/types.js";
 
 /** A class to provide the entire tree structure for DB editor connections and the DB objects from them. */
 export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionsTreeDataModelEntry> {
@@ -709,7 +710,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
 
         switch (entry.treeItem.groupType) {
             case "Routines": {
-                const createItems = (type: "function" | "procedure", list: string[]): void => {
+                const createItems = (type: MrsDbObjectType, list: string[]): void => {
                     for (const objectName of list) {
                         if (isMySQL) {
                             entry.members.push({
@@ -731,9 +732,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
 
                 try {
                     let names = await item.backend.getSchemaObjects(item.schema, "Routine", "function");
-                    createItems("function", names);
+                    createItems(MrsDbObjectType.Function, names);
                     names = await item.backend.getSchemaObjects(item.schema, "Routine", "procedure");
-                    createItems("procedure", names);
+                    createItems(MrsDbObjectType.Procedure, names);
                 } catch (error) {
                     void window.showErrorMessage("Error while retrieving schema objects: " + String(error));
                 }
@@ -823,7 +824,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
 
         switch (item.groupType) {
             case SchemaItemGroupType.Columns: {
-                const names = await item.backend.getTableObjects(item.schema, item.table, "Column");
+                const names = await item.backend.getTableObjectNames(item.schema, item.table, "Column");
                 names.forEach((objectName) => {
                     entry.members.push({
                         parent: entry,
@@ -837,7 +838,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
             }
 
             case SchemaItemGroupType.Indexes: {
-                const names = await item.backend.getTableObjects(item.schema, item.table, "Index");
+                const names = await item.backend.getTableObjectNames(item.schema, item.table, "Index");
                 names.forEach((objectName) => {
                     entry.members.push({
                         parent: entry,
@@ -851,8 +852,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
             }
 
             case SchemaItemGroupType.Triggers: {
-                const names = await item.backend.getTableObjects(item.schema, item.table, "Trigger");
+                const names = await item.backend.getTableObjectNames(item.schema, item.table, "Trigger");
                 names.forEach((objectName) => {
+
                     entry.members.push({
                         parent: entry,
                         type: "trigger",
@@ -865,7 +867,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
             }
 
             case SchemaItemGroupType.ForeignKeys: {
-                const names = await item.backend.getTableObjects(item.schema, item.table, "Foreign Key");
+                const names = await item.backend.getTableObjectNames(item.schema, item.table, "Foreign Key");
                 names.forEach((objectName) => {
                     entry.members.push({
                         parent: entry,

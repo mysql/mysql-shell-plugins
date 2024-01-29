@@ -59,7 +59,7 @@
     padding: 4px 8px;
     margin: 0;
 
-    font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
+    font-family: var(--msg-monospace-font-family);
 }
 
 .msg.resultText.code {
@@ -71,7 +71,7 @@
     padding: 4px 8px;
     margin: 0;
 
-    font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
+    font-family: var(--msg-monospace-font-family);
 }
 
 .msg .label.heading {

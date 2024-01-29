@@ -26,11 +26,10 @@
 import { SymbolTable } from "antlr4-c3";
 
 import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor.js";
-import { StoreType } from "../../../app-logic/ApplicationDB.js";
 import { CodeEditorMode, Monaco, Position, Uri } from "../../../components/ui/CodeEditor/index.js";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
 
-const ec = new ExecutionContexts(StoreType.DbEditor, 1, "", "");
+const ec = new ExecutionContexts();
 export const mockModel: ICodeEditorModel = {
     executionContexts: ec,
     symbols: new SymbolTable("myTable", {}), editorMode: CodeEditorMode.Standard,

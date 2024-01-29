@@ -38,7 +38,7 @@ describe("ScriptingLanguageServices Tests", () => {
     xit("Code Completion", async () => {
         await sleep(1000);
         const jsModel: ICodeEditorModel = Object.assign(Monaco.createModel("", "javascript"), {
-            executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
+            executionContexts: new ExecutionContexts(),
             editorMode: CodeEditorMode.Standard,
         });
 

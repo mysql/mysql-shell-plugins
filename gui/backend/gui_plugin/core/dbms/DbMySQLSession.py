@@ -306,10 +306,9 @@ class DbMysqlSession(DbSession):
     def row_to_container(self, row, columns):
         row_data = ()
         for index in range(len(columns)):
-            # If the data is stored in bytes, convert to a base64 string but truncate at 257 bytes
+            # If the data is stored in bytes, convert to a base64 string.
             if type(row[index]) is bytes:
-                row_data += (base64.b64encode(row[index]
-                             [0:256]).decode("utf-8"), )
+                row_data += (base64.b64encode(row[index]).decode("utf-8"), )
             else:
                 row_data += (row[index], )
 

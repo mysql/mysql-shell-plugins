@@ -185,6 +185,11 @@
                     "default": "",
                     "description": "Specify the name (title) of a DB connection to be used when running embedded SQL from a standard text editor and no connection is open yet. Leave empty to select a connection."
                 },
+                "msg.editor.editOnDoubleClick": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "When set, a double click on a result cell starts editing the cell, otherwise editing a cell is only possible if the edit mode is activated."
+                },
                 "msg.dbEditor.useMinimap": {
                     "type": "boolean",
                     "default": false,

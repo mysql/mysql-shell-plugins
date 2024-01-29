@@ -24,7 +24,7 @@
  */
 
 import {
-    convertCamelToSnakeCase, convertCamelToTitleCase, convertPropValue, convertSnakeToCamelCase,
+    convertObjectKeysCamelToSnakeCase, convertCamelToTitleCase, convertPropValue, convertObjectKeysSnakeToCamelCase,
     convertTitleToCamelCase, filterInt, formatTime, formatWithNumber, isWhitespaceOnly, quote, unquote,
 } from "../../../utilities/string-helpers.js";
 import { loremIpsum } from "../test-helpers.js";
@@ -109,16 +109,16 @@ describe("String Helpers Tests", () => {
     });
 
     it("Convert Cases", () => {
-        let result = convertCamelToSnakeCase({});
+        let result = convertObjectKeysCamelToSnakeCase({});
         expect(result).toStrictEqual({});
 
-        result = convertCamelToSnakeCase({}, {});
+        result = convertObjectKeysCamelToSnakeCase({}, {});
         expect(result).toStrictEqual({});
 
-        result = convertCamelToSnakeCase({}, { ignore: [] });
+        result = convertObjectKeysCamelToSnakeCase({}, { ignore: [] });
         expect(result).toStrictEqual({});
 
-        result = convertCamelToSnakeCase({}, { ignore: ["xxx", "yyy"] });
+        result = convertObjectKeysCamelToSnakeCase({}, { ignore: ["xxx", "yyy"] });
         expect(result).toStrictEqual({});
 
         /* eslint-disable @typescript-eslint/naming-convention */
@@ -259,7 +259,7 @@ describe("String Helpers Tests", () => {
             ],
         };
 
-        result = convertCamelToSnakeCase(source, { ignore: ["xxx", "yyy"] });
+        result = convertObjectKeysCamelToSnakeCase(source, { ignore: ["xxx", "yyy"] });
         expect(result).toStrictEqual(snakeCaseTarget);
 
         const camelCaseTarget = {
@@ -330,7 +330,7 @@ describe("String Helpers Tests", () => {
             ],
         };
 
-        result = convertSnakeToCamelCase(source, { ignore: ["xxx", "yyy"] });
+        result = convertObjectKeysSnakeToCamelCase(source, { ignore: ["xxx", "yyy"] });
         expect(result).toStrictEqual(camelCaseTarget);
 
         /* eslint-enable @typescript-eslint/naming-convention */

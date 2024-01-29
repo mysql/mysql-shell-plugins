@@ -29,7 +29,7 @@ import { ComponentChild } from "preact";
 
 import { EditorLanguage } from "../../supplement/index.js";
 
-/** The of an entry in trees etc. */
+/** The type of an entry in trees etc. */
 export enum EntityType {
     Notebook,
     Script,

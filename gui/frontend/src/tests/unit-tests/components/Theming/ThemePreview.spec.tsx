@@ -54,7 +54,7 @@ describe("ThemePreview testing", () => {
 
         const ed = component.find("CodeEditor");
         expect(ed.length).toBe(1);
-        expect(ed.props().font.fontFamily).toBe("SourceCodePro+Powerline+Awesome+MySQL");
+        expect(ed.props().font.fontFamily).toBe("var(--msg-monospace-font-family)");
         expect(ed.props().language).toBe("javascript");
     });
 });

@@ -84,7 +84,7 @@ export enum QueryType {
     Insert,
     LoadData,
     LoadXML,
-    Replace,
+    Replace, // A variation of insert in SQLite.
     Select,
     Table,  // Explicit table statement (e.g. in MySQL).
     Values, // Table value constructor (e.g. in MySQL).
@@ -491,8 +491,19 @@ export type ILanguageWorkerTaskData =
 export interface ILanguageWorkerResultData extends IDictionary {
     content?: unknown;
     info?: ISymbolInfo;
+
+    /** The rewritten query, after processing it. */
     query?: string;
+
+    /** A flag, indicating that the query has been rewritten. */
     changed?: boolean;
+
+    /** A flag, indicating that the query is updatable. */
+    updatable?: boolean;
+
+    /** The FQN of the table, if the query is a simple, single-table select. */
+    fullTableName?: string;
+
     error?: string;
     tokens?: ITokenInfo[];
 
@@ -500,7 +511,23 @@ export interface ILanguageWorkerResultData extends IDictionary {
     queryType?: QueryType;
     parameters?: Array<[string, string]>;
 
+    /** A flag telling if this data block is the last one in a series. */
     final: boolean;
+}
+
+/** The record containing the result from the query pre-processing step. */
+export interface IPreprocessResult {
+    /** The rewritten query, after processing it. */
+    query: string;
+
+    /** A flag, indicating that the query has been rewritten. */
+    changed: boolean;
+
+    /** A flag, indicating that the query is updatable. */
+    updatable: boolean;
+
+    /** The FQN of the table, if the query is a simple, single-table select. */
+    fullTableName?: string;
 }
 
 export enum ServiceLanguage {

@@ -264,7 +264,7 @@ export const filterInt = (value: string): number => {
  * @param str The string to convert.
  * @returns The converted string.
  */
-export const snakeToCamelCase = (str: string): string => {
+export const convertSnakeToCamelCase = (str: string): string => {
     if (str.includes("_") || str.includes("-")) {
         return str.toLowerCase().replace(/([-_][a-z])/g, (group): string => {
             return group
@@ -283,7 +283,7 @@ export const snakeToCamelCase = (str: string): string => {
  * @param str The string to convert.
  * @returns The converted string.
  */
-export const camelToSnakeCase = (str: string): string => {
+export const convertCamelToSnakeCase = (str: string): string => {
     return str.replace(
         /([a-z])([A-Z])/g, (full, match1: string, match2: string) => {
             return `${match1}_${match2.toLowerCase()}`;
@@ -329,7 +329,7 @@ export const convertTitleToCamelCase = (s: string): string => {
 export const convertToPascalCase = (str: string): string => {
     str = str.replace(/[^\d\w,]/g, "");
     if (str.includes("_")) {
-        str = snakeToCamelCase(str);
+        str = convertSnakeToCamelCase(str);
     }
 
     return convertCamelToTitleCase(str);
@@ -341,7 +341,7 @@ export const convertToPascalCase = (str: string): string => {
  * @param str The string to convert.
  * @returns The converted string.
  */
-export const pathToCamelCase = (str: string): string => {
+export const convertPathToCamelCase = (str: string): string => {
     if (str.startsWith("/")) {
         str = str.slice(1);
     }
@@ -384,7 +384,7 @@ interface IConversionOptions {
  *
  * @returns A new object with the converted keys.
  */
-export const convertCamelToSnakeCase = (o: object, options?: IConversionOptions): object => {
+export const convertObjectKeysCamelToSnakeCase = (o: object, options?: IConversionOptions): object => {
     return deepMapKeys(o, options?.ignore ?? [], (value, key) => {
         const snakeCased = key.replace(/([a-z])([A-Z])/g, (full, match1: string, match2: string) => {
             return `${match1}_${match2.toLowerCase()}`;
@@ -402,7 +402,7 @@ export const convertCamelToSnakeCase = (o: object, options?: IConversionOptions)
  *
  * @returns A new object with the converted keys.
  */
-export const convertSnakeToCamelCase = (o: object, options?: IConversionOptions): object => {
+export const convertObjectKeysSnakeToCamelCase = (o: object, options?: IConversionOptions): object => {
     return deepMapKeys(o, options?.ignore ?? [], (value, key) => {
         return key.replace(/_([a-z0-9])/gi, (full, match: string) => {
             return match.toUpperCase();
@@ -429,18 +429,6 @@ export const compareVersionStrings = (baseVersion: string, compareToVersion: str
     }
 
     return v1.length === v2.length ? 0 : (v1.length < v2.length ? -1 : 1);
-};
-
-/**
- * Formats a text block using a maximal line length
- *
- * @param text The text to format
- * @param maxLineLength The maximal line length
- * @returns The formatted text
- */
-export const formatTextBlock = (text: string, maxLineLength: number): string => {
-    return text.match(
-        new RegExp(String.raw`\S(?:.{0,${maxLineLength - 2}}\S)?(?= |$)`, "g"))?.join("\n") ?? "";
 };
 
 /**

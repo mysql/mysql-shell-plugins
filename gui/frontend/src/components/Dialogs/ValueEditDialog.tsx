@@ -68,7 +68,7 @@ interface IDialogListEntry {
     [key: string]: IComponentProperties;
 }
 
-export type DialogValueType = number | string | boolean | string[] | IDictionary;
+export type DialogValueType = number | bigint | string | boolean | string[] | IDictionary;
 
 /** A collection of flags that influence the way a value is displayed or modifies its behavior. */
 export enum CommonDialogValueOption {
@@ -165,22 +165,22 @@ export interface IStringInputDialogValue extends IBaseDialogValue {
 interface INumberInputDialogValue extends IBaseDialogValue {
     type: "number";
 
-    value?: number;
+    value?: number | bigint;
 
     /** The minimum number possible in this field. */
-    min?: number;
+    min?: number | bigint;
 
     /** The maximum number possible in this field. */
-    max?: number;
+    max?: number | bigint;
 
     /** Called when the value was changed. */
-    onChange?: (value: number, dialog: ValueEditDialog) => void;
+    onChange?: (value: number | bigint, dialog: ValueEditDialog) => void;
 
     /** Called when the input field lost focus. */
-    onFocusLost?: (value: string, dialog: ValueEditDialog) => void;
+    onFocusLost?: (value: number | bigint, dialog: ValueEditDialog) => void;
 }
 
-/** Represents a single numeric input value, which is rendered as an up-down spinner control. */
+/** Represents a single boolean input value, which is rendered as a checkbox control. */
 interface IBooleanInputDialogValue extends IBaseDialogValue {
     type: "boolean";
 
@@ -307,11 +307,11 @@ export interface IRelationDialogValue extends IBaseDialogValue {
  */
 export interface ICustomDialogValue extends IBaseDialogValue {
     type: "custom",
-    value: IDictionary,
-    component:
-    VNode<ValueEditCustom<IValueEditCustomProperties, IComponentState>> |
-    (() => VNode<ValueEditCustom<IValueEditCustomProperties, IComponentState>>),
-    //ref: RefObject<ValueEditCustom<IValueEditCustomProperties, IComponentState>>,
+    value?: IDictionary,
+    component: (
+        VNode<ValueEditCustom<IValueEditCustomProperties, IComponentState>>
+        | (() => VNode<ValueEditCustom<IValueEditCustomProperties, IComponentState>>)
+    );
 }
 
 type IDialogValue =
@@ -1053,11 +1053,11 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                     }
 
                     case "number": {
-                        result.push(<UpDown
+                        result.push(<UpDown<number | bigint>
                             id={key}
                             key={key}
                             className="valueEditor"
-                            value={value as number}
+                            value={value as (number | bigint)}
                             step={1}
                             min={entry.value.min}
                             max={entry.value.max}
@@ -1186,7 +1186,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                             columns={settingsListColumns}
                             tableData={entry.value.value}
                             options={options}
-                            selectedIds={[String(entry.value.active) ?? ""]}
+                            selectedRows={[String(entry.value.active) ?? ""]}
                             height="12em"
                             onRowSelected={this.handleRelationalListRowSelection.bind(this, sectionId, entry.value)}
                             onRowContext={
@@ -1491,7 +1491,8 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         advancedAction?.(values, props);
     };
 
-    private upDownChange = (sectionId: string, item: string | number, props: IUpDownProperties): void => {
+    private upDownChange = (sectionId: string, item: number | bigint,
+        props: IUpDownProperties<number | bigint>): void => {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 
@@ -1502,7 +1503,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                 const validations = onValidate?.(false, values, data) || { messages: {} };
                 this.setState({ values, validations });
 
-                value.onChange?.(item as number, this);
+                value.onChange?.(item, this);
             }
         }
     };
@@ -1591,8 +1592,14 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         const section = values.sections.get(sectionId);
         if (section && props.id) {
             const entry = section.values[props.id];
-            if (entry?.type === "text" || entry?.type === "number") {
+            if (entry?.type === "text") {
                 entry.onFocusLost?.(props.value ?? "", this);
+            } else if (entry?.type === "number") {
+                if (typeof entry.value === "number") {
+                    entry.onFocusLost?.(Number(props.value ?? ""), this);
+                } else {
+                    entry.onFocusLost?.(BigInt(props.value ?? ""), this);
+                }
             }
         }
     };

@@ -25,29 +25,25 @@
 
 import defaultIcon from "../../assets/images/file-icons/default.svg";
 
-import moduleIcon from "../../assets/images/modules/module-sql.svg";
+import closeIcon from "../../assets/images/close2.svg";
 import connectionIconMySQL from "../../assets/images/connectionMysql.svg";
 import connectionIconSQLite from "../../assets/images/connectionSqlite.svg";
-import scriptingIcon from "../../assets/images/scripting.svg";
+import moduleIcon from "../../assets/images/modules/module-sql.svg";
 import overviewPageIcon from "../../assets/images/overviewPage.svg";
-import closeIcon from "../../assets/images/close2.svg";
+import scriptingIcon from "../../assets/images/scripting.svg";
 
-import newConsoleIcon from "../../assets/images/toolbar/toolbar-new-shell-console.svg";
 import javascriptIcon from "../../assets/images/file-icons/scriptJs.svg";
-import sqliteIcon from "../../assets/images/file-icons/scriptSqlite.svg";
 import mysqlIcon from "../../assets/images/file-icons/scriptMysql.svg";
+import sqliteIcon from "../../assets/images/file-icons/scriptSqlite.svg";
 import typescriptIcon from "../../assets/images/file-icons/scriptTs.svg";
+import newConsoleIcon from "../../assets/images/toolbar/toolbar-new-shell-console.svg";
 
 import newNotebookIcon from "../../assets/images/newNotebook.svg";
 
 import { ComponentChild, createRef, toChildArray, VNode } from "preact";
 
-import { ModuleBase, IModuleInfo, IModuleState, IModuleProperties } from "../ModuleBase.js";
+import { IModuleInfo, IModuleProperties, IModuleState, ModuleBase } from "../ModuleBase.js";
 
-import { ConnectionBrowser } from "./ConnectionBrowser.js";
-import {
-    DBConnectionTab, IDBConnectionTabPersistentState, IOpenEditorState, ISelectItemDetails,
-} from "./DBConnectionTab.js";
 import { ICodeEditorModel } from "../../components/ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor/index.js";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts.js";
@@ -58,43 +54,47 @@ import {
 } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
+import { ConnectionBrowser } from "./ConnectionBrowser.js";
+import {
+    DBConnectionTab, IDBConnectionTabPersistentState, IOpenEditorState, ISelectItemDetails,
+} from "./DBConnectionTab.js";
+import { documentTypeToIcon, IExplorerSectionState, pageTypeToIcon } from "./Explorer.js";
 import {
     EntityType, IDBDataEntry, IDBEditorScriptState, ISavedGraphData, ISchemaTreeEntry, IToolbarItems,
 } from "./index.js";
-import { documentTypeToIcon, IExplorerSectionState, pageTypeToIcon } from "./Explorer.js";
 
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable.js";
-import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
-import { ISqliteConnectionOptions } from "../../communication/Sqlite.js";
-import { IMySQLConnectionOptions } from "../../communication/MySQL.js";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
-import { DBEditorModuleId } from "../ModuleInfo.js";
-import { EditorLanguage, IExecutionContext, INewEditorRequest } from "../../supplement/index.js";
-import { webSession } from "../../supplement/WebSession.js";
-import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
-import { parseVersion } from "../../parsing/mysql/mysql-helpers.js";
-import { DocumentDropdownItem, IDocumentDropdownItemProperties } from "./DocumentDropdownItem.js";
-import { uuid } from "../../utilities/helpers.js";
-import { defaultEditorOptions } from "../../components/ui/index.js";
+import { IMySQLConnectionOptions } from "../../communication/MySQL.js";
+import { IOpenConnectionData, IShellPasswordFeedbackRequest, IStatusData } from "../../communication/ProtocolGui.js";
+import { IMrsServiceData } from "../../communication/ProtocolMrs.js";
+import { ISqliteConnectionOptions } from "../../communication/Sqlite.js";
+import { Button } from "../../components/ui/Button/Button.js";
 import { ComponentPlacement, IComponentProperties } from "../../components/ui/Component/ComponentBase.js";
 import { Divider } from "../../components/ui/Divider/Divider.js";
 import { Dropdown, IDropdownProperties } from "../../components/ui/Dropdown/Dropdown.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
 import { Image } from "../../components/ui/Image/Image.js";
+import { defaultEditorOptions } from "../../components/ui/index.js";
 import { Label } from "../../components/ui/Label/Label.js";
 import { Menu } from "../../components/ui/Menu/Menu.js";
-import { Button } from "../../components/ui/Button/Button.js";
-import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem.js";
+import { IMenuItemProperties, MenuItem } from "../../components/ui/Menu/MenuItem.js";
 import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator.js";
-import { ITabviewPage, Tabview, TabPosition } from "../../components/ui/Tabview/Tabview.js";
+import { ITabviewPage, TabPosition, Tabview } from "../../components/ui/Tabview/Tabview.js";
+import { parseVersion } from "../../parsing/mysql/mysql-helpers.js";
+import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable.js";
+import { EditorLanguage, IExecutionContext, INewEditorRequest } from "../../supplement/index.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
-import { IOpenConnectionData, IShellPasswordFeedbackRequest, IStatusData } from "../../communication/ProtocolGui.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { webSession } from "../../supplement/WebSession.js";
+import { uuid } from "../../utilities/helpers.js";
+import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
+import { DBEditorModuleId } from "../ModuleInfo.js";
 import { MrsHub } from "../mrs/MrsHub.js";
-import { IMrsServiceData } from "../../communication/ProtocolMrs.js";
-import { IGenericResponse } from "../../communication/Protocol.js";
+import { DocumentDropdownItem, IDocumentDropdownItemProperties } from "./DocumentDropdownItem.js";
+import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
 
 import scriptingRuntime from "./assets/typings/scripting-runtime.d.ts?raw";
+import type { ISqlUpdateResult } from "../../app-logic/Types.js";
 
 /**
  * Details generated while adding a new tab. These are used in the render method to fill the tab page details.
@@ -146,6 +146,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
     private actionMenuRef = createRef<Menu>();
     private mrsHubRef = createRef<MrsHub>();
+    private currentTabRef = createRef<DBConnectionTab>();
 
     public static get info(): IModuleInfo {
         return {
@@ -454,6 +455,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
             const content = (<DBConnectionTab
                 id={info.tabId}
+                ref={info.tabId === actualSelection ? this.currentTabRef : undefined}
                 caption={info.caption}
                 showAbout={!info.suppressAbout}
                 workerPool={this.workerPool}
@@ -605,20 +607,51 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         });
     };
 
-    private showPage = (
+    private showPage = async (
         data: { module: string; page: string; suppressAbout?: boolean; noEditor?: boolean; }): Promise<boolean> => {
         if (data.module === DBEditorModuleId) {
-            const { connectionsLoaded, connections } = this.state;
+            const { connectionsLoaded, connections, editorTabs, selectedPage } = this.state;
 
-            if (data.page === "connections") {
-                return this.showConnections();
-            } else if (connectionsLoaded) {
-                const id = parseInt(data.page, 10);
-                const connection = connections.find((candidate) => { return candidate.id === id; });
-                if (connection) {
-                    return this.addConnectionTab(connection, false, data.suppressAbout ?? false,
-                        data.noEditor ? "none" : "default");
+            const id = parseInt(data.page, 10);
+            const connection = connections.find((candidate) => { return candidate.id === id; });
+
+            const doShowPage = (): Promise<boolean> => {
+                if (data.page === "connections") {
+                    return this.showConnections();
+                } else if (connectionsLoaded) {
+                    if (connection) {
+                        return this.addConnectionTab(connection, false, data.suppressAbout ?? false,
+                            data.noEditor ? "none" : "default");
+                    }
                 }
+
+                return Promise.resolve(false);
+            };
+
+            if (this.currentTabRef.current) {
+                // See if we already have this page open. If that's the case we don't need to do anything.
+                let entry;
+
+                if (connection) { // The connection is no assigned when switching to the overview.
+                    entry = editorTabs.find((entry: IDBEditorTabInfo) => {
+                        return (entry.details.id === connection.id);
+                    });
+                }
+
+                if (entry && entry.tabId === selectedPage) {
+                    return Promise.resolve(true);
+                }
+
+                const canClose = await this.currentTabRef.current.canClose();
+                if (canClose) {
+                    return doShowPage();
+                } else {
+                    // Pretend we handled the requisition in case of a rejection, to avoid
+                    // multiple attempts to open the new page while the requisition pipeline tries to resolve it.
+                    return Promise.resolve(true);
+                }
+            } else {
+                return doShowPage();
             }
         }
 
@@ -1180,10 +1213,17 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      */
     private handleCloseTab = (e: MouseEvent | KeyboardEvent): void => {
         e.stopPropagation();
-
         const id = (e.currentTarget as HTMLElement).id;
 
-        void this.removeTab(id);
+        if (this.currentTabRef.current) {
+            void this.currentTabRef.current.canClose().then((canClose) => {
+                if (canClose) {
+                    void this.removeTab(id);
+                }
+            });
+        } else {
+            void this.removeTab(id);
+        }
     };
 
     /**
@@ -1452,6 +1492,18 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     };
 
     private handleSelectTab = (id: string): void => {
+        if (this.currentTabRef.current) {
+            void this.currentTabRef.current.canClose().then((canClose) => {
+                if (canClose) {
+                    this.doSwitchTab(id);
+                }
+            });
+        } else {
+            this.doSwitchTab(id);
+        }
+    };
+
+    private doSwitchTab(id: string): void {
         const { selectedPage } = this.state;
 
         const connectionState = this.connectionState.get(selectedPage);
@@ -1476,7 +1528,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 requisitions.executeRemote("selectConnectionTab", { connectionId: tab.details.id, page: tab.caption });
             }
         }
-    };
+    }
 
     /**
      * This method creates a notebook and notifies the host about it.
@@ -1604,8 +1656,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 return candidate.id === id;
             });
 
-            if (editor) {
-                this.handleSelectEntry({ tabId: selectedPage, itemId: id, type: editor.type });
+            if (editor && this.currentTabRef.current) {
+                void this.currentTabRef.current.canClose().then((canClose) => {
+                    if (canClose) {
+                        this.handleSelectEntry({ tabId: selectedPage, itemId: id, type: editor.type });
+                    }
+                });
             }
         }
     };
@@ -1980,9 +2036,14 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
      */
     private createEditorModel(backend: ShellInterfaceSqlEditor, text: string, language: string,
         serverVersion: number, sqlMode: string, currentSchema: string): ICodeEditorModel {
-
         const model: ICodeEditorModel = Object.assign(Monaco.createModel(text, language), {
-            executionContexts: new ExecutionContexts(StoreType.DbEditor, serverVersion, sqlMode, currentSchema),
+            executionContexts: new ExecutionContexts({
+                store: StoreType.DbEditor,
+                dbVersion: serverVersion,
+                sqlMode,
+                currentSchema,
+                runUpdates: this.sendSqlUpdatesFromModel.bind(this, backend),
+            }),
             symbols: new DynamicSymbolTable(backend, "db symbols", { allowDuplicateSymbols: true }),
             editorMode: CodeEditorMode.Standard,
         });
@@ -2066,6 +2127,34 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             editorId,
         });
     }
+
+    private sendSqlUpdatesFromModel = async (backend: ShellInterfaceSqlEditor,
+        updates: string[]): Promise<ISqlUpdateResult> => {
+
+        let lastIndex = 0;
+        let rowCount = 0;
+        try {
+            await backend.execute("start transaction");
+            for (; lastIndex < updates.length; ++lastIndex) {
+                const update = updates[lastIndex];
+                const result = await backend.execute(update);
+                rowCount += result?.rowsAffected ?? 0;
+            }
+            await backend.execute("commit");
+
+            return { affectedRows: rowCount, errors: [] };
+        } catch (reason) {
+            await backend.execute("rollback");
+            if (reason instanceof Error) {
+                const errors: string[] = [];
+                errors[lastIndex] = reason.message; // Set the error for the query that was last executed.
+
+                return { affectedRows: rowCount, errors };
+            }
+
+            throw reason;
+        }
+    };
 
     private handleHelpCommand = (command: string, language: EditorLanguage): string | undefined => {
         switch (language) {

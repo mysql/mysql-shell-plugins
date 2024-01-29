@@ -82,7 +82,7 @@ export class Workbench {
      */
     public static pushDialogButton = async (buttonName: string): Promise<void> => {
         const dialogBox = await driver.wait(until.elementLocated(locator.dialogBox.exists),
-            constants.wait5seconds, `Could not find dialog box`);
+            constants.wait2seconds, `Could not find dialog box`);
         const dialogButtons = await dialogBox.findElements(locator.dialogBox.buttons);
         for (const button of dialogButtons) {
             if (await button.getAttribute("title") === buttonName) {
@@ -402,11 +402,17 @@ export class Workbench {
     /**
      * Closes an editor
      * @param editor The editor
+     * @param maybeDirty True is it's expected the editor to have changes (is dirty), false otherwise
      * @returns A promise resolving when the editor is closed
      */
-    public static closeEditor = async (editor: string): Promise<void> => {
+    public static closeEditor = async (editor: string, maybeDirty = false): Promise<void> => {
         await Misc.switchBackToTopFrame();
         await new EditorView().closeEditor(editor);
+        if (maybeDirty) {
+            await Workbench.pushDialogButton("Don't Save").catch(() => {
+                // continue
+            });
+        }
     };
 
     /**

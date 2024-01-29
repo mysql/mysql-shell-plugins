@@ -24,7 +24,7 @@
  */
 
 import { mysqlInfo } from "../../../app-logic/RdbmsInfo.js";
-import { DBDataType } from "../../../app-logic/Types.js";
+import { DBDataType, IColumnInfo } from "../../../app-logic/Types.js";
 import { convertRows, generateColumnInfo } from "../../../supplement/index.js";
 import { DBType } from "../../../supplement/ShellInterface/index.js";
 
@@ -66,18 +66,74 @@ describe("General Supplement Tests", (): void => {
 
         info = generateColumnInfo(DBType.MySQL, columns);
         expect(info.length).toBe(4);
-        expect(info[0]).toEqual({ title: "col1", field: "0", dataType: { type: DBDataType.Unknown } });
-        expect(info[1]).toEqual({ title: "col2", field: "1", dataType: { type: DBDataType.String } });
-        expect(info[2]).toEqual({ title: "col3", field: "2", dataType: { type: DBDataType.Binary } });
-        expect(info[3]).toEqual({ title: "col4", field: "3", dataType: { type: DBDataType.Blob } });
+        expect(info[0]).toEqual({
+            title: "col1",
+            field: "0",
+            dataType: { type: DBDataType.Unknown },
+            inPK: false,
+            nullable: false,
+            autoIncrement: false,
+        });
+        expect(info[1]).toEqual({
+            title: "col2",
+            field: "1",
+            dataType: { type: DBDataType.String },
+            inPK: false,
+            nullable: false,
+            autoIncrement: false,
+        });
+        expect(info[2]).toEqual({
+            title: "col3",
+            field: "2",
+            dataType: { type: DBDataType.Binary },
+            inPK: false,
+            nullable: false,
+            autoIncrement: false,
+        });
+        expect(info[3]).toEqual({
+            title: "col4",
+            field: "3",
+            dataType: { type: DBDataType.Binary },
+            inPK: false,
+            nullable: false,
+            autoIncrement: false,
+        });
     });
 
     it("convertRows", (): void => {
-        const columns = [
-            { title: "col1", field: "0", dataType: { type: DBDataType.String } },
-            { title: "col2", field: "1", dataType: { type: DBDataType.Geometry } },
-            { title: "∰", field: "2", dataType: { type: DBDataType.Numeric } },
-            { title: "👊🖐", field: "3", dataType: { type: DBDataType.Bigint } },
+        const columns: IColumnInfo[] = [
+            {
+                title: "col1",
+                field: "0",
+                dataType: { type: DBDataType.String },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
+            },
+            {
+                title: "col2",
+                field: "1",
+                dataType: { type: DBDataType.Geometry },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
+            },
+            {
+                title: "∰",
+                field: "2",
+                dataType: { type: DBDataType.Numeric },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
+            },
+            {
+                title: "👊🖐",
+                field: "3",
+                dataType: { type: DBDataType.Bigint },
+                inPK: false,
+                nullable: false,
+                autoIncrement: false,
+            },
         ];
 
         let converted = convertRows(columns);

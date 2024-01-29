@@ -29,13 +29,13 @@ import {
 } from "antlr4ng";
 
 import {
-    ICompletionData, IParserErrorInfo, IStatement, IStatementSpan, ISymbolInfo, ITokenInfo, QueryType,
-    StatementFinishState, tokenFromPosition,
+    ICompletionData, IParserErrorInfo, IPreprocessResult, IStatement, IStatementSpan, ISymbolInfo, ITokenInfo,
+    QueryType, StatementFinishState, tokenFromPosition,
 } from "../parser-common.js";
 
 import { SQLiteErrorListener } from "./SQLiteErrorListener.js";
 import { SQLiteLexer } from "./generated/SQLiteLexer.js";
-import { SQLiteParser, Select_stmtContext, Sql_stmt_listContext } from "./generated/SQLiteParser.js";
+import { ParseContext, SQLiteParser, Select_stmtContext, Sql_stmt_listContext } from "./generated/SQLiteParser.js";
 import { getCodeCompletionItems } from "./SqliteCodeCompletion.js";
 
 import { unquote } from "../../utilities/string-helpers.js";
@@ -200,7 +200,6 @@ export class SQLiteParsingServices {
         }
 
         return Promise.resolve(result);
-
     }
 
     /**
@@ -524,6 +523,9 @@ export class SQLiteParsingServices {
      * - If there's no top-level limit clause, then one is added.
      * - If indicated adds an optimizer hint to use the secondary engine (usually HeatWave).
      *
+     * Furthermore the query is checked if it can be updated, which requires a number of conditions
+     * (e.g. no join or union parts).
+     *
      * @param query The query to check and modify.
      * @param serverVersion The version of MySQL to use for checking (not used for SQLite).
      * @param sqlMode The current SQL mode in the server (not used for SQLite).
@@ -537,10 +539,10 @@ export class SQLiteParsingServices {
      */
     public preprocessStatement(query: string, serverVersion: number, sqlMode: string, offset: number,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        count: number, forceSecondaryEngine?: boolean): [string, boolean] {
-        const tree = this.startParsing(query, false);
+        count: number, forceSecondaryEngine?: boolean): IPreprocessResult {
+        const tree = this.startParsing(query, false) as ParseContext;
         if (!tree || this.errors.length > 0) {
-            return [query, false];
+            return { query, changed: false, updatable: false };
         }
 
         const rewriter = new TokenStreamRewriter(this.tokenStream);
@@ -548,7 +550,7 @@ export class SQLiteParsingServices {
         let changed = false;
         if (statements.size > 0) {
             // There can only be one such statement.
-            const candidate: ParseTree = statements.values().next().value;
+            const [candidate] = statements;
 
             // Top level query expression here. Check if there's already a LIMIT clause before adding one.
             const context = candidate as Select_stmtContext;
@@ -559,7 +561,9 @@ export class SQLiteParsingServices {
             }
         }
 
-        return [rewriter.getText(), changed];
+        const [updatable, fullTableName] = this.isUpdatable(tree);
+
+        return { query: rewriter.getText(), changed, updatable, fullTableName };
     }
 
     /**
@@ -673,7 +677,7 @@ export class SQLiteParsingServices {
      * @returns The scope name.
      */
     private lexerTypeToScope(token: Token): string {
-        if (isKeyword(token.text ?? "", SQLiteVersion.Standard)) {
+        if (isKeyword(token.text.toUpperCase() ?? "", SQLiteVersion.Standard)) {
             return "keyword";
         }
 
@@ -715,4 +719,70 @@ export class SQLiteParsingServices {
             }
         }
     }
+
+    /**
+     * Inspects the given tree to see if it represents an updatable query.
+     *
+     * @param tree The query tree to inspect.
+     *
+     * @returns A tuple with a flag that indicates if the query is updatable, and the full table name if it is.
+     */
+    private isUpdatable(tree: ParseContext): [boolean, string] {
+        const statementsList = tree.sql_stmt_list();
+        if (statementsList.length !== 1) {
+            return [false, ""];
+        }
+
+        const statements = statementsList[0].sql_stmt();
+        if (statements.length !== 1) {
+            return [false, ""];
+        }
+
+        let fullyQualifiedTableName = "";
+        const select = statements[0].select_stmt();
+        let updatable = select != null;
+        if (!select) {
+            updatable = false;
+        } else {
+            if (select.with_clause()) {
+                updatable = false;
+            } else {
+                if (select.compound_operator().length > 0 || select.select_core().length !== 1) {
+                    updatable = false;
+                } else {
+                    // There must be a single select core.
+                    const core = select.select_core()[0];
+                    if (!core || core.SELECT_() === null || core.GROUP_() !== null
+                        || core.HAVING_() !== null || core.WINDOW_() !== null) {
+                        updatable = false;
+                    } else {
+                        const from = core.from_clause();
+                        if (from?.join_clause() !== null || from?.table_or_subquery().length !== 1) {
+                            updatable = false;
+                        } else {
+                            if (from.table_or_subquery()[0].table_name() === null) {
+                                updatable = false;
+                            } else {
+                                const schemaName = from.table_or_subquery()[0].schema_name()?.getText();
+                                const tableName = from.table_or_subquery()[0].table_name()!.getText();
+                                fullyQualifiedTableName = `${schemaName}.${tableName}`;
+
+                                // Having all the table related stuff checked, we can focus now on the select list.
+                                // There can either be a wildcard or a list of expressions.
+                                const columns = core.result_column();
+                                columns.forEach((column) => {
+                                    if (column.table_name() !== null) {
+                                        updatable = false;
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return [updatable, fullyQualifiedTableName];
+    }
+
 }

@@ -35,7 +35,11 @@ import {
     ICodeEditorViewState, IDisposable, ICodeEditorOptions, IExecutionContextState, KeyCode, KeyMod,
     languages, Monaco, Position, Range, IPosition, Selection, IScriptExecutionOptions, CodeEditorMode,
     IProviderEditorModel,
+    ILanguageDefinition,
 } from "./index.js";
+
+import { msg } from "./languages/msg/msg.contribution.js";
+import { mysql } from "./languages/mysql/mysql.contribution.js";
 
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
@@ -53,7 +57,6 @@ import { DefinitionProvider } from "./DefinitionProvider.js";
 import { DocumentHighlightProvider } from "./DocumentHighlightProvider.js";
 import { FormattingProvider } from "./FormattingProvider.js";
 import { HoverProvider } from "./HoverProvider.js";
-import { ILanguageDefinition, msg } from "./languages/msg/msg.contribution.js";
 import { ReferencesProvider } from "./ReferencesProvider.js";
 import { RenameProvider } from "./RenameProvider.js";
 import { SignatureHelpProvider } from "./SignatureHelpProvider.js";
@@ -198,11 +201,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         ["py", "python"],
     ]);
 
-    private static sqlUiStringMap = new Map<string, string>([
-        ["sql", "SQLite"],
-        ["mysql", "MySQL"],
-    ]);
-
     private static monacoConfigured = false;
 
     private hostRef = createRef<HTMLDivElement>();
@@ -299,13 +297,13 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         });
 
         languages.onLanguage("mysql", () => {
-            void msg.loader().then((definition: ILanguageDefinition) => {
+            void mysql.loader().then((definition: ILanguageDefinition) => {
                 languages.setMonarchTokensProvider("mysql", definition.language);
                 languages.setLanguageConfiguration("mysql", definition.languageConfiguration);
             });
         });
 
-        const editorLanguages = ["msg", "javascript", "typescript", "sql", "mysql", "python"];
+        const editorLanguages = ["msg", "javascript", "typescript", "mysql", "python"];
         languages.registerDocumentSemanticTokensProvider(editorLanguages, new MsgSemanticTokensProvider());
         languages.registerCompletionItemProvider(editorLanguages, new CodeCompletionProvider());
         languages.registerHoverProvider(editorLanguages, new HoverProvider());
@@ -396,8 +394,10 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         } else {
             combinedLanguage = language === "msg";
             model = Object.assign(Monaco.createModel(initialContent ?? "", language), {
-                executionContexts: new ExecutionContexts(undefined, Settings.get("editor.dbVersion", 80024),
-                    Settings.get("editor.sqlMode", ""), ""),
+                executionContexts: new ExecutionContexts({
+                    dbVersion: Settings.get("editor.dbVersion", undefined),
+                    sqlMode: Settings.get("editor.sqlMode", ""),
+                }),
                 symbols: new SymbolTable("default", { allowDuplicateSymbols: true }),
                 editorMode: CodeEditorMode.Standard,
             });
@@ -1127,7 +1127,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuGroupId: "3_results",
             contextMenuOrder: 1,
             precondition,
-            run: () => { return this.removeAllResults(); },
+            run: () => { void this.removeAllResults(); },
         }));
 
         this.disposables.push(editor.addAction({
@@ -1136,7 +1136,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuGroupId: "9_cutcopypaste",
             contextMenuOrder: 5,
             precondition,
-            run: () => { return this.useNotebookAsTemplate(); },
+            run: () => { this.useNotebookAsTemplate(); },
         }));
 
         this.disposables.push(editor.addAction({
@@ -1146,7 +1146,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuGroupId: "9_cutcopypaste",
             contextMenuOrder: 6,
             precondition,
-            run: () => { return this.appendFromTemplate(); },
+            run: () => { this.appendFromTemplate(); },
         }));
 
         this.disposables.push(editor);
@@ -1503,34 +1503,39 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         if (editor && model) {
             const index = this.currentBlockIndex;
             if (index > -1) {
-                const block = model.executionContexts?.contextAt(index);
-                if (block) {
-                    // Let our host (if any) know that the results will change.
-                    requisitions.executeRemote("editorChanged", undefined);
+                const context = model.executionContexts?.contextAt(index);
+                if (context) {
+                    void context.canClose().then((canClose) => {
+                        if (canClose) {
+                            // Let our host (if any) know that the results will change.
+                            requisitions.executeRemote("editorChanged", undefined);
 
-                    if (this.handleInternalCommand(index) === "unhandled") {
-                        const { onScriptExecution } = this.mergedProps;
+                            if (this.handleInternalCommand(index) === "unhandled") {
+                                const { onScriptExecution } = this.mergedProps;
 
-                        let position = options.atCaret ? editor.getPosition() as IPosition ?? undefined : undefined;
-                        if (position) {
-                            position = block.toLocal(position);
+                                let position = options.atCaret
+                                    ? editor.getPosition() as IPosition ?? undefined
+                                    : undefined;
+                                if (position) {
+                                    position = context.toLocal(position);
+                                }
+
+                                const executionOptions = {
+                                    forceSecondaryEngine: options.forceSecondaryEngine,
+                                    source: position,
+                                    asText: options.asText,
+                                };
+
+                                void onScriptExecution?.(context, executionOptions).then(() => {
+                                    editor.focus();
+                                });
+
+                                if (options.advance) {
+                                    this.prepareNextExecutionBlock(index);
+                                }
+                            }
                         }
-
-                        const executionOptions = {
-                            forceSecondaryEngine: options.forceSecondaryEngine,
-                            source: position,
-                            asText: options.asText,
-                        };
-
-                        void onScriptExecution?.(block, executionOptions).then(() => {
-                            editor.focus();
-                        });
-
-                        if (options.advance) {
-                            this.prepareNextExecutionBlock(index);
-                        }
-
-                    }
+                    });
                 }
             }
         }
@@ -1597,7 +1602,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             // have changes, collect the changes for each context individually and remove indices on the way,
             // for contexts that are removed by an edit change. That avoids unnecessary handling for obsolete contexts.
             const changesPerContext = new Map<number, IChangeRecord>();
-
             changes.forEach((change: Monaco.IModelContentChange) => {
                 const contextsToUpdate = contexts.contextIndicesFromRange(editorRangeToTextRange(change.range));
                 if (contextsToUpdate.length > 0) {
@@ -1646,7 +1650,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                     // Remove the result from the first block if there's more than one block in the update list.
                     // In this case the first result is in the selection range that has been removed.
                     if (contextsToUpdate.length > 0) {
-                        firsContext?.removeResult();
+                        void firsContext?.removeResult();
                     }
 
                     // Remove all but the first block.
@@ -2151,10 +2155,10 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     /**
      * Removes the result views from all execution contexts.
      */
-    private removeAllResults(): void {
+    private async removeAllResults(): Promise<void> {
         const model = this.model;
         if (model) {
-            model.executionContexts?.removeAllResults();
+            await model.executionContexts?.removeAllResults();
         }
     }
 

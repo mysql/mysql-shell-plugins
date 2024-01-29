@@ -43,6 +43,7 @@
         "scripts/**/*.ts",
         "src/**/*",
         "src/**/*.json",
+        "src/oci-typings/**/*.ts",
         "vite.config.ts",
         "postcss.config.cjs",
         "src/tests/e2e/postActions.mjs",

@@ -35,42 +35,41 @@ describe("UpDown render testing", (): void => {
 
     it("Test UpDown callbacks", async () => {
         const component = shallow(
-            <UpDown onChange={jest.fn()} id="upDownId" value="10" textAlignment={TextAlignment.End} />,
+            <UpDown<number> onChange={jest.fn()} id="upDownId" value={10} textAlignment={TextAlignment.End} />,
         );
         expect(component).toBeTruthy();
         const instance = component.instance();
 
-        const spyOnChange = jest.spyOn(instance.props as IUpDownProperties, "onChange");
-        expect(spyOnChange).not.toBeCalled();
+        const spyOnChange = jest.spyOn(instance.props as IUpDownProperties<number>, "onChange");
+        expect(spyOnChange).not.toHaveBeenCalled();
         const upButton = component.find("#up");
         expect(upButton).toBeTruthy();
-        let onClick = (upButton.first().props() as IUpDownProperties).onClick;
+        let onClick = (upButton.first().props() as IUpDownProperties<number>).onClick;
         await act(() => {
             onClick?.(mouseEventMock, { id: "up" });
         });
-        //upButton.simulate("click", { e: {} }, { props: { id: "up" } });
-        expect(spyOnChange).toBeCalled();
+        expect(spyOnChange).toHaveBeenCalled();
 
         spyOnChange.mockClear();
-        expect(spyOnChange).not.toBeCalled();
+        expect(spyOnChange).not.toHaveBeenCalled();
         const downButton = component.find("#down");
         expect(downButton).toBeTruthy();
-        onClick = (downButton.first().props() as IUpDownProperties).onClick;
+        onClick = (downButton.first().props() as IUpDownProperties<number>).onClick;
         await act(() => {
             onClick?.(mouseEventMock, { id: "up" });
         });
-        expect(spyOnChange).toBeCalled();
+        expect(spyOnChange).toHaveBeenCalled();
     });
 
     it("Test UpDown values", async () => {
-        const component = shallow<IUpDownProperties, IUpDownState>(
-            <UpDown id="upDownId" value="10" min={9} max={11} step={1} textAlignment={TextAlignment.End} />,
+        const component = shallow<IUpDownProperties<string>, IUpDownState>(
+            <UpDown<string> id="upDownId" value="10" min={9} max={11} step={1} textAlignment={TextAlignment.End} />,
         );
         expect(component).toBeTruthy();
 
         const upButton = component.find("#up");
         expect(upButton).toBeTruthy();
-        let onClick = (upButton.first().props() as IUpDownProperties).onClick;
+        let onClick = (upButton.first().props() as IUpDownProperties<number>).onClick;
         await act(() => {
             onClick?.(mouseEventMock, { id: "up" });
         });
@@ -79,7 +78,7 @@ describe("UpDown render testing", (): void => {
 
         const downButton = component.find("#down");
         expect(downButton).toBeTruthy();
-        onClick = (downButton.first().props() as IUpDownProperties).onClick;
+        onClick = (downButton.first().props() as IUpDownProperties<number>).onClick;
         await act(() => {
             onClick?.(mouseEventMock, { id: "down" });
         });
@@ -96,7 +95,7 @@ describe("UpDown render testing", (): void => {
 
 
     it("Test UpDown elements", () => {
-        const component = mount<IUpDownProperties>(
+        const component = mount<IUpDownProperties<number>>(
             <UpDown id="upDownId" value="10" textAlignment={TextAlignment.End} />,
         );
         expect(component).toBeTruthy();
@@ -107,7 +106,7 @@ describe("UpDown render testing", (): void => {
     });
 
     it("Test UpDown output (Snapshot)", () => {
-        const component = mount<UpDown>(
+        const component = mount<UpDown<string>>(
             <UpDown
                 textAlignment={TextAlignment.Center}
                 items={[

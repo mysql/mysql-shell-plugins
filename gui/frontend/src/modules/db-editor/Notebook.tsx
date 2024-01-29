@@ -195,7 +195,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                         enabled: true,
                     }}
                     font={{
-                        fontFamily: "SourceCodePro+Powerline+Awesome+MySQL",
+                        fontFamily: "var(--msg-monospace-font-family)",
                         fontSize: fontSize ?? 15,
                         lineHeight: 24,
                     }}
@@ -218,6 +218,19 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                 />
             </Container>
         );
+    }
+
+    /**
+     * @returns true if this notebook can be deactivated/closed, false if not.
+     */
+    public canClose(): Promise<boolean> {
+        // Ask all contexts if they can be closed.
+        const editorState = this.getActiveEditorState();
+        if (editorState?.model.executionContexts) {
+            return editorState.model.executionContexts.canClose();
+        }
+
+        return Promise.resolve(true);
     }
 
     public addOrUpdateExtraLib(content: string, filePath: string): number {

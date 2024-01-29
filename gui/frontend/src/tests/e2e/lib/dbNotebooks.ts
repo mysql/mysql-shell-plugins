@@ -281,22 +281,20 @@ export class DBNotebooks {
      * @param wordRef The word
      * @returns A promise resolving with the line number
      */
-    public static getLineFromWord = async (driver: WebDriver, wordRef: string): Promise<number> => {
-        const regex = wordRef
-            .replace(/\*/g, "\\*")
-            .replace(/\./g, ".*")
-            .replace(/;/g, ".*")
-            .replace(/\s/g, ".*");
+    public static getLineFromWord = async (driver: WebDriver, wordRef: string): Promise<number | undefined> => {
         let line: number | undefined;
         await driver.wait(async () => {
             try {
                 const lines = await driver.findElements(locator.notebook.codeEditor.editor.editorPrompt);
                 for (let i = 0; i <= lines.length - 1; i++) {
-                    const lineContent = await lines[i].getAttribute("innerHTML");
-                    if (lineContent.match(regex)) {
-                        line = i;
+                    const match = (await lines[i].getAttribute("innerHTML")).match(/(?<=">)(.*?)(?=<\/span>)/gm);
+                    if (match !== null) {
+                        const cmdFromEditor = match.join("").replace(/&nbsp;/g, " ");
+                        if (cmdFromEditor === wordRef) {
+                            line = i;
 
-                        return true;
+                            return true;
+                        }
                     }
                 }
             } catch (e) {
@@ -321,7 +319,7 @@ export class DBNotebooks {
      */
     public static setMouseCursorAt = async (driver: WebDriver, word: string): Promise<void> => {
         const mouseCursorIs = await DBNotebooks.getMouseCursorLine(driver);
-        const mouseCursorShouldBe = await DBNotebooks.getLineFromWord(driver, word);
+        const mouseCursorShouldBe = await DBNotebooks.getLineFromWord(driver, word) ?? 0;
         const taps = mouseCursorShouldBe - mouseCursorIs!;
         const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
         if (taps > 0) {

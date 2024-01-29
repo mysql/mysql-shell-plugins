@@ -62,99 +62,105 @@ INSERT INTO `address` VALUES (1,'47 MySakila Drive',NULL,'Alberta',300,'','','20
 UNLOCK TABLES;
 CREATE VIEW test_view as select * from sakila.actor;
 
--- All in tables
-DROP TABLE IF EXISTS `all_in_table_1`; 
-CREATE TABLE `all_in_table_1` (
-  `id` int NOT NULL,
-  `f_varchar` varchar(5) DEFAULT NULL,
-  `f_decimal` decimal(5,0) DEFAULT NULL,
-  `f_datetime` datetime DEFAULT NULL,
-  `f_blob` blob,
-  `f_binary` binary(5) DEFAULT NULL,
-  `f_longblob` longblob,
-  `f_medblob` mediumblob,
-  `f_tinyblob` tinyblob,
-  `f_varbinary` varbinary(5) DEFAULT NULL,
+-- Data sets
+DROP TABLE IF EXISTS `result_sets`; 
+CREATE TABLE result_sets (
+    id INT PRIMARY key AUTO_INCREMENT,
+    text_field TEXT,
+    long_text_field LONGTEXT,
+    bool_field BOOLEAN,
+    date_field DATETIME,
+    blob_field BLOB
+);
+
+INSERT INTO result_sets VALUES(
+  1, 
+  'small text', 
+  'This is a longer text example, to test the result sets functionality', 
+  true, 
+  NOW(),
+  NULL
+  );
+
+DROP TABLE IF EXISTS `all_data_types`; 
+  CREATE TABLE `all_data_types` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `test_boolean` tinyint(1) DEFAULT NULL,
+  `test_smallint` smallint DEFAULT NULL,
+  `test_mediumint` mediumint DEFAULT NULL,
+  `test_integer` int DEFAULT NULL,
+  `test_bigint` bigint DEFAULT '8888',
+  `test_decimal` decimal(10,2) DEFAULT NULL,
+  `test_float` float DEFAULT NULL,
+  `test_double` double(10,2) DEFAULT NULL,
+  `test_date` date DEFAULT NULL,
+  `test_datetime` datetime DEFAULT NULL,
+  `test_timestamp` timestamp NULL DEFAULT NULL,
+  `test_time` time DEFAULT NULL,
+  `test_year` year DEFAULT '2024',
+  `test_char` char(50) DEFAULT NULL,
+  `test_varchar` varchar(50) NOT NULL,
+  `test_tinytext` tinytext,
+  `test_text` text,
+  `test_mediumtext` mediumtext,
+  `test_longtext` longtext,
+  `test_tinyblob` tinyblob,
+  `test_blob` blob,
+  `test_mediumblob` mediumblob,
+  `test_longblob` longblob,
+  `test_enum` enum('value1','value2','value3','value4') DEFAULT NULL,
+  `test_set` set('value1','value2','value3','value4') DEFAULT NULL,
+  `test_binary` binary(50) DEFAULT NULL,
+  `test_varbinary` varbinary(50) DEFAULT NULL,
+  `test_json` json DEFAULT NULL,
+  `test_point` geometry DEFAULT NULL,
+  `test_linestring` linestring DEFAULT NULL,
+  `test_polygon` polygon DEFAULT NULL,
+  `test_multipoint` multipoint DEFAULT NULL,
+  `test_multilinestring` multilinestring DEFAULT NULL,
+  `test_multipolygon` multipolygon DEFAULT NULL,
+  `test_geometrycollection` geomcollection DEFAULT NULL,
+  `test_bit` bit(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
-);
-INSERT INTO `all_in_table_1` VALUES(1, 
-'gui12', 
-'4', 
-'2023-01-01 00:00:01', 
-0xa1b8de72d02badac81b9f7deac, 
-0x6173646667, 
-0xa1b8de72d02badac81b9f7deac, 
-0xa1b8de72d02badac81b9f7deac, 
-0xa1b8de72d02badac81b9f7deac, 
-0x6173646667);
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS `all_in_table_2`; 
-CREATE TABLE `all_in_table_2` (
-  `f_date` date NOT NULL,
-  `f_datetime` datetime(5) DEFAULT NULL,
-  `f_time` time DEFAULT NULL,
-  `f_timestamp` timestamp(5) NULL DEFAULT NULL,
-  `f_year` year DEFAULT NULL,
-  `f_geometry` geometry DEFAULT NULL,
-  `f_geometry_collection` geomcollection DEFAULT NULL,
-  `f_linestring` linestring DEFAULT NULL,
-  `f_multilinestring` multilinestring DEFAULT NULL,
-  `f_multipoint` multipoint DEFAULT NULL,
-  `f_multipolygon` multipolygon DEFAULT NULL,
-  `f_point` point DEFAULT NULL,
-  `f_polygon` polygon DEFAULT NULL,
-  PRIMARY KEY (`f_date`)
-);
-
-INSERT INTO `sakila`.`all_in_table_2`
-(`f_date`,
-`f_datetime`,
-`f_time`,
-`f_timestamp`,
-`f_year`,
-`f_geometry`,
-`f_geometry_collection`,
-`f_linestring`,
-`f_multilinestring`,
-`f_multipoint`,
-`f_multipolygon`,
-`f_point`,
-`f_polygon`
-)
-VALUES
-("2023-01-01",
-"2023-01-01 00:02:00",
-"00:02:00",
-"2023-01-01 00:02:00",
-"2023",
-ST_GeomFromText('POINT(1 1)'),
-ST_GeomFromText('GEOMETRYCOLLECTION(POINT(1 1),LINESTRING(0 0,1 1,2 2,3 3,4 
-4))'),
-ST_LineStringFromText('LINESTRING(0 0,1 1,2 2)'),
-ST_GeomFromText('MultiLineString((1 1,2 2,3 3),(4 4,5 5))'),
-ST_GeomFromText('MULTIPOINT(0 0, 20 20, 60 60)'),
-ST_GeomFromText('MULTIPOLYGON(((0 0,10 0,10 10,0 10,0 0)),((5 5,7 5,7 7,5 7, 
-5 5)))'),
-ST_GeomFromText('POINT(1 1)'),
-ST_GeomFromText('POLYGON((0 0,10 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 7, 5 5))')
+INSERT INTO all_data_types VALUES(
+1, -- id
+true, -- test_boolean
+32767, -- test_smallint
+8388607, -- mediumint
+2, -- int 
+4294967295, -- big int 
+1.5, -- decimal
+2.543, -- float
+7.56, -- double
+"2023-01-01", -- date 
+"2023-01-01 00:02:00", -- date time
+"2023-01-01 00:02:00", -- timestamp
+"00:02:00", -- time
+"2023", -- year
+"test_char", -- char
+"test_varchar", -- varchar 
+"tiny", -- tinytext
+"test_text", -- text
+"test_medium", -- medium text
+"test_long", -- long text
+0xa1b8de72d02badac81b9f7deac, -- tiny blob
+0xa1b8de72d02badac81b9f7deac, -- blob
+0xa1b8de72d02badac81b9f7deac, -- mediumblob
+0xa1b8de72d02badac81b9f7deac, -- long blob
+"value1", -- enum
+"value1", -- set 
+0x6173646667, -- binary 
+0x6173646667, -- var binary 
+'{"test": "1"}', -- json
+ST_GeomFromText('POINT(1 1)'), -- geometry
+ST_LineStringFromText('LINESTRING(0 0,1 1,2 2)'), -- linestring
+ST_GeomFromText('POLYGON((0 0,10 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 7, 5 5))'), -- polygon
+ST_GeomFromText('MULTIPOINT(0 0, 20 20, 60 60)'), -- multipoint
+ST_GeomFromText('MultiLineString((1 1,2 2,3 3),(4 4,5 5))'), -- multilinestring
+ST_GeomFromText('MULTIPOLYGON(((0 0,10 0,10 10,0 10,0 0)),((5 5,7 5,7 7,5 7, 5 5)))'), -- multipolygon
+ST_GeomFromText('GEOMETRYCOLLECTION(POINT(1 1),LINESTRING(0 0,1 1,2 2,3 3,4 4))'), -- geomcollection
+b'0' -- bit
 );
 
-DROP TABLE IF EXISTS `all_in_table_3`; 
-CREATE TABLE `all_in_table_3` (
-  `id` int NOT NULL,
-  `f_json` json DEFAULT NULL,
-  `f_char` char(5) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
-  `f_varchar` varchar(5) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
-  `f_longtext` longtext,
-  `f_mediumtext` mediumtext,
-  `f_tinytext` tinytext,
-  `f_bit` bit(5) DEFAULT NULL,
-  `f_boolean` tinyint(1) DEFAULT NULL,
-  `f_ENUM` enum('1','2') DEFAULT NULL,
-  `f_set` set('5') DEFAULT NULL,
-  PRIMARY KEY (`id`)
-);
-
-INSERT INTO `sakila`.`all_in_table_3` VALUES(
-  0, '{"test": "1"}', 'char', 'var', 'long', 'medium', 'tiny', b'0', 1, '2', '5'
-);

@@ -1148,6 +1148,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           </label>
           <div
             class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
             id="selectOne"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
@@ -1253,6 +1254,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             >
               <input
                 class="msg input"
+                id="upDownInput"
                 spellcheck="true"
                 style="text-align: end;"
                 type="text"
@@ -1350,6 +1352,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           </label>
           <div
             class="msg treeGrid verticalGrid relationalList"
+            selectedrows="1"
           />
         </div>
         <div
@@ -1604,6 +1607,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           </label>
           <div
             class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
             id="selectOne"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
@@ -1709,6 +1713,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             >
               <input
                 class="msg input"
+                id="upDownInput"
                 spellcheck="true"
                 style="text-align: end;"
                 type="text"
@@ -1806,6 +1811,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           </label>
           <div
             class="msg treeGrid verticalGrid relationalList"
+            selectedrows="1"
           />
         </div>
         <div

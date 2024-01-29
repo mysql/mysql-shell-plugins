@@ -390,19 +390,23 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
 
     private handleInputChange = (e: InputEvent, props: IInputChangeProperties): void => {
         Settings.set(props.id!, props.value);
+        this.setState({ settingsList: this.collectSettingsValues() });
     };
 
     private handleCheckboxChange = (checkState: CheckState, props: ICheckboxProperties): void => {
         Settings.set(props.id!, checkState === CheckState.Checked ? true : false);
+        this.setState({ settingsList: this.collectSettingsValues() });
     };
 
-    private handleUpDownChange = (value: number, props: IUpDownProperties): void => {
+    private handleUpDownChange = (value: number, props: IUpDownProperties<number>): void => {
         Settings.set(props.id!, value);
+        this.setState({ settingsList: this.collectSettingsValues() });
     };
 
     private handleDropDownChange = (selectedIds: Set<string>, props: IDropdownProperties): void => {
         // There's always at least one entry.
         Settings.set(props.id!, [...selectedIds][0]);
+        this.setState({ settingsList: this.collectSettingsValues() });
     };
 
 }

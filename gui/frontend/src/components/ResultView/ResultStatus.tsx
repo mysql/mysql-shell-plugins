@@ -25,39 +25,39 @@
 
 import { ComponentChild } from "preact";
 
-import { IExecutionInfo, MessageType } from "../../app-logic/Types.js";
+import { IStatusInfo, MessageType } from "../../app-logic/Types.js";
 import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../ui/Container/Container.js";
 import { Label } from "../ui/Label/Label.js";
 import { Message } from "../ui/Message/Message.js";
 
 interface IResultStatusProperties extends IComponentProperties {
-    executionInfo: IExecutionInfo;
+    statusInfo: IStatusInfo;
 }
 
-// Implements a text output area usually used for execution results (except DB data).
+/** Implements a text output area usually used for execution results or editing messages. */
 export class ResultStatus extends ComponentBase<IResultStatusProperties> {
 
     public constructor(props: IResultStatusProperties) {
         super(props);
 
-        this.addHandledProperties("executionInfo");
+        this.addHandledProperties("statusInfo");
     }
 
     public render(): ComponentChild {
-        const { executionInfo, children } = this.props;
+        const { statusInfo, children } = this.props;
 
-        if (!executionInfo.text && !children) {
+        if (!statusInfo.text && !children) {
             return undefined;
         }
 
         let text;
         let messageClass = "";
-        if ((executionInfo.type != null) && executionInfo.type !== MessageType.Response) {
+        if ((statusInfo.type != null) && statusInfo.type !== MessageType.Response) {
             messageClass = "containsMessage";
-            text = <Message type={executionInfo.type}>{executionInfo.text}</Message>;
+            text = <Message type={statusInfo.type}>{statusInfo.text}</Message>;
         } else {
-            text = <Label>{executionInfo.text}</Label>;
+            text = <Label className="ellipsis">{statusInfo.text}</Label>;
         }
 
         const className = this.getEffectiveClassNames(["resultStatus", messageClass]);
@@ -69,7 +69,7 @@ export class ResultStatus extends ComponentBase<IResultStatusProperties> {
                 {...this.unhandledProperties}
             >
                 {text}
-                {(executionInfo.type == null) && children}
+                {(statusInfo.type == null) && children}
             </Container>
         );
     }

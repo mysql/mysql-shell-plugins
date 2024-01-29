@@ -133,6 +133,7 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
         } else {
             const className = this.getEffectiveClassNames([
                 "label",
+                this.classFromProperty(type, ["error", "warning", "info", "text", "response"]),
                 this.classFromProperty(quoted, "quote"),
                 this.classFromProperty(code, "code"),
                 this.classFromProperty(heading, "heading"),
@@ -153,7 +154,11 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
         }
     }
 
-    /** Lets Monaco apply styling to all text in this label. Only applies to non-ansi text. */
+    /**
+     * Applies styling to the content of this label, by converting it to a set of sub entries, each with its own
+     * style. This feature depends on the set language of the label. If no language is set or the language is set
+     * to "text" then no styling is applied.
+     */
     private updateComputedOutput() {
         const { caption, children, language } = this.mergedProps;
 
@@ -243,6 +248,11 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
             void Monaco.colorizeElement(this.labelRef.current, {
                 theme: ThemeManager.get.activeThemeSafe,
                 tabSize: 4,
+            }).then(() => {
+                const lastChild = this.labelRef.current?.lastChild;
+                if (lastChild instanceof HTMLElement && lastChild.tagName === "BR") {
+                    lastChild.remove();
+                }
             });
         }
     }

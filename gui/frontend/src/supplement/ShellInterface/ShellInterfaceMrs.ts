@@ -33,6 +33,7 @@ import {
     IMrsRouterData, IMrsCurrentServiceMetadata, IMrsTableColumnWithReference, IMrsObjectFieldWithReference,
     IMrsObject, IMrsDbObjectParameterData, IMrsSdkOptions, IMrsAddAuthAppData,
 } from "../../communication/ProtocolMrs.js";
+import { MrsDbObjectType } from "../../modules/mrs/types.js";
 import { webSession } from "../WebSession.js";
 
 export class ShellInterfaceMrs {
@@ -441,7 +442,7 @@ export class ShellInterfaceMrs {
         });
     }
 
-    public async addDbObject(dbObjectName: string, dbObjectType: string,
+    public async addDbObject(dbObjectName: string, dbObjectType: MrsDbObjectType,
         autoAddSchema: boolean, requestPath: string, enabled: boolean, crudOperations: string[],
         crudOperationFormat: string, requiresAuth: boolean,
         rowUserOwnershipEnforced: boolean, autoDetectMediaType: boolean,

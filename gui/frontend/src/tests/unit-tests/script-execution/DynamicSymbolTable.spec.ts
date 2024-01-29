@@ -123,7 +123,7 @@ class MockShellInterfaceDb extends ShellInterfaceDb {
         }
     }
 
-    public async getTableObjects(schema: string, table: string, type: string, _filter?: string): Promise<string[]> {
+    public async getTableObjectNames(schema: string, table: string, type: string, _filter?: string): Promise<string[]> {
         await nextProcessTick();
         switch (type) {
             case "Column": {

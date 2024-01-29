@@ -35,7 +35,7 @@ export interface IInputProperties extends IComponentProperties {
     placeholder?: string;
     password?: boolean;
 
-    // When auto focus is set then all content is selected as well.
+    /** When auto focus is set then all content is selected as well. */
     autoFocus?: boolean;
 
     value?: string;
@@ -75,14 +75,21 @@ export class Input extends ComponentBase<IInputProperties> {
             "innerRef");
     }
 
+    /**
+     * Selects all text in the input field.
+     * Watch out, not all input types support this.
+     */
+    public select(): void {
+        if (this.inputRef.current instanceof HTMLInputElement) {
+            this.inputRef.current.select();
+        }
+    }
+
     public componentDidMount(): void {
         const { autoFocus } = this.mergedProps;
         if (this.inputRef.current && autoFocus) {
             const element = this.inputRef.current;
             element.focus();
-            if (element instanceof HTMLInputElement) {
-                element.setSelectionRange(0, element.value.length);
-            }
         }
     }
 

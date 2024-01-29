@@ -54,9 +54,9 @@ describe("Popup component tests", (): void => {
         // The open and close calls call their associated callbacks asynchronously (in multiple steps), so we have
         // delay the spy check a bit.
         await nextRunLoop();
-        expect(spyOnOpen).toBeCalled();
+        expect(spyOnOpen).toHaveBeenCalled();
         popupRef.current?.close();
-        expect(spyOnCancel).toBeCalled();
+        expect(spyOnCancel).toHaveBeenCalled();
 
         popup.unmount();
     });

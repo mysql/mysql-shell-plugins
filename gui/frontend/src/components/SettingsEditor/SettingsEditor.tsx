@@ -52,7 +52,7 @@ interface ISettingsEditorState extends IComponentState {
 
     settingsTree: ISettingCategory[];
     filteredTree: ISettingCategory[];
-    selectedTreeEntry: ISettingCategory;
+    selectedTreeEntry: number;
 
     searchValues: ISearchValues;
     foundEntries: number;
@@ -78,7 +78,7 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
             selectedTab: props.page,
             settingsTree,
             filteredTree,
-            selectedTreeEntry: settingsTree[0],
+            selectedTreeEntry: 0,
             searchValues: {
                 value: "",
             },
@@ -162,8 +162,6 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
             expandedLevels: foundEntries > -1 ? [true, true] : undefined,
         };
 
-        const initialSelection = [selectedTreeEntry.key];
-
         return (
             <Container
                 orientation={Orientation.TopDown}
@@ -201,7 +199,7 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
                         ref={this.treeRef}
                         columns={settingsTreeColumns}
                         tableData={filteredTree}
-                        selectedIds={initialSelection}
+                        selectedRows={[selectedTreeEntry]}
                         options={settingsTreeOptions}
                         tabIndex={0}
                         onRowSelected={this.handleSettingTreeRowSelected}

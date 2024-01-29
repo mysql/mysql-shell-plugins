@@ -23,13 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/* Temporarily hide apply/revert buttons */
-.msg.resultHost #editSeparator,
-.msg.resultHost #applyButton,
-.msg.resultHost #revertButton {
-    display: none;
-}
-
 .msg.resultHost {
     flex: 1 1 auto;
     border-radius: 8px;
@@ -61,7 +54,7 @@
 }
 
 .msg.resultHost {
-    font-family: "SourceCodePro+Powerline+Awesome+MySQL";
+    font-family: var(--msg-monospace-font-family);
     height: 100%;
 
     align-content: stretch;
@@ -120,8 +113,16 @@
     padding: 0;
 }
 
+.msg.resultHost .resultView .tabulator .tabulator-row.added {
+    background-color: rgba(0, 208, 255, 0.35);
+}
+
+.msg.resultHost .resultView .tabulator .tabulator-row.deleted {
+    background-color: rgba(234, 27, 12, 0.15);
+}
+
 .msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell {
-    padding: 2px 9px 2px 10px;
+    padding: 3px 9px 2px 10px;
 
     /* These properties ensure ellipses on large multi line content */
     display: -webkit-inline-box;
@@ -129,7 +130,13 @@
     -webkit-box-orient: vertical;
 
     overflow: hidden;
-    white-space: pre-wrap;
+    /* white-space: pre-wrap; this causes wrong row heights on first load. */
+}
+
+.msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell.changed {
+    padding: 2px 8px 1px 9px;
+    background-color: rgba(255, 255, 0, 0.15);
+    border: 1px solid rgba(255, 255, 0, 0.25) !important;
 }
 
 .msg.resultHost .resultView .tabulator.verticalGrid .tabulator-row .tabulator-cell {
@@ -141,17 +148,20 @@
 }
 
 .msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .iconHost {
-    height: 14px;
-    padding-top: 4px;
+    height: 19px;
+    padding-top: 3px;
 }
 
 .msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .iconHost > .icon {
-    background-color: var(--resultView-foreground);
+    background-color: var(--badge-foreground);
+    height: 13px;
+    mask-position: 0;
 }
 
 .msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .cellEditorHost {
     margin: 0 0 -4px -2px;
     width: 100%;
+    height: 100%;
 }
 
 .msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .cellEditorHost .input {
@@ -165,6 +175,24 @@
     font: inherit;
 }
 
+/** The formatter for a drop down. */
+.msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .dropdown {
+    padding: 0;
+    margin: 0;
+    border: none;
+    min-height: 0;
+}
+
+.msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .dropdown > label {
+    font-size: 1rem;
+    margin-left: 2px;
+}
+
+.msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .cellEditorHost > label {
+    width: 100%;
+    height: 100%;
+}
+
 .msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .labelHost {
     width: 100%;
 }
@@ -173,14 +201,6 @@
     white-space: pre-line;
     max-height: 100px;
     overflow: scroll;
-}
-
-.msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .checkBoxHost {
-    height: 18px;
-}
-
-.msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .checkBoxHost > .checkbox {
-    height: 18px;
 }
 
 /* A message which is part of a result view. */
@@ -210,6 +230,11 @@
     overflow: hidden;
 
     align-items: center;
+}
+
+.msg.resultHost .resultStatus,
+.zoneHost .resultStatus {
+    font-size: 0.9em;
 }
 
 .msg.resultHost .resultView .label {
@@ -259,14 +284,13 @@
 .msg.resultHost .resultStatus > .label {
     flex: 1 1 auto;
 
-    margin: 2px 4px 2px 4px;
-    white-space: normal;
+    margin: 2px 8px 2px 4px;
     align-self: center;
 }
 
 .msg.resultHost .resultStatus .toolbar .button {
     padding: 0;
-    margin: 0 6px;
+    margin: 0 4px;
 
     background: none;
 
@@ -282,6 +306,11 @@
     height: 18px;
 
     background-color: var(--resultStatus-foreground);
+}
+
+.msg.resultHost .resultStatus .toolbar > .label {
+    margin: 0 4px;
+    font-family: var(--msg-standard-font-family);
 }
 
 .msg.resultHost .resultStatus .toolbar .divider {
@@ -364,19 +393,18 @@
     border-radius: 0;
     flex: 1 1 auto;
 
-    font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
+    font-family: var(--msg-monospace-font-family);
 }
 
 .msg.connectionTabHost .renderTarget .actionOutput {
-    font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
+    font-family: var(--msg-monospace-font-family);
 }
 
-.resultHost > .resultTabview .copyButton,
+.resultHost > .resultTabview .resultView .actionHost,
 .zoneHost > .renderTarget > .outputHost .copyButton {
     display: none;
 }
 
-.resultHost > .resultTabview:hover .copyButton,
 .zoneHost > .renderTarget > .outputHost:hover .copyButton {
     display: block;
     position: absolute;
@@ -391,6 +419,22 @@
     z-index: 1;
 }
 
+.resultHost > .resultTabview .resultView:hover .actionHost {
+    display: flex;
+    position: absolute;
+    align-self: flex-end;
+    top: 0;
+    right: 10px;
+    min-width: 0;
+    padding: 2px;
+    z-index: 1;
+}
+
+.resultHost > .resultTabview .resultView:hover .actionHost .icon {
+    width: 12px;
+    height: 12px;
+}
+
 .renderTarget #toggleStateButton {
     padding: 0;
     border: none;
@@ -401,4 +445,9 @@
 .renderTarget #toggleStateButton .icon {
     min-width: 20px;
     min-height: 20px;
+}
+
+/** Field editor related rules. */
+.msg#fieldEditor > .valueEditDialog textarea {
+    min-height: 300px;
 }

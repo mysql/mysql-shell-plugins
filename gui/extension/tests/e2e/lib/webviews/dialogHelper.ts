@@ -124,7 +124,7 @@ export class DialogHelper {
 
         await driver.wait(async () => {
             await el.clear();
-            await el.click();
+            await driver.executeScript("arguments[0].click()", el);
             if (Os.isMacOs()) {
                 await el.sendKeys(Key.chord(Key.COMMAND, "a"));
             } else {

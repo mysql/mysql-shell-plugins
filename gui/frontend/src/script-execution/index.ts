@@ -27,7 +27,7 @@ import { type IPosition, languages } from "monaco-editor";
 
 import { IDbModuleResultData } from "../app-logic/ApplicationDB.js";
 
-import { IColumnInfo, IDictionary, IExecutionInfo, MessageType } from "../app-logic/Types.js";
+import { IColumnInfo, IDictionary, IStatusInfo, MessageType } from "../app-logic/Types.js";
 import { ICodeEditorOptions, ICodeEditorViewState, IExecutionContextState } from "../components/ui/CodeEditor/index.js";
 
 import { LanguageCompletionKind } from "../parsing/parser-common.js";
@@ -108,7 +108,7 @@ export interface ITextResult {
     type: "text";
 
     text?: ITextResultEntry[];
-    executionInfo?: IExecutionInfo;
+    executionInfo?: IStatusInfo;
 }
 
 interface IResultSetContent {
@@ -120,7 +120,7 @@ interface IResultSetContent {
     hasMoreRows?: boolean;
 
     /** Set once the execution is finished. Can be a summary or error message or similar. */
-    executionInfo?: IExecutionInfo;
+    executionInfo?: IStatusInfo;
 }
 
 export interface IResultSet {
@@ -135,8 +135,22 @@ export interface IResultSet {
     /** The qualifier of the request that generated this result set. */
     resultId: string;
 
+    /**
+     * The fully qualified name of the table from which this result set was produced.
+     * Can be empty if more than one table was involved or the result set was not produced from a table.
+     */
+    fullTableName: string;
+
     /** Original query without automatic adjustments (like a LIMIT clause). */
     sql: string;
+
+    /**
+     * A flag, indicating that this result set can be edited (is updatable).
+     *
+     * A result set is updatable if it comes from a single table (not a view, no join etc.).
+     * Additionally, it must have a primary key.
+     */
+    updatable: boolean;
 
     columns: IColumnInfo[];
 
@@ -210,7 +224,7 @@ export interface IPresentationOptions {
 }
 
 /**
- * Additional informations for a result that's going to be added to a presentation.
+ * Additional information for a result that's going to be added to a presentation.
  */
 export interface IResponseDataOptions {
     /** The ID of the result data. */
@@ -227,6 +241,12 @@ export interface IResponseDataOptions {
 
     /** Optional additional index for queries that return more than one result (e.g. stored routines). */
     subIndex?: number;
+
+    /** A flag, indicating that the result data is updatable. */
+    updatable?: boolean;
+
+    /** The fully qualified name of the table from which this result data was produced. */
+    fullTableName?: string;
 }
 
 export interface IContextProvider {

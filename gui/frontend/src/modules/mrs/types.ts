@@ -41,3 +41,21 @@ export interface IMrsAuthRequestPayload extends IMrsLoginResult {
     /** The login result. */
     loginResult?: IMrsLoginResult;
 }
+
+export enum MrsSdkLanguage {
+    TypeScript = "TypeScript"
+}
+
+export enum MrsObjectKind {
+    Result = "RESULT",
+    Parameters = "PARAMETERS",
+}
+
+export enum MrsDbObjectType {
+    Table = "TABLE",
+    View = "VIEW",
+    Procedure = "PROCEDURE",
+    Function = "FUNCTION",
+
+    Event = "EVENT", // Not yet supported by the backend.
+}

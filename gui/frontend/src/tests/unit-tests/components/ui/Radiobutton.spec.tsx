@@ -46,12 +46,12 @@ describe("Radiobutton component tests", (): void => {
 
         const instance = component.instance();
         const spyOnClick = jest.spyOn(instance.props as IRadiobuttonProperties, "onClick");
-        expect(spyOnClick).not.toBeCalled();
+        expect(spyOnClick).not.toHaveBeenCalled();
         const click = (component.props() as IRadiobuttonProperties).onClick;
         await act(() => {
             click?.(mouseEventMock, { id: "1" });
         });
-        expect(spyOnClick).toBeCalled();
+        expect(spyOnClick).toHaveBeenCalled();
 
         component.unmount();
     });
