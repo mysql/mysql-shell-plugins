@@ -609,7 +609,7 @@ export interface IShellMrsUpdateSchemaKwargs {
     schemaId?: string;
     /** The id of the service */
     serviceId?: string;
-    /** The name of the schema */
+    /** (required) The name of the schema */
     schemaName?: string;
     /** The values as dict #TODO: check why dicts cannot be passed */
     value: IShellMrsUpdateSchemaKwargsValue | null;
