@@ -87,7 +87,7 @@ export class ShellConsole extends ComponentBase<IShellConsoleProperties> {
                     enabled: true,
                 }}
                 font={{
-                    fontFamily: "SourceCodePro+Powerline+Awesome+MySQL",
+                    fontFamily: "var(--msg-monospace-font-family)",
                     fontSize: 15,
                     lineHeight: 24,
                 }}

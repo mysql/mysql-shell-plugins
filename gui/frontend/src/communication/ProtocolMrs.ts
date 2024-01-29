@@ -25,6 +25,7 @@
 
 import { IShellDictionary } from "./Protocol.js";
 import { IDictionary } from "../app-logic/Types.js";
+import { MrsDbObjectType, MrsObjectKind, MrsSdkLanguage } from "../modules/mrs/types.js";
 
 /* eslint-disable max-len */
 
@@ -1228,7 +1229,7 @@ export interface IMrsDbObjectData extends IDictionary {
     id: string;
     itemsPerPage?: number;
     name: string;
-    objectType: string;
+    objectType: MrsDbObjectType;
     requestPath: string;
     requiresAuth: number;
     rowUserOwnershipColumn?: string;
@@ -1477,11 +1478,11 @@ export interface IMrsObjectFieldWithReference {
 }
 
 export interface IMrsObjectSdkLanguageOptions {
-    language: string,
+    language: MrsSdkLanguage,
     className?: string,
 }
 
-export interface IMrsObjectSdkOptions extends IShellDictionary {
+export interface IMrsObjectSdkOptions {
     languageOptions?: IMrsObjectSdkLanguageOptions[],
 }
 
@@ -1490,7 +1491,7 @@ export interface IMrsObject {
     dbObjectId: string,
     name: string,
     position: number,
-    kind: string,
+    kind: MrsObjectKind,
     sdkOptions?: IMrsObjectSdkOptions,
     comments?: string,
     fields?: IMrsObjectFieldWithReference[],

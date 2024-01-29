@@ -133,10 +133,12 @@ exports[`Theme editor core testing Render test 1`] = `
                   <Container
                     className="msg dropdown themeSelector"
                     crossAlignment="center"
+                    data-tooltip="inherit"
                     innerRef={
                       {
                         "current": <div
                           class="msg container fixedScrollbar dropdown themeSelector"
+                          data-tooltip="inherit"
                           style="flex-direction: row; align-items: center;"
                           tabindex="0"
                         />,
@@ -150,6 +152,7 @@ exports[`Theme editor core testing Render test 1`] = `
                   >
                     <div
                       className="msg container fixedScrollbar dropdown themeSelector"
+                      data-tooltip="inherit"
                       onClick={[Function]}
                       onKeyDown={[Function]}
                       onfocusout={[Function]}

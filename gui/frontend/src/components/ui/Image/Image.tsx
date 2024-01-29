@@ -31,7 +31,10 @@ import { ComponentBase, IComponentProperties, IComponentState } from "../Compone
 
 export interface IImageProperties extends IComponentProperties {
     disabled?: boolean;
+
+    /** Either a URL to an image or a base64 data string. */
     src?: string;
+
     alt?: string;
     width?: string | number;
     height?: string | number;

@@ -30,15 +30,13 @@ export const languageConfiguration: languages.LanguageConfiguration = {
     ...tsConfig,
 };
 
+/** Apply base color to all MSG content. Semantic highlighters will take over, depending on the block language. */
 export const language: languages.IMonarchLanguage = {
-    defaultToken: "invalid",
+    defaultToken: "string",
     ignoreCase: true,
     start: "msg",
     tokenizer: {
         msg: [
-            // Override highlighting of braces and make them appear as strings.
-            // The semantic highlighter will update the formatting.
-            [/[[\](){}]/, { token: "string" }],
         ],
     },
 

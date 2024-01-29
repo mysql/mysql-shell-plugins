@@ -334,6 +334,15 @@ export const registerSettings = (): void => {
         true,
         false,
     );
+    registerSetting(
+        "editor.editOnDoubleClick",
+        "Start Editing on Double Click",
+        "When set, a double click on a result cell starts editing the cell, otherwise editing a cell is only " +
+        "possible if the edit mode is activated.",
+        "boolean",
+        true,
+        false,
+    );
 
     registerSettingCategory("dbEditor", "DB Editor", "Settings related to a DB editor");
     registerSetting(

@@ -2,7 +2,7 @@
 
 exports[`Result Status Tests Default Rendering 1`] = `
 <ResultStatus
-  executionInfo={
+  statusInfo={
     {
       "text": "Lorem ipsum",
       "type": 2,

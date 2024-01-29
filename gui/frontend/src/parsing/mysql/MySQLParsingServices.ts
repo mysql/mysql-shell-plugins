@@ -32,14 +32,15 @@ import {
 
 import { MySQLMRSLexer } from "./generated/MySQLMRSLexer.js";
 import {
-    MySQLMRSParser, QueryContext, QueryExpressionContext, QuerySpecificationContext, SubqueryContext,
+    FromClauseContext, MySQLMRSParser, QueryContext, QueryExpressionContext, QuerySpecificationContext, SubqueryContext,
+    TableFactorContext,
 } from "./generated/MySQLMRSParser.js";
 
 import { MySQLErrorListener } from "./MySQLErrorListener.js";
 import { MySQLParseUnit } from "./MySQLServiceTypes.js";
 import {
-    ICompletionData, IParserErrorInfo, IStatement, IStatementSpan, ISymbolInfo, ITokenInfo, QueryType,
-    StatementFinishState, SymbolKind, TextSpan, tokenFromPosition,
+    ICompletionData, IParserErrorInfo, IPreprocessResult, IStatement, IStatementSpan, ISymbolInfo, ITokenInfo,
+    QueryType, StatementFinishState, SymbolKind, TextSpan, tokenFromPosition,
 } from "../parser-common.js";
 
 import { SystemVariableSymbol, SystemFunctionSymbol, DBSymbolTable } from "../DBSymbolTable.js";
@@ -269,7 +270,7 @@ export class MySQLParsingServices {
             if (statement.text.match(/^\s*delimiter /i)) {
                 // Line and column values are one based.
                 result.push({
-                    type: "delimiter.sql",
+                    type: "delimiter",
                     offset: statement.offset,
                     length: statement.text.length,
                 });
@@ -307,7 +308,7 @@ export class MySQLParsingServices {
                         }
 
                         result.push({
-                            type: type + ".sql",
+                            type,
                             offset: statement.offset + token.start,
                             length: token.stop - token.start + 1,
                         });
@@ -723,9 +724,13 @@ export class MySQLParsingServices {
     }
 
     /**
-     * Parses the query to see if it is valid and applies a number of transformations, depending on the parameters:
+     * Parses the query (which must be a SELECT) to see if it is valid and applies a number of transformations,
+     * depending on the parameters:
      * - If there's no top-level limit clause, then one is added.
      * - If indicated adds an optimizer hint to use the secondary engine (usually HeatWave).
+     *
+     * Furthermore the query is checked if it can be updated, which requires a number of conditions
+     * (e.g. no join or union parts).
      *
      * @param query The query to check and modify.
      * @param serverVersion The version of MySQL to use for checking.
@@ -738,12 +743,12 @@ export class MySQLParsingServices {
      *          Otherwise the original query is returned.
      */
     public preprocessStatement(query: string, serverVersion: number, sqlMode: string, offset: number,
-        count: number, forceSecondaryEngine?: boolean): [string, boolean] {
+        count: number, forceSecondaryEngine?: boolean): IPreprocessResult {
 
         this.applyServerDetails(serverVersion, sqlMode);
-        const tree = this.startParsing(query, false, MySQLParseUnit.Generic);
+        const tree = this.startParsing(query, false, MySQLParseUnit.Generic) as QueryContext;
         if (!tree || this.errors.length > 0) {
-            return [query, false];
+            return { query, changed: false, updatable: false };
         }
 
         const rewriter = new TokenStreamRewriter(this.tokenStream);
@@ -777,19 +782,42 @@ export class MySQLParsingServices {
             }
         }
 
-        // Optimizer hint.
-        if (forceSecondaryEngine) {
-            const specification = XPath.findAll(tree, "/query/simpleStatement/*/queryExpression/*/" +
-                "queryPrimary/querySpecification", this.parser);
+        const updatable = this.isUpdatable(tree);
+        const specification = XPath.findAll(tree, "/query/simpleStatement/*/queryExpression/*/" +
+            "queryPrimary/querySpecification", this.parser) as Set<QuerySpecificationContext>;
+        let fullTableName = "";
 
-            if (specification.size > 0) {
-                const context = specification.values().next().value as QuerySpecificationContext;
+        if (specification.size > 0) {
+            const [context] = specification;
+
+            // Optimizer hint.
+            if (forceSecondaryEngine) {
                 rewriter.insertAfter(context.SELECT_SYMBOL()!.symbol, " /*+ SET_VAR(use_secondary_engine = FORCED) */");
                 changed = true;
             }
+
+            if (updatable) {
+                // Extract the name of the table to update.
+                const fromClauses = XPath.findAll(context, "//fromClause", this.parser) as Set<FromClauseContext>;
+                if (fromClauses.size === 1) {
+                    const [fromClause] = fromClauses;
+                    const tableFactors = XPath.findAll(fromClause, "//tableReferenceList/tableReference/tableFactor",
+                        this.parser) as Set<TableFactorContext>;
+                    if (tableFactors.size === 1) {
+                        const [tableFactor] = tableFactors;
+                        let singleTable;
+                        if (tableFactor.singleTable()) {
+                            singleTable = tableFactor.singleTable()!;
+                        } else if (tableFactor.singleTableParens()) {
+                            singleTable = tableFactor.singleTableParens()!.singleTable()!;
+                        }
+                        fullTableName = singleTable?.tableRef().getText() ?? "";
+                    }
+                }
+            }
         }
 
-        return [rewriter.getText(), changed];
+        return { query: rewriter.getText(), changed, updatable, fullTableName };
     }
 
     /**
@@ -1089,4 +1117,74 @@ export class MySQLParsingServices {
             }
         }
     }
+
+    /**
+     * Inspects the given tree to see if it represents an updatable query.
+     *
+     * @param tree The query tree to inspect.
+     *
+     * @returns True if the query is updatable, otherwise false.
+     */
+    private isUpdatable(tree: QueryContext): boolean {
+        const select = tree.simpleStatement()?.selectStatement();
+        let updatable = select != null;
+        if (!select || select.selectStatementWithInto() || select?.lockingClauseList()) {
+            updatable = false;
+        } else {
+            const expression = select.queryExpression()!; // Must be assigned at this point.
+            if (expression.withClause()) {
+                updatable = false;
+            } else {
+                const body = expression.queryExpressionBody();
+                if (body.UNION_SYMBOL().length > 0 || body.INTERSECT_SYMBOL().length > 0
+                    || body.EXCEPT_SYMBOL().length > 0 || !body.queryPrimary()) {
+                    updatable = false;
+                } else {
+                    const spec = body.queryPrimary()?.querySpecification();
+                    if (!spec || spec.selectOption().length > 0 || spec.intoClause() || spec.intoClause()
+                        || spec.groupByClause() || spec.havingClause() || spec.windowClause()) {
+                        updatable = false;
+                    } else if (!spec.fromClause() || spec.fromClause()?.DUAL_SYMBOL()) {
+                        updatable = false;
+                    } else {
+                        const tableRefList = spec.fromClause()!.tableReferenceList()!;
+                        if (tableRefList.tableReference().length > 1) {
+                            // More than one table reference.
+                            updatable = false;
+                        } else {
+                            const ref = tableRefList.tableReference()[0];
+                            if (ref.joinedTable().length > 0 || ref.OPEN_CURLY_SYMBOL()) {
+                                // No joins or ODBC tables.
+                                updatable = false;
+                            } else if (ref.tableFactor()?.singleTable() || ref.tableFactor()?.singleTableParens()) {
+                                // Having all the table related stuff checked, we can focus now on the select list.
+                                // There can either be a wildcard or a list of expressions.
+                                if (!spec.selectItemList().MULT_OPERATOR()) {
+                                    // Each select item must consist solely of a column reference.
+                                    for (const item of spec.selectItemList().selectItem()) {
+                                        if (item.tableWild()) {
+                                            // Also table wildcards do not prevent the query from being updatable.
+                                            continue;
+                                        }
+
+                                        // Only direct column references are allowed.
+                                        const columnRef = XPath.findAll(item,
+                                            "/selectItem/expr/boolPri/predicate/bitExpr/simpleExpr/columnRef",
+                                            this.parser);
+                                        if (columnRef.size !== 1) {
+                                            updatable = false;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return updatable;
+    }
+
 }

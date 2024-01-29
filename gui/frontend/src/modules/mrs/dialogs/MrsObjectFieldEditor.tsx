@@ -71,7 +71,7 @@ import {
 } from "../../../communication/ProtocolMrs.js";
 import { uuidBinary16Base64 } from "../../../utilities/helpers.js";
 import {
-    camelToSnakeCase, convertCamelToTitleCase, convertToPascalCase, snakeToCamelCase,
+    convertCamelToSnakeCase, convertCamelToTitleCase, convertToPascalCase, convertSnakeToCamelCase,
 } from "../../../utilities/string-helpers.js";
 import { IInputChangeProperties, Input } from "../../../components/ui/Input/Input.js";
 import { Icon } from "../../../components/ui/Icon/Icon.js";
@@ -80,22 +80,7 @@ import { CodeEditor } from "../../../components/ui/CodeEditor/CodeEditor.js";
 import { IDictionary } from "../../../app-logic/Types.js";
 import { Codicon } from "../../../components/ui/Codicon.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
-
-export enum MrsSdkLanguage {
-    TypeScript = "TypeScript"
-}
-
-export enum MrsObjectKind {
-    Result = "RESULT",
-    Parameters = "PARAMETERS",
-}
-
-enum MrsDbObjectType {
-    Table = "TABLE",
-    View = "VIEW",
-    Procedure = "PROCEDURE",
-    Function = "FUNCTION"
-}
+import { MrsDbObjectType, MrsObjectKind, MrsSdkLanguage } from "../types.js";
 
 export interface IMrsObjectFieldEditorData extends IDictionary {
     servicePath: string;
@@ -620,7 +605,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         language="mysql" readonly={true}
                         lineNumbers={"off"}
                         font={{
-                            fontFamily: "SourceCodePro+Powerline+Awesome+MySQL",
+                            fontFamily: "var(--msg-monospace-font-family)",
                             fontSize: 12,
                             lineHeight: 18,
                         }}
@@ -1237,7 +1222,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
      */
 
     private addFieldsToMrsObjectTreeList = async (
-        dbSchemaName: string, dbObjectName: string, dbObjectType: string,
+        dbSchemaName: string, dbObjectName: string, dbObjectType: MrsDbObjectType,
         parentTreeItem?: IMrsObjectFieldTreeItem,
         initTreeItemsToUnnest?: IMrsObjectFieldTreeItem[],
         initTreeItemsToReduce?: IMrsObjectFieldTreeItem[]): Promise<void> => {
@@ -1274,7 +1259,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             objectId: currentObject.id,
             representsReferenceId: undefined,
             parentReferenceId: undefined,
-            name: snakeToCamelCase(dbObjectName),
+            name: convertSnakeToCamelCase(dbObjectName),
             position: 0,
             dbColumn: undefined,
             enabled: false,
@@ -1381,7 +1366,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 return f.dbColumn?.name === column.name;
             });
 
-            let fieldName = storedField?.name ?? snakeToCamelCase(column.name);
+            let fieldName = storedField?.name ?? convertSnakeToCamelCase(column.name);
             // Check if field name is already taken, if so, append column.relColumnNames or and increasing number
             // at the end
             if (usedFieldNames.includes(fieldName)) {
@@ -1536,7 +1521,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 return f.dbColumn?.name === param.name;
             });
 
-            const fieldName = storedField?.name ?? snakeToCamelCase(param.name);
+            const fieldName = storedField?.name ?? convertSnakeToCamelCase(param.name);
 
             // This is a regular field
             const field: IMrsObjectFieldWithReference = {
@@ -1988,7 +1973,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
                 // If this is a new field, initialize the dbColumn and datatype
                 if (treeItem.field.dbColumn?.name === "new_field") {
-                    treeItem.field.dbColumn.name = camelToSnakeCase(treeItem.field.name);
+                    treeItem.field.dbColumn.name = convertCamelToSnakeCase(treeItem.field.name);
 
                     switch (datatypeName) {
                         case "number":
@@ -2025,7 +2010,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 }
 
                 if (treeItem.field.name === "newField") {
-                    treeItem.field.name = snakeToCamelCase(treeItem.field.dbColumn.name);
+                    treeItem.field.name = convertSnakeToCamelCase(treeItem.field.dbColumn.name);
                 }
             }
 
@@ -2376,7 +2361,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             dbObjectId: data.dbObject.id,
             name,
             position: data.mrsObjects.length,
-            kind: "RESULT",
+            kind: MrsObjectKind.Result,
             sdkOptions: undefined,
             comments: undefined,
         };

@@ -131,7 +131,7 @@ describe("OPEN EDITORS", () => {
         await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
         const treeOEGlobalConn = await Tree.getElement(constants.openEditorsTreeSection,
             globalConn.caption);
-        await (await Tree.getActionButton(treeOEGlobalConn, "New MySQL Script")).click();
+        await (await Tree.getActionButton(treeOEGlobalConn, constants.newMySQLScript)).click();
         await Workbench.openEditor(globalConn.caption);
         expect(await Notebook.getCurrentEditorName(), `The current editor name should match 'Untitled-(\\d+)'`)
             .to.match(/Untitled-(\d+)/);

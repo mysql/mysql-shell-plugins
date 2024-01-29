@@ -27,9 +27,9 @@
 
 import { DBSchema, deleteDB, IDBPDatabase, openDB } from "idb";
 
-import { requisitions } from "../supplement/Requisitions.js";
+import { requisitions, type IColumnDetails } from "../supplement/Requisitions.js";
 import { uuid } from "../utilities/helpers.js";
-import { IColumnInfo, IDictionary, IExecutionInfo } from "./Types.js";
+import { IColumnInfo, IDictionary, IStatusInfo } from "./Types.js";
 
 export enum StoreType {
     Unused = "unused",
@@ -45,7 +45,7 @@ export interface IDbModuleResultData {
     resultId: string;
     columns?: IColumnInfo[];
     rows: IDictionary[];
-    executionInfo?: IExecutionInfo;
+    executionInfo?: IStatusInfo;
     totalRowCount?: number;
 
     // Paging support.
@@ -60,6 +60,12 @@ export interface IDbModuleResultData {
 
     /** SQL text exists only for the start response. */
     sql?: string;
+
+    /** True, if this set of data can be updated. */
+    updatable?: boolean;
+
+    /** If the data set was derived from a single table, this field contains its fully qualified name. */
+    fullTableName?: string;
 }
 
 interface IShellModuleResultData {
@@ -69,8 +75,8 @@ interface IShellModuleResultData {
     tabId: string;
     resultId: string;
     columns?: IColumnInfo[];
-    rows: unknown[];
-    executionInfo?: IExecutionInfo;
+    rows: IDictionary[];
+    executionInfo?: IStatusInfo;
 
     /** An optional value to map a result set to the query that produced it. */
     index: number;
@@ -81,6 +87,8 @@ interface IAppStoreSchema extends DBSchema {
     unused: { // Not really used. Only here to allow "unused" as store name in cases, where we don't need a store.
         value: {
             resultId: string;
+            columns?: IColumnInfo[];
+            rows: IDictionary[];
         };
         key: string;
         indexes: { resultIndex: string; tabIndex: string; };
@@ -169,8 +177,89 @@ export class ApplicationDB {
         }
     }
 
+    /**
+     * @returns only the stored rows for a given result id. This is useful to revert any changes in the editor.
+     *
+     * @param store The store to be used.
+     * @param resultId The result ID for which to return the row data.
+     */
+    public static async getRowsForResultId(store: StoreType, resultId: string): Promise<IDictionary[]> {
+        await ApplicationDB.loaded;
+
+        const transaction = ApplicationDB.appDB.transaction(store, "readonly");
+        const tabIndex = transaction.store.index("resultIndex");
+        const cursor = await tabIndex.openCursor(IDBKeyRange.only(resultId));
+
+        return cursor?.value.rows ?? [];
+    }
+
+    /**
+     * Changes stored rows for a given result id. Used to update the editor data after an edit action.
+     *
+     * @param store The store to be used.
+     * @param resultId The result ID for which to update the row data.
+     * @param newRows The new row data.
+     */
+    public static async updateRowsForResultId(store: StoreType, resultId: string,
+        newRows: IDictionary[]): Promise<void> {
+        await ApplicationDB.loaded;
+
+        const transaction = ApplicationDB.appDB.transaction(store, "readwrite");
+        const tabIndex = transaction.store.index("resultIndex");
+        const cursor = await tabIndex.openCursor(IDBKeyRange.only(resultId));
+        if (cursor) {
+            cursor.value.rows = newRows;
+            await cursor.update(cursor.value);
+        }
+    }
+
+    /**
+     * Changes stored rows for a given result id. Used to update the editor data after an edit action.
+     *
+     * @param store The store to be used.
+     * @param details The new column data. Only certain properties are updated.
+     *
+     * @returns A promise which resolves to true if the update was successful, false otherwise.
+     */
+    public static async updateColumnsForResultId(store: StoreType, details: IColumnDetails): Promise<boolean> {
+        await ApplicationDB.loaded;
+
+        const transaction = ApplicationDB.appDB.transaction(store, "readwrite");
+        const tabIndex = transaction.store.index("resultIndex");
+        const cursor = await tabIndex.openCursor(IDBKeyRange.only(details.resultId));
+        if (cursor && cursor.value.columns && cursor.value.columns.length === details.columns.length) {
+            for (const [index, column] of cursor.value.columns.entries()) {
+                column.inPK = details.columns[index].inPK;
+                column.default = details.columns[index].default;
+                column.nullable = details.columns[index].nullable;
+                column.autoIncrement = details.columns[index].autoIncrement;
+            }
+            await cursor.update(cursor.value);
+
+            return true;
+        }
+
+        return false;
+    }
+
     public static async initialize(clear = true): Promise<void> {
+        if (clear) {
+            // Remove all DBs from previous sessions.
+            const dbNames: string[] = [];
+            const dbList = await indexedDB.databases();
+            for (const db of dbList) {
+                if (db.name?.startsWith("msg:")) {
+                    dbNames.push(db.name);
+                }
+            }
+
+            for (const dbName of dbNames) {
+                void deleteDB(dbName);
+            }
+        }
+
         return new Promise((resolve, reject) => {
+
             openDB<IAppStoreSchema>(ApplicationDB.dbName, ApplicationDB.dbVersion, {
                 upgrade: (db) => {
                     // Never called when the DB version did not change.
@@ -210,6 +299,8 @@ export class ApplicationDB {
             });
         });
     }
-}
 
-ApplicationDB.loaded = ApplicationDB.initialize();
+    static {
+        ApplicationDB.loaded = ApplicationDB.initialize();
+    }
+}

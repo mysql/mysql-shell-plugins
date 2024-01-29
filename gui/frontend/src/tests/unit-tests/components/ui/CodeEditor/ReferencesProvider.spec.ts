@@ -61,6 +61,6 @@ describe("ReferenceProvider tests", () => {
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
         const findReferences = jest.spyOn(services, "findReferences");
         void referenceProvider.provideReferences(mockModel, position);
-        expect(findReferences).toBeCalled();
+        expect(findReferences).toHaveBeenCalled();
     });
 });

@@ -91,11 +91,13 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <Container
                 className="msg dropdown"
                 crossAlignment="center"
+                data-tooltip="inherit"
                 id="refreshSelector"
                 innerRef={
                   {
                     "current": <div
                       class="msg container fixedScrollbar dropdown"
+                      data-tooltip="inherit"
                       id="refreshSelector"
                       style="flex-direction: row; align-items: center;"
                       tabindex="0"
@@ -117,6 +119,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               >
                 <div
                   className="msg container fixedScrollbar dropdown"
+                  data-tooltip="inherit"
                   id="refreshSelector"
                   onClick={[Function]}
                   onKeyDown={[Function]}
@@ -766,11 +769,13 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               <Container
                 className="msg dropdown"
                 crossAlignment="center"
+                data-tooltip="inherit"
                 id="refreshSelector"
                 innerRef={
                   {
                     "current": <div
                       class="msg container fixedScrollbar dropdown"
+                      data-tooltip="inherit"
                       id="refreshSelector"
                       style="flex-direction: row; align-items: center;"
                       tabindex="0"
@@ -792,6 +797,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               >
                 <div
                   className="msg container fixedScrollbar dropdown"
+                  data-tooltip="inherit"
                   id="refreshSelector"
                   onClick={[Function]}
                   onKeyDown={[Function]}

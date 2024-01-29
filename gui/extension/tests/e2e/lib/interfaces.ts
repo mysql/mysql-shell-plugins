@@ -235,6 +235,6 @@ export interface IExportMrsSdk {
 
 export interface IResultGridCell {
     rowNumber?: number;
-    columnNumber: number;
+    columnName: string;
     value: string | boolean | number;
 }

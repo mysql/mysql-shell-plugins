@@ -393,7 +393,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                         this.deleteList = [];
                         list?.forEach((item) => {
                             const data = item.data as ICheckboxProperties;
-                            if (data.checkState === 1) {
+                            if (data.checkState === CheckState.Checked) {
                                 const profile = this.activeProfiles.find(
                                     (profile: IShellProfile) => {
                                         return String(profile.id) === data.id;

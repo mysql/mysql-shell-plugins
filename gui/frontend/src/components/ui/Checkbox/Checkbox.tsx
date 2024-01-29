@@ -25,7 +25,7 @@
 
 import "./Checkbox.css";
 
-import { ComponentChild } from "preact";
+import { ComponentChild, createRef } from "preact";
 
 import { IComponentProperties, ComponentBase, MouseEventType } from "../Component/ComponentBase.js";
 import { KeyboardKeys } from "../../../utilities/helpers.js";
@@ -51,11 +51,20 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
         disabled: false,
     };
 
+    #labelRef = createRef<HTMLLabelElement & { value: unknown; }>();
+
     public constructor(props: ICheckboxProperties) {
         super(props);
 
         this.addHandledProperties("checkState", "caption", "disabled", "onChange", "dataId");
         this.connectEvents("onClick");
+    }
+
+    public componentDidMount(): void {
+        const { checkState } = this.mergedProps;
+        if (this.#labelRef.current) {
+            this.#labelRef.current.value = checkState;
+        }
     }
 
     public render(): ComponentChild {
@@ -70,6 +79,7 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
 
         return (
             <label
+                ref={this.#labelRef}
                 className={className}
                 tabIndex={0}
                 onKeyPress={this.handleKeyPress}
@@ -89,7 +99,8 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
             return false;
         }
 
-        if (type === MouseEventType.Click) {
+        if (type === MouseEventType.Click || type === MouseEventType.DoubleClick) {
+            e.stopImmediatePropagation();
             this.toggleCheckState();
         }
 
@@ -129,6 +140,10 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
                 newState = CheckState.Unchecked;
                 break;
             }
+        }
+
+        if (this.#labelRef.current) {
+            this.#labelRef.current.value = newState;
         }
 
         onChange?.(newState, this.mergedProps);

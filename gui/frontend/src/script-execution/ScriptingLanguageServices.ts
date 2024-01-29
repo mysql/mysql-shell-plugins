@@ -41,7 +41,7 @@ import {
     DiagnosticSeverity, IDiagnosticEntry, ILanguageWorkerQueryPreprocessData, ILanguageWorkerApplySemicolonData,
     ILanguageWorkerInfoData, ILanguageWorkerParameterData, ILanguageWorkerQueryTypeData, ILanguageWorkerResultData,
     ILanguageWorkerSplitData, ILanguageWorkerValidateData, IParserErrorInfo, IStatementSpan, QueryType,
-    ServiceLanguage, StatementFinishState, ILanguageWorkerTokenizeData,
+    ServiceLanguage, StatementFinishState, ILanguageWorkerTokenizeData, IPreprocessResult,
 } from "../parsing/parser-common.js";
 
 import { MySQLLanguageService } from "../parsing/mysql/MySQLLanguageService.js";
@@ -486,7 +486,7 @@ export class ScriptingLanguageServices {
                     };
 
                     let currentLine = -1;
-                    this.workerPool.runTask(taskData).then((_taskId: number, data: ILanguageWorkerResultData): void => {
+                    this.workerPool.runTask(taskData).then((_taskId, data): void => {
                         const result: ITextToken[][] = [];
                         if (data.tokens) {
                             let lineTokens: ITextToken[] = [];
@@ -522,20 +522,27 @@ export class ScriptingLanguageServices {
                                                         startPosition.column + 1,
                                                     type: token.type,
                                                 });
-                                            } else if (i === lineCount - 1) {
-                                                lineTokens.push({
-                                                    line: endPosition.lineNumber - 1,
-                                                    column: 0,
-                                                    length: endPosition.column - 1,
-                                                    type: token.type,
-                                                });
                                             } else {
-                                                lineTokens.push({
-                                                    line: startPosition.lineNumber + i - 1,
-                                                    column: 0,
-                                                    length: model.getLineLength(startPosition.lineNumber + i),
-                                                    type: token.type,
-                                                });
+                                                // Finish the current line and start a new one.
+                                                result.push(lineTokens);
+                                                lineTokens = [];
+                                                currentLine = startPosition.lineNumber;
+
+                                                if (i === lineCount - 1) {
+                                                    lineTokens.push({
+                                                        line: endPosition.lineNumber - 1,
+                                                        column: 0,
+                                                        length: endPosition.column - 1,
+                                                        type: token.type,
+                                                    });
+                                                } else {
+                                                    lineTokens.push({
+                                                        line: startPosition.lineNumber + i - 1,
+                                                        column: 0,
+                                                        length: model.getLineLength(startPosition.lineNumber + i),
+                                                        type: token.type,
+                                                    });
+                                                }
                                             }
 
                                         }
@@ -977,7 +984,7 @@ export class ScriptingLanguageServices {
      *          Otherwise the original query is returned.
      */
     public preprocessStatement = async (block: IExecutionContext, sql: string, offset: number,
-        count: number, forceSecondaryEngine?: boolean): Promise<[string, boolean]> => {
+        count: number, forceSecondaryEngine?: boolean): Promise<IPreprocessResult> => {
         return new Promise((resolve, reject) => {
             const sqlContext = block as SQLExecutionContext;
             const applyLimitsData: ILanguageWorkerQueryPreprocessData = {
@@ -992,7 +999,12 @@ export class ScriptingLanguageServices {
             };
 
             this.workerPool.runTask(applyLimitsData).then((taskId: number, result: ILanguageWorkerResultData): void => {
-                resolve([result.query ?? sql, result.changed ?? false]);
+                resolve({
+                    query: result.query ?? sql,
+                    changed: result.changed ?? false,
+                    updatable: result.updatable ?? false,
+                    fullTableName: result.fullTableName,
+                });
             }).catch((taskId, reason) => {
                 reject(reason);
             });

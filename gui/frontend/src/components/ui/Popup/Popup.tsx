@@ -96,6 +96,7 @@ export class Popup extends ComponentBase<IPopupProperties, IPopupStates> {
                     className={className}
                     innerRef={this.containerRef}
                     orientation={orientation}
+                    fixedScrollbars={false}
                 >
                     {header}
                     {children}

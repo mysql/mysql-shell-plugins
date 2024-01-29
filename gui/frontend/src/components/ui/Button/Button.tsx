@@ -112,12 +112,14 @@ export class Button extends ComponentBase<IButtonProperties> {
         );
     }
 
-    protected handleMouseEvent(type: MouseEventType): boolean {
+    protected handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
         switch (type) {
             case MouseEventType.Down: {
                 const { focusOnClick } = this.mergedProps;
                 if (focusOnClick) {
                     this.buttonRef?.current?.focus();
+                } else {
+                    e.preventDefault();
                 }
 
                 break;

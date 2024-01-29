@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import child_process from "child_process";
+import * as cp from "child_process";
 import fs from "fs";
 import path from "path";
 import * as net from "net";
@@ -89,7 +89,7 @@ export class MySQLShellLauncher {
      */
     public static readonly extensionShellUserConfigFolderBaseName = "mysqlsh-gui";
 
-    private shellProcess: child_process.ChildProcess | undefined;
+    private shellProcess: cp.ChildProcess | undefined;
     private launchDetails: IShellLaunchDetails = { port: 0, singleUserToken: "" };
 
     public constructor(private onOutput: ShellOutputCallback, private onError: ShellErrorCallback,
@@ -144,7 +144,7 @@ export class MySQLShellLauncher {
      *
      * @returns the created process.
      */
-    public static runMysqlShell = (config: IShellLaunchConfiguration): child_process.ChildProcess => {
+    public static runMysqlShell = (config: IShellLaunchConfiguration): cp.ChildProcess => {
         // Use the MySQL Shell that is available in the given root path - and only if there is no shell, use the one
         // that is installed on the system.
         const shellPath = MySQLShellLauncher.getShellPath(config.rootPath);
@@ -162,7 +162,7 @@ export class MySQLShellLauncher {
         }
 
         // Spawn shell process
-        const shellProcess = child_process.spawn(shellPath, config.parameters, {
+        const shellProcess = cp.spawn(shellPath, config.parameters, {
             /* eslint-disable @typescript-eslint/naming-convention */
             env: {
                 ...process.env,

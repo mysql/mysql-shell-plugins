@@ -38,7 +38,7 @@ export abstract class PythonParserBase extends Parser {
         super(input);
     }
 
-    protected checkPythonVersion(version: number): boolean {
+    protected checkPythonVersion(version: PythonVersion): boolean {
         return version === PythonVersion.Auto || version === this.version;
     }
 

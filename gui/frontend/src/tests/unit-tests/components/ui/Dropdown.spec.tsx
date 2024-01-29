@@ -57,7 +57,7 @@ describe("Dropdown render testing", (): void => {
         const instance = component.instance();
         const spyOnChange = jest.spyOn(instance.props, "onSelect");
         component.setProps({ selection: "volvo" });
-        expect(spyOnChange).toBeCalled();
+        expect(spyOnChange).toHaveBeenCalled();
     });
 
 });

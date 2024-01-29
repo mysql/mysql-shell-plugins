@@ -515,13 +515,14 @@ export class DBConnection {
      * @param editor Editor name
      * @returns Promise resolving with the Editor
      */
-    public static getOpenEditor = async (driver: WebDriver, editor: string): Promise<WebElement | undefined> => {
+    public static getOpenEditor = async (driver: WebDriver,
+        editor: string | RegExp): Promise<WebElement | undefined> => {
         const context = await driver.findElement(locator.notebook.explorerHost.openEditors.exists);
         const editors = await context.findElements(
             locator.notebook.explorerHost.openEditors.item,
         );
         for (const refEditor of editors) {
-            if ((await refEditor.findElement(locator.htmlTag.label).getText()) === editor) {
+            if ((await refEditor.findElement(locator.htmlTag.label).getText()).match(editor) !== null) {
                 return refEditor;
             }
         }
@@ -534,7 +535,7 @@ export class DBConnection {
      * @param editorType javascript/typescript/mysql
      * @returns Promise resolving when the select is made
      */
-    public static selectCurrentEditor = async (driver: WebDriver, editorName: string, editorType: string):
+    public static selectCurrentEditor = async (driver: WebDriver, editorName: string | RegExp, editorType: string):
         Promise<void> => {
 
         await driver.wait(async () => {
@@ -561,30 +562,9 @@ export class DBConnection {
                             .getAttribute("style");
                     }
 
-                    if (name === editorName) {
+                    if (name.match(editorName) !== null) {
                         if (type.indexOf(editorType) !== -1) {
-                            await driver.wait(async () => {
-                                await item.click();
-                                const selector = await driver
-                                    .findElement(locator.notebook.toolbar.editorSelector.exists);
-                                const selected = await selector.findElement(locator.htmlTag.label).getText();
-
-                                return selected === editorName;
-                            }, explicitWait, `${editorName} with type ${editorType} was not properly selected`);
-
-                            await driver.wait(
-                                async () => {
-                                    return (
-                                        (
-                                            await driver.findElements(
-                                                locator.notebook.toolbar.editorSelector.items,
-                                            )
-                                        ).length === 0
-                                    );
-                                },
-                                2000,
-                                "Dropdown list is still visible",
-                            );
+                            await item.click();
 
                             return true;
                         }
@@ -630,7 +610,7 @@ export class DBConnection {
         const zoneHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
         const tabs = await zoneHosts[zoneHosts.length - 1]
             .findElements(locator.notebook.codeEditor.editor.result.tabSection.tabs);
-        const resultTabs = [];
+        const resultTabs: string[] = [];
 
         for (const tab of tabs) {
             if (await tab.getAttribute("id") !== "selectorItemStepDown" &&
@@ -727,10 +707,14 @@ export class DBConnection {
                 let items = await context.findElements(locator.htmlTag.label);
                 if (items.length > 0) {
                     text = await items[0].getText();
+
+                    return true;
                 } else {
                     items = await context.findElements(locator.notebook.codeEditor.editor.result.text.exists);
                     if (items.length > 0) {
                         text = await items[items.length - 1].getText();
+
+                        return true;
                     } else {
                         items = await context.findElements(locator.notebook.codeEditor.editor.result.text.entry);
                         if (items.length) {
@@ -739,9 +723,9 @@ export class DBConnection {
                             items = await context.findElements(locator.notebook.codeEditor.editor.result.text.info);
                             text = await items[0].getText();
                         }
-                    }
 
-                    return true;
+                        return true;
+                    }
                 }
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {

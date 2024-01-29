@@ -193,6 +193,10 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
                 if (entry.result.totalRowCount) {
                     result.totalRowCount = entry.result.totalRowCount;
                 }
+
+                if (entry.result.rowsAffected) {
+                    result.rowsAffected = entry.result.rowsAffected;
+                }
             });
 
             return result;
@@ -206,6 +210,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
      */
     public async reconnect(): Promise<void> {
         const moduleSessionId = this.moduleSessionId;
+
         if (moduleSessionId) {
             await MessageScheduler.get.sendRequest({
                 requestType: ShellAPIGui.GuiSqleditorReconnect,

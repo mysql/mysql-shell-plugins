@@ -64,6 +64,7 @@ exports[`MrsHub Tests MRS AuthApp dialog tests Show MRS Authentication App Dialo
           </label>
           <div
             class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
             id="authVendorName"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
@@ -262,6 +263,7 @@ exports[`MrsHub Tests MRS AuthApp dialog tests Show MRS Authentication App Dialo
           </label>
           <div
             class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
             id="defaultRoleName"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
@@ -440,6 +442,7 @@ exports[`MrsHub Tests MRS Content Set dialog tests Show MRS Content Set Dialog (
           </label>
           <div
             class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
             id="service"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
@@ -656,6 +659,7 @@ exports[`MrsHub Tests MRS Db Object dialog tests Show MRS DB Object Dialog (snap
           </label>
           <div
             class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
             disabled="true"
             id="service"
             style="flex-direction: row; align-items: center;"
@@ -687,6 +691,7 @@ exports[`MrsHub Tests MRS Db Object dialog tests Show MRS DB Object Dialog (snap
           </label>
           <div
             class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
             disabled="true"
             id="schema"
             style="flex-direction: row; align-items: center;"
@@ -1027,6 +1032,10 @@ exports[`MrsHub Tests MRS Db Object dialog tests Show MRS DB Object Dialog (snap
                               </div>
                             </div>
                           </div>
+                          <div
+                            class="tabulator-frozen-rows-holder"
+                            style="min-width: 0px;"
+                          />
                         </div>
                       </div>
                       <div
@@ -1175,6 +1184,7 @@ exports[`MrsHub Tests MRS SDK Export dialog tests Show MRS SDK Export Dialog (sn
           </label>
           <div
             class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
             id="sdkLanguage"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
@@ -1205,6 +1215,7 @@ exports[`MrsHub Tests MRS SDK Export dialog tests Show MRS SDK Export Dialog (sn
           </label>
           <div
             class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
             id="addAppBaseClass"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
@@ -1374,6 +1385,7 @@ exports[`MrsHub Tests MRS SDK Export dialog tests Show MRS SDK Export Dialog and
           </label>
           <div
             class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
             id="sdkLanguage"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
@@ -1404,6 +1416,7 @@ exports[`MrsHub Tests MRS SDK Export dialog tests Show MRS SDK Export Dialog and
           </label>
           <div
             class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
             id="addAppBaseClass"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
@@ -1545,6 +1558,7 @@ exports[`MrsHub Tests MRS Schema dialog tests Show MRS Schema Dialog (snapshot) 
           </label>
           <div
             class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
             id="service"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
@@ -2222,6 +2236,7 @@ exports[`MrsHub Tests MRS User dialog tests Show MRS User Dialog (snapshot) and 
           </label>
           <div
             class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
             id="authApp"
             style="flex-direction: row; align-items: center;"
             tabindex="0"

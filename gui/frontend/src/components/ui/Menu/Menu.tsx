@@ -169,7 +169,6 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
                 ref: itemRef,
                 onMouseEnter: this.handleItemMouseEnter,
                 onClick: (e: MouseEvent, props: IMenuItemProperties): void => {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                     childOnClick?.(e, props);
                     this.handleItemClick(e, props);
                 },

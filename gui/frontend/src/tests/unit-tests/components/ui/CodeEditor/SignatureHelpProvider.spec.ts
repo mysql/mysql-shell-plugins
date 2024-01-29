@@ -61,6 +61,6 @@ describe("RenameProvider tests", () => {
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
         const getSignatureHelp = jest.spyOn(services, "getSignatureHelp");
         void shp.provideSignatureHelp(mockModel, position);
-        expect(getSignatureHelp).toBeCalled();
+        expect(getSignatureHelp).toHaveBeenCalled();
     });
 });

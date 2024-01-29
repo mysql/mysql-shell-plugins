@@ -97,11 +97,6 @@ describe("MsgSemanticTokensProvider Tests", () => {
             "language",
             "predefined",
             "angle",
-
-            "sql",
-            "js",
-            "ts",
-            "py",
         ]);
 
         const legend = provider.getLegend();
@@ -111,7 +106,7 @@ describe("MsgSemanticTokensProvider Tests", () => {
 
     it("Empty Model", async () => {
         const model: ICodeEditorModel = Object.assign(Monaco.createModel("", "javascript"), {
-            executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
+            executionContexts: new ExecutionContexts(),
             editorMode: CodeEditorMode.Standard,
         });
 
@@ -130,7 +125,7 @@ describe("MsgSemanticTokensProvider Tests", () => {
 
     it("Single Language Model (MySQL)", async () => {
         const model: ICodeEditorModel = Object.assign(Monaco.createModel("", "mysql"), {
-            executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
+            executionContexts: new ExecutionContexts(),
             editorMode: CodeEditorMode.Standard,
         });
 
@@ -155,7 +150,7 @@ describe("MsgSemanticTokensProvider Tests", () => {
 
     it("Mixed Language Model with 3 Blocks in a Row with the same Language", async () => {
         let model: ICodeEditorModel = Object.assign(Monaco.createModel("", "msg"), {
-            executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
+            executionContexts: new ExecutionContexts(),
             editorMode: CodeEditorMode.Standard,
         });
 
@@ -180,7 +175,7 @@ describe("MsgSemanticTokensProvider Tests", () => {
         // expect(tokens.data).toHaveLength(5 * 5);
 
         model = Object.assign(Monaco.createModel("", "msg"), {
-            executionContexts: new ExecutionContexts(undefined, 0, "", ""),
+            executionContexts: new ExecutionContexts(),
             editorMode: CodeEditorMode.Standard,
         });
 
@@ -200,7 +195,7 @@ describe("MsgSemanticTokensProvider Tests", () => {
         // expect(tokens.data).toHaveLength(5 * 5);
 
         model = Object.assign(Monaco.createModel("", "msg"), {
-            executionContexts: new ExecutionContexts(undefined, 0, "", ""),
+            executionContexts: new ExecutionContexts(),
             editorMode: CodeEditorMode.Standard,
         });
 
@@ -222,7 +217,7 @@ describe("MsgSemanticTokensProvider Tests", () => {
 
     it("Mixed Language Model with All Supported Block Languages", async () => {
         const model: ICodeEditorModel = Object.assign(Monaco.createModel("", "msg"), {
-            executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
+            executionContexts: new ExecutionContexts(),
             editorMode: CodeEditorMode.Standard,
         });
 

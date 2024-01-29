@@ -32,7 +32,7 @@ import {
     IMySQLRecognizerCommon, SqlMode, isReservedKeyword, numberToVersion, isKeyword,
 } from "./MySQLRecognizerCommon.js";
 
-// The base lexer class provides a number of functions needed in actions in the lexer (grammar).
+/** The base lexer class provides a number of functions needed in actions in the lexer (grammar). */
 export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCommon {
     public serverVersion = 0;
     public sqlModes = new Set<SqlMode>();
@@ -193,6 +193,10 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
             case MySQLMRSLexer.COLON_SYMBOL:
             case MySQLMRSLexer.OPEN_PAR_SYMBOL:
             case MySQLMRSLexer.CLOSE_PAR_SYMBOL:
+            case MySQLMRSLexer.OPEN_CURLY_SYMBOL:
+            case MySQLMRSLexer.CLOSE_CURLY_SYMBOL:
+            case MySQLMRSLexer.OPEN_SQUARE_SYMBOL:
+            case MySQLMRSLexer.CLOSE_SQUARE_SYMBOL:
             case MySQLMRSLexer.AT_SIGN_SYMBOL:
             case MySQLMRSLexer.AT_AT_SIGN_SYMBOL:
             case MySQLMRSLexer.PARAM_MARKER:
@@ -1303,7 +1307,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
         }
 
         // Skip version comment introducer.
-        const version = parseInt(text.substr(3), 10);
+        const version = parseInt(text.substring(3), 10);
         if (version <= this.serverVersion) {
             this.inVersionComment = true;
 
@@ -1379,7 +1383,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
         let cmp: string;
         if (negative) {
             if (length === MySQLBaseLexer.#longLength) {
-                cmp = MySQLBaseLexer.#signedLongString.substr(1);
+                cmp = MySQLBaseLexer.#signedLongString.substring(1);
                 smaller = MySQLMRSLexer.INT_NUMBER; // If <= signed_long_str
                 bigger = MySQLMRSLexer.LONG_NUMBER; // If >= signed_long_str
             } else if (length < MySQLBaseLexer.#signedLongLongLength) {
@@ -1387,7 +1391,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
             } else if (length > MySQLBaseLexer.#signedLongLongLength) {
                 return MySQLMRSLexer.DECIMAL_NUMBER;
             } else {
-                cmp = MySQLBaseLexer.#signedLongLongString.substr(1);
+                cmp = MySQLBaseLexer.#signedLongLongString.substring(1);
                 smaller = MySQLMRSLexer.LONG_NUMBER; // If <= signed_longlong_str
                 bigger = MySQLMRSLexer.DECIMAL_NUMBER;
             }
@@ -1445,7 +1449,6 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
         ++this._tokenStartCharPositionInLine;
     }
 
-    // eslint-disable-next-line jsdoc/require-returns-check
     /**
      * @returns the next token in the token stream that is on the default channel (not a hidden or other one).
      */

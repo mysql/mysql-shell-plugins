@@ -49,7 +49,7 @@ export interface IAccordionAction {
     choices?: IAccordionActionChoice[];
 }
 
-interface IAccordionSection {
+export interface IAccordionSection {
     id: string;
     caption: string;
 

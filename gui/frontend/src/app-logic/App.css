@@ -39,6 +39,11 @@
     box-sizing: border-box;
 }
 
+:root {
+    --msg-standard-font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --msg-monospace-font-family: 'SourceCodePro+Powerline+Awesome+MySQL', monospace;
+}
+
 body {
     min-height: 100vh;
     margin: 0;
@@ -54,7 +59,7 @@ body {
     color: var(--foreground);
     background-color: transparent;
 
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: var(--msg-standard-font-family);
     font-weight: 400;
     /*font-size: 15px;*/
 

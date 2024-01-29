@@ -370,9 +370,9 @@ describe("Value Edit Dialog Tests", (): void => {
         showAdvancedCheckbox = document.getElementById("show-advanced");
         expect(showAdvancedCheckbox).toBeNull();
 
-        expect(advancedAction).toBeCalledTimes(0);
+        expect(advancedAction).toHaveBeenCalledTimes(0);
         advancedButton?.click();
-        expect(advancedAction).toBeCalledTimes(1);
+        expect(advancedAction).toHaveBeenCalledTimes(1);
 
         component.unmount();
     });
@@ -902,7 +902,7 @@ describe("Value Edit Dialog Tests", (): void => {
         );
         await nextProcessTick();
 
-        expect(stateSpy).toBeCalledTimes(4);
+        expect(stateSpy).toHaveBeenCalledTimes(4);
 
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(1);
@@ -914,20 +914,20 @@ describe("Value Edit Dialog Tests", (): void => {
         expect(nameInput.value).toBe("");
         changeInputValue(nameInput, "Mike");
 
-        expect(stateSpy).toBeCalledTimes(5);
+        expect(stateSpy).toHaveBeenCalledTimes(5);
         changeInputValue(nameInput, "");
 
         const fileSelector = inputs[1] as HTMLInputElement;
         expect(fileSelector.value).toBe("../relative/path");
         changeInputValue(fileSelector, "/absolutePath");
 
-        expect(stateSpy).toBeCalledTimes(7);
+        expect(stateSpy).toHaveBeenCalledTimes(7);
 
         const checkboxes = portals[0].getElementsByClassName("checkbox");
         expect(checkboxes).toHaveLength(1);
         (checkboxes[0] as HTMLInputElement).click();
 
-        expect(stateSpy).toBeCalledTimes(8);
+        expect(stateSpy).toHaveBeenCalledTimes(8);
 
         const state = component.state();
         const section = state.values.sections.get("full");
@@ -936,7 +936,7 @@ describe("Value Edit Dialog Tests", (): void => {
             let buttons = portals[0].getElementsByClassName("valueEditor button");
             expect(buttons).toHaveLength(1);
             (buttons[0] as HTMLButtonElement).click();
-            expect(clickButton).toBeCalledTimes(1);
+            expect(clickButton).toHaveBeenCalledTimes(1);
 
             expect(section.values.upDown.value).toBe(12345);
 
@@ -963,7 +963,7 @@ describe("Value Edit Dialog Tests", (): void => {
             portals = document.getElementsByClassName("portal");
             expect(portals).toHaveLength(2);
 
-            expect(dropDownChange).toBeCalledTimes(0);
+            expect(dropDownChange).toHaveBeenCalledTimes(0);
             elements = portals[1].getElementsByClassName("dropdownItem");
             expect(elements).toHaveLength(4);
             (elements[2] as HTMLButtonElement).click(); // Select the third item, which closes the dropdown portal.
@@ -971,7 +971,7 @@ describe("Value Edit Dialog Tests", (): void => {
 
             portals = document.getElementsByClassName("portal");
             expect(portals).toHaveLength(1);
-            expect(dropDownChange).toBeCalledTimes(1);
+            expect(dropDownChange).toHaveBeenCalledTimes(1);
             expect(dropDownChange.mock.calls[0][0]).toBe("Two");
 
             elements = portals[0].getElementsByClassName("valueEditor fileSelector");
@@ -991,7 +991,7 @@ describe("Value Edit Dialog Tests", (): void => {
 
             count = focusLost.mock.calls.length;
             sendBlurEvent();
-            expect(focusLost).toBeCalledTimes(1);
+            expect(focusLost).toHaveBeenCalledTimes(1);
         }
 
         component.unmount();

@@ -66,6 +66,8 @@ export const isKeyword = (identifier: string, version: SQLiteVersion): boolean =
 
 /**
  * Determines the type of SQL the given SQL is, with the minimum necessary effort.
+ * Note: the SQLite grammar allows for multiple statements in multiple statement lists. We only process the first
+ * statement in the first statement list.
  *
  * @param tokenStream A stream to read tokens from.
  *
@@ -74,7 +76,7 @@ export const isKeyword = (identifier: string, version: SQLiteVersion): boolean =
 export const determineQueryType = (tokenStream: CommonTokenStream): QueryType => {
     const scanner = new Scanner(tokenStream);
 
-    if (!scanner.next() || scanner.is(Token.EOF)) {
+    if (scanner.is(Token.EOF)) {
         return QueryType.Unknown;
     }
 
@@ -197,6 +199,10 @@ export const determineQueryType = (tokenStream: CommonTokenStream): QueryType =>
             return QueryType.Insert;
         }
 
+        case SQLiteLexer.REPLACE_: {
+            return QueryType.Replace;
+        }
+
         case SQLiteLexer.PRAGMA_: {
             return QueryType.Pragma;
         }
@@ -207,10 +213,6 @@ export const determineQueryType = (tokenStream: CommonTokenStream): QueryType =>
 
         case SQLiteLexer.RELEASE_: {
             return QueryType.ReleaseSavePoint;
-        }
-
-        case SQLiteLexer.REPLACE_: {
-            return QueryType.Replace;
         }
 
         case SQLiteLexer.ROLLBACK_: {

@@ -65,7 +65,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
               style="--background-opacity: 0;"
             >
               <div
-                class="msg container fixedScrollbar popup visible top-start noArrow menu"
+                class="msg container popup visible top-start noArrow menu"
                 style="flex-direction: column; left: 0px; top: 0px;"
               >
                 <div
@@ -147,7 +147,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 style="--background-opacity: 0;"
               >
                 <div
-                  class="msg container fixedScrollbar popup visible top-start noArrow menu"
+                  class="msg container popup visible top-start noArrow menu"
                   style="flex-direction: column; left: 0px; top: 0px;"
                 >
                   <div
@@ -268,7 +268,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
               style="--background-opacity: 0;"
             >
               <div
-                class="msg container fixedScrollbar popup visible top-start noArrow menu"
+                class="msg container popup visible top-start noArrow menu"
                 style="flex-direction: column; left: 0px; top: 0px;"
               >
                 <div
@@ -352,7 +352,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 style="--background-opacity: 0;"
               >
                 <div
-                  class="msg container fixedScrollbar popup visible top-start noArrow menu"
+                  class="msg container popup visible top-start noArrow menu"
                   style="flex-direction: column; left: 0px; top: 0px;"
                 >
                   <div

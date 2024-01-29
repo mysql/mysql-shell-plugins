@@ -31,8 +31,6 @@ import { Misc, driver } from "./misc";
 import { Os } from "./os";
 import * as waitUntil from "./until";
 import * as errors from "../lib/errors";
-import { DialogHelper } from "../lib/webviews/dialogHelper";
-import { Section } from "../lib/treeViews/section";
 
 /**
  * This class aggregates the functions that will execute commands on notebooks or shell sessions, as well as its results
@@ -50,6 +48,9 @@ export class CommandExecutor {
 
     /** Toolbar of a data set */
     private toolbar: WebElement;
+
+    /** The last executed command */
+    private command: string;
 
     public constructor() {
         this.resultId = "1";
@@ -73,6 +74,8 @@ export class CommandExecutor {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
+
+        this.command = cmd;
         await driver.wait(async () => {
             try {
                 const textArea = await driver.wait(until.elementLocated(locator.notebook.codeEditor.textArea),
@@ -567,42 +570,66 @@ export class CommandExecutor {
     public editResultGridCells = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
         await driver.wait(waitUntil.resultGridIsEditable(this.getResultToolbar()),
             constants.wait5seconds);
+        // hack for UI to be rendered
+        await driver.sleep(constants.wait5seconds);
+
+        let isDate: boolean;
         for (let i = 0; i <= cells.length - 1; i++) {
-            const cell = await this.getCellFromResultGrid(cells[i].rowNumber, cells[i].columnNumber);
+            await this.startEditCell(cells[i].rowNumber, cells[i].columnName, cells[i].value);
+            const cell = await this.getCellFromResultGrid(cells[i].rowNumber, cells[i].columnName); // avoid stale
             const expectInput = typeof cells[i].value === "string";
-            await driver.actions().doubleClick(cell).perform();
-            await driver.wait(waitUntil.cellIsEditable(this, cells[i].rowNumber, cells[i].columnNumber,
-                expectInput), constants.wait5seconds);
             if (expectInput) {
                 const input = await cell.findElement(locator.htmlTag.input);
                 const isDateTime = (await cell
                     .findElements(locator.notebook.codeEditor.editor.result.tableCellDateTime)).length > 0;
                 if (!isDateTime) {
-                    await this.clearCellInputField(input);
-                    await input.sendKeys(cells[i].value as string);
+                    isDate = false;
+                    const upDownInput = await cell
+                        .findElement(locator.notebook.codeEditor.editor.result.tableCellUpDownInput).catch(() => {
+                            return undefined;
+                        });
+                    if (!upDownInput) {
+                        await this.clearCellInputField(input);
+                        await input.sendKeys(cells[i].value as string);
+                    } else {
+                        await driver.executeScript("arguments[0].value=arguments[1]", input, cells[i].value as string);
+                    }
                 } else {
+                    isDate = true;
                     await driver.executeScript("arguments[0].value=arguments[1]", input, cells[i].value as string);
                 }
             } else {
-                await this.setCellCheckBoxValue(cells[i].rowNumber, cells[i].columnNumber,
+                await this.setCellBooleanValue(cells[i].rowNumber, cells[i].columnName,
                     cells[i].value as boolean);
             }
-            await (await Section.getSection(constants.dbTreeSection)).click();
+            await this.getResultToolbar().click();
             await this.refreshCommandResult(this.getResultId());
-            await driver.wait(waitUntil.cellsWereChanged((this
-                .getResultContent() as WebElement), i + 1), constants.wait5seconds);
+            if (isDate) {
+                await driver.wait(async () => {
+                    return (await this.getCellValueFromResultGrid(cells[i].rowNumber,
+                        cells[i].columnName)) !== "Invalid Date";
+                }, constants.wait2seconds, `Invalid Date was found after inserting value '${cells[i].value}'`);
+            }
+            await driver.wait(async () => {
+                const cell = await this.getCellFromResultGrid(cells[i].rowNumber, cells[i].columnName);
+
+                return (await cell.getAttribute("class")).includes("changed");
+            }, constants.wait2seconds,
+                `Yellow background does not exist on cell after inserting value '${cells[i].value}'`);
         }
     };
 
     /**
      * Gets a cell of a result grid
      * @param gridRow The row number. If the row number is -1, the function returns the last added row
-     * @param gridRowCellNumber The cell number
+     * @param gridColumn The column
      * @returns A promise resolving with the cell
      */
-    public getCellFromResultGrid = async (gridRow: number, gridRowCellNumber: number): Promise<WebElement> => {
+    public getCellFromResultGrid = async (gridRow: number, gridColumn: string): Promise<WebElement> => {
         let cells: WebElement[];
         let cellToReturn: WebElement;
+        const table = this.getTableFromCommand();
+
         await driver.wait(async () => {
             try {
                 await this.refreshCommandResult(this.getResultId());
@@ -616,7 +643,7 @@ export class CommandExecutor {
                     const rows = await resultGrid.findElements(locator.notebook.codeEditor.editor.result.tableRow);
                     cells = await rows[gridRow].findElements(locator.notebook.codeEditor.editor.result.tableCell);
                 }
-                cellToReturn = cells[gridRowCellNumber];
+                cellToReturn = cells[Misc.getDbTableColumnIndex(table, gridColumn)];
 
                 return true;
             } catch (e) {
@@ -626,7 +653,53 @@ export class CommandExecutor {
             }
         }, constants.wait5seconds, "The cell or result grid was stale");
 
-        return cellToReturn;
+        if (!cellToReturn) {
+            throw new Error(`Could not find cell on table '${table}' on row '${gridRow}' and column '${gridColumn}'`);
+        } else {
+            return cellToReturn;
+        }
+    };
+
+    /**
+     * Gets the value of a cell out of a result grid
+     * @param gridRow The row number. If the row number is -1, the function returns the last added row
+     * @param gridRowColumn The column
+     * @returns A promise resolving with the cell value.
+     */
+    public getCellValueFromResultGrid = async (gridRow: number,
+        gridRowColumn: string): Promise<string> => {
+        let toReturn: string;
+
+        await driver.wait(async () => {
+            try {
+                const cell = await this.getCellFromResultGrid(gridRow, gridRowColumn);
+                await driver.executeScript("arguments[0].scrollIntoView()", cell);
+                const isSelectList = (await cell
+                    .findElements(locator.notebook.codeEditor.editor.result.tableCellSelectList.exists))
+                    .length > 0;
+                const isIcon = (await cell.findElements(locator.notebook.codeEditor.editor.result.tableCellIcon))
+                    .length > 0;
+                if (isSelectList) {
+                    const selectList = cell
+                        .findElement(locator.notebook.codeEditor.editor.result.tableCellSelectList.exists);
+                    toReturn = await (await selectList.findElement(locator.htmlTag.label)).getText();
+                } else if (isIcon) {
+                    const img = await cell.findElements(locator.notebook.codeEditor.editor.result.tableCellIcon);
+                    const icon = (await img[0].getAttribute("style")).match(/assets\/data-(.*)-/)[1];
+                    toReturn = icon;
+                } else {
+                    toReturn = await cell.getText();
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, `Cell ${gridRowColumn} was always stale`);
+
+        return toReturn;
     };
 
     /**
@@ -651,29 +724,45 @@ export class CommandExecutor {
      * @returns A promise resolving when the new value is set
      */
     public addResultGridRow = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
+        // hack to wait for UI to be rendered, no other way around
+        await driver.sleep(constants.wait5seconds);
         await this.clickAddNewRowButton();
         await driver.wait(waitUntil.rowWasAdded(this.getResultContent() as WebElement), constants.wait5seconds);
-
+        let isDate: boolean;
         for (const cell of cells) {
-            const refCell = await this.getCellFromResultGrid(-1, cell.columnNumber);
+            const refCell = await this.getCellFromResultGrid(-1, cell.columnName);
             const expectInput = typeof cell.value === "string";
-            await driver.actions().doubleClick(refCell).perform();
-            await driver.wait(waitUntil.cellIsEditable(this, -1, cell.columnNumber,
-                expectInput), constants.wait5seconds);
+            await this.startEditCell(-1, cell.columnName, cell.value);
             if (expectInput) {
                 const input = await refCell.findElement(locator.htmlTag.input);
                 const isDateTime = (await refCell
                     .findElements(locator.notebook.codeEditor.editor.result.tableCellDateTime)).length > 0;
                 if (!isDateTime) {
-                    await DialogHelper.clearInputField(input);
-                    await input.sendKeys(cell.value as string);
+                    isDate = false;
+                    const upDownInput = await refCell
+                        .findElement(locator.notebook.codeEditor.editor.result.tableCellUpDownInput).catch(() => {
+                            return undefined;
+                        });
+                    if (!upDownInput) {
+                        await this.clearCellInputField(input);
+                        await input.sendKeys(cell.value as string);
+                    } else {
+                        await driver.executeScript("arguments[0].value=arguments[1]",
+                            input, cell.value as string);
+                    }
                 } else {
+                    isDate = true;
                     await driver.executeScript("arguments[0].value=arguments[1]", input, cell.value as string);
                 }
             } else {
-                await this.setCellCheckBoxValue(-1, cell.columnNumber, cell.value as boolean);
+                await this.setCellBooleanValue(-1, cell.columnName, cell.value as boolean);
             }
-            await (await Section.getSection(constants.dbTreeSection)).click();
+            await this.getResultToolbar().click();
+            if (isDate) {
+                await driver.wait(async () => {
+                    return (await this.getCellValueFromResultGrid(-1, cell.columnName)) !== "Invalid Date";
+                }, constants.wait2seconds, `Invalid Date was found after inserting value '${cell.value}'`);
+            }
         }
 
         await this.refreshCommandResult(this.getResultId());
@@ -686,16 +775,9 @@ export class CommandExecutor {
      */
     public getCellIconType = async (cell: WebElement): Promise<string | undefined> => {
         const img = await cell.findElements(locator.notebook.codeEditor.editor.result.tableCellIcon);
-        if (img.length > 0) {
-            const icon = (await img[0].getAttribute("style")).match(/assets\/(.*)-/)[1];
+        const icon = (await img[0].getAttribute("style")).match(/assets\/data-(.*)-/)[1];
 
-            return icon;
-        } else {
-            const checkbox = await cell.findElements(locator.notebook.codeEditor.editor.result.tableCellCheckBox);
-            if (checkbox.length > 0) {
-                return "checkbox";
-            }
-        }
+        return icon;
     };
 
     /**
@@ -712,20 +794,26 @@ export class CommandExecutor {
 
     /**
      * Gets the SQL Preview generated for a string
+     * @param returnWebEl True to return the sql preview web element
      * @returns A promise resolving with the sql preview
      */
-    public getSqlPreview = async (): Promise<string> => {
-        await this.getResultToolbar()
-            .findElement(locator.notebook.codeEditor.editor.result.status.toolbar.previewButton).click();
-        await this.refreshCommandResult(this.getResultId());
-        const sqlPreview = this.getResultContent() as WebElement;
-        const words = await sqlPreview.findElements(locator.notebook.codeEditor.editor.result.previewChanges.words);
-        let toReturn = "";
-        for (const word of words) {
-            toReturn += (await word.getText()).replace("&nbsp;", " ");
-        }
+    public getSqlPreview = async (returnWebEl = false): Promise<string | WebElement> => {
+        if (!returnWebEl) {
+            await this.getResultToolbar()
+                .findElement(locator.notebook.codeEditor.editor.result.status.toolbar.previewButton).click();
+            await this.refreshCommandResult(this.getResultId());
+            const sqlPreview = this.getResultContent() as WebElement;
 
-        return toReturn;
+            const words = await sqlPreview.findElements(locator.notebook.codeEditor.editor.result.previewChanges.words);
+            let toReturn = "";
+            for (const word of words) {
+                toReturn += (await word.getText()).replace("&nbsp;", " ");
+            }
+
+            return toReturn;
+        } else {
+            return this.getResultContent() as WebElement;
+        }
     };
 
     /**
@@ -746,7 +834,9 @@ export class CommandExecutor {
      * @returns A promise resolving when menu item is clicked
      */
     public openCellContextMenuAndSelect = async (cell: WebElement, contextMenuItem: string): Promise<void> => {
-        await driver.actions().contextClick(cell).perform();
+        await driver
+            .executeScript("arguments[0].dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, button: 2 }));"
+                , cell);
         const contextMenu = await driver.wait(until
             .elementLocated(locator.notebook.codeEditor.editor.result.cellContextMenu.exists),
             constants.wait5seconds, "Cell context menu was not displayed");
@@ -814,51 +904,35 @@ export class CommandExecutor {
     };
 
     /**
-     * Sets a check box value on a result grid cell checkbox
+     * Sets a boolean value on a cell
      * @param rowNumber The row number
-     * @param columnNumber The column number
-     * @param value True to check, false to uncheck or null/undefined
-     * @returns A promise resolving when the value of the checkbox is set
+     * @param columnName The column name
+     * @param value The value
+     * @returns A promise resolving when the value is set
      */
-    private setCellCheckBoxValue = async (rowNumber: number, columnNumber: number, value: boolean): Promise<void> => {
-        let mappedCheckValue: string;
-        if (value === true) {
-            mappedCheckValue = "checked";
-        } else if (value === false) {
-            mappedCheckValue = "unchecked";
-        } else {
-            mappedCheckValue = "indeterminate";
-        }
+    private setCellBooleanValue = async (rowNumber: number,
+        columnName: string, value: boolean): Promise<void> => {
+        const cell = await this.getCellFromResultGrid(rowNumber, columnName);
+        const selectList = cell.findElement(locator.notebook.codeEditor.editor.result.tableCellSelectList.exists);
+        await selectList.click();
+        await driver.wait(async () => {
+            return (await driver
+                .findElements(locator.notebook.codeEditor.editor.result.tableCellSelectList.list.exists))
+                .length > 0;
+        }, constants.wait2seconds, "List was not displayed");
+        const list = await driver
+            .findElement(locator.notebook.codeEditor.editor.result.tableCellSelectList.list.exists);
+        const items = await list
+            .findElements(locator.notebook.codeEditor.editor.result.tableCellSelectList.list.item);
+        for (const item of items) {
+            const itemName = await item.getText();
+            if (itemName === value.toString()) {
+                await item.click();
 
-        const getCheckBox = async () => {
-            const cell = await this.getCellFromResultGrid(rowNumber, columnNumber);
-
-            return cell.findElement(locator.notebook.codeEditor.editor.result.tableCellCheckBox);
-        };
-
-        const getCheckBoxValue = async () => {
-            const checkBox = await getCheckBox();
-            const checkBoxClasses = (await checkBox.getAttribute("class")).split(" ");
-            if (checkBoxClasses[checkBoxClasses.length - 1] === "checkbox") {
-                return "unchecked";
+                return;
             }
-
-            return checkBoxClasses[checkBoxClasses.length - 1];
-        };
-
-        const setCheckBoxValue = async (value: string) => {
-            await driver.wait(async () => {
-                const checkBox = await getCheckBox();
-                const checkMark = await checkBox.findElement(locator.htmlTag.span);
-                await checkMark.click();
-
-                return (await getCheckBoxValue()) === value;
-            }, constants.wait5seconds, `Could not set the checkbox value to ${value}`);
-        };
-
-        if ((await getCheckBoxValue()) !== mappedCheckValue) {
-            await setCheckBoxValue(mappedCheckValue);
         }
+        throw new Error(`Could not find '${value}' on the select list`);
     };
 
     /**
@@ -1269,5 +1343,56 @@ export class CommandExecutor {
 
             return (await el.getAttribute("value")).length === 0;
         }, constants.wait5seconds, `${await el.getId()} was not cleaned`);
+    };
+
+    /**
+     * Gets the table from the last executed query
+     * @returns The table name
+     */
+    private getTableFromCommand = (): string => {
+        const keywords = this.command.split(" ");
+        for (let i = 0; i <= keywords.length - 1; i++) {
+            if (keywords[i].match(/(from|FROM)/) !== null) {
+                if (keywords[i + 1].includes(".")) {
+                    return (keywords[i + 1].split("."))[1].replace(";", "");
+                } else {
+                    return keywords[i + 1].replace(";", "");
+                }
+            }
+        }
+        throw new Error(`Could not get the table from command ${this.command}`);
+    };
+
+    /**
+     * Starts to edit a cell
+     * @param rowNumber The row number
+     * @param columnName The column name
+     * @param valueToEdit The value to insert
+     * @returns The table name
+     */
+    private startEditCell = async (rowNumber: number, columnName: string,
+        valueToEdit: string | number | boolean): Promise<void> => {
+        const cell = await this.getCellFromResultGrid(rowNumber, columnName);
+        const expectInput = typeof valueToEdit === "string";
+        await driver.wait(async () => {
+            await driver
+                .executeScript("arguments[0].dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));", cell);
+            try {
+                const cell = await this.getCellFromResultGrid(rowNumber, columnName);
+                const isEditable = (await cell.getAttribute("class")).includes("tabulator-editing");
+                if (expectInput) {
+                    if (isEditable) {
+                        return (await cell.findElements(locator.htmlTag.input)).length > 0;
+                    }
+                } else {
+                    return (await cell.getAttribute("class")).includes("changed") || isEditable;
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError) ||
+                    !(e instanceof error.ElementNotInteractableError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, `Could not start editing cell on column ${columnName}`);
     };
 }

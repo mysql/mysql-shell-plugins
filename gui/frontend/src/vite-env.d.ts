@@ -26,7 +26,4 @@
 /// <reference types="vite/client" />
 
 declare module "monaco-editor/esm/vs/basic-languages/typescript/typescript";
-declare module "monaco-editor/esm/vs/basic-languages/javascript/javascript";
 declare module "monaco-editor/esm/vs/basic-languages/mysql/mysql";
-declare module "monaco-editor/esm/vs/basic-languages/python/python";
-declare module "monaco-editor/esm/vs/platform/contextkey/common/contextkey";

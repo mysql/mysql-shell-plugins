@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import nullIcon from "../../assets/images/null.svg";
+import nullIcon from "../../assets/images/data-icons/data-null.svg";
 import mysqlIcon from "../../assets/images/admin/mysql-logo.svg";
 
 import hideSleepConnectionsActiveIcon from "../../assets/images/toolbar/toolbar-sleeping_conns-active.svg";
@@ -143,6 +143,8 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 columns: [],
                 data: { currentPage: 1, rows: [] },
                 sql: "",
+                updatable: false,
+                fullTableName: "",
             },
             gotResponse: false,
             gotError: false,
@@ -244,7 +246,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                                 options={options}
                                 columns={this.generateColumnDefinitions(resultSet.columns)}
                                 tableData={resultSet.data.rows}
-                                selectedIds={[this.getSelectedRowValue("PROCESSLIST_ID")]}
+                                selectedRows={[this.getSelectedRowValue("PROCESSLIST_ID")]}
                                 onRowSelected={this.handleClientConnectionTreeRowSelected}
                             />
                         }
@@ -526,14 +528,12 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 }
 
                 case DBDataType.Date:
-                case DBDataType.DateTime:
-                case DBDataType.DateTime_f: {
+                case DBDataType.DateTime: {
                     formatter = "datetime";
                     break;
                 }
 
-                case DBDataType.Time:
-                case DBDataType.Time_f: {
+                case DBDataType.Time: {
                     formatter = "datetime";
                     formatterParams = {
                         outputFormat: "HH:mm:ss",
@@ -650,6 +650,8 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                     currentPage: 1,
                     rows,
                 },
+                updatable: false,
+                fullTableName: "",
             };
 
             this.setState({ resultSet, gotResponse: true });
@@ -818,6 +820,8 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                     currentPage: 1,
                     rows,
                 },
+                updatable: false,
+                fullTableName: "",
             };
             this.setState({ attributes: resultSet });
         }
@@ -919,6 +923,8 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                         currentPage: 1,
                         rows,
                     },
+                    updatable: false,
+                    fullTableName: "",
                 };
                 this.setState({ grantedLocks: resultSet });
             }

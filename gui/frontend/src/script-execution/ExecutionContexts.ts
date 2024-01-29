@@ -32,6 +32,31 @@ import { EditorLanguage, IExecutionContext, ITextRange } from "../supplement/ind
 import { ExecutionContext } from "./ExecutionContext.js";
 import { PresentationInterface } from "./PresentationInterface.js";
 import { SQLExecutionContext } from "./SQLExecutionContext.js";
+import { requisitions, type IColumnDetails } from "../supplement/Requisitions.js";
+import type { ISqlUpdateResult } from "../app-logic/Types.js";
+
+/**
+ * A collection of optional parameters for the execution context list.
+ */
+export interface IExecutionContextsParameters {
+    /** The application store to use for access to cached data. */
+    store?: StoreType;
+
+    /** The version of the MySQL server the editor is connected to, to which this list belongs. */
+    dbVersion?: number;
+
+    /** The current SQL mode of the MySQL server. */
+    sqlMode?: string;
+
+    /** The current schema of the MySQL server. */
+    currentSchema?: string;
+
+    /**
+     * A callback to apply updates (usually from an edit operation).
+     * @returns An error message or the number of affected rows if the update was successful.
+     */
+    runUpdates?: (sql: string[]) => Promise<ISqlUpdateResult>;
+}
 
 /** A helper class to keep editor blocks that belong to a single text model together. */
 export class ExecutionContexts implements IContextProvider {
@@ -39,13 +64,27 @@ export class ExecutionContexts implements IContextProvider {
     /** Updated from the editor, as models don't have this value. */
     public cursorPosition: IPosition = { lineNumber: 1, column: 1 };
 
+    public dbVersion: number;
+
     private content: ExecutionContext[] = [];
 
-    public constructor(
-        private store: StoreType = StoreType.Unused,
-        public dbVersion: number,
-        private sqlMode: string,
-        private defaultSchema: string) {
+    private store: StoreType;
+    private sqlMode: string;
+    private defaultSchema: string;
+
+    private runUpdates?: (sql: string[]) => Promise<ISqlUpdateResult>;
+
+    public constructor(params: IExecutionContextsParameters = {}) {
+        this.store = params.store ?? StoreType.Unused;
+        this.dbVersion = params.dbVersion ?? 80200;
+        this.sqlMode = params.sqlMode ?? "";
+        this.defaultSchema = params.currentSchema ?? "";
+        this.runUpdates = params.runUpdates;
+
+        // Register the update handler the first time on construction. Usually we do that when restoring
+        // the contexts, but that happens only when results existed before switching pages.
+        // For the first run however we need this registration.
+        requisitions.register("sqlUpdateColumnInfo", this.sqlUpdateColumnInfo);
     }
 
     public [Symbol.iterator](): Iterator<ExecutionContext> {
@@ -54,6 +93,19 @@ export class ExecutionContexts implements IContextProvider {
 
     public get count(): number {
         return this.content.length;
+    }
+
+    /**
+     * @returns true if all contexts confirmed that they can be closed.
+     */
+    public async canClose(): Promise<boolean> {
+        for (const context of this) {
+            if (!await context.canClose()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public contextAt(index: number): ExecutionContext | undefined {
@@ -98,6 +150,9 @@ export class ExecutionContexts implements IContextProvider {
      * @returns A list of context states that can be used to restore the previous execution context structure.
      */
     public cleanUpAndReturnState(): IExecutionContextState[] {
+        // We are going to be closed so we can unregister the requisition.
+        requisitions.unregister("sqlUpdateColumnInfo", this.sqlUpdateColumnInfo);
+
         const result: IExecutionContextState[] = [];
 
         this.content.forEach((context: ExecutionContext) => {
@@ -118,6 +173,10 @@ export class ExecutionContexts implements IContextProvider {
      */
     public restoreFromStates(editor: CodeEditor, factory: ResultPresentationFactory,
         states: IExecutionContextState[]): void {
+
+        // The update handler again (first time is in the constructor). Double registration of the same handler
+        // doesn't add it twice, and we need it ready before we even restore the first time.
+        requisitions.register("sqlUpdateColumnInfo", this.sqlUpdateColumnInfo);
 
         if (states.length === 0) {
             // Do not touch the current context list if there's nothing to restore.
@@ -167,7 +226,7 @@ export class ExecutionContexts implements IContextProvider {
                 switch (state.result.type) {
                     case "resultIds": {
                         // Convert result data references back to result data. Result set data is loaded from
-                        // the storage DB, if possible.
+                        // the application DB, if possible.
                         const result: IResultSets = {
                             type: "resultSets",
                             sets: [],
@@ -366,28 +425,31 @@ export class ExecutionContexts implements IContextProvider {
 
         const presentation = context.presentation;
         presentation.language = language;
-        presentation.removeResult();
+        void presentation.removeResult().then(() => {
+            const newContext = this.createContext(presentation);
+            this.content[index] = newContext;
 
-        const newContext = this.createContext(presentation);
-        this.content[index] = newContext;
-
-        if (!presentation.isSQLLike) {
-            // SQL like contexts validate on constructor anyway.
-            newContext.scheduleFullValidation();
-        }
+            if (!presentation.isSQLLike) {
+                // SQL like contexts validate on constructor anyway.
+                newContext.scheduleFullValidation();
+            }
+        });
     }
 
     /**
      * Removes the results from all contexts.
      */
-    public removeAllResults(): void {
-        this.content.forEach((context) => {
-            context.removeResult();
-        });
+    public async removeAllResults(): Promise<void> {
+        for (const context of this.content) {
+            await context.removeResult();
+        }
     }
 
     private createContext(presentation: PresentationInterface, statementSpans?: IStatementSpan[]): ExecutionContext {
         presentation.onRemoveResult = this.onResultRemoval;
+        presentation.onCommitChanges = this.onCommitChanges;
+        presentation.onRollbackChanges = this.rollbackChanges;
+
         if (presentation.isSQLLike) {
             return new SQLExecutionContext(presentation, this.dbVersion, this.sqlMode, this.defaultSchema,
                 statementSpans);
@@ -419,17 +481,28 @@ export class ExecutionContexts implements IContextProvider {
                     hasMoreRows: false,
                     currentPage: 0,
                 },
+                updatable: false,
+                fullTableName: "",
             };
             sets.push(set);
 
             if (this.isDbModuleResultData(values)) {
-                values.forEach((value) => {
+                for (const value of values) {
                     set.index = value.index;
                     if (value.sql) {
                         set.sql = value.sql;
                     }
 
-                    set.columns.push(...value.columns ?? []);
+                    // The updatable flag indicates if a query as such is updatable. Only very specific
+                    // queries are updatable, like simple SELECT * FROM table_name.
+                    set.updatable = value.updatable ?? false;
+                    set.fullTableName = value.fullTableName ?? "";
+
+                    if (value.columns) {
+                        // Columns are set only for the first entry of a result.
+                        set.columns.push(...value.columns);
+                    }
+
                     set.data.rows.push(...value.rows);
 
                     if (value.executionInfo) {
@@ -440,15 +513,34 @@ export class ExecutionContexts implements IContextProvider {
                         set.data.hasMoreRows = true;
                         set.data.currentPage = value.currentPage;
                     }
-                });
+                }
             }
         }
 
         return sets;
     }
 
-    private onResultRemoval = (resultIds: string[]): void => {
-        void ApplicationDB.removeDataByResultIds(this.store, resultIds);
+    private onResultRemoval = (resultIds: string[]): Promise<void> => {
+        return ApplicationDB.removeDataByResultIds(this.store, resultIds);
+    };
+
+    private onCommitChanges = async (resultSet: IResultSet, updateSql: string[]): Promise<ISqlUpdateResult> => {
+        const result = await this.runUpdates?.(updateSql) ?? { affectedRows: 0, errors: [] };
+        if (typeof result === "number") {
+            await ApplicationDB.updateRowsForResultId(StoreType.DbEditor, resultSet.resultId, resultSet.data.rows);
+        }
+
+        return result;
+
+    };
+
+    private rollbackChanges = async (resultSet: IResultSet): Promise<void> => {
+        const rows = await ApplicationDB.getRowsForResultId(StoreType.DbEditor, resultSet.resultId);
+        resultSet.data.rows = rows;
+    };
+
+    private sqlUpdateColumnInfo = async (data: IColumnDetails): Promise<boolean> => {
+        return ApplicationDB.updateColumnsForResultId(StoreType.DbEditor, data);
     };
 
     private isDbModuleResultData(data: unknown[]): data is IDbModuleResultData[] {

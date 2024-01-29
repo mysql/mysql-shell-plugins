@@ -23,12 +23,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { MrsDbObjectType } from "../../../../frontend/src/modules/mrs/types.js";
 import { SchemaRoutineTreeItem } from "./SchemaRoutineTreeItem.js";
 
 export class SchemaRoutineMySQLTreeItem extends SchemaRoutineTreeItem {
     public contextValue = "schemaRoutineItemMySQL";
 
     protected get iconName(): string {
-        return this.dbType === "procedure" ? "schemaRoutine.svg" : "schemaFunction.svg";
+        return this.dbType === MrsDbObjectType.Procedure ? "schemaRoutine.svg" : "schemaFunction.svg";
     }
 }

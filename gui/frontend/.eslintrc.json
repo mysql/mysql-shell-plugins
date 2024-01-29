@@ -377,13 +377,6 @@
         "dot-notation": "error",
         "eol-last": "error",
         "guard-for-in": "off",
-        "id-blacklist": [
-            "error",
-            "any",
-            "number",
-            "string",
-            "boolean"
-        ],
         "id-match": "error",
         "import/order": "off",
         "max-classes-per-file": [
@@ -677,6 +670,8 @@
             }
         ],
         "@typescript-eslint/triple-slash-reference": "off",
+        "@typescript-eslint/no-base-to-string": "off",
+        "@typescript-eslint/no-redundant-type-constituents": "off",
         "jsdoc/check-alignment": "error",
         "jsdoc/check-indentation": "off",
         "jsdoc/require-param-type": "off",

@@ -392,7 +392,7 @@ export class CommunicationDebugger
 
     private createEditorState(content: string): IEditorPersistentState {
         const model: ICodeEditorModel = Object.assign(Monaco.createModel(content, "javascript"), {
-            executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
+            executionContexts: new ExecutionContexts(),
             editorMode: CodeEditorMode.Standard,
         });
 
@@ -409,7 +409,7 @@ export class CommunicationDebugger
         }
 
         // We don't need the execution contexts in the debugger, but they are required to make overall handling easier.
-        state.model.executionContexts = new ExecutionContexts(undefined, 80024, "", "");
+        state.model.executionContexts = new ExecutionContexts();
         state.model.editorMode = CodeEditorMode.Standard;
 
         return state;

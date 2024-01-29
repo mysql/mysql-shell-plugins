@@ -33,6 +33,8 @@
 .msg.upDown .input {
     flex: 1 1 auto;
     margin: 0 1px 0 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
 .msg.upDown .button {

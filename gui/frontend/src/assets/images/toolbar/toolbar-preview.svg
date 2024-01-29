@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 24 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-578,-128)">
+        <g id="Menu">
+        </g>
+        <g id="Expand">
+        </g>
+        <g id="Grid">
+        </g>
+        <g id="Word-Wrap" serif:id="Word Wrap">
+        </g>
+        <g id="Special-Chars" serif:id="Special Chars">
+        </g>
+        <g id="Search">
+        </g>
+        <g id="SQL-Beautifier" serif:id="SQL Beautifier">
+        </g>
+        <g id="SQL-Beautifier1" serif:id="SQL Beautifier">
+        </g>
+        <g id="Auto-Commit" serif:id="Auto Commit">
+        </g>
+        <g id="Stop-on-Error" serif:id="Stop on Error">
+        </g>
+        <g id="Execute-Explain" serif:id="Execute Explain">
+        </g>
+        <g id="Execute-Current" serif:id="Execute Current">
+        </g>
+        <g id="Execute-and-Next-Cmd" serif:id="Execute and Next Cmd">
+        </g>
+        <g id="Kill-Connection-2" serif:id="Kill Connection 2">
+        </g>
+        <g id="Sleeping-Connections" serif:id="Sleeping Connections">
+        </g>
+        <g id="Kill-Connection" serif:id="Kill Connection">
+        </g>
+        <g id="Kill-Query" serif:id="Kill Query">
+        </g>
+        <g id="Show-Details" serif:id="Show Details">
+        </g>
+        <g id="Infos">
+        </g>
+        <g id="Background-Threads" serif:id="Background Threads">
+        </g>
+        <g id="refresh">
+        </g>
+        <g id="New-File" serif:id="New File">
+        </g>
+        <g id="Minimize">
+        </g>
+        <g id="Maximize">
+        </g>
+        <g id="Close">
+        </g>
+        <g id="load">
+        </g>
+        <g id="save">
+        </g>
+        <g id="Execute-on-Heatwave" serif:id="Execute on Heatwave">
+        </g>
+        <g id="Execute-Current-on-Heatwave" serif:id="Execute Current on Heatwave">
+        </g>
+        <g id="Trace-Heatwave-Query" serif:id="Trace Heatwave Query">
+        </g>
+        <g id="Layer3">
+        </g>
+        <g id="New-Shell-Console" serif:id="New Shell Console">
+        </g>
+        <g id="New-File-Selector" serif:id="New File Selector">
+        </g>
+        <g id="saveNotebook">
+        </g>
+        <g id="saveNotebook1" serif:id="saveNotebook">
+        </g>
+        <g id="sqlPreview">
+        </g>
+        <g id="Preview" transform="matrix(0.499498,0,0,0.5,258.848,-1062.96)">
+            <path d="M663.171,2383.92C673.122,2383.92 681.189,2391.98 681.189,2401.92C681.189,2411.87 673.122,2419.92 663.171,2419.92C653.22,2419.92 645.153,2411.87 645.153,2401.92C645.153,2391.98 653.22,2383.92 663.171,2383.92ZM663.059,2393.05C652.741,2393.05 649.023,2401.57 649.023,2402.03C649.023,2402.49 652.698,2411.01 663.059,2411.01C672.818,2411.01 677.096,2402.55 677.096,2402.03C677.096,2401.51 673.378,2393.05 663.059,2393.05ZM663.059,2395.46C671.011,2395.46 674.301,2401.68 674.301,2402.03C674.301,2402.38 670.986,2408.6 663.059,2408.6C655.133,2408.6 651.818,2402.44 651.818,2402.03C651.818,2401.62 655.108,2395.46 663.059,2395.46ZM662.938,2397.3C660.448,2397.3 658.427,2399.32 658.427,2401.81C658.427,2404.29 660.448,2406.31 662.938,2406.31C665.427,2406.31 667.448,2404.29 667.448,2401.81C667.448,2399.32 665.427,2397.3 662.938,2397.3ZM664.193,2399.21C664.935,2399.21 665.537,2399.81 665.537,2400.55C665.537,2401.29 664.935,2401.89 664.193,2401.89C663.452,2401.89 662.85,2401.29 662.85,2400.55C662.85,2399.81 663.452,2399.21 664.193,2399.21Z"/>
+        </g>
+    </g>
+</svg>

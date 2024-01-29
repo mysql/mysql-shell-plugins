@@ -66,20 +66,20 @@ describe("Input render testing", (): void => {
         // act(() =>  {
         //     onFocus?.(eventMock, { id: "1" });
         // });
-        // expect(spyFocus).toBeCalled();
+        // expect(spyFocus).toHaveBeenCalled();
         // const spyOnConfirm = jest.spyOn(instance.props as IInputProperties, "onConfirm");
         // //input.simulate("keypress", { keyCode: keyboardKey.Enter, target: { value: "" } });
         // const onKeyPress = (input.first().props() as IInputChangeProperties ).onKeyPress;
         // act(() =>  {
         //     onKeyPress?.(eventMock, { keyCode: keyboardKey.Enter, target: { value: "" } });
         // });
-        // expect(spyOnConfirm).toBeCalled();
+        // expect(spyOnConfirm).toHaveBeenCalled();
         // const spyOnCancel = jest.spyOn(instance.props as IInputProperties, "onCancel");
         // input.simulate("keydown", { keyCode: keyboardKey.Escape, target: { value: "" } });
-        // expect(spyOnCancel).toBeCalled();
+        // expect(spyOnCancel).toHaveBeenCalled();
         // const spyOnBlur = jest.spyOn(instance.props as IInputProperties, "onBlur");
         // input.simulate("blur", { target: { value: "" } });
-        // expect(spyOnBlur).toBeCalled();
+        // expect(spyOnBlur).toHaveBeenCalled();
     });
 
 

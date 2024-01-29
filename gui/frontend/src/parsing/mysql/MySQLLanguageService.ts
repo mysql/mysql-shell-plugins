@@ -41,7 +41,7 @@ export class MySQLLanguageService extends RdbmsLanguageService {
         super(ServiceLanguage.MySQL, pool, MySQLLanguageService.globalSymbols);
     }
 
-    public static init(): void {
+    static {
         void import("./data/system-variables.json").then((systemVariables) => {
             for (const [key, value] of Object.entries(systemVariables.default)) {
                 MySQLLanguageService.globalSymbols.addNewSymbolOfType(SystemVariableSymbol, undefined, "@@" + key,
@@ -68,7 +68,7 @@ export class MySQLLanguageService extends RdbmsLanguageService {
 
             Object.entries(rdbmsInfo.default.dataTypes).forEach(([key, value]: [string, IRdbmsDataTypeInfo]) => {
                 mysqlInfo.dataTypes.set(key.toLowerCase(), {
-                    type: (DBDataType as never)[convertCamelToTitleCase(key)],
+                    type: DBDataType[convertCamelToTitleCase(key) as keyof typeof DBDataType],
 
                     characterMaximumLength: value.characterMaximumLength,
                     characterOctetLength: value.characterOctetLength,
@@ -86,5 +86,3 @@ export class MySQLLanguageService extends RdbmsLanguageService {
         });
     }
 }
-
-MySQLLanguageService.init();

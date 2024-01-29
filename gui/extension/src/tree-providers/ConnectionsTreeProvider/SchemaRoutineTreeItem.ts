@@ -27,6 +27,7 @@ import { Command } from "vscode";
 
 import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
+import { MrsDbObjectType } from "../../../../frontend/src/modules/mrs/types.js";
 
 export class SchemaRoutineTreeItem extends ConnectionsTreeBaseItem {
     public contextValue = "schemaRoutineItem";
@@ -34,20 +35,20 @@ export class SchemaRoutineTreeItem extends ConnectionsTreeBaseItem {
     public constructor(
         name: string,
         schema: string,
-        private type: "function" | "procedure",
+        private type: MrsDbObjectType,
         backend: ShellInterfaceSqlEditor,
         connectionId: number,
         hasChildren: boolean,
         command?: Command) {
         super(name, schema, backend, connectionId,
-            type === "procedure" ? "schemaRoutine.svg" : "schemaFunction.svg", hasChildren, command);
+            type === MrsDbObjectType.Procedure ? "schemaRoutine.svg" : "schemaFunction.svg", hasChildren, command);
     }
 
     public get qualifiedName(): string {
         return `\`${this.schema}\`.\`${this.name}\``;
     }
 
-    public get dbType(): "function" | "procedure" {
+    public get dbType(): MrsDbObjectType {
         return this.type;
     }
 

@@ -117,8 +117,7 @@ ctx.addEventListener("message", (event: MessageEvent) => {
             const result = services.preprocessStatement(data.sql, data.version, data.sqlMode, data.offset, data.count,
                 data.forceSecondaryEngine);
             postResultMessage(taskId, {
-                query: result[0],
-                changed: result[1],
+                ...result,
                 final: true,
             });
 

@@ -159,7 +159,8 @@ export class MenuItem extends ComponentBase<IMenuItemProperties> {
         element.classList.add("active");
 
         // If this item has a submenu then open it.
-        if (!disabled && !subMenuShowOnClick) {
+        const isDisabled = (disabled instanceof Function) ? disabled(this.mergedProps) : disabled;
+        if (!isDisabled && !subMenuShowOnClick) {
             this.menuRef.current?.open(element.getBoundingClientRect(), false);
         }
 
@@ -176,7 +177,12 @@ export class MenuItem extends ComponentBase<IMenuItemProperties> {
     };
 
     private handleItemClick = (e: MouseEvent | KeyboardEvent): void => {
-        const { subMenuShowOnClick, onClick } = this.mergedProps;
+        const { subMenuShowOnClick, onClick, disabled } = this.mergedProps;
+
+        const isDisabled = (disabled instanceof Function) ? disabled(this.mergedProps) : disabled;
+        if (isDisabled) {
+            return;
+        }
 
         const element = e.currentTarget as HTMLElement;
         e.stopPropagation();
@@ -188,7 +194,13 @@ export class MenuItem extends ComponentBase<IMenuItemProperties> {
     };
 
     private handleSubmenuItemClick = (e: MouseEvent, props: IMenuItemProperties): boolean => {
-        const { onClick } = this.mergedProps;
+        const { disabled, onClick } = this.mergedProps;
+
+        const isDisabled = (disabled instanceof Function) ? disabled(this.mergedProps) : disabled;
+        if (isDisabled) {
+            return false;
+        }
+
         onClick?.(e, props);
 
         return true;

@@ -28,7 +28,7 @@ import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from "set
 
 import { ApplicationDB } from "../../app-logic/ApplicationDB.js";
 import {
-    IColumnInfo, MessageType, IDictionary, IServicePasswordRequest, IExecutionInfo, uriPattern,
+    IColumnInfo, MessageType, IDictionary, IServicePasswordRequest, IStatusInfo, uriPattern,
 } from "../../app-logic/Types.js";
 
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
@@ -285,7 +285,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
      */
     private async processCommand(command: string, context: ExecutionContext,
         params?: Array<[string, string]>): Promise<void> {
-        context.clearResult();
+        await context.clearResult();
         if (!command.startsWith("\\") && context.isSQLLike) {
             const statements = await (context as SQLExecutionContext).getExecutableStatements();
 
@@ -594,7 +594,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             }, resultId);
                         } else {
                             // If no specialized result then print as is.
-                            const executionInfo: IExecutionInfo = {
+                            const executionInfo: IStatusInfo = {
                                 text: result ? "" : JSON.stringify(result, undefined, "\t"),
                             };
 

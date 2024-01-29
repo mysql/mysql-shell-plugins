@@ -29,16 +29,14 @@ $frontEndFolder = Join-Path $shellPluginsGuiFolder "frontend"
 $extensionFolder = Join-Path $shellPluginsGuiFolder "extension"
 
 # IF THE ENV VARIABLES ARE NOT SET, IT TRIES TO FIND THE SHELL/ROUTER DIRS UNDER THE DOWNLOADS FOLDER
-$downloadsFolder = $env:HOME -ne $null ? $(Join-Path $env:HOME "Downloads") : $(Join-Path $env:userprofile "Downloads")
-$shellLocation = $env:SHELL_PLUGINS_DEPS -ne $null ? $env:SHELL_PLUGINS_DEPS : $((Get-ChildItem -Path $downloadsFolder -Directory -Filter "*mysql-shell-*").toString())
-$routerLocation = $env:SHELL_PLUGINS_DEPS -ne $null ? $env:SHELL_PLUGINS_DEPS : $((Get-ChildItem -Path $downloadsFolder -Directory -Filter "*mysql-router-*").toString())
+if (!$env:SHELL_PLUGINS_DEPS) {
+    $pluginsDeps = $env:HOME -ne $null ? $(Join-Path $env:HOME "Downloads") : $(Join-Path $env:userprofile "Downloads")
+} else {
+    $pluginsDeps = $env:SHELL_PLUGINS_DEPS
+}
 
-if (!$shellLocation) {
-    Throw "Please define the SHELL_PLUGINS_DEP env variable. Could not find shell on your Downloads folder"
-}
-if (!$routerLocation) {
-    Throw "Please define the SHELL_PLUGINS_DEP env variable. Could not find router on your Downloads folder"
-}
+$shellLocation = $((Get-ChildItem -Path $pluginsDeps -Directory -Filter "*mysql-shell-*").toString())
+$routerLocation = $((Get-ChildItem -Path $pluginsDeps -Directory -Filter "*mysql-router-*").toString())
 
 # NPM INSTALL
 Set-Location $frontEndFolder

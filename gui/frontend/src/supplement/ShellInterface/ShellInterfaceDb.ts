@@ -24,7 +24,7 @@
  */
 
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
-import { IShellDbConnection, ShellAPIGui } from "../../communication/ProtocolGui.js";
+import { IShellDbConnection, ITableObjectInfo, ShellAPIGui } from "../../communication/ProtocolGui.js";
 import { webSession } from "../WebSession.js";
 
 export type RoutineType = "function" | "procedure";
@@ -147,7 +147,7 @@ export class ShellInterfaceDb {
      *
      * @returns A promise which resolves when the operation was concluded.
      */
-    public async getTableObjects(schema: string, table: string, type: string, filter?: string): Promise<string[]> {
+    public async getTableObjectNames(schema: string, table: string, type: string, filter?: string): Promise<string[]> {
         if (!this.moduleSessionId) {
             return [];
         }
@@ -171,6 +171,37 @@ export class ShellInterfaceDb {
         });
 
         return result;
+    }
+
+    /**
+     * Returns a list of table objects (columns, indexes and so on).
+     *
+     * @param schema The schema for which to retrieve the names.
+     * @param table The table for which to retrieve the names.
+     * @param type Which type of object to retrieve.
+     * @param name The name of the object to get details for.
+     *
+     * @returns A promise which resolves when the operation was concluded.
+     */
+    public async getTableObject(schema: string, table: string, type: string, name: string): Promise<ITableObjectInfo> {
+        if (!this.moduleSessionId) {
+            return { name };
+        }
+
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbGetTableObject,
+            parameters: {
+                args: {
+                    type,
+                    schemaName: schema,
+                    tableName: table,
+                    name,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
     }
 
     public get moduleSessionId(): string | undefined {

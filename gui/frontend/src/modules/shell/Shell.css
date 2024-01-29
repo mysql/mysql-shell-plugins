@@ -53,7 +53,7 @@
 }
 
 .msg#shellModuleTabview #shellEditorHost .renderTarget > .textHost > .label[data-lang] {
-    font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
+    font-family: var(--msg-monospace-font-family);
 }
 
 .msg#shellModuleTabview #shellEditorHost .renderTarget .textHost .resultText {
@@ -65,7 +65,7 @@
 
 .msg#shellModuleTabview #shellEditorHost .resultText,
 .msg#shellModuleTabview #shellEditorHost .resultText code {
-    font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
+    font-family: var(--msg-monospace-font-family);
 }
 
 .msg#shellModuleTabview #shellEditorHost .renderTarget .resultText {
@@ -210,7 +210,7 @@
     height: 21px;
     align-items: stretch;
 
-    font-family: "SourceCodePro+Powerline+Awesome+MySQL", sans-serif;
+    font-family: var(--msg-monospace-font-family);
     font-size: 1em;
 }
 
@@ -279,7 +279,7 @@ body[theme=light] .msg#shellModuleTabview .shellPromptItem#schema::after {
 }
 
 .msg.shellPromptSchemaMenu {
-    font-family: "SourceCodePro+Powerline+Awesome+MySQL", monospace;
+    font-family: var(--msg-monospace-font-family);
     font-size: 0.9rem;
 }
 

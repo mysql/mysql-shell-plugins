@@ -64,3 +64,8 @@ export const isDefault = (name: string): string => {
 export const isStaleError = (err: Error): boolean => {
     return err instanceof error.StaleElementReferenceError || String(err.message).includes("-32000");
 };
+
+export const incorrectCellValue = (value: string): string => {
+    return `The ${value} is not correct`;
+};
+

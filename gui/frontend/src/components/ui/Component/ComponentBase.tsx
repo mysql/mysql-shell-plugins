@@ -279,7 +279,12 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
 
     /* Use to debug setState calls.
     public setState<K extends keyof S>(
-        state: ((prevState: Readonly<S>, props: Readonly<P>) => (Pick<S, K> | S | null)) | (Pick<S, K> | S | null),
+        state:
+            | ((
+                prevState: Readonly<S>,
+                props: Readonly<P>
+            ) => Pick<S, K> | Partial<S> | null)
+            | (Pick<S, K> | Partial<S> | null),
         callback?: () => void,
     ): void {
         super.setState(state, callback);

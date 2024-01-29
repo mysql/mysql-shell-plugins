@@ -25,7 +25,7 @@
 
 import {
     Condition, until, WebElement,
-    TreeItem, EditorView, Button,
+    TreeItem, EditorView, Button, error,
 } from "vscode-extension-tester";
 import * as constants from "../constants";
 import * as waitUntil from "../until";
@@ -364,14 +364,20 @@ export class Tree {
         }
 
         return driver.wait(new Condition("", async () => {
-            const section = await Section.getSection(constants.openEditorsTreeSection);
-            const treeVisibleItems = await section.getVisibleItems();
-            for (const item of treeVisibleItems) {
-                if ((await item.getLabel()).match(name) !== null) {
-                    const itemIcon = await item.findElement(locator.section.itemIcon);
-                    if ((await itemIcon.getAttribute("style")).includes(type)) {
-                        return item;
+            try {
+                const section = await Section.getSection(constants.openEditorsTreeSection);
+                const treeVisibleItems = await section.getVisibleItems();
+                for (const item of treeVisibleItems) {
+                    if ((await item.getLabel()).match(name) !== null) {
+                        const itemIcon = await item.findElement(locator.section.itemIcon);
+                        if ((await itemIcon.getAttribute("style")).includes(type)) {
+                            return item;
+                        }
                     }
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
                 }
             }
         }), constants.wait5seconds,

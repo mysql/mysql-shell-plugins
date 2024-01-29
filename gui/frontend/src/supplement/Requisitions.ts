@@ -303,6 +303,27 @@ export interface IMrsSdkExportRequest extends IDictionary {
 }
 
 /**
+ * Information about the columns of a result set that must be determined separately.
+ * When a new result set is opened, only limited column information is available (mostly the title and order).
+ * For other tasks we need more details, like if a column is part of the primary key, if it's nullable, etc.
+ */
+export interface IColumnDetails {
+    resultId: string;
+    columns: Array<{
+        /** Is this column part of the primary key? */
+        inPK: boolean;
+
+        autoIncrement: boolean;
+
+        /** Can values of this column be set to null? */
+        nullable: boolean;
+
+        /** The default value as defined in the table creation. */
+        default?: unknown;
+    }>;
+}
+
+/**
  * The map containing possible requests and their associated callback.
  * The return value in the promise determines if the request was handled or not.
  *
@@ -329,6 +350,9 @@ export interface IRequestTypeMap {
     "showOpenDialog": (options: IOpenDialogOptions) => Promise<boolean>;
 
     "sqlShowDataAtPage": (data: ISqlPageRequest) => Promise<boolean>;
+
+    /** Sent when new column details are available for a specific result set. */
+    "sqlUpdateColumnInfo": (data: IColumnDetails) => Promise<boolean>;
 
     "editorExecuteSelectedOrAll": (options: IEditorCommonExecutionOptions) => Promise<boolean>;
     "editorExecuteCurrent": (options: IEditorCommonExecutionOptions) => Promise<boolean>;
@@ -896,7 +920,7 @@ export class RequisitionHub {
             };
 
             this.remoteTarget?.postMessage?.(message, "*");
-        } else if (navigator.clipboard && window.isSecureContext && false) {
+        } else if (navigator.clipboard && window.isSecureContext) {
             // Some browser limit access to the clipboard in unsecure contexts.
             void navigator.clipboard.writeText(text);
         } else if (document.execCommand) {
@@ -916,7 +940,7 @@ export class RequisitionHub {
     /**
      * Handles cut and copy events in the application, which require special handling in embedded mode.
      *
-     * @param e The original keyboard event.
+     * @param cut A flag indicating if the event is a cut or copy event.
      */
     private handleCutCopy(cut: boolean): void {
         const selection = window.getSelection();

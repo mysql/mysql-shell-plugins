@@ -87,15 +87,12 @@ export enum DBDataType {
 
     // Date and time types.
     DateTime,
-    DateTime_f,
     Date,
     Time,
-    Time_f,
     Year,
     Timestamp,
-    Timestamp_f,
 
-    // Geometry types.
+    // Geometry types. All of them are just synonyms for GEOMETRY.
     Geometry,
     Point,
     LineString,
@@ -113,6 +110,77 @@ export enum DBDataType {
     Enum,
     Set,
 }
+
+export const isNumericType = (type: DBDataType): boolean => {
+    return type === DBDataType.TinyInt || type === DBDataType.SmallInt || type === DBDataType.MediumInt
+        || type === DBDataType.Int || type === DBDataType.Bigint || type === DBDataType.UInteger
+        || type === DBDataType.Float || type === DBDataType.Real || type === DBDataType.Double
+        || type === DBDataType.Decimal || type === DBDataType.Numeric;
+};
+
+export const isTextType = (type: DBDataType): boolean => {
+    return type === DBDataType.Char || type === DBDataType.Nchar || type === DBDataType.Varchar ||
+        type === DBDataType.Nvarchar || type === DBDataType.String || type === DBDataType.TinyText ||
+        type === DBDataType.Text || type === DBDataType.MediumText || type === DBDataType.LongText
+        || type === DBDataType.Json || type === DBDataType.Enum || type === DBDataType.Set;
+};
+
+export const isBlobType = (type: DBDataType): boolean => {
+    return type === DBDataType.TinyBlob || type === DBDataType.Blob || type === DBDataType.MediumBlob ||
+        type === DBDataType.LongBlob;
+};
+
+export const isDateTimeType = (type: DBDataType): boolean => {
+    return type === DBDataType.DateTime || type === DBDataType.Date ||
+        type === DBDataType.Time || type === DBDataType.Year ||
+        type === DBDataType.Timestamp;
+};
+
+export const isGeometryType = (type: DBDataType): boolean => {
+    return type === DBDataType.Geometry || type === DBDataType.Point || type === DBDataType.LineString ||
+        type === DBDataType.Polygon || type === DBDataType.GeometryCollection || type === DBDataType.MultiPoint ||
+        type === DBDataType.MultiLineString || type === DBDataType.MultiPolygon;
+};
+
+/** Mappings from a DB type its default value. */
+export const defaultValues: { [key in DBDataType]?: number | string | boolean | Date; } = {
+    [DBDataType.TinyInt]: 0,
+    [DBDataType.SmallInt]: 0,
+    [DBDataType.MediumInt]: 0,
+    [DBDataType.Int]: 0,
+    [DBDataType.Bigint]: 0,
+    [DBDataType.UInteger]: 0,
+    [DBDataType.Float]: 0,
+    [DBDataType.Real]: 0,
+    [DBDataType.Double]: 0,
+    [DBDataType.Decimal]: 0,
+    [DBDataType.Numeric]: 0,
+    [DBDataType.Binary]: "",
+    [DBDataType.Varbinary]: "",
+    [DBDataType.Char]: "",
+    [DBDataType.Nchar]: "",
+    [DBDataType.Varchar]: "",
+    [DBDataType.Nvarchar]: "",
+    [DBDataType.String]: "",
+    [DBDataType.TinyText]: "",
+    [DBDataType.Text]: "",
+    [DBDataType.MediumText]: "",
+    [DBDataType.LongText]: "",
+    [DBDataType.TinyBlob]: "",
+    [DBDataType.Blob]: "",
+    [DBDataType.MediumBlob]: "",
+    [DBDataType.LongBlob]: "",
+    [DBDataType.DateTime]: new Date(),
+    [DBDataType.Date]: new Date(),
+    [DBDataType.Time]: new Date(),
+    [DBDataType.Year]: new Date(),
+    [DBDataType.Timestamp]: new Date(),
+    [DBDataType.Json]: "{}",
+    [DBDataType.Bit]: "",
+    [DBDataType.Boolean]: false,
+    [DBDataType.Enum]: "",
+    [DBDataType.Set]: "",
+};
 
 /**
  * Describes the number of parameters for a DB data type. It doesn't say anything about the parameter types, though.
@@ -180,6 +248,20 @@ export interface IColumnInfo {
 
     /** A flag to indicate right alignment. */
     rightAlign?: boolean;
+
+    /** Is this column part of the primary key? */
+    inPK: boolean;
+
+    autoIncrement: boolean;
+
+    /** Can values of this column be set to null? */
+    nullable: boolean;
+
+    /** The default value as defined in the table creation. */
+    default?: unknown;
+
+    /** The textual column data type definition, as defined in the table creation. */
+    originalType?: string;
 }
 
 /**
@@ -193,9 +275,19 @@ export enum MessageType {
     Response,
 }
 
-export interface IExecutionInfo {
+/** Details for a status message, usually used in result view status bars. */
+export interface IStatusInfo {
     type?: MessageType;
     text: string;
+}
+
+/** Used for update statements in editing operations. */
+export interface ISqlUpdateResult {
+    /** The number of rows affected by the statement. */
+    affectedRows: number;
+
+    /** One entry for each sent SQL statement. If empty, no error came up. */
+    errors: string[];
 }
 
 // Types for requesting a specific dialog and sending back the entered values.

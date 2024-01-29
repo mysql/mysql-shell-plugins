@@ -16,10 +16,12 @@ exports[`Dropdown render testing Standard Rendering 1`] = `
   <Container
     className="msg dropdown"
     crossAlignment="center"
+    data-tooltip="inherit"
     innerRef={
       {
         "current": <div
           class="msg container fixedScrollbar dropdown"
+          data-tooltip="inherit"
           style="flex-direction: row; align-items: center; max-width: 300px;"
           tabindex="0"
         >
@@ -45,6 +47,7 @@ exports[`Dropdown render testing Standard Rendering 1`] = `
   >
     <div
       className="msg container fixedScrollbar dropdown"
+      data-tooltip="inherit"
       onClick={[Function]}
       onKeyDown={[Function]}
       onfocusout={[Function]}

@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import image from "../../../../assets/images/blob.svg";
+import image from "../../../../assets/images/data-icons/data-blob.svg";
 import dummy from "../../../../assets/images/add.svg";
 
 import { mount } from "enzyme";

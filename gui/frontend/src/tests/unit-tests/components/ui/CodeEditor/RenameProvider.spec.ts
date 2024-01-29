@@ -61,6 +61,6 @@ describe("RenameProvider tests", () => {
         jest.spyOn(execContext, "isInternal", "get").mockReturnValue(false);
         const getRenameLocations = jest.spyOn(services, "getRenameLocations");
         void renameProvider.provideRenameEdits(mockModel, position, "renamed");
-        expect(getRenameLocations).toBeCalled();
+        expect(getRenameLocations).toHaveBeenCalled();
     });
 });

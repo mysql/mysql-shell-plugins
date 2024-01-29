@@ -124,7 +124,7 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
         content += `\nprint("python");\n`;
 
         const model: ICodeEditorModel = Object.assign(Monaco.createModel(content, "javascript"), {
-            executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
+            executionContexts: new ExecutionContexts(),
             editorMode: CodeEditorMode.Standard,
         });
 
@@ -509,7 +509,7 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
                             enabled: true,
                         }}
                         font={{
-                            fontFamily: "SourceCodePro+Powerline+Awesome+MySQL",
+                            fontFamily: "var(--msg-monospace-font-family)",
                             fontSize: 15,
                             lineHeight: 24,
                         }}

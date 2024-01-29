@@ -157,6 +157,12 @@ export interface IProviderEditorModel extends editor.ITextModel {
     editorMode: CodeEditorMode;
 }
 
+/** The structure of a monaco-editor language definition. */
+export interface ILanguageDefinition {
+    language: languages.IMonarchLanguage;
+    languageConfiguration: languages.LanguageConfiguration;
+}
+
 /** Base scope names used for syntax highlighting. These are combined with the modifiers below. */
 export const tokenTypes = [
     "keyword",
@@ -223,9 +229,4 @@ export const tokenModifiers = [
     "language",
     "predefined",
     "angle",
-
-    "sql",
-    "js",
-    "ts",
-    "py",
 ];

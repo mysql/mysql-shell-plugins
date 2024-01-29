@@ -348,11 +348,11 @@ export const extensionIsReady = (): Condition<boolean> => {
 };
 
 export const cellIsEditable = (commandExecutor: CommandExecutor, rowNumber: number,
-    columnNumber: number, expectInput: boolean): Condition<boolean> => {
+    columnName: string, expectInput: boolean): Condition<boolean> => {
     return new Condition(`for row to be editable`, async () => {
         return driver.wait(async () => {
             try {
-                const cell = await commandExecutor.getCellFromResultGrid(rowNumber, columnNumber);
+                const cell = await commandExecutor.getCellFromResultGrid(rowNumber, columnName);
                 const isEditable = (await cell.getAttribute("class")).includes("tabulator-editing");
                 if (expectInput) {
                     if (isEditable) {
@@ -367,7 +367,7 @@ export const cellIsEditable = (commandExecutor: CommandExecutor, rowNumber: numb
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `The cell (${rowNumber}, ${columnNumber}) was not editable`);
+        }, constants.wait5seconds, `The cell (${rowNumber}, ${columnName}) was not editable`);
     });
 };
 

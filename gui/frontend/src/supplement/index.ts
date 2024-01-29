@@ -24,7 +24,8 @@
  */
 
 import { mysqlInfo, sqliteInfo } from "../app-logic/RdbmsInfo.js";
-import { DBDataType, IColumnInfo, IDictionary } from "../app-logic/Types.js";
+import { DBDataType, IColumnInfo, IDBDataTypeDetails, IDictionary } from "../app-logic/Types.js";
+import { Base64Convert } from "../utilities/Base64Convert.js";
 import { DBType } from "./ShellInterface/index.js";
 
 export { Stack } from "./Stack.js";
@@ -143,7 +144,7 @@ export interface IThenableCallback<T> {
     catch: (onError?: ((taskId: number, reason?: unknown) => void)) => void;
 }
 
-// This conditional type enforces type widening on generic parameter types.
+/** This conditional type enforces type widening on generic parameter types. */
 export type ValueType<T> = T extends string
     ? string
     : T extends number
@@ -175,25 +176,67 @@ export const generateColumnInfo = (dbType: DBType, rawColumns?: Array<{ name: st
     const dataTypes = dbType === DBType.MySQL ? mysqlInfo.dataTypes : sqliteInfo.dataTypes;
 
     return rawColumns.map((entry, index) => {
-        let type;
-        if (entry.type.toLowerCase() === "bytes") {
-            // For now, use length to switch between binary and blob
-            if (entry.length < 256) {
-                type = DBDataType.Binary;
-            } else {
-                type = DBDataType.Blob;
+        const dataType: IDBDataTypeDetails = { // Make a copy of the data type details.
+            ...dataTypes.get(entry.type.toLowerCase()) ?? { type: DBDataType.Unknown },
+        };
+        const typeName = entry.type.toLowerCase();
+        switch (typeName) {
+            case "bytes": {
+                // The actual type depends on the length of the data.
+                switch (entry.length) {
+                    case 0xFF: {
+                        dataType.type = DBDataType.TinyBlob;
+                        break;
+                    }
+
+                    case 0xFFFF: {
+                        dataType.type = DBDataType.Blob;
+                        break;
+                    }
+
+                    case 0xFFFFFF: {
+                        dataType.type = DBDataType.MediumBlob;
+                        break;
+                    }
+
+                    case 0xFFFFFFFF: {
+                        dataType.type = DBDataType.LongBlob;
+                        break;
+                    }
+
+                    default: {
+                        dataType.type = DBDataType.Binary; // or varbinary, but there's no way to tell.
+                        break;
+                    }
+                }
+
+                break;
             }
-        } else {
-            const foundType = dataTypes.get(entry.type.toLowerCase());
-            type = foundType ? foundType.type : DBDataType.Unknown;
+
+            case "int": {
+                // If the display width is 1, assume it's a boolean.
+                if (entry.length === 1) {
+                    dataType.type = DBDataType.Boolean;
+                }
+
+                break;
+            }
+
+            case "str": {
+                dataType.type = DBDataType.String;
+                break;
+            }
+
+            default:
         }
 
         return {
             title: entry.name,
             field: useName ? entry.name : String(index),
-            dataType: {
-                type,
-            },
+            dataType,
+            inPK: false, // Will be determined in another step.
+            nullable: false, // ditto.
+            autoIncrement: false, // ditto.
         };
     });
 };
@@ -219,7 +262,23 @@ export const convertRows = (columns: IColumnInfo[], rows?: unknown[]): IDictiona
 
             const entry = value as unknown[];
             columns.forEach((column: IColumnInfo, columnIndex: number): void => {
-                row[column.field] = entry[columnIndex];
+                if (entry[columnIndex] == null) {
+                    row[column.field] = null;
+                } else {
+                    switch (column.dataType.type) {
+                        case DBDataType.TinyBlob:
+                        case DBDataType.Blob:
+                        case DBDataType.MediumBlob:
+                        case DBDataType.LongBlob: {
+                            // Blobs are sent as base64 encoded strings. Convert them to array buffers.
+                            row[column.field] = Base64Convert.decode(entry[columnIndex] as string);
+                            break;
+                        }
+                        default: {
+                            row[column.field] = entry[columnIndex];
+                        }
+                    }
+                }
             });
             convertedRows.push(row);
         });

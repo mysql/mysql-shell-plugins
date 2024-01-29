@@ -15,7 +15,7 @@ exports[`TreeGrid tests TreeGrid snapshot 1`] = `
     ]
   }
   onVerticalScroll={[Function]}
-  selectedIds={
+  selectedRows={
     [
       "a",
     ]
@@ -24,6 +24,11 @@ exports[`TreeGrid tests TreeGrid snapshot 1`] = `
 >
   <div
     className="msg treeGrid"
+    selectedRows={
+      [
+        "a",
+      ]
+    }
   />
 </TreeGrid>
 `;

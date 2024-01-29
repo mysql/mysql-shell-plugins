@@ -30,40 +30,49 @@ import { ComponentChild, createRef } from "preact";
 import { convertPropValue } from "../../../utilities/string-helpers.js";
 import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
 import { IInputChangeProperties, Input } from "../Input/Input.js";
-import { clampValue } from "../../../utilities/helpers.js";
+import { clampValue, minValue } from "../../../utilities/helpers.js";
 import { IComponentProperties, IComponentState, ComponentBase } from "../Component/ComponentBase.js";
 import { Grid } from "../Grid/Grid.js";
 import { GridCell } from "../Grid/GridCell.js";
 import { TextAlignment } from "../Label/Label.js";
 import { Button } from "../Button/Button.js";
 
-export interface IUpDownProperties extends IComponentProperties {
-    items?: string[];    // For any type of values, but limited to only those given here.
+export interface IUpDownProperties<ValueType extends string | number | bigint> extends IComponentProperties {
+    /** For any type of values, but limited to only those given here. */
+    items?: string[];
 
-    min?: number;        // For numeric values only. The items property is ignored then.
-    max?: number;        // Ditto.
-    step?: number;       // Ditto.
+    /** The minimal value that can be entered. For numeric values only. The items property is ignored then. */
+    min?: Exclude<ValueType, string> | number;
 
-    value?: string | number;
+    /** The maximal value that can be entered. For numeric values only. The items property is ignored then. */
+    max?: Exclude<ValueType, string> | number;
+
+    /**
+     * The value for one step when using the arrow buttons.
+     * For numeric values only. The items property is ignored then.
+     */
+    step?: Exclude<ValueType, string> | number;
+
+    value?: ValueType;
     textAlignment?: TextAlignment;
 
     innerRef?: preact.RefObject<HTMLDivElement>;
 
-    // The value is either the numeric directly or the index into `items`, if that was given.
-    onChange?: (value: number, props: IUpDownProperties) => void;
-    onConfirm?: (value: number, props: IUpDownProperties) => void;
-    onCancel?: (props: IUpDownProperties) => void;
+    onChange?: (value: ValueType, props: IUpDownProperties<ValueType>) => void;
+
+    onConfirm?: (value: ValueType, props: IUpDownProperties<ValueType>) => void;
+
+    onCancel?: (props: IUpDownProperties<ValueType>) => void;
 }
 
 export interface IUpDownState extends IComponentState {
-    currentValue: number; // For non-numeric input this is the index into props.items.
+    currentValue: number | bigint; // For non-numeric input this is the index into props.items.
     useNumeric: boolean;
-    min?: number;
-    max?: number;
-    step: number;
+
 }
 
-export class UpDown extends ComponentBase<IUpDownProperties, IUpDownState> {
+export class UpDown<ValueType extends string | number | bigint>
+    extends ComponentBase<IUpDownProperties<ValueType>, IUpDownState> {
 
     public static defaultProps = {
         textAlignment: TextAlignment.End,
@@ -72,28 +81,25 @@ export class UpDown extends ComponentBase<IUpDownProperties, IUpDownState> {
     private innerListRef = createRef<HTMLDivElement>();
     private containerRef: preact.RefObject<HTMLDivElement>;
 
-    public constructor(props: IUpDownProperties) {
+    public constructor(props: IUpDownProperties<ValueType>) {
         super(props);
 
         this.containerRef = props.innerRef ?? createRef<HTMLDivElement>();
 
-        const useNumeric = props.min != null || props.max != null || props.step != null;
+        const useNumeric = typeof props.value === "number" || typeof props.value === "bigint";
         let min = props.min;
-        if (min != null && props.max != null) {
-            min = Math.min(min, props.max);
+        if (min != null && props.max != null && typeof min !== "string") {
+            min = minValue(min, props.max);
         }
 
         if (useNumeric || !props.items) {
-            const value = (typeof (props.value) === "string")
+            const value: number | bigint = (typeof props.value === "string")
                 ? parseInt(props.value, 10)
-                : props.value || 0;
+                : props.value ?? 0;
 
             this.state = {
                 currentValue: clampValue(value, props.min, props.max),
                 useNumeric: true,
-                min,
-                max: props.max,
-                step: props.step || 1,
             };
         } else {
             const value = props.value || props.items[0];
@@ -104,9 +110,6 @@ export class UpDown extends ComponentBase<IUpDownProperties, IUpDownState> {
             this.state = {
                 currentValue: index,
                 useNumeric: false,
-                min: 0,
-                max: props.items.length - 1,
-                step: 1,
             };
         }
 
@@ -130,7 +133,8 @@ export class UpDown extends ComponentBase<IUpDownProperties, IUpDownState> {
         let content;
         if (useNumeric) {
             content = <Input
-                key="upDownInput"
+                id="upDownInput"
+                autoFocus={true}
                 value={currentValue.toString()}
                 onChange={this.handleInputChange}
                 onConfirm={this.handleInputConfirm}
@@ -200,45 +204,65 @@ export class UpDown extends ComponentBase<IUpDownProperties, IUpDownState> {
     }
 
     private handleButtonClick = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
-        const { step } = this.state;
+        const { step = 1 } = this.mergedProps;
         this.stepValue(props.id === "up" ? step : -step);
+        e.preventDefault();
     };
 
-    private stepValue = (amount: number): void => {
-        const { onChange } = this.mergedProps;
-        const { currentValue, min, max, useNumeric } = this.state;
+    private stepValue = (amount: number | bigint): void => {
+        const { onChange, min, max } = this.mergedProps;
+        const { currentValue, useNumeric } = this.state;
 
-        const newValue = clampValue(currentValue + amount, min, max);
-        onChange?.(newValue, this.props);
-        this.setState({ currentValue: newValue });
+        let newValue;
+        if (typeof currentValue === "bigint") {
+            newValue = clampValue(currentValue + BigInt(amount), min as bigint, max as bigint);
+            onChange?.(newValue as ValueType, this.props);
+            this.setState({ currentValue: newValue });
+        } else {
+            newValue = clampValue(currentValue + Number(amount), min as number, max as number);
+            onChange?.(newValue as ValueType, this.props);
+            this.setState({ currentValue: newValue });
+        }
 
         if (!useNumeric && this.innerListRef.current) {
-            const itemHeight = this.containerRef.current?.clientHeight || 0;
+            const itemHeight = this.containerRef.current?.clientHeight ?? 0;
 
             // Subtract one for the top border.
-            this.innerListRef.current.style.top = convertPropValue(-newValue * itemHeight - 1)!;
+            this.innerListRef.current.style.top = convertPropValue(-Number(newValue) * itemHeight - 1)!;
         }
     };
 
     private handleInputChange = (e: InputEvent, props: IInputChangeProperties): void => {
-        const { onChange } = this.mergedProps;
-        const { min, max } = this.state;
+        const { onChange, value, min, max } = this.mergedProps;
 
         // This handler is only called for numeric up/down controls.
-        let newValue = parseInt(props.value, 10);
-        if (isNaN(newValue)) {
-            newValue = 0;
+        let newValue;
+        let minValue;
+        let maxValue;
+        if (typeof value === "bigint") {
+            newValue = BigInt(props.value);
+            minValue = min != null ? BigInt(min) : undefined;
+            maxValue = max != null ? BigInt(max) : undefined;
+            onChange?.(newValue as ValueType, this.props);
+            this.setState({ currentValue: clampValue(newValue, minValue, maxValue) });
+        } else {
+            newValue = parseInt(props.value, 10);
+            if (isNaN(newValue)) {
+                newValue = 0;
+            }
+            minValue = min != null ? Number(min) : undefined;
+            maxValue = max != null ? Number(max) : undefined;
         }
 
-        onChange?.(newValue, this.props);
-        this.setState({ currentValue: clampValue(newValue, min, max) });
+        onChange?.(newValue as ValueType, this.props);
+        this.setState({ currentValue: clampValue(newValue, minValue, maxValue) });
     };
 
     private handleInputConfirm = (): void => {
         const { onConfirm } = this.mergedProps;
         const { currentValue } = this.state;
 
-        onConfirm?.(currentValue, this.props);
+        onConfirm?.(currentValue as ValueType, this.props);
     };
 
     private handleInputCancel = (): void => {

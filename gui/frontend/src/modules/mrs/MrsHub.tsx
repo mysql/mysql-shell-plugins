@@ -47,12 +47,13 @@ import { IMrsUserDialogData, MrsUserDialog } from "./dialogs/MrsUserDialog.js";
 import { IMrsServiceDialogData, MrsServiceDialog } from "./dialogs/MrsServiceDialog.js";
 import { uuid } from "../../utilities/helpers.js";
 import { DialogHost } from "../../app-logic/DialogHost.js";
-import { snakeToCamelCase } from "../../utilities/string-helpers.js";
+import { convertSnakeToCamelCase } from "../../utilities/string-helpers.js";
 import { IMrsSdkExportDialogData, MrsSdkExportDialog } from "./dialogs/MrsSdkExportDialog.js";
 import { getMySQLDbConnectionUri } from "../../communication/MySQL.js";
 import { IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { getRouterPortForConnection } from "../../modules/mrs/mrs-helpers.js";
+import { MrsDbObjectType } from "./types.js";
 
 type DialogConstructor = new (props: {}) => AwaitableValueEditDialog;
 
@@ -68,7 +69,7 @@ interface IMrsEditObjectData extends IDictionary {
     comments: string,
     rowUserOwnershipEnforced: boolean,
     rowUserOwnershipColumn: string,
-    objectType: string,
+    objectType: MrsDbObjectType,
     crudOperations: string[],
     crudOperationFormat: string,
     autoDetectMediaType: boolean,
@@ -344,7 +345,7 @@ export class MrsHub extends ComponentBase {
                 values: {
                     serviceId: schema?.serviceId,
                     dbSchemaName: schema?.name ?? schemaName,
-                    requestPath: schema?.requestPath ?? `/${snakeToCamelCase(schemaName ?? "schema")}`,
+                    requestPath: schema?.requestPath ?? `/${convertSnakeToCamelCase(schemaName ?? "schema")}`,
                     requiresAuth: schema?.requiresAuth === 1,
                     enabled: !schema || schema.enabled === 1,
                     itemsPerPage: schema?.itemsPerPage,
@@ -419,7 +420,7 @@ export class MrsHub extends ComponentBase {
         const services = await backend.mrs.listServices();
         const schemas = await backend.mrs.listSchemas(dbObject.serviceId === "" ? undefined : dbObject.serviceId);
         let rowOwnershipFields: string[];
-        if (dbObject.objectType !== "PROCEDURE" && dbObject.objectType !== "FUNCTION") {
+        if (dbObject.objectType !== MrsDbObjectType.Procedure && dbObject.objectType !== MrsDbObjectType.Function) {
             const tableColumnsWithReferences = await backend.mrs.getTableColumnsWithReferences(
                 undefined, dbObject.name,
                 undefined, undefined, dbObject.schemaName,
@@ -488,7 +489,9 @@ export class MrsHub extends ComponentBase {
         const rowUserOwnershipEnforced = data.rowUserOwnershipEnforced;
         const rowUserOwnershipColumn = data.rowUserOwnershipColumn;
         const objectType = data.objectType;
-        const crudOperations = objectType === "PROCEDURE" ? ["UPDATE"] : (data.crudOperations ?? ["READ"]);
+        const crudOperations = objectType === MrsDbObjectType.Procedure
+            ? ["UPDATE"]
+            : (data.crudOperations ?? ["READ"]);
         const crudOperationFormat = data.crudOperationFormat ?? "FEED";
         const mediaType = data.mediaType;
         const autoDetectMediaType = data.autoDetectMediaType;

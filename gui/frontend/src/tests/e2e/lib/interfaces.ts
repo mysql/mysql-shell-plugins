@@ -89,6 +89,6 @@ export interface IConnAdvancedSqlite {
 
 export interface IResultGridCell {
     rowNumber?: number;
-    columnNumber: number;
+    columnName: string;
     value: string | boolean | number;
 }

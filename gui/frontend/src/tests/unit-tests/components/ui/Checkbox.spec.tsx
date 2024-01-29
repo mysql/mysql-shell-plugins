@@ -51,7 +51,7 @@ describe("Checkbox component tests", (): void => {
         await act(() => {
             click?.(mouseEventMock, { id: "1" });
         });
-        expect(spyOnChange).toBeCalled();
+        expect(spyOnChange).toHaveBeenCalled();
     });
 
     it("Test checkbox output (Snapshot)", () => {

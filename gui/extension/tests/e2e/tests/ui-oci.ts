@@ -55,6 +55,14 @@ if (!process.env.MYSQLSH_OCI_RC_FILE) {
     throw new Error("Please define the environment variable MYSQLSH_OCI_RC_FILE");
 }
 
+if (!process.env.OCI_BASTION_USERNAME) {
+    throw new Error("Please define the environment variable OCI_BASTION_USERNAME");
+}
+
+if (!process.env.OCI_BASTION_PASSWORD) {
+    throw new Error("Please define the environment variable OCI_BASTION_PASSWORD");
+}
+
 describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
     before(async function () {

@@ -145,6 +145,10 @@
     min-height: 30px;
 }
 
+.msg.dropdownList > .dropdownItem[disabled=true] .icon {
+    background-color: var(--button-dimmedBackground);
+}
+
 .msg.dropdownList > .dropdownItem > .checkbox {
     flex: 1 1 auto;
 }

@@ -91,8 +91,9 @@ export class ExecutionContext implements IExecutionContext {
 
     public set language(value: EditorLanguage) {
         this.presentation.language = value;
-        this.presentation.removeResult();
-        this.validateAll();
+        void this.presentation.removeResult().then(() => {
+            this.validateAll();
+        });
     }
 
     public get isSQLLike(): boolean {
@@ -203,6 +204,10 @@ export class ExecutionContext implements IExecutionContext {
         return undefined;
     }
 
+    public canClose(): Promise<boolean> {
+        return this.presentation.canClose();
+    }
+
     public showNextResultMaximized(): void {
         this.#showNextResultMaximized = true;
     }
@@ -309,18 +314,18 @@ export class ExecutionContext implements IExecutionContext {
     /**
      * Removes the content of the result area.
      */
-    public clearResult(): void {
+    public async clearResult(): Promise<void> {
         if (!this.disposed) {
-            this.presentation.clearResult();
+            await this.presentation.clearResult();
         }
     }
 
     /**
      * Removes the entire result area.
      */
-    public removeResult(): void {
+    public async removeResult(): Promise<void> {
         if (!this.disposed) {
-            this.presentation.removeResult();
+            await this.presentation.removeResult();
         }
     }
 

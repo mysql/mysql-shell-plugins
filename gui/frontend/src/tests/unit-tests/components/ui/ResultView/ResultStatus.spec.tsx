@@ -33,7 +33,7 @@ describe("Result Status Tests", (): void => {
     it("Default Rendering", () => {
         const component = mount<ResultStatus>(
             <ResultStatus
-                executionInfo={{
+                statusInfo={{
                     type: MessageType.Info,
                     text: "Lorem ipsum",
                 }}

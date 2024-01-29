@@ -42,7 +42,7 @@ describe("Standalone presentation interface tests", (): void => {
     content += `\nprint("python");\n`;
 
     const model: ICodeEditorModel = Object.assign(Monaco.createModel("", "msg"), {
-        executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
+        executionContexts: new ExecutionContexts(),
         editorMode: CodeEditorMode.Standard,
     });
 

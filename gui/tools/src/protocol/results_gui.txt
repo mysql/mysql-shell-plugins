@@ -273,6 +273,15 @@ export type IShellResultType =
     | IShellColumnsMetaData
     ;
 
+export interface ITableObjectInfo {
+    name: string,
+    type?: string,
+    notNull?: number,
+    default?: unknown,
+    isPk?: number,
+    autoIncrement?: number,
+}
+
 export interface IProtocolGuiResults {
     [ShellAPIGui.GuiClusterIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiClusterGetGuiModuleDisplayInfo]: {};
@@ -314,7 +323,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbGetTableObjectNames]: { result: string[]; };
     [ShellAPIGui.GuiDbGetCatalogObject]: {};
     [ShellAPIGui.GuiDbGetSchemaObject]: {};
-    [ShellAPIGui.GuiDbGetTableObject]: {};
+    [ShellAPIGui.GuiDbGetTableObject]: { result: ITableObjectInfo; };
     [ShellAPIGui.GuiDbStartSession]: { result: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbCloseSession]: {};
     [ShellAPIGui.GuiDbReconnect]: {};

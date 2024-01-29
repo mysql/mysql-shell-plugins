@@ -311,14 +311,25 @@
 
 .msg.treeGrid.tabulator .tabulator-row .tabulator-cell.tabulator-editing input,
 .msg.treeGrid.tabulator .tabulator-row .tabulator-cell.tabulator-editing select {
-    background: var(--background);
-    color: var(--foreground);
     font: inherit;
 
-    padding: 0 2px;
+    background: var(--background);
+    color: var(--foreground);
+    border: 1px solid var(--input-border);
+    padding: 0;
     margin: 0;
-    border: none !important;
-    border-radius: 0;
+
+    width: 100%;
+}
+
+.msg.treeGrid.tabulator .tabulator-row .tabulator-cell.tabulator-editing input[type="datetime-local"] {
+    font: inherit;
+
+    background: var(--background);
+    color: var(--foreground);
+    border: 1px solid var(--input-border);
+    padding: 0 0 0 1px;
+    margin: 0 0 0 -1px;
 
     width: 100%;
 }

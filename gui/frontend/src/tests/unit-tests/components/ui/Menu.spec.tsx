@@ -68,13 +68,13 @@ describe("Menu component tests", (): void => {
         const instance = component.instance();
         const item = component.find("#edit");
         const spyItemClick = jest.spyOn(instance.props as IMenuProperties, "onItemClick");
-        expect(spyItemClick).not.toBeCalled();
+        expect(spyItemClick).not.toHaveBeenCalled();
 
         onClick = (item.props() as IMenuProperties).onClick;
         await act(() => {
             onClick?.(mouseEventMock, {});
         });
-        expect(spyItemClick).toBeCalled();
+        expect(spyItemClick).toHaveBeenCalled();
     });
 
     it("Test Menu output (snapshot)", () => {

@@ -39,10 +39,9 @@ describe("Script editor tests", (): void => {
     content += `\nselect "(my)sql" from dual;\n\\py\n`;
     content += `\nprint("python");\n`;
     const model: ICodeEditorModel = Object.assign(Monaco.createModel("", "msg"), {
-        executionContexts: new ExecutionContexts(undefined, 80024, "", ""),
+        executionContexts: new ExecutionContexts(),
         editorMode: CodeEditorMode.Standard,
     });
-
 
     if (model.getEndOfLineSequence() !== Monaco.EndOfLineSequence.LF) {
         model.setEOL(Monaco.EndOfLineSequence.LF);

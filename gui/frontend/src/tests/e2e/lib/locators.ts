@@ -189,11 +189,18 @@ export const notebook = {
                 tableRow: By.css(".tabulator-selectable.tabulator-row-odd"),
                 tableRows: By.css(".tabulator-selectable.tabulator-row-odd"),
                 addedTableRow: By.css(".tabulator-row.added"),
+                tableCellUpDownInput: By.id("upDownInput"),
                 deletedTableRow: By.css(".tabulator-row.deleted"),
                 tableCell: By.className("tabulator-cell"),
                 host: By.className("resultHost"),
                 changedTableCell: By.css(".tabulator-cell.changed"),
-                tableCellCheckBox: By.css(".msg.checkbox"),
+                tableCellSelectList: {
+                    exists: By.css(".cellEditorHost .dropdown"),
+                    list: {
+                        exists: By.id("Popup"),
+                        item: By.css(".dropdownItem > label"),
+                    },
+                },
                 tableCellDateTime: By.css("input.dateTime"),
                 tableCellIcon: By.css(".iconHost .icon"),
                 status: {
