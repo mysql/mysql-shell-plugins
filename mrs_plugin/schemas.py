@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -583,7 +583,7 @@ def update_schema(**kwargs):
     Keyword Args:
         schema_id (str): The id of the schema
         service_id (str): The id of the service
-        schema_name (str): The name of the schema
+        schema_name (str): (required) The name of the schema
         value (dict): The values as dict #TODO: check why dicts cannot be passed
         session (object): The database session to use.
 
