@@ -120,13 +120,13 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
               }
             }
             caption={
-              <k>
+              <g>
                 <Icon
                   disabled={false}
                   src={389}
                 />
                 <Label />
-              </k>
+              </g>
             }
             className="msg valueEditDialog"
             container={
@@ -192,7 +192,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
               }
             }
             caption={
-              <k>
+              <g>
                 <Icon
                   disabled={false}
                   src={276}
@@ -200,7 +200,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                 <Label>
                   Confirm
                 </Label>
-              </k>
+              </g>
             }
             className="msg confirmDialog"
             container={
@@ -243,7 +243,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
               }
             }
             caption={
-              <k>
+              <g>
                 <Icon
                   disabled={false}
                   src={276}
@@ -251,7 +251,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
                 <Label>
                   Confirm
                 </Label>
-              </k>
+              </g>
             }
             className="msg confirmDialog"
             container={
@@ -450,10 +450,10 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                     data-tooltip="inherit"
                     style={
                       {
-                        "WebkitMaskImage": "url(close2.svg)",
+                        "WebkitMaskImage": "url("close2.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskImage": "url(close2.svg)",
+                        "maskImage": "url("close2.svg")",
                         "width": undefined,
                       }
                     }
@@ -506,7 +506,7 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                         >
                           <div
                             class="msg icon"
-                            style="mask-image: url(connectionMysql.svg);"
+                            style="mask-image: url("connectionMysql.svg");"
                           />
                           <div
                             class="msg container fixedScrollbar textHost"
@@ -545,7 +545,7 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                               <div
                                 class="msg icon"
                                 data-tooltip="inherit"
-                                style="mask-image: url(toolbar-menu.svg);"
+                                style="mask-image: url("toolbar-menu.svg");"
                               />
                             </div>
                             <div
@@ -558,7 +558,7 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                               <div
                                 class="msg icon"
                                 data-tooltip="inherit"
-                                style="mask-image: url(newNotebook.svg);"
+                                style="mask-image: url("newNotebook.svg");"
                               />
                             </div>
                             <div
@@ -571,7 +571,7 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                               <div
                                 class="msg icon"
                                 data-tooltip="inherit"
-                                style="mask-image: url(newScript.svg);"
+                                style="mask-image: url("newScript.svg");"
                               />
                             </div>
                           </div>
@@ -584,7 +584,7 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                         >
                           <div
                             class="msg icon"
-                            style="mask-image: url(plus.svg);"
+                            style="mask-image: url("plus.svg");"
                           />
                           <div
                             class="msg container fixedScrollbar textHost"
@@ -693,10 +693,10 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                               className="msg icon"
                               style={
                                 {
-                                  "WebkitMaskImage": "url(connectionMysql.svg)",
+                                  "WebkitMaskImage": "url("connectionMysql.svg")",
                                   "backgroundColor": undefined,
                                   "height": undefined,
-                                  "maskImage": "url(connectionMysql.svg)",
+                                  "maskImage": "url("connectionMysql.svg")",
                                   "width": undefined,
                                 }
                               }
@@ -774,7 +774,7 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                                     <div
                                       class="msg icon"
                                       data-tooltip="inherit"
-                                      style="mask-image: url(toolbar-menu.svg);"
+                                      style="mask-image: url("toolbar-menu.svg");"
                                     />
                                   </div>
                                   <div
@@ -787,7 +787,7 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                                     <div
                                       class="msg icon"
                                       data-tooltip="inherit"
-                                      style="mask-image: url(newNotebook.svg);"
+                                      style="mask-image: url("newNotebook.svg");"
                                     />
                                   </div>
                                   <div
@@ -800,7 +800,7 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                                     <div
                                       class="msg icon"
                                       data-tooltip="inherit"
-                                      style="mask-image: url(newScript.svg);"
+                                      style="mask-image: url("newScript.svg");"
                                     />
                                   </div>
                                 </div>,
@@ -851,10 +851,10 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                                       data-tooltip="inherit"
                                       style={
                                         {
-                                          "WebkitMaskImage": "url(toolbar-menu.svg)",
+                                          "WebkitMaskImage": "url("toolbar-menu.svg")",
                                           "backgroundColor": undefined,
                                           "height": undefined,
-                                          "maskImage": "url(toolbar-menu.svg)",
+                                          "maskImage": "url("toolbar-menu.svg")",
                                           "width": undefined,
                                         }
                                       }
@@ -892,10 +892,10 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                                       data-tooltip="inherit"
                                       style={
                                         {
-                                          "WebkitMaskImage": "url(newNotebook.svg)",
+                                          "WebkitMaskImage": "url("newNotebook.svg")",
                                           "backgroundColor": undefined,
                                           "height": undefined,
-                                          "maskImage": "url(newNotebook.svg)",
+                                          "maskImage": "url("newNotebook.svg")",
                                           "width": undefined,
                                         }
                                       }
@@ -933,10 +933,10 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                                       data-tooltip="inherit"
                                       style={
                                         {
-                                          "WebkitMaskImage": "url(newScript.svg)",
+                                          "WebkitMaskImage": "url("newScript.svg")",
                                           "backgroundColor": undefined,
                                           "height": undefined,
-                                          "maskImage": "url(newScript.svg)",
+                                          "maskImage": "url("newScript.svg")",
                                           "width": undefined,
                                         }
                                       }
@@ -1011,10 +1011,10 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                               className="msg icon"
                               style={
                                 {
-                                  "WebkitMaskImage": "url(plus.svg)",
+                                  "WebkitMaskImage": "url("plus.svg")",
                                   "backgroundColor": undefined,
                                   "height": undefined,
-                                  "maskImage": "url(plus.svg)",
+                                  "maskImage": "url("plus.svg")",
                                   "width": undefined,
                                 }
                               }

@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import fs from "fs";
+import * as fs from "fs";
 
 import { MySQLParsingServices } from "../../../../parsing/mysql/MySQLParsingServices.js";
 import { MySQLParseUnit } from "../../../../parsing/mysql/MySQLServiceTypes.js";

@@ -121,7 +121,7 @@ export class DBSymbolTable extends SymbolTable {
     ]);
 
     // TODO: set the tree actually.
-    public tree: ParserRuleContext; // Set by the owning service context after each parse run.
+    //public tree: ParserRuleContext; // Set by the owning service context after each parse run.
 
     private symbolReferences: Map<string, number> = new Map();
 
@@ -226,7 +226,7 @@ export class DBSymbolTable extends SymbolTable {
 
         if (ctx instanceof ParserRuleContext) {
             result.span = { start: ctx.start!.start, length: ctx.stop!.stop - ctx.stop!.start + 1 };
-            result.text = ctx.start?.getTokenSource()?.inputStream?.getText(ctx.start.start, ctx.stop!.stop) ?? "";
+            result.text = ctx.start?.tokenSource?.inputStream?.getText(ctx.start.start, ctx.stop!.stop) ?? "";
         } else if (ctx instanceof TerminalNode) {
             result.text = ctx.getText();
 

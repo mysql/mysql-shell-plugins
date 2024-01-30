@@ -9,7 +9,7 @@ exports[`Confirm Dialog Tests Confirm Dialog Render Test 1`] = `
       }
     }
     caption={
-      <k>
+      <g>
         <Icon
           disabled={false}
           src={276}
@@ -17,7 +17,7 @@ exports[`Confirm Dialog Tests Confirm Dialog Render Test 1`] = `
         <Label>
           Confirm
         </Label>
-      </k>
+      </g>
     }
     className="msg confirmDialog"
     container={
@@ -79,7 +79,7 @@ exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url(close2.svg);"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -171,7 +171,7 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url(close2.svg);"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -258,7 +258,7 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url(close2.svg);"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>

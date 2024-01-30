@@ -277,10 +277,10 @@ exports[`Theme editor core testing Render test 1`] = `
                                   data-tooltip="inherit"
                                   style={
                                     {
-                                      "WebkitMaskImage": "url(import.svg)",
+                                      "WebkitMaskImage": "url("import.svg")",
                                       "backgroundColor": undefined,
                                       "height": undefined,
-                                      "maskImage": "url(import.svg)",
+                                      "maskImage": "url("import.svg")",
                                       "width": undefined,
                                     }
                                   }
@@ -337,10 +337,10 @@ exports[`Theme editor core testing Render test 1`] = `
                                   data-tooltip="inherit"
                                   style={
                                     {
-                                      "WebkitMaskImage": "url(export.svg)",
+                                      "WebkitMaskImage": "url("export.svg")",
                                       "backgroundColor": undefined,
                                       "height": undefined,
-                                      "maskImage": "url(export.svg)",
+                                      "maskImage": "url("export.svg")",
                                       "width": undefined,
                                     }
                                   }
@@ -392,13 +392,13 @@ exports[`Theme editor core testing Render test 1`] = `
                                 }
                               }
                               caption={
-                                <k>
+                                <g>
                                   <Icon
                                     disabled={false}
                                     src={389}
                                   />
                                   <Label />
-                                </k>
+                                </g>
                               }
                               className="msg valueEditDialog"
                               container={
@@ -481,10 +481,10 @@ exports[`Theme editor core testing Render test 1`] = `
                                   data-tooltip="inherit"
                                   style={
                                     {
-                                      "WebkitMaskImage": "url(add.svg)",
+                                      "WebkitMaskImage": "url("add.svg")",
                                       "backgroundColor": undefined,
                                       "height": undefined,
-                                      "maskImage": "url(add.svg)",
+                                      "maskImage": "url("add.svg")",
                                       "width": undefined,
                                     }
                                   }
@@ -542,10 +542,10 @@ exports[`Theme editor core testing Render test 1`] = `
                                   data-tooltip="inherit"
                                   style={
                                     {
-                                      "WebkitMaskImage": "url(remove.svg)",
+                                      "WebkitMaskImage": "url("remove.svg")",
                                       "backgroundColor": undefined,
                                       "height": undefined,
-                                      "maskImage": "url(remove.svg)",
+                                      "maskImage": "url("remove.svg")",
                                       "width": undefined,
                                     }
                                   }
@@ -4391,7 +4391,7 @@ exports[`Theme editor core testing Render test 1`] = `
               },
               {
                 "caption": "Syntax Colors",
-                "content": <k>
+                "content": <g>
                   <ScopeSelector
                     customScopes={[]}
                     defaultScopes={
@@ -5162,7 +5162,7 @@ exports[`Theme editor core testing Render test 1`] = `
                       }
                     />
                   </Container>
-                </k>,
+                </g>,
                 "id": "syntaxColors",
               },
             ]

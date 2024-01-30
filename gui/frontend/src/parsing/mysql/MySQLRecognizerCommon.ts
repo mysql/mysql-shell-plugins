@@ -133,7 +133,8 @@ export const getText = (context: RuleContext, convertEscapes: boolean): string =
             const child = context.textStringLiteral(index)!;
             // eslint-disable-next-line no-underscore-dangle
             const token = child._value;
-            if (token.type === MySQLMRSParser.DOUBLE_QUOTED_TEXT || token.type === MySQLMRSParser.SINGLE_QUOTED_TEXT) {
+            if (token?.type === MySQLMRSParser.DOUBLE_QUOTED_TEXT
+                || token?.type === MySQLMRSParser.SINGLE_QUOTED_TEXT) {
                 let text = token.text || "''";
                 const quoteChar = text[0];
                 const doubledQuoteChar = quoteChar.repeat(2);
@@ -268,7 +269,7 @@ export const sourceTextForRange = (start: Token | ParseTree, stop: Token | Parse
         stopToken = (stop instanceof TerminalNode) ? stop.symbol : (stop as ParserRuleContext).start!;
     }
 
-    const stream = startToken.getTokenSource()?.inputStream;
+    const stream = startToken.tokenSource?.inputStream;
     const stopIndex = stop ? stopToken.stop : 1e100;
     let result = stream?.getText(startToken.start, stopIndex) ?? "";
     if (keepQuotes || result.length < 2) {
@@ -321,7 +322,7 @@ export const getPreviousSibling = (tree: RuleContext): RuleContext | null => {
         ++index;
     }
 
-    return index > 0 ? parent.getChild(index - 1) : null;
+    return index > 0 ? parent.getChild(index - 1) as RuleContext : null;
 };
 
 /**
@@ -342,8 +343,8 @@ export const getPrevious = (tree: RuleContext): RuleContext | null => {
             }
 
             walker = sibling;
-            while (walker!.getChildCount() > 0) { // Walk down to the last child node.
-                walker = walker!.getChild(walker!.getChildCount() - 1);
+            while (walker.getChildCount() > 0) { // Walk down to the last child node.
+                walker = walker.getChild(walker.getChildCount() - 1) as RuleContext;
             }
 
             if (walker instanceof TerminalNode) {
@@ -379,7 +380,7 @@ export const getNextSibling = (tree: RuleContext): RuleContext | null => {
         ++index;
     }
 
-    return index < parent.getChildCount() - 1 ? parent.getChild(index + 1) : null;
+    return index < parent.getChildCount() - 1 ? parent.getChild(index + 1) as RuleContext : null;
 };
 
 /**
@@ -393,7 +394,7 @@ export const getNext = (tree: RuleContext): RuleContext | null => {
     // If we have children then return the first one.
     if (tree.getChildCount() > 0) {
         do {
-            tree = tree.getChild(0)!;
+            tree = tree.getChild(0)! as RuleContext;
         } while (tree.getChildCount() > 0);
 
         return tree;

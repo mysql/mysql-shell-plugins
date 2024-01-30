@@ -61,7 +61,7 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
 
     // Independent of the automatic saving in the settings class, we keep an own timer here.
     // The interval for auto save can be very large or auto save is even disabled.
-    private saveTimer: ReturnType<typeof setTimeout> | null;
+    private saveTimer: ReturnType<typeof setTimeout> | null = null;
 
     public constructor(props: ISettingsEditorListProperties) {
         super(props);

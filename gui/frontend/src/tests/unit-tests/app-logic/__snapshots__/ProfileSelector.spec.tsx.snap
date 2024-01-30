@@ -46,13 +46,13 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <k>
+          <g>
             <Icon
               disabled={false}
               src={389}
             />
             <Label />
-          </k>
+          </g>
         }
         className="msg valueEditDialog"
         container={
@@ -80,7 +80,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 >
                   <div
                     class="msg icon"
-                    style="mask-image: url(add.svg);"
+                    style="mask-image: url("add.svg");"
                   />
                   <label
                     class="msg label"
@@ -96,7 +96,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 >
                   <div
                     class="msg icon"
-                    style="mask-image: url(edit.svg);"
+                    style="mask-image: url("edit.svg");"
                   />
                   <label
                     class="msg label"
@@ -112,7 +112,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 >
                   <div
                     class="msg icon"
-                    style="mask-image: url(close2.svg);"
+                    style="mask-image: url("close2.svg");"
                   />
                   <label
                     class="msg label"
@@ -162,7 +162,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   >
                     <div
                       class="msg icon"
-                      style="mask-image: url(add.svg);"
+                      style="mask-image: url("add.svg");"
                     />
                     <label
                       class="msg label"
@@ -178,7 +178,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   >
                     <div
                       class="msg icon"
-                      style="mask-image: url(edit.svg);"
+                      style="mask-image: url("edit.svg");"
                     />
                     <label
                       class="msg label"
@@ -194,7 +194,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   >
                     <div
                       class="msg icon"
-                      style="mask-image: url(close2.svg);"
+                      style="mask-image: url("close2.svg");"
                     />
                     <label
                       class="msg label"
@@ -247,7 +247,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <k>
+          <g>
             <Icon
               disabled={false}
               src={276}
@@ -255,7 +255,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
             <Label>
               Confirm
             </Label>
-          </k>
+          </g>
         }
         className="msg confirmDialog"
         container={
@@ -283,7 +283,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 >
                   <div
                     class="msg icon"
-                    style="mask-image: url(add.svg);"
+                    style="mask-image: url("add.svg");"
                   />
                   <label
                     class="msg label"
@@ -299,7 +299,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 >
                   <div
                     class="msg icon"
-                    style="mask-image: url(edit.svg);"
+                    style="mask-image: url("edit.svg");"
                   />
                   <label
                     class="msg label"
@@ -315,7 +315,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 >
                   <div
                     class="msg icon"
-                    style="mask-image: url(close2.svg);"
+                    style="mask-image: url("close2.svg");"
                   />
                   <label
                     class="msg label"
@@ -367,7 +367,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   >
                     <div
                       class="msg icon"
-                      style="mask-image: url(add.svg);"
+                      style="mask-image: url("add.svg");"
                     />
                     <label
                       class="msg label"
@@ -383,7 +383,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   >
                     <div
                       class="msg icon"
-                      style="mask-image: url(edit.svg);"
+                      style="mask-image: url("edit.svg");"
                     />
                     <label
                       class="msg label"
@@ -399,7 +399,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   >
                     <div
                       class="msg icon"
-                      style="mask-image: url(close2.svg);"
+                      style="mask-image: url("close2.svg");"
                     />
                     <label
                       class="msg label"

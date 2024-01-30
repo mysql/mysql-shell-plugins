@@ -18,18 +18,16 @@
         "noEmit": true,
         "noImplicitAny": true,
         "sourceRoot": "src",
+        "strictNullChecks": true,
         "lib": [
             "es2022",
             "dom",
             "WebWorker"
         ],
         "skipLibCheck": true,
-        "experimentalDecorators": false,
-        "allowSyntheticDefaultImports": true,
-        "strictPropertyInitialization": false,
-        "emitDecoratorMetadata": false,
+        "allowSyntheticDefaultImports": false,
+        "strictPropertyInitialization": true,
         "noFallthroughCasesInSwitch": false,
-        "composite": true,
         "paths": {
             "react": [
                 "./node_modules/preact/compat/"

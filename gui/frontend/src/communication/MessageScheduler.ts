@@ -109,7 +109,7 @@ export class MessageScheduler {
     private debugging = false;
     private disconnecting = false;
 
-    private reconnectTimer: ReturnType<typeof setTimeout> | null;
+    private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     private reconnectTimeout = 1000; // In milliseconds.
 
     private ongoingRequests = new Map<string, { protocolType: keyof IProtocolResults; }>();

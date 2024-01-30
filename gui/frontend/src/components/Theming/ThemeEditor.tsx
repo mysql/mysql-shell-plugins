@@ -36,7 +36,7 @@ import { Container, Orientation } from "../ui/Container/Container.js";
 export class ThemeEditor extends ComponentBase {
 
     private themeHasChanged = false;
-    private changeTimer: ReturnType<typeof setTimeout>;
+    private changeTimer: ReturnType<typeof setTimeout> | null = null;
 
     public render(): ComponentChild {
         const className = {
@@ -59,7 +59,9 @@ export class ThemeEditor extends ComponentBase {
 
     private handleThemeChange = (): void => {
         this.themeHasChanged = true;
-        clearTimeout(this.changeTimer);
+        if (this.changeTimer) {
+            clearTimeout(this.changeTimer);
+        }
         this.changeTimer = setTimeout((): void => {
             this.themeHasChanged = false;
             ThemeManager.get.saveTheme();

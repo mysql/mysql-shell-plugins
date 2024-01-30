@@ -64,7 +64,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
 
     private deleteList: IShellProfile[] = [];
     private activeProfiles: IShellProfile[] = [];
-    private defaultProfile: IShellProfile;
+    private defaultProfile?: IShellProfile;
 
     public constructor(props: {}) {
         super(props);
@@ -195,7 +195,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                     icon = currentIcon;
                 }
 
-                if (value.id === this.defaultProfile.id) {
+                if (value.id === this.defaultProfile?.id) {
                     icon = defaultIcon;
                 }
                 const menuItem = (
@@ -297,7 +297,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                     sectionValues.profileNewName.value = profile?.name;
                 }
 
-                if (this.defaultProfile.id === profile?.id) {
+                if (this.defaultProfile?.id === profile?.id) {
                     sectionValues.setAsDefaultProfile.options = [CommonDialogValueOption.ReadOnly];
                     sectionValues.setAsDefaultProfile.value = true;
                 } else {
@@ -325,7 +325,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                 const list = value.checkList;
                 list?.forEach((item) => {
                     const data = item.data as ICheckboxProperties;
-                    if (String(this.defaultProfile.id) === data.id && data.checkState === CheckState.Checked) {
+                    if (String(this.defaultProfile?.id) === data.id && data.checkState === CheckState.Checked) {
                         result.messages.profileActivateDeactivate = "Default profile cannot be deleted";
                     }
 
@@ -581,7 +581,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                     value:
                         this.activeProfiles.find(
                             (p) => { return p.id === webSession.currentProfileId; },
-                        )?.id === this.defaultProfile.id,
+                        )?.id === this.defaultProfile?.id,
                     horizontalSpan: 8,
                 },
             },

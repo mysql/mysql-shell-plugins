@@ -99,7 +99,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
     // The interval (in ms) after which new samples are taken.
     private static readonly sampleInterval = 3000;
 
-    private refreshTimer: ReturnType<typeof setInterval>;
+    private refreshTimer: ReturnType<typeof setInterval> | null = null;
 
     private hasPSAccess = false;
     private updates = 0;
@@ -287,8 +287,9 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
             const { stopAfter } = this.props;
 
             ++this.updates;
-            if (stopAfter && this.updates >= stopAfter) {
+            if (stopAfter && this.updates >= stopAfter && this.refreshTimer) {
                 clearInterval(this.refreshTimer);
+                this.refreshTimer = null;
             }
 
             void this.queryAndUpdate();
@@ -299,7 +300,11 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         const { onGraphDataChange } = this.props;
         const { graphData } = this.state;
 
-        clearInterval(this.refreshTimer);
+        if (this.refreshTimer) {
+            clearInterval(this.refreshTimer);
+            this.refreshTimer = null;
+        }
+
         onGraphDataChange?.({
             ...graphData,
             series: new Map<string, IXYDatum[]>(),

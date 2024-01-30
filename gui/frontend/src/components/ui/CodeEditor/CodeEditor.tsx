@@ -203,14 +203,14 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     private static monacoConfigured = false;
 
     private hostRef = createRef<HTMLDivElement>();
-    private editor: Monaco.IStandaloneCodeEditor;
+    private editor?: Monaco.IStandaloneCodeEditor;
 
     // Set when a new execution context is being added. Requires special handling in the change event.
     private addingNewContext = false;
     private scrolling = false;
 
-    private scrollingTimer: ReturnType<typeof setTimeout> | null;
-    private keyboardTimer: ReturnType<typeof setTimeout> | null;
+    private scrollingTimer: ReturnType<typeof setTimeout> | null = null;
+    private keyboardTimer: ReturnType<typeof setTimeout> | null = null;
 
     // Automatic re-layout on host resize.
     private resizeObserver?: ResizeObserver;
@@ -822,7 +822,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     /**
      * @returns The underlying monaco editor interface.
      */
-    public get backend(): Monaco.IStandaloneCodeEditor {
+    public get backend(): Monaco.IStandaloneCodeEditor | undefined {
         return this.editor;
     }
 
@@ -900,6 +900,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     private prepareUse(): void {
         const { language, allowedLanguages = [] } = this.mergedProps;
         const editor = this.backend;
+        if (!editor) {
+            return;
+        }
 
         const precondition = "editorTextFocus && !suggestWidgetVisible && !renameInputVisible && !inSnippetMode " +
             "&& !quickFixWidgetVisible";
@@ -1725,7 +1728,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
                 // At this point all execution contexts still contain the language switches.
                 // Clear these lines, but don't remove them (as this conflicts with the ongoing edit action).
-                this.backend.executeEdits("removeLanguageSwitches",
+                this.backend?.executeEdits("removeLanguageSwitches",
                     linesToClear.map((line): Monaco.IIdentifiedSingleEditOperation => {
                         return {
                             range: {

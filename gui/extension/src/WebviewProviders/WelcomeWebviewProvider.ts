@@ -68,8 +68,8 @@ const getCssWebviewContent = (rootPath: Uri): string => {
         min-height: 160px;
         min-width: 160px;
         background-color: hsl(200, 65%, 40%);
-        mask-image: url(${rootPath.toString()}/images/welcome/mysqlsh.svg);
-        -webkit-mask-image: url(${rootPath.toString()}/images/welcome/mysqlsh.svg);
+        mask-image: url("${rootPath.toString()}/images/welcome/mysqlsh.svg");
+        -webkit-mask-image: url("${rootPath.toString()}/images/welcome/mysqlsh.svg");
     }
     #pages .page {
         display: flex;

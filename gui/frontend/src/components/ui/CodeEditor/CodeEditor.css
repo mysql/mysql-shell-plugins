@@ -72,7 +72,7 @@
 }
 
 .msg.codeEditor .view-line .error {
-    background: url(../../../assets/images/squiggle.svg) bottom left repeat-x;
+    background: url("../../../assets/images/squiggle.svg") bottom left repeat-x;
 }
 
 .msg.codeEditor .editorPromptFirst.loading::after {
@@ -179,7 +179,7 @@
     top: -8px;
     height: 52px;
 
-    mask-image: url(../../../assets/images/editor-side-line.svg);
+    mask-image: url("../../../assets/images/editor-side-line.svg");
     background-color: var(--editorPrompt-secondary-ts);
     mask-size: 5px;
     mask-repeat: no-repeat;
@@ -235,7 +235,7 @@
     top: -8px;
     height: 52px;
 
-    mask-image: url(../../../assets/images/editor-side-line.svg);
+    mask-image: url("../../../assets/images/editor-side-line.svg");
     background-color: var(--editorPrompt-secondary-js);
     mask-size: 5px;
     mask-repeat: no-repeat;
@@ -291,7 +291,7 @@
     top: -8px;
     height: 52px;
 
-    mask-image: url(../../../assets/images/editor-side-line.svg);
+    mask-image: url("../../../assets/images/editor-side-line.svg");
     background-color: var(--editorPrompt-secondary-sql);
     mask-size: 5px;
     mask-repeat: no-repeat;
@@ -344,7 +344,7 @@
     top: -8px;
     height: 52px;
 
-    mask-image: url(../../../assets/images/editor-side-line.svg);
+    mask-image: url("../../../assets/images/editor-side-line.svg");
     background-color: var(--editorPrompt-secondary-py);
     mask-size: 5px;
     mask-repeat: no-repeat;

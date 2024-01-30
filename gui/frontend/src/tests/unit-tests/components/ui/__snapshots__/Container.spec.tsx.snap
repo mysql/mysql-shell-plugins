@@ -44,10 +44,10 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
             className="msg icon"
             style={
               {
-                "WebkitMaskImage": "url(overviewPage.svg)",
+                "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskImage": "url(overviewPage.svg)",
+                "maskImage": "url("overviewPage.svg")",
                 "width": undefined,
               }
             }
@@ -61,10 +61,10 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
             className="msg icon"
             style={
               {
-                "WebkitMaskImage": "url(overviewPage.svg)",
+                "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskImage": "url(overviewPage.svg)",
+                "maskImage": "url("overviewPage.svg")",
                 "width": undefined,
               }
             }
@@ -78,10 +78,10 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
             className="msg icon"
             style={
               {
-                "WebkitMaskImage": "url(overviewPage.svg)",
+                "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskImage": "url(overviewPage.svg)",
+                "maskImage": "url("overviewPage.svg")",
                 "width": undefined,
               }
             }
@@ -95,10 +95,10 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
             className="msg icon"
             style={
               {
-                "WebkitMaskImage": "url(overviewPage.svg)",
+                "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskImage": "url(overviewPage.svg)",
+                "maskImage": "url("overviewPage.svg")",
                 "width": undefined,
               }
             }
@@ -112,10 +112,10 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
             className="msg icon"
             style={
               {
-                "WebkitMaskImage": "url(overviewPage.svg)",
+                "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskImage": "url(overviewPage.svg)",
+                "maskImage": "url("overviewPage.svg")",
                 "width": undefined,
               }
             }
@@ -129,10 +129,10 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
             className="msg icon"
             style={
               {
-                "WebkitMaskImage": "url(overviewPage.svg)",
+                "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskImage": "url(overviewPage.svg)",
+                "maskImage": "url("overviewPage.svg")",
                 "width": undefined,
               }
             }

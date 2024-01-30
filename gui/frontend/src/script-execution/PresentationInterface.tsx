@@ -110,7 +110,7 @@ export class PresentationInterface {
     private markedLines: Set<number> = new Set();
     private markerClass = "";
 
-    private waitTimer: ReturnType<typeof setTimeout> | null;
+    private waitTimer: ReturnType<typeof setTimeout> | null = null;
 
     // Only set for result set data.
     private resultRef = createRef<ResultTabView>();

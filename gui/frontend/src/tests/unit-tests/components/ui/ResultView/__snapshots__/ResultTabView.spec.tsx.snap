@@ -952,7 +952,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                                 <div
                                   class="msg icon"
                                   data-tooltip="inherit"
-                                  style="mask-image: url(toolbar-maximize.svg);"
+                                  style="mask-image: url("toolbar-maximize.svg");"
                                 />
                               </div>
                             </span>
@@ -983,7 +983,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                                 <div
                                   class="msg icon"
                                   data-tooltip="inherit"
-                                  style="mask-image: url(toolbar-maximize.svg);"
+                                  style="mask-image: url("toolbar-maximize.svg");"
                                 />
                               </div>
                             </span>
@@ -1125,10 +1125,10 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                                     data-tooltip="inherit"
                                     style={
                                       {
-                                        "WebkitMaskImage": "url(toolbar-maximize.svg)",
+                                        "WebkitMaskImage": "url("toolbar-maximize.svg")",
                                         "backgroundColor": undefined,
                                         "height": undefined,
-                                        "maskImage": "url(toolbar-maximize.svg)",
+                                        "maskImage": "url("toolbar-maximize.svg")",
                                         "width": undefined,
                                       }
                                     }
@@ -1213,10 +1213,10 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                                     data-tooltip="inherit"
                                     style={
                                       {
-                                        "WebkitMaskImage": "url(toolbar-maximize.svg)",
+                                        "WebkitMaskImage": "url("toolbar-maximize.svg")",
                                         "backgroundColor": undefined,
                                         "height": undefined,
-                                        "maskImage": "url(toolbar-maximize.svg)",
+                                        "maskImage": "url("toolbar-maximize.svg")",
                                         "width": undefined,
                                       }
                                     }

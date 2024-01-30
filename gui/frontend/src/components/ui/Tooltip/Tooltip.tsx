@@ -86,8 +86,10 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
     }
 
     public componentWillUnmount(): void {
-        clearTimeout(this.tooltipTimer);
-        clearTimeout(this.tooltipTimer);
+        if (this.tooltipTimer) {
+            clearTimeout(this.tooltipTimer);
+            this.tooltipTimer = null;
+        }
 
         document.body.removeEventListener("keyup", this.handleDocumentKeyUp);
         document.body.removeEventListener("mouseover", this.elementMouseOver);
@@ -200,7 +202,10 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
     }
 
     private elementMouseOver = (e: MouseEvent): void => {
-        clearTimeout(this.tooltipTimer);
+        if (this.tooltipTimer) {
+            clearTimeout(this.tooltipTimer);
+            this.tooltipTimer = null;
+        }
 
         let target = e.target as HTMLElement;
         if (target.classList && target.classList.contains("tooltip")) {

@@ -56,7 +56,7 @@ export const mockModel: ICodeEditorModel = {
 };
 export const position: Position = {
     lineNumber: 0, column: 0, with: jest.fn(), delta: jest.fn(), equals: jest.fn(),
-    isBefore: jest.fn(), isBeforeOrEqual: jest.fn(), clone: jest.fn(),
+    isBefore: jest.fn(), isBeforeOrEqual: jest.fn(), clone: jest.fn(), toJSON: jest.fn(),
 };
 
 export const mockTextModel: Monaco.ITextModel = {

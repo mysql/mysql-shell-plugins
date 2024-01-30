@@ -33,8 +33,8 @@ export class CommunicationDebuggerEnvironment {
 
     public tokens = {};
 
-    private lastGeneratedId: string;
-    private lastReceivedModuleSessionId: string;
+    private lastGeneratedId = "";
+    private lastReceivedModuleSessionId = "";
     private lastReceivedResponse: INativeShellResponse | undefined;
 
     public constructor(private loadedScripts: Map<string, string>) {

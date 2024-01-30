@@ -39,13 +39,13 @@ const mySqlServices = MySQLParsingServices.instance;
 const sqliteServices = SQLiteParsingServices.instance;
 
 const postResultMessage = (taskId: number, data: ILanguageWorkerResultData): void => {
-    ctx.postMessage({
+    ctx.postMessage?.({
         taskId,
         data,
     });
 };
 
-ctx.addEventListener("message", (event: MessageEvent) => {
+ctx.addEventListener?.("message", (event: MessageEvent) => {
     const { taskId, data }: { taskId: number; data: ILanguageWorkerTaskData; } = event.data;
 
     let services;

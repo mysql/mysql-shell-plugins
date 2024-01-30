@@ -133,10 +133,10 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                         id="mysqlLogo"
                         style={
                           {
-                            "WebkitMaskImage": "url(mysql-logo.svg)",
+                            "WebkitMaskImage": "url("mysql-logo.svg")",
                             "backgroundColor": undefined,
                             "height": undefined,
-                            "maskImage": "url(mysql-logo.svg)",
+                            "maskImage": "url("mysql-logo.svg")",
                             "width": undefined,
                           }
                         }
@@ -2526,10 +2526,10 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                         id="mysqlLogo"
                         style={
                           {
-                            "WebkitMaskImage": "url(mysql-logo.svg)",
+                            "WebkitMaskImage": "url("mysql-logo.svg")",
                             "backgroundColor": undefined,
                             "height": undefined,
-                            "maskImage": "url(mysql-logo.svg)",
+                            "maskImage": "url("mysql-logo.svg")",
                             "width": undefined,
                           }
                         }

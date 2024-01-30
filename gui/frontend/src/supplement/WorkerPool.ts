@@ -64,12 +64,12 @@ export abstract class WorkerPool<WorkerTaskType, WorkerResultType> {
     // Tasks waiting for a free worker.
     private pendingTasks: Array<IWorkerTask<WorkerTaskType, WorkerResultType>> = [];
 
-    private timer: ReturnType<typeof setTimeout> | null;
+    private timer: ReturnType<typeof setTimeout> | null = null;
 
-    private minWorkerCount: number;
-    private maxWorkerCount: number;
-    private maxPendingTaskCount: number;
-    private removeIdleTime: number;
+    private minWorkerCount = 0;
+    private maxWorkerCount = 0;
+    private maxPendingTaskCount = 0;
+    private removeIdleTime = 0;
 
     private settingsKeys = new Set<string>([
         "workers.minWorkerCount",

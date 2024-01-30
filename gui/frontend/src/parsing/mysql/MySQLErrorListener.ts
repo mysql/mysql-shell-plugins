@@ -24,8 +24,9 @@
 /* eslint-disable no-underscore-dangle */
 
 import {
-    BaseErrorListener, FailedPredicateException, InputMismatchException, IntervalSet, LexerATNSimulator,
-    NoViableAltException, ParserATNSimulator, RecognitionException, Recognizer, Token, Vocabulary,
+    ATNSimulator,
+    BaseErrorListener, FailedPredicateException, InputMismatchException, IntervalSet, Lexer, NoViableAltException,
+    Parser, RecognitionException, Recognizer, Token, Vocabulary,
 } from "antlr4ng";
 
 import { MySQLMRSParser } from "./generated/MySQLMRSParser.js";
@@ -33,7 +34,7 @@ import { MySQLMRSLexer } from "./generated/MySQLMRSLexer.js";
 import { MySQLBaseLexer } from "./MySQLBaseLexer.js";
 import { ErrorReportCallback } from "../parser-common.js";
 
-export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | ParserATNSimulator> {
+export class MySQLErrorListener extends BaseErrorListener {
 
     private static simpleRules: Set<number> = new Set([
         MySQLMRSParser.RULE_identifier,
@@ -84,18 +85,22 @@ export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | Pa
         super();
     }
 
-    public syntaxError<T extends Token>(recognizer: Recognizer<LexerATNSimulator | ParserATNSimulator>,
-        offendingSymbol: T | null, line: number, charPositionInLine: number, msg: string,
-        e: RecognitionException | null): void {
+    public syntaxError<S extends Token, T extends ATNSimulator>(recognizer: Recognizer<T>, offendingSymbol: S | null,
+        line: number, charPositionInLine: number, msg: string, e: RecognitionException | null): void {
 
         let message = "";
 
-        // If not undefined then offendingSymbol is of type Token.
+        // If not undefined then offendingSymbol is of type Token and the recognizer is of type Parser.
         if (offendingSymbol) {
             let token = offendingSymbol as Token;
 
+            if (!(recognizer instanceof Parser)) {
+                throw new Error("Unexpected type of recognizer in MySQLErrorListener.syntaxError()");
+            }
+
             const parser = recognizer as MySQLMRSParser;
             const lexer = parser.inputStream.getTokenSource() as MySQLBaseLexer;
+
             const isEof = token.type === Token.EOF;
             if (isEof) {
                 token = parser.inputStream.get(token.tokenIndex - 1);
@@ -131,7 +136,7 @@ export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | Pa
             let expectedText = "";
 
             // Walk up from generic rules to reach something that gives us more context, if needed.
-            let context = parser.context;
+            let context = parser.context!;
             while (MySQLErrorListener.simpleRules.has(context.ruleIndex) && context.parent) {
                 context = context.parent;
             }
@@ -271,6 +276,10 @@ export class MySQLErrorListener extends BaseErrorListener<LexerATNSimulator | Pa
         } else {
             // No offending symbol, which indicates this is a lexer error.
             if (e instanceof NoViableAltException) {
+                if (!(recognizer instanceof Lexer)) {
+                    throw new Error("Unexpected type of recognizer in MySQLErrorListener.syntaxError()");
+                }
+
                 const lexer = recognizer as MySQLMRSLexer;
                 const input = lexer.inputStream;
                 let text = lexer.getErrorDisplay(input.getText(lexer._tokenStartCharIndex, input.index));

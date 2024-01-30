@@ -65,8 +65,8 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
     private treeRef = createRef<TreeGrid>();
     private valueListRef = createRef<SettingsEditorList>();
 
-    private scrolling: boolean;
-    private filterTimer: ReturnType<typeof setTimeout> | null;
+    private scrolling = false;
+    private filterTimer: ReturnType<typeof setTimeout> | null = null;
 
     public constructor(props: ISettingsEditorProperties) {
         super(props);

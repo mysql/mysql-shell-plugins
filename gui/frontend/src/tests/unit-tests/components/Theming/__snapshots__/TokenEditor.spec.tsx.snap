@@ -61,10 +61,10 @@ exports[`Token editor testing Render test 1`] = `
               data-tooltip="inherit"
               style={
                 {
-                  "WebkitMaskImage": "url(close2.svg)",
+                  "WebkitMaskImage": "url("close2.svg")",
                   "backgroundColor": undefined,
                   "height": undefined,
-                  "maskImage": "url(close2.svg)",
+                  "maskImage": "url("close2.svg")",
                   "width": undefined,
                 }
               }
@@ -103,10 +103,10 @@ exports[`Token editor testing Render test 1`] = `
               data-tooltip="inherit"
               style={
                 {
-                  "WebkitMaskImage": "url(clone.svg)",
+                  "WebkitMaskImage": "url("clone.svg")",
                   "backgroundColor": undefined,
                   "height": undefined,
-                  "maskImage": "url(clone.svg)",
+                  "maskImage": "url("clone.svg")",
                   "width": undefined,
                 }
               }
@@ -325,10 +325,10 @@ exports[`Token editor testing Render test 1`] = `
                                   className="msg icon"
                                   style={
                                     {
-                                      "WebkitMaskImage": "url(close.svg)",
+                                      "WebkitMaskImage": "url("close.svg")",
                                       "backgroundColor": undefined,
                                       "height": undefined,
-                                      "maskImage": "url(close.svg)",
+                                      "maskImage": "url("close.svg")",
                                       "width": undefined,
                                     }
                                   }

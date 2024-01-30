@@ -41,9 +41,8 @@ const sourceMapSignature = sourceMapPrefix + sourceMapSuffix;
 
 const worker = self as unknown as PrivateWorker;
 
-worker.pendingRequests = new Map();
 worker.postContextMessage = (taskId: number, data: IConsoleWorkerResultData): void => {
-    worker.postMessage({
+    worker.postMessage?.({
         taskId,
         data,
     });
@@ -208,8 +207,8 @@ const getErrorLineInfo = (lineno: number, colno: number) => {
     return "";
 };
 
-worker.addEventListener("error", (event: ErrorEvent) => {
-    worker.postContextMessage(worker.currentTaskId, {
+worker.addEventListener?.("error", (event: ErrorEvent) => {
+    worker.postContextMessage?.(worker.currentTaskId, {
         api: ScriptingApi.Result,
         contextId: worker.currentContext,
         result: `ERROR: ${event.message} ${getErrorLineInfo(event.lineno, event.colno)}`,
@@ -220,7 +219,7 @@ worker.addEventListener("error", (event: ErrorEvent) => {
     event.preventDefault();
 });
 
-worker.addEventListener("message", (event: MessageEvent) => {
+worker.addEventListener?.("message", (event: MessageEvent) => {
     const { taskId, data }: { taskId: number; data: IConsoleWorkerTaskData; } = event.data;
 
     worker.currentContext = data.contextId ?? "";
@@ -245,7 +244,7 @@ worker.addEventListener("message", (event: MessageEvent) => {
                 result = JSON.stringify(result, undefined, 4);
             }
 
-            worker.postContextMessage(taskId, {
+            worker.postContextMessage?.(taskId, {
                 api: ScriptingApi.Result,
                 contextId: data.contextId!,
                 result,
@@ -263,7 +262,7 @@ worker.addEventListener("message", (event: MessageEvent) => {
                 }
             }
 
-            worker.postContextMessage(worker.currentTaskId, {
+            worker.postContextMessage?.(worker.currentTaskId, {
                 api: ScriptingApi.Result,
                 contextId: worker.currentContext,
                 result: `ERROR: ${String(e.message)} ${lineInfo}`,
@@ -279,7 +278,7 @@ worker.addEventListener("message", (event: MessageEvent) => {
             if (data.final) {
                 worker.pendingRequests.delete(data.contextId!);
 
-                worker.postContextMessage(taskId, {
+                worker.postContextMessage?.(taskId, {
                     api: ScriptingApi.Done,
                     contextId: data.contextId!,
                     final: true,
@@ -291,7 +290,7 @@ worker.addEventListener("message", (event: MessageEvent) => {
                 value = JSON.stringify(value, null, "\t");
             }
 
-            worker.postContextMessage(taskId, {
+            worker.postContextMessage?.(taskId, {
                 api: ScriptingApi.Print,
                 contextId: data.contextId ?? "",
                 value,

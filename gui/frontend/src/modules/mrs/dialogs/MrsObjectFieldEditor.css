@@ -74,7 +74,7 @@ body[theme=light] {
     background-color: var(--button-border);
     width: 2px;
     min-height: 24px;
-    margin: 0px 8px 0px 10px;
+    margin: 0 8px 0 10px;
 }
 
 .mrsObjectFieldEditor .settings .label {
@@ -84,7 +84,7 @@ body[theme=light] {
 
 .mrsObjectFieldEditor .settings .button:not(.imageOnly) {
     padding: 2px 8px;
-    margin: 2px 0px 2px 10px;
+    margin: 2px 0 2px 10px;
 }
 
 .mrsObjectFieldEditor .settings .button .label {
@@ -242,16 +242,16 @@ body[theme=light] {
     left: 3px;
     width: 20px;
     height: 25px;
-    background: url(../../../assets/images/schemaTableForeignKey1NTopToRight.svg);
+    background: url("../../../assets/images/schemaTableForeignKey1NTopToRight.svg");
     background-size: 20px 25px;
 }*/
 
 .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.referenceRow.expanded.fk11::after {
-    background: url(../../../assets/images/schemaTableForeignKey11TopToRight.svg);
+    background: url("../../../assets/images/schemaTableForeignKey11TopToRight.svg");
 }
 
 .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.referenceRow.expanded.fkN1::after {
-    background: url(../../../assets/images/schemaTableForeignKeyN1TopToRight.svg);
+    background: url("../../../assets/images/schemaTableForeignKeyN1TopToRight.svg");
 }
 
 body[theme=dark] .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.referenceRow.expanded::after {

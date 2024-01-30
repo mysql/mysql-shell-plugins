@@ -37,7 +37,7 @@ export const print = (value: unknown): void => {
         value = JSON.stringify(value, null, 4);
     }
 
-    currentWorker.postContextMessage(currentWorker.currentTaskId, {
+    currentWorker.postContextMessage?.(currentWorker.currentTaskId, {
         api: ScriptingApi.Print,
         contextId: currentWorker.currentContext,
         value,
@@ -51,7 +51,7 @@ export const print = (value: unknown): void => {
  * @param value The value of the property.
  */
 export const setGlobalScriptingObjectProperty = (name: string, value: unknown): void => {
-    currentWorker.postContextMessage(currentWorker.currentTaskId, {
+    currentWorker.postContextMessage?.(currentWorker.currentTaskId, {
         api: ScriptingApi.SetGlobalObjectProperty,
         contextId: currentWorker.currentContext,
         name,

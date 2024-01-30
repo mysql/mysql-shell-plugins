@@ -121,7 +121,7 @@ const columnNameMap = new Map<string, string>([
 export class ClientConnections extends ComponentBase<IClientConnectionsProperties, IClientConnectionsState> {
 
     private static readonly sampleInterval = 5000;
-    private refreshTimer: ReturnType<typeof setInterval>;
+    private refreshTimer: ReturnType<typeof setInterval> | null = null;
     private gridRef = createRef<TreeGrid>();
     private interval = ClientConnections.sampleInterval;
     private selectedRow?: IDictionary;
@@ -185,7 +185,11 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
     }
 
     public componentWillUnmount(): void {
-        clearInterval(this.refreshTimer);
+        if (this.refreshTimer) {
+            clearInterval(this.refreshTimer);
+            this.refreshTimer = null;
+        }
+
         requisitions.unregister("dialogResponse", this.handleDialogResponse);
     }
 
@@ -771,7 +775,11 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
     };
 
     private handleTimeRangeSelection = async (selectedIds: Set<string>): Promise<void> => {
-        clearInterval(this.refreshTimer);
+        if (this.refreshTimer) {
+            clearInterval(this.refreshTimer);
+            this.refreshTimer = null;
+        }
+
         this.interval = parseInt([...selectedIds][0], 10) * 1000;
 
         await this.updateValues();

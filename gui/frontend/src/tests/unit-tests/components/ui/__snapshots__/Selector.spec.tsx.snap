@@ -76,7 +76,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(overviewPage.svg);"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -93,7 +93,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(overviewPage.svg);"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -110,7 +110,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(overviewPage.svg);"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -127,7 +127,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(overviewPage.svg);"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -144,7 +144,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(overviewPage.svg);"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -161,7 +161,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(overviewPage.svg);"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -178,7 +178,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(overviewPage.svg);"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -195,7 +195,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(overviewPage.svg);"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -212,7 +212,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(overviewPage.svg);"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -229,7 +229,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url(overviewPage.svg);"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -363,10 +363,10 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(overviewPage.svg)",
+                    "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(overviewPage.svg)",
+                    "maskImage": "url("overviewPage.svg")",
                     "width": undefined,
                   }
                 }
@@ -431,10 +431,10 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(overviewPage.svg)",
+                    "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(overviewPage.svg)",
+                    "maskImage": "url("overviewPage.svg")",
                     "width": undefined,
                   }
                 }
@@ -499,10 +499,10 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(overviewPage.svg)",
+                    "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(overviewPage.svg)",
+                    "maskImage": "url("overviewPage.svg")",
                     "width": undefined,
                   }
                 }
@@ -567,10 +567,10 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(overviewPage.svg)",
+                    "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(overviewPage.svg)",
+                    "maskImage": "url("overviewPage.svg")",
                     "width": undefined,
                   }
                 }
@@ -635,10 +635,10 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(overviewPage.svg)",
+                    "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(overviewPage.svg)",
+                    "maskImage": "url("overviewPage.svg")",
                     "width": undefined,
                   }
                 }
@@ -703,10 +703,10 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(overviewPage.svg)",
+                    "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(overviewPage.svg)",
+                    "maskImage": "url("overviewPage.svg")",
                     "width": undefined,
                   }
                 }
@@ -771,10 +771,10 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(overviewPage.svg)",
+                    "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(overviewPage.svg)",
+                    "maskImage": "url("overviewPage.svg")",
                     "width": undefined,
                   }
                 }
@@ -839,10 +839,10 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(overviewPage.svg)",
+                    "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(overviewPage.svg)",
+                    "maskImage": "url("overviewPage.svg")",
                     "width": undefined,
                   }
                 }
@@ -907,10 +907,10 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(overviewPage.svg)",
+                    "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(overviewPage.svg)",
+                    "maskImage": "url("overviewPage.svg")",
                     "width": undefined,
                   }
                 }
@@ -975,10 +975,10 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(overviewPage.svg)",
+                    "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(overviewPage.svg)",
+                    "maskImage": "url("overviewPage.svg")",
                     "width": undefined,
                   }
                 }
