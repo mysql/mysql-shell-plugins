@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MrsHub Tests Show MRS Authentication App Dialog (snapshot) 1`] = `
+exports[`MrsHub Tests MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) and escape 1`] = `
 <div
   class="msg portal"
   id="mrsAuthenticationAppDialog"
@@ -348,7 +348,7 @@ exports[`MrsHub Tests Show MRS Authentication App Dialog (snapshot) 1`] = `
 </div>
 `;
 
-exports[`MrsHub Tests Show MRS Content Set Dialog (snapshot) 1`] = `
+exports[`MrsHub Tests MRS Content Set dialog tests Show MRS Content Set Dialog (snapshot) and escape 1`] = `
 <div
   class="msg portal"
   id="mrsContentSetDialog"
@@ -603,7 +603,885 @@ exports[`MrsHub Tests Show MRS Content Set Dialog (snapshot) 1`] = `
 </div>
 `;
 
-exports[`MrsHub Tests Show MRS Schema Dialog (snapshot) 1`] = `
+exports[`MrsHub Tests MRS Db Object dialog tests Show MRS DB Object Dialog (snapshot) and escape 1`] = `
+<div
+  class="msg portal"
+  id="mrsDbObjectDialog"
+  style="--background-opacity: 0.5;"
+>
+  <div
+    class="msg dialog visible valueEditDialog autoResize"
+  >
+    <div
+      class="title verticalCenterContent"
+    >
+      <div
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        MySQL REST Object
+      </label>
+      <div
+        class="msg button imageOnly"
+        id="closeButton"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </div>
+    </div>
+    <div
+      class="content fixedScrollbar"
+    >
+      <div
+        class="msg grid"
+        id="contentGrid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            REST Service Path
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            disabled="true"
+            id="service"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              /myService
+            </label>
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The path of the REST Service
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            REST Schema Path
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            disabled="true"
+            id="schema"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              /mrs-test
+            </label>
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The path of the REST Schema
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            REST Object Path
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="requestPath"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The path, has to starts with /
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            MRS Object Flags
+          </label>
+          <label
+            class="msg checkbox checked valueEditor"
+            id="enabled"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Enabled
+          </label>
+          <label
+            class="msg checkbox unchecked valueEditor"
+            id="requiresAuth"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Requires Auth
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <div
+            class="msg container fixedScrollbar tabview top"
+            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+          >
+            <div
+              class="msg container tabAreaContainer"
+              style="flex-direction: row;"
+            >
+              <div
+                class="scrollable"
+              >
+                <div
+                  class="msg container tabArea stretched"
+                  style="flex-direction: row;"
+                >
+                  <div
+                    class="msg button tabItem selected"
+                    id="page0"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      JSON/Relational Duality
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page1"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Settings
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page2"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Authorization
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page3"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Options
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="scrollbar"
+                >
+                  <div
+                    class="slider"
+                    style="display: none;"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="msg container fixedScrollbar content"
+              style="flex-direction: column;"
+            >
+              <div
+                class="msg grid expand"
+                style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+              >
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+                >
+                  <div
+                    class="msg container fixedScrollbar mrsObjectFieldEditor"
+                    style="flex-direction: column;"
+                  >
+                    <div
+                      class="msg container fixedScrollbar settings"
+                      style="flex-direction: row; align-items: flex-start;"
+                    >
+                      <div
+                        class="msg container fixedScrollbar settingsMain"
+                        style="flex-direction: row; align-items: center;"
+                      >
+                        <div
+                          class="msg container fixedScrollbar labelWithInput"
+                          style="flex-direction: row; align-items: center;"
+                        >
+                          <label
+                            class="msg label"
+                            data-tooltip="expand"
+                          >
+                            DB Object:
+                          </label>
+                          <input
+                            class="msg input"
+                            id="dbObject"
+                            spellcheck="true"
+                            type="text"
+                          />
+                        </div>
+                      </div>
+                      <div
+                        class="msg container fixedScrollbar settingsRight"
+                        style="flex-direction: row-reverse; align-items: center;"
+                      >
+                        <div
+                          class="msg button imageOnly sqlCopyBtn"
+                          data-tooltip="Copy SQL to Clipboard"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <div
+                            class="msg icon codicon codicon-copy"
+                            data-tooltip="inherit"
+                          />
+                        </div>
+                        <div
+                          class="msg button imageOnly sqlPreviewBtn"
+                          data-tooltip="Toggle MRS SQL Preview"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <div
+                            class="msg icon codicon codicon-search"
+                            data-tooltip="inherit"
+                          />
+                          <label
+                            class="msg label"
+                            data-tooltip="inherit"
+                          >
+                            SQL Preview
+                          </label>
+                        </div>
+                        <div
+                          class="divider"
+                        />
+                        <div
+                          class="msg container fixedScrollbar labelWithInput"
+                          style="flex-direction: row; align-items: center;"
+                        >
+                          <div
+                            class="msg container fixedScrollbar dropdown"
+                            data-tooltip="Select a SDK language to display the specific interface names and datatypes"
+                            id="sdkLanguage"
+                            placeholder="SDK Language"
+                            style="flex-direction: row; align-items: center;"
+                            tabindex="0"
+                          >
+                            <label
+                              class="msg label placeholder"
+                              data-tooltip="inherit"
+                            >
+                              SDK Language
+                            </label>
+                          </div>
+                        </div>
+                        <div
+                          class="divider"
+                        />
+                      </div>
+                    </div>
+                    <div
+                      class="msg treeGrid mrsObjectTreeGrid tabulator"
+                      role="grid"
+                      style="height: 100%;"
+                      tabulator-layout="fitColumns"
+                    >
+                      <div
+                        class="tabulator-header tabulator-header-hidden"
+                        role="rowgroup"
+                      >
+                        <div
+                          class="tabulator-header-contents"
+                          role="rowgroup"
+                        >
+                          <div
+                            class="tabulator-headers"
+                            role="row"
+                          >
+                            <div
+                              aria-sort="none"
+                              class="tabulator-col tabulator-sortable tabulator-col-sorter-element"
+                              role="columnheader"
+                              style="min-width: 40px; width: 40px;"
+                              tabulator-field="json"
+                            >
+                              <div
+                                class="tabulator-col-content"
+                              >
+                                <div
+                                  class="tabulator-col-title-holder"
+                                >
+                                  <div
+                                    class="tabulator-col-title"
+                                  >
+                                    Json
+                                  </div>
+                                  <div
+                                    class="tabulator-col-sorter"
+                                  >
+                                    <div
+                                      class="tabulator-arrow"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <span
+                              class="tabulator-col-resize-handle"
+                            />
+                            <div
+                              aria-sort="none"
+                              class="tabulator-col tabulator-sortable tabulator-col-sorter-element"
+                              role="columnheader"
+                              style="min-width: 40px; width: 40px;"
+                              tabulator-field="relational"
+                            >
+                              <div
+                                class="tabulator-col-content"
+                              >
+                                <div
+                                  class="tabulator-col-title-holder"
+                                >
+                                  <div
+                                    class="tabulator-col-title"
+                                  >
+                                    Relational
+                                  </div>
+                                  <div
+                                    class="tabulator-col-sorter"
+                                  >
+                                    <div
+                                      class="tabulator-arrow"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="tabulator-tableholder fixedScrollbar"
+                        style="min-height: falsepx; height: calc(100% - 0px); max-height: calc(100% - 0px);"
+                        tabindex="0"
+                      >
+                        <div
+                          class="tabulator-table"
+                          role="rowgroup"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="footer verticalCenterContent"
+    >
+      <div
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <div
+          caption="OK"
+          class="msg button"
+          id="ok"
+          role="button"
+          tabindex="0"
+        >
+          OK
+        </div>
+        <div
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+          role="button"
+          tabindex="0"
+        >
+          Cancel
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MrsHub Tests MRS SDK Export dialog tests Show MRS SDK Export Dialog (snapshot) and escape 1`] = `
+<div
+  class="msg portal"
+  id="mrsSdkExportDialog"
+  style="--background-opacity: 0.5;"
+>
+  <div
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      class="title verticalCenterContent"
+    >
+      <div
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Export MRS SDK for /myService
+      </label>
+      <div
+        class="msg button imageOnly"
+        id="closeButton"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </div>
+    </div>
+    <div
+      class="content fixedScrollbar"
+    >
+      <div
+        class="msg grid"
+        id="contentGrid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <label
+            class="msg label sectionTitle"
+            data-tooltip="expand"
+          >
+            Export MRS SDK Files for /myService
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            REST Service URL
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="serviceUrl"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The URL to access the REST Service
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            SDK Client API Language
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            id="sdkLanguage"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              TypeScript
+            </label>
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The development language that should be used for generation
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Include AppBaseClass
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            id="addAppBaseClass"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          />
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Add an application BaseClass with core MRS functionality.
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            SDK File Header
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <textarea
+              class="msg input valueEditor"
+              id="header"
+              rows="4"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The header that should be applied to the generated SDK files.
+          </label>
+        </div>
+      </div>
+    </div>
+    <div
+      class="footer verticalCenterContent"
+    >
+      <div
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <div
+          caption="OK"
+          class="msg button"
+          id="ok"
+          role="button"
+          tabindex="0"
+        >
+          OK
+        </div>
+        <div
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+          role="button"
+          tabindex="0"
+        >
+          Cancel
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MrsHub Tests MRS SDK Export dialog tests Show MRS SDK Export Dialog and cancel 1`] = `
+<div
+  class="msg portal"
+  id="mrsSdkExportDialog"
+  style="--background-opacity: 0.5;"
+>
+  <div
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      class="title verticalCenterContent"
+    >
+      <div
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Export MRS SDK for /myService
+      </label>
+      <div
+        class="msg button imageOnly"
+        id="closeButton"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          style="mask-image: url(close2.svg);"
+        />
+      </div>
+    </div>
+    <div
+      class="content fixedScrollbar"
+    >
+      <div
+        class="msg grid"
+        id="contentGrid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <label
+            class="msg label sectionTitle"
+            data-tooltip="expand"
+          >
+            Export MRS SDK Files for /myService
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            REST Service URL
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="serviceUrl"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The URL to access the REST Service
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            SDK Client API Language
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            id="sdkLanguage"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              TypeScript
+            </label>
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The development language that should be used for generation
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Include AppBaseClass
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            id="addAppBaseClass"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          />
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Add an application BaseClass with core MRS functionality.
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            SDK File Header
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <textarea
+              class="msg input valueEditor"
+              id="header"
+              rows="4"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The header that should be applied to the generated SDK files.
+          </label>
+        </div>
+      </div>
+    </div>
+    <div
+      class="footer verticalCenterContent"
+    >
+      <div
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <div
+          caption="OK"
+          class="msg button"
+          id="ok"
+          role="button"
+          tabindex="0"
+        >
+          OK
+        </div>
+        <div
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+          role="button"
+          tabindex="0"
+        >
+          Cancel
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MrsHub Tests MRS Schema dialog tests Show MRS Schema Dialog (snapshot) and escape 1`] = `
 <div
   class="msg portal"
   id="mrsSchemaDialog"
@@ -926,7 +1804,7 @@ exports[`MrsHub Tests Show MRS Schema Dialog (snapshot) 1`] = `
 </div>
 `;
 
-exports[`MrsHub Tests Show MRS Service Dialog (snapshot) 1`] = `
+exports[`MrsHub Tests MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 1`] = `
 <div
   class="msg portal"
   id="mrsServiceDialog"
@@ -1224,7 +2102,7 @@ exports[`MrsHub Tests Show MRS Service Dialog (snapshot) 1`] = `
 </div>
 `;
 
-exports[`MrsHub Tests Show MRS User Dialog (snapshot) 1`] = `
+exports[`MrsHub Tests MRS User dialog tests Show MRS User Dialog (snapshot) and escape 1`] = `
 <div
   class="msg portal"
   id="mrsUserDialog"
@@ -1347,7 +2225,14 @@ exports[`MrsHub Tests Show MRS User Dialog (snapshot) 1`] = `
             id="authApp"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
-          />
+          >
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              MRS
+            </label>
+          </div>
           <label
             class="msg label cellDescription"
             data-tooltip="expand"
@@ -1398,7 +2283,15 @@ exports[`MrsHub Tests Show MRS User Dialog (snapshot) 1`] = `
             id="roles"
             style="flex-direction: row; flex-wrap: wrap;"
             tabindex="0"
-          />
+          >
+            <label
+              class="msg label tag"
+              data-tooltip="expand"
+              draggable="true"
+            >
+              Full Access
+            </label>
+          </div>
           <label
             class="msg label cellDescription"
             data-tooltip="expand"
