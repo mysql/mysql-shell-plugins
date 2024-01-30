@@ -36,7 +36,7 @@ export const webFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<
 };
 
 export const mrsPrintSdkCode = (): void => {
-    currentWorker.postMessage({
+    currentWorker.postMessage?.({
         taskId: currentWorker.currentTaskId,
         data: {
             api: ScriptingApi.MrsPrintSdkCode,
@@ -47,7 +47,7 @@ export const mrsPrintSdkCode = (): void => {
 };
 
 export const mrsSetCurrentService = (serviceId: string): void => {
-    currentWorker.postMessage({
+    currentWorker.postMessage?.({
         taskId: currentWorker.currentTaskId,
         data: {
             api: ScriptingApi.MrsSetCurrentService,
@@ -59,7 +59,7 @@ export const mrsSetCurrentService = (serviceId: string): void => {
 };
 
 export const mrsEditService = (serviceId: string): void => {
-    currentWorker.postMessage({
+    currentWorker.postMessage?.({
         taskId: currentWorker.currentTaskId,
         data: {
             api: ScriptingApi.MrsEditService,
@@ -71,7 +71,7 @@ export const mrsEditService = (serviceId: string): void => {
 };
 
 export const mrsExportServiceSdk = (serviceId: string): void => {
-    currentWorker.postMessage({
+    currentWorker.postMessage?.({
         taskId: currentWorker.currentTaskId,
         data: {
             api: ScriptingApi.MrsExportServiceSdk,
@@ -96,7 +96,7 @@ export const mrsAddContentSet = (serviceId: string, directory?: string): void =>
 };
 
 export const mrsSetServiceUrl = (serviceUrl: string): void => {
-    currentWorker.postMessage({
+    currentWorker.postMessage?.({
         taskId: currentWorker.currentTaskId,
         data: {
             api: ScriptingApi.MrsSetServiceUrl,
@@ -110,7 +110,7 @@ export const mrsSetServiceUrl = (serviceUrl: string): void => {
 export const mrsAuthenticate = (serviceUrl: string, authPath: string, authApp?: string, userName?: string): void => {
     print("Staring MRS authentication ...");
 
-    currentWorker.postMessage({
+    currentWorker.postMessage?.({
         taskId: currentWorker.currentTaskId,
         data: {
             api: ScriptingApi.MrsAuthenticate,
@@ -125,7 +125,7 @@ export const mrsAuthenticate = (serviceUrl: string, authPath: string, authApp?: 
 };
 
 export const mrsEditSchema = (schemaId: string): void => {
-    currentWorker.postMessage({
+    currentWorker.postMessage?.({
         taskId: currentWorker.currentTaskId,
         data: {
             api: ScriptingApi.MrsEditSchema,
@@ -137,7 +137,7 @@ export const mrsEditSchema = (schemaId: string): void => {
 };
 
 export const mrsEditDbObject = (dbObjectId: string): void => {
-    currentWorker.postMessage({
+    currentWorker.postMessage?.({
         taskId: currentWorker.currentTaskId,
         data: {
             api: ScriptingApi.MrsEditDbObject,

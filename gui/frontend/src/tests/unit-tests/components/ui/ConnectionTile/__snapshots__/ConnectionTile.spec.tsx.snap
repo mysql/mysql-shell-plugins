@@ -57,10 +57,10 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
           className="msg icon"
           style={
             {
-              "WebkitMaskImage": "url(scriptMysql.svg)",
+              "WebkitMaskImage": "url("scriptMysql.svg")",
               "backgroundColor": undefined,
               "height": undefined,
-              "maskImage": "url(scriptMysql.svg)",
+              "maskImage": "url("scriptMysql.svg")",
               "width": undefined,
             }
           }
@@ -142,7 +142,7 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
                 <div
                   class="msg icon"
                   data-tooltip="inherit"
-                  style="mask-image: url(toolbar-menu.svg);"
+                  style="mask-image: url("toolbar-menu.svg");"
                 />
               </div>
               <div
@@ -155,7 +155,7 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
                 <div
                   class="msg icon"
                   data-tooltip="inherit"
-                  style="mask-image: url(newNotebook.svg);"
+                  style="mask-image: url("newNotebook.svg");"
                 />
               </div>
               <div
@@ -168,7 +168,7 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
                 <div
                   class="msg icon"
                   data-tooltip="inherit"
-                  style="mask-image: url(newScript.svg);"
+                  style="mask-image: url("newScript.svg");"
                 />
               </div>
             </div>,
@@ -219,10 +219,10 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
                   data-tooltip="inherit"
                   style={
                     {
-                      "WebkitMaskImage": "url(toolbar-menu.svg)",
+                      "WebkitMaskImage": "url("toolbar-menu.svg")",
                       "backgroundColor": undefined,
                       "height": undefined,
-                      "maskImage": "url(toolbar-menu.svg)",
+                      "maskImage": "url("toolbar-menu.svg")",
                       "width": undefined,
                     }
                   }
@@ -260,10 +260,10 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
                   data-tooltip="inherit"
                   style={
                     {
-                      "WebkitMaskImage": "url(newNotebook.svg)",
+                      "WebkitMaskImage": "url("newNotebook.svg")",
                       "backgroundColor": undefined,
                       "height": undefined,
-                      "maskImage": "url(newNotebook.svg)",
+                      "maskImage": "url("newNotebook.svg")",
                       "width": undefined,
                     }
                   }
@@ -301,10 +301,10 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
                   data-tooltip="inherit"
                   style={
                     {
-                      "WebkitMaskImage": "url(newScript.svg)",
+                      "WebkitMaskImage": "url("newScript.svg")",
                       "backgroundColor": undefined,
                       "height": undefined,
-                      "maskImage": "url(newScript.svg)",
+                      "maskImage": "url("newScript.svg")",
                       "width": undefined,
                     }
                   }

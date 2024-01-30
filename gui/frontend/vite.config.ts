@@ -27,10 +27,6 @@
 
 import { defineConfig } from "vite";
 
-import child_process from "child_process";
-import path from "path";
-import os from "os";
-
 import preact from "@preact/preset-vite";
 import monacoEditorPlugin from "vite-plugin-monaco-editor";
 
@@ -38,6 +34,9 @@ import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfil
 import nodePolyfills from "rollup-plugin-polyfill-node";
 
 import packageData from "./package.json";
+import { execSync } from "child_process";
+import { join } from "path";
+import { platform } from "os";
 
 const determineBuildNumber = (): string => {
     // First try to get the hash from an environment variable, if that exists.
@@ -48,7 +47,7 @@ const determineBuildNumber = (): string => {
 
     // Otherwise ask git directly.
     try {
-        sha = child_process.execSync("git rev-parse --short HEAD", { timeout: 10000 }).toString();
+        sha = execSync("git rev-parse --short HEAD", { timeout: 10000 }).toString();
 
         return `"${sha.trim()}"`;
     } catch (e) {
@@ -68,18 +67,22 @@ export default defineConfig({
             },
         }),
         // The export typing is wrong, hence this call must be ignored by TS.
-        // @ts-ignore
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         monacoEditorPlugin.default({
             languageWorkers: ["typescript", "json", "editorWorkerService"],
             customDistPath: (root: string, outDir: string, base: string) => {
-                return path.join(root, "build", base);
+                return join(root, "build", base);
             },
         }),
     ],
     server: {
         host: "127.0.0.1",
         port: 3001,
+        /*https: {
+            key: fs.readFileSync(
+                "<repo>/shell-plugins/gui/backend/gui_plugin/internal/certificates/server.key"),
+            cert: fs.readFileSync(
+                "<repo>/shell-plugins/gui/backend/gui_plugin/internal/certificates/server.crt"),
+        },*/
     },
     define: {
         "process.env": process.env ?? {},
@@ -103,7 +106,6 @@ export default defineConfig({
     optimizeDeps: {
         esbuildOptions: {
             plugins: [
-                // @ts-ignore, because of incorrect type definitions.
                 NodeModulesPolyfillPlugin(),
             ],
             // Node.js global to browser globalThis
@@ -119,7 +121,7 @@ export default defineConfig({
     build: {
         chunkSizeWarningLimit: 1000,
         commonjsOptions: {
-            dynamicRequireTargets: (os.platform() === "win32") ? [] : [
+            dynamicRequireTargets: (platform() === "win32") ? [] : [
                 "node_modules/antlr4ng/**/*.js",
             ],
         },
@@ -167,39 +169,18 @@ export default defineConfig({
                         return "tabulator-tables";
                     }
 
-                    if (id.includes("node_modules/d3")) {
-                        return "d3";
-                    }
-
-                    if (id.includes("node_modules/typescript")) {
-                        return "typescript";
-                    }
-
                     if (id.includes("node_modules")) {
                         return "dependencies";
-                    }
-
-                    if (id.includes("components/theming")) {
-                        return "theming";
-                    }
-
-                    if (id.includes("src/components")) {
-                        return "framework";
                     }
 
                     return null;
                 },
             },
-            // cspell: ignore onwarn
-            onwarn: (warning, chain) => {
-                if (warning.message.startsWith("Use of eval ")) {
-                    // ignore
-                } else {
-                    warning.message = "\n" + warning.message;
-                    chain(warning);
+            onLog: (level, log, defaultHandler) => {
+                if (log.code !== "SHIMMED_EXPORT") { // Ignore shimmed export messages.
+                    defaultHandler(level, log);
                 }
             },
-            // We have no `net` polyfills, so let rollup shim them.
             shimMissingExports: true,
         },
     },

@@ -29,7 +29,7 @@ import { currentWorker } from "./execute.js";
 
 export class GraphProxy {
     public static render(options: IGraphOptions): void {
-        currentWorker.postMessage({
+        currentWorker.postMessage?.({
             taskId: currentWorker.currentTaskId,
             data: {
                 api: ScriptingApi.Graph,

@@ -45,10 +45,10 @@ export class CommandExecutor {
     private message = "";
 
     /** Data set or json result set or multiple queries result sets */
-    private content: WebElement | interfaces.ICommandTabResult[];
+    private content?: WebElement | interfaces.ICommandTabResult[];
 
     /** Toolbar of a data set */
-    private toolbar: WebElement;
+    private toolbar?: WebElement;
 
     /** The last executed command */
     private command: string;
@@ -507,7 +507,7 @@ export class CommandExecutor {
      * Gets the last known result content
      * @returns The content
      */
-    public getResultContent = (): WebElement | interfaces.ICommandTabResult[] => {
+    public getResultContent = (): WebElement | interfaces.ICommandTabResult[] | undefined => {
         return this.content;
     };
 
@@ -515,7 +515,7 @@ export class CommandExecutor {
      * Gets the last known result toolbar
      * @returns The toolbar
      */
-    public getResultToolbar = (): WebElement => {
+    public getResultToolbar = (): WebElement | undefined => {
         return this.toolbar;
     };
 

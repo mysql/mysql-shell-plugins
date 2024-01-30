@@ -48,7 +48,7 @@ class WebSession {
         options: {},
     };
 
-    private sessionData: IWebSessionData;
+    private sessionData!: IWebSessionData;
 
     private constructor() {
         this.clearSessionData();

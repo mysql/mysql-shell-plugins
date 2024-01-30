@@ -599,7 +599,7 @@ export class CommunicationDebugger
 
             if (lineDecorationClass.length > 0) {
                 const editor = this.messageOutputRef.current.backend;
-                /*const decorations =*/ editor.getModel()?.deltaDecorations([], [
+                /*const decorations =*/ editor?.getModel()?.deltaDecorations([], [
                     {
                         range: {
                             startLineNumber: lastLineCount,

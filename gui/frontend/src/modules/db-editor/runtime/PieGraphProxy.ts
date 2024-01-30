@@ -89,7 +89,7 @@ export class PieGraphProxy {
             ],
         };
 
-        currentWorker.postMessage({
+        currentWorker.postMessage?.({
             taskId: currentWorker.currentTaskId,
             data: {
                 api: ScriptingApi.Graph,

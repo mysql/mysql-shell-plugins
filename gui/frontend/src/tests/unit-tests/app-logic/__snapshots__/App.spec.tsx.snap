@@ -30,10 +30,10 @@ exports[`Application tests Application readiness 1`] = `
               id="loginDialogSakilaLogo"
               style={
                 {
-                  "WebkitMaskImage": "url(module-shell.svg)",
+                  "WebkitMaskImage": "url("module-shell.svg")",
                   "backgroundColor": undefined,
                   "height": undefined,
-                  "maskImage": "url(module-shell.svg)",
+                  "maskImage": "url("module-shell.svg")",
                   "width": undefined,
                 }
               }
@@ -310,10 +310,10 @@ exports[`Application tests Application readiness 1`] = `
                             className="msg icon"
                             style={
                               {
-                                "WebkitMaskImage": "url(chevron-right.svg)",
+                                "WebkitMaskImage": "url("chevron-right.svg")",
                                 "backgroundColor": undefined,
                                 "height": undefined,
-                                "maskImage": "url(chevron-right.svg)",
+                                "maskImage": "url("chevron-right.svg")",
                                 "width": undefined,
                               }
                             }
@@ -359,7 +359,7 @@ exports[`Application tests Application readiness 1`] = `
           }
         }
         caption={
-          <k>
+          <g>
             <Icon
               disabled={false}
               src={190}
@@ -367,7 +367,7 @@ exports[`Application tests Application readiness 1`] = `
             <Label>
               
             </Label>
-          </k>
+          </g>
         }
         className="msg errorPanel"
         container={
@@ -527,13 +527,13 @@ exports[`Application tests Application readiness 1`] = `
             }
           }
           caption={
-            <k>
+            <g>
               <Icon
                 disabled={false}
                 src={389}
               />
               <Label />
-            </k>
+            </g>
           }
           className="msg valueEditDialog"
           container={
@@ -598,7 +598,7 @@ exports[`Application tests Application readiness 1`] = `
             }
           }
           caption={
-            <k>
+            <g>
               <Icon
                 disabled={false}
                 src={276}
@@ -606,7 +606,7 @@ exports[`Application tests Application readiness 1`] = `
               <Label>
                 Confirm
               </Label>
-            </k>
+            </g>
           }
           className="msg confirmDialog"
           container={

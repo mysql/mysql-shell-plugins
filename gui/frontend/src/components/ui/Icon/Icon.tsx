@@ -62,9 +62,9 @@ export class Icon extends ComponentBase<IIconProperties> {
         if (typeof src === "string") {
             // A path was given.
             newStyle = {
-                maskImage: `url(${src})`,
+                maskImage: `url("${src}")`,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                WebkitMaskImage: `url(${src})`,
+                WebkitMaskImage: `url("${src}")`,
                 ...style,
                 width: convertPropValue(width),
                 height: convertPropValue(height),

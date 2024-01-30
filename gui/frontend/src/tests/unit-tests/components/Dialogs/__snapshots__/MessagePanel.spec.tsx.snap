@@ -14,7 +14,7 @@ exports[`Message Panel Tests Render Test 1`] = `
       }
     }
     caption={
-      <k>
+      <g>
         <Icon
           disabled={false}
           src={190}
@@ -22,7 +22,7 @@ exports[`Message Panel Tests Render Test 1`] = `
         <Label>
           
         </Label>
-      </k>
+      </g>
     }
     className="msg errorPanel"
     container={
@@ -80,7 +80,7 @@ exports[`Message Panel Tests Show Error Panel 1`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url(close2.svg);"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -154,7 +154,7 @@ exports[`Message Panel Tests Show Error Panel 2`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url(close2.svg);"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>

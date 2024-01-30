@@ -224,7 +224,7 @@ export class SQLiteParsingServices {
         let isQuoted = false;
         const token = tokenFromPosition(this.tokenStream, offset);
         if (token) {
-            const tokenText = token.text.trim();
+            const tokenText = token.text!.trim();
             const unquoted = unquote(tokenText);
             isQuoted = unquoted.length < tokenText.length;
         }

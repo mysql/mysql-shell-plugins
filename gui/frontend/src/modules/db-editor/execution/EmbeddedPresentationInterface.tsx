@@ -41,8 +41,8 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     private promptFirstDecorationID = "";
     private promptOtherDecorationID = "";
 
-    private startLineNumber: number;
-    private endLineNumber: number;
+    private startLineNumber = -1;
+    private endLineNumber = -1;
 
     private resizingZone = false;
     private lastMouseY = 0;

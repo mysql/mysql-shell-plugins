@@ -24,23 +24,22 @@
 /* eslint-disable no-underscore-dangle */
 
 import {
-    BaseErrorListener, FailedPredicateException, InputMismatchException, LexerATNSimulator, LexerNoViableAltException,
-    NoViableAltException, ParserATNSimulator, RecognitionException, Recognizer, Token,
+    ATNSimulator, BaseErrorListener, FailedPredicateException, InputMismatchException, LexerNoViableAltException,
+    NoViableAltException, RecognitionException, Recognizer, Token,
 } from "antlr4ng";
 
 import { ErrorReportCallback } from "../parser-common.js";
 import { SQLiteParser } from "./generated/SQLiteParser.js";
 import { SQLiteLexer } from "./generated/SQLiteLexer.js";
 
-export class SQLiteErrorListener extends BaseErrorListener<LexerATNSimulator | ParserATNSimulator> {
+export class SQLiteErrorListener extends BaseErrorListener {
 
     public constructor(private callback: ErrorReportCallback) {
         super();
     }
 
-    public syntaxError<T extends Token>(recognizer: Recognizer<LexerATNSimulator | ParserATNSimulator>,
-        offendingSymbol: T | undefined, line: number, charPositionInLine: number, msg: string,
-        e: RecognitionException | null): void {
+    public syntaxError<S extends Token, T extends ATNSimulator>(recognizer: Recognizer<T>, offendingSymbol: S | null,
+        line: number, charPositionInLine: number, msg: string, e: RecognitionException | null): void {
 
         let message = "";
 

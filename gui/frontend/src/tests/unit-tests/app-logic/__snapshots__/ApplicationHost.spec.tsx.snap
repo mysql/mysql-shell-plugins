@@ -60,7 +60,7 @@ exports[`Application host tests Rendering About 1`] = `
                     <div
                       class="msg icon"
                       data-tooltip="inherit"
-                      style="mask-image: url(module-shell.svg);"
+                      style="mask-image: url("module-shell.svg");"
                     />
                   </div>
                   <div
@@ -72,7 +72,7 @@ exports[`Application host tests Rendering About 1`] = `
                     <div
                       class="msg icon"
                       data-tooltip="inherit"
-                      style="mask-image: url(module-sql.svg);"
+                      style="mask-image: url("module-sql.svg");"
                     />
                   </div>
                   <div
@@ -84,7 +84,7 @@ exports[`Application host tests Rendering About 1`] = `
                     <div
                       class="msg icon"
                       data-tooltip="inherit"
-                      style="mask-image: url(settings.svg);"
+                      style="mask-image: url("settings.svg");"
                     />
                   </div>
                   <div
@@ -216,10 +216,10 @@ exports[`Application host tests Rendering About 1`] = `
                         data-tooltip="inherit"
                         style={
                           {
-                            "WebkitMaskImage": "url(module-shell.svg)",
+                            "WebkitMaskImage": "url("module-shell.svg")",
                             "backgroundColor": undefined,
                             "height": undefined,
-                            "maskImage": "url(module-shell.svg)",
+                            "maskImage": "url("module-shell.svg")",
                             "width": undefined,
                           }
                         }
@@ -271,10 +271,10 @@ exports[`Application host tests Rendering About 1`] = `
                         data-tooltip="inherit"
                         style={
                           {
-                            "WebkitMaskImage": "url(module-sql.svg)",
+                            "WebkitMaskImage": "url("module-sql.svg")",
                             "backgroundColor": undefined,
                             "height": undefined,
-                            "maskImage": "url(module-sql.svg)",
+                            "maskImage": "url("module-sql.svg")",
                             "width": undefined,
                           }
                         }
@@ -326,10 +326,10 @@ exports[`Application host tests Rendering About 1`] = `
                         data-tooltip="inherit"
                         style={
                           {
-                            "WebkitMaskImage": "url(settings.svg)",
+                            "WebkitMaskImage": "url("settings.svg")",
                             "backgroundColor": undefined,
                             "height": undefined,
-                            "maskImage": "url(settings.svg)",
+                            "maskImage": "url("settings.svg")",
                             "width": undefined,
                           }
                         }
@@ -424,7 +424,7 @@ exports[`Application host tests Rendering About 1`] = `
                         <div
                           class="msg icon"
                           data-tooltip="inherit"
-                          style="mask-image: url(module-shell.svg);"
+                          style="mask-image: url("module-shell.svg");"
                         />
                         <label
                           class="msg label"
@@ -503,7 +503,7 @@ exports[`Application host tests Rendering About 1`] = `
                         <div
                           class="msg icon"
                           data-tooltip="inherit"
-                          style="mask-image: url(close2.svg);"
+                          style="mask-image: url("close2.svg");"
                         />
                       </div>
                       <div
@@ -530,7 +530,7 @@ exports[`Application host tests Rendering About 1`] = `
                           >
                             <div
                               class="msg icon"
-                              style="mask-image: url(plus.svg);"
+                              style="mask-image: url("plus.svg");"
                             />
                             <div
                               class="msg container fixedScrollbar textHost"
@@ -597,7 +597,7 @@ exports[`Application host tests Rendering About 1`] = `
                           <div
                             class="msg icon"
                             data-tooltip="inherit"
-                            style="mask-image: url(module-shell.svg);"
+                            style="mask-image: url("module-shell.svg");"
                           />
                           <label
                             class="msg label"
@@ -676,7 +676,7 @@ exports[`Application host tests Rendering About 1`] = `
                           <div
                             class="msg icon"
                             data-tooltip="inherit"
-                            style="mask-image: url(close2.svg);"
+                            style="mask-image: url("close2.svg");"
                           />
                         </div>
                         <div
@@ -703,7 +703,7 @@ exports[`Application host tests Rendering About 1`] = `
                             >
                               <div
                                 class="msg icon"
-                                style="mask-image: url(plus.svg);"
+                                style="mask-image: url("plus.svg");"
                               />
                               <div
                                 class="msg container fixedScrollbar textHost"
@@ -842,7 +842,7 @@ exports[`Application host tests Rendering About 1`] = `
                                   <div
                                     class="msg icon"
                                     data-tooltip="inherit"
-                                    style="mask-image: url(module-shell.svg);"
+                                    style="mask-image: url("module-shell.svg");"
                                   />
                                   <label
                                     class="msg label"
@@ -911,10 +911,10 @@ exports[`Application host tests Rendering About 1`] = `
                                     data-tooltip="inherit"
                                     style={
                                       {
-                                        "WebkitMaskImage": "url(module-shell.svg)",
+                                        "WebkitMaskImage": "url("module-shell.svg")",
                                         "backgroundColor": undefined,
                                         "height": undefined,
-                                        "maskImage": "url(module-shell.svg)",
+                                        "maskImage": "url("module-shell.svg")",
                                         "width": undefined,
                                       }
                                     }
@@ -1012,7 +1012,7 @@ exports[`Application host tests Rendering About 1`] = `
                                 <div
                                   class="msg icon"
                                   data-tooltip="inherit"
-                                  style="mask-image: url(close2.svg);"
+                                  style="mask-image: url("close2.svg");"
                                 />
                               </div>
                               <div
@@ -1039,7 +1039,7 @@ exports[`Application host tests Rendering About 1`] = `
                                   >
                                     <div
                                       class="msg icon"
-                                      style="mask-image: url(plus.svg);"
+                                      style="mask-image: url("plus.svg");"
                                     />
                                     <div
                                       class="msg container fixedScrollbar textHost"
@@ -1238,10 +1238,10 @@ exports[`Application host tests Rendering About 1`] = `
                                           data-tooltip="inherit"
                                           style={
                                             {
-                                              "WebkitMaskImage": "url(close2.svg)",
+                                              "WebkitMaskImage": "url("close2.svg")",
                                               "backgroundColor": undefined,
                                               "height": undefined,
-                                              "maskImage": "url(close2.svg)",
+                                              "maskImage": "url("close2.svg")",
                                               "width": undefined,
                                             }
                                           }
@@ -1315,7 +1315,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                 >
                                                   <div
                                                     class="msg icon"
-                                                    style="mask-image: url(plus.svg);"
+                                                    style="mask-image: url("plus.svg");"
                                                   />
                                                   <div
                                                     class="msg container fixedScrollbar textHost"
@@ -1355,7 +1355,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                   >
                                                     <div
                                                       class="msg icon"
-                                                      style="mask-image: url(plus.svg);"
+                                                      style="mask-image: url("plus.svg");"
                                                     />
                                                     <div
                                                       class="msg container fixedScrollbar textHost"
@@ -1412,10 +1412,10 @@ exports[`Application host tests Rendering About 1`] = `
                                                     className="msg icon"
                                                     style={
                                                       {
-                                                        "WebkitMaskImage": "url(plus.svg)",
+                                                        "WebkitMaskImage": "url("plus.svg")",
                                                         "backgroundColor": undefined,
                                                         "height": undefined,
-                                                        "maskImage": "url(plus.svg)",
+                                                        "maskImage": "url("plus.svg")",
                                                         "width": undefined,
                                                       }
                                                     }
@@ -1512,13 +1512,13 @@ exports[`Application host tests Rendering About 1`] = `
               }
             }
             caption={
-              <k>
+              <g>
                 <Icon
                   disabled={false}
                   src={389}
                 />
                 <Label />
-              </k>
+              </g>
             }
             className="msg valueEditDialog"
             container={
@@ -1583,7 +1583,7 @@ exports[`Application host tests Rendering About 1`] = `
               }
             }
             caption={
-              <k>
+              <g>
                 <Icon
                   disabled={false}
                   src={276}
@@ -1591,7 +1591,7 @@ exports[`Application host tests Rendering About 1`] = `
                 <Label>
                   Confirm
                 </Label>
-              </k>
+              </g>
             }
             className="msg confirmDialog"
             container={
@@ -1651,13 +1651,13 @@ exports[`Application host tests Rendering About 1`] = `
                 }
               }
               caption={
-                <k>
+                <g>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </k>
+                </g>
               }
               className="msg valueEditDialog"
               container={
@@ -1740,13 +1740,13 @@ exports[`Application host tests Rendering About 1`] = `
                 }
               }
               caption={
-                <k>
+                <g>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </k>
+                </g>
               }
               className="msg valueEditDialog"
               container={
@@ -1829,13 +1829,13 @@ exports[`Application host tests Rendering About 1`] = `
                 }
               }
               caption={
-                <k>
+                <g>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </k>
+                </g>
               }
               className="msg valueEditDialog"
               container={
@@ -1956,7 +1956,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                     <div
                       class="msg icon"
                       data-tooltip="inherit"
-                      style="mask-image: url(module-shell.svg);"
+                      style="mask-image: url("module-shell.svg");"
                     />
                   </div>
                   <div
@@ -1968,7 +1968,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                     <div
                       class="msg icon"
                       data-tooltip="inherit"
-                      style="mask-image: url(module-sql.svg);"
+                      style="mask-image: url("module-sql.svg");"
                     />
                   </div>
                   <div
@@ -1980,7 +1980,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                     <div
                       class="msg icon"
                       data-tooltip="inherit"
-                      style="mask-image: url(settings.svg);"
+                      style="mask-image: url("settings.svg");"
                     />
                   </div>
                   <div
@@ -2112,10 +2112,10 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                         data-tooltip="inherit"
                         style={
                           {
-                            "WebkitMaskImage": "url(module-shell.svg)",
+                            "WebkitMaskImage": "url("module-shell.svg")",
                             "backgroundColor": undefined,
                             "height": undefined,
-                            "maskImage": "url(module-shell.svg)",
+                            "maskImage": "url("module-shell.svg")",
                             "width": undefined,
                           }
                         }
@@ -2167,10 +2167,10 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                         data-tooltip="inherit"
                         style={
                           {
-                            "WebkitMaskImage": "url(module-sql.svg)",
+                            "WebkitMaskImage": "url("module-sql.svg")",
                             "backgroundColor": undefined,
                             "height": undefined,
-                            "maskImage": "url(module-sql.svg)",
+                            "maskImage": "url("module-sql.svg")",
                             "width": undefined,
                           }
                         }
@@ -2222,10 +2222,10 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                         data-tooltip="inherit"
                         style={
                           {
-                            "WebkitMaskImage": "url(settings.svg)",
+                            "WebkitMaskImage": "url("settings.svg")",
                             "backgroundColor": undefined,
                             "height": undefined,
-                            "maskImage": "url(settings.svg)",
+                            "maskImage": "url("settings.svg")",
                             "width": undefined,
                           }
                         }
@@ -2320,7 +2320,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                         <div
                           class="msg icon"
                           data-tooltip="inherit"
-                          style="mask-image: url(module-shell.svg);"
+                          style="mask-image: url("module-shell.svg");"
                         />
                         <label
                           class="msg label"
@@ -2399,7 +2399,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                         <div
                           class="msg icon"
                           data-tooltip="inherit"
-                          style="mask-image: url(close2.svg);"
+                          style="mask-image: url("close2.svg");"
                         />
                       </div>
                       <div
@@ -2426,7 +2426,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                           >
                             <div
                               class="msg icon"
-                              style="mask-image: url(plus.svg);"
+                              style="mask-image: url("plus.svg");"
                             />
                             <div
                               class="msg container fixedScrollbar textHost"
@@ -2493,7 +2493,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                           <div
                             class="msg icon"
                             data-tooltip="inherit"
-                            style="mask-image: url(module-shell.svg);"
+                            style="mask-image: url("module-shell.svg");"
                           />
                           <label
                             class="msg label"
@@ -2572,7 +2572,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                           <div
                             class="msg icon"
                             data-tooltip="inherit"
-                            style="mask-image: url(close2.svg);"
+                            style="mask-image: url("close2.svg");"
                           />
                         </div>
                         <div
@@ -2599,7 +2599,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                             >
                               <div
                                 class="msg icon"
-                                style="mask-image: url(plus.svg);"
+                                style="mask-image: url("plus.svg");"
                               />
                               <div
                                 class="msg container fixedScrollbar textHost"
@@ -2738,7 +2738,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                   <div
                                     class="msg icon"
                                     data-tooltip="inherit"
-                                    style="mask-image: url(module-shell.svg);"
+                                    style="mask-image: url("module-shell.svg");"
                                   />
                                   <label
                                     class="msg label"
@@ -2807,10 +2807,10 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                     data-tooltip="inherit"
                                     style={
                                       {
-                                        "WebkitMaskImage": "url(module-shell.svg)",
+                                        "WebkitMaskImage": "url("module-shell.svg")",
                                         "backgroundColor": undefined,
                                         "height": undefined,
-                                        "maskImage": "url(module-shell.svg)",
+                                        "maskImage": "url("module-shell.svg")",
                                         "width": undefined,
                                       }
                                     }
@@ -2908,7 +2908,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                 <div
                                   class="msg icon"
                                   data-tooltip="inherit"
-                                  style="mask-image: url(close2.svg);"
+                                  style="mask-image: url("close2.svg");"
                                 />
                               </div>
                               <div
@@ -2935,7 +2935,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                   >
                                     <div
                                       class="msg icon"
-                                      style="mask-image: url(plus.svg);"
+                                      style="mask-image: url("plus.svg");"
                                     />
                                     <div
                                       class="msg container fixedScrollbar textHost"
@@ -3134,10 +3134,10 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                           data-tooltip="inherit"
                                           style={
                                             {
-                                              "WebkitMaskImage": "url(close2.svg)",
+                                              "WebkitMaskImage": "url("close2.svg")",
                                               "backgroundColor": undefined,
                                               "height": undefined,
-                                              "maskImage": "url(close2.svg)",
+                                              "maskImage": "url("close2.svg")",
                                               "width": undefined,
                                             }
                                           }
@@ -3211,7 +3211,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                 >
                                                   <div
                                                     class="msg icon"
-                                                    style="mask-image: url(plus.svg);"
+                                                    style="mask-image: url("plus.svg");"
                                                   />
                                                   <div
                                                     class="msg container fixedScrollbar textHost"
@@ -3251,7 +3251,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                   >
                                                     <div
                                                       class="msg icon"
-                                                      style="mask-image: url(plus.svg);"
+                                                      style="mask-image: url("plus.svg");"
                                                     />
                                                     <div
                                                       class="msg container fixedScrollbar textHost"
@@ -3308,10 +3308,10 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     className="msg icon"
                                                     style={
                                                       {
-                                                        "WebkitMaskImage": "url(plus.svg)",
+                                                        "WebkitMaskImage": "url("plus.svg")",
                                                         "backgroundColor": undefined,
                                                         "height": undefined,
-                                                        "maskImage": "url(plus.svg)",
+                                                        "maskImage": "url("plus.svg")",
                                                         "width": undefined,
                                                       }
                                                     }
@@ -3408,13 +3408,13 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
               }
             }
             caption={
-              <k>
+              <g>
                 <Icon
                   disabled={false}
                   src={389}
                 />
                 <Label />
-              </k>
+              </g>
             }
             className="msg valueEditDialog"
             container={
@@ -3479,7 +3479,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
               }
             }
             caption={
-              <k>
+              <g>
                 <Icon
                   disabled={false}
                   src={276}
@@ -3487,7 +3487,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 <Label>
                   Confirm
                 </Label>
-              </k>
+              </g>
             }
             className="msg confirmDialog"
             container={
@@ -3547,13 +3547,13 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 }
               }
               caption={
-                <k>
+                <g>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </k>
+                </g>
               }
               className="msg valueEditDialog"
               container={
@@ -3636,13 +3636,13 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 }
               }
               caption={
-                <k>
+                <g>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </k>
+                </g>
               }
               className="msg valueEditDialog"
               container={
@@ -3725,13 +3725,13 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 }
               }
               caption={
-                <k>
+                <g>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </k>
+                </g>
               }
               className="msg valueEditDialog"
               container={
@@ -3852,7 +3852,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                     <div
                       class="msg icon"
                       data-tooltip="inherit"
-                      style="mask-image: url(module-shell.svg);"
+                      style="mask-image: url("module-shell.svg");"
                     />
                   </div>
                   <div
@@ -3864,7 +3864,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                     <div
                       class="msg icon"
                       data-tooltip="inherit"
-                      style="mask-image: url(module-sql.svg);"
+                      style="mask-image: url("module-sql.svg");"
                     />
                   </div>
                   <div
@@ -3876,7 +3876,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                     <div
                       class="msg icon"
                       data-tooltip="inherit"
-                      style="mask-image: url(settings.svg);"
+                      style="mask-image: url("settings.svg");"
                     />
                   </div>
                   <div
@@ -4008,10 +4008,10 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                         data-tooltip="inherit"
                         style={
                           {
-                            "WebkitMaskImage": "url(module-shell.svg)",
+                            "WebkitMaskImage": "url("module-shell.svg")",
                             "backgroundColor": undefined,
                             "height": undefined,
-                            "maskImage": "url(module-shell.svg)",
+                            "maskImage": "url("module-shell.svg")",
                             "width": undefined,
                           }
                         }
@@ -4063,10 +4063,10 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                         data-tooltip="inherit"
                         style={
                           {
-                            "WebkitMaskImage": "url(module-sql.svg)",
+                            "WebkitMaskImage": "url("module-sql.svg")",
                             "backgroundColor": undefined,
                             "height": undefined,
-                            "maskImage": "url(module-sql.svg)",
+                            "maskImage": "url("module-sql.svg")",
                             "width": undefined,
                           }
                         }
@@ -4118,10 +4118,10 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                         data-tooltip="inherit"
                         style={
                           {
-                            "WebkitMaskImage": "url(settings.svg)",
+                            "WebkitMaskImage": "url("settings.svg")",
                             "backgroundColor": undefined,
                             "height": undefined,
-                            "maskImage": "url(settings.svg)",
+                            "maskImage": "url("settings.svg")",
                             "width": undefined,
                           }
                         }
@@ -4216,7 +4216,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                         <div
                           class="msg icon"
                           data-tooltip="inherit"
-                          style="mask-image: url(module-shell.svg);"
+                          style="mask-image: url("module-shell.svg");"
                         />
                         <label
                           class="msg label"
@@ -4295,7 +4295,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                         <div
                           class="msg icon"
                           data-tooltip="inherit"
-                          style="mask-image: url(close2.svg);"
+                          style="mask-image: url("close2.svg");"
                         />
                       </div>
                       <div
@@ -4322,7 +4322,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                           >
                             <div
                               class="msg icon"
-                              style="mask-image: url(plus.svg);"
+                              style="mask-image: url("plus.svg");"
                             />
                             <div
                               class="msg container fixedScrollbar textHost"
@@ -4389,7 +4389,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                           <div
                             class="msg icon"
                             data-tooltip="inherit"
-                            style="mask-image: url(module-shell.svg);"
+                            style="mask-image: url("module-shell.svg");"
                           />
                           <label
                             class="msg label"
@@ -4468,7 +4468,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                           <div
                             class="msg icon"
                             data-tooltip="inherit"
-                            style="mask-image: url(close2.svg);"
+                            style="mask-image: url("close2.svg");"
                           />
                         </div>
                         <div
@@ -4495,7 +4495,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                             >
                               <div
                                 class="msg icon"
-                                style="mask-image: url(plus.svg);"
+                                style="mask-image: url("plus.svg");"
                               />
                               <div
                                 class="msg container fixedScrollbar textHost"
@@ -4634,7 +4634,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                   <div
                                     class="msg icon"
                                     data-tooltip="inherit"
-                                    style="mask-image: url(module-shell.svg);"
+                                    style="mask-image: url("module-shell.svg");"
                                   />
                                   <label
                                     class="msg label"
@@ -4703,10 +4703,10 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                     data-tooltip="inherit"
                                     style={
                                       {
-                                        "WebkitMaskImage": "url(module-shell.svg)",
+                                        "WebkitMaskImage": "url("module-shell.svg")",
                                         "backgroundColor": undefined,
                                         "height": undefined,
-                                        "maskImage": "url(module-shell.svg)",
+                                        "maskImage": "url("module-shell.svg")",
                                         "width": undefined,
                                       }
                                     }
@@ -4804,7 +4804,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                 <div
                                   class="msg icon"
                                   data-tooltip="inherit"
-                                  style="mask-image: url(close2.svg);"
+                                  style="mask-image: url("close2.svg");"
                                 />
                               </div>
                               <div
@@ -4831,7 +4831,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                   >
                                     <div
                                       class="msg icon"
-                                      style="mask-image: url(plus.svg);"
+                                      style="mask-image: url("plus.svg");"
                                     />
                                     <div
                                       class="msg container fixedScrollbar textHost"
@@ -5030,10 +5030,10 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                           data-tooltip="inherit"
                                           style={
                                             {
-                                              "WebkitMaskImage": "url(close2.svg)",
+                                              "WebkitMaskImage": "url("close2.svg")",
                                               "backgroundColor": undefined,
                                               "height": undefined,
-                                              "maskImage": "url(close2.svg)",
+                                              "maskImage": "url("close2.svg")",
                                               "width": undefined,
                                             }
                                           }
@@ -5107,7 +5107,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                 >
                                                   <div
                                                     class="msg icon"
-                                                    style="mask-image: url(plus.svg);"
+                                                    style="mask-image: url("plus.svg");"
                                                   />
                                                   <div
                                                     class="msg container fixedScrollbar textHost"
@@ -5147,7 +5147,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                   >
                                                     <div
                                                       class="msg icon"
-                                                      style="mask-image: url(plus.svg);"
+                                                      style="mask-image: url("plus.svg");"
                                                     />
                                                     <div
                                                       class="msg container fixedScrollbar textHost"
@@ -5204,10 +5204,10 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     className="msg icon"
                                                     style={
                                                       {
-                                                        "WebkitMaskImage": "url(plus.svg)",
+                                                        "WebkitMaskImage": "url("plus.svg")",
                                                         "backgroundColor": undefined,
                                                         "height": undefined,
-                                                        "maskImage": "url(plus.svg)",
+                                                        "maskImage": "url("plus.svg")",
                                                         "width": undefined,
                                                       }
                                                     }
@@ -5304,13 +5304,13 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
               }
             }
             caption={
-              <k>
+              <g>
                 <Icon
                   disabled={false}
                   src={389}
                 />
                 <Label />
-              </k>
+              </g>
             }
             className="msg valueEditDialog"
             container={
@@ -5375,7 +5375,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
               }
             }
             caption={
-              <k>
+              <g>
                 <Icon
                   disabled={false}
                   src={276}
@@ -5383,7 +5383,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 <Label>
                   Confirm
                 </Label>
-              </k>
+              </g>
             }
             className="msg confirmDialog"
             container={
@@ -5443,13 +5443,13 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 }
               }
               caption={
-                <k>
+                <g>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </k>
+                </g>
               }
               className="msg valueEditDialog"
               container={
@@ -5532,13 +5532,13 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 }
               }
               caption={
-                <k>
+                <g>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </k>
+                </g>
               }
               className="msg valueEditDialog"
               container={
@@ -5621,13 +5621,13 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 }
               }
               caption={
-                <k>
+                <g>
                   <Icon
                     disabled={false}
                     src={389}
                   />
                   <Label />
-                </k>
+                </g>
               }
               className="msg valueEditDialog"
               container={
@@ -5749,7 +5749,7 @@ exports[`Application host tests Standard Rendering 1`] = `
     id="mainActivityBar"
   >
     <ActivityBarItem
-      active={true}
+      active={false}
       disabled={false}
       expand={false}
       id="gui.shell"
@@ -5776,14 +5776,6 @@ exports[`Application host tests Standard Rendering 1`] = `
       onClick={[Function]}
     />
   </ActivityBar>
-  <ShellModule
-    innerRef={
-      {
-        "current": null,
-      }
-    }
-    key="gui.shell"
-  />
   <DialogHost />
 </Container>
 `;

@@ -28,10 +28,10 @@ exports[`Login Page Tests Render Test 1`] = `
           id="loginDialogSakilaLogo"
           style={
             {
-              "WebkitMaskImage": "url(module-shell.svg)",
+              "WebkitMaskImage": "url("module-shell.svg")",
               "backgroundColor": undefined,
               "height": undefined,
-              "maskImage": "url(module-shell.svg)",
+              "maskImage": "url("module-shell.svg")",
               "width": undefined,
             }
           }
@@ -308,10 +308,10 @@ exports[`Login Page Tests Render Test 1`] = `
                         className="msg icon"
                         style={
                           {
-                            "WebkitMaskImage": "url(chevron-right.svg)",
+                            "WebkitMaskImage": "url("chevron-right.svg")",
                             "backgroundColor": undefined,
                             "height": undefined,
-                            "maskImage": "url(chevron-right.svg)",
+                            "maskImage": "url("chevron-right.svg")",
                             "width": undefined,
                           }
                         }

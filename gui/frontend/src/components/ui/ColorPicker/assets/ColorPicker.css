@@ -52,7 +52,7 @@
     --current-color: transparent;
 
     background: linear-gradient(to right, var(--current-color), var(--current-color)),
-        url(./checkerboard.png) no-repeat center/300%;
+        url("./checkerboard.png") no-repeat center/300%;
 }
 
 .msg.colorField.dropTarget {
@@ -122,7 +122,7 @@
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    background: no-repeat center/100% url(./conic-gradient.png);
+    background: no-repeat center/100% url("./conic-gradient.png");
 
     cursor: pointer;
     user-select: none;
@@ -167,7 +167,7 @@
     background: linear-gradient(to right,
             var(--start-color),
             var(--end-color)),
-        url(./checkerboard.png) center/40%;
+        url("./checkerboard.png") center/40%;
 }
 
 .msg.colorPopup #luminance .slider {

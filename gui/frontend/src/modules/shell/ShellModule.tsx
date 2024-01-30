@@ -92,7 +92,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
     // The saved document state when switching tabs.
     private sessionState: Map<string, IShellTabPersistentState> = new Map();
 
-    private pendingProgress: ReturnType<typeof setTimeout>;
+    private pendingProgress: ReturnType<typeof setTimeout> | null = null;
 
     public constructor(props: IShellModuleProperties) {
         super(props);
@@ -629,7 +629,10 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
     };
 
     private hideProgress = (newTab: string): void => {
-        clearTimeout(this.pendingProgress);
+        if (this.pendingProgress) {
+            clearTimeout(this.pendingProgress);
+            this.pendingProgress = null;
+        }
 
         this.setState({ selectedTab: newTab, progressMessage: "" });
     };

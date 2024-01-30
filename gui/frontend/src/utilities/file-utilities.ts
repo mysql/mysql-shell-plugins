@@ -23,8 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import path from "path";
-import fs from "fs";
+import * as path from "path";
+import * as fs from "fs";
 
 /** Contains code for use in a local environment (Node.js, native wrapper). */
 

@@ -25,7 +25,7 @@
 
 import mysqlIcon from "../../assets/images/admin/mysql-logo.svg";
 
-import os from "os";
+import * as os from "os";
 import { ComponentChild } from "preact";
 
 

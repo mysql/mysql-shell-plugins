@@ -41,9 +41,9 @@ export class MockEventTarget implements EventTarget {
 
 export class MockEvent implements Event {
     public readonly AT_TARGET = 2;
-    public readonly BUBBLING_PHASE: 3;
-    public readonly CAPTURING_PHASE: 1;
-    public readonly NONE: 0;
+    public readonly BUBBLING_PHASE = 3;
+    public readonly CAPTURING_PHASE = 1;
+    public readonly NONE = 0;
 
     public bubbles = false;
     public cancelBubble = false;
@@ -53,7 +53,7 @@ export class MockEvent implements Event {
     public readonly eventPhase = -1;
     public readonly isTrusted = true;
     public returnValue = false;
-    public readonly srcElement: EventTarget | null;
+    public readonly srcElement: EventTarget | null = null;
     public readonly target: EventTarget | null;
     public readonly timeStamp: DOMHighResTimeStamp = 0;
     public type: string;

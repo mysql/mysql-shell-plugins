@@ -371,7 +371,7 @@
     top: 0;
     height: 100%;
 
-    mask-image: url(../../assets/images/editor-side-line-straight.svg);
+    mask-image: url("../../assets/images/editor-side-line-straight.svg");
     background-color: var(--editorPrompt-result);
     mask-size: 5px;
     mask-repeat: repeat-y;

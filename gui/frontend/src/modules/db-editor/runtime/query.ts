@@ -33,7 +33,7 @@ export const runSqlIterative = (sql: string, callback?: (res: unknown) => void,
         currentWorker.pendingRequests.set(currentWorker.currentContext, callback);
     }
 
-    currentWorker.postContextMessage(currentWorker.currentTaskId, {
+    currentWorker.postContextMessage?.(currentWorker.currentTaskId, {
         api: ScriptingApi.RunSqlIterative,
         contextId: currentWorker.currentContext,
         code: sql,
@@ -47,7 +47,7 @@ export const runSqlWithCallback = (sql: string, callback?: (res: unknown) => voi
         currentWorker.pendingRequests.set(currentWorker.currentContext, callback);
     }
 
-    currentWorker.postContextMessage(currentWorker.currentTaskId, {
+    currentWorker.postContextMessage?.(currentWorker.currentTaskId, {
         api: ScriptingApi.RunSql,
         contextId: currentWorker.currentContext,
         code: sql,

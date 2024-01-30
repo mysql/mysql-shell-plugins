@@ -89,7 +89,7 @@ interface IDBEditorToolbarState extends IComponentState {
 
 export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, IDBEditorToolbarState> {
 
-    private stateChangeTimer: ReturnType<typeof setTimeout> | null;
+    private stateChangeTimer: ReturnType<typeof setTimeout> | null = null;
 
     public constructor(props: IDBEditorToolbarProperties) {
         super(props);

@@ -23,8 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { existsSync, mkdirSync, rmSync } from "fs";
-import { platform, arch, homedir } from "os";
+import * as fs from "fs";
+import * as os from "os";
 
 import { ResponseError } from "../../../../communication/ResponseError.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
@@ -58,7 +58,7 @@ describe("ShellInterfaceCore Tests", () => {
         expect(info).toBeDefined();
 
         if (info) {
-            switch (platform()) {
+            switch (os.platform()) {
                 case "darwin": {
                     expect(info.architecture === "arm64" || info.architecture === "x86_64").toBeTruthy();
                     break;
@@ -77,7 +77,7 @@ describe("ShellInterfaceCore Tests", () => {
                 default:
             }
 
-            switch (arch()) {
+            switch (os.arch()) {
                 case "arm": {
                     expect(info.architecture).toBe("arm");
                     break;
@@ -143,19 +143,19 @@ describe("ShellInterfaceCore Tests", () => {
             .toBeInstanceOf(ResponseError).catch((reason) => {
                 expect(reason.message).toBe("No permissions to access the directory.");
             });
-        expect(existsSync("non-existing/test.sqlite3")).toBeFalsy();
+        expect(fs.existsSync("non-existing/test.sqlite3")).toBeFalsy();
 
-        const home = homedir();
-        if (existsSync(home + "/local-test")) {
+        const home = os.homedir();
+        if (fs.existsSync(home + "/local-test")) {
             // Maybe the folder is left over from a previous run.
-            rmSync(home + "/local-test", { force: true, recursive: true });
+            fs.rmSync(home + "/local-test", { force: true, recursive: true });
         }
-        mkdirSync(home + "/local-test");
+        fs.mkdirSync(home + "/local-test");
         await core.createDatabaseFile("local-test/test.sqlite3");
-        expect(existsSync("local-test/test.sqlite3")).toBeFalsy();
-        expect(existsSync(home + "/local-test/test.sqlite3")).toBeTruthy();
+        expect(fs.existsSync("local-test/test.sqlite3")).toBeFalsy();
+        expect(fs.existsSync(home + "/local-test/test.sqlite3")).toBeTruthy();
 
-        rmSync(home + "/local-test", { force: true, recursive: true });
+        fs.rmSync(home + "/local-test", { force: true, recursive: true });
     });
 
     it("Debugger", async () => {

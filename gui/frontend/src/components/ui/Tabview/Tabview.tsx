@@ -121,7 +121,7 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
     private tabAreaRef = createRef<HTMLDivElement>();
 
     private trackingSliderMove = false;
-    private lastSliderPosition: number;
+    private lastSliderPosition = 0;
 
     private resizeObserver?: ResizeObserver;
 

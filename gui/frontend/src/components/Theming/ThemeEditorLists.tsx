@@ -142,9 +142,9 @@ export class ThemeEditorLists extends ComponentBase<IThemeEditorListsProperties,
 
     private themeNode: CSSStyleDeclaration;
 
-    private unfilteredColors: IDescriptionEntry[];
-    private filteredColors: IDescriptionEntry[];
-    private tokens: ITokenEntry[];
+    private unfilteredColors: IDescriptionEntry[] = [];
+    private filteredColors: IDescriptionEntry[] = [];
+    private tokens: ITokenEntry[] = [];
 
     public constructor(props: IThemeEditorListsProperties) {
         super(props);

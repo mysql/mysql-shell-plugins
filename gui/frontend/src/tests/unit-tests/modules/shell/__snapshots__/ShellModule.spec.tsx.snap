@@ -35,7 +35,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                   <div
                     class="msg icon"
                     data-tooltip="inherit"
-                    style="mask-image: url(module-shell.svg);"
+                    style="mask-image: url("module-shell.svg");"
                   />
                   <label
                     class="msg label"
@@ -114,7 +114,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                   <div
                     class="msg icon"
                     data-tooltip="inherit"
-                    style="mask-image: url(close2.svg);"
+                    style="mask-image: url("close2.svg");"
                   />
                 </div>
                 <div
@@ -141,7 +141,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                     >
                       <div
                         class="msg icon"
-                        style="mask-image: url(plus.svg);"
+                        style="mask-image: url("plus.svg");"
                       />
                       <div
                         class="msg container fixedScrollbar textHost"
@@ -207,7 +207,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                     <div
                       class="msg icon"
                       data-tooltip="inherit"
-                      style="mask-image: url(module-shell.svg);"
+                      style="mask-image: url("module-shell.svg");"
                     />
                     <label
                       class="msg label"
@@ -286,7 +286,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                     <div
                       class="msg icon"
                       data-tooltip="inherit"
-                      style="mask-image: url(close2.svg);"
+                      style="mask-image: url("close2.svg");"
                     />
                   </div>
                   <div
@@ -313,7 +313,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                       >
                         <div
                           class="msg icon"
-                          style="mask-image: url(plus.svg);"
+                          style="mask-image: url("plus.svg");"
                         />
                         <div
                           class="msg container fixedScrollbar textHost"
@@ -452,7 +452,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                             <div
                               class="msg icon"
                               data-tooltip="inherit"
-                              style="mask-image: url(module-shell.svg);"
+                              style="mask-image: url("module-shell.svg");"
                             />
                             <label
                               class="msg label"
@@ -521,10 +521,10 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                               data-tooltip="inherit"
                               style={
                                 {
-                                  "WebkitMaskImage": "url(module-shell.svg)",
+                                  "WebkitMaskImage": "url("module-shell.svg")",
                                   "backgroundColor": undefined,
                                   "height": undefined,
-                                  "maskImage": "url(module-shell.svg)",
+                                  "maskImage": "url("module-shell.svg")",
                                   "width": undefined,
                                 }
                               }
@@ -622,7 +622,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                           <div
                             class="msg icon"
                             data-tooltip="inherit"
-                            style="mask-image: url(close2.svg);"
+                            style="mask-image: url("close2.svg");"
                           />
                         </div>
                         <div
@@ -649,7 +649,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                             >
                               <div
                                 class="msg icon"
-                                style="mask-image: url(plus.svg);"
+                                style="mask-image: url("plus.svg");"
                               />
                               <div
                                 class="msg container fixedScrollbar textHost"
@@ -848,10 +848,10 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                     data-tooltip="inherit"
                                     style={
                                       {
-                                        "WebkitMaskImage": "url(close2.svg)",
+                                        "WebkitMaskImage": "url("close2.svg")",
                                         "backgroundColor": undefined,
                                         "height": undefined,
-                                        "maskImage": "url(close2.svg)",
+                                        "maskImage": "url("close2.svg")",
                                         "width": undefined,
                                       }
                                     }
@@ -925,7 +925,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                           >
                                             <div
                                               class="msg icon"
-                                              style="mask-image: url(plus.svg);"
+                                              style="mask-image: url("plus.svg");"
                                             />
                                             <div
                                               class="msg container fixedScrollbar textHost"
@@ -965,7 +965,7 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                             >
                                               <div
                                                 class="msg icon"
-                                                style="mask-image: url(plus.svg);"
+                                                style="mask-image: url("plus.svg");"
                                               />
                                               <div
                                                 class="msg container fixedScrollbar textHost"
@@ -1022,10 +1022,10 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                               className="msg icon"
                                               style={
                                                 {
-                                                  "WebkitMaskImage": "url(plus.svg)",
+                                                  "WebkitMaskImage": "url("plus.svg")",
                                                   "backgroundColor": undefined,
                                                   "height": undefined,
-                                                  "maskImage": "url(plus.svg)",
+                                                  "maskImage": "url("plus.svg")",
                                                   "width": undefined,
                                                 }
                                               }

@@ -27,7 +27,7 @@ import { ATNSimulator, BaseErrorListener, RecognitionException, Recognizer, Toke
 
 import { ErrorReportCallback } from "../parser-common.js";
 
-export class PythonErrorListener extends BaseErrorListener<ATNSimulator> {
+export class PythonErrorListener extends BaseErrorListener {
 
     public constructor(private callback: ErrorReportCallback) {
         super();

@@ -29,7 +29,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                 <div
                   class="msg icon"
                   data-tooltip="inherit"
-                  style="mask-image: url(overviewPage.svg);"
+                  style="mask-image: url("overviewPage.svg");"
                 />
                 <label
                   class="msg label"
@@ -113,7 +113,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                   <div
                     class="msg icon"
                     data-tooltip="inherit"
-                    style="mask-image: url(overviewPage.svg);"
+                    style="mask-image: url("overviewPage.svg");"
                   />
                   <label
                     class="msg label"
@@ -170,7 +170,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
       [
         {
           "caption": "Open Connection",
-          "content": <k>
+          "content": <g>
             <ProgressIndicator
               backgroundOpacity={0.95}
               id="loadingProgressIndicator"
@@ -180,7 +180,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
               caption=""
               id="progressMessageId"
             />
-          </k>,
+          </g>,
           "icon": "overviewPage.svg",
           "id": "progress",
         },
@@ -220,7 +220,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                     <div
                       class="msg icon"
                       data-tooltip="inherit"
-                      style="mask-image: url(overviewPage.svg);"
+                      style="mask-image: url("overviewPage.svg");"
                     />
                     <label
                       class="msg label"
@@ -342,7 +342,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                         <div
                           class="msg icon"
                           data-tooltip="inherit"
-                          style="mask-image: url(overviewPage.svg);"
+                          style="mask-image: url("overviewPage.svg");"
                         />
                         <label
                           class="msg label"
@@ -411,10 +411,10 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
                           data-tooltip="inherit"
                           style={
                             {
-                              "WebkitMaskImage": "url(overviewPage.svg)",
+                              "WebkitMaskImage": "url("overviewPage.svg")",
                               "backgroundColor": undefined,
                               "height": undefined,
-                              "maskImage": "url(overviewPage.svg)",
+                              "maskImage": "url("overviewPage.svg")",
                               "width": undefined,
                             }
                           }
@@ -605,13 +605,13 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             }
           }
           caption={
-            <k>
+            <g>
               <Icon
                 disabled={false}
                 src={389}
               />
               <Label />
-            </k>
+            </g>
           }
           className="msg valueEditDialog"
           container={
@@ -694,13 +694,13 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             }
           }
           caption={
-            <k>
+            <g>
               <Icon
                 disabled={false}
                 src={389}
               />
               <Label />
-            </k>
+            </g>
           }
           className="msg valueEditDialog"
           container={
@@ -783,13 +783,13 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             }
           }
           caption={
-            <k>
+            <g>
               <Icon
                 disabled={false}
                 src={389}
               />
               <Label />
-            </k>
+            </g>
           }
           className="msg valueEditDialog"
           container={
@@ -872,13 +872,13 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             }
           }
           caption={
-            <k>
+            <g>
               <Icon
                 disabled={false}
                 src={389}
               />
               <Label />
-            </k>
+            </g>
           }
           className="msg valueEditDialog"
           container={
@@ -961,13 +961,13 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             }
           }
           caption={
-            <k>
+            <g>
               <Icon
                 disabled={false}
                 src={389}
               />
               <Label />
-            </k>
+            </g>
           }
           className="msg valueEditDialog"
           container={
@@ -1050,13 +1050,13 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             }
           }
           caption={
-            <k>
+            <g>
               <Icon
                 disabled={false}
                 src={389}
               />
               <Label />
-            </k>
+            </g>
           }
           className="msg valueEditDialog"
           container={
@@ -1139,13 +1139,13 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             }
           }
           caption={
-            <k>
+            <g>
               <Icon
                 disabled={false}
                 src={389}
               />
               <Label />
-            </k>
+            </g>
           }
           className="msg valueEditDialog"
           container={

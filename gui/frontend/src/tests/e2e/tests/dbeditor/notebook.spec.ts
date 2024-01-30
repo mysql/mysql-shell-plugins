@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import fs from "fs/promises";
+import * as fs from "fs/promises";
 import { basename, join } from "path";
 import { Key, error, until, WebElement } from "selenium-webdriver";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";

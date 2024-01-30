@@ -45,7 +45,7 @@ export class Divider extends ComponentBase<IDividerProperties> {
         thickness: 4,
     };
 
-    private hoverTimer: ReturnType<typeof setTimeout> | null;
+    private hoverTimer: ReturnType<typeof setTimeout> | null = null;
 
     public constructor(props: IDividerProperties) {
         super(props);

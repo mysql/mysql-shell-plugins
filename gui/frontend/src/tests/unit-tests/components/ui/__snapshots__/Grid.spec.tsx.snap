@@ -173,10 +173,10 @@ exports[`Grid component test Standard Rendering 1`] = `
                   className="msg icon"
                   style={
                     {
-                      "WebkitMaskImage": "url(chevron-right.svg)",
+                      "WebkitMaskImage": "url("chevron-right.svg")",
                       "backgroundColor": undefined,
                       "height": undefined,
-                      "maskImage": "url(chevron-right.svg)",
+                      "maskImage": "url("chevron-right.svg")",
                       "width": undefined,
                     }
                   }

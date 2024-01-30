@@ -88,7 +88,7 @@ export abstract class PythonLexerBase extends Lexer {
     public emitToken(token: Token): void;
     public emitToken(tokenType: number, channel?: number, text?: string): void;
     public emitToken(tokenOrTokenType: Token | number, channel?: number, text?: string): void {
-        if (tokenOrTokenType instanceof Token) {
+        if (typeof tokenOrTokenType !== "number") {
             this.emit(tokenOrTokenType);
 
             return;
@@ -98,7 +98,7 @@ export abstract class PythonLexerBase extends Lexer {
         text = text ?? "";
 
         const charIndex = this._tokenStartCharIndex;
-        const token = new CommonToken(this._tokenFactorySourcePair, tokenOrTokenType, channel, charIndex - text.length,
+        const token = new CommonToken([this, this.inputStream], tokenOrTokenType, channel, charIndex - text.length,
             charIndex);
         token.text = text;
         token.line = this.line;

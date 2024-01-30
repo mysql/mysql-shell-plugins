@@ -30,19 +30,19 @@ import { IDictionary } from "../../app-logic/Types.js";
  * However, Safari doesn't support the Worker type in worker code, so we have to repeat some definitions.
  */
 export class PrivateWorker /*extends Worker*/ {
-    public currentContext: string;
-    public currentTaskId: number;
-    public pendingRequests: Map<string, (res: unknown) => void>;
+    public currentContext = "";
+    public currentTaskId = -1;
+    public pendingRequests = new Map<string, (res: unknown) => void>();
 
     /** Holds the inline source map, if one was found in the code to executed. */
     public sourceMap?: string;
     public libCodeLineNumbers = 0;
 
-    public postContextMessage: (taskId: number, message: IConsoleWorkerResultData) => void;
+    public postContextMessage?: (taskId: number, message: IConsoleWorkerResultData) => void;
 
     /** Functions from Worker. */
-    public postMessage: (data: unknown, origin?: string) => void;
-    public addEventListener: <T extends Event>(message: string, callback: (event: T) => void) => void;
+    public postMessage?: (data: unknown, origin?: string) => void;
+    public addEventListener?: <T extends Event>(message: string, callback: (event: T) => void) => void;
 }
 
 /**

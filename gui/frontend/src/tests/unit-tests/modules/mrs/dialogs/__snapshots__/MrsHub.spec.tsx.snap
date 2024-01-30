@@ -29,7 +29,7 @@ exports[`MrsHub Tests MRS AuthApp dialog tests Show MRS Authentication App Dialo
       >
         <div
           class="msg icon"
-          style="mask-image: url(close2.svg);"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -379,7 +379,7 @@ exports[`MrsHub Tests MRS Content Set dialog tests Show MRS Content Set Dialog (
       >
         <div
           class="msg icon"
-          style="mask-image: url(close2.svg);"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -1558,7 +1558,7 @@ exports[`MrsHub Tests MRS Schema dialog tests Show MRS Schema Dialog (snapshot) 
       >
         <div
           class="msg icon"
-          style="mask-image: url(close2.svg);"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -1882,7 +1882,7 @@ exports[`MrsHub Tests MRS Service dialog tests Show MRS Service Dialog (snapshot
       >
         <div
           class="msg icon"
-          style="mask-image: url(close2.svg);"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -2180,7 +2180,7 @@ exports[`MrsHub Tests MRS User dialog tests Show MRS User Dialog (snapshot) and 
       >
         <div
           class="msg icon"
-          style="mask-image: url(close2.svg);"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -2526,13 +2526,13 @@ exports[`MrsHub Tests Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <k>
+          <g>
             <Icon
               disabled={false}
               src={389}
             />
             <Label />
-          </k>
+          </g>
         }
         className="msg valueEditDialog"
         container={
@@ -2615,13 +2615,13 @@ exports[`MrsHub Tests Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <k>
+          <g>
             <Icon
               disabled={false}
               src={389}
             />
             <Label />
-          </k>
+          </g>
         }
         className="msg valueEditDialog"
         container={
@@ -2704,13 +2704,13 @@ exports[`MrsHub Tests Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <k>
+          <g>
             <Icon
               disabled={false}
               src={389}
             />
             <Label />
-          </k>
+          </g>
         }
         className="msg valueEditDialog"
         container={
@@ -2793,13 +2793,13 @@ exports[`MrsHub Tests Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <k>
+          <g>
             <Icon
               disabled={false}
               src={389}
             />
             <Label />
-          </k>
+          </g>
         }
         className="msg valueEditDialog"
         container={
@@ -2882,13 +2882,13 @@ exports[`MrsHub Tests Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <k>
+          <g>
             <Icon
               disabled={false}
               src={389}
             />
             <Label />
-          </k>
+          </g>
         }
         className="msg valueEditDialog"
         container={
@@ -2971,13 +2971,13 @@ exports[`MrsHub Tests Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <k>
+          <g>
             <Icon
               disabled={false}
               src={389}
             />
             <Label />
-          </k>
+          </g>
         }
         className="msg valueEditDialog"
         container={
@@ -3060,13 +3060,13 @@ exports[`MrsHub Tests Standard Rendering (snapshot) 1`] = `
           }
         }
         caption={
-          <k>
+          <g>
             <Icon
               disabled={false}
               src={389}
             />
             <Label />
-          </k>
+          </g>
         }
         className="msg valueEditDialog"
         container={

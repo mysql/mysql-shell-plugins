@@ -1446,7 +1446,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
 
         ++this._tokenStartColumn;
         ++this._tokenStartCharIndex;
-        ++this._tokenStartCharPositionInLine;
+        ++this.column;
     }
 
     /**

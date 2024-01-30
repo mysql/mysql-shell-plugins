@@ -26,19 +26,19 @@
 import * as d3 from "d3";
 
 export class LineGraphRenderer {
-    private titleGenerator: (index: number) => string;
-    private tooltipElement: d3.Selection<SVGGElement, IXYDatum, null, undefined>;
+    private titleGenerator!: (index: number) => string;
+    private tooltipElement!: d3.Selection<SVGGElement, IXYDatum, null, undefined>;
 
-    private xScale: d3.ScaleTime<number, number>; // | d3.ScaleLinear<number, number>;
-    private xValues: Array<number | Date>;
+    private xScale!: d3.ScaleTime<number, number>; // | d3.ScaleLinear<number, number>;
+    private xValues: Array<number | Date> = [];
 
-    private yScale: d3.ScaleLinear<number, number>;
-    private yValues: Array<number | undefined>;
+    private yScale!: d3.ScaleLinear<number, number>;
+    private yValues: Array<number | undefined> = [];
 
     private colors: d3.ScaleOrdinal<string, string>;
 
     private tooltip?: ITooltipOptions;
-    private data: IXYDatum[];
+    private data: IXYDatum[] = [];
 
     private curveMap = new Map<LineGraphCurve, d3.CurveFactory | d3.CurveFactoryLineOnly>([
         ["Basis", d3.curveBasis],

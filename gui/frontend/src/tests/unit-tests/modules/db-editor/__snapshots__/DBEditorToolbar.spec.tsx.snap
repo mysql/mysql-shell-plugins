@@ -68,10 +68,10 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(toolbar-execute.svg)",
+                    "WebkitMaskImage": "url("toolbar-execute.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(toolbar-execute.svg)",
+                    "maskImage": "url("toolbar-execute.svg")",
                     "width": undefined,
                   }
                 }
@@ -123,10 +123,10 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(toolbar-format.svg)",
+                    "WebkitMaskImage": "url("toolbar-format.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(toolbar-format.svg)",
+                    "maskImage": "url("toolbar-format.svg")",
                     "width": undefined,
                   }
                 }
@@ -179,10 +179,10 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(toolbar-search.svg)",
+                    "WebkitMaskImage": "url("toolbar-search.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(toolbar-search.svg)",
+                    "maskImage": "url("toolbar-search.svg")",
                     "width": undefined,
                   }
                 }
@@ -219,10 +219,10 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(toolbar-show_hidden-inactive.svg)",
+                    "WebkitMaskImage": "url("toolbar-show_hidden-inactive.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(toolbar-show_hidden-inactive.svg)",
+                    "maskImage": "url("toolbar-show_hidden-inactive.svg")",
                     "width": undefined,
                   }
                 }
@@ -259,10 +259,10 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(toolbar-word_wrap-inactive.svg)",
+                    "WebkitMaskImage": "url("toolbar-word_wrap-inactive.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(toolbar-word_wrap-inactive.svg)",
+                    "maskImage": "url("toolbar-word_wrap-inactive.svg")",
                     "width": undefined,
                   }
                 }
@@ -347,10 +347,10 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(toolbar-execute.svg)",
+                    "WebkitMaskImage": "url("toolbar-execute.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(toolbar-execute.svg)",
+                    "maskImage": "url("toolbar-execute.svg")",
                     "width": undefined,
                   }
                 }
@@ -402,10 +402,10 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(toolbar-format.svg)",
+                    "WebkitMaskImage": "url("toolbar-format.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(toolbar-format.svg)",
+                    "maskImage": "url("toolbar-format.svg")",
                     "width": undefined,
                   }
                 }
@@ -458,10 +458,10 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(toolbar-search.svg)",
+                    "WebkitMaskImage": "url("toolbar-search.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(toolbar-search.svg)",
+                    "maskImage": "url("toolbar-search.svg")",
                     "width": undefined,
                   }
                 }
@@ -498,10 +498,10 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(toolbar-show_hidden-inactive.svg)",
+                    "WebkitMaskImage": "url("toolbar-show_hidden-inactive.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(toolbar-show_hidden-inactive.svg)",
+                    "maskImage": "url("toolbar-show_hidden-inactive.svg")",
                     "width": undefined,
                   }
                 }
@@ -538,10 +538,10 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
                 data-tooltip="inherit"
                 style={
                   {
-                    "WebkitMaskImage": "url(toolbar-word_wrap-inactive.svg)",
+                    "WebkitMaskImage": "url("toolbar-word_wrap-inactive.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskImage": "url(toolbar-word_wrap-inactive.svg)",
+                    "maskImage": "url("toolbar-word_wrap-inactive.svg")",
                     "width": undefined,
                   }
                 }

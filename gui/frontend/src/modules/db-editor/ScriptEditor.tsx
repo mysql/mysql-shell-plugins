@@ -420,7 +420,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     };
 
     private createPresentation = (editor: CodeEditor, language: EditorLanguage): PresentationInterface => {
-        this.presentationInterface = new StandalonePresentationInterface(this, editor.backend, language,
+        this.presentationInterface = new StandalonePresentationInterface(this, editor.backend!, language,
             this.resultRef);
 
         return this.presentationInterface;

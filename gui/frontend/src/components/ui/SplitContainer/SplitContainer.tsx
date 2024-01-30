@@ -107,11 +107,11 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
     private stretchCount = 0;      // The number of pane that can automatically be stretched to consume remaining space.
 
     private resizeObserver?: ResizeObserver; // Not available in Safari (macOS, iOS).
-    private lastMouseX: number; // Last mouse position when starting resize with a sash.
-    private lastMouseY: number;
+    private lastMouseX = 0; // Last mouse position when starting resize with a sash.
+    private lastMouseY = 0;
 
     private containerRef: preact.RefObject<HTMLElement>;
-    private resizeTimer: ReturnType<typeof setTimeout> | null;
+    private resizeTimer: ReturnType<typeof setTimeout> | null = null;
 
     public constructor(props: ISplitContainerProperties) {
         super(props);
