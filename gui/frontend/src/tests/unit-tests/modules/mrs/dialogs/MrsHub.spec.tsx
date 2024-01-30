@@ -27,10 +27,10 @@ import { createRef } from "preact";
 
 import { mount } from "enzyme";
 import {
-    getDbCredentials, JestReactWrapper, nextProcessTick, sendKeyPress, setupShellForTests,
+    getDbCredentials, JestReactWrapper, nextProcessTick, sendKeyPress, setupShellForTests, DialogHelper
 } from "../../../test-helpers.js";
 import { IMrsDbObjectEditRequest } from "../../../../../supplement/Requisitions.js";
-import { IMrsServiceData } from "../../../../../communication/ProtocolMrs.js";
+import { IMrsServiceData, IMrsObject, IShellMrsUpdateDbObjectKwargsValue, IMrsAuthAppData, IMrsDbObjectData, IMrsUserRoleData, IMrsAddContentSetData } from "../../../../../communication/ProtocolMrs.js";
 import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
 import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
@@ -39,6 +39,13 @@ import { webSession } from "../../../../../supplement/WebSession.js";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../../communication/MySQL.js";
 import { IConnectionDetails, DBType } from "../../../../../supplement/ShellInterface/index.js";
 import { KeyboardKeys, sleep } from "../../../../../utilities/helpers.js";
+import { ShellInterfaceShellSession } from "../../../../../supplement/ShellInterface/ShellInterfaceShellSession.js";
+import { MrsAuthDialog } from "../../../../../modules/mrs/dialogs/MrsAuthDialog.js";
+import { MrsServiceDialog } from "../../../../../modules/mrs/dialogs/MrsServiceDialog.js";
+import { MrsDialogType } from "../../../../../app-logic/Types.js";
+import { IShellDictionary } from "../../../../../communication/Protocol.js";
+
+
 
 describe("MrsHub Tests", () => {
     let host: JestReactWrapper;
@@ -47,6 +54,9 @@ describe("MrsHub Tests", () => {
     let backend: ShellInterfaceSqlEditor;
 
     let service: IMrsServiceData;
+    let authApp: IMrsAuthAppData;
+    let dbObject: IMrsDbObjectData;
+    let dialogHelper: DialogHelper;
 
     const hubRef = createRef<MrsHub>();
 
@@ -82,7 +92,7 @@ describe("MrsHub Tests", () => {
         // Some preparation for the tests.
         await backend.execute("DROP DATABASE IF EXISTS mysql_rest_service_metadata");
         await backend.execute("DROP DATABASE IF EXISTS MRS_TEST");
-        await backend.execute("CREATE DATABASE MRS_TEST");
+        const createResult = await backend.execute("CREATE DATABASE MRS_TEST");
         await backend.execute("CREATE TABLE MRS_TEST.actor (actor_id INT NOT NULL, first_name VARCHAR(45) NOT NULL, " +
             "last_name VARCHAR(45) NOT NULL, last_update TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY " +
             "(actor_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci");
@@ -90,10 +100,20 @@ describe("MrsHub Tests", () => {
         await backend.mrs.configure();
         service = await backend.mrs.addService("/myService", ["HTTPS"], "", "", true, {}, "/unit-tests", "", "", "",
             []);
-        const schemaId = await backend.mrs.addSchema(service.id, "MRS_TEST", "/mrs-test", false, null, null);
-        await backend.mrs.addDbObject("actor", "TABLE", false, "/actor", true, ["READ"], "FEED",
-            false, false, false, null, null, undefined, schemaId);
 
+        const authAppId = await backend.mrs.addAuthApp(service.id, {
+            authVendorId: "0x30000000000000000000000000000000",
+            name: "MRS",
+            serviceId: service.id,
+            enabled: true,
+            limitToRegisteredUsers: false,
+            defaultRoleId: "0x31000000000000000000000000000000",
+        }, [])
+        authApp = await backend.mrs.getAuthApp(authAppId.authAppId);
+        const schemaId = await backend.mrs.addSchema(service.id, "MRS_TEST", "/mrs-test", false, null, null);
+        const dbObjectResult = await backend.mrs.addDbObject("actor", "TABLE", false, "/actor", true, ["READ"], "FEED",
+            false, false, false, null, null, undefined, schemaId);
+        dbObject = await backend.mrs.getDbObject(dbObjectResult);
         host = mount<MrsHub>(<MrsHub ref={hubRef} />);
     });
 
@@ -111,161 +131,804 @@ describe("MrsHub Tests", () => {
         expect(host).toMatchSnapshot();
     });
 
-    it("Show MRS Service Dialog (snapshot)", async () => {
-        let portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(0);
 
-        const promise = hubRef.current!.showMrsServiceDialog(backend);
-        await nextProcessTick();
-        await sleep(500);
+    describe("MRS Service dialog tests", () => {
+        beforeAll(() => {
+            dialogHelper = new DialogHelper("mrsServiceDialog");
+        })
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(1);
+        it("Show MRS Service Dialog (snapshot) and escape", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
 
-        expect(portals[0]).toMatchSnapshot();
+            const promise = hubRef.current!.showMrsServiceDialog(backend);
+            await nextProcessTick();
+            await sleep(500);
 
-        setTimeout(() => {
-            sendKeyPress(KeyboardKeys.Escape);
-        }, 250);
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
 
-        await promise;
+            expect(portals[0]).toMatchSnapshot();
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(0);
+            setTimeout(() => {
+                sendKeyPress(KeyboardKeys.Escape);
+            }, 250);
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
+        it("Show MRS Service Dialog and cancel", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+
+            const promise = hubRef.current!.showMrsServiceDialog(backend);
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+
+            dialogHelper.clickCancel()
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
+        it("Dialog error testing", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+
+            backend.mrs.addService = async (urlContextRoot: string, urlProtocol: string[], urlHostName: string,
+                comments: string, enabled: boolean, options: IShellDictionary | null,
+                authPath: string, authCompletedUrl: string,
+                authCompletedUrlValidation: string, authCompletedPageContent: string,
+                authApps: IMrsAuthAppData[]): Promise<IMrsServiceData> => {
+                    return Promise.resolve({
+                        enabled: 1,
+                        hostCtx: "",
+                        id: "",
+                        isCurrent: 1,
+                        urlContextRoot: "",
+                        urlHostName: "localhost",
+                        urlProtocol: "",
+                        comments: "some comments",
+                        options: {},
+                        authPath: "",
+                        authCompletedUrl: "",
+                        authCompletedUrlValidation: "",
+                        authCompletedPageContent: "",
+                        authApps: [],
+                        enableSqlEndpoint: 0,
+                        customMetadataSchema: "",
+                    });
+                }
+
+            backend.mrs.updateService = async (serviceId: string, urlContextRoot: string, urlHostName: string,
+                value: IShellDictionary): Promise<void> => {
+                    return Promise.resolve();
+                }
+
+            await sleep(500);
+            const promise = hubRef.current!.showMrsServiceDialog(backend);
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+            dialogHelper.verifyErrors();
+
+            let element = document.getElementById("servicePath") as HTMLInputElement;
+            expect(dialogHelper.getInputText("servicePath")).toBe("/myService");
+
+            await dialogHelper.setInputText("servicePath", "");
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors(["The service name must not be empty."]);
+
+            await dialogHelper.setInputText("servicePath", "/mrs");
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors(["The request path `/mrs` is reserved and cannot be used."]);
+
+            await dialogHelper.setInputText("servicePath", "/MRS");
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors(["The request path `/MRS` is reserved and cannot be used."]);
+
+            await dialogHelper.setInputText("servicePath", "/myService2");
+
+            await dialogHelper.setInputText("comments", "some comments");
+            await dialogHelper.setInputText("hostName", "localhost");
+
+            await dialogHelper.clickOk();
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+    })
+
+    describe("MRS Schema dialog tests", () => {
+        beforeAll(() => {
+            dialogHelper = new DialogHelper("mrsSchemaDialog");
+        })
+
+        it("Show MRS Schema Dialog (snapshot) and escape", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+
+            const promise = hubRef.current!.showMrsSchemaDialog(backend);
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+
+            expect(portals[0]).toMatchSnapshot();
+
+            setTimeout(() => {
+                sendKeyPress(KeyboardKeys.Escape);
+            }, 250);
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
+        it("Show MRS Schema Dialog and cancel", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+
+            const promise = hubRef.current!.showMrsSchemaDialog(backend);
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+
+            dialogHelper.clickCancel();
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
+        it("Dialog error testing", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+
+            backend.mrs.addSchema = (serviceId: string, schemaName: string, requestPath: string, requiresAuth: boolean,
+                options: IShellDictionary | null,
+                itemsPerPage: number | null, comments?: string): Promise<string> => {
+                    expect(serviceId).not.toBeNull();
+                    expect(schemaName).toBe("mySchema");
+                    expect(requestPath).toBe("/schema");
+                    expect(requiresAuth).toBeFalsy();
+                    expect(itemsPerPage).toBeNull();
+                    expect(options).toBeNull();
+                    expect(comments).toBe("");
+
+                    return Promise.resolve("done");
+                }
+
+            const promise = hubRef.current!.showMrsSchemaDialog(backend);
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+
+            await dialogHelper.setInputText("dbSchemaName", "");
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors(["The database schema name must not be empty."]);
+
+            await dialogHelper.setInputText("dbSchemaName", "mySchema");
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors();
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
     });
 
-    it("Show MRS Schema Dialog (snapshot)", async () => {
-        let portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(0);
+    describe("MRS AuthApp dialog tests", () => {
 
-        const promise = hubRef.current!.showMrsSchemaDialog(backend);
-        await nextProcessTick();
-        await sleep(500);
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(1);
+        beforeAll(() => {
+            dialogHelper = new DialogHelper("mrsAuthenticationAppDialog");
+        })
 
-        expect(portals[0]).toMatchSnapshot();
+        it("Show MRS Authentication App Dialog (snapshot) and escape", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
 
-        setTimeout(() => {
-            sendKeyPress(KeyboardKeys.Escape);
-        }, 250);
+            const promise = hubRef.current!.showMrsAuthAppDialog(backend);
+            await nextProcessTick();
+            await sleep(500);
 
-        await promise;
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(0);
+            expect(portals[0]).toMatchSnapshot();
+
+            setTimeout(() => {
+                sendKeyPress(KeyboardKeys.Escape);
+            }, 250);
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
+        it("Show MRS Authentication App Dialog (snapshot) and escape", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+
+            const promise = hubRef.current!.showMrsAuthAppDialog(backend);
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+
+            dialogHelper.clickCancel();
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
+        it("Dialog error testing", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+
+            const promise = hubRef.current!.showMrsAuthAppDialog(backend);
+
+            backend.mrs.addAuthApp = (serviceId: string, authApp: IMrsAuthAppData, registerUsers: []): Promise<IMrsAuthAppData> => {
+                expect(serviceId.length).toBeGreaterThan(0);
+                expect(authApp.name).toBe("MyAuthApp");
+                expect(authApp.appId?.length).toBeGreaterThan(0);
+
+                return Promise.resolve(authApp);
+            }
+
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors(["The vendor name must not be empty.", "The name must not be empty."]);
+
+            await dialogHelper.setInputText("name", "MyAuthApp");
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors(["The vendor name must not be empty."]);
+
+            await dialogHelper.setComboBoxItem("authVendorName", 3);
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors();
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+    })
+
+    describe("MRS Db Object dialog tests", () => {
+        beforeAll(() => {
+            dialogHelper = new DialogHelper("mrsDbObjectDialog");
+        })
+
+        it("Show MRS DB Object Dialog (snapshot) and escape", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+
+            const title = "Enter Configuration Values for the New MySQL REST Object";
+            const schemas = await backend.mrs.listSchemas();
+            const dbObjects = await backend.mrs.listDbObjects(schemas[0].id);
+            const dialogRequest: IMrsDbObjectEditRequest = {
+                id: "mrsDbObjectDialog",
+                title,
+                dbObject: dbObjects[0],
+                createObject: false,
+            };
+
+            const promise = hubRef.current!.showMrsDbObjectDialog(backend, dialogRequest);
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+
+            // This check fails in CI, but not locally. A slider is not hidden in CI as it should be.
+            // We have to rely on e2e tests for this.
+            expect(portals[0]).toMatchSnapshot();
+
+            setTimeout(() => {
+                sendKeyPress(KeyboardKeys.Escape);
+            }, 250);
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
+        it("Show MRS DB Object Dialog and cancel", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+
+            const title = "Enter Configuration Values for the New MySQL REST Object";
+            const schemas = await backend.mrs.listSchemas();
+            const dbObjects = await backend.mrs.listDbObjects(schemas[0].id);
+            const dialogRequest: IMrsDbObjectEditRequest = {
+                id: "mrsDbObjectDialog",
+                title,
+                dbObject: dbObjects[0],
+                createObject: false,
+            };
+
+            const promise = hubRef.current!.showMrsDbObjectDialog(backend, dialogRequest);
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+
+            await dialogHelper.clickCancel();
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
+        it("Dialog error testing", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+
+            backend.mrs.updateDbObject = (dbObjectId: string, dbObjectName: string, requestPath: string,
+                    schemaId: string, value: IShellMrsUpdateDbObjectKwargsValue): Promise<void> => {
+                        // verify data here...
+                        expect(dbObjectName).toBe("actor");
+                        expect(requestPath).toBe("/actor");
+
+                        expect(value).toMatchObject({
+                            name: "actor",
+                            dbSchemaId: schemaId,
+                            requestPath: "/SomePath",
+                            requiresAuth: false,
+                            autoDetectMediaType: false,
+                            enabled: true,
+                            rowUserOwnershipEnforced: false,
+                            rowUserOwnershipColumn: null,
+                            itemsPerPage: null,
+                            comments: "",
+                            mediaType: null,
+                            authStoredProcedure: null,
+                            crudOperations: [
+                              "READ",
+                            ],
+                            crudOperationFormat: "FEED",
+                            options: null,
+                            objects: [
+                              {
+                                // id: "1FWnIkTYSFeDZ5t//qaAgQ==",
+                                dbObjectId: dbObjectId,
+                                name: "MyServiceMrstestActor",
+                                position: 0,
+                                kind: "RESULT",
+                                sdkOptions: undefined,
+                                comments: undefined,
+                                fields: [
+                                  {
+                                    // id: "YsZ4sTpQQay81gQNciQuBg==",
+                                    // objectId: "1FWnIkTYSFeDZ5t//qaAgQ==",
+                                    representsReferenceId: undefined,
+                                    parentReferenceId: undefined,
+                                    name: "actorId",
+                                    position: 1,
+                                    dbColumn: {
+                                      comment: "",
+                                      datatype: "int",
+                                      idGeneration: null,
+                                      isGenerated: false,
+                                      isPrimary: true,
+                                      isUnique: false,
+                                      name: "actor_id",
+                                      notNull: true,
+                                      srid: null,
+                                    },
+                                    storedDbColumn: undefined,
+                                    enabled: true,
+                                    allowFiltering: true,
+                                    allowSorting: true,
+                                    noCheck: false,
+                                    noUpdate: false,
+                                    sdkOptions: undefined,
+                                    comments: undefined,
+                                    objectReference: undefined,
+                                  },
+                                  {
+                                    // id: "lcFswVq/QASWYk9BIOboXA==",
+                                    // objectId: "1FWnIkTYSFeDZ5t//qaAgQ==",
+                                    representsReferenceId: undefined,
+                                    parentReferenceId: undefined,
+                                    name: "firstName",
+                                    position: 2,
+                                    dbColumn: {
+                                      comment: "",
+                                      datatype: "varchar(45)",
+                                      idGeneration: null,
+                                      isGenerated: false,
+                                      isPrimary: false,
+                                      isUnique: false,
+                                      name: "first_name",
+                                      notNull: true,
+                                      srid: null,
+                                    },
+                                    storedDbColumn: undefined,
+                                    enabled: true,
+                                    allowFiltering: true,
+                                    allowSorting: false,
+                                    noCheck: false,
+                                    noUpdate: false,
+                                    sdkOptions: undefined,
+                                    comments: undefined,
+                                    objectReference: undefined,
+                                  },
+                                  {
+                                    // id: "hBQYwAiBR+yBwkYOPHCClw==",
+                                    // objectId: "1FWnIkTYSFeDZ5t//qaAgQ==",
+                                    representsReferenceId: undefined,
+                                    parentReferenceId: undefined,
+                                    name: "lastName",
+                                    position: 3,
+                                    dbColumn: {
+                                      comment: "",
+                                      datatype: "varchar(45)",
+                                      idGeneration: null,
+                                      isGenerated: false,
+                                      isPrimary: false,
+                                      isUnique: false,
+                                      name: "last_name",
+                                      notNull: true,
+                                      srid: null,
+                                    },
+                                    storedDbColumn: undefined,
+                                    enabled: true,
+                                    allowFiltering: true,
+                                    allowSorting: false,
+                                    noCheck: false,
+                                    noUpdate: false,
+                                    sdkOptions: undefined,
+                                    comments: undefined,
+                                    objectReference: undefined,
+                                  },
+                                  {
+                                    // id: "OTb3abe3RVrZNlbsRnm9dg==",
+                                    // objectId: "1FWnIkTYSFeDZ5t//qaAgQ==",
+                                    representsReferenceId: undefined,
+                                    parentReferenceId: undefined,
+                                    name: "lastUpdate",
+                                    position: 4,
+                                    dbColumn: {
+                                      comment: "",
+                                      datatype: "timestamp",
+                                      idGeneration: null,
+                                      isGenerated: false,
+                                      isPrimary: false,
+                                      isUnique: false,
+                                      name: "last_update",
+                                      notNull: true,
+                                      srid: null,
+                                    },
+                                    storedDbColumn: undefined,
+                                    enabled: true,
+                                    allowFiltering: true,
+                                    allowSorting: false,
+                                    noCheck: false,
+                                    noUpdate: false,
+                                    sdkOptions: undefined,
+                                    comments: undefined,
+                                    objectReference: undefined,
+                                  },
+                                ],
+                                storedFields: undefined,
+                              },
+                            ],
+                          })
+
+                        return Promise.resolve();
+                    }
+
+            const title = "Enter Configuration Values for the New MySQL REST Object";
+            const schemas = await backend.mrs.listSchemas();
+            const dbObjects = await backend.mrs.listDbObjects(schemas[0].id);
+            const dialogRequest: IMrsDbObjectEditRequest = {
+                id: "mrsDbObjectDialog",
+                title,
+                dbObject: dbObjects[0],
+                createObject: false,
+            };
+
+            const promise = hubRef.current!.showMrsDbObjectDialog(backend, dialogRequest);
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+
+            await dialogHelper.setInputText("requestPath", "");
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors(["The request path must not be empty."]);
+
+            await dialogHelper.setInputText("requestPath", "SomePath");
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors(["The request path must start with '/'."]);
+
+            await dialogHelper.setInputText("requestPath", "/SomePath");
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors();
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
     });
 
-    it("Show MRS DB Object Dialog (snapshot)", async () => {
-        let portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(0);
+    describe("MRS User dialog tests", () => {
+        beforeAll(() => {
+            dialogHelper = new DialogHelper("mrsUserDialog");
+        })
 
-        const title = "Enter Configuration Values for the New MySQL REST Object";
-        const schemas = await backend.mrs.listSchemas();
-        const dbObjects = await backend.mrs.listDbObjects(schemas[0].id);
-        const dialogRequest: IMrsDbObjectEditRequest = {
-            id: "mrsDbObjectDialog",
-            title,
-            dbObject: dbObjects[0],
-            createObject: false,
-        };
+        it("Show MRS User Dialog (snapshot) and escape", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
 
-        const promise = hubRef.current!.showMrsDbObjectDialog(backend, dialogRequest);
-        await nextProcessTick();
-        await sleep(500);
+            const promise = hubRef.current!.showMrsUserDialog(backend, authApp);
+            await nextProcessTick();
+            await sleep(500);
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(1);
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
 
-        // This check fails in CI, but not locally. A slider is not hidden in CI as it should be.
-        // We have to rely on e2e tests for this.
-        // expect(portals[0]).toMatchSnapshot();
+            expect(portals[0]).toMatchSnapshot();
 
-        setTimeout(() => {
-            sendKeyPress(KeyboardKeys.Escape);
-        }, 250);
+            setTimeout(() => {
+                sendKeyPress(KeyboardKeys.Escape);
+            }, 250);
 
-        await promise;
+            await promise;
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(0);
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
+        it("Show MRS User Dialog and cancel", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+
+            const promise = hubRef.current!.showMrsUserDialog(backend, authApp);
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+
+            dialogHelper.clickCancel();
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
+        it("Dialog error testing", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+
+            backend.mrs.addUser = (authAppId: string, name: string, email: string, vendorUserId: string,
+                loginPermitted: boolean, mappedUserId: string, appOptions: IShellDictionary | null,
+                authString: string, userRoles: IMrsUserRoleData[]): Promise<void> => {
+                    expect(name).toBe("MyUser");
+                    expect(authString).toBe("AAAAAA");
+                    expect(authAppId.length).toBeGreaterThan(0);
+
+                    return Promise.resolve();
+                }
+
+            const promise = hubRef.current!.showMrsUserDialog(backend, authApp);
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+
+            await dialogHelper.setInputText("name", "");
+            await dialogHelper.setInputText("authString", "");
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors(["The authentication string is required for this app.", "The user name or email are required for this app."]);
+
+            await dialogHelper.setInputText("name", "My User");
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors(["The authentication string is required for this app."]);
+
+            await dialogHelper.setInputText("authString", "SomePassword");
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors();
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
     });
 
-    it("Show MRS Content Set Dialog (snapshot)", async () => {
-        let portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(0);
+    describe("MRS Content Set dialog tests", () => {
+        beforeAll(() => {
+            dialogHelper = new DialogHelper("mrsContentSetDialog");
+        })
 
-        const promise = hubRef.current!.showMrsContentSetDialog(backend);
-        await nextProcessTick();
-        await sleep(500);
+        it("Show MRS Content Set Dialog (snapshot) and escape", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(1);
+            const promise = hubRef.current!.showMrsContentSetDialog(backend);
+            await nextProcessTick();
+            await sleep(500);
 
-        expect(portals[0]).toMatchSnapshot();
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
 
-        setTimeout(() => {
-            sendKeyPress(KeyboardKeys.Escape);
-        }, 250);
+            expect(portals[0]).toMatchSnapshot();
 
-        await promise;
+            setTimeout(() => {
+                sendKeyPress(KeyboardKeys.Escape);
+            }, 250);
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(0);
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
+        it("Show MRS Content Set Dialog and cancel", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+
+            const promise = hubRef.current!.showMrsContentSetDialog(backend);
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+
+            dialogHelper.clickCancel();
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
+        it("Dialog error testing", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+
+            backend.mrs.addContentSet = (contentDir: string, requestPath: string,
+                requiresAuth: boolean, options: IShellDictionary | null,
+                serviceId?: string, comments?: string,
+                enabled?: boolean, replaceExisting?: boolean,
+                progress?: (message: string) => void): Promise<IMrsAddContentSetData> => {
+                    expect(requestPath).toBe("/someRequestPath");
+
+                    return Promise.resolve({});
+                }
+
+            const promise = hubRef.current!.showMrsContentSetDialog(backend);
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+
+            await dialogHelper.setInputText("requestPath", "");
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors(["The request path must not be empty."]);
+
+            await dialogHelper.setInputText("requestPath", "someRequestPath");
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors(["The request path must start with /."]);
+
+            await dialogHelper.setInputText("requestPath", "/someRequestPath");
+            await dialogHelper.clickOk();
+            dialogHelper.verifyErrors();
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
     });
 
-    it("Show MRS Authentication App Dialog (snapshot)", async () => {
-        let portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(0);
+    describe("MRS SDK Export dialog tests", () => {
+        beforeAll(() => {
+            dialogHelper = new DialogHelper("mrsSdkExportDialog");
+        })
 
-        const promise = hubRef.current!.showMrsAuthAppDialog(backend);
-        await nextProcessTick();
-        await sleep(500);
+        it("Show MRS SDK Export Dialog (snapshot) and escape", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+            const promise = hubRef.current!.showMrsSdkExportDialog(backend, service.id, 1);
+            await nextProcessTick();
+            await sleep(500);
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(1);
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
 
-        expect(portals[0]).toMatchSnapshot();
+            expect(portals[0]).toMatchSnapshot();
 
-        setTimeout(() => {
-            sendKeyPress(KeyboardKeys.Escape);
-        }, 250);
+            setTimeout(() => {
+                sendKeyPress(KeyboardKeys.Escape);
+            }, 250);
 
-        await promise;
+            await promise;
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(0);
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
+        it("Show MRS SDK Export Dialog and cancel", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+            const promise = hubRef.current!.showMrsSdkExportDialog(backend, service.id, 1);
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+
+            expect(portals[0]).toMatchSnapshot();
+
+            dialogHelper.clickCancel();
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
+        it("Dialog error testing", async () => {
+            let portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+            const promise = hubRef.current!.showMrsSdkExportDialog(backend, service.id, 1);
+            await nextProcessTick();
+            await sleep(500);
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+
+            dialogHelper.clickOk();
+            dialogHelper.verifyErrors();
+
+            await promise;
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
     });
-
-    it("Show MRS User Dialog (snapshot)", async () => {
-        let portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(0);
-
-        const authAppData = {
-            enabled: true,
-            limitToRegisteredUsers: true,
-            defaultRoleId: null,
-            serviceId: service.id,
-        };
-
-        const promise = hubRef.current!.showMrsUserDialog(backend, authAppData);
-        await nextProcessTick();
-        await sleep(500);
-
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(1);
-
-        expect(portals[0]).toMatchSnapshot();
-
-        setTimeout(() => {
-            sendKeyPress(KeyboardKeys.Escape);
-        }, 250);
-
-        await promise;
-
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(0);
-    });
-
 });

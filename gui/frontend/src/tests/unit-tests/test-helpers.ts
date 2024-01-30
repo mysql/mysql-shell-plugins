@@ -23,17 +23,18 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ComponentChild } from "preact";
 import { CommonWrapper, ReactWrapper } from "enzyme";
+import { ComponentChild } from "preact";
 
+import { range } from "d3";
 import fs from "fs";
-import path from "path";
 import os from "os";
+import path from "path";
 
 import { appParameters, requisitions } from "../../supplement/Requisitions.js";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { webSession } from "../../supplement/WebSession.js";
 import { LogLevel, MySQLShellLauncher } from "../../utilities/MySQLShellLauncher.js";
-import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 
 export const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipisci elit, " +
     "sed eiusmod tempor incidunt ut labore et dolore magna aliqua.";
@@ -544,3 +545,204 @@ export const copyFolderSync = (from: string, to: string): void => {
         }
     });
 };
+
+interface IElementQuery {
+    id?: string,
+    class?: string,
+    type?: string,
+    required?: boolean,
+    unique?: boolean,
+    parentId?: string,
+}
+
+/**
+ * Get the elements that comply to the search query parameters.
+ *
+ * @param query The query parameters for the HTML element search.
+ * @returns A collection of the elements that comply to the search query parameters.
+ */
+function searchElements(query: IElementQuery): Element[] {
+    let queryId = "";
+    let queryClass = "";
+    let queryParent = "";
+    let queryType = "";
+
+    if(query.id) {
+        queryId = `#${query.id}`;
+    }
+
+    if(query.type) {
+        queryType = query.type;
+    }
+
+    if(query.class) {
+        queryClass = `.${query.class.replaceAll(" ", ".")}`;
+    }
+
+    if(query.parentId) {
+        queryParent = `#${query.parentId} `;
+    }
+
+    // const queryString = `${queryParent} ${queryType}${queryClass} [${queryId}]`;
+    const queryString = `${queryParent} ${queryType}${queryId}${queryClass}`;
+
+    // let elements;
+    // try {
+    //     // elements = document.querySelectorAll("#mrsServiceDialog div.msg.button[id='cancel']");
+    //     elements = document.querySelectorAll(queryString);
+    // } catch(error) {
+    //     console.log(error);
+    // }
+    const elements = document.querySelectorAll(queryString);
+    let result = [];
+
+    for(const element of elements) {
+        result.push(element);
+    }
+
+    if(query.required) {
+        expect(result.length).toBeGreaterThan(0);
+    }
+
+    if(query.unique) {
+        expect(result.length).toBe(1);
+    }
+
+    return result;
+}
+
+/**
+ * Search for a single HTML element.
+ *
+ * @param query The query parameters.
+ * @returns
+ */
+function searchElement<T = Element>(query: IElementQuery): T {
+    query.unique = true;
+
+    const result = searchElements(query);
+
+    expect(result.length).toBe(1);
+
+    return result[0] as T;
+}
+
+export class DialogHelper {
+    id: string;
+
+    constructor(id: string) {
+        this.id = id;
+    }
+
+    /**
+     * Sets the text of an input HTML element.
+     *
+     * @param id The id of the HTML element.
+     * @param text The text to set in the input element.
+     */
+    async setInputText(id: string, text: string) {
+        const input = this.searchChild<HTMLInputElement>({ id, type: "input" });
+
+        changeInputValue(input, text);
+    }
+
+    getInputText(id: string) {
+        return this.searchChild<HTMLInputElement>({ id, type: "input" }).value;
+    }
+
+    /**
+     * Search for the `ok` button and click it.
+     *
+     */
+    async clickOk() {
+        const button = this.searchChild<HTMLButtonElement>({ id: "ok", type: "div" });
+
+        expect(button).not.toBeNull()
+
+        button.click();
+    }
+
+    /**
+     * Search for the `cancel` button and click it.
+     *
+     */
+    async clickCancel() {
+        const button = this.searchChild<HTMLButtonElement>({ id: "cancel", type: "div" });
+
+        expect(button).not.toBeNull()
+
+        button.click();
+    }
+
+    /**
+     * Sets the combo box selection by means of the item number in the drop down.
+     *
+     * @param id The HTML element of the combo box.
+     * @param item The item number in the drop down that is to be selected.
+     * @returns
+     */
+    async setComboBoxItem(id: string, item: number) {
+        const outer = this.searchChild<HTMLInputElement>({ id });
+
+        if (outer === null) {
+            return;
+        }
+
+        outer.click()
+        await nextRunLoop();
+
+        const popup = searchElement<HTMLDivElement>({ id: `${id}Popup` });
+
+        if (popup === null || popup.firstChild === null) {
+            return;
+        }
+
+        const popupItem = popup.firstChild.childNodes[item] as HTMLDivElement;
+        popupItem.click();
+    }
+
+    /**
+     * Return the text of all the dialog errors (HTML divs that comply with the `msg message error` class).
+     *
+     * @returns The found error element texts.
+     */
+    getErrors(): string[] {
+        const errors = this.searchChildren({ class: "msg message error" });
+        const result = [];
+
+        for (const index of range(errors.length)) {
+            result.push((errors[index] as HTMLDivElement).innerHTML);
+        }
+
+        return result;
+    }
+
+    /**
+     * Verify if the errors in the dialog are the same as the ones supplied by `errorList`.
+     *
+     * @param expectedErrors The error list to check in the dialog.
+     */
+    verifyErrors(expectedErrors: string[] = []) {
+        const errors = this.getErrors();
+
+        if(expectedErrors.length === 0) {
+            expect(errors.length).toBe(0);
+        } else {
+            expect(errors.length).toBeGreaterThan(0);
+            expect(errors.length).toBe(expectedErrors.length);
+            for (const index of range(expectedErrors.length)) {
+                expect(expectedErrors).toContain(errors[index]);
+            }
+        }
+    }
+
+    searchChildren(query: IElementQuery): Element[] {
+        return searchElements({ ...query, parentId: this.id });
+    }
+
+    searchChild<T = Element>(query: IElementQuery): T {
+        return searchElement({ ...query, parentId: this.id });
+    }
+}
+
+
