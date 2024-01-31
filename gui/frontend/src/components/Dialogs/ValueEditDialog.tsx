@@ -422,7 +422,7 @@ interface IValueEditDialogProperties extends IComponentProperties {
     onSelectTab?: (id: string) => void;
 }
 
-interface IValueEditDialogState extends IComponentState {
+export interface IValueEditDialogState extends IComponentState {
     title?: string;
     heading?: string;
     description?: string[];
