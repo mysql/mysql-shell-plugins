@@ -228,7 +228,7 @@ export class MdsEndpointDialog extends ValueDialogBase {
         }
     };
 
-    private validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
+    public validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
         const result: IDialogValidations = {
             messages: {},
             requiredContexts: [],
