@@ -708,7 +708,8 @@ export class CommandExecutor {
 
                 const isTabResult = (await result
                     .findElements(locator.notebook.codeEditor.editor.result.tabSection.exists)).length > 0;
-                const isTableResult = (await result.findElements(locator.notebook.codeEditor.editor.result.table))
+                const isTableResult = (await result
+                    .findElements(locator.notebook.codeEditor.editor.result.tableHeaders))
                     .length > 0;
                 const isJsonResult = (await result
                     .findElements(locator.notebook.codeEditor.editor.result.json.exists))
@@ -769,9 +770,6 @@ export class CommandExecutor {
                         }
                     }
                 } else if (isTableResult) {
-                    await driver.wait(waitUntil.elementLocated(result,
-                        locator.notebook.codeEditor.editor.result.tableHeaders),
-                        constants.wait2seconds, "Table headers were not loaded");
                     await driver.wait(waitUntil.elementLocated(result,
                         locator.notebook.codeEditor.editor.result.tableCell),
                         constants.wait2seconds, "Table cells were not loaded").catch(async () => {
