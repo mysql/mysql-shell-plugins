@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -55,7 +55,7 @@ const runParserTests = () => {
             const statement = sql.substring(range.span.start, end).trim();
 
             // The parser only supports syntax from 8.0 onwards. So we expect errors for older statements.
-            const checkResult = checkMinStatementVersion(statement, 80031);
+            const checkResult = checkMinStatementVersion(statement, 80200);
             if (checkResult.matched) {
                 const result = services.errorCheck(checkResult.statement, MySQLParseUnit.Generic,
                     checkResult.version, "ANSI_QUOTES");
