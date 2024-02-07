@@ -149,17 +149,24 @@ class SqliteColumnObjectTask(BaseObjectTask):
 
 
     def format(self, row):
-        return {
-                "name": row['name'],
-                "type": row['type'],
-                "not_null": row['not_null'],
-                "default": row['default'],
-                "is_pk": row['is_pk'],
-                "auto_increment": row['auto_increment']
+        result = {
+            "name": row['name'],
+            "type": row['type'],
+            "not_null": row['not_null'],
+            "is_pk": row['is_pk'],
+            "auto_increment": row['auto_increment'],
         }
 
+        # To maintain compatibility between MySQL and Sqlite,
+        # only in certain situations the `default` key is included in the result.
+        # See details at DbMySQLSessionTasks.py
+        if not row['not_null'] or (row['not_null'] and row['default']):
+            result["default"] = row['default']
 
-class SqliteColumnsMetadataTask(BaseObjectTask):
+        return result
+
+
+class SqliteColumnsMetadataTask(DbQueryTask):
     def process_result(self):
         buffer_size = self.options.get("row_packet_size", 25)
         columns_details = []
@@ -179,13 +186,20 @@ class SqliteColumnsMetadataTask(BaseObjectTask):
 
 
     def format(self, row):
-        return {
-                "schema": row['schema'],
-                "table": row['table'],
-                "name": row['name'],
-                "type": row['type'],
-                "not_null": row['not_null'],
-                "default": row['default'],
-                "is_pk": row['is_pk'],
-                "auto_increment": row['auto_increment']
+        result = {
+            "schema": row['schema'],
+            "table": row['table'],
+            "name": row['name'],
+            "type": row['type'],
+            "not_null": row['not_null'],
+            "is_pk": row['is_pk'],
+            "auto_increment": row['auto_increment'],
         }
+
+        # To maintain compatibility between MySQL and Sqlite,
+        # only in certain situations the `default` key is included in the result.
+        # See details at DbMySQLSessionTasks.py
+        if not row['not_null'] or (row['not_null'] and row['default']):
+            result["default"] = row['default']
+
+        return result

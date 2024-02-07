@@ -381,7 +381,69 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": { "name": "categoryID", "type": "int", "not_null": true, "default": null, "is_pk": true, "auto_increment": true }
+        "result": { "name": "categoryID", "type": "int", "not_null": true, "is_pk": true, "auto_increment": true }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+], 0))
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_object",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Column",
+        "schema_name": ws.tokens["schema"],
+        "table_name": 'products',
+        "name": 'categoryID'
+    }
+}, ws.matchList([
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": { "name": "categoryID", "type": "int", "not_null": false, "default": null, "is_pk": false, "auto_increment": false },
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+], 0))
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_object",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Column",
+        "schema_name": ws.tokens["schema"],
+        "table_name": 'products',
+        "name": 'productNumber'
+    }
+}, ws.matchList([
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": { "name": "productNumber", "type": "int", "not_null": false, "default": "1", "is_pk": false, "auto_increment": false },
     },
     {
         "request_state": {
@@ -412,7 +474,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": { "name": "categoryName", "type": "varchar(100)", "not_null": true, "default": null, "is_pk": false, "auto_increment": false }
+        "result": { "name": "categoryName", "type": "varchar(100)", "not_null": true, "is_pk": false, "auto_increment": false }
     },
     {
         "request_state": {
@@ -449,8 +511,8 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": [
-            { "schema": ws.tokens["schema"], "table": "categories", "name": "categoryName", "type": "varchar(100)", "not_null": true, "default": null, "is_pk": false, "auto_increment": false},
-            { "schema": ws.tokens["schema"], "table": "products", "name": "productName", "type": "varchar(100)", "not_null": true, "default": null, "is_pk": false, "auto_increment": false}
+            { "schema": ws.tokens["schema"], "table": "categories", "name": "categoryName", "type": "varchar(100)", "not_null": true, "is_pk": false, "auto_increment": false},
+            { "schema": ws.tokens["schema"], "table": "products", "name": "productName", "type": "varchar(100)", "not_null": true, "is_pk": false, "auto_increment": false}
         ]
     },
     {
@@ -492,8 +554,8 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": [
-            { "schema": ws.tokens["schema"], "table": "categories", "name": "categoryName", "type": "varchar(100)", "not_null": true, "default": null, "is_pk": false, "auto_increment": false },
-            { "schema": ws.tokens["schema"], "table": "products", "name": "productName", "type": "varchar(100)", "not_null": true, "default": null, "is_pk": false, "auto_increment": false }
+            { "schema": ws.tokens["schema"], "table": "categories", "name": "categoryName", "type": "varchar(100)", "not_null": true, "is_pk": false, "auto_increment": false },
+            { "schema": ws.tokens["schema"], "table": "products", "name": "productName", "type": "varchar(100)", "not_null": true, "is_pk": false, "auto_increment": false }
         ]
     },
     {

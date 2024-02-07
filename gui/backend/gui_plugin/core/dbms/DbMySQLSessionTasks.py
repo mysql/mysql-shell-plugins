@@ -103,14 +103,42 @@ class MySQLTableObjectTask(BaseObjectTask):
 
 class MySQLColumnObjectTask(BaseObjectTask):
     def format(self, row):
-        return {
+        result = {
             "name": row.get_field("name"),
             "type": row.get_field("type"),
             "not_null": row.get_field("not_null"),
-            "default": row.get_field("default"),
             "is_pk": row.get_field("is_pk"),
             "auto_increment": row.get_field("auto_increment"),
         }
+
+        # When a table column is created, information about the default value is stored in `information_schema.columns`
+        # and if the creating SQL statement does not contain the DEFAULT keyword, the default value is assumed to be NULL,
+        # even if the NOT NULL flag has been added. That leads to situation where is impossible to distinguish
+        # between two scenarios:
+        #   1. In create statement was used DEFAULT NULL
+        #   2. Create statement wasn't contain DEFAULT at all
+        # For both there is one result: default value is considered as NULL.
+        # The problem is that when combined with a NOT NULL value for a column,
+        # situations can arise where the combination does not make sense. Consider the following cases:
+        # - NOT NULL is False and DEFAULT is NULL or not specified:
+        #       this combination is fine, there is no conflict, the `default` key is part of the result
+        #       and contains value from `information_schema.columns`
+        # - NOT NULL is False and DEFAULT is NOT NULL:
+        #       this combination is also fine, there is no conflict, the `default` key is part of the result
+        #       and contains value from `information_schema.columns`
+        # - NOT NULL is True and DEFAULT is NOT NULL:
+        #       here too there is nothing to worry about, there is no conflict,
+        #       the `default` key is part of the result and contains value from `information_schema.columns`
+        # - NOT NULL is True and DEFAULT is not specified:
+        #       unfortunately, this combination leads to an error,
+        #       if the insertion of a value into the table was omitted for this column,
+        #       we would get an SQL error because the value of the column can not be NULL,
+        #       and the default value is just NULL. To avoid this situation, the `default` key
+        #       is omitted from the result and is treated as if the DEFAULT value had never been defined.
+        if not row.get_field("not_null") or (row.get_field("not_null") and row.get_field("default")):
+            result["default"] = row.get_field("default")
+
+        return result
 
     def process_result(self):
         _err_msg = f"The {self.type} '{self.name}' does not exist."
@@ -126,16 +154,21 @@ class MySQLColumnObjectTask(BaseObjectTask):
 
 class MySQLColumnsMetadataTask(DbQueryTask):
     def format(self, row):
-        return {
+        result = {
             "schema": row.get_field("schema"),
             "table": row.get_field("table"),
             "name": row.get_field("name"),
             "type": row.get_field("type"),
             "not_null": row.get_field("not_null"),
-            "default": row.get_field("default"),
             "is_pk": row.get_field("is_pk"),
             "auto_increment": row.get_field("auto_increment"),
         }
+
+        # See explanation on MySQLColumnObjectTask class
+        if not row.get_field("not_null") or (row.get_field("not_null") and row.get_field("default")):
+            result["default"] = row.get_field("default")
+
+        return result
 
     def process_result(self):
         buffer_size = self.options.get("row_packet_size", 25)

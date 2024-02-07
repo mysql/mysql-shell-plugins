@@ -140,7 +140,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": { "name": "id", "type": "INTEGER", "not_null": true, "default": null, "is_pk": true, "auto_increment": true }
+        "result": { "name": "id", "type": "INTEGER", "not_null": true, "is_pk": true, "auto_increment": true }
     },
     {
         "request_state": {
@@ -324,7 +324,7 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": [
-            { "schema": "main", "table": "tests_user", "name": "id", "type": "INTEGER", "not_null": true, "default": null, "is_pk": true, "auto_increment": true },
+            { "schema": "main", "table": "tests_user", "name": "id", "type": "INTEGER", "not_null": true, "is_pk": true, "auto_increment": true },
             { "schema": "main", "table": "tests_user", "name": "name", "type": "VARCHAR(45)", "not_null": false, "default": null, "is_pk": false, "auto_increment": false }
         ]
     },
@@ -367,7 +367,7 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": [
-            { "schema": "main", "table": "tests_user", "name": "id", "type": "INTEGER", "not_null": true, "default": null, "is_pk": true, "auto_increment": true },
+            { "schema": "main", "table": "tests_user", "name": "id", "type": "INTEGER", "not_null": true, "is_pk": true, "auto_increment": true },
             { "schema": "main", "table": "tests_user", "name": "name", "type": "VARCHAR(45)", "not_null": false, "default": null, "is_pk": false, "auto_increment": false }
         ]
     },
