@@ -19,6 +19,7 @@ CREATE TABLE `products` (
   `productID` int NOT NULL AUTO_INCREMENT,
   `productName` varchar(100) NOT NULL,
   `categoryID` int DEFAULT NULL,
+  `productNumber` int DEFAULT 1,
   PRIMARY KEY (`productID`),
   KEY `fk_category` (`categoryID`),
   CONSTRAINT `fk_category` FOREIGN KEY (`categoryID`) REFERENCES `categories` (`categoryID`)
