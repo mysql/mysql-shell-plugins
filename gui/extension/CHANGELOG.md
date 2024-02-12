@@ -12,6 +12,8 @@
 - BUG#36211402 Unexpected compilation error when building the VSCode Extension
 - BUG#35150090 Missing required options on "mrs.add.schema()" documentation
 - BUG#36204648 Syntax error when query filter mixes explicit OR and implicit AND operators
+- BUG#36282632 MrsBaseObjectProcedureCall instances yield a type error
+- BUG#36286261 TypeScript compiler error for accessing properties in a potential empty object
 
 ## Changes in 1.14.2+8.1.1
 
