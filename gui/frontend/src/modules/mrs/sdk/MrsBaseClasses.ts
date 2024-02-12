@@ -947,16 +947,22 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
         return this;
     };
 
-    // orderBy proposal
+    /**
+     * Sort the result set according to the values of a given set of fields.
+     * @param {ColumnOrder<P>} columnOrder An object where the keys are the field names and the values can be
+     * either "ASC" or "DESC" depending on the order in which the records should be returned.
+     * @see {ColumnOrder}
+     * @example
+     * .orderBy({ name: "ASC" })
+     * .orderBy({ name: "ASC", age: "DESC" })
+     * @returns {MrsBaseObjectQuery<C, P>} The MRS GET request representation.
+     */
     public orderBy = (columnOrder?: ColumnOrder<P>): this => {
         if (typeof columnOrder === "undefined") {
             return this;
         }
 
-        const queryFilter = this.queryFilter as MrsFilterObject<P> ?? {};
-        queryFilter.$orderby = columnOrder;
-
-        this.queryFilter = queryFilter;
+        this.queryFilter = { ...this.queryFilter as MrsFilterObject<P>, $orderby: columnOrder } as DataFilter<P>;
 
         return this;
     };
@@ -1241,7 +1247,7 @@ export class MrsBaseObjectUpdate<T extends object | undefined> {
     };
 }
 
-class MrsBaseObjectCall<I, P extends JsonObject> {
+class MrsBaseObjectCall<I, P extends IMrsFetchData> {
     protected constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
@@ -1262,7 +1268,7 @@ class MrsBaseObjectCall<I, P extends JsonObject> {
     }
 }
 
-export class MrsBaseObjectProcedureCall<I, P extends JsonObject>
+export class MrsBaseObjectProcedureCall<I, P extends IMrsFetchData>
     extends MrsBaseObjectCall<IMrsProcedureResultList<I>, P> {
     public constructor(
         protected schema: MrsBaseSchema,
@@ -1278,7 +1284,7 @@ export class MrsBaseObjectProcedureCall<I, P extends JsonObject>
     }
 }
 
-export class MrsBaseObjectFunctionCall<I, P extends JsonObject> extends MrsBaseObjectCall<I, P> {
+export class MrsBaseObjectFunctionCall<I, P extends IMrsFetchData> extends MrsBaseObjectCall<I, P> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
