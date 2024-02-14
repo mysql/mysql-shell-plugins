@@ -5,12 +5,14 @@
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is also distributed with certain software (including
+ * This program is designed to work with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation.  The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with MySQL.
+ * separately licensed software that they have included with
+ * the program or referenced in the documentation.
+ *
  * This program is distributed in the hope that it will be useful,  but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -52,13 +54,13 @@ try {
     }
 
     function installChromedriver($location, $vscodeVersion) {
-        Start-Job -Name "get-chromedriver-$testSuite" -ScriptBlock { 
+        Start-Job -Name "get-chromedriver-$testSuite" -ScriptBlock {
             npm run e2e-tests-get-chromedriver -- -s $using:location -c $using:vscodeVersion
         }
     }
 
     function installVsCode($location, $vscodeVersion){
-        Start-Job -Name "get-vscode-$testSuite" -ScriptBlock { 
+        Start-Job -Name "get-vscode-$testSuite" -ScriptBlock {
             npm run e2e-tests-get-vscode -- -s $using:location -c $using:vscodeVersion
         }
     }
@@ -71,7 +73,7 @@ try {
         } else {
             $pinfo.FileName = "$target/bin/code"
         }
-        
+
         $pinfo.RedirectStandardError = $true
         $pinfo.RedirectStandardOutput = $true
         $pinfo.UseShellExecute = $false
@@ -102,7 +104,7 @@ try {
     }
 
     if (Test-Path -Path $log){
-        Remove-Item -Path $log -Recurse -Force	
+        Remove-Item -Path $log -Recurse -Force
     }
 
     New-Item -ItemType "file" -Path $log
@@ -118,7 +120,7 @@ try {
     writeMsg "PROXY: $env:HTTPS_PROXY"
 
     if (!(Test-Path -Path $env:TEST_RESOURCES_PATH)) {
-        New-Item -ItemType "directory" -Path $env:TEST_RESOURCES_PATH 
+        New-Item -ItemType "directory" -Path $env:TEST_RESOURCES_PATH
     }
 
     # REMOVE INSTALLED EXTENSION
@@ -168,7 +170,7 @@ try {
             installVsCode $path $env:VSCODE_VERSION
         } else {
             writeMsg "$version. OK"
-        } 
+        }
     }
     # Wait for it all to complete
     Get-Job | Wait-Job
@@ -190,7 +192,7 @@ try {
     Get-Job | Wait-Job
     writeMsg "DONE"
 
-    # DOWNLOAD EXTENSION 
+    # DOWNLOAD EXTENSION
     if (!$env:VSIX_PATH) {
         writeMsg "Trying to download from PB2..."
         $bundles = (Invoke-WebRequest -NoProxy -Uri $env:PB2_LINK).content
@@ -211,7 +213,7 @@ try {
         } else {
             Throw "Not supported platform"
         }
-        
+
         $extension = ($bundles.builds | Where-Object {
             $_.product -eq $product
             }).artifacts | Where-Object {
@@ -219,8 +221,8 @@ try {
             }
 
         if ($extension){
-            $extension | ForEach-Object { 
-                writeMsg "Downloading the extension ..." "-NoNewline" 
+            $extension | ForEach-Object {
+                writeMsg "Downloading the extension ..." "-NoNewline"
                 $dest = Join-Path $env:WORKSPACE "$env:EXTENSION_BRANCH-$env:EXTENSION_PUSH_ID.vsix"
                 Invoke-WebRequest -NoProxy -Uri $_.url -OutFile $dest
                 writeMsg "DONE"
@@ -242,7 +244,7 @@ try {
         writeMsg "DONE"
     }
 
-    # COPY OCI FILES   
+    # COPY OCI FILES
     $itemsPath = Join-Path $basePath "oci_files"
     Get-ChildItem -Path $itemsPath | % {
         writeMsg "Copying $_ file to $ociPath folder..." "-NoNewLine"
@@ -255,7 +257,7 @@ try {
     ForEach ($testSuite in $testSuites) {
         $testResources = Join-Path $env:TEST_RESOURCES_PATH "test-resources-$($testSuite)"
         $extLocation = Join-Path $env:WORKSPACE "ext-$testSuite"
-        Start-Job -Name "install-vsix" -ScriptBlock { 
+        Start-Job -Name "install-vsix" -ScriptBlock {
             npm run e2e-tests-install-vsix -- -s $using:testResources -e $using:extLocation -f $using:dest
         }
     }
@@ -284,7 +286,7 @@ try {
     Invoke-Expression $runConfig
     writeMsg "DONE"
 
-    # CHECK CONFIG FOLDERS AND WEB CERTIFICATES 
+    # CHECK CONFIG FOLDERS AND WEB CERTIFICATES
     writeMsg "Checking config folders..." "-NoNewLine"
     if($isWindows){
         $targetWebCerts = Join-Path $env:APPDATA "MySQL" "mysqlsh-gui" "plugin_data" "gui_plugin" "web_certs"
@@ -297,7 +299,7 @@ try {
         if (!(Test-Path $config)) {
             New-Item -ItemType "directory" -Path $config
             writeMsg "Created $config"
-            $mysqlsh = Join-Path $config "mysqlsh.log"  
+            $mysqlsh = Join-Path $config "mysqlsh.log"
             New-Item -ItemType "file" -Path $mysqlsh
             writeMsg "Created $mysqlsh"
             $guiPlugin = Join-Path $config "plugin_data" "gui_plugin"
@@ -321,7 +323,7 @@ try {
                 writeMsg "DONE"
             }
         }
-    } 
+    }
     writeMsg "DONE"
 
     # TSC TO TEST FILES

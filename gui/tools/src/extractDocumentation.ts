@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is also distributed with certain software (including
+ * This program is designed to work with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation. The authors of MySQL hereby grant you an additional
@@ -112,7 +112,7 @@ const concatStrings = (strings: string[]): string => {
     }
 
     return result;
-}
+};
 
 /**
  * Processing of arrays to find simple entries that can be concatenated to a single string and similar things.
@@ -329,7 +329,7 @@ const convertListToMarkdown = (list: any[]): any => {
     }
 
     return result;
-}
+};
 
 /**
  * Converts a list of paragraphs to a list of strings. The first entry gets the markdown list entry dash marker,
@@ -360,7 +360,7 @@ const convertItemListToMarkdown = (list: any[]): string[] => {
     }
 
     return result;
-}
+};
 
 /**
  * Converts an object to a markdown string, if possible.
@@ -473,7 +473,7 @@ const convertToMarkdown = (object: any): any => {
             return JSON.stringify(object); // Should never happen.
         }
     }
-}
+};
 
 /**
  * Removes any single, double or backtick quotes from the input.
@@ -494,7 +494,7 @@ const unquote = (text: string): string => {
     }
 
     return result;
-}
+};
 
 /**
  * Escape markdown specific characters to avoid rendering them styled (for instance: underscores in var names).
@@ -507,7 +507,7 @@ const escapeText = (text: string): string => {
     const result = text.replace(/[*`_]/g, (match: string): string => "\\" + match);
 
     return result;
-}
+};
 
 /**
  * Write the given object out to the file system as a JSON file.
@@ -520,7 +520,7 @@ const writeObject = (object: any, fileName: string): void => {
     text = text.replace(/\\n +/g, " ");
 
     fs.writeFileSync(fileName, text, { encoding: "utf-8" });
-}
+};
 
 /**
  * Converts the given text (which must be XML) to a JS object, using a specific set of options.
@@ -545,7 +545,7 @@ const convertXML = (text: string): any => {
         elementsKey: "children",
         //captureSpacesBetweenElements: true, Doesn't hold what it promises.
     });
-}
+};
 
 /**
  * Extract specific informations from the given file and converts that to a JSON string.
@@ -558,7 +558,7 @@ const processFile = (text: string, entities: Map<string, string>): any => {
 
     // Before parsing replace all custom entities.
     entities.forEach((value: string, key: string) => {
-        const regex = new RegExp("&" + key + ";", "g")
+        const regex = new RegExp("&" + key + ";", "g");
         text = text.replace(regex, value);
     });
 
@@ -1034,7 +1034,7 @@ function runConversion() {
                             const callSignature: ICallSignature = {
                                 signature: "",
                                 arguments: [],
-                            }
+                            };
 
                             for (const subChild of child.children) {
                                 if (subChild.name === "format" && subChild.children?.length > 0) {

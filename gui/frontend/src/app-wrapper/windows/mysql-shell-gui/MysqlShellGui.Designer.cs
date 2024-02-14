@@ -1,16 +1,18 @@
 ﻿/*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is also distributed with certain software (including
+ * This program is designed to work with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation.  The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with MySQL.
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
  * This program is distributed in the hope that it will be useful,  but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -48,9 +50,9 @@ namespace MysqlShellGui {
       ((System.ComponentModel.ISupportInitialize)(this.webView)).BeginInit();
       this.menuStrip1.SuspendLayout();
       this.SuspendLayout();
-      // 
+      //
       // webView
-      // 
+      //
       this.webView.CreationProperties = null;
       this.webView.Dock = System.Windows.Forms.DockStyle.Fill;
       this.webView.Location = new System.Drawing.Point(0, 33);
@@ -60,9 +62,9 @@ namespace MysqlShellGui {
       this.webView.Source = new System.Uri(Url, System.UriKind.Absolute);
       this.webView.TabIndex = 0;
       this.webView.ZoomFactor = 1D;
-      // 
+      //
       // menuStrip1
-      // 
+      //
       this.menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
       this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.helpToolStripMenuItem});
@@ -71,32 +73,32 @@ namespace MysqlShellGui {
       this.menuStrip1.Size = new System.Drawing.Size(1200, 33);
       this.menuStrip1.TabIndex = 1;
       this.menuStrip1.Text = "menuStrip1";
-      // 
+      //
       // helpToolStripMenuItem
-      // 
+      //
       this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.preferencesToolStripMenuItem,
             this.aboutToolStripMenuItem});
       this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
       this.helpToolStripMenuItem.Size = new System.Drawing.Size(65, 29);
       this.helpToolStripMenuItem.Text = "&Help";
-      // 
+      //
       // preferencesToolStripMenuItem
-      // 
+      //
       this.preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
       this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
       this.preferencesToolStripMenuItem.Text = "&Preferences";
       this.preferencesToolStripMenuItem.Click += new System.EventHandler(this.preferencesToolStripMenuItem_Click);
-      // 
+      //
       // aboutToolStripMenuItem
-      // 
+      //
       this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
       this.aboutToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
       this.aboutToolStripMenuItem.Text = "&About";
       this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
-      // 
+      //
       // MysqlShellGui
-      // 
+      //
       this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(1200, 1024);
@@ -125,4 +127,3 @@ namespace MysqlShellGui {
     private ToolStripMenuItem aboutToolStripMenuItem;
   }
 }
-

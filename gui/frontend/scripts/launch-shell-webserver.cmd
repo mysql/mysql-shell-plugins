@@ -1,17 +1,19 @@
 rem!/bin/bash
 
-rem Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+rem Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
 rem This program is free software; you can redistribute it and/or modify
 rem it under the terms of the GNU General Public License, version 2.0,
 rem as published by the Free Software Foundation.
 rem
-rem This program is also distributed with certain software (including
+rem This program is designed to work with certain software (including
 rem but not limited to OpenSSL) that is licensed under separate terms, as
 rem designated in a particular file or component or in included license
 rem documentation.  The authors of MySQL hereby grant you an additional
 rem permission to link the program and your derivative works with the
-rem separately licensed software that they have included with MySQL.
+rem separately licensed software that they have either included with
+rem the program or referenced in the documentation.
+rem
 rem This program is distributed in the hope that it will be useful,  but
 rem WITHOUT ANY WARRANTY; without even the implied warranty of
 rem MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See

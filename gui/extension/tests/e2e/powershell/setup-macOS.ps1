@@ -5,12 +5,14 @@
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is also distributed with certain software (including
+ * This program is designed to work with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation.  The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with MySQL.
+ * separately licensed software that they have included with
+ * the program or referenced in the documentation.
+ *
  * This program is distributed in the hope that it will be useful,  but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -53,7 +55,7 @@ ForEach ($testSuite in $testSuites) {
         New-Item -ItemType SymbolicLink -Path $link -Target $targetWebCerts
         write-host "DONE"
     }
-} 
+}
 write-host "DONE"
 $testResources = Join-Path $env:TEST_RESOURCES_PATH "test-resources"
 npm run e2e-tests-get-vscode -- -s $testResources -c $vscodeVersion
@@ -67,7 +69,7 @@ if (!(Test-Path -Path $ociPath)){
     write-host "DONE"
 }
 
-# COPY OCI FILES   
+# COPY OCI FILES
 $itemsPath = Join-Path $basePath "oci_files"
 Get-ChildItem -Path $itemsPath | % {
     write-host "Copying $_ file to $ociPath folder..." "-NoNewLine"

@@ -7,12 +7,14 @@ lexer grammar MySQLMRSLexer;
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is also distributed with certain software (including
+ * This program is designed to work with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation. The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with MySQL.
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
@@ -120,7 +122,7 @@ JSON_SEPARATOR_SYMBOL:          '->';  // MYSQL
 JSON_UNQUOTED_SEPARATOR_SYMBOL: '->>'; // MYSQL
 
 OPEN_SQUARE_SYMBOL:  '[';
-CLOSE_SQUARE_SYMBOL: ']'; 
+CLOSE_SQUARE_SYMBOL: ']';
 
 // The MySQL server parser uses custom code in its lexer to allow base alphanum chars (and ._$) as variable name.
 // For this it handles user variables in 2 different ways and we have to model this to match that behavior.
@@ -233,7 +235,8 @@ CALL_SYMBOL:                        C A L L;                                    
 CASCADE_SYMBOL:                     C A S C A D E;                                      // SQL-2003-N
 CASCADED_SYMBOL:                    C A S C A D E D;                                    // SQL-2003-R
 CASE_SYMBOL:                        C A S E;                                            // SQL-2003-R
-CAST_SYMBOL:                        C A S T                                             { this._type = this.determineFunction(MySQLMRSLexer.CAST_SYMBOL); }; // SQL-2003-R
+CAST_SYMBOL:
+    C A S T                                                                             { this._type = this.determineFunction(MySQLMRSLexer.CAST_SYMBOL); }; // SQL-2003-R
 CATALOG_NAME_SYMBOL:                C A T A L O G '_' N A M E;                          // SQL-2003-N
 CHAIN_SYMBOL:                       C H A I N;                                          // SQL-2003-N
 CHANGE_SYMBOL:                      C H A N G E;
@@ -524,7 +527,8 @@ MEMORY_SYMBOL:                      M E M O R Y;
 MERGE_SYMBOL:                       M E R G E;                                          // SQL-2003-R
 MESSAGE_TEXT_SYMBOL:                M E S S A G E '_' T E X T;                          // SQL-2003-N
 MICROSECOND_SYMBOL:                 M I C R O S E C O N D;                              // MYSQL-FUNC
-MID_SYMBOL:                         M I D                                               { this._type = this.determineFunction(MySQLMRSLexer.SUBSTRING_SYMBOL); }; // Synonym
+MID_SYMBOL:
+    M I D                                                                               { this._type = this.determineFunction(MySQLMRSLexer.SUBSTRING_SYMBOL); }; // Synonym
 MIDDLEINT_SYMBOL:                   M I D D L E I N T                                   -> type(MEDIUMINT_SYMBOL); // Synonym (for Powerbuilder)
 MIGRATE_SYMBOL:                     M I G R A T E;
 MINUTE_MICROSECOND_SYMBOL:          M I N U T E '_' M I C R O S E C O N D;
@@ -742,7 +746,8 @@ STORED_SYMBOL:                      S T O R E D;
 STRAIGHT_JOIN_SYMBOL:               S T R A I G H T '_' J O I N;
 STRING_SYMBOL:                      S T R I N G;
 SUBCLASS_ORIGIN_SYMBOL:             S U B C L A S S '_' O R I G I N;                    // SQL-2003-N
-SUBDATE_SYMBOL:                     S U B D A T E                                       { this._type = this.determineFunction(MySQLMRSLexer.SUBDATE_SYMBOL); };
+SUBDATE_SYMBOL:
+    S U B D A T E                                                                       { this._type = this.determineFunction(MySQLMRSLexer.SUBDATE_SYMBOL); };
 SUBJECT_SYMBOL:                     S U B J E C T;
 SUBPARTITIONS_SYMBOL:               S U B P A R T I T I O N S;
 SUBPARTITION_SYMBOL:                S U B P A R T I T I O N;
@@ -755,7 +760,8 @@ SUPER_SYMBOL:                       S U P E R;
 SUSPEND_SYMBOL:                     S U S P E N D;
 SWAPS_SYMBOL:                       S W A P S;
 SWITCHES_SYMBOL:                    S W I T C H E S;
-SYSDATE_SYMBOL:                     S Y S D A T E                                       { this._type = this.determineFunction(MySQLMRSLexer.SYSDATE_SYMBOL); };
+SYSDATE_SYMBOL:
+    S Y S D A T E                                                                       { this._type = this.determineFunction(MySQLMRSLexer.SYSDATE_SYMBOL); };
 SYSTEM_USER_SYMBOL:
     S Y S T E M '_' U S E R                                                             { this._type = this.determineFunction(MySQLMRSLexer.USER_SYMBOL); };
 TABLES_SYMBOL:                      T A B L E S;
@@ -781,7 +787,8 @@ TRAILING_SYMBOL:                    T R A I L I N G;                            
 TRANSACTION_SYMBOL:                 T R A N S A C T I O N;
 TRIGGERS_SYMBOL:                    T R I G G E R S;
 TRIGGER_SYMBOL:                     T R I G G E R;                                      // SQL-2003-R
-TRIM_SYMBOL:                        T R I M                                             { this._type = this.determineFunction(MySQLMRSLexer.TRIM_SYMBOL); }; // SQL-2003-N
+TRIM_SYMBOL:
+    T R I M                                                                             { this._type = this.determineFunction(MySQLMRSLexer.TRIM_SYMBOL); }; // SQL-2003-N
 TRUE_SYMBOL:                        T R U E;                                            // SQL-2003-R
 TRUNCATE_SYMBOL:                    T R U N C A T E;
 TYPES_SYMBOL:                       T Y P E S;
@@ -1063,8 +1070,6 @@ SQL_TSI_MONTH_SYMBOL:   S Q L '_' T S I '_' M O N T H     -> type(MONTH_SYMBOL);
 SQL_TSI_QUARTER_SYMBOL: S Q L '_' T S I '_' Q U A R T E R -> type(QUARTER_SYMBOL); // Synonym
 SQL_TSI_YEAR_SYMBOL:    S Q L '_' T S I '_' Y E A R       -> type(YEAR_SYMBOL);    // Synonym
 
-
-
 CONFIGURE_SYMBOL:   C O N F I G U R E;
 REST_SYMBOL:        R E S T;
 METADATA_SYMBOL:    M E T A D A T A;
@@ -1134,12 +1139,10 @@ WHITESPACE: [ \t\f\r\n]+ -> channel(HIDDEN); // Ignore whitespaces.
 
 // Input not covered elsewhere (unless quoted).
 INVALID_INPUT:
-    [\u0001-\u0008]   // Control codes.
-    | '\u000B'        // Line tabulation.
-    | '\u000C'        // Form feed.
-    | [\u000E-\u001F] // More control codes.
-    
-    ;
+    [\u0001-\u0008]    // Control codes.
+    | '\u000B'         // Line tabulation.
+    | '\u000C'         // Form feed.
+    | [\u000E-\u001F]; // More control codes.
 
 // String and text types.
 

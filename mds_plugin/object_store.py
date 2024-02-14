@@ -1,15 +1,17 @@
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
 # as published by the Free Software Foundation.
 #
-# This program is also distributed with certain software (including
+# This program is designed to work with certain software (including
 # but not limited to OpenSSL) that is licensed under separate terms, as
 # designated in a particular file or component or in included license
 # documentation.  The authors of MySQL hereby grant you an additional
 # permission to link the program and your derivative works with the
-# separately licensed software that they have included with MySQL.
+# separately licensed software that they have either included with
+# the program or referenced in the documentation.
+#
 # This program is distributed in the hope that it will be useful,  but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -282,7 +284,7 @@ def create_bucket(bucket_name=None, compartment_id=None, config=None,
         compartment_id (str): OCID of the parent compartment.
         config (object): An OCI config object or None.
         interactive (bool): Whether exceptions should be raised
-        return_object (bool): Whether the bucket object should be returned 
+        return_object (bool): Whether the bucket object should be returned
 
     Returns:
         None or the created bucket object
@@ -429,7 +431,7 @@ def delete_file_from_list_from_bucket(index, os_client, objects,
     """Deletes a file from a given file list
 
     Args:
-        index (int): The thread index, specifying which files from the list to 
+        index (int): The thread index, specifying which files from the list to
             upload
         os_client (object): An oci object store client instance
         files (list): The list of filenames as strings
@@ -453,7 +455,7 @@ def delete_bucket_object(name=None, **kwargs):
     """Deletes an object store bucket objects
 
     Args:
-        name (str): The name of the object, can include * to match multiple 
+        name (str): The name of the object, can include * to match multiple
             objects
         **kwargs: Additional options
 
@@ -721,7 +723,7 @@ def list_bucket_objects(**kwargs):
 
     Keyword Args:
         bucket_name (str): The name of the bucket
-        name (str): Then name of the bucket object, can include * 
+        name (str): Then name of the bucket object, can include *
             to match multiple objects
         compartment_id (str): OCID of the parent compartment.
         config (object): An OCI config object or None.
@@ -995,7 +997,7 @@ def upload_file_from_list_to_bucket(index, upload_manager, files,
     """Uploads a file from a file list
 
     Args:
-        index (int): The thread index, specifying which files from the list to 
+        index (int): The thread index, specifying which files from the list to
             upload
         upload_manager (object): An oci upload_manager instance
         files (list): The list of filenames as strings
@@ -1167,7 +1169,7 @@ def create_bucket_object_par(**kwargs):
         bucket_object_name (str): If set to JSON, output is formatted that way.
         bucket_name (str): The name of the bucket
         access_type (str): The type of access to grant ('r', 'w', 'rw')
-        valid_till (str): The point in time until the PAR is valid using the 
+        valid_till (str): The point in time until the PAR is valid using the
             format YYYY-MM-DD HH:MM:SS. If not specified it is now + 7 days.
         compartment_id (str): OCID of the parent compartment.
         config (object): An OCI config object or None.

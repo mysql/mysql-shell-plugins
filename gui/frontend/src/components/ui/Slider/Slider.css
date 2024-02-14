@@ -1,16 +1,18 @@
  /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is also distributed with certain software (including
+ * This program is designed to work with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation. The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with MySQL.
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
  * This program is distributed in the hope that it will be useful,  but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
@@ -22,77 +24,77 @@
  */
 
  .msg.slider {
-    --current-value: 50%;
-    --handle-size: 20px;
+     --current-value: 50%;
+     --handle-size: 20px;
 
-    display: flex;
-    flex-direction: row;
+     display: flex;
+     flex-direction: row;
 
-    position: relative;
-    min-width: 50px;
-    min-height: 10px;
-    height: 30px;
-    margin: 0px calc(var(--handle-size) / 2);
+     position: relative;
+     min-width: 50px;
+     min-height: 10px;
+     height: 30px;
+     margin: 0px calc(var(--handle-size) / 2);
 
-    user-select: none;
-}
+     user-select: none;
+ }
 
-.msg.slider > .body {
-    align-self: center;
+ .msg.slider > .body {
+     align-self: center;
 
-    width: 100%;
-    height: 10px;
+     width: 100%;
+     height: 10px;
 
-    margin: calc(var(--handle-size) / 2);
+     margin: calc(var(--handle-size) / 2);
 
-    border-radius: 10px;
-    border: 1px solid var(--button-border);
-    background-color: var(--button-background);
+     border-radius: 10px;
+     border: 1px solid var(--button-border);
+     background-color: var(--button-background);
 
-    cursor: pointer;
-    overflow: visible;
-    user-select: none;
-}
+     cursor: pointer;
+     overflow: visible;
+     user-select: none;
+ }
 
-.msg.slider.vertical {
-    flex-direction: column;
+ .msg.slider.vertical {
+     flex-direction: column;
 
-    min-width: 10px;
-    min-height: 50px;
-    width: 30px;
+     min-width: 10px;
+     min-height: 50px;
+     width: 30px;
 
-    margin: calc(var(--handle-size) / 2) 0px;
-}
+     margin: calc(var(--handle-size) / 2) 0px;
+ }
 
-.msg.slider.vertical > .body {
-    width: 10px;
-    height: 100%;
-}
+ .msg.slider.vertical > .body {
+     width: 10px;
+     height: 100%;
+ }
 
-.msg.slider > .body .handle {
-    position: absolute;
-    left: calc(var(--current-value) - var(--handle-size) / 2);
+ .msg.slider > .body .handle {
+     position: absolute;
+     left: calc(var(--current-value) - var(--handle-size) / 2);
 
-    width: var(--handle-size);
-    height: var(--handle-size);
+     width: var(--handle-size);
+     height: var(--handle-size);
 
-    border: 2px solid var(--foreground);
-    border-radius: 50%;
-    background-color: var(--foreground);
+     border: 2px solid var(--foreground);
+     border-radius: 50%;
+     background-color: var(--foreground);
 
-    box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.5);
+     box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.5);
 
-    align-self: center;
-}
+     align-self: center;
+ }
 
-.msg.slider.vertical > .body .handle {
-    left: auto;
-    top: calc(var(--current-value) - var(--handle-size) / 2);
-}
+ .msg.slider.vertical > .body .handle {
+     left: auto;
+     top: calc(var(--current-value) - var(--handle-size) / 2);
+ }
 
-.msg.slider > .dataInput,
-.msg.slider > .title {
-    position: absolute;
-    width: max-content;
-    min-width: 10px;
-}
+ .msg.slider > .dataInput,
+ .msg.slider > .title {
+     position: absolute;
+     width: max-content;
+     min-width: 10px;
+ }
