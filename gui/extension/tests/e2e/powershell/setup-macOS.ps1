@@ -27,7 +27,7 @@ $basePath = Join-Path $PSScriptRoot ".."
 Set-Location $basePath
 $basePath = Get-Location
 $env:WORKSPACE = Resolve-Path(Join-Path $basePath ".." ".." ".." "..")
-$vsCodeVersion = "1.83.0"
+$vsCodeVersion = "1.83.1"
 $testSuites = @("db", "notebook", "oci", "shell", "rest", "open-editors")
 
 if (!$env:VSIX_PATH){
@@ -58,8 +58,21 @@ ForEach ($testSuite in $testSuites) {
 }
 write-host "DONE"
 $testResources = Join-Path $env:TEST_RESOURCES_PATH "test-resources"
-npm run e2e-tests-get-vscode -- -s $testResources -c $vscodeVersion
-npm run e2e-tests-get-chromedriver -- -s $testResources -c $vscodeVersion
+New-Item -Path $testResources -ItemType "directory" -Force
+
+## CHECK CPU ARCH. VSCODE EXTENSION TESTER HAS A BUG. IT ONLY DOWNLOADS VSCODE FOR NON-ARM CPU ARCHS s
+$arch = uname -p
+if ($arch -eq "arm") {
+    $destVscode = Join-Path $testResources "stable_$vsCodeVersion.zip"
+    if (!(Test-Path $destVscode)) {
+        Invoke-WebRequest "https://update.code.visualstudio.com/$vsCodeVersion/darwin-arm64/stable" -OutFile $destVscode
+        unzip $destVscode -d $testResources 
+    }
+} else {
+    npm run e2e-tests-get-vscode -- -s $testResources -c $vsCodeVersion
+}
+
+npm run e2e-tests-get-chromedriver -- -s $testResources -c $vsCodeVersion
 
 # CREATE OCI Directory
 $ociPath = Join-Path $env:WORKSPACE "oci"
