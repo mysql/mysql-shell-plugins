@@ -2,6 +2,7 @@
     "version": "0.2",
     "language": "en",
     "words": [
+        "GEOMETRYCOLLECTION",
         "preact",
         "sakila"
     ],
@@ -10,6 +11,7 @@
     "ignorePaths": [
     ],
     "ignoreWords": [
+        "ORDS",
         "parens",
         "cond",
         "defaultstatus",
@@ -23,6 +25,7 @@
         "camelcase",
         "paren",
         "preinstall",
-        "mysqlsh"
+        "mysqlsh",
+        "notnull"
     ]
 }

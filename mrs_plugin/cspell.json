@@ -13,7 +13,7 @@
     "flagWords": [
         "hte"
     ],
-    "ignorePaths": [],
+    "ignorePaths": ["cspell.json"],
     "ignoreWords": [
         "mysqlsh",
         "PYTHONPATH",
