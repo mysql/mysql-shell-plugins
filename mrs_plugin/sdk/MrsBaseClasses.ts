@@ -542,7 +542,6 @@ type NullEndingRange<Type> = readonly [Type, Type | null];
 
 type BetweenRegular = string | number | Date;
 
-// cspell: ignore ninstr
 interface ISimpleOperatorProperty {
     "$eq": string | number | Date;
     "$gt": number | Date;

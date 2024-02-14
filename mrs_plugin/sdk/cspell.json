@@ -1,0 +1,16 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "import": [
+    "../cspell.json"
+  ],
+  "words": [
+    "geometrycollection",
+    "linestring",
+    "multilinestring",
+    "multipolygon"
+  ],
+  "ignoreWords": [
+    "ninstr"
+  ]
+}
