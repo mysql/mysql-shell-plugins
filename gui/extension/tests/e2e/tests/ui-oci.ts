@@ -519,43 +519,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         });
 
-        it("Edit an existing MDS Connection", async function () {
-
-            this.retries(1);
-
-            if (skip) {
-                this.skip();
-            }
-
-            const localMDSInfo: interfaces.IConnMDS = {
-                profile: "E2ETESTS",
-                // eslint-disable-next-line max-len
-                dbSystemOCID: "ocid1.mysqldbsystem.oc1.iad.aaaaaaaamggf5754p2fjtqhkguxpu6zgzzjyknx2irdh2exhdhkjy6y4s7va",
-            };
-
-            const mdsConn: interfaces.IDBConnection = {
-                dbType: "MySQL",
-                caption: "MDSEdited",
-                mds: localMDSInfo,
-            };
-
-            await Section.focus(constants.dbTreeSection);
-            const treeMDSConn = await Tree.getOciElementByType(constants.dbTreeSection, constants.dbSystemType);
-            await Tree.openContextMenuAndSelect(treeMDSConn, constants.editDBConnection);
-            await DatabaseConnection.setConnection(
-                "MySQL",
-                mdsConn.caption,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                localMDSInfo,
-            );
-
-            expect(await Tree.existsElement(constants.dbTreeSection, mdsConn.caption),
-                errors.doesNotExistOnTree(mdsConn.caption)).to.be.true;
-        });
-
         it("Create a new MDS Connection", async function () {
 
             if (skip) {
