@@ -5,12 +5,14 @@
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is also distributed with certain software (including
+ * This program is designed to work with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation.  The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with MySQL.
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
  * This program is distributed in the hope that it will be useful,  but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -482,7 +484,7 @@ export interface IMrsFunctionResult<C> {
 }
 
 export interface IMrsDeleteResult {
-    itemsDeleted: number
+    itemsDeleted: number;
 }
 
 export type DataFilter<Type> = DelegationFilter<Type> | HighOrderFilter<Type>;
@@ -528,12 +530,12 @@ export type HighOrderFilter<Type> = {
 export type ComparisonOpExpr<Type> = {
     [Operator in keyof ISimpleOperatorProperty]?: Type & ISimpleOperatorProperty[Operator]
 } & {
-    [Operator in "$notnull" | "$null"]?: boolean | null
-} & {
-    not?: null
-} & {
-    $between?: NullStartingRange<Type & BetweenRegular> | NullEndingRange<Type & BetweenRegular>
-};
+        [Operator in "$notnull" | "$null"]?: boolean | null
+    } & {
+        not?: null;
+    } & {
+        $between?: NullStartingRange<Type & BetweenRegular> | NullEndingRange<Type & BetweenRegular>;
+    };
 
 type NullStartingRange<Type> = readonly [Type | null, Type];
 type NullEndingRange<Type> = readonly [Type, Type | null];
@@ -542,15 +544,15 @@ type BetweenRegular = string | number | Date;
 
 // cspell: ignore ninstr
 interface ISimpleOperatorProperty {
-    "$eq": string | number | Date
-    "$gt": number | Date
-    "$instr": string
-    "$gte": number | Date
-    "$lt": number | Date
-    "$lte": number | Date
-    "$like": string
-    "$ne": string | number | Date
-    "$ninstr": string
+    "$eq": string | number | Date;
+    "$gt": number | Date;
+    "$instr": string;
+    "$gte": number | Date;
+    "$lt": number | Date;
+    "$lte": number | Date;
+    "$like": string;
+    "$ne": string | number | Date;
+    "$ninstr": string;
 }
 
 export type BinaryOpExpr<ParentType, Type> = {
@@ -693,14 +695,14 @@ export type MultiPolygon = WellKnownText<`MultiPolygon(${string})`> | {
 // A filter can apply to different kind of operations - find*(), delete*() and update*().
 // Each operation should determine whether it is required or not.
 export interface IFilterOptions<Filterable> {
-    where: DataFilter<Filterable>
+    where: DataFilter<Filterable>;
 }
 
 // create*() API
 
 // For now, to create a record we only need to specify the details of that specific record.
 export interface ICreateOptions<Type> {
-    data: Type
+    data: Type;
 }
 
 /** Options available to find a record based on a unique identifier or primary key */
@@ -817,12 +819,12 @@ export type IDeleteOptions<Type> = IFilterOptions<Type>;
 // more plain JavaScript objects.
 export interface IUpdateOptions<Instance, Type, PrimaryKeys extends Array<string & keyof Type>, Config>
     extends ICreateOptions<Instance> {
-    where: Config extends IBatchConfig ? Array<UpdateMatch<Type, PrimaryKeys>> : UpdateMatch<Type, PrimaryKeys>
+    where: Config extends IBatchConfig ? Array<UpdateMatch<Type, PrimaryKeys>> : UpdateMatch<Type, PrimaryKeys>;
 }
 
 // Specific options for batch updates.
 export interface IBatchConfig {
-    batch: true
+    batch: true;
 }
 
 // Each matcher should only allow to specify values for the names of primary key columns.
@@ -831,12 +833,12 @@ export type UpdateMatch<Type, PrimaryKeys extends Array<string & keyof Type>> = 
 };
 
 type MrsFilterObject<Fields> = DataFilter<Fields> & {
-    $orderby: ColumnOrder<Fields>
+    $orderby: ColumnOrder<Fields>;
 };
 
 class MrsJSON {
     public static stringify = (json: JsonValue): string => {
-        return JSON.stringify(json, (key: string, value: { not?: null } & JsonValue) => {
+        return JSON.stringify(json, (key: string, value: { not?: null; } & JsonValue) => {
             // expand $notnull operator (lookup at the child level)
             // if we are operating at the root of the object, "not" is a field name, in which case, there is nothing
             // left to do
@@ -928,7 +930,7 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
             if (typeof queryFilter.$and === "undefined" && Object.keys(queryFilter).length > 1) {
                 // implicit AND operators do not contain high-order ops
                 const explicitAnd = Object.keys(queryFilter).map((key) => {
-                    return { [key]: (queryFilter as PureFilter<P> & { [key: string]: unknown })[key] };
+                    return { [key]: (queryFilter as PureFilter<P> & { [key: string]: unknown; })[key] };
                 });
 
                 queryFilter = { $or: [{ $and: explicitAnd }, filter] };
@@ -1246,7 +1248,7 @@ class MrsBaseObjectCall<I, P extends JsonObject> {
         protected params: P) {
     }
 
-    protected async fetch (): Promise<I> {
+    protected async fetch(): Promise<I> {
         const input = `${this.schema.requestPath}${this.requestPath}`;
 
         const res = await this.schema.service.session.doFetch({
@@ -1269,7 +1271,7 @@ export class MrsBaseObjectProcedureCall<I, P extends JsonObject>
         super(schema, requestPath, params);
     }
 
-    public async fetch (): Promise<IMrsProcedureResultList<I>> {
+    public async fetch(): Promise<IMrsProcedureResultList<I>> {
         const res = await super.fetch();
 
         return res;
@@ -1284,7 +1286,7 @@ export class MrsBaseObjectFunctionCall<I, P extends JsonObject> extends MrsBaseO
         super(schema, requestPath, params);
     }
 
-    public async fetch (): Promise<I> {
+    public async fetch(): Promise<I> {
         const res = await super.fetch() as IMrsFunctionResult<I>;
 
         return res.result;

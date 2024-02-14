@@ -1,16 +1,18 @@
 /*
- * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is also distributed with certain software (including
+ * This program is designed to work with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation.  The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with MySQL.
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
  * This program is distributed in the hope that it will be useful,  but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -313,7 +315,7 @@ body.vscode-high-contrast-light .sidebar {
     font-size: 13px;
 }
 
-.section-nav li.active>a {
+.section-nav li.active > a {
     color: var(--text-color-toc-active);
     box-shadow: 0 0 0 1px var(--border-color-selected);
     background-color: var(--bg-color-selected);
@@ -322,7 +324,7 @@ body.vscode-high-contrast-light .sidebar {
     padding-left: 4px;
 }
 
-.section-nav li>a {
+.section-nav li > a {
     text-decoration: none;
     display: block;
     padding: .125rem 0;
@@ -341,7 +343,7 @@ body.vscode-high-contrast-light .sidebar {
     list-style: none;
 }
 
-.section-nav *+ul {
+.section-nav * + ul {
     margin-top: 0px;
 }
 
@@ -377,10 +379,10 @@ li {
     line-height: 1.44;
 }
 
-ul>li>ul,
-ul>li>ol,
-ol>li>ol,
-ol>li>ul {
+ul > li > ul,
+ul > li > ol,
+ol > li > ol,
+ol > li > ul {
     margin: 0
 }
 
@@ -443,9 +445,9 @@ strong {
     font-weight: bold
 }
 
-:not(pre)>code,
-:not(pre)>kbd,
-:not(pre)>samp {
+:not(pre) > code,
+:not(pre) > kbd,
+:not(pre) > samp {
     font-size: 12px;
     font-family: Consolas, monospace, serif;
     white-space: nowrap;
@@ -531,14 +533,14 @@ svg:not(:root) {
     overflow: hidden
 }
 
-*+p,
-*+ul,
-*+ol,
-*+dl,
-*+blockquote,
-*+pre,
-*+address,
-*+fieldset {
+* + p,
+* + ul,
+* + ol,
+* + dl,
+* + blockquote,
+* + pre,
+* + address,
+* + fieldset {
     margin-top: 15px
 }
 

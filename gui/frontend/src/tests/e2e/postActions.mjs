@@ -1,16 +1,18 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is also distributed with certain software (including
+ * This program is designed to work with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation.  The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with MySQL.
+ * separately licensed software that they have included with
+ * the program or referenced in the documentation.
+ *
  * This program is distributed in the hope that it will be useful,  but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -73,13 +75,13 @@ if (fs.existsSync(join(baseDir, "screenshots"))) {
 
 const refDivs = document.querySelectorAll("div.failed, div.pending");
 //Mark bugs on skipped tests
-for (let i=0; i <= refDivs.length-1; i++) {
+for (let i = 0; i <= refDivs.length - 1; i++) {
     const suite = refDivs[i].querySelector(".test-suitename").textContent;
     const title = refDivs[i].querySelector(".test-title").textContent;
     if (!refDivs[i].querySelector("a") || !refDivs[i].querySelector("b")) {
         let codeLines = [];
 
-        switch(suite) {
+        switch (suite) {
             case "Login":
                 codeLines = loginFile.toString().split("\n");
                 break;
@@ -112,16 +114,16 @@ for (let i=0; i <= refDivs.length-1; i++) {
         }
 
         let text = "";
-        for (let y=0; y <= codeLines.length-1; y++) {
+        for (let y = 0; y <= codeLines.length - 1; y++) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             if (codeLines[y].indexOf(String(title)) !== -1) {
                 const breakLine1 = document.createElement("br");
                 const breakLine2 = document.createElement("br");
                 if (!refDivs[i].querySelector("a")) {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                    if (codeLines[y-1].indexOf("mybug.mysql.oraclecorp.com") !== -1) {
+                    if (codeLines[y - 1].indexOf("mybug.mysql.oraclecorp.com") !== -1) {
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                        text = codeLines[y-1].match(/bug:(.*)/)[1].trim();
+                        text = codeLines[y - 1].match(/bug:(.*)/)[1].trim();
                         const htmlEl = document.createElement("a");
                         htmlEl.href = text;
                         htmlEl.text = "---->  HAS A BUG  <-----";
@@ -145,9 +147,9 @@ for (let i=0; i <= refDivs.length-1; i++) {
                 }
                 if (!refDivs[i].querySelector("b")) {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                    if (codeLines[y-1].indexOf("reason:") !== -1) {
+                    if (codeLines[y - 1].indexOf("reason:") !== -1) {
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                        text = codeLines[y-1].match(/reason:(.*)/)[1].trim();
+                        text = codeLines[y - 1].match(/reason:(.*)/)[1].trim();
                         const htmlEl = document.createElement("b");
                         htmlEl.textContent = `Skipped Reason: ${text}`;
 

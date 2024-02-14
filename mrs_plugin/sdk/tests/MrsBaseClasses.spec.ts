@@ -5,12 +5,14 @@
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is also distributed with certain software (including
+ * This program is designed to work with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation.  The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with MySQL.
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
  * This program is distributed in the hope that it will be useful,  but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -34,18 +36,18 @@ interface ITableMetadata1 {
     num?: number,
     isActive?: boolean,
     json?: JsonValue,
-    oneToMany?: ITableMetadata2[]
+    oneToMany?: ITableMetadata2[];
 }
 
 interface ITableMetadata2 {
     id?: number,
     str?: string,
-    oneToOne?: ITableMetadata3
+    oneToOne?: ITableMetadata3;
 }
 
 interface ITableMetadata3 {
     id?: number,
-    str?: string
+    str?: string;
 }
 
 const fetchTestDouble = vi.fn(() => {
@@ -122,22 +124,22 @@ describe("MRS SDK API", () => {
     });
 
     it("sets the order of the records in the result set based on a given field using a literal order keyword",
-            async () => {
-        const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-        await query.orderBy({ num: "DESC" }).fetch();
+        async () => {
+            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+            await query.orderBy({ num: "DESC" }).fetch();
 
-        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"$orderby":{"num":"DESC"}}',
-            expect.anything());
-    });
+            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"$orderby":{"num":"DESC"}}',
+                expect.anything());
+        });
 
     it("sets the order of the records in the result set based on a given field using a numeric order identifier",
-            async () => {
-        const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-        await query.orderBy({ num: -1 }).fetch();
+        async () => {
+            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+            await query.orderBy({ num: -1 }).fetch();
 
-        expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"$orderby":{"num":-1}}',
-            expect.anything());
-    });
+            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"$orderby":{"num":-1}}',
+                expect.anything());
+        });
 
     it("retrieves the first page of records that match a given implicit filter", async () => {
         const options: IFindManyOptions<unknown, ITableMetadata1> = {
@@ -233,7 +235,7 @@ describe("MRS SDK API", () => {
     });
 
     it("retrieves all records where a given field is NULL", async () => {
-        const options: IFindManyOptions<unknown, { maybe: number | null }> = {
+        const options: IFindManyOptions<unknown, { maybe: number | null; }> = {
             where: {
                 maybe: null,
             },
@@ -246,13 +248,13 @@ describe("MRS SDK API", () => {
     });
 
     it("deletes all records where a given field is NULL", async () => {
-        const options: IFindManyOptions<unknown, { maybe: number | null }> = {
+        const options: IFindManyOptions<unknown, { maybe: number | null; }> = {
             where: {
                 maybe: null,
             },
         };
 
-        const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz");
+        const query = new MrsBaseObjectDelete<{ maybe: number | null; }>(schema, "/baz");
         await query.where(options.where).fetch();
 
         expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$null":"null"}}', expect.objectContaining({
@@ -261,7 +263,7 @@ describe("MRS SDK API", () => {
     });
 
     it("retrieves all records where a given field is not NULL", async () => {
-        const options: IFindManyOptions<unknown, { maybe: number | null }> = {
+        const options: IFindManyOptions<unknown, { maybe: number | null; }> = {
             where: {
                 maybe: {
                     not: null,
@@ -276,7 +278,7 @@ describe("MRS SDK API", () => {
     });
 
     it("deletes all records where a given field is not NULL", async () => {
-        const options: IFindManyOptions<unknown, { maybe: number | null }> = {
+        const options: IFindManyOptions<unknown, { maybe: number | null; }> = {
             where: {
                 maybe: {
                     not: null,
@@ -284,7 +286,7 @@ describe("MRS SDK API", () => {
             },
         };
 
-        const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz");
+        const query = new MrsBaseObjectDelete<{ maybe: number | null; }>(schema, "/baz");
         await query.where(options.where).fetch();
 
         expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$notnull":"null"}}', expect.objectContaining({
@@ -293,7 +295,7 @@ describe("MRS SDK API", () => {
     });
 
     it(`retrieves all records where a field called "not" is NULL`, async () => {
-        const options: IFindManyOptions<unknown, { not: number | null }> = {
+        const options: IFindManyOptions<unknown, { not: number | null; }> = {
             where: {
                 not: null,
             },
@@ -306,7 +308,7 @@ describe("MRS SDK API", () => {
     });
 
     it(`retrieves all records where a field called "not" is not NULL`, async () => {
-        const options: IFindManyOptions<unknown, { not: number | null }> = {
+        const options: IFindManyOptions<unknown, { not: number | null; }> = {
             where: {
                 not: {
                     not: null,
@@ -321,7 +323,7 @@ describe("MRS SDK API", () => {
     });
 
     it("embeds unions when the filter does not contain any", async () => {
-        interface IDatabaseObject { name?: string, age?: number }
+        interface IDatabaseObject { name?: string, age?: number; }
 
         const firstUnionItem = { name: "foo" };
         const secondUnionItem = { age: 42 };
@@ -334,7 +336,7 @@ describe("MRS SDK API", () => {
     });
 
     it("aggregates unions when the filter already contains other unions", async () => {
-        interface IDatabaseObject { name?: string, age?: number }
+        interface IDatabaseObject { name?: string, age?: number; }
 
         const firstUnionItem = { name: "foo" };
         const secondUnionItem = { age: 42 };
@@ -346,7 +348,7 @@ describe("MRS SDK API", () => {
     });
 
     it("aggregates unions when the filter contains explicit intersections", async () => {
-        interface IDatabaseObject { name?: string, age?: number, isActive?: boolean }
+        interface IDatabaseObject { name?: string, age?: number, isActive?: boolean; }
 
         const firstUnionItem = { name: "foo" };
         const secondUnionItem = { age: 42 };
@@ -355,11 +357,11 @@ describe("MRS SDK API", () => {
 
         await query.where({ $and: [firstUnionItem, secondUnionItem] }).or({ isActive: false }).fetch();
         expect(fetch).toHaveBeenCalledWith(
-                '/foo/bar/baz?q={"$or":[{"$and":[{"name":"foo"},{"age":42}]},{"isActive":false}]}', expect.anything());
+            '/foo/bar/baz?q={"$or":[{"$and":[{"name":"foo"},{"age":42}]},{"isActive":false}]}', expect.anything());
     });
 
     it("aggregates unions when the filter contains implicit intersections", async () => {
-        interface IDatabaseObject { name?: string, age?: number, isActive?: boolean }
+        interface IDatabaseObject { name?: string, age?: number, isActive?: boolean; }
 
         const firstUnionItem = { name: "foo" };
         const secondUnionItem = { age: 42 };
@@ -369,6 +371,6 @@ describe("MRS SDK API", () => {
         await query.where({ ...firstUnionItem, ...secondUnionItem }).or({ isActive: false }).fetch();
         // the router does not work with something like {"$or":[{"name":"foo","age":42},{"isActive":false}]}
         expect(fetch).toHaveBeenCalledWith(
-                '/foo/bar/baz?q={"$or":[{"$and":[{"name":"foo"},{"age":42}]},{"isActive":false}]}', expect.anything());
+            '/foo/bar/baz?q={"$or":[{"$and":[{"name":"foo"},{"age":42}]},{"isActive":false}]}', expect.anything());
     });
 });

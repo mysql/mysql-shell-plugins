@@ -5,12 +5,14 @@
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is also distributed with certain software (including
+ * This program is designed to work with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation.  The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with MySQL.
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
  * This program is distributed in the hope that it will be useful,  but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -31,27 +33,27 @@ import type {
 describe("MRS SDK base types", () => {
     describe("BooleanFieldMapSelect", () => {
         it("accepts boolean toggles any field in the record", () => {
-            const select: BooleanFieldMapSelect<{name:string,age:number}> = {};
+            const select: BooleanFieldMapSelect<{ name: string, age: number; }> = {};
             expectTypeOf(select).toHaveProperty("name");
             expectTypeOf(select).toHaveProperty("age");
-            expectTypeOf(select.name).toEqualTypeOf<boolean|undefined>();
+            expectTypeOf(select.name).toEqualTypeOf<boolean | undefined>();
         });
     });
 
     describe("FieldNameSelect", () => {
         it("accepts a list of field names", () => {
-            const select: FieldNameSelect<{name:string,age:number}> = [];
+            const select: FieldNameSelect<{ name: string, age: number; }> = [];
             expectTypeOf(select).toBeArray();
-            expectTypeOf(select[0]).toEqualTypeOf<"name"|"age">();
+            expectTypeOf(select[0]).toEqualTypeOf<"name" | "age">();
         });
     });
 
     describe("IColumnOrder", () => {
         it("accepts the appropriate options to order a given column", () => {
-            const orderBy: ColumnOrder<{name:string}> = {name:1};
+            const orderBy: ColumnOrder<{ name: string; }> = { name: 1 };
             expectTypeOf(orderBy).toBeObject();
             expectTypeOf(orderBy).toHaveProperty("name");
-            expectTypeOf(orderBy.name).toEqualTypeOf<"DESC"|"ASC"|-1|1|undefined>();
+            expectTypeOf(orderBy.name).toEqualTypeOf<"DESC" | "ASC" | -1 | 1 | undefined>();
         });
     });
 
@@ -205,13 +207,13 @@ describe("MRS SDK base types", () => {
 
     describe("PureFilter", () => {
         it("allows checking if a field is implicitly equal to a value", () => {
-            interface ITestType { x: string, y: number, z: boolean }
+            interface ITestType { x: string, y: number, z: boolean; }
             expectTypeOf<ITestType>().toMatchTypeOf<PureFilter<ITestType>>();
         });
 
         it("allows checking field value using an explicit operator", () => {
-            interface IImplicitFilter { x: string }
-            interface IExplicitFilter { x: ComparisonOpExpr<string> }
+            interface IImplicitFilter { x: string; }
+            interface IExplicitFilter { x: ComparisonOpExpr<string>; }
             expectTypeOf<IExplicitFilter>().toMatchTypeOf<PureFilter<IImplicitFilter>>();
         });
     });
@@ -219,26 +221,26 @@ describe("MRS SDK base types", () => {
     describe("HighOrderFilter", () => {
         it("allows a list of items containing implicit field checks", () => {
             expectTypeOf({ $and: [{ x: "foo" }, { y: "bar" }] })
-                .toMatchTypeOf<HighOrderFilter<{ x: string, y: string }>>();
+                .toMatchTypeOf<HighOrderFilter<{ x: string, y: string; }>>();
         });
 
         it("allows a list of items containing explicit field checks", () => {
             expectTypeOf({ $and: [{ x: { $eq: "foo" } }, { y: { $eq: "bar" } }] })
-                .toMatchTypeOf<HighOrderFilter<{ x: string, y: string }>>();
+                .toMatchTypeOf<HighOrderFilter<{ x: string, y: string; }>>();
         });
 
         it("allows a list of items containing other high order filters", () => {
             expectTypeOf({ $or: [{ $and: [{ x: "foo" }] }, { $and: [{ y: "bar" }] }] })
-                .toMatchTypeOf<HighOrderFilter<{ x: string, y: string }>>();
+                .toMatchTypeOf<HighOrderFilter<{ x: string, y: string; }>>();
 
             expectTypeOf({ $or: [{ $and: [{ x: { $eq: "foo" } }] }, { $and: [{ y: { $eq: "bar" } }] }] })
-                .toMatchTypeOf<HighOrderFilter<{ x: string, y: string }>>();
+                .toMatchTypeOf<HighOrderFilter<{ x: string, y: string; }>>();
         });
     });
 
     describe("DataFilter", () => {
         it("allows AND/OR operators defined at the first level of the JSON tree", () => {
-            interface ITestType { x: string }
+            interface ITestType { x: string; }
             type ITestFilter = HighOrderFilter<ITestType>;
             expectTypeOf<ITestFilter>().toMatchTypeOf<DataFilter<ITestType>>();
         });
@@ -257,24 +259,24 @@ describe("MRS SDK base types", () => {
         });
 
         it("accepts the appropriate option to order the result set", () => {
-            const options: IFindFirstOptions<unknown, {name:string}> = {};
-            expectTypeOf(options.orderBy).toEqualTypeOf<ColumnOrder<{name:string}>|undefined>();
+            const options: IFindFirstOptions<unknown, { name: string; }> = {};
+            expectTypeOf(options.orderBy).toEqualTypeOf<ColumnOrder<{ name: string; }> | undefined>();
         });
 
         it("accepts the appropriate option to select specific fields from the records in the result set", () => {
-            const options: IFindFirstOptions<{name:string}, unknown> = {};
+            const options: IFindFirstOptions<{ name: string; }, unknown> = {};
             expectTypeOf(options.select).toEqualTypeOf<
-                BooleanFieldMapSelect<{name:string}>|FieldNameSelect<{name:string}>|undefined>();
+                BooleanFieldMapSelect<{ name: string; }> | FieldNameSelect<{ name: string; }> | undefined>();
         });
 
         it("accepts the number of records to skip in the result set", () => {
-            const options: IFindFirstOptions<{name:string}, unknown> = {};
-            expectTypeOf(options.skip).toEqualTypeOf<number|undefined>();
+            const options: IFindFirstOptions<{ name: string; }, unknown> = {};
+            expectTypeOf(options.skip).toEqualTypeOf<number | undefined>();
         });
 
         it("accepts the appropriate option to filter the records in the result set", () => {
-            const options: IFindFirstOptions<unknown, {name:string}> = {};
-            expectTypeOf(options.where).toEqualTypeOf<DataFilter<{name:string}>|undefined>();
+            const options: IFindFirstOptions<unknown, { name: string; }> = {};
+            expectTypeOf(options.where).toEqualTypeOf<DataFilter<{ name: string; }> | undefined>();
         });
     });
 
@@ -291,49 +293,49 @@ describe("MRS SDK base types", () => {
         });
 
         it("accepts the appropriate option to order the result set", () => {
-            const options: IFindManyOptions<unknown, {name:string}> = {};
-            expectTypeOf(options.orderBy).toEqualTypeOf<ColumnOrder<{name:string}>|undefined>();
+            const options: IFindManyOptions<unknown, { name: string; }> = {};
+            expectTypeOf(options.orderBy).toEqualTypeOf<ColumnOrder<{ name: string; }> | undefined>();
         });
 
         it("accepts the appropriate option to select specific fields from the records in the result set", () => {
-            const options: IFindManyOptions<{name:string}, unknown> = {};
+            const options: IFindManyOptions<{ name: string; }, unknown> = {};
             expectTypeOf(options.select).toEqualTypeOf<
-                BooleanFieldMapSelect<{name:string}>|FieldNameSelect<{name:string}>|undefined>();
+                BooleanFieldMapSelect<{ name: string; }> | FieldNameSelect<{ name: string; }> | undefined>();
         });
 
         it("accepts the number of records to skip in the result set", () => {
-            const options: IFindManyOptions<{name:string}, unknown> = {};
-            expectTypeOf(options.skip).toEqualTypeOf<number|undefined>();
+            const options: IFindManyOptions<{ name: string; }, unknown> = {};
+            expectTypeOf(options.skip).toEqualTypeOf<number | undefined>();
         });
 
         it("accepts the appropriate option to filter the records in the result set", () => {
-            const options: IFindManyOptions<unknown, {name:string}> = {};
-            expectTypeOf(options.where).toEqualTypeOf<DataFilter<{name:string}>|undefined>();
+            const options: IFindManyOptions<unknown, { name: string; }> = {};
+            expectTypeOf(options.where).toEqualTypeOf<DataFilter<{ name: string; }> | undefined>();
         });
 
         it("accepts the appropriate option to retrieve every record from every page", () => {
-            const options: IFindManyOptions<{name:string}, unknown> = {};
-            expectTypeOf(options.fetchAll).toEqualTypeOf<IFindAllOptions<{name:string}>|boolean|undefined>();
+            const options: IFindManyOptions<{ name: string; }, unknown> = {};
+            expectTypeOf(options.fetchAll).toEqualTypeOf<IFindAllOptions<{ name: string; }> | boolean | undefined>();
         });
     });
 
     describe("IFindAllOptions", () => {
         it("accepts the size of each page", () => {
-            const fetchAll: IFindAllOptions<{name:string}> = {};
+            const fetchAll: IFindAllOptions<{ name: string; }> = {};
             expectTypeOf(fetchAll).toBeObject();
             expectTypeOf(fetchAll).toHaveProperty("pageSize");
         });
 
         it("accepts a progress callback", () => {
-            const fetchAll: IFindAllOptions<{name:string}> = {};
-            const callback: ((items: IMrsResultList<{name:string}>) => Promise<void>) = () => {
+            const fetchAll: IFindAllOptions<{ name: string; }> = {};
+            const callback: ((items: IMrsResultList<{ name: string; }>) => Promise<void>) = () => {
                 return Promise.resolve();
             };
 
             expectTypeOf(fetchAll).toBeObject();
             expectTypeOf(fetchAll).toHaveProperty("progress");
-            expectTypeOf(fetchAll.pageSize).toEqualTypeOf<number|undefined>();
-            expectTypeOf(fetchAll.progress).toEqualTypeOf<typeof callback|undefined>();
+            expectTypeOf(fetchAll.pageSize).toEqualTypeOf<number | undefined>();
+            expectTypeOf(fetchAll.progress).toEqualTypeOf<typeof callback | undefined>();
         });
     });
 
@@ -350,14 +352,14 @@ describe("MRS SDK base types", () => {
         });
 
         it("accepts the appropriate option to select specific fields from the records in the result set", () => {
-            const options: IFindUniqueOptions<{name:string}, unknown> = {};
+            const options: IFindUniqueOptions<{ name: string; }, unknown> = {};
             expectTypeOf(options.select).toEqualTypeOf<
-                BooleanFieldMapSelect<{name:string}>|FieldNameSelect<{name:string}>|undefined>();
+                BooleanFieldMapSelect<{ name: string; }> | FieldNameSelect<{ name: string; }> | undefined>();
         });
 
         it("accepts the appropriate option to filter the records in the result set", () => {
-            const options: IFindUniqueOptions<unknown, {name:string}> = {};
-            expectTypeOf(options.where).toEqualTypeOf<DataFilter<{name:string}>|undefined>();
+            const options: IFindUniqueOptions<unknown, { name: string; }> = {};
+            expectTypeOf(options.where).toEqualTypeOf<DataFilter<{ name: string; }> | undefined>();
         });
     });
 
@@ -531,7 +533,7 @@ describe("MRS SDK base types", () => {
             const multiPolygon: MultiPolygon = {
                 type: "MultiPolygon",
                 coordinates: [[[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
-                    [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
+                [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
             };
 
             expectTypeOf(multiPolygon).toBeObject();
@@ -596,7 +598,7 @@ describe("MRS SDK base types", () => {
                 // @ts-expect-error
                 coordinates: [[[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
                 // @ts-expect-error
-                    [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
+                [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
             };
         });
     });
@@ -633,7 +635,7 @@ describe("MRS SDK base types", () => {
             geometryCollection = {
                 type: "MultiPolygon",
                 coordinates: [[[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
-                    [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
+                [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]],
             };
             expectTypeOf(geometryCollection).toMatchTypeOf<MultiPolygon>();
 

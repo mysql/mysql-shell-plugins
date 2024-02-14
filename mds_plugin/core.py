@@ -1,15 +1,17 @@
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
 # as published by the Free Software Foundation.
 #
-# This program is also distributed with certain software (including
+# This program is designed to work with certain software (including
 # but not limited to OpenSSL) that is licensed under separate terms, as
 # designated in a particular file or component or in included license
 # documentation.  The authors of MySQL hereby grant you an additional
 # permission to link the program and your derivative works with the
-# separately licensed software that they have included with MySQL.
+# separately licensed software that they have either included with
+# the program or referenced in the documentation.
+#
 # This program is distributed in the hope that it will be useful,  but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -60,11 +62,11 @@ def prompt_for_list_item(item_list, prompt_caption, prompt_default_value='',
             compare with the user input
         given_value (str): Value that the user provided beforehand.
         print_list (bool): Specifies whether the list of items should be printed
-        allow_multi_select (bool): Whether multiple items can be entered, 
+        allow_multi_select (bool): Whether multiple items can be entered,
             separated by ',' and the string '*' is allowed
 
     Returns:
-        The selected item or the selected item list when allow_multi_select is 
+        The selected item or the selected item list when allow_multi_select is
         True or None when the user cancelled the selection
     """
 
@@ -173,7 +175,7 @@ def prompt(message, options=None):
 
     Args:
         message (str): A string with the message to be shown to the user.
-        config (dict): Dictionary with options that change the function 
+        config (dict): Dictionary with options that change the function
             behavior. The options dictionary may contain the following options:
             - defaultValue: a str value to be returned if the provides no data.
             - type: a str value to define the prompt type.
@@ -424,7 +426,7 @@ def fixed_len(s, length, append=None, no_linebreaks=False, align_right=False):
     If it is too short, spaces are added. Linebreaks are removed.
 
     Args:
-        s (str): The string to 
+        s (str): The string to
         length (int): The new length of the string
         append (str): The string to append
         no_linebreaks (bool): Whether line breaks should be filtered out

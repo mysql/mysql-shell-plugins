@@ -1,15 +1,17 @@
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
 # as published by the Free Software Foundation.
 #
-# This program is also distributed with certain software (including
+# This program is designed to work with certain software (including
 # but not limited to OpenSSL) that is licensed under separate terms, as
 # designated in a particular file or component or in included license
 # documentation.  The authors of MySQL hereby grant you an additional
 # permission to link the program and your derivative works with the
-# separately licensed software that they have included with MySQL.
+# separately licensed software that they have either included with
+# the program or referenced in the documentation.
+#
 # This program is distributed in the hope that it will be useful,  but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -110,7 +112,7 @@ def list_bastions(**kwargs):
 
     Keyword Args:
         compartment_id (str): OCID of the parent compartment
-        valid_for_db_system_id (str): OCID of the db_system_id the bastions 
+        valid_for_db_system_id (str): OCID of the db_system_id the bastions
             needs to be valid for and therefore are in the same subnet
         config (dict): An OCI config object or None
         config_profile (str): The name of an OCI config profile
@@ -382,7 +384,7 @@ def create_bastion(**kwargs):
             session on the bastion can remain active, defaults to 10800
         target_subnet_id (str): The OCID of the subnet, defaults to the
             subnet of the db_system if db_system_id is given
-        await_active_state (bool): Await the ACTIVE lifecycle state before 
+        await_active_state (bool): Await the ACTIVE lifecycle state before
             returning
         compartment_id (str): OCID of the compartment.
         config (dict): An OCI config object or None.
@@ -503,7 +505,7 @@ def create_bastion(**kwargs):
                 if db_system:
                     from datetime import datetime
                     bastion_name = (
-                        "Bastion" + 
+                        "Bastion" +
                         datetime.now().strftime("%y%m%d%H%M"))
 
                 elif interactive:

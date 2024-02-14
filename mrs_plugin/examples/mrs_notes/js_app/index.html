@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.-->
+<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -117,10 +117,10 @@
 
       /**
        * Refreshes and updates the notes state
-       * 
+       *
        * The notes fetched exclude the content column since it can contain a lot of data. The full note data is
        * fetched separately when the activeNote changes
-       * 
+       *
        * @param activeNoteId The id of the note that should be selected after the refresh
        */
       refreshNotes = async (activeNoteId) => {
@@ -135,7 +135,7 @@
           let hasMore = true;
           let offset = 0;
 
-          // If an activeNoteId was given and there was non before, set it right away to prevent flickering 
+          // If an activeNoteId was given and there was non before, set it right away to prevent flickering
           // when loading the notes list
           if (activeNoteId && !activeNote) {
             await this.setActiveNoteById(activeNoteId);
@@ -167,7 +167,7 @@
           const newIndex = noteId ? newNotes.findIndex((note) => { return note.id === noteId }) : -1;
           let newActiveNote = newIndex > -1 ? newNotes[newIndex] : null;
 
-          // If it was not found, select the next note in the list as new activeNote. Otherwise select the 
+          // If it was not found, select the next note in the list as new activeNote. Otherwise select the
           // first list entry.
           if (!newActiveNote && newNotes.length > 0) {
             const oldIndex = noteId ? notes.findIndex((note) => { return note.id === noteId }) : -1;
@@ -286,7 +286,7 @@
                   this.setTextAreaFocus();
                 }
 
-                // If there was text entered while the activeNote was being set, update the textArea with 
+                // If there was text entered while the activeNote was being set, update the textArea with
                 // that text
                 if (this.addingNoteTextBuffer !== null) {
                   this.noteInputRef.current.value = this.addingNoteTextBuffer;
@@ -369,7 +369,7 @@
             this.setState({ notes });
           }
 
-          // Delay the database update for 500ms in case the user continues typing. This helps to reduce 
+          // Delay the database update for 500ms in case the user continues typing. This helps to reduce
           // traffic and database load since we do not update the database for every single keypress.
           this.noteContentChangeTimer = setTimeout(async () => {
             this.noteContentChangeTimer = null;
@@ -403,8 +403,8 @@
 
         return html`
           <div class="notes">
-            <${NoteList} notes=${notes} activeNote=${activeNote} 
-              noteSearchText=${noteSearchText} searchNotes=${this.searchNotes} 
+            <${NoteList} notes=${notes} activeNote=${activeNote}
+              noteSearchText=${noteSearchText} searchNotes=${this.searchNotes}
               setActiveNoteById=${this.setActiveNoteById} />
             <div class="splitter"></div>
             <div class="note">
@@ -459,7 +459,7 @@
           </div>
         </div>
         <div class="footer">
-          <p>Copyright (c) 2022, 2023, Oracle and/or its affiliates.</p>
+          <p>Copyright (c) 2022, 2024, Oracle and/or its affiliates.</p>
         </div>`;
       };
     };
@@ -516,20 +516,20 @@
 
       render = ({ showPage }, { success, error, nickname, email }) => {
         return html`
-        <${InputForm} headerIcon="userIcon" headerTitle="Edit User Settings" 
+        <${InputForm} headerIcon="userIcon" headerTitle="Edit User Settings"
           headerSubtitle="Please enter your user settings below."
-          successContent="User updated successfully." 
+          successContent="User updated successfully."
           back=${() => showPage("notes")} submit=${this.submitUserUpdate}
           success=${success} error=${error}
         >
           <div class="formField">
             <p>Nickname</p>
-            <input id="nickname" type="text" value=${nickname} autofocus 
+            <input id="nickname" type="text" value=${nickname} autofocus
               onInput=${(e) => this.setState({ nickname: e.target.value })} />
           </div>
           <div class="formField">
             <p>Email</p>
-            <input id="email" type="text" value=${email} 
+            <input id="email" type="text" value=${email}
               onInput=${(e) => this.setState({ email: e.target.value })} />
           </div>
         </InputForm>`;
@@ -615,7 +615,7 @@
             </div>
           </div>
           <div class="footer">
-            <p>Copyright (c) 2022, 2023, Oracle and/or its affiliates.</p>
+            <p>Copyright (c) 2022, 2024, Oracle and/or its affiliates.</p>
           </div>
         </div>`;
       };
@@ -696,7 +696,7 @@
        * Returns the current URL with a new URL search string
        *
        * @param searchString The new search string to use
-       * 
+       *
        * @returns The current URL with a new searchString
        */
       getUrlWithNewSearchString = (searchString) => {
@@ -705,14 +705,14 @@
       };
 
       /**
-       * A small wrapper around fetch() that uses the active JWT accessToken to the MRS and throws 
+       * A small wrapper around fetch() that uses the active JWT accessToken to the MRS and throws
        * an exception if the response was not OK
        *
        * @param input The RequestInfo, either a URL string or a JSON object with named parameters
        * @param errorMsg The error message to include in the exception if the fetch is not successful
        * @param method The HTTP method to use with GET being the default
        * @param body The request body as object
-       * 
+       *
        * @returns The response object
        */
       doFetch = async (input, errorMsg, method, body) => {
@@ -788,7 +788,7 @@
 
       /**
        * Gets the authentication status of the current session as defined by the accessToken
-       * 
+       *
        * @returns The response object with {"status":"authorized", "user": {...}} or {"status":"unauthorized"}
        */
       getAuthenticationStatus = async () => {
@@ -876,7 +876,7 @@
           return html`${errorHtml}
           <div class="page">
             <${Header} userNick=${user?.nickname} showPage=${this.showPage} logout=${this.logout} />
-            <${User} doFetch=${this.doFetch} showError=${this.showError} showPage=${this.showPage} 
+            <${User} doFetch=${this.doFetch} showError=${this.showError} showPage=${this.showPage}
                 user=${user} updateUser=${this.updateUser} />
             </div>`;
         } else if (page.startsWith("#notes")) {

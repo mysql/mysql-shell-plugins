@@ -7,12 +7,14 @@ parser grammar MySQLMRSParser;
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is also distributed with certain software (including
+ * This program is designed to work with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation. The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with MySQL.
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
@@ -5692,7 +5694,6 @@ roleOrLabelKeyword:
     | {this.serverVersion >= 80014}? ADMIN_SYMBOL
 ;
 
-
 mrsScript:
     (mrsStatement (SEMICOLON_SYMBOL+ mrsStatement)*)? SEMICOLON_SYMBOL? EOF
 ;
@@ -5778,11 +5779,7 @@ configureRestMetadataStatement:
     CONFIGURE_SYMBOL REST_SYMBOL METADATA_SYMBOL restMetadataOptions?
 ;
 
-restMetadataOptions: (
-        enabledDisabled
-        | jsonOptions
-        | updateIfAvailable
-    )+
+restMetadataOptions: (enabledDisabled | jsonOptions | updateIfAvailable)+
 ;
 
 updateIfAvailable:
@@ -5794,8 +5791,7 @@ updateIfAvailable:
 // - CREATE REST SERVICE ----------------------------------------------------
 
 createRestServiceStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL SERVICE_SYMBOL serviceRequestPath
-        restServiceOptions?
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL SERVICE_SYMBOL serviceRequestPath restServiceOptions?
 ;
 
 restServiceOptions: (
@@ -5843,10 +5839,7 @@ authPageContent:
 ;
 
 userManagementSchema:
-    USER_SYMBOL MANAGEMENT_SYMBOL DATABASE_SYMBOL (
-        schemaName
-        | DEFAULT_SYMBOL
-    )
+    USER_SYMBOL MANAGEMENT_SYMBOL DATABASE_SYMBOL (schemaName | DEFAULT_SYMBOL)
 ;
 
 // - CREATE REST SCHEMA -----------------------------------------------------
@@ -5869,10 +5862,8 @@ restSchemaOptions: (
 // - CREATE REST VIEW -------------------------------------------------------
 
 createRestViewStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL?
-        DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath (
-        ON_SYMBOL serviceSchemaSelector
-    )? AS_SYMBOL qualifiedIdentifier (
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
+        viewRequestPath (ON_SYMBOL serviceSchemaSelector)? AS_SYMBOL qualifiedIdentifier (
         CLASS_SYMBOL restObjectName
     )? graphQlCrudOptions? graphQlObj? restObjectOptions?
 ;
@@ -5906,8 +5897,7 @@ restViewAuthenticationProcedure:
 createRestProcedureStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
         ON_SYMBOL serviceSchemaSelector
-    )? AS_SYMBOL qualifiedIdentifier (PARAMETERS_SYMBOL restObjectName? graphQlObj)?
-        restProcedureResult* restObjectOptions?
+    )? AS_SYMBOL qualifiedIdentifier (PARAMETERS_SYMBOL restObjectName? graphQlObj)? restProcedureResult* restObjectOptions?
 ;
 
 restProcedureResult:
@@ -5919,8 +5909,7 @@ restProcedureResult:
 createRestFunctionStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
         ON_SYMBOL serviceSchemaSelector
-    )? AS_SYMBOL qualifiedIdentifier (PARAMETERS_SYMBOL restObjectName? graphQlObj)?
-        restFunctionResult? restObjectOptions?
+    )? AS_SYMBOL qualifiedIdentifier (PARAMETERS_SYMBOL restObjectName? graphQlObj)? restFunctionResult? restObjectOptions?
 ;
 
 restFunctionResult:
@@ -5930,8 +5919,7 @@ restFunctionResult:
 // - CREATE REST CONTENT SET ------------------------------------------------
 
 createRestContentSetStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL
-        contentSetRequestPath (
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath (
         ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
     )? (FROM_SYMBOL directoryFilePath)? restContentSetOptions?
 ;
@@ -5954,9 +5942,11 @@ createRestAuthAppStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL (
         AUTH_SYMBOL
         | AUTHENTICATION_SYMBOL
-    ) APP_SYMBOL authAppName (
-        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )? VENDOR_SYMBOL (MRS_SYMBOL | MYSQL_SYMBOL | vendorName) restAuthAppOptions?
+    ) APP_SYMBOL authAppName (ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath)? VENDOR_SYMBOL (
+        MRS_SYMBOL
+        | MYSQL_SYMBOL
+        | vendorName
+    ) restAuthAppOptions?
 ;
 
 authAppName:
@@ -5976,9 +5966,7 @@ restAuthAppOptions: (
 ;
 
 allowNewUsersToRegister:
-    ALLOW_SYMBOL NEW_SYMBOL USERS_SYMBOL (
-        TO_SYMBOL REGISTER_SYMBOL
-    )?
+    ALLOW_SYMBOL NEW_SYMBOL USERS_SYMBOL (TO_SYMBOL REGISTER_SYMBOL)?
 ;
 
 defaultRole:
@@ -5988,8 +5976,7 @@ defaultRole:
 // - CREATE REST USER -------------------------------------------------------
 
 createRestUserStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL
-        authAppName (
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName (
         ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
     )? IDENTIFIED_SYMBOL BY_SYMBOL userPassword
 ;
@@ -6017,18 +6004,17 @@ alterRestServiceStatement:
 alterRestSchemaStatement:
     ALTER_SYMBOL REST_SYMBOL DATABASE_SYMBOL schemaRequestPath? (
         ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )? (
-        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newSchemaRequestPath
-    )? (FROM_SYMBOL schemaName)? restSchemaOptions?
+    )? (NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newSchemaRequestPath)? (
+        FROM_SYMBOL schemaName
+    )? restSchemaOptions?
 ;
 
 // - ALTER REST VIEW --------------------------------------------------------
 
 alterRestViewStatement:
-    ALTER_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
-        viewRequestPath (ON_SYMBOL serviceSchemaSelector)? (
-        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newViewRequestPath
-    )? (
+    ALTER_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath (
+        ON_SYMBOL serviceSchemaSelector
+    )? (NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newViewRequestPath)? (
         CLASS_SYMBOL restObjectName graphQlCrudOptions? graphQlObj?
     )? restObjectOptions?
 ;
@@ -6038,9 +6024,9 @@ alterRestViewStatement:
 alterRestProcedureStatement:
     ALTER_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
         ON_SYMBOL serviceSchemaSelector
-    )? (
-        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newProcedureRequestPath
-    )? (PARAMETERS_SYMBOL restObjectName? graphQlObj)? restProcedureResult* restObjectOptions?
+    )? (NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newProcedureRequestPath)? (
+        PARAMETERS_SYMBOL restObjectName? graphQlObj
+    )? restProcedureResult* restObjectOptions?
 ;
 
 // DROP statements ==========================================================
@@ -6056,8 +6042,9 @@ dropRestSchemaStatement:
 ;
 
 dropRestDualityViewStatement:
-    DROP_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
-        viewRequestPath (FROM_SYMBOL serviceSchemaSelector)?
+    DROP_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath (
+        FROM_SYMBOL serviceSchemaSelector
+    )?
 ;
 
 dropRestProcedureStatement:
@@ -6158,8 +6145,7 @@ showCreateRestSchemaStatement:
 ;
 
 showCreateRestViewStatement:
-    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL?
-        VIEW_SYMBOL viewRequestPath (
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath (
         (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
     )?
 ;
@@ -6239,9 +6225,7 @@ dottedIdentifier:
     | identifier dotIdentifier*
 ;
 
-hostAndPortIdentifier: (
-        dottedIdentifier (COLON_SYMBOL INT_NUMBER)?
-    )
+hostAndPortIdentifier: (dottedIdentifier (COLON_SYMBOL INT_NUMBER)?)
 ;
 
 requestPathIdentifier:
@@ -6393,4 +6377,3 @@ graphQlValue:
     qualifiedIdentifier
     | graphQlObj
 ;
-
