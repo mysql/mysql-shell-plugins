@@ -5,14 +5,12 @@
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is designed to work with certain software (including
+ * This program is also distributed with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation.  The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with
- * the program or referenced in the documentation.
- *
+ * separately licensed software that they have included with MySQL.
  * This program is distributed in the hope that it will be useful,  but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -269,11 +267,11 @@ export class Notebook {
         const isExpanded = (await findWidget.findElements(locator.findWidget.toggleReplaceExpanded)).length > 0;
         if (expand) {
             if (!isExpanded) {
-                await toggleReplace.click();
+                await driver.executeScript("arguments[0].click()", toggleReplace);
             }
         } else {
             if (isExpanded) {
-                await toggleReplace.click();
+                await driver.executeScript("arguments[0].click()", toggleReplace);
             }
         }
     };
@@ -422,9 +420,12 @@ export class Notebook {
      * Selects the current editor
      * @param editorName The editor name
      * @param editorType The editor type
+     * @param occurrenceNumber The occurrence number. Default is 1,
+     * which means that it will return the first element found. If 2, it will return the second.
      * @returns A promise resolving when the editor is selected
      */
-    public static selectCurrentEditor = async (editorName: string, editorType: string): Promise<void> => {
+    public static selectCurrentEditor = async (editorName: RegExp, editorType: string,
+        occurrenceNumber = 1): Promise<void> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
@@ -434,50 +435,40 @@ export class Notebook {
 
         await driver.wait(async () => {
             return (await driver.findElements(locator.notebook.toolbar.editorSelector.item)).length >= 1;
-        }, 2000, "No elements located on editors dropdown list");
+        }, constants.wait2seconds, "No elements located on editors dropdown list");
 
         const dropDownItems = await driver.findElements(locator.notebook.toolbar.editorSelector.item);
-        for (const item of dropDownItems) {
-            const name = await item.findElement(locator.htmlTag.label).getText();
-            const el = await item.findElements(locator.htmlTag.img);
+        let occurrences = 0;
+        let item2click = -1;
 
+        for (let i = 0; i <= dropDownItems.length - 1; i++) {
+            const name = await dropDownItems[i].findElement(locator.htmlTag.label).getText();
+            const el = await dropDownItems[i].findElements(locator.htmlTag.img);
             let type = "";
-
             if (el.length > 0) {
                 type = await el[0].getAttribute("src");
             } else {
-                type = await item.findElement(locator.notebook.toolbar.editorSelector.itemIcon).getAttribute("style");
+                type = await dropDownItems[i].findElement(locator.notebook.toolbar.editorSelector.itemIcon)
+                    .getAttribute("style");
             }
 
-            if (name === editorName) {
+            if (name.match(editorName) !== null) {
                 if (type.indexOf(editorType) !== -1) {
-                    await driver.wait(async () => {
-                        await item.click();
-                        const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
-                        const selected = await selector.findElement(locator.htmlTag.label).getText();
+                    occurrences++;
+                    if (occurrences === occurrenceNumber) {
+                        item2click = i;
 
-                        return selected === editorName;
-                    }, constants.wait5seconds, `${editorName} with type ${editorType} was not properly selected`);
-
-                    await driver.wait(
-                        async () => {
-                            return (
-                                (
-                                    await driver.findElements(
-                                        locator.notebook.toolbar.editorSelector.item,
-                                    )
-                                ).length === 0
-                            );
-                        },
-                        2000,
-                        "Dropdown list is still visible",
-                    );
-
-                    return;
+                        break;
+                    }
                 }
             }
         }
-        throw new Error(`Could not find ${editorName} with type ${editorType}`);
+
+        if (item2click === -1) {
+            throw new Error(`Could not find ${editorName}, type ${editorType} on the select list`);
+        }
+
+        await (await driver.findElements(locator.notebook.toolbar.editorSelector.item))[item2click].click();
     };
 
     /**
@@ -575,4 +566,13 @@ export class Notebook {
 
         return commands.toString().match(regex) !== null;
     };
+
+    /**
+     * Scrolls down the notebook
+     */
+    public static scrollDown = async (): Promise<void> => {
+        await driver.executeScript("arguments[0].scrollBy(0, 1500)",
+            await driver.findElement(locator.notebook.codeEditor.editor.scrollBar));
+    };
+
 }

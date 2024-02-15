@@ -1,18 +1,16 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is designed to work with certain software (including
+ * This program is also distributed with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation.  The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with
- * the program or referenced in the documentation.
- *
+ * separately licensed software that they have included with MySQL.
  * This program is distributed in the hope that it will be useful,  but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -33,6 +31,7 @@ import { Options, ServiceBuilder } from "selenium-webdriver/chrome.js";
 import { DBConnection } from "./dbConnection.js";
 import { execFullBlockJs, execFullBlockSql } from "./dbNotebooks.js";
 import * as locator from "../lib/locators.js";
+import * as constants from "../lib/constants.js";
 
 export const explicitWait = 5000;
 export const feLog = "fe.log";
@@ -73,17 +72,26 @@ export class Misc {
 
     /**
      * Loads the webdriver object
-     *
+     * @param useHeadless True if headless mode should be enabled
      * @returns A promise resolving when the webdriver is loaded
      */
-    public static loadDriver = async (): Promise<WebDriver> => {
-
+    public static loadDriver = async (useHeadless?: boolean): Promise<WebDriver> => {
         const logger = logging.getLogger("webdriver");
         logger.setLevel(logging.Level.INFO);
         logging.installConsoleHandler();
 
         const options: Options = new Options();
-        const headless = process.env.HEADLESS ?? "1";
+        let headless: string;
+        if (useHeadless === undefined) {
+            headless = process.env.HEADLESS ?? "1"; // headless is enabled by default
+        } else {
+            if (useHeadless === true) {
+                headless = "1";
+            } else {
+                headless = "0";
+            }
+        }
+
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--disable-gpu");
@@ -101,13 +109,11 @@ export class Misc {
             },
         });
 
-        if (headless === String("1")) {
+        if (headless === "1") {
             options.headless().windowSize({ width: 1024, height: 768 });
         }
         let driver: WebDriver;
-        console.log("Trying to create webdriver ....");
         if (process.env.CHROMEDRIVER_PATH) {
-            console.log(`Using chromedriver path at: ${process.env.CHROMEDRIVER_PATH}`);
             const builder = new ServiceBuilder(process.env.CHROMEDRIVER_PATH);
             driver = await new Builder()
                 .forBrowser(Browser.CHROME)
@@ -120,7 +126,6 @@ export class Misc {
                 .setChromeOptions(options)
                 .build();
         }
-        console.log("done!");
         await driver.manage().setTimeouts({ implicit: 0 });
 
         return driver;
@@ -574,4 +579,25 @@ export class Misc {
 
         return `screenshots/${testName}_screenshot.png`;
     }
+
+    /**
+     * Clears an input field
+     * @param driver The webdriver
+     * @param el The element
+     * @returns A promise resolving when the field is cleared
+     */
+    public static clearInputField = async (driver: WebDriver, el: WebElement): Promise<void> => {
+
+        await driver.wait(async () => {
+            await driver.executeScript("arguments[0].click()", el);
+            if (platform() === "darwin") {
+                await el.sendKeys(Key.chord(Key.COMMAND, "a"));
+            } else {
+                await el.sendKeys(Key.chord(Key.CONTROL, "a"));
+            }
+            await el.sendKeys(Key.BACK_SPACE);
+
+            return (await el.getAttribute("value")).length === 0;
+        }, constants.wait5seconds, `${await el.getId()} was not cleaned`);
+    };
 }

@@ -294,10 +294,10 @@ describe("NOTEBOOKS", () => {
             const rollBackBtn = await Notebook.getToolbarButton(constants.rollback);
 
             await driver.wait(until.elementIsEnabled(commitBtn),
-                3000, "Commit button should be enabled");
+                constants.wait3seconds, "Commit button should be enabled");
 
             await driver.wait(until.elementIsEnabled(rollBackBtn),
-                3000, "Commit button should be enabled");
+                constants.wait3seconds, "Commit button should be enabled");
 
             await commandExecutor
                 .execute(`INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`);
@@ -356,7 +356,7 @@ describe("NOTEBOOKS", () => {
                 ).to.match(/1 of (\d+)/);
                 await driver.wait(
                     until.elementsLocated(locator.findWidget.findMatch),
-                    2000,
+                    constants.wait2seconds,
                     "No words found",
                 );
                 await Notebook.widgetExpandFinderReplace(true);
@@ -449,7 +449,7 @@ describe("NOTEBOOKS", () => {
                 tabArea = await driver.findElements(locator.notebook.codeEditor.editor.result.tabSection.body);
                 expect(tabArea.length, "Result tab should be visible").to.equals(1);
             } finally {
-                await Notebook.selectCurrentEditor("DB Notebook", "notebook");
+                await Notebook.selectCurrentEditor(new RegExp(constants.openEditorsDBNotebook), "notebook");
                 await commandExecutor.synchronizeResultId();
             }
         });
