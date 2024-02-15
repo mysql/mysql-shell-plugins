@@ -745,25 +745,53 @@ describe("Notebook", () => {
     });
 
     it("Copy to clipboard button", async () => {
+        // this test requires the headless OFF
+        const headlessOffDriver = await Misc.loadDriver(false);
         try {
-            await commandExecutor.clean(driver);
-            await commandExecutor.execute(driver, "\\about ");
-            const host = await driver.findElement(locator.notebook.codeEditor.editor.result.exists);
-            expect(await host.findElement(locator.notebook.codeEditor.editor.result.singleOutput.copy)).toBeDefined();
-            const output = await host.findElement(locator.notebook.codeEditor.editor.result.singleOutput.exists);
-            await driver.actions().move({ origin: output }).perform();
-            await host.findElement(locator.notebook.codeEditor.editor.result.singleOutput.copy).click();
-            await commandExecutor.clean(driver);
-            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+            await headlessOffDriver.wait(async () => {
+                try {
+                    await Misc.waitForHomePage(headlessOffDriver, url);
+
+                    return true;
+                } catch (e) {
+                    await headlessOffDriver.navigate().refresh();
+                }
+            }, explicitWait * 4, "Home Page was not loaded");
+
+            const anotherConnection = globalConn;
+            anotherConnection.caption = `${globalConn.caption}-headlessOn`;
+            await headlessOffDriver.executeScript("arguments[0].click()",
+                await headlessOffDriver.findElement(locator.sqlEditorPage.icon));
+            const db = await DBNotebooks.createDBconnection(headlessOffDriver, anotherConnection);
+            await headlessOffDriver.executeScript("arguments[0].click();", db);
+            try {
+                await Misc.setPassword(headlessOffDriver, anotherConnection);
+                await Misc.setConfirmDialog(headlessOffDriver, anotherConnection, "no");
+            } catch (e) {
+                if ((e as Error).message.match(/No Password dialog was found/) === null) {
+                    throw e;
+                }
+            }
+            await headlessOffDriver.wait(until.elementLocated(locator.notebook.toolbar.exists),
+                explicitWait * 2, "Notebook was not loaded");
+
+            const otherCommandExecutor = new CommandExecutor();
+            await otherCommandExecutor.refreshCommandResult(headlessOffDriver, otherCommandExecutor.getResultId());
+            await otherCommandExecutor.copyResultToClipboard(headlessOffDriver);
+            await otherCommandExecutor.clean(headlessOffDriver);
+            const textArea = await headlessOffDriver.findElement(locator.notebook.codeEditor.textArea);
             if (platform() === "darwin") {
                 await textArea.sendKeys(Key.chord(Key.COMMAND, "v"));
             } else {
                 await textArea.sendKeys(Key.chord(Key.CONTROL, "v"));
             }
-            expect(await DBNotebooks.existsOnNotebook(driver, "Welcome")).toBe(true);
+            expect(await DBNotebooks.existsOnNotebook(headlessOffDriver, "Welcome")).toBe(true);
         } catch (e) {
             testFailed = true;
             throw e;
+        } finally {
+            await headlessOffDriver.close();
+            await headlessOffDriver.quit();
         }
     });
 

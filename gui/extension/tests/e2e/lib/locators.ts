@@ -5,14 +5,12 @@
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is designed to work with certain software (including
+ * This program is also distributed with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation.  The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with
- * the program or referenced in the documentation.
- *
+ * separately licensed software that they have included with MySQL.
  * This program is distributed in the hope that it will be useful,  but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -109,24 +107,43 @@ export const notebook = {
                         @monaco-view-zone='e${view}' or
                         @monaco-view-zone='f${view}' or
                         @monaco-view-zone='g${view}' or
-                        @monaco-view-zone='h${view}')]
+                        @monaco-view-zone='h${view}' or
+                        @monaco-view-zone='i${view}'
+                        )]
                     `;
 
                     return By.xpath(xpath);
                 },
                 host: By.className("resultHost"),
                 table: By.className("tabulator"),
-                tableRows: By.css(".tabulator-selectable.tabulator-row-odd"),
+                tableRow: By.css(".tabulator-selectable.tabulator-row-odd"),
+                addedTableRow: By.css(".tabulator-row.added"),
+                deletedTableRow: By.css(".tabulator-row.deleted"),
                 tableHeaders: By.className("tabulator-headers"),
                 tableColumnTitle: By.className("tabulator-col-title"),
                 tableCell: By.className("tabulator-cell"),
+                changedTableCell: By.css(".tabulator-cell.changed"),
+                tableCellCheckBox: By.css(".msg.checkbox"),
+                tableCellDateTime: By.css("input.dateTime"),
                 status: {
                     exists: By.className("resultStatus"),
                     text: By.css(".resultStatus > label"),
                     message: By.css(".containsMessage > div"),
                     maximize: By.id("toggleStateButton"),
                     normalize: By.id("normalizeResultStateButton"),
-                    toolbar: By.css(".resultStatus .toolbar"),
+                    toolbar: {
+                        exists: By.css(".resultStatus .toolbar"),
+                        showActionMenu: {
+                            open: By.id("showActionMenu"),
+                            exists: By.css(".popup.visible"),
+                            closeResultSet: By.id("closeMenuItem"),
+                        },
+                        applyButton: By.id("applyButton"),
+                        rollbackButton: By.id("rollbackButton"),
+                        previewButton: By.id("previewButton"),
+                        editButton: By.id("editButton"),
+                        addNewRowButton: By.id("addNewRow"),
+                    },
                 },
                 tabSection: {
                     exists: By.className("tabAreaContainer"),
@@ -139,15 +156,28 @@ export const notebook = {
                     column: By.css("rect"),
                 },
                 json: {
-                    exists: By.css(".actionOutput .jsonView"),
+                    pretty: By.css(".actionOutput .jsonView"),
+                    exists: By.xpath(".//label[contains(@data-lang, 'json')]"),
                     field: By.css(".jsonView span > span"),
                 },
                 singleOutput: {
                     exists: By.className("outputHost"),
                     copy: By.className("copyButton"),
                 },
+                previewChanges: {
+                    exists: By.className("sqlPreviewHost"),
+                    title: By.className("sqlPreviewTitle"),
+                    words: By.css(".sqlPreviewHost .Auto span > span"),
+                },
                 script: By.className("standaloneScriptHost"),
                 textOutput: By.css(".actionOutput span > span"),
+                cellContextMenu: {
+                    exists: By.id("cellContextMenu"),
+                    capitalize: By.id("capitalizeMenuItem"),
+                    lowerCase: By.id("lowerCaseMenuItem"),
+                    upperCase: By.id("upperCaseMenuItem"),
+                    toggleForDeletion: By.id("deleteRowMenuItem"),
+                },
             },
         },
         prompt: {
@@ -363,6 +393,7 @@ export const confirmDialog = {
     msg: By.id("dialogMessage"),
     refuse: By.id("refuse"),
     accept: By.id("accept"),
+    cancel: By.id("alternative"),
     alternative: By.id("alternative"),
 };
 
@@ -476,6 +507,7 @@ export const htmlTag = {
     labelClass: By.className("label"),
     span: By.css("span"),
     h2: By.css("h2"),
+    input: By.css("input"),
 };
 
 export const dialogBox = {

@@ -178,7 +178,7 @@ describe("DATABASE CONNECTIONS", () => {
                     if (text.includes("Registering session...")) {
                         return true;
                     }
-                }, 20000, "Restarting the internal MySQL Shell server went wrong");
+                }, constants.wait20seconds, "Restarting the internal MySQL Shell server went wrong");
             } finally {
                 console.log("<<<<MySQLSH Logs>>>>");
                 await Os.writeMySQLshLogs();
@@ -240,7 +240,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         beforeEach(async function () {
             try {
-                await Notebook.selectCurrentEditor("DB Connection Overview", "overviewPage");
+                await Notebook.selectCurrentEditor(new RegExp(constants.dbConnectionsLabel), "overviewPage");
                 await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
             } catch (e) {
                 await Misc.processFailure(this);
@@ -723,7 +723,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await Notebook.getCurrentEditorType(), error).to.include("Mysql");
             const scriptLines = await driver.findElements(locator.notebook.codeEditor.editor.line);
             expect(scriptLines.length, "The script was not loaded. No lines found on the editor").to.be.greaterThan(0);
-            await Notebook.selectCurrentEditor("DB Notebook", "notebook");
+            await Notebook.selectCurrentEditor(new RegExp(constants.openEditorsDBNotebook), "notebook");
             await commandExecutor.synchronizeResultId();
         });
 
@@ -739,7 +739,7 @@ describe("DATABASE CONNECTIONS", () => {
                 constants.wait5seconds);
             await (await Tree.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
             await Workbench.openEditor(globalConn.caption);
-            await commandExecutor.execute("SELECT DATABASE();");
+            await commandExecutor.execute("SELECT DATABASE();", true);
             expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
                 commandExecutor.getResultMessage())).to.match(/OK/);
             expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"),
@@ -752,7 +752,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await Tree.isElementDefault(constants.dbTreeSection, "sakila", "schema"),
                 errors.notDefault("sakila")).to.be.false;
             await Workbench.openEditor(globalConn.caption);
-            await commandExecutor.execute("SELECT DATABASE();");
+            await commandExecutor.execute("SELECT DATABASE();", true);
             expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
                 commandExecutor.getResultMessage())).to.match(/OK/);
             expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"),
@@ -1036,6 +1036,7 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("Routines - Clipboard", async () => {
+            await (await Tree.getElement(constants.dbTreeSection, "Tables")).collapse();
             const treeRoutines = await Tree.getElement(constants.dbTreeSection, "Routines");
             await treeRoutines.expand();
             expect(await Tree.existsElement(constants.dbTreeSection, testRoutine),
@@ -1105,8 +1106,6 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("Routines - Drop Routine", async () => {
-            const treeTables = await Tree.getElement(constants.dbTreeSection, "Tables");
-            await treeTables.collapse();
             const treeTestRoutine = await Tree.getElement(constants.dbTreeSection, testRoutine);
             await Tree.openContextMenuAndSelect(treeTestRoutine, constants.dropStoredRoutine);
             await Workbench.pushDialogButton(`Drop ${testRoutine}`);

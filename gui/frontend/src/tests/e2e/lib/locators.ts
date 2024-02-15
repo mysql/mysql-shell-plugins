@@ -5,14 +5,12 @@
  * it under the terms of the GNU General Public License, version 2.0,
  * as published by the Free Software Foundation.
  *
- * This program is designed to work with certain software (including
+ * This program is also distributed with certain software (including
  * but not limited to OpenSSL) that is licensed under separate terms, as
  * designated in a particular file or component or in included license
  * documentation.  The authors of MySQL hereby grant you an additional
  * permission to link the program and your derivative works with the
- * separately licensed software that they have included with
- * the program or referenced in the documentation.
- *
+ * separately licensed software that they have included with MySQL.
  * This program is distributed in the hope that it will be useful,  but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -87,6 +85,7 @@ export const confirmDialog = {
     alternative: By.id("alternative"),
     title: By.css(".title label"),
     message: By.id("dialogMessage"),
+    cancel: By.id("alternative"),
 };
 
 // DB CONNECTIONS
@@ -175,7 +174,11 @@ export const notebook = {
                         @monaco-view-zone='e${view}' or
                         @monaco-view-zone='f${view}' or
                         @monaco-view-zone='g${view}' or
-                        @monaco-view-zone='h${view}')]
+                        @monaco-view-zone='h${view}' or
+                        @monaco-view-zone='i${view}' or
+                        @monaco-view-zone='j${view}' or 
+                        @monaco-view-zone='l${view}'
+                        )]
                     `;
 
                     return By.xpath(xpath);
@@ -183,14 +186,32 @@ export const notebook = {
                 table: By.className("tabulator"),
                 tableHeaders: By.className("tabulator-headers"),
                 tableColumnTitle: By.className("tabulator-col-title"),
+                tableRow: By.css(".tabulator-selectable.tabulator-row-odd"),
                 tableRows: By.css(".tabulator-selectable.tabulator-row-odd"),
+                addedTableRow: By.css(".tabulator-row.added"),
+                deletedTableRow: By.css(".tabulator-row.deleted"),
                 tableCell: By.className("tabulator-cell"),
                 host: By.className("resultHost"),
+                changedTableCell: By.css(".tabulator-cell.changed"),
+                tableCellCheckBox: By.css(".msg.checkbox"),
+                tableCellDateTime: By.css("input.dateTime"),
                 status: {
                     exists: By.className("resultStatus"),
                     text: By.css(".resultStatus > label"),
                     message: By.css(".containsMessage > div"),
-                    toolbar: By.css(".resultStatus .toolbar"),
+                    toolbar: {
+                        exists: By.css(".resultStatus .toolbar"),
+                        showActionMenu: {
+                            open: By.id("showActionMenu"),
+                            exists: By.css(".popup.visible"),
+                            closeResultSet: By.id("closeMenuItem"),
+                        },
+                        applyButton: By.id("applyButton"),
+                        rollbackButton: By.id("rollbackButton"),
+                        previewButton: By.id("previewButton"),
+                        editButton: By.id("editButton"),
+                        addNewRowButton: By.id("addNewRow"),
+                    },
                 },
                 graphHost: {
                     exists: By.className("graphHost"),
@@ -214,10 +235,22 @@ export const notebook = {
                 anyResult: By.css(".resultStatus .label,.actionOutput span > span"),
                 script: By.className("standaloneScriptHost"),
                 json: {
-                    exists: By.css(".actionOutput .jsonView"),
+                    exists: By.css(".actionOutput .jsonView, label[data-lang='json']"),
                     field: By.css(".jsonView span > span"),
                 },
                 textOutput: By.css(".actionOutput span > span"),
+                previewChanges: {
+                    exists: By.className("sqlPreviewHost"),
+                    title: By.className("sqlPreviewTitle"),
+                    words: By.css(".sqlPreviewHost .Auto span > span"),
+                },
+                cellContextMenu: {
+                    exists: By.id("cellContextMenu"),
+                    capitalize: By.id("capitalizeMenuItem"),
+                    lowerCase: By.id("lowerCaseMenuItem"),
+                    upperCase: By.id("upperCaseMenuItem"),
+                    toggleForDeletion: By.id("deleteRowMenuItem"),
+                },
             },
             promptLine: By.css(".margin-view-overlays > div"),
             editorLine: By.css(".view-lines.monaco-mouse-cursor-text > div > span"),
