@@ -680,6 +680,25 @@ export class CommandExecutor {
     };
 
     /**
+     * Gets the cell icon type
+     * @param cell The result grid cell
+     * @returns A promise resolving with the cell icon type
+     */
+    public getCellIconType = async (cell: WebElement): Promise<string | undefined> => {
+        const img = await cell.findElements(locator.notebook.codeEditor.editor.result.tableCellIcon);
+        if (img.length > 0) {
+            const icon = (await img[0].getAttribute("style")).match(/assets\/(.*)-/)[1];
+
+            return icon;
+        } else {
+            const checkbox = await cell.findElements(locator.notebook.codeEditor.editor.result.tableCellCheckBox);
+            if (checkbox.length > 0) {
+                return "checkbox";
+            }
+        }
+    };
+
+    /**
      * Gets a cell of a result grid
      * @param resultGrid The result grid
      * @param gridRow The row number or the row as WebElement

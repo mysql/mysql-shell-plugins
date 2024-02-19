@@ -195,6 +195,7 @@ export const notebook = {
                 changedTableCell: By.css(".tabulator-cell.changed"),
                 tableCellCheckBox: By.css(".msg.checkbox"),
                 tableCellDateTime: By.css("input.dateTime"),
+                tableCellIcon: By.css(".iconHost .icon"),
                 status: {
                     exists: By.className("resultStatus"),
                     text: By.css(".resultStatus > label"),

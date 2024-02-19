@@ -819,4 +819,79 @@ describe("Notebook", () => {
             throw e;
         }
     });
+
+    it("Verify all mysql data types", async () => {
+        await commandExecutor.clean(driver);
+        await commandExecutor.execute(driver, "SELECT * from sakila.all_in_table_1;");
+        expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+        const varChar = await commandExecutor.getCellFromResultGrid(driver, 0, 1);
+        const decimal = await commandExecutor.getCellFromResultGrid(driver, 0, 2);
+        const dateTime = await commandExecutor.getCellFromResultGrid(driver, 0, 3);
+        const blob = await commandExecutor.getCellFromResultGrid(driver, 0, 4);
+        const binary = await commandExecutor.getCellFromResultGrid(driver, 0, 5);
+        const longBlob = await commandExecutor.getCellFromResultGrid(driver, 0, 6);
+        const medBlob = await commandExecutor.getCellFromResultGrid(driver, 0, 7);
+        const tinyBlob = await commandExecutor.getCellFromResultGrid(driver, 0, 8);
+        const varBinary = await commandExecutor.getCellFromResultGrid(driver, 0, 9);
+        expect(await varChar!.getText()).toMatch(/([a-z]|[A-Z])/);
+        expect(await decimal!.getText()).toMatch(/[0-9]/);
+        expect(await dateTime!.getText()).toMatch(/(\d+)\/(\d+)\/(\d+)/);
+        expect(await commandExecutor.getCellIconType(blob!)).toBe(constants.blob);
+        expect(await binary!.getText()).toMatch(/0x.*/);
+        expect(await commandExecutor.getCellIconType(longBlob!)).toBe(constants.blob);
+        expect(await commandExecutor.getCellIconType(medBlob!)).toBe(constants.blob);
+        expect(await tinyBlob?.getText()).toMatch(/0x.*/);
+        expect(await varBinary!.getText()).toMatch(/0x.*/);
+
+        await commandExecutor.execute(driver, "SELECT * from sakila.all_in_table_2;");
+        expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+        const date = await commandExecutor.getCellFromResultGrid(driver, 0, 0);
+        const time = await commandExecutor.getCellFromResultGrid(driver, 0, 2);
+        const timeStamp = await commandExecutor.getCellFromResultGrid(driver, 0, 3);
+        const year = await commandExecutor.getCellFromResultGrid(driver, 0, 4);
+        const geometry = await commandExecutor.getCellFromResultGrid(driver, 0, 5);
+        const geometryCollection = await commandExecutor.getCellFromResultGrid(driver, 0, 6);
+        const lineString = await commandExecutor.getCellFromResultGrid(driver, 0, 7);
+        const multiLineString = await commandExecutor.getCellFromResultGrid(driver, 0, 8);
+        const multiPoint = await commandExecutor.getCellFromResultGrid(driver, 0, 9);
+        const multiPolygon = await commandExecutor.getCellFromResultGrid(driver, 0, 10);
+        const point = await commandExecutor.getCellFromResultGrid(driver, 0, 11);
+        const polygon = await commandExecutor.getCellFromResultGrid(driver, 0, 12);
+
+        expect(await date!.getText()).toMatch(/(\d+)\/(\d+)\/(\d+)/);
+        expect(await time!.getText()).toMatch(/(\d+):(\d+):(\d+)/);
+        expect(await timeStamp!.getText()).toMatch(/(\d+)\/(\d+)\/(\d+)/);
+        expect(await year!.getText()).toMatch(/(\d+)/);
+        expect(await commandExecutor.getCellIconType(geometry!)).toBe(constants.blob);
+        expect(await commandExecutor.getCellIconType(geometryCollection!)).toBe(constants.blob);
+        expect(await commandExecutor.getCellIconType(lineString!)).toBe(constants.blob);
+        expect(await commandExecutor.getCellIconType(multiLineString!)).toBe(constants.blob);
+        expect(await commandExecutor.getCellIconType(multiPoint!)).toBe(constants.blob);
+        expect(await commandExecutor.getCellIconType(multiPolygon!)).toBe(constants.blob);
+        expect(await commandExecutor.getCellIconType(point!)).toBe(constants.blob);
+        expect(await commandExecutor.getCellIconType(polygon!)).toBe(constants.blob);
+
+        await commandExecutor.execute(driver, "SELECT * from sakila.all_in_table_3;");
+        expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+
+        const json = await commandExecutor.getCellFromResultGrid(driver, 0, 1);
+        const char = await commandExecutor.getCellFromResultGrid(driver, 0, 2);
+        const longText = await commandExecutor.getCellFromResultGrid(driver, 0, 4);
+        const medText = await commandExecutor.getCellFromResultGrid(driver, 0, 5);
+        const tinyText = await commandExecutor.getCellFromResultGrid(driver, 0, 6);
+        const bit = await commandExecutor.getCellFromResultGrid(driver, 0, 7);
+        const boolField = await commandExecutor.getCellFromResultGrid(driver, 0, 8);
+        const enumField = await commandExecutor.getCellFromResultGrid(driver, 0, 9);
+        const setField = await commandExecutor.getCellFromResultGrid(driver, 0, 10);
+
+        expect(await json?.getText()).toMatch(/.*{.*}/);
+        expect(await char!.getText()).toMatch(/([a-z]|[A-Z])/);
+        expect(await longText!.getText()).toMatch(/([a-z]|[A-Z])/);
+        expect(await medText!.getText()).toMatch(/([a-z]|[A-Z])/);
+        expect(await tinyText!.getText()).toMatch(/([a-z]|[A-Z])/);
+        expect(await bit!.getText()).toMatch(/(\d+)/);
+        expect(await boolField?.getText()).toMatch(/(\d+)/);
+        expect(await enumField!.getText()).toMatch(/(\d+)/);
+        expect(await setField!.getText()).toMatch(/(\d+)/);
+    });
 });

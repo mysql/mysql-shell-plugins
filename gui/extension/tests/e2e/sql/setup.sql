@@ -1,5 +1,5 @@
 -- E2E Extension tests Database configurations
--- Copyright (c) 2023, Oracle and/or its affiliates.
+-- Copyright (c) 2023, 2024 Oracle and/or its affiliates.
 
 -- Redistribution and use in source and binary forms, with or without
 -- modification, are permitted provided that the following conditions are
@@ -78,3 +78,100 @@ BEGIN
 	select * from sakila.actor; 
 END$$ 
 DELIMITER ;
+
+-- All in tables
+DROP TABLE IF EXISTS `all_in_table_1`; 
+CREATE TABLE `all_in_table_1` (
+  `id` int NOT NULL,
+  `f_varchar` varchar(5) DEFAULT NULL,
+  `f_decimal` decimal(5,0) DEFAULT NULL,
+  `f_datetime` datetime DEFAULT NULL,
+  `f_blob` blob,
+  `f_binary` binary(5) DEFAULT NULL,
+  `f_longblob` longblob,
+  `f_medblob` mediumblob,
+  `f_tinyblob` tinyblob,
+  `f_varbinary` varbinary(5) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+);
+INSERT INTO `all_in_table_1` VALUES(1, 
+'gui12', 
+'4', 
+'2023-01-01 00:00:01', 
+0xa1b8de72d02badac81b9f7deac, 
+0x6173646667, 
+0xa1b8de72d02badac81b9f7deac, 
+0xa1b8de72d02badac81b9f7deac, 
+0xa1b8de72d02badac81b9f7deac, 
+0x6173646667);
+
+DROP TABLE IF EXISTS `all_in_table_2`; 
+CREATE TABLE `all_in_table_2` (
+  `f_date` date NOT NULL,
+  `f_datetime` datetime(5) DEFAULT NULL,
+  `f_time` time DEFAULT NULL,
+  `f_timestamp` timestamp(5) NULL DEFAULT NULL,
+  `f_year` year DEFAULT NULL,
+  `f_geometry` geometry DEFAULT NULL,
+  `f_geometry_collection` geomcollection DEFAULT NULL,
+  `f_linestring` linestring DEFAULT NULL,
+  `f_multilinestring` multilinestring DEFAULT NULL,
+  `f_multipoint` multipoint DEFAULT NULL,
+  `f_multipolygon` multipolygon DEFAULT NULL,
+  `f_point` point DEFAULT NULL,
+  `f_polygon` polygon DEFAULT NULL,
+  PRIMARY KEY (`f_date`)
+);
+
+INSERT INTO `sakila`.`all_in_table_2`
+(`f_date`,
+`f_datetime`,
+`f_time`,
+`f_timestamp`,
+`f_year`,
+`f_geometry`,
+`f_geometry_collection`,
+`f_linestring`,
+`f_multilinestring`,
+`f_multipoint`,
+`f_multipolygon`,
+`f_point`,
+`f_polygon`
+)
+VALUES
+("2023-01-01",
+"2023-01-01 00:02:00",
+"00:02:00",
+"2023-01-01 00:02:00",
+"2023",
+ST_GeomFromText('POINT(1 1)'),
+ST_GeomFromText('GEOMETRYCOLLECTION(POINT(1 1),LINESTRING(0 0,1 1,2 2,3 3,4 
+4))'),
+ST_LineStringFromText('LINESTRING(0 0,1 1,2 2)'),
+ST_GeomFromText('MultiLineString((1 1,2 2,3 3),(4 4,5 5))'),
+ST_GeomFromText('MULTIPOINT(0 0, 20 20, 60 60)'),
+ST_GeomFromText('MULTIPOLYGON(((0 0,10 0,10 10,0 10,0 0)),((5 5,7 5,7 7,5 7, 
+5 5)))'),
+ST_GeomFromText('POINT(1 1)'),
+ST_GeomFromText('POLYGON((0 0,10 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 7, 5 5))')
+);
+
+DROP TABLE IF EXISTS `all_in_table_3`; 
+CREATE TABLE `all_in_table_3` (
+  `id` int NOT NULL,
+  `f_json` json DEFAULT NULL,
+  `f_char` char(5) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `f_varchar` varchar(5) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `f_longtext` longtext,
+  `f_mediumtext` mediumtext,
+  `f_tinytext` tinytext,
+  `f_bit` bit(5) DEFAULT NULL,
+  `f_boolean` tinyint(1) DEFAULT NULL,
+  `f_ENUM` enum('1','2') DEFAULT NULL,
+  `f_set` set('5') DEFAULT NULL,
+  PRIMARY KEY (`id`)
+);
+
+INSERT INTO `sakila`.`all_in_table_3` VALUES(
+  0, '{"test": "1"}', 'char', 'var', 'long', 'medium', 'tiny', b'0', 1, '2', '5'
+);

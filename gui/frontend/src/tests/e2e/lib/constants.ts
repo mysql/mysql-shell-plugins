@@ -43,3 +43,8 @@ export const capitalizeText = "Capitalize Text";
 export const convertTextToLowerCase = "Covert Text to Lower Case";
 export const convertTextToUpperCase = "Covert Text to Upper Case";
 export const toggleForDeletion = "Toggle Row Deletion Mark";
+
+// CELL ICONS
+export const blob = "blob";
+export const geometry = "geometry";
+export const json = "json";

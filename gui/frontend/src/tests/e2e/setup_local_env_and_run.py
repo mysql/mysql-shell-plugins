@@ -83,7 +83,7 @@ DB_ROOT_PASSWORD = "" if argv.db_root_password == "-" else argv.db_root_password
 TEXT_ONLY_OUTPUT = True
 
 WORKING_DIR = os.path.abspath(os.path.dirname(__file__))
-SAKILA_SQL_PATH = os.path.join(WORKING_DIR, "sql", "sakila.sql")
+SAKILA_SQL_PATH = os.path.join(WORKING_DIR, "sql", "sakila_cst.sql")
 WORLD_SQL_PATH = os.path.join(WORKING_DIR, "sql", "world_x_cst.sql")
 USERS_PATH = os.path.join(WORKING_DIR, "sql", "users.sql")
 PROCEDURES_PATH = os.path.join(WORKING_DIR, "sql", "procedures.sql")

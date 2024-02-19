@@ -499,9 +499,10 @@ describe("NOTEBOOKS", () => {
         it("Copy paste into notebook", async () => {
             await commandExecutor.clean();
             await Misc.switchBackToTopFrame();
+            const filename = "users.sql";
             await browser.openResources(join(constants.workspace, "gui", "frontend",
-                "src", "tests", "e2e", "sql", "sakila.sql"));
-            await driver.wait(waitUntil.tabIsOpened("sakila.sql"));
+                "src", "tests", "e2e", "sql", filename));
+            await driver.wait(waitUntil.tabIsOpened(filename), constants.wait5seconds);
             let textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await Os.keyboardSelectAll(textArea);
             await Os.keyboardCopy(textArea);
@@ -515,7 +516,7 @@ describe("NOTEBOOKS", () => {
             await Os.keyboardPaste(textArea);
 
             const sakilaFile = await fs.readFile(join(constants.workspace, "gui", "frontend",
-                "src", "tests", "e2e", "sql", "sakila.sql"));
+                "src", "tests", "e2e", "sql", filename));
             const fileLines = sakilaFile.toString().split("\n");
             const findBtn = await Notebook.getToolbarButton("Find");
             await findBtn.click();
@@ -564,6 +565,84 @@ describe("NOTEBOOKS", () => {
             const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await Os.keyboardPaste(textArea);
             expect(await Notebook.existsOnNotebook("Welcome")).to.be.true;
+        });
+
+        it.only("Verify all mysql data types", async () => {
+            await commandExecutor.clean();
+            await commandExecutor.execute("SELECT * from sakila.all_in_table_1;");
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
+                commandExecutor.getResultMessage())).to.match(/OK/);
+            const varChar = await commandExecutor.getCellFromResultGrid(0, 1);
+            const decimal = await commandExecutor.getCellFromResultGrid(0, 2);
+            const dateTime = await commandExecutor.getCellFromResultGrid(0, 3);
+            const blob = await commandExecutor.getCellFromResultGrid(0, 4);
+            const binary = await commandExecutor.getCellFromResultGrid(0, 5);
+            const longBlob = await commandExecutor.getCellFromResultGrid(0, 6);
+            const medBlob = await commandExecutor.getCellFromResultGrid(0, 7);
+            const tinyBlob = await commandExecutor.getCellFromResultGrid(0, 8);
+            const varBinary = await commandExecutor.getCellFromResultGrid(0, 9);
+            expect(await varChar.getText(), `The cell has not a varchar data type`).to.match(/([a-z]|[A-Z])/);
+            expect(await decimal.getText(), `The cell has not a decimal data type`).to.match(/[0-9]/);
+            expect(await dateTime.getText(), `The cell has not a dateTime data type`).to.match(/(\d+)\/(\d+)\/(\d+)/);
+            expect(await commandExecutor.getCellIconType(blob)).to.equals(constants.blob);
+            expect(await binary.getText()).to.match(/0x.*/);
+            expect(await commandExecutor.getCellIconType(longBlob)).to.equals(constants.blob);
+            expect(await commandExecutor.getCellIconType(medBlob)).to.equals(constants.blob);
+            expect(await tinyBlob.getText()).to.match(/0x.*/);
+            expect(await varBinary.getText()).to.match(/0x.*/);
+
+            await commandExecutor.execute("SELECT * from sakila.all_in_table_2;");
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
+                commandExecutor.getResultMessage())).to.match(/OK/);
+            const date = await commandExecutor.getCellFromResultGrid(0, 0);
+            const time = await commandExecutor.getCellFromResultGrid(0, 2);
+            const timeStamp = await commandExecutor.getCellFromResultGrid(0, 3);
+            const year = await commandExecutor.getCellFromResultGrid(0, 4);
+            const geometry = await commandExecutor.getCellFromResultGrid(0, 5);
+            const geometryCollection = await commandExecutor.getCellFromResultGrid(0, 6);
+            const lineString = await commandExecutor.getCellFromResultGrid(0, 7);
+            const multiLineString = await commandExecutor.getCellFromResultGrid(0, 8);
+            const multiPoint = await commandExecutor.getCellFromResultGrid(0, 9);
+            const multiPolygon = await commandExecutor.getCellFromResultGrid(0, 10);
+            const point = await commandExecutor.getCellFromResultGrid(0, 11);
+            const polygon = await commandExecutor.getCellFromResultGrid(0, 12);
+
+            expect(await date.getText(), `The cell has not a date data type`).to.match(/(\d+)\/(\d+)\/(\d+)/);
+            expect(await time.getText(), `The cell has not a time data type`).to.match(/(\d+):(\d+):(\d+)/);
+            expect(await timeStamp.getText(), `The cell has not a timestamp data type`).to.match(/(\d+)\/(\d+)\/(\d+)/);
+            expect(await year.getText(), `The cell has not a year data type`).to.match(/(\d+)/);
+            expect(await commandExecutor.getCellIconType(geometry)).to.equals(constants.blob);
+            expect(await commandExecutor.getCellIconType(geometryCollection)).to.equals(constants.blob);
+            expect(await commandExecutor.getCellIconType(lineString)).to.equals(constants.blob);
+            expect(await commandExecutor.getCellIconType(multiLineString)).to.equals(constants.blob);
+            expect(await commandExecutor.getCellIconType(multiPoint)).to.equals(constants.blob);
+            expect(await commandExecutor.getCellIconType(multiPolygon)).to.equals(constants.blob);
+            expect(await commandExecutor.getCellIconType(point)).to.equals(constants.blob);
+            expect(await commandExecutor.getCellIconType(polygon)).to.equals(constants.blob);
+
+            await commandExecutor.execute("SELECT * from sakila.all_in_table_3;");
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
+                commandExecutor.getResultMessage())).to.match(/OK/);
+
+            const json = await commandExecutor.getCellFromResultGrid(0, 1);
+            const char = await commandExecutor.getCellFromResultGrid(0, 2);
+            const longText = await commandExecutor.getCellFromResultGrid(0, 4);
+            const medText = await commandExecutor.getCellFromResultGrid(0, 5);
+            const tinyText = await commandExecutor.getCellFromResultGrid(0, 6);
+            const bit = await commandExecutor.getCellFromResultGrid(0, 7);
+            const boolField = await commandExecutor.getCellFromResultGrid(0, 8);
+            const enumField = await commandExecutor.getCellFromResultGrid(0, 9);
+            const setField = await commandExecutor.getCellFromResultGrid(0, 10);
+
+            expect(await json.getText()).to.match(/.*{.*}/);
+            expect(await char.getText(), `The cell has not a char data type`).to.match(/([a-z]|[A-Z])/);
+            expect(await longText.getText(), `The cell has not a long text data type`).to.match(/([a-z]|[A-Z])/);
+            expect(await medText.getText(), `The cell has not a medium text data type`).to.match(/([a-z]|[A-Z])/);
+            expect(await tinyText.getText(), `The cell has not a tiny text data type`).to.match(/([a-z]|[A-Z])/);
+            expect(await bit.getText(), `The cell has not a bit data type`).to.match(/(\d+)/);
+            expect(await boolField.getText(), `The cell has not a boolean data type`).to.match(/(\d+)/);
+            expect(await enumField.getText(), `The cell has not a enum data type`).to.match(/(\d+)/);
+            expect(await setField.getText(), `The cell has not a set data type`).to.match(/(\d+)/);
         });
 
     });

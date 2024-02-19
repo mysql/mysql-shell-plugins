@@ -113,6 +113,11 @@ export const convertTextToLowerCase = "Covert Text to Lower Case";
 export const convertTextToUpperCase = "Covert Text to Upper Case";
 export const toggleForDeletion = "Toggle Row Deletion Mark";
 
+// CELL ICONS
+export const blob = "blob";
+export const geometry = "geometry";
+export const json = "json";
+
 // CONTEXT MENUS ITEMS
 export const executeBlock = "Execute Block";
 export const executeBlockAndAdvance = "Execute Block and Advance";

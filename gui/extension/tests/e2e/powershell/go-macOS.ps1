@@ -40,7 +40,7 @@ $env:MYSQLSH_GUI_CUSTOM_CONFIG_DIR = Join-Path $env:TEST_RESOURCES_PATH "mysqlsh
 ## REMOVE EXISTING EXTENSION DATABASES
 $guiPluginFolder = Join-Path $home "mysqlsh-$env:TEST_SUITE" "plugin_data" "gui_plugin"
 $files = Get-ChildItem -Path $guiPluginFolder -Filter "*mysqlsh_gui*"
-foreach ($file in $files)     {
+foreach ($file in $files) {
     write-host "Removing file $file" -NoNewLine
     Remove-Item $file -Force
     write-host "DONE"
