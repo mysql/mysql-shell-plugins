@@ -59,28 +59,47 @@ $guiPluginBackend = Join-Path $shellPluginsGuiFolder "backend" "gui_plugin"
 
 # SET PLUGINS, SHELL AND ROUTER ON EXTENSION FOLDER
 if (!(Test-Path $(Join-Path $extensionFolder "shell"))) {
+    Write-host "Copying shell..." -NoNewLine
     Copy-Item -Path $shellLocation -Destination $(Join-Path $extensionFolder "shell") -Recurse
+    Write-host "DONE"
 }
 if (!(Test-Path $(Join-Path $extensionFolder "router"))) {
+    Write-host "Copying router..." -NoNewLine
     Copy-Item -Path $routerLocation -Destination $(Join-Path $extensionFolder "router") -Recurse
+    Write-host "DONE"
 }
-if (!(Test-Path $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins"))) {
-    New-Item -ItemType Directory -Path $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins")
+$pluginsDir = Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins"
+if (Test-Path $pluginsDir) {
+    Remove-Item -Path $pluginsDir -Force -Recurse
 }
-if (!(Test-Path $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "mrs_plugin"))) {
-    Copy-Item -Path $(Join-Path $shellPluginsFolder "mrs_plugin") -Destination $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "mrs_plugin") -Recurse
+Write-host "Creating plugins folder..." -NoNewLine
+New-Item -ItemType Directory -Path $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins")
+Write-host "DONE"
+
+Write-host "Creating MRS plugin..." -NoNewLine
+Copy-Item -Path $(Join-Path $shellPluginsFolder "mrs_plugin") -Destination $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "mrs_plugin") -Recurse
+Write-host "DONE"
+
+Write-host "Creating MDS plugin..." -NoNewLine
+Copy-Item -Path $(Join-Path $shellPluginsFolder "mds_plugin") -Destination $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "mds_plugin") -Recurse
+Write-host "DONE"
+
+Write-host "Creating GUI plugin..." 
+Copy-Item -Path $guiPluginBackend -Destination $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin") -Recurse
+Write-host "GUI_PLUGIN created..."
+Copy-Item -Path $guiPluginBuild -Destination $(Join-path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin" "core") -Recurse
+Write-host "CORE created..."
+Write-host "Checking WEBROOT ..." -NoNewLine
+if (Test-Path -Path $(Join-path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin" "core" "webroot")){
+    Write-host "Creating webroot ..." -NoNewLine
+    Remove-Item -Path $(Join-path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin" "core" "webroot") -Recurse
+    Write-host "DONE"
+} else {
+    Write-host "skipping ..."
 }
-if (!(Test-Path $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "mds_plugin"))) {
-    Copy-Item -Path $(Join-Path $shellPluginsFolder "mds_plugin") -Destination $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "mds_plugin") -Recurse
-}
-if (!(Test-Path $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin"))) {
-    Copy-Item -Path $guiPluginBackend -Destination $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin") -Recurse
-    Copy-Item -Path $guiPluginBuild -Destination $(Join-path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin" "core") -Recurse
-    if (Test-Path -Path $(Join-path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin" "core" "webroot")){
-        Remove-Item -Path $(Join-path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin" "core" "webroot") -Recurse
-    }
-    Rename-Item -Path $(Join-path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin" "core" "build") -NewName "webroot"
-}
+Write-host "Renaming core to webroot ..." -NoNewLine
+Rename-Item -Path $(Join-path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin" "core" "build") -NewName "webroot"
+Write-host "DONE"
 
 # BUILD EXTENSION
 Set-Location $extensionFolder

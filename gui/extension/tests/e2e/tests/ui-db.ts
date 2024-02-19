@@ -711,13 +711,14 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("Load SQL Script from Disk", async () => {
-            const destFile = join(constants.workspace, "gui", "frontend", "src", "tests", "e2e", "sql", "sakila.sql");
+            const script = "sakila_cst.sql";
+            const destFile = join(constants.workspace, "gui", "frontend", "src", "tests", "e2e", "sql", script);
             await Tree.openContextMenuAndSelect(treeGlobalConn, constants.loadScriptFromDisk);
             await Workbench.setInputPath(destFile);
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
             await driver.wait(async () => {
-                return (await Notebook.getCurrentEditorName()) === "sakila.sql";
-            }, constants.wait5seconds, "Current editor is not sakila.sql");
+                return (await Notebook.getCurrentEditorName()) === script;
+            }, constants.wait5seconds, `Current editor is not ${script}`);
             let error = `The current editor type should be 'Mysql',`;
             error += ` but found ${await Notebook.getCurrentEditorType()}`;
             expect(await Notebook.getCurrentEditorType(), error).to.include("Mysql");
