@@ -1,4 +1,4 @@
--- Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+-- Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 
 CREATE DATABASE IF NOT EXISTS `test_user_story`;
 USE `test_user_story`;
@@ -23,6 +23,17 @@ CREATE TABLE `products` (
   KEY `fk_category` (`categoryID`),
   CONSTRAINT `fk_category` FOREIGN KEY (`categoryID`) REFERENCES `categories` (`categoryID`)
 ) ENGINE=InnoDB;
+
+CREATE TABLE `test_pk_table` (
+    `column1` INT NOT NULL,
+    `column2` INT NOT NULL,
+    PRIMARY KEY (`column1`, `column2`)
+);
+
+CREATE TABLE `test_no_pk_name` (
+    `column1` INT,
+    `column2` INT
+);
 
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_products`

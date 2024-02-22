@@ -13,6 +13,7 @@ ws.tokens["types"] = [{ "name": "Schema", "type": "CATALOG_OBJECT" },
 { "name": "Event", "type": "SCHEMA_OBJECT" },
 { "name": "Trigger", "type": "TABLE_OBJECT" },
 { "name": "Foreign Key", "type": "TABLE_OBJECT" },
+{ "name": "Primary Key", "type": "TABLE_OBJECT" },
 { "name": "Index", "type": "TABLE_OBJECT" }]
 ws.tokens["schema"] = "mysql"
 

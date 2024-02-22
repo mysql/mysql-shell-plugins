@@ -37,6 +37,36 @@ await ws.sendAndValidate({
     "command": "gui.db.get_table_object_names",
     "args": {
         "module_session_id": ws.lastModuleSessionId,
+        "type": "Primary Key",
+        "schema_name": "main",
+        "table_name": "tests_user"
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ["id"]
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_object_names",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
         "type": "Index",
         "schema_name": "main",
         "table_name": "sqlite_master"
@@ -142,6 +172,37 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": { "name": "name", "type": "VARCHAR(45)", "not_null": false, "default": null, "is_pk": false, "auto_increment": false },
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_object",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Primary Key",
+        "schema_name": "main",
+        "table_name": "tests_user",
+        "name": "id"
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": { "name": "id" }
     },
     {
         "request_state": {

@@ -14,6 +14,7 @@ ws.tokens["types"] = [{ "name": "Schema", "type": "CATALOG_OBJECT" },
 { "name": "Event", "type": "SCHEMA_OBJECT" },
 { "name": "Trigger", "type": "TABLE_OBJECT" },
 { "name": "Foreign Key", "type": "TABLE_OBJECT" },
+{ "name": "Primary Key", "type": "TABLE_OBJECT" },
 { "name": "Index", "type": "TABLE_OBJECT" },
 { "name": "Column", "type": "TABLE_OBJECT" }]
 
@@ -114,6 +115,66 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": ws.matchList(["fk_category"])
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_object_names",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Primary Key",
+        "schema_name": ws.tokens["schema"],
+        "table_name": 'test_pk_table'
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ws.matchList(["column1", "column2"])
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_object_names",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Primary Key",
+        "schema_name": ws.tokens["schema"],
+        "table_name": 'test_no_pk_table'
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ws.matchList([])
     },
     {
         "request_state": {
@@ -243,6 +304,61 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId,
         "done": true
+    }
+], 0))
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_object",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Primary Key",
+        "schema_name": ws.tokens["schema"],
+        "table_name": 'test_pk_table',
+        "name": 'column1'
+    }
+}, ws.matchList([
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": { "name": "column1" }
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+], 0))
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_object",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Primary Key",
+        "schema_name": ws.tokens["schema"],
+        "table_name": 'test_no_pk_table',
+        "name": 'column1'
+    }
+}, ws.matchList([
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "ERROR",
+            "msg": "The primary key 'test_no_pk_table.column1' does not exist.",
+            "source": "MSG",
+            "code": 1
+        },
+        "request_id": ws.lastGeneratedRequestId,
     }
 ], 0))
 

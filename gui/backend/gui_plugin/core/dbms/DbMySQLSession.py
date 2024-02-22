@@ -64,6 +64,7 @@ class DbMysqlSession(DbSession):
                         {"name": "Event",         "type": "SCHEMA_OBJECT"},
                         {"name": "Trigger",       "type": "TABLE_OBJECT"},
                         {"name": "Foreign Key",   "type": "TABLE_OBJECT"},
+                        {"name": "Primary Key",   "type": "TABLE_OBJECT"},
                         {"name": "Index",         "type": "TABLE_OBJECT"},
                         {"name": "Column",        "type": "TABLE_OBJECT"}]
 
@@ -503,6 +504,14 @@ class DbMysqlSession(DbSession):
                         AND REFERENCED_TABLE_NAME is not NULL
                         AND CONSTRAINT_NAME LIKE ?
                     ORDER BY CONSTRAINT_NAME"""
+        elif type == "Primary Key":
+            sql = """SELECT COLUMN_NAME
+                    FROM information_schema.KEY_COLUMN_USAGE
+                    WHERE CONSTRAINT_SCHEMA = ?
+                        AND TABLE_NAME = ?
+                        AND CONSTRAINT_NAME = 'PRIMARY'
+                        AND COLUMN_NAME LIKE ?
+                    ORDER BY COLUMN_NAME;"""
         elif type == "Index":
             sql = """SELECT INDEX_NAME
                     FROM information_schema.STATISTICS
@@ -647,6 +656,13 @@ class DbMysqlSession(DbSession):
                         AND TABLE_NAME = ?
                         AND REFERENCED_TABLE_NAME is not NULL
                         AND CONSTRAINT_NAME LIKE ?"""
+        elif type == "Primary Key":
+            sql = """SELECT COLUMN_NAME
+                    FROM information_schema.KEY_COLUMN_USAGE
+                    WHERE CONSTRAINT_SCHEMA = ?
+                        AND TABLE_NAME = ?
+                        AND CONSTRAINT_NAME = 'PRIMARY'
+                        AND COLUMN_NAME = ?"""
         elif type == "Index":
             sql = """SELECT INDEX_NAME
                     FROM information_schema.STATISTICS
