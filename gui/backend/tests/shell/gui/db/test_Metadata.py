@@ -50,6 +50,7 @@ def test_get_object_types_by_shell(shell_session):
                         {"name": "Event", "type": "SCHEMA_OBJECT"},
                         {"name": "Trigger", "type": "TABLE_OBJECT"},
                         {"name": "Foreign Key", "type": "TABLE_OBJECT"},
+                        {"name": "Primary Key", "type": "TABLE_OBJECT"},
                         {"name": "Index", "type": "TABLE_OBJECT"},
                         {"name": "Column", "type": "TABLE_OBJECT"}]
 

@@ -4,6 +4,7 @@ ws.tokens["types"] = [{ "name": "Schema", "type": "CATALOG_OBJECT" },
 { "name": "Table", "type": "SCHEMA_OBJECT" },
 { "name": "View", "type": "SCHEMA_OBJECT" },
 { "name": "Trigger", "type": "TABLE_OBJECT" },
+{ "name": "Primary Key", "type": "TABLE_OBJECT" },
 { "name": "Index", "type": "TABLE_OBJECT" }]
 
 await ws.sendAndValidate({

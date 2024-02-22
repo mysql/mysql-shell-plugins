@@ -107,12 +107,13 @@ class DbCursor(sqlite3.Cursor):
 
 @DbSessionFactory.register_session('Sqlite')
 class DbSqliteSession(DbSession):
-    _supported_types = [{"name": "Schema", "type": "CATALOG_OBJECT"},
-                        {"name": "Table",  "type": "SCHEMA_OBJECT"},
-                        {"name": "View",   "type": "SCHEMA_OBJECT"},
-                        {"name": "Trigger",   "type": "TABLE_OBJECT"},
-                        {"name": "Index",   "type": "TABLE_OBJECT"},
-                        {"name": "Column",   "type": "TABLE_OBJECT"}]
+    _supported_types = [{"name": "Schema",      "type": "CATALOG_OBJECT"},
+                        {"name": "Table",       "type": "SCHEMA_OBJECT"},
+                        {"name": "View",        "type": "SCHEMA_OBJECT"},
+                        {"name": "Trigger",     "type": "TABLE_OBJECT"},
+                        {"name": "Primary Key", "type": "TABLE_OBJECT"},
+                        {"name": "Index",       "type": "TABLE_OBJECT"},
+                        {"name": "Column",      "type": "TABLE_OBJECT"}]
 
     def __init__(self, id, threaded, connection_options, data={}, auto_reconnect=ReconnectionMode.NONE, task_state_cb=None,
                  on_connected_cb=None, on_failed_cb=None, prompt_cb=None, pwd_prompt_cb=None,
@@ -337,6 +338,12 @@ class DbSqliteSession(DbSession):
                         AND tbl_name = ?
                         AND name like ?
                     ORDER BY name;"""
+        elif type == "Primary Key":
+            sql = """SELECT t.name
+                    FROM pragma_table_info(?) as t
+                    WHERE t.pk > 0
+                        AND t.name like ?
+                    ORDER BY t.pk;"""
         elif type == "Index":
             sql = f"""SELECT name
                     FROM `{schema_name}`.sqlite_master
@@ -416,6 +423,12 @@ class DbSqliteSession(DbSession):
                         AND tbl_name = ?
                         AND name = ?
                     ORDER BY name;"""
+        elif type == "Primary Key":
+            sql = """SELECT t.name
+                    FROM pragma_table_info(?) as t
+                    WHERE t.pk > 0
+                        AND t.name = ?
+                    ORDER BY t.pk;"""
         elif type == "Index":
             sql = f"""SELECT name
                     FROM `{schema_name}`.sqlite_master

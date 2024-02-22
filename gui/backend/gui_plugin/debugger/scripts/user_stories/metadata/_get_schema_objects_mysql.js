@@ -14,6 +14,7 @@ ws.tokens["types"] = [{ "name": "Schema", "type": "CATALOG_OBJECT" },
 { "name": "Event", "type": "SCHEMA_OBJECT" },
 { "name": "Trigger", "type": "TABLE_OBJECT" },
 { "name": "Foreign Key", "type": "TABLE_OBJECT" },
+{ "name": "Primary Key", "type": "TABLE_OBJECT" },
 { "name": "Index", "type": "TABLE_OBJECT" },
 { "name": "Column", "type": "TABLE_OBJECT" }]
 
@@ -112,7 +113,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": ws.matchList(["categories", "products"])
+        "result": ws.matchList(["categories", "products", "test_no_pk_name", "test_pk_table"])
     },
     {
         "request_state": {
