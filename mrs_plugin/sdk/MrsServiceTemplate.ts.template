@@ -14,8 +14,8 @@ import {
     IFindFirstOptions,
     IFindManyOptions,
     IFindUniqueOptions,
-    IMrsResultList,
     MrsBaseObjectQuery,
+    MrsResourceCollectionObject,
     NotFoundError,
     // --- importReadOnlyEnd
     // --- importCreateOnlyStart
@@ -71,14 +71,14 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     public rest = {
         // --- crudCreateOnlyStart
         post: (${obj_name}: I${obj_class_name}): MrsBaseObjectCreate<I${obj_class_name}> => {
-            return new MrsBaseObjectCreate<I${obj_class_name}>(this.schema, ${obj_class_name}Request.#requestPath, ${obj_name});
+            return new MrsBaseObjectCreate<I${obj_class_name}>(this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}, false);
         },
         // --- crudCreateOnlyEnd
         // --- crudReadOnlyStart
         get: <K extends keyof I${obj_class_name}>(
             ...args: K[]): MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params> => {
             return new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
-                this.schema, ${obj_class_name}Request.#requestPath, args);
+                this.schema, ${obj_class_name}Request.#requestPath, args, undefined, false);
         },
         // --- crudReadOnlyEnd
         // --- crudUpdateProcedureOnlyStart
@@ -102,7 +102,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
             ${obj_name}: I${obj_class_name},
             key?: string[]): MrsBaseObjectUpdate<I${obj_class_name}> => {
             return new MrsBaseObjectUpdate<I${obj_class_name}>(
-                this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}, key !== undefined ? key : [${obj_string_pk_list}]);
+                this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}, key !== undefined ? key : [${obj_string_pk_list}], false);
         },
         // --- crudUpdateOnlyEnd
         // --- crudDeleteOnlyStart
@@ -115,7 +115,8 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
 
     // --- crudCreateOnlyStart
     public create = async (args: ICreateOptions<I${obj_class_name}>): Promise<I${obj_class_name}> => {
-        const response = await this.rest.post(args.data).fetch();
+        const request = new MrsBaseObjectCreate<I${obj_class_name}>(this.schema, ${obj_class_name}Request.#requestPath, args.data);
+        const response = await request.fetch();
 
         return response;
     };
@@ -134,11 +135,11 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     // --- crudCreateOnlyEnd
 
     // --- crudReadOnlyStart
-    public findMany = async (args?: IFindManyOptions<I${obj_class_name}, I${obj_class_name}Params>): Promise<IMrsResultList<I${obj_class_name}>> => {
+    public findMany = async (args?: IFindManyOptions<I${obj_class_name}, I${obj_class_name}Params>): Promise<I${obj_class_name}[]> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
             this.schema, ${obj_class_name}Request.#requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
-        let response;
+        let response: MrsResourceCollectionObject<I${obj_class_name}>;
         if (args?.fetchAll !== undefined && typeof args?.fetchAll === "boolean" && args?.fetchAll) {
             response = await request.fetchAll();
         } else if (args?.fetchAll !== undefined && typeof args?.fetchAll !== "boolean") {
@@ -147,7 +148,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
             response = await request.fetch();
         }
 
-        return response;
+        return response.items;
     };
 
     public findFirst = async (args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Params>): Promise<I${obj_class_name} | undefined> => {
@@ -181,8 +182,9 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
 
     // --- crudUpdateOnlyStart
     public update = async (args: IUpdateOptions<I${obj_class_name}, I${obj_class_name}Params, [${obj_quoted_pk_list}], { batch: false }>): Promise<I${obj_class_name}> => {
-        const response = await this.rest.put(args.data, [${obj_string_args_where_pk_list}])
-            .fetch();
+        const request = new MrsBaseObjectUpdate<I${obj_class_name}>(
+            this.schema, ${obj_class_name}Request.#requestPath, args.data, [${obj_string_args_where_pk_list}]);
+        const response = await request.fetch();
 
         return response;
     };

@@ -2,6 +2,10 @@
 
 ## Changes in 1.15.0+8.3.0
 
+### Additions
+
+- WL#15718 Simplify application-level interfaces in the MRS SDK
+
 ### Fixes
 
 - Fixes regression issue about clipboard operations (copy/paste)
@@ -27,7 +31,7 @@
 - Fix SQL code execution to properly wait for the splitter to finish and the execute one statement after another
 - Cleanup if websocket request/responds handling
 
-## Changes in 1.14.1+8.1.1
+## Changes in 1.14.1+8.1.1\
 
 ### Fixes
 
