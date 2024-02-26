@@ -171,6 +171,7 @@
         "mysqltooling",
         "mysqlx",
         "nchar",
+        "ninstr",
         "nocolor",
         "nohide",
         "nohover",

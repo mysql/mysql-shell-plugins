@@ -26,8 +26,9 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type {
     PureFilter, DataFilter, BooleanFieldMapSelect, ColumnOrder, FieldNameSelect, IFindFirstOptions, IFindManyOptions,
-    IFindUniqueOptions, IFindAllOptions, IMrsResultList, MaybeNull, Point, MultiPoint, LineString, MultiLineString,
-    Polygon, MultiPolygon, Geometry, GeometryCollection, HighOrderFilter, ComparisonOpExpr,
+    IFindUniqueOptions, IFindAllOptions, MrsResourceCollectionObject, MaybeNull, Point, MultiPoint, LineString,
+    MultiLineString, Polygon, MultiPolygon, Geometry, GeometryCollection, HighOrderFilter, ComparisonOpExpr,
+    MrsResourceObject,
 } from "../MrsBaseClasses";
 
 describe("MRS SDK base types", () => {
@@ -327,8 +328,8 @@ describe("MRS SDK base types", () => {
         });
 
         it("accepts a progress callback", () => {
-            const fetchAll: IFindAllOptions<{ name: string; }> = {};
-            const callback: ((items: IMrsResultList<{ name: string; }>) => Promise<void>) = () => {
+            const fetchAll: IFindAllOptions<{name:string}> = {};
+            const callback: ((items: MrsResourceCollectionObject<{name:string}>) => Promise<void>) = () => {
                 return Promise.resolve();
             };
 
@@ -649,6 +650,52 @@ describe("MRS SDK base types", () => {
                 // @ts-ignore
                 coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]], [[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]],
             };
+        });
+    });
+
+    describe("MrsResourceObject", () => {
+        it("contains hypermedia-related properties and data fields of a single resource", () => {
+            const resource = {
+                _metadata: {
+                    etag: "AAA",
+                },
+                links: [{
+                    rel: "self",
+                    href: "https://www.example.com/resources/1",
+                }],
+                name: "foo",
+                age: 42,
+            };
+
+            expectTypeOf(resource).toMatchTypeOf<MrsResourceObject<{ name: string, age: number }>>();
+        });
+    });
+
+    describe("MrsResourceCollectionObject", () => {
+        it("contains hypermedia-related properties and the list of individual resources in a collection", () => {
+            const collection = {
+                items: [{
+                    _metadata: {
+                        etag: "AAA",
+                    },
+                    links: [{
+                        rel: "self",
+                        href: "https://www.example.com/resources/1",
+                    }],
+                    name: "foo",
+                    age: 42,
+                }],
+                hasMore: false,
+                count: 1,
+                limit: 25,
+                offset: 0,
+                links: [{
+                    rel: "next",
+                    href: "https://www.example.com/resources?offset=25",
+                }],
+            };
+
+            expectTypeOf(collection).toMatchTypeOf<MrsResourceCollectionObject<{ name: string, age: number }>>();
         });
     });
 });

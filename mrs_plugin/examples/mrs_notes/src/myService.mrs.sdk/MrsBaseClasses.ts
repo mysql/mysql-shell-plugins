@@ -417,16 +417,6 @@ export class MrsBaseSchema {
     }
 }
 
-export interface IMrsLink {
-    rel: string,
-    href: string,
-}
-
-export interface IMrsBaseObject {
-    links?: IMrsLink[];
-    _metadata: IMrsMetadata;
-}
-
 export interface IMrsOperator {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     "=": "$eq",
@@ -446,18 +436,56 @@ export interface IMrsOperator {
     "between": "$between",
 }
 
-export interface IMrsMetadata {
-    etag: string;
-}
-
-export interface IMrsResultList<C> {
-    items: C[],
+/**
+ * A collection of MRS resources is represented by a JSON object returned by the MySQL Router, which includes the list
+ * of underlying resource objects and additional hypermedia-related properties with pagination state and the
+ * relationships with additional resources.
+ * @see MrsResourceObject
+ * @see IMrsLink
+ * @see JsonObject
+ */
+export type MrsResourceCollectionObject<C> = {
+    items: Array<MrsResourceObject<C>>,
     limit: number,
     offset?: number,
     hasMore: boolean,
     count: number,
-    links?: IMrsLink[],
-    _metadata?: IMrsMetadata,
+    links?: IMrsLink[]
+} & JsonObject;
+
+/**
+ * A single MRS resource object is represented by JSON object returned by the MySQL Router, which includes the
+ * corresponding fields and values alongside additional hypermedia-related properties.
+ * @see IMrsBaseObject
+ */
+export type MrsResourceObject<T> = T & IMrsBaseObject;
+
+/**
+ * A resource object is always represented as JSON and can include specific hypermedia properties such as a potential
+ * list of links it has with other resources and metadata associated to the resource (e.g. its ETag).
+ * @see IMrsLink
+ * @see IMrsResourceMetadata
+ * @see JsonObject
+ */
+export type IMrsBaseObject = {
+    links: IMrsLink[];
+    _metadata: IMrsResourceMetadata;
+} & JsonObject;
+
+/**
+ * Resource metadata includes the resource ETag.
+ */
+export interface IMrsResourceMetadata {
+    etag: string;
+}
+
+/**
+ * A link definition includes a type of relationship between two resources and a URL for accessing the other resource
+ * in that relationship.
+ */
+export interface IMrsLink {
+    rel: string,
+    href: string,
 }
 
 export interface IMrsProcedureResultColumn {
@@ -747,7 +775,7 @@ export interface IFindAllOptions<ResultSet> {
      * @param items The list of records in the result set.
      * @returns A Promise that resolves once the result set is complete.
      */
-    progress?: (items: IMrsResultList<ResultSet>) => Promise<void>;
+    progress?: (items: MrsResourceCollectionObject<ResultSet>) => Promise<void>;
 }
 
 /**
@@ -886,6 +914,146 @@ abstract class MrsRequestFilter<P> {
 }
 
 /**
+ * @template T The set of fields of a given database object that should be part of the result set.
+ */
+class MrsSimplifiedObjectResponse<T> {
+    #json: MrsResourceObject<T>;
+    #hypermediaProperties = ["_metadata", "links"];
+
+    public constructor (json: MrsResourceObject<T>) {
+        this.#json = json;
+    }
+
+    /**
+     * Retrieve an application resource instance that hides hypermedia-related properties and prevents the application
+     * from changing or deleting them.
+     * @see {MrsResourceObject}
+     * @returns An abstraction of the database object item without hypermedia-related properties.
+     */
+    public getInstance () {
+        return new Proxy(this.#json, {
+            deleteProperty: (target, p) => {
+                const property = String(p);
+
+                if (this.#hypermediaProperties.indexOf(property) > -1) {
+                    throw new Error(`The "${property}" property cannot be deleted.`);
+                }
+
+                delete target[property];
+
+                return true;
+            },
+
+            get: (target: MrsResourceObject<T> & { [key: symbol]: unknown }, key) => {
+                if (key !== "toJSON") {
+                    return target[key];
+                }
+
+                // .toJSON()
+                return () => {
+                    // We want to change a copy of the underlying json object, not the reference to the original one.
+                    const partial = { ...this.#json as Omit<MrsResourceObject<T>, "links" | "_metadata"> };
+                    delete partial.links;
+                    // eslint-disable-next-line no-underscore-dangle
+                    delete partial._metadata;
+
+                    return partial;
+                };
+            },
+
+            has: (target, p) => {
+                const property = String(p);
+
+                if (this.#hypermediaProperties.indexOf(property) > -1) {
+                    return false;
+                }
+
+                return p in target;
+            },
+
+            ownKeys: (target) => {
+                return Object.keys(target).filter((key) => {
+                    return this.#hypermediaProperties.indexOf(key) === -1;
+                });
+            },
+
+            set: (target, p, newValue) => {
+                const property = String(p);
+
+                if (this.#hypermediaProperties.indexOf(property) > -1) {
+                    throw new Error(`The "${property}" property cannot be changed.`);
+                }
+
+                // Ultimately, json is always a JSON object and any other field can be re-assigned to a different value.
+                (target as JsonObject)[property] = newValue;
+
+                return true;
+            },
+        });
+    }
+}
+
+/**
+ * @template T The set of fields of a given database object that should be part of the result set.
+ */
+class MrsSimplifiedCollectionObjectResponse<T> {
+    #json: MrsResourceCollectionObject<T>;
+
+    public constructor (json: MrsResourceCollectionObject<T>) {
+        this.#json = json;
+    }
+
+    /**
+     * Retrieve an application resource instance that hides hypermedia-related properties and prevents the application
+     * from changing or deleting them.
+     * @see {MrsResourceCollectionObject}
+     * @returns A list of the database object items without hypermedia-related properties.
+     */
+    public getInstance () {
+        return new Proxy(this.#json, {
+            deleteProperty: (_, p) => {
+                throw new Error(`The "${String(p)}" property cannot be deleted.`);
+            },
+
+            get: (target: MrsResourceCollectionObject<T> & { [key: symbol]: unknown }, key,
+                receiver: MrsResourceCollectionObject<T>) => {
+                if (key !== "toJSON" && key !== "items") {
+                    return target[key];
+                }
+
+                // .toJSON()
+                if (key === "toJSON") {
+                    return () => {
+                        // Each item is already a Proxy that provides a custom toJSON() handler.
+                        // This falls into the scope of the alternative condition below.
+                        return receiver.items;
+                    };
+                }
+
+                // .items
+                return target.items.map((item) => {
+                    const resource = new MrsSimplifiedObjectResponse(item);
+
+                    return resource.getInstance();
+                });
+            },
+
+            has: () => {
+                return false;
+            },
+
+            ownKeys: () => {
+                return [];
+            },
+
+            set: (_, p) => {
+                throw new Error(`The "${String(p)}" property cannot be changed.`);
+            },
+        });
+    }
+}
+
+/**
  * @template C The entire set of fields of a given database object.
  * @template P The set of fields of a given database object that can be used in a query filter.
  * Creates an object that represents an MRS GET request.
@@ -899,7 +1067,8 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
         private readonly fieldsToGet?: string[] | BooleanFieldMapSelect<C> | FieldNameSelect<C>,
-        private readonly fieldsToOmit?: string[]) {
+        private readonly fieldsToOmit?: string[],
+        private readonly simplified: boolean = true) {
         super();
     }
 
@@ -992,7 +1161,7 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
         return this;
     };
 
-    public fetch = async (): Promise<IMrsResultList<C>> => {
+    public fetch = async (): Promise<MrsResourceCollectionObject<C>> => {
         let inputStr = `${this.schema.requestPath}${this.requestPath}?`;
 
         const fields = this.fieldsToGet ?? {};
@@ -1023,17 +1192,15 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
             errorMsg: "Failed to fetch items.",
         });
 
-        const responseBody = await res.json();
+        const responseBody = await res.json() as MrsResourceCollectionObject<C>;
 
-        // Remove links from response and response items
-        if (typeof responseBody !== "undefined") {
-            responseBody.links = undefined;
-            for (const item of responseBody.items) {
-                item.links = undefined;
-            }
+        if (this.simplified === false) {
+            return responseBody;
         }
 
-        return responseBody as IMrsResultList<C>;
+        const collection = new MrsSimplifiedCollectionObjectResponse(responseBody);
+
+        return collection.getInstance();
     };
 
     /**
@@ -1049,8 +1216,9 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
      */
     public fetchAll = async (
         pageSize?: number,
-        progress?: (items: IMrsResultList<C>) => Promise<void>): Promise<IMrsResultList<C>> => {
-        const resultList: IMrsResultList<C> = {
+        progress?: (items: MrsResourceCollectionObject<C>) => Promise<void>):
+    Promise<MrsResourceCollectionObject<C>> => {
+        const resultList: MrsResourceCollectionObject<C> = {
             items: [],
             limit: this.pageSizeCondition,
             offset: 0,
@@ -1087,7 +1255,7 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
         return resultList;
     };
 
-    public fetchOne = async (): Promise<C | undefined> => {
+    public fetchOne = async (): Promise<MrsResourceObject<C> | undefined> => {
         this.limitCondition = 1;
 
         const resultList = await this.fetch();
@@ -1156,16 +1324,17 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
     };
 }
 
-export class MrsBaseObjectCreate<T> {
+export class MrsBaseObjectCreate<T extends object> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected item: T) {
+        protected item: T,
+        protected simplified: boolean = true) {
     }
 
-    public fetch = async (): Promise<T> => {
+    public fetch = async (): Promise<MrsResourceObject<T>> => {
         const input = `${this.schema.requestPath}${this.requestPath}`;
-        const body = this.item as IMrsFetchData;
+        const body = this.item;
 
         const res = await this.schema.service.session.doFetch({
             input,
@@ -1174,9 +1343,15 @@ export class MrsBaseObjectCreate<T> {
             errorMsg: "Failed to create item.",
         });
 
-        const responseBody = await res.json();
+        const responseBody = await res.json() as MrsResourceObject<T>;
 
-        return responseBody as T;
+        if (this.simplified === false) {
+            return responseBody;
+        }
+
+        const resource = new MrsSimplifiedObjectResponse(responseBody);
+
+        return resource.getInstance();
     };
 }
 
@@ -1211,7 +1386,8 @@ export class MrsBaseObjectUpdate<T extends object | undefined> {
         protected schema: MrsBaseSchema,
         protected requestPath: string,
         protected fieldsToSet: T,
-        protected keys: string[]) {
+        protected keys: string[],
+        protected simplified: boolean = true) {
     }
 
     public whereKey = (key: string | number): this => {
@@ -1228,7 +1404,7 @@ export class MrsBaseObjectUpdate<T extends object | undefined> {
         return this;
     };
 
-    public fetch = async (): Promise<T> => {
+    public fetch = async (): Promise<MrsResourceObject<T>> => {
         const input = `${this.schema.requestPath}${this.requestPath}/${this.keys.join(",")}`;
 
         const res = await this.schema.service.session.doFetch({
@@ -1240,9 +1416,15 @@ export class MrsBaseObjectUpdate<T extends object | undefined> {
 
         // The REST service returns a single resource, which is an ORDS-compatible object representation decorated with
         // additional fields such as "links" and "_metadata".
-        const responseBody = await res.json() as T & IMrsBaseObject;
+        const responseBody = await res.json() as MrsResourceObject<T>;
 
-        return responseBody;
+        if (this.simplified === false) {
+            return responseBody;
+        }
+
+        const resource = new MrsSimplifiedObjectResponse(responseBody);
+
+        return resource.getInstance();
     };
 }
 

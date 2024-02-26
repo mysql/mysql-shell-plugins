@@ -1,4 +1,4 @@
-/* Copyright (c) 2023, 2024, Oracle and/or its affiliates.*/
+/* Copyright (c) 2023, 2024, Oracle and/or its affiliates. */
 
 /* eslint-disable max-len */
 /* eslint-disable max-classes-per-file */
@@ -11,8 +11,8 @@ import {
     IFindFirstOptions,
     IFindManyOptions,
     IFindUniqueOptions,
-    IMrsResultList,
     MrsBaseObjectQuery,
+    MrsResourceCollectionObject,
     NotFoundError,
     ICreateOptions,
     MrsBaseObjectCreate,
@@ -49,25 +49,26 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
 
     public rest = {
         post: (note: IMyServiceMrsNotesNote): MrsBaseObjectCreate<IMyServiceMrsNotesNote> => {
-            return new MrsBaseObjectCreate<IMyServiceMrsNotesNote>(this.schema, MyServiceMrsNotesNoteRequest.#requestPath, note);
+            return new MrsBaseObjectCreate<IMyServiceMrsNotesNote>(this.schema, MyServiceMrsNotesNoteRequest.#requestPath, note, false);
         },
         get: <K extends keyof IMyServiceMrsNotesNote>(
             ...args: K[]): MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams> => {
             return new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>(
-                this.schema, MyServiceMrsNotesNoteRequest.#requestPath, args);
+                this.schema, MyServiceMrsNotesNoteRequest.#requestPath, args, undefined, false);
         },
         put: (
             note: IMyServiceMrsNotesNote,
             key?: string[]): MrsBaseObjectUpdate<IMyServiceMrsNotesNote> => {
             return new MrsBaseObjectUpdate<IMyServiceMrsNotesNote>(
-                this.schema, MyServiceMrsNotesNoteRequest.#requestPath, note, key !== undefined ? key : [String(note.id)]);
+                this.schema, MyServiceMrsNotesNoteRequest.#requestPath, note, key !== undefined ? key : [String(note.id)], false);
         },
         delete: (): MrsBaseObjectDelete<IMyServiceMrsNotesNoteParams> => {
             return new MrsBaseObjectDelete<IMyServiceMrsNotesNoteParams>(this.schema, MyServiceMrsNotesNoteRequest.#requestPath);
         },
     };
     public create = async (args: ICreateOptions<IMyServiceMrsNotesNote>): Promise<IMyServiceMrsNotesNote> => {
-        const response = await this.rest.post(args.data).fetch();
+        const request = new MrsBaseObjectCreate<IMyServiceMrsNotesNote>(this.schema, MyServiceMrsNotesNoteRequest.#requestPath, args.data);
+        const response = await request.fetch();
 
         return response;
     };
@@ -83,11 +84,11 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
 
         return result;
     };
-    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>): Promise<IMrsResultList<IMyServiceMrsNotesNote>> => {
+    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>): Promise<IMyServiceMrsNotesNote[]> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>(
             this.schema, MyServiceMrsNotesNoteRequest.#requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
-        let response;
+        let response: MrsResourceCollectionObject<IMyServiceMrsNotesNote>;
         if (args?.fetchAll !== undefined && typeof args?.fetchAll === "boolean" && args?.fetchAll) {
             response = await request.fetchAll();
         } else if (args?.fetchAll !== undefined && typeof args?.fetchAll !== "boolean") {
@@ -96,7 +97,7 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
             response = await request.fetch();
         }
 
-        return response;
+        return response.items;
     };
 
     public findFirst = async (args?: IFindFirstOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>): Promise<IMyServiceMrsNotesNote | undefined> => {
@@ -124,8 +125,9 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
         return response;
     };
     public update = async (args: IUpdateOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams, ["id"], { batch: false }>): Promise<IMyServiceMrsNotesNote> => {
-        const response = await this.rest.put(args.data, [String(args.where.id)])
-            .fetch();
+        const request = new MrsBaseObjectUpdate<IMyServiceMrsNotesNote>(
+            this.schema, MyServiceMrsNotesNoteRequest.#requestPath, args.data, [String(args.where.id)]);
+        const response = await request.fetch();
 
         return response;
     };
@@ -197,25 +199,26 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
 
     public rest = {
         post: (user: IMyServiceMrsNotesUser): MrsBaseObjectCreate<IMyServiceMrsNotesUser> => {
-            return new MrsBaseObjectCreate<IMyServiceMrsNotesUser>(this.schema, MyServiceMrsNotesUserRequest.#requestPath, user);
+            return new MrsBaseObjectCreate<IMyServiceMrsNotesUser>(this.schema, MyServiceMrsNotesUserRequest.#requestPath, user, false);
         },
         get: <K extends keyof IMyServiceMrsNotesUser>(
             ...args: K[]): MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams> => {
             return new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams>(
-                this.schema, MyServiceMrsNotesUserRequest.#requestPath, args);
+                this.schema, MyServiceMrsNotesUserRequest.#requestPath, args, undefined, false);
         },
         put: (
             user: IMyServiceMrsNotesUser,
             key?: string[]): MrsBaseObjectUpdate<IMyServiceMrsNotesUser> => {
             return new MrsBaseObjectUpdate<IMyServiceMrsNotesUser>(
-                this.schema, MyServiceMrsNotesUserRequest.#requestPath, user, key !== undefined ? key : [String(user.id)]);
+                this.schema, MyServiceMrsNotesUserRequest.#requestPath, user, key !== undefined ? key : [String(user.id)], false);
         },
         delete: (): MrsBaseObjectDelete<IMyServiceMrsNotesUserParams> => {
             return new MrsBaseObjectDelete<IMyServiceMrsNotesUserParams>(this.schema, MyServiceMrsNotesUserRequest.#requestPath);
         },
     };
     public create = async (args: ICreateOptions<IMyServiceMrsNotesUser>): Promise<IMyServiceMrsNotesUser> => {
-        const response = await this.rest.post(args.data).fetch();
+        const request = new MrsBaseObjectCreate<IMyServiceMrsNotesUser>(this.schema, MyServiceMrsNotesUserRequest.#requestPath, args.data);
+        const response = await request.fetch();
 
         return response;
     };
@@ -231,11 +234,11 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
 
         return result;
     };
-    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams>): Promise<IMrsResultList<IMyServiceMrsNotesUser>> => {
+    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams>): Promise<IMyServiceMrsNotesUser[]> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams>(
             this.schema, MyServiceMrsNotesUserRequest.#requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
-        let response;
+        let response: MrsResourceCollectionObject<IMyServiceMrsNotesUser>;
         if (args?.fetchAll !== undefined && typeof args?.fetchAll === "boolean" && args?.fetchAll) {
             response = await request.fetchAll();
         } else if (args?.fetchAll !== undefined && typeof args?.fetchAll !== "boolean") {
@@ -244,7 +247,7 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
             response = await request.fetch();
         }
 
-        return response;
+        return response.items;
     };
 
     public findFirst = async (args?: IFindFirstOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams>): Promise<IMyServiceMrsNotesUser | undefined> => {
@@ -272,8 +275,9 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
         return response;
     };
     public update = async (args: IUpdateOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams, ["id"], { batch: false }>): Promise<IMyServiceMrsNotesUser> => {
-        const response = await this.rest.put(args.data, [String(args.where.id)])
-            .fetch();
+        const request = new MrsBaseObjectUpdate<IMyServiceMrsNotesUser>(
+            this.schema, MyServiceMrsNotesUserRequest.#requestPath, args.data, [String(args.where.id)]);
+        const response = await request.fetch();
 
         return response;
     };
@@ -333,14 +337,14 @@ export class MyServiceMrsNotesUserHasNoteRequest extends MyServiceMrsNotesObject
         get: <K extends keyof IMyServiceMrsNotesUserHasNote>(
             ...args: K[]): MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams> => {
             return new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams>(
-                this.schema, MyServiceMrsNotesUserHasNoteRequest.#requestPath, args);
+                this.schema, MyServiceMrsNotesUserHasNoteRequest.#requestPath, args, undefined, false);
         },
     };
-    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams>): Promise<IMrsResultList<IMyServiceMrsNotesUserHasNote>> => {
+    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams>): Promise<IMyServiceMrsNotesUserHasNote[]> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams>(
             this.schema, MyServiceMrsNotesUserHasNoteRequest.#requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
-        let response;
+        let response: MrsResourceCollectionObject<IMyServiceMrsNotesUserHasNote>;
         if (args?.fetchAll !== undefined && typeof args?.fetchAll === "boolean" && args?.fetchAll) {
             response = await request.fetchAll();
         } else if (args?.fetchAll !== undefined && typeof args?.fetchAll !== "boolean") {
@@ -349,7 +353,7 @@ export class MyServiceMrsNotesUserHasNoteRequest extends MyServiceMrsNotesObject
             response = await request.fetch();
         }
 
-        return response;
+        return response.items;
     };
 
     public findFirst = async (args?: IFindFirstOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams>): Promise<IMyServiceMrsNotesUserHasNote | undefined> => {
@@ -416,14 +420,14 @@ export class MyServiceMrsNotesNotesAllRequest extends MyServiceMrsNotesObjectReq
         get: <K extends keyof IMyServiceMrsNotesNotesAll>(
             ...args: K[]): MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams> => {
             return new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams>(
-                this.schema, MyServiceMrsNotesNotesAllRequest.#requestPath, args);
+                this.schema, MyServiceMrsNotesNotesAllRequest.#requestPath, args, undefined, false);
         },
     };
-    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams>): Promise<IMrsResultList<IMyServiceMrsNotesNotesAll>> => {
+    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams>): Promise<IMyServiceMrsNotesNotesAll[]> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams>(
             this.schema, MyServiceMrsNotesNotesAllRequest.#requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
-        let response;
+        let response: MrsResourceCollectionObject<IMyServiceMrsNotesNotesAll>;
         if (args?.fetchAll !== undefined && typeof args?.fetchAll === "boolean" && args?.fetchAll) {
             response = await request.fetchAll();
         } else if (args?.fetchAll !== undefined && typeof args?.fetchAll !== "boolean") {
@@ -432,7 +436,7 @@ export class MyServiceMrsNotesNotesAllRequest extends MyServiceMrsNotesObjectReq
             response = await request.fetch();
         }
 
-        return response;
+        return response.items;
     };
 
     public findFirst = async (args?: IFindFirstOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams>): Promise<IMyServiceMrsNotesNotesAll | undefined> => {
@@ -491,14 +495,14 @@ export class MyServiceMrsNotesNotesServedRequest extends MyServiceMrsNotesObject
         get: <K extends keyof IMyServiceMrsNotesNotesServed>(
             ...args: K[]): MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams> => {
             return new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams>(
-                this.schema, MyServiceMrsNotesNotesServedRequest.#requestPath, args);
+                this.schema, MyServiceMrsNotesNotesServedRequest.#requestPath, args, undefined, false);
         },
     };
-    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams>): Promise<IMrsResultList<IMyServiceMrsNotesNotesServed>> => {
+    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams>): Promise<IMyServiceMrsNotesNotesServed[]> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams>(
             this.schema, MyServiceMrsNotesNotesServedRequest.#requestPath, args?.select)
             .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
-        let response;
+        let response: MrsResourceCollectionObject<IMyServiceMrsNotesNotesServed>;
         if (args?.fetchAll !== undefined && typeof args?.fetchAll === "boolean" && args?.fetchAll) {
             response = await request.fetchAll();
         } else if (args?.fetchAll !== undefined && typeof args?.fetchAll !== "boolean") {
@@ -507,7 +511,7 @@ export class MyServiceMrsNotesNotesServedRequest extends MyServiceMrsNotesObject
             response = await request.fetch();
         }
 
-        return response;
+        return response.items;
     };
 
     public findFirst = async (args?: IFindFirstOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams>): Promise<IMyServiceMrsNotesNotesServed | undefined> => {
