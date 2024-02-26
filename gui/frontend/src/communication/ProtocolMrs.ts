@@ -1292,6 +1292,10 @@ export interface IMrsServiceData {
     customMetadataSchema?: string;
 }
 
+export interface IMrsAddAuthAppData {
+    authAppId: string;
+}
+
 export interface IMrsAuthAppData {
     id?: string;
     authVendorId?: string;
@@ -1564,7 +1568,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsUpdateDbObject]: {};
     [ShellAPIMrs.MrsListContentFiles]: { result: IMrsContentFileData[]; };
     [ShellAPIMrs.MrsGetAuthenticationVendors]: { result: IMrsAuthVendorData[]; };
-    [ShellAPIMrs.MrsAddAuthenticationApp]: { result: IMrsAuthAppData; };
+    [ShellAPIMrs.MrsAddAuthenticationApp]: { result: IMrsAddAuthAppData; };
     [ShellAPIMrs.MrsDeleteAuthenticationApp]: {};
     [ShellAPIMrs.MrsUpdateAuthenticationApp]: {};
     [ShellAPIMrs.MrsListAuthenticationApps]: { result: IMrsAuthAppData[]; };

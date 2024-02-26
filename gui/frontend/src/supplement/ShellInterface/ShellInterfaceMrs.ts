@@ -31,7 +31,7 @@ import {
     IMrsContentSetData, IMrsContentFileData, IShellMrsUpdateAuthenticationAppKwargsValue, IMrsUserData,
     IShellMrsUpdateUserKwargsValue, IMrsRoleData, IMrsUserRoleData,
     IMrsRouterData, IMrsCurrentServiceMetadata, IMrsTableColumnWithReference, IMrsObjectFieldWithReference,
-    IMrsObject, IMrsDbObjectParameterData, IMrsSdkOptions,
+    IMrsObject, IMrsDbObjectParameterData, IMrsSdkOptions, IMrsAddAuthAppData,
 } from "../../communication/ProtocolMrs.js";
 import { webSession } from "../WebSession.js";
 
@@ -198,7 +198,8 @@ export class ShellInterfaceMrs {
     }
 
 
-    public async addAuthApp(serviceId: string, authApp: IMrsAuthAppData, registerUsers: []): Promise<IMrsAuthAppData> {
+    public async addAuthApp(serviceId: string, authApp: IMrsAuthAppData, registerUsers: [])
+        : Promise<IMrsAddAuthAppData> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddAuthenticationApp,
             parameters: {

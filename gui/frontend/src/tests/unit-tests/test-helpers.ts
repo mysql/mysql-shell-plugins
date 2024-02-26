@@ -561,63 +561,55 @@ interface IElementQuery {
  * @param query The query parameters for the HTML element search.
  * @returns A collection of the elements that comply to the search query parameters.
  */
-function searchElements(query: IElementQuery): Element[] {
+const searchElements = (query: IElementQuery): Element[] => {
     let queryId = "";
     let queryClass = "";
     let queryParent = "";
     let queryType = "";
 
-    if(query.id) {
+    if (query.id) {
         queryId = `#${query.id}`;
     }
 
-    if(query.type) {
+    if (query.type) {
         queryType = query.type;
     }
 
-    if(query.class) {
+    if (query.class) {
         queryClass = `.${query.class.replaceAll(" ", ".")}`;
     }
 
-    if(query.parentId) {
+    if (query.parentId) {
         queryParent = `#${query.parentId} `;
     }
 
-    // const queryString = `${queryParent} ${queryType}${queryClass} [${queryId}]`;
     const queryString = `${queryParent} ${queryType}${queryId}${queryClass}`;
 
-    // let elements;
-    // try {
-    //     // elements = document.querySelectorAll("#mrsServiceDialog div.msg.button[id='cancel']");
-    //     elements = document.querySelectorAll(queryString);
-    // } catch(error) {
-    //     console.log(error);
-    // }
     const elements = document.querySelectorAll(queryString);
-    let result = [];
+    const result = [];
 
-    for(const element of elements) {
+    for (const element of elements) {
         result.push(element);
     }
 
-    if(query.required) {
+    if (query.required) {
         expect(result.length).toBeGreaterThan(0);
     }
 
-    if(query.unique) {
+    if (query.unique) {
         expect(result.length).toBe(1);
     }
 
     return result;
-}
+};
 
 /**
  * Search for a single HTML element.
  *
  * @param query The query parameters.
- * @returns
+ * @returns Returns the HTML element found by the query.
  */
-function searchElement<T = Element>(query: IElementQuery): T {
+const searchElement = <T = Element>(query: IElementQuery): T => {
     query.unique = true;
 
     const result = searchElements(query);
@@ -625,12 +617,12 @@ function searchElement<T = Element>(query: IElementQuery): T {
     expect(result.length).toBe(1);
 
     return result[0] as T;
-}
+};
 
 export class DialogHelper {
-    id: string;
+    private id: string;
 
-    constructor(id: string) {
+    public constructor(id: string) {
         this.id = id;
     }
 
@@ -639,39 +631,46 @@ export class DialogHelper {
      *
      * @param id The id of the HTML element.
      * @param text The text to set in the input element.
+     * @returns A promise to when the text is set.
      */
-    async setInputText(id: string, text: string) {
+    public async setInputText(id: string, text: string): Promise<void> {
         const input = this.searchChild<HTMLInputElement>({ id, type: "input" });
 
         changeInputValue(input, text);
+
+        return nextRunLoop();
     }
 
-    getInputText(id: string) {
+    public getInputText(id: string): string {
         return this.searchChild<HTMLInputElement>({ id, type: "input" }).value;
     }
 
     /**
      * Search for the `ok` button and click it.
-     *
+     * @returns A promise to when the click is finished.
      */
-    async clickOk() {
+    public clickOk(): Promise<void> {
         const button = this.searchChild<HTMLButtonElement>({ id: "ok", type: "div" });
 
-        expect(button).not.toBeNull()
+        expect(button).not.toBeNull();
 
         button.click();
+
+        return nextRunLoop();
     }
 
     /**
      * Search for the `cancel` button and click it.
-     *
+     * @returns A promise to when the click is finished.
      */
-    async clickCancel() {
+    public clickCancel(): Promise<void> {
         const button = this.searchChild<HTMLButtonElement>({ id: "cancel", type: "div" });
 
-        expect(button).not.toBeNull()
+        expect(button).not.toBeNull();
 
         button.click();
+
+        return nextRunLoop();
     }
 
     /**
@@ -679,16 +678,16 @@ export class DialogHelper {
      *
      * @param id The HTML element of the combo box.
      * @param item The item number in the drop down that is to be selected.
-     * @returns
+     * @returns a promise to void
      */
-    async setComboBoxItem(id: string, item: number) {
+    public async setComboBoxItem(id: string, item: number): Promise<void> {
         const outer = this.searchChild<HTMLInputElement>({ id });
 
         if (outer === null) {
             return;
         }
 
-        outer.click()
+        outer.click();
         await nextRunLoop();
 
         const popup = searchElement<HTMLDivElement>({ id: `${id}Popup` });
@@ -699,6 +698,8 @@ export class DialogHelper {
 
         const popupItem = popup.firstChild.childNodes[item] as HTMLDivElement;
         popupItem.click();
+
+        return Promise.resolve();
     }
 
     /**
@@ -706,7 +707,7 @@ export class DialogHelper {
      *
      * @returns The found error element texts.
      */
-    getErrors(): string[] {
+    public getErrors(): string[] {
         const errors = this.searchChildren({ class: "msg message error" });
         const result = [];
 
@@ -722,10 +723,10 @@ export class DialogHelper {
      *
      * @param expectedErrors The error list to check in the dialog.
      */
-    verifyErrors(expectedErrors: string[] = []) {
+    public verifyErrors(expectedErrors: string[] = []): void {
         const errors = this.getErrors();
 
-        if(expectedErrors.length === 0) {
+        if (expectedErrors.length === 0) {
             expect(errors.length).toBe(0);
         } else {
             expect(errors.length).toBeGreaterThan(0);
@@ -736,11 +737,11 @@ export class DialogHelper {
         }
     }
 
-    searchChildren(query: IElementQuery): Element[] {
+    public searchChildren(query: IElementQuery): Element[] {
         return searchElements({ ...query, parentId: this.id });
     }
 
-    searchChild<T = Element>(query: IElementQuery): T {
+    public searchChild<T = Element>(query: IElementQuery): T {
         return searchElement({ ...query, parentId: this.id });
     }
 }
