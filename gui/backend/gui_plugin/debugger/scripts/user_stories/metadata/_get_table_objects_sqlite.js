@@ -297,3 +297,86 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId
     }
 ])
+
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_columns_metadata",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "names": [{
+          "schema": "main",
+          "table": "tests_user",
+          "column": "id"
+        }, {
+          "schema": "main",
+          "table": "tests_user",
+          "column": "name"
+        }]
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": [
+            { "schema": "main", "table": "tests_user", "name": "id", "type": "INTEGER", "not_null": true, "default": null, "is_pk": true, "auto_increment": true },
+            { "schema": "main", "table": "tests_user", "name": "name", "type": "VARCHAR(45)", "not_null": false, "default": null, "is_pk": false, "auto_increment": false }
+        ]
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_columns_metadata",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "names": [{
+            "schema": "main",
+            "table": "tests_user",
+            "column": "id"
+        }, {
+                "schema": "main",
+                "table": "tests_user",
+                "column": "notExistingColumn"
+        }, {
+            "schema": "main",
+            "table": "tests_user",
+            "column": "name"
+        }]
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": [
+            { "schema": "main", "table": "tests_user", "name": "id", "type": "INTEGER", "not_null": true, "default": null, "is_pk": true, "auto_increment": true },
+            { "schema": "main", "table": "tests_user", "name": "name", "type": "VARCHAR(45)", "not_null": false, "default": null, "is_pk": false, "auto_increment": false }
+        ]
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])

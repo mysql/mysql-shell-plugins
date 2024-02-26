@@ -423,3 +423,85 @@ await ws.sendAndValidate({
         "done": true
     }
 ], 0))
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_columns_metadata",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "names": [{
+          "schema": ws.tokens["schema"],
+          "table": 'categories',
+          "column": 'categoryName'
+        }, {
+          "schema": ws.tokens["schema"],
+          "table": 'products',
+          "column": 'productName'
+        }]
+    }
+}, ws.matchList([
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": [
+            { "schema": ws.tokens["schema"], "table": "categories", "name": "categoryName", "type": "varchar(100)", "not_null": true, "default": null, "is_pk": false, "auto_increment": false},
+            { "schema": ws.tokens["schema"], "table": "products", "name": "productName", "type": "varchar(100)", "not_null": true, "default": null, "is_pk": false, "auto_increment": false}
+        ]
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+], 0))
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_columns_metadata",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "names": [{
+            "schema": ws.tokens["schema"],
+            "table": 'categories',
+            "column": 'categoryName'
+        }, {
+            "schema": ws.tokens["schema"],
+            "table": 'products',
+            "column": 'notExistingColumn'
+        }, {
+            "schema": ws.tokens["schema"],
+            "table": 'products',
+            "column": 'productName'
+        }]
+    }
+}, ws.matchList([
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": [
+            { "schema": ws.tokens["schema"], "table": "categories", "name": "categoryName", "type": "varchar(100)", "not_null": true, "default": null, "is_pk": false, "auto_increment": false },
+            { "schema": ws.tokens["schema"], "table": "products", "name": "productName", "type": "varchar(100)", "not_null": true, "default": null, "is_pk": false, "auto_increment": false }
+        ]
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+], 0))

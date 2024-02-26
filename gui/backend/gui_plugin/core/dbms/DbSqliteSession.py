@@ -35,7 +35,8 @@ from gui_plugin.core.dbms.DbSession import (DbSession, DbSessionFactory,
 from gui_plugin.core.dbms.DbSessionTasks import check_supported_type
 from gui_plugin.core.dbms.DbSqliteSessionTasks import (
     SqliteBaseObjectTask, SqliteGetAutoCommit, SqliteOneFieldListTask,
-    SqliteSetCurrentSchemaTask, SqliteTableObjectTask, SqliteColumnObjectTask)
+    SqliteSetCurrentSchemaTask, SqliteTableObjectTask, SqliteColumnObjectTask,
+    SqliteColumnsMetadataTask)
 from gui_plugin.core.Error import MSGException
 
 
@@ -454,3 +455,23 @@ class DbSqliteSession(DbSession):
             self.add_task(SqliteBaseObjectTask(self, task_id=task_id, sql=sql,
                                             type=type, name=f"{schema_name}.{name}",
                                             params=params))
+
+    def get_columns_metadata(self, names):
+        sql_parts = []
+        params = []
+
+        for name in names:
+            sql_parts.append(f"""
+                SELECT name, type, "notnull" as 'not_null', dflt_value as 'default',
+                            pk as 'is_pk', pk as 'auto_increment',
+                            '{name['table']}' as 'table', '{name['schema']}' as 'schema'
+                        FROM pragma_table_info('{name['table']}', '{name['schema']}')
+                        WHERE name = ?
+            """)
+            params.extend([name['column']])
+
+        sql = " UNION ALL ".join(sql_parts)
+
+        context = get_context()
+        task_id = context.request_id if context else None
+        self.add_task(SqliteColumnsMetadataTask(self, task_id=task_id, sql=sql, params=params))

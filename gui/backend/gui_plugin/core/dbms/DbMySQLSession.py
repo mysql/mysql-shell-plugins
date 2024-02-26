@@ -34,7 +34,7 @@ from gui_plugin.core import Filtering
 from gui_plugin.core.Context import get_context
 from gui_plugin.core.dbms import DbMySQLSessionSetupTasks as SetupTasks
 from gui_plugin.core.dbms import DbPingHandlerTask
-from gui_plugin.core.dbms.DbMySQLSessionTasks import (MySQLBaseObjectTask,
+from gui_plugin.core.dbms.DbMySQLSessionTasks import (MySQLBaseObjectTask, MySQLColumnsMetadataTask,
                                                       MySQLOneFieldListTask,
                                                       MySQLOneFieldTask,
                                                       MySQLTableObjectTask,
@@ -699,3 +699,31 @@ class DbMysqlSession(DbSession):
                 raise MSGException(Error.DB_OBJECT_DOESNT_EXISTS,
                                    f"The {type.lower()} '{schema_name}.{name}' does not exist.")
             return {"name": result[0]}
+
+    def get_columns_metadata(self, names):
+        params = []
+        where_clause = []
+
+        sql = """SELECT COLUMN_NAME as 'name', COLUMN_TYPE as 'type',
+                    IS_NULLABLE='NO' as 'not_null', COLUMN_DEFAULT as 'default',
+                    COLUMN_KEY='PRI' as 'is_pk',
+                    EXTRA='auto_increment' as 'auto_increment',
+                    TABLE_SCHEMA as 'schema', TABLE_NAME as 'table'
+                FROM information_schema.COLUMNS
+                WHERE """
+        for name in names:
+            where_clause.append("(TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?)")
+            params.extend([name['schema'], name['table'], name['column']])
+
+        sql += " OR ".join(where_clause)
+
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            self.add_task(MySQLColumnsMetadataTask(self, task_id=task_id, sql=sql, params=params))
+        else:
+            result = self.execute(sql, params).fetch_all()
+            if not result:
+                column_names = [name['name'] for name in names]
+                raise MSGException(Error.DB_OBJECT_DOESNT_EXISTS, f"The columns {column_names} do not exist.")
+            return {"columns": result}

@@ -157,3 +157,35 @@ class SqliteColumnObjectTask(BaseObjectTask):
                 "is_pk": row['is_pk'],
                 "auto_increment": row['auto_increment']
         }
+
+
+class SqliteColumnsMetadataTask(BaseObjectTask):
+    def process_result(self):
+        buffer_size = self.options.get("row_packet_size", 25)
+        columns_details = []
+        send_empty = True
+        for row in self.resultset:
+            columns_details.append(self.format(row))
+
+            # Return chunks of buffer_size a time, if buffer_size is 0
+            # or -1, do not return chunks but only the full result set
+            if buffer_size > 0 and len(columns_details) >= buffer_size:
+                self.dispatch_result("PENDING", data=columns_details)
+                columns_details = []
+                send_empty = False
+
+        if send_empty or len(columns_details) > 0:
+            self.dispatch_result("PENDING", data=columns_details)
+
+
+    def format(self, row):
+        return {
+                "schema": row['schema'],
+                "table": row['table'],
+                "name": row['name'],
+                "type": row['type'],
+                "not_null": row['not_null'],
+                "default": row['default'],
+                "is_pk": row['is_pk'],
+                "auto_increment": row['auto_increment']
+        }

@@ -175,6 +175,22 @@ def get_table_object(session, type, schema_name, table_name, name):
                                     name=name)
 
 
+@plugin_function('gui.db.getColumnsMetadata', shell=True, web=True)
+def get_columns_metadata(session, names):
+    """Returns a JSON representation of the columns metadata.
+
+    Args:
+        session (object): The session used to execute the operation
+        names (list): List of column names, example: [{'schema': 'schema1', 'table': 'table1', 'column': 'column1'}, ...]
+
+    Returns:
+        dict: The catalog object
+    """
+    session = backend.get_db_session(session)
+
+    return session.get_columns_metadata(names)
+
+
 @plugin_function('gui.db.startSession', shell=False, web=True)
 def start_session(connection, password=None):
     """Starts a DB Session

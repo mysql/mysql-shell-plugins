@@ -104,12 +104,12 @@ class MySQLTableObjectTask(BaseObjectTask):
 class MySQLColumnObjectTask(BaseObjectTask):
     def format(self, row):
         return {
-                "name": row[0],
-                "type": row[1],
-                "not_null": row[2],
-                "default": row[3],
-                "is_pk": row[4],
-                "auto_increment": row[5],
+            "name": row.get_field("name"),
+            "type": row.get_field("type"),
+            "not_null": row.get_field("not_null"),
+            "default": row.get_field("default"),
+            "is_pk": row.get_field("is_pk"),
+            "auto_increment": row.get_field("auto_increment"),
         }
 
     def process_result(self):
@@ -123,6 +123,39 @@ class MySQLColumnObjectTask(BaseObjectTask):
                 self.dispatch_result("PENDING", data=self.format(row))
         else:
             self.dispatch_result("ERROR", message=_err_msg)
+
+class MySQLColumnsMetadataTask(DbQueryTask):
+    def format(self, row):
+        return {
+            "schema": row.get_field("schema"),
+            "table": row.get_field("table"),
+            "name": row.get_field("name"),
+            "type": row.get_field("type"),
+            "not_null": row.get_field("not_null"),
+            "default": row.get_field("default"),
+            "is_pk": row.get_field("is_pk"),
+            "auto_increment": row.get_field("auto_increment"),
+        }
+
+    def process_result(self):
+        buffer_size = self.options.get("row_packet_size", 25)
+        columns_details = []
+        send_empty = True
+        if self.resultset.has_data():
+            row = self.resultset.fetch_one()
+            while row:
+                columns_details.append(self.format(row))
+                row = self.resultset.fetch_one()
+
+                # Return chunks of buffer_size a time, if buffer_size is 0
+                # or -1, do not return chunks but only the full result set
+                if not row or (buffer_size > 0 and len(columns_details) >= buffer_size):
+                    self.dispatch_result("PENDING", data=columns_details)
+                    columns_details = []
+                    send_empty = False
+
+        if send_empty or len(columns_details) > 0:
+            self.dispatch_result("PENDING", data=columns_details)
 
 class MySQLOneFieldListTask(DbQueryTask):
     def process_result(self):

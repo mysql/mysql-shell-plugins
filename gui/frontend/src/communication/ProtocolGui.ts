@@ -112,6 +112,8 @@ export enum ShellAPIGui {
     GuiDbGetSchemaObject = "gui.db.get_schema_object",
     /** Returns a JSON representation of the table object matching the given type, schema, table and name. */
     GuiDbGetTableObject = "gui.db.get_table_object",
+    /** Returns a JSON representation of the columns metadata. */
+    GuiDbGetColumnsMetadata = "gui.db.get_columns_metadata",
     /** Starts a DB Session */
     GuiDbStartSession = "gui.db.start_session",
     /** Closes the DB Session */
@@ -305,6 +307,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDbGetCatalogObject]: { args: { moduleSessionId: string; type: string; name: string; }; };
     [ShellAPIGui.GuiDbGetSchemaObject]: { args: { moduleSessionId: string; type: string; schemaName: string; name: string; }; };
     [ShellAPIGui.GuiDbGetTableObject]: { args: { moduleSessionId: string; type: string; schemaName: string; tableName: string; name: string; }; };
+    [ShellAPIGui.GuiDbGetColumnsMetadata]: { args: { moduleSessionId: string; names: unknown[]; }; };
     [ShellAPIGui.GuiDbStartSession]: { args: { connection: IShellDbConnection | number; password?: string; }; };
     [ShellAPIGui.GuiDbCloseSession]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbReconnect]: { args: { moduleSessionId: string; }; };

@@ -25,7 +25,7 @@ import gui_plugin.core.Error as Error
 from gui_plugin.core.dbms import DbSession, DbSessionFactory
 
 
-def get_db_session(session: object) -> object:
+def get_db_session(session: object) -> DbSession:
     if session is None:
         raise Error.MSGException(Error.CORE_INVALID_PARAMETER,
                                  "Session required for this operation.")
