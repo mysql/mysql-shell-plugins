@@ -26,26 +26,23 @@
 import { createRef } from "preact";
 
 import { mount } from "enzyme";
-import {
-    getDbCredentials, JestReactWrapper, nextProcessTick, sendKeyPress, setupShellForTests, DialogHelper
-} from "../../../test-helpers.js";
-import { IMrsDbObjectEditRequest } from "../../../../../supplement/Requisitions.js";
-import { IMrsServiceData, IMrsObject, IShellMrsUpdateDbObjectKwargsValue, IMrsAuthAppData, IMrsDbObjectData, IMrsUserRoleData, IMrsAddContentSetData } from "../../../../../communication/ProtocolMrs.js";
-import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
-import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
-import { ShellInterface } from "../../../../../supplement/ShellInterface/ShellInterface.js";
-import { webSession } from "../../../../../supplement/WebSession.js";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../../communication/MySQL.js";
-import { IConnectionDetails, DBType } from "../../../../../supplement/ShellInterface/index.js";
-import { KeyboardKeys, sleep } from "../../../../../utilities/helpers.js";
-import { ShellInterfaceShellSession } from "../../../../../supplement/ShellInterface/ShellInterfaceShellSession.js";
-import { MrsAuthDialog } from "../../../../../modules/mrs/dialogs/MrsAuthDialog.js";
-import { MrsServiceDialog } from "../../../../../modules/mrs/dialogs/MrsServiceDialog.js";
-import { MrsDialogType } from "../../../../../app-logic/Types.js";
 import { IShellDictionary } from "../../../../../communication/Protocol.js";
-
-
+import {
+    IMrsAddContentSetData, IMrsAuthAppData, IMrsAddAuthAppData, IMrsServiceData, IMrsUserRoleData,
+    IShellMrsUpdateDbObjectKwargsValue,
+} from "../../../../../communication/ProtocolMrs.js";
+import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
+import { IMrsDbObjectEditRequest } from "../../../../../supplement/Requisitions.js";
+import { ShellInterface } from "../../../../../supplement/ShellInterface/ShellInterface.js";
+import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { DBType, IConnectionDetails } from "../../../../../supplement/ShellInterface/index.js";
+import { webSession } from "../../../../../supplement/WebSession.js";
+import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
+import { KeyboardKeys, sleep } from "../../../../../utilities/helpers.js";
+import {
+    DialogHelper, JestReactWrapper, getDbCredentials, nextProcessTick, sendKeyPress, setupShellForTests,
+} from "../../../test-helpers.js";
 
 describe("MrsHub Tests", () => {
     let host: JestReactWrapper;
@@ -55,7 +52,6 @@ describe("MrsHub Tests", () => {
 
     let service: IMrsServiceData;
     let authApp: IMrsAuthAppData;
-    let dbObject: IMrsDbObjectData;
     let dialogHelper: DialogHelper;
 
     const hubRef = createRef<MrsHub>();
@@ -92,7 +88,7 @@ describe("MrsHub Tests", () => {
         // Some preparation for the tests.
         await backend.execute("DROP DATABASE IF EXISTS mysql_rest_service_metadata");
         await backend.execute("DROP DATABASE IF EXISTS MRS_TEST");
-        const createResult = await backend.execute("CREATE DATABASE MRS_TEST");
+        await backend.execute("CREATE DATABASE MRS_TEST");
         await backend.execute("CREATE TABLE MRS_TEST.actor (actor_id INT NOT NULL, first_name VARCHAR(45) NOT NULL, " +
             "last_name VARCHAR(45) NOT NULL, last_update TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY " +
             "(actor_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci");
@@ -108,12 +104,12 @@ describe("MrsHub Tests", () => {
             enabled: true,
             limitToRegisteredUsers: false,
             defaultRoleId: "0x31000000000000000000000000000000",
-        }, [])
+        }, []);
         authApp = await backend.mrs.getAuthApp(authAppId.authAppId);
         const schemaId = await backend.mrs.addSchema(service.id, "MRS_TEST", "/mrs-test", false, null, null);
         const dbObjectResult = await backend.mrs.addDbObject("actor", "TABLE", false, "/actor", true, ["READ"], "FEED",
             false, false, false, null, null, undefined, schemaId);
-        dbObject = await backend.mrs.getDbObject(dbObjectResult);
+        await backend.mrs.getDbObject(dbObjectResult);
         host = mount<MrsHub>(<MrsHub ref={hubRef} />);
     });
 
@@ -135,7 +131,7 @@ describe("MrsHub Tests", () => {
     describe("MRS Service dialog tests", () => {
         beforeAll(() => {
             dialogHelper = new DialogHelper("mrsServiceDialog");
-        })
+        });
 
         it("Show MRS Service Dialog (snapshot) and escape", async () => {
             let portals = document.getElementsByClassName("portal");
@@ -171,7 +167,7 @@ describe("MrsHub Tests", () => {
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
 
-            dialogHelper.clickCancel()
+            await dialogHelper.clickCancel();
 
             await promise;
 
@@ -188,30 +184,35 @@ describe("MrsHub Tests", () => {
                 authPath: string, authCompletedUrl: string,
                 authCompletedUrlValidation: string, authCompletedPageContent: string,
                 authApps: IMrsAuthAppData[]): Promise<IMrsServiceData> => {
-                    return Promise.resolve({
-                        enabled: 1,
-                        hostCtx: "",
-                        id: "",
-                        isCurrent: 1,
-                        urlContextRoot: "",
-                        urlHostName: "localhost",
-                        urlProtocol: "",
-                        comments: "some comments",
-                        options: {},
-                        authPath: "",
-                        authCompletedUrl: "",
-                        authCompletedUrlValidation: "",
-                        authCompletedPageContent: "",
-                        authApps: [],
-                        enableSqlEndpoint: 0,
-                        customMetadataSchema: "",
-                    });
-                }
+                return Promise.resolve({
+                    enabled: Number(enabled),
+                    hostCtx: "",
+                    id: "",
+                    isCurrent: 1,
+                    urlContextRoot,
+                    urlHostName,
+                    urlProtocol: urlProtocol.join(","),
+                    comments,
+                    options: options ?? {},
+                    authPath,
+                    authCompletedUrl,
+                    authCompletedUrlValidation,
+                    authCompletedPageContent,
+                    authApps,
+                    enableSqlEndpoint: 0,
+                    customMetadataSchema: "",
+                });
+            };
 
             backend.mrs.updateService = async (serviceId: string, urlContextRoot: string, urlHostName: string,
                 value: IShellDictionary): Promise<void> => {
-                    return Promise.resolve();
-                }
+                expect(serviceId).toBeDefined();
+                expect(urlContextRoot).toBeDefined();
+                expect(urlHostName).toBeDefined();
+                expect(value).toBeDefined();
+
+                return Promise.resolve();
+            };
 
             await sleep(500);
             const promise = hubRef.current!.showMrsServiceDialog(backend);
@@ -222,7 +223,6 @@ describe("MrsHub Tests", () => {
             expect(portals.length).toBe(1);
             dialogHelper.verifyErrors();
 
-            let element = document.getElementById("servicePath") as HTMLInputElement;
             expect(dialogHelper.getInputText("servicePath")).toBe("/myService");
 
             await dialogHelper.setInputText("servicePath", "");
@@ -249,12 +249,12 @@ describe("MrsHub Tests", () => {
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(0);
         });
-    })
+    });
 
     describe("MRS Schema dialog tests", () => {
         beforeAll(() => {
             dialogHelper = new DialogHelper("mrsSchemaDialog");
-        })
+        });
 
         it("Show MRS Schema Dialog (snapshot) and escape", async () => {
             let portals = document.getElementsByClassName("portal");
@@ -290,7 +290,7 @@ describe("MrsHub Tests", () => {
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
 
-            dialogHelper.clickCancel();
+            await dialogHelper.clickCancel();
 
             await promise;
 
@@ -305,16 +305,16 @@ describe("MrsHub Tests", () => {
             backend.mrs.addSchema = (serviceId: string, schemaName: string, requestPath: string, requiresAuth: boolean,
                 options: IShellDictionary | null,
                 itemsPerPage: number | null, comments?: string): Promise<string> => {
-                    expect(serviceId).not.toBeNull();
-                    expect(schemaName).toBe("mySchema");
-                    expect(requestPath).toBe("/schema");
-                    expect(requiresAuth).toBeFalsy();
-                    expect(itemsPerPage).toBeNull();
-                    expect(options).toBeNull();
-                    expect(comments).toBe("");
+                expect(serviceId).not.toBeNull();
+                expect(schemaName).toBe("mySchema");
+                expect(requestPath).toBe("/schema");
+                expect(requiresAuth).toBeFalsy();
+                expect(itemsPerPage).toBeNull();
+                expect(options).toBeNull();
+                expect(comments).toBe("");
 
-                    return Promise.resolve("done");
-                }
+                return Promise.resolve("done");
+            };
 
             const promise = hubRef.current!.showMrsSchemaDialog(backend);
             await nextProcessTick();
@@ -343,7 +343,7 @@ describe("MrsHub Tests", () => {
 
         beforeAll(() => {
             dialogHelper = new DialogHelper("mrsAuthenticationAppDialog");
-        })
+        });
 
         it("Show MRS Authentication App Dialog (snapshot) and escape", async () => {
             let portals = document.getElementsByClassName("portal");
@@ -379,7 +379,7 @@ describe("MrsHub Tests", () => {
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
 
-            dialogHelper.clickCancel();
+            await dialogHelper.clickCancel();
 
             await promise;
 
@@ -393,13 +393,16 @@ describe("MrsHub Tests", () => {
 
             const promise = hubRef.current!.showMrsAuthAppDialog(backend);
 
-            backend.mrs.addAuthApp = (serviceId: string, authApp: IMrsAuthAppData, registerUsers: []): Promise<IMrsAuthAppData> => {
+            backend.mrs.addAuthApp = (serviceId: string, authApp: IMrsAuthAppData, registerUsers: [])
+                : Promise<IMrsAddAuthAppData> => {
                 expect(serviceId.length).toBeGreaterThan(0);
                 expect(authApp.name).toBe("MyAuthApp");
                 expect(authApp.appId?.length).toBeGreaterThan(0);
 
-                return Promise.resolve(authApp);
-            }
+                expect(registerUsers).toBeDefined();
+
+                return Promise.resolve({ authAppId: "can't calculate the id at this stage of the tests" });
+            };
 
             await nextProcessTick();
             await sleep(500);
@@ -423,12 +426,12 @@ describe("MrsHub Tests", () => {
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(0);
         });
-    })
+    });
 
     describe("MRS Db Object dialog tests", () => {
         beforeAll(() => {
             dialogHelper = new DialogHelper("mrsDbObjectDialog");
-        })
+        });
 
         it("Show MRS DB Object Dialog (snapshot) and escape", async () => {
             let portals = document.getElementsByClassName("portal");
@@ -499,56 +502,56 @@ describe("MrsHub Tests", () => {
             expect(portals.length).toBe(0);
 
             backend.mrs.updateDbObject = (dbObjectId: string, dbObjectName: string, requestPath: string,
-                    schemaId: string, value: IShellMrsUpdateDbObjectKwargsValue): Promise<void> => {
-                        // verify data here...
-                        expect(dbObjectName).toBe("actor");
-                        expect(requestPath).toBe("/actor");
+                schemaId: string, value: IShellMrsUpdateDbObjectKwargsValue): Promise<void> => {
+                // verify data here...
+                expect(dbObjectName).toBe("actor");
+                expect(requestPath).toBe("/actor");
 
-                        expect(value).toMatchObject({
-                            name: "actor",
-                            dbSchemaId: schemaId,
-                            requestPath: "/SomePath",
-                            requiresAuth: false,
-                            autoDetectMediaType: false,
-                            enabled: true,
-                            rowUserOwnershipEnforced: false,
-                            rowUserOwnershipColumn: null,
-                            itemsPerPage: null,
-                            comments: "",
-                            mediaType: null,
-                            authStoredProcedure: null,
-                            crudOperations: [
-                              "READ",
-                            ],
-                            crudOperationFormat: "FEED",
-                            options: null,
-                            objects: [
-                              {
-                                // id: "1FWnIkTYSFeDZ5t//qaAgQ==",
-                                dbObjectId: dbObjectId,
-                                name: "MyServiceMrstestActor",
-                                position: 0,
-                                kind: "RESULT",
-                                sdkOptions: undefined,
-                                comments: undefined,
-                                fields: [
-                                  {
-                                    // id: "YsZ4sTpQQay81gQNciQuBg==",
-                                    // objectId: "1FWnIkTYSFeDZ5t//qaAgQ==",
+                expect(value).toMatchObject({
+                    name: "actor",
+                    dbSchemaId: schemaId,
+                    requestPath: "/SomePath",
+                    requiresAuth: false,
+                    autoDetectMediaType: false,
+                    enabled: true,
+                    rowUserOwnershipEnforced: false,
+                    rowUserOwnershipColumn: null,
+                    itemsPerPage: null,
+                    comments: "",
+                    mediaType: null,
+                    authStoredProcedure: null,
+                    crudOperations: [
+                        "READ",
+                    ],
+                    crudOperationFormat: "FEED",
+                    options: null,
+                    objects: [
+                        {
+                            // id: the returned id
+                            dbObjectId,
+                            name: "MyServiceMrsTestActor",
+                            position: 0,
+                            kind: "RESULT",
+                            sdkOptions: undefined,
+                            comments: undefined,
+                            fields: [
+                                {
+                                    // id: the returned id
+                                    // objectId: the returned objectId
                                     representsReferenceId: undefined,
                                     parentReferenceId: undefined,
                                     name: "actorId",
                                     position: 1,
                                     dbColumn: {
-                                      comment: "",
-                                      datatype: "int",
-                                      idGeneration: null,
-                                      isGenerated: false,
-                                      isPrimary: true,
-                                      isUnique: false,
-                                      name: "actor_id",
-                                      notNull: true,
-                                      srid: null,
+                                        comment: "",
+                                        datatype: "int",
+                                        idGeneration: null,
+                                        isGenerated: false,
+                                        isPrimary: true,
+                                        isUnique: false,
+                                        name: "actor_id",
+                                        notNull: true,
+                                        srid: null,
                                     },
                                     storedDbColumn: undefined,
                                     enabled: true,
@@ -559,24 +562,24 @@ describe("MrsHub Tests", () => {
                                     sdkOptions: undefined,
                                     comments: undefined,
                                     objectReference: undefined,
-                                  },
-                                  {
-                                    // id: "lcFswVq/QASWYk9BIOboXA==",
-                                    // objectId: "1FWnIkTYSFeDZ5t//qaAgQ==",
+                                },
+                                {
+                                    // id: the returned id
+                                    // objectId: the returned objectId
                                     representsReferenceId: undefined,
                                     parentReferenceId: undefined,
                                     name: "firstName",
                                     position: 2,
                                     dbColumn: {
-                                      comment: "",
-                                      datatype: "varchar(45)",
-                                      idGeneration: null,
-                                      isGenerated: false,
-                                      isPrimary: false,
-                                      isUnique: false,
-                                      name: "first_name",
-                                      notNull: true,
-                                      srid: null,
+                                        comment: "",
+                                        datatype: "varchar(45)",
+                                        idGeneration: null,
+                                        isGenerated: false,
+                                        isPrimary: false,
+                                        isUnique: false,
+                                        name: "first_name",
+                                        notNull: true,
+                                        srid: null,
                                     },
                                     storedDbColumn: undefined,
                                     enabled: true,
@@ -587,24 +590,24 @@ describe("MrsHub Tests", () => {
                                     sdkOptions: undefined,
                                     comments: undefined,
                                     objectReference: undefined,
-                                  },
-                                  {
-                                    // id: "hBQYwAiBR+yBwkYOPHCClw==",
-                                    // objectId: "1FWnIkTYSFeDZ5t//qaAgQ==",
+                                },
+                                {
+                                    // id: the returned id
+                                    // objectId: the returned objectId
                                     representsReferenceId: undefined,
                                     parentReferenceId: undefined,
                                     name: "lastName",
                                     position: 3,
                                     dbColumn: {
-                                      comment: "",
-                                      datatype: "varchar(45)",
-                                      idGeneration: null,
-                                      isGenerated: false,
-                                      isPrimary: false,
-                                      isUnique: false,
-                                      name: "last_name",
-                                      notNull: true,
-                                      srid: null,
+                                        comment: "",
+                                        datatype: "varchar(45)",
+                                        idGeneration: null,
+                                        isGenerated: false,
+                                        isPrimary: false,
+                                        isUnique: false,
+                                        name: "last_name",
+                                        notNull: true,
+                                        srid: null,
                                     },
                                     storedDbColumn: undefined,
                                     enabled: true,
@@ -615,24 +618,24 @@ describe("MrsHub Tests", () => {
                                     sdkOptions: undefined,
                                     comments: undefined,
                                     objectReference: undefined,
-                                  },
-                                  {
-                                    // id: "OTb3abe3RVrZNlbsRnm9dg==",
-                                    // objectId: "1FWnIkTYSFeDZ5t//qaAgQ==",
+                                },
+                                {
+                                    // id: the returned id
+                                    // objectId: the returned objectId
                                     representsReferenceId: undefined,
                                     parentReferenceId: undefined,
                                     name: "lastUpdate",
                                     position: 4,
                                     dbColumn: {
-                                      comment: "",
-                                      datatype: "timestamp",
-                                      idGeneration: null,
-                                      isGenerated: false,
-                                      isPrimary: false,
-                                      isUnique: false,
-                                      name: "last_update",
-                                      notNull: true,
-                                      srid: null,
+                                        comment: "",
+                                        datatype: "timestamp",
+                                        idGeneration: null,
+                                        isGenerated: false,
+                                        isPrimary: false,
+                                        isUnique: false,
+                                        name: "last_update",
+                                        notNull: true,
+                                        srid: null,
                                     },
                                     storedDbColumn: undefined,
                                     enabled: true,
@@ -643,15 +646,15 @@ describe("MrsHub Tests", () => {
                                     sdkOptions: undefined,
                                     comments: undefined,
                                     objectReference: undefined,
-                                  },
-                                ],
-                                storedFields: undefined,
-                              },
+                                },
                             ],
-                          })
+                            storedFields: undefined,
+                        },
+                    ],
+                });
 
-                        return Promise.resolve();
-                    }
+                return Promise.resolve();
+            };
 
             const title = "Enter Configuration Values for the New MySQL REST Object";
             const schemas = await backend.mrs.listSchemas();
@@ -692,7 +695,7 @@ describe("MrsHub Tests", () => {
     describe("MRS User dialog tests", () => {
         beforeAll(() => {
             dialogHelper = new DialogHelper("mrsUserDialog");
-        })
+        });
 
         it("Show MRS User Dialog (snapshot) and escape", async () => {
             let portals = document.getElementsByClassName("portal");
@@ -728,7 +731,7 @@ describe("MrsHub Tests", () => {
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
 
-            dialogHelper.clickCancel();
+            await dialogHelper.clickCancel();
 
             await promise;
 
@@ -743,12 +746,19 @@ describe("MrsHub Tests", () => {
             backend.mrs.addUser = (authAppId: string, name: string, email: string, vendorUserId: string,
                 loginPermitted: boolean, mappedUserId: string, appOptions: IShellDictionary | null,
                 authString: string, userRoles: IMrsUserRoleData[]): Promise<void> => {
-                    expect(name).toBe("MyUser");
-                    expect(authString).toBe("AAAAAA");
-                    expect(authAppId.length).toBeGreaterThan(0);
+                expect(name).toBe("MyUser");
+                expect(authString).toBe("AAAAAA");
+                expect(authAppId.length).toBeGreaterThan(0);
 
-                    return Promise.resolve();
-                }
+                expect(email).toBeDefined();
+                expect(vendorUserId).toBeDefined();
+                expect(loginPermitted).toBeDefined();
+                expect(mappedUserId).toBeDefined();
+                expect(appOptions).toBeDefined();
+                expect(userRoles).toBeDefined();
+
+                return Promise.resolve();
+            };
 
             const promise = hubRef.current!.showMrsUserDialog(backend, authApp);
             await nextProcessTick();
@@ -760,7 +770,10 @@ describe("MrsHub Tests", () => {
             await dialogHelper.setInputText("name", "");
             await dialogHelper.setInputText("authString", "");
             await dialogHelper.clickOk();
-            dialogHelper.verifyErrors(["The authentication string is required for this app.", "The user name or email are required for this app."]);
+            dialogHelper.verifyErrors([
+                "The authentication string is required for this app.",
+                "The user name or email are required for this app.",
+            ]);
 
             await dialogHelper.setInputText("name", "My User");
             await dialogHelper.clickOk();
@@ -781,7 +794,7 @@ describe("MrsHub Tests", () => {
     describe("MRS Content Set dialog tests", () => {
         beforeAll(() => {
             dialogHelper = new DialogHelper("mrsContentSetDialog");
-        })
+        });
 
         it("Show MRS Content Set Dialog (snapshot) and escape", async () => {
             let portals = document.getElementsByClassName("portal");
@@ -817,7 +830,7 @@ describe("MrsHub Tests", () => {
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
 
-            dialogHelper.clickCancel();
+            await dialogHelper.clickCancel();
 
             await promise;
 
@@ -834,10 +847,19 @@ describe("MrsHub Tests", () => {
                 serviceId?: string, comments?: string,
                 enabled?: boolean, replaceExisting?: boolean,
                 progress?: (message: string) => void): Promise<IMrsAddContentSetData> => {
-                    expect(requestPath).toBe("/someRequestPath");
+                expect(requestPath).toBe("/someRequestPath");
 
-                    return Promise.resolve({});
-                }
+                expect(contentDir).toBeDefined();
+                expect(requiresAuth).toBeDefined();
+                expect(options).toBeDefined();
+                expect(serviceId).toBeDefined();
+                expect(comments).toBeDefined();
+                expect(enabled).toBeDefined();
+                expect(replaceExisting).toBeDefined();
+                expect(progress).toBeDefined();
+
+                return Promise.resolve({});
+            };
 
             const promise = hubRef.current!.showMrsContentSetDialog(backend);
             await nextProcessTick();
@@ -868,7 +890,7 @@ describe("MrsHub Tests", () => {
     describe("MRS SDK Export dialog tests", () => {
         beforeAll(() => {
             dialogHelper = new DialogHelper("mrsSdkExportDialog");
-        })
+        });
 
         it("Show MRS SDK Export Dialog (snapshot) and escape", async () => {
             let portals = document.getElementsByClassName("portal");
@@ -904,7 +926,7 @@ describe("MrsHub Tests", () => {
 
             expect(portals[0]).toMatchSnapshot();
 
-            dialogHelper.clickCancel();
+            await dialogHelper.clickCancel();
 
             await promise;
 
@@ -922,7 +944,7 @@ describe("MrsHub Tests", () => {
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
 
-            dialogHelper.clickOk();
+            await dialogHelper.clickOk();
             dialogHelper.verifyErrors();
 
             await promise;
