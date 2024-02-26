@@ -44,8 +44,8 @@ def get_base_classes(sdk_language, prepare_for_runtime=False):
         # Remove exports as everything will be in a single file
         code = code.replace("export ", "")
         # Remove the part that does not belong in the runtime SDK
-        code = re.sub("\/\/ --- MySQL Shell for VS Code Extension Remove --- Begin.*?" +
-                      "\/\/ --- MySQL Shell for VS Code Extension Remove --- End",
+        code = re.sub("^\s*?// --- MySQL Shell for VS Code Extension Remove --- Begin.*?" +
+                      "^\s*?// --- MySQL Shell for VS Code Extension Remove --- End",
                       "", code, flags=re.DOTALL | re.MULTILINE)
         code = remove_js_whitespace_and_comments(code)
 
@@ -76,7 +76,8 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
         service=service, template=template, sdk_language=sdk_language, session=session, service_url=service_url)
 
     code = substitute_imports_in_template(
-        template=code.get("template"), enabled_crud_ops=code.get("enabled_crud_ops"))
+        template=code.get("template"), enabled_crud_ops=code.get("enabled_crud_ops"),
+        required_datatypes=code.get("required_datatypes"))
 
     template = code.get("template")
 
@@ -87,8 +88,8 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
         # Remove exports as everything will be in a single file
         template = template.replace("export ", "")
         # Remove the part that does not belong in the runtime SDK
-        template = re.sub("\/\/ --- MySQL Shell for VS Code Extension Remove --- Begin.*?" +
-                          "\/\/ --- MySQL Shell for VS Code Extension Remove --- End",
+        template = re.sub("^\s*?// --- MySQL Shell for VS Code Extension Remove --- Begin.*?" +
+                          "^\s*?// --- MySQL Shell for VS Code Extension Remove --- End",
                           "", template, flags=re.DOTALL | re.MULTILINE)
         # Add MRS management code
         template += get_mrs_runtime_management_code(session=session,
@@ -97,22 +98,37 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
         template = remove_js_whitespace_and_comments(template)
     else:
         # Remove the part that does not belong in the generated SDK
-        template = re.sub("\/\/ --- MySQL Shell for VS Code Extension Only --- Begin.*?" +
-                          "\/\/ --- MySQL Shell for VS Code Extension Only --- End",
+        template = re.sub("^\s*?// --- MySQL Shell for VS Code Extension Only --- Begin.*?" +
+                          "^\s*?// --- MySQL Shell for VS Code Extension Only --- End",
                           "", template, flags=re.DOTALL | re.MULTILINE)
 
     return template
 
 
-def substitute_imports_in_template(template, enabled_crud_ops):
+def substitute_imports_in_template(template, enabled_crud_ops, required_datatypes):
     import_loops = re.finditer(
         "^\s*?// --- importLoopStart\n\s*(^[\S\s]*?)^\s*?// --- importLoopEnd\n", template, flags=re.DOTALL | re.MULTILINE)
 
     crud_ops = ["Create", "Read", "Update",
-                "Delete", "UpdateProcedure", "ReadUnique"]
+                "Delete", "UpdateProcedure", "ReadUnique", "ReadFunction"]
 
     for loop in import_loops:
         import_template = loop.group(1)
+
+        # if there are no required datatypes, we should remove the template tags
+        datatypes_block = ""
+        # otherwise we should replace them with the corresponding import block
+        if len(required_datatypes) > 1:
+            # tab size to be converted to spaces
+            indent = " " * 4
+            # each datatype should be comma separated and belongs in a new line
+            separator = f",\n{indent}"
+            # the first and last datatypes should also follow the same rules
+            datatypes_block = f'{indent}{separator.join(required_datatypes)},\n'
+
+        import_template = re.sub("^\s*?// --- importRequiredDatatypesOnlyStart.*?" +
+                                 "^\s*?// --- importRequiredDatatypesOnlyEnd\n",
+                                 datatypes_block, import_template, flags=re.DOTALL | re.MULTILINE)
 
         for crud_op in crud_ops:
             # Find all // --- import{crud_op}OnlyStart / End blocks
@@ -132,7 +148,7 @@ def substitute_imports_in_template(template, enabled_crud_ops):
 
         template = template.replace(loop.group(), import_template)
 
-    return {"template": template, "enabled_crud_ops": enabled_crud_ops}
+    return {"template": template, "enabled_crud_ops": enabled_crud_ops, "required_datatypes": required_datatypes}
 
 
 def substitute_service_in_template(service, template, sdk_language, session, service_url):
@@ -161,7 +177,7 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
 
     template = Template(template).substitute(**mapping)
 
-    return {"template": template, "enabled_crud_ops": code.get("enabled_crud_ops")}
+    return {"template": template, "enabled_crud_ops": code.get("enabled_crud_ops"), "required_datatypes": code.get("required_datatypes")}
 
 
 def substitute_schemas_in_template(service, template, sdk_language, session):
@@ -174,6 +190,7 @@ def substitute_schemas_in_template(service, template, sdk_language, session):
         service.get("url_context_root"))
 
     enabled_crud_ops = None
+    required_datatypes = None
 
     for loop in schema_loops:
         schema_template = loop.group(1)
@@ -188,6 +205,7 @@ def substitute_schemas_in_template(service, template, sdk_language, session):
 
                 schema_template_with_obj_filled = code.get("template")
                 enabled_crud_ops = code.get("enabled_crud_ops")
+                required_datatypes = code.get("required_datatypes")
             else:
                 schema_template_with_obj_filled = schema_template
 
@@ -208,7 +226,7 @@ def substitute_schemas_in_template(service, template, sdk_language, session):
 
         template = template.replace(loop.group(), filled_temp)
 
-    return {"template": template, "enabled_crud_ops": enabled_crud_ops}
+    return {"template": template, "enabled_crud_ops": enabled_crud_ops, "required_datatypes": required_datatypes}
 
 
 def get_mrs_object_sdk_language_options(sdk_options, sdk_language):
@@ -227,6 +245,8 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
     object_loops = re.finditer(
         "^\s*?// --- objectLoopStart\n\s*(^[\S\s]*?)^\s*?// --- objectLoopEnd\n", template, flags=re.DOTALL | re.MULTILINE)
 
+
+
     db_objs = lib.db_objects.query_db_objects(
         session, schema_id=schema.get("id"))
 
@@ -239,6 +259,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                 "Delete", "UpdateProcedure", "ReadUnique", "ReadFunction"]
 
     enabled_crud_ops = []
+    required_datatypes = []
 
     for loop in object_loops:
         filled_temp = ""
@@ -269,6 +290,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                 # Get fields
                 fields = lib.db_objects.get_object_fields_with_references(
                     session=session, object_id=obj.get("id"))
+
                 for field in fields:
                     if (field.get("lev") == 1):
                         # Build Primary Key lists
@@ -282,6 +304,19 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                         # Build Unique list
                         if (field_is_unique(field)):
                             obj_unique_list.append(field.get("name"))
+                        # Build list containing the required types to import from MrsBaseClasses.ts
+                        db_column_info = field.get("db_column")
+                        if db_column_info:
+                            db_datatype = db_column_info.get("datatype")
+                            db_not_null = db_column_info.get("not_null")
+
+                            if db_not_null is False:
+                                required_datatypes.append("MaybeNull")
+
+                            client_datatype = get_datatype_mapping(db_datatype, sdk_language)
+
+                            if not datatype_is_primitive(client_datatype, sdk_language):
+                                required_datatypes.append(client_datatype)
 
                 # Get sdk_language specific options
                 sdk_lang_options = get_mrs_object_sdk_language_options(
@@ -324,8 +359,11 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                         db_column_info = field.get("db_column")
                         if db_column_info:
                             obj_function_result_datatype = get_datatype_mapping(
-                                db_datatype=db_column_info.get("datatype"), db_not_null=False,
+                                db_datatype=db_column_info.get("datatype"),
                                 sdk_language=sdk_language)
+
+                            if db_column_info.get("not_null") is False:
+                                obj_function_result_datatype = maybe_null(obj_function_result_datatype, sdk_language)
 
             if len(obj_meta_interfaces) > 0 and db_obj.get("object_type") != "FUNCTION":
                 if sdk_language == "TypeScript":
@@ -394,14 +432,14 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
         template = template.replace(loop.group(), filled_temp)
 
-    return {"template": template, "enabled_crud_ops": frozenset(enabled_crud_ops)}
+    return {"template": template, "enabled_crud_ops": frozenset(enabled_crud_ops), "required_datatypes": frozenset(required_datatypes)}
 
 
-def get_datatype_mapping(db_datatype, db_not_null, sdk_language):
+def get_datatype_mapping(db_datatype, sdk_language):
     db_datatype = db_datatype.lower()
     if (sdk_language == "TypeScript"):
         if (db_datatype.startswith("tinyint(1)") or db_datatype.startswith("bit(1)")):
-            datatype = "boolean" if db_not_null else "MaybeNull<boolean>"
+            datatype = "boolean"
         elif (db_datatype.startswith("tinyint") or
               db_datatype.startswith("smallint") or
               db_datatype.startswith("mediumint") or
@@ -411,31 +449,38 @@ def get_datatype_mapping(db_datatype, db_not_null, sdk_language):
               db_datatype.startswith("numeric") or
               db_datatype.startswith("float") or
                 db_datatype.startswith("double")):
-            datatype = "number" if db_not_null else "MaybeNull<number>"
+            datatype = "number"
         elif (db_datatype.startswith("json")):
-            datatype = "JsonValue" if db_not_null else "MaybeNull<JsonValue>"
+            datatype = "JsonValue"
         elif (db_datatype.startswith("geometrycollection")):
-            datatype = "GeometryCollection" if db_not_null else "MaybeNull<GeometryCollection>"
+            datatype = "GeometryCollection"
         elif (db_datatype.startswith("geometry")):
-            datatype = "Geometry" if db_not_null else "MaybeNull<Geometry>"
+            datatype = "Geometry"
         elif (db_datatype.startswith("point")):
-            datatype = "Point" if db_not_null else "MaybeNull<Point>"
+            datatype = "Point"
         elif (db_datatype.startswith("multipoint")):
-            datatype = "MultiPoint" if db_not_null else "MaybeNull<MultiPoint>"
+            datatype = "MultiPoint"
         elif (db_datatype.startswith("linestring")):
-            datatype = "LineString" if db_not_null else "MaybeNull<LineString>"
+            datatype = "LineString"
         elif (db_datatype.startswith("multilinestring")):
-            datatype = "MultiLineString" if db_not_null else "MaybeNull<MultiLineString>"
+            datatype = "MultiLineString"
         elif (db_datatype.startswith("polygon")):
-            datatype = "Polygon" if db_not_null else "MaybeNull<Polygon>"
+            datatype = "Polygon"
         elif (db_datatype.startswith("multipolygon")):
-            datatype = "MultiPolygon" if db_not_null else "MaybeNull<MultiPolygon>"
+            datatype = "MultiPolygon"
         else:
-            datatype = "string" if db_not_null else "MaybeNull<string>"
+            datatype = "string"
 
         return datatype
     else:
-        return "UNKNOWN"
+        return "unknown"
+
+
+def maybe_null(client_datatype, sdk_language):
+    if sdk_language == "TypeScript":
+        return f"MaybeNull<{client_datatype}>"
+
+    return "unknown"
 
 
 def get_procedure_datatype_mapping(sp_datatype, sdk_language):
@@ -452,7 +497,7 @@ def get_procedure_datatype_mapping(sp_datatype, sdk_language):
 
         return datatype
     else:
-        return "UNKNOWN"
+        return "unknown"
 
 
 def get_interface_datatype(field, sdk_language, class_name="", reference_class_name_postfix=""):
@@ -462,10 +507,32 @@ def get_interface_datatype(field, sdk_language, class_name="", reference_class_n
         db_not_null = db_column_info.get("not_null")
 
         # Todo: Handle SDK Options
+        client_datatype = get_datatype_mapping(db_datatype, sdk_language)
 
-        return get_datatype_mapping(db_datatype, db_not_null, sdk_language)
+        if db_not_null is True:
+            return client_datatype
+
+        return maybe_null(client_datatype, sdk_language)
     else:
         return f'I{class_name}{reference_class_name_postfix}{lib.core.convert_path_to_pascal_case(field.get("name"))}'
+
+
+def datatype_is_primitive(client_datatype, sdk_language):
+    if client_datatype is None:
+        return False
+
+    if sdk_language == "TypeScript":
+        if (client_datatype.startswith("bigint") or
+            client_datatype.startswith("boolean") or
+            client_datatype.startswith("null") or
+            client_datatype.startswith("number") or
+            client_datatype.startswith("string") or
+            client_datatype.startswith("symbol") or
+            client_datatype.startswith("undefined")):
+                return True
+        return False
+
+    return False
 
 
 def field_is_pk(field):

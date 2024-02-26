@@ -1,33 +1,15 @@
-/* Copyright (c) 2023, Oracle and/or its affiliates. */
+/* Copyright (c) 2023, 2024, Oracle and/or its affiliates. */
 
 /* eslint-disable max-len */
-/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable max-classes-per-file */
-/* eslint-disable padding-line-between-statements */
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable padded-blocks */
-/* eslint-disable no-trailing-spaces */
-/* eslint-disable @typescript-eslint/lines-between-class-members */
-/* eslint-disable @typescript-eslint/promise-function-async */
-/* eslint-disable no-multiple-empty-lines */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
 // --- importLoopStart
 import {
-    Geometry,
-    GeometryCollection,
-    IMrsBaseObject,
     IMrsFetchData,
-    JsonValue,
-    LineString,
-    MaybeNull,
     MrsBaseService,
     MrsBaseSchema,
-    MultiLineString,
-    MultiPoint,
-    MultiPolygon,
-    Point,
-    Polygon,
+    // --- importRequiredDatatypesOnlyStart
+    // --- importRequiredDatatypesOnlyEnd
     // --- importReadOnlyStart
     IFindFirstOptions,
     IFindManyOptions,
@@ -164,6 +146,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         } else {
             response = await request.fetch();
         }
+
         return response;
     };
 
@@ -175,6 +158,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return response;
     };
     // --- crudReadOnlyEnd
+
     // --- crudReadUniqueOnlyStart
     public findUnique = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueParams>): Promise<I${obj_class_name} | undefined> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}UniqueParams>(
@@ -183,6 +167,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
 
         return response;
     };
+
     public findUniqueOrThrow = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueParams>): Promise<I${obj_class_name}> => {
         const response = await this.findUnique(args);
 
@@ -214,6 +199,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return result;
     };
     // --- crudUpdateOnlyEnd
+
     // --- crudUpdateProcedureOnlyStart
     public call = (
         ${obj_name}Params: I${obj_param_interface},
@@ -252,16 +238,20 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
 }
 
 ${obj_interfaces}
-
 // --- objectLoopEnd
-
 export class ${schema_class_name} extends MrsBaseSchema {
     // --- objectLoopStart
     #${obj_name}?: ${obj_class_name}Request;
     // --- objectLoopEnd
 
     // --- objectLoopStart
-    public get ${obj_name}(): ${obj_class_name}Request { if (this.#${obj_name} === undefined) { this.#${obj_name} = new ${obj_class_name}Request(this); } return this.#${obj_name}; }
+    public get ${obj_name}(): ${obj_class_name}Request {
+        if (this.#${obj_name} === undefined) {
+            this.#${obj_name} = new ${obj_class_name}Request(this);
+        }
+
+        return this.#${obj_name};
+    }
     // --- objectLoopEnd
     // --- MySQL Shell for VS Code Extension Only --- Begin
     public edit = (): void => {
@@ -286,7 +276,13 @@ export class ${service_class_name} extends MrsBaseService {
     }
 
     // --- schemaLoopStart
-    public get ${schema_name}(): ${schema_class_name} { if (this.#${schema_name} === undefined) { this.#${schema_name} = new ${schema_class_name}(this, "${schema_request_path}"); } return this.#${schema_name}; }
+    public get ${schema_name}(): ${schema_class_name} {
+        if (this.#${schema_name} === undefined) {
+            this.#${schema_name} = new ${schema_class_name}(this, "${schema_request_path}");
+        }
+
+        return this.#${schema_name};
+    }
     // --- schemaLoopEnd
     // --- MySQL Shell for VS Code Extension Only --- Begin
     public edit = (): void => {

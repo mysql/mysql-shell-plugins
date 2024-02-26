@@ -1,31 +1,13 @@
-/* Copyright (c) 2023, Oracle and/or its affiliates. */
+/* Copyright (c) 2023, 2024, Oracle and/or its affiliates.*/
 
 /* eslint-disable max-len */
-/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable max-classes-per-file */
-/* eslint-disable padding-line-between-statements */
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable padded-blocks */
-/* eslint-disable no-trailing-spaces */
-/* eslint-disable @typescript-eslint/lines-between-class-members */
-/* eslint-disable @typescript-eslint/promise-function-async */
-/* eslint-disable no-multiple-empty-lines */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
-    Geometry,
-    GeometryCollection,
-    IMrsBaseObject,
     IMrsFetchData,
-    JsonValue,
-    LineString,
-    MaybeNull,
     MrsBaseService,
     MrsBaseSchema,
-    MultiLineString,
-    MultiPoint,
-    MultiPolygon,
-    Point,
-    Polygon,
+    JsonValue,
+    MaybeNull,
     IFindFirstOptions,
     IFindManyOptions,
     IFindUniqueOptions,
@@ -37,9 +19,6 @@ import {
     IMrsProcedureResult,
     IMrsProcedureResultList,
     MrsBaseObjectProcedureCall,
-    // --- importReadFunctionOnlyStart
-    MrsBaseObjectFunctionCall,
-    // --- importReadFunctionOnlyEnd
     IUpdateOptions,
     MrsBaseObjectUpdate,
     IMrsDeleteResult,
@@ -116,6 +95,7 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
         } else {
             response = await request.fetch();
         }
+
         return response;
     };
 
@@ -133,6 +113,7 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
 
         return response;
     };
+
     public findUniqueOrThrow = async (args?: IFindUniqueOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteUniqueParams>): Promise<IMyServiceMrsNotesNote> => {
         const response = await this.findUnique(args);
 
@@ -171,7 +152,6 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
 
         return response;
     };
-
 
 }
 
@@ -263,6 +243,7 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
         } else {
             response = await request.fetch();
         }
+
         return response;
     };
 
@@ -280,6 +261,7 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
 
         return response;
     };
+
     public findUniqueOrThrow = async (args?: IFindUniqueOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserUniqueParams>): Promise<IMyServiceMrsNotesUser> => {
         const response = await this.findUnique(args);
 
@@ -318,7 +300,6 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
 
         return response;
     };
-
 
 }
 
@@ -367,6 +348,7 @@ export class MyServiceMrsNotesUserHasNoteRequest extends MyServiceMrsNotesObject
         } else {
             response = await request.fetch();
         }
+
         return response;
     };
 
@@ -384,6 +366,7 @@ export class MyServiceMrsNotesUserHasNoteRequest extends MyServiceMrsNotesObject
 
         return response;
     };
+
     public findUniqueOrThrow = async (args?: IFindUniqueOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteUniqueParams>): Promise<IMyServiceMrsNotesUserHasNote> => {
         const response = await this.findUnique(args);
 
@@ -393,7 +376,6 @@ export class MyServiceMrsNotesUserHasNoteRequest extends MyServiceMrsNotesObject
 
         return response;
     };
-
 
 }
 
@@ -449,6 +431,7 @@ export class MyServiceMrsNotesNotesAllRequest extends MyServiceMrsNotesObjectReq
         } else {
             response = await request.fetch();
         }
+
         return response;
     };
 
@@ -459,7 +442,6 @@ export class MyServiceMrsNotesNotesAllRequest extends MyServiceMrsNotesObjectReq
 
         return response;
     };
-
 
 }
 
@@ -524,6 +506,7 @@ export class MyServiceMrsNotesNotesServedRequest extends MyServiceMrsNotesObject
         } else {
             response = await request.fetch();
         }
+
         return response;
     };
 
@@ -534,7 +517,6 @@ export class MyServiceMrsNotesNotesServedRequest extends MyServiceMrsNotesObject
 
         return response;
     };
-
 
 }
 
@@ -570,7 +552,6 @@ export class MyServiceMrsNotesNoteAcceptShareParamsRequest extends MyServiceMrsN
         return this.rest.put(noteAcceptShareParams).fetch();
     };
 
-
 }
 
 export interface IMyServiceMrsNotesNoteAcceptShareParams extends IMrsFetchData {
@@ -602,7 +583,6 @@ export class MyServiceMrsNotesNoteDeleteParamsRequest extends MyServiceMrsNotesO
         return this.rest.put(noteDeleteParams).fetch();
     };
 
-
 }
 
 export interface IMyServiceMrsNotesNoteDeleteParams extends IMrsFetchData {
@@ -633,7 +613,6 @@ export class MyServiceMrsNotesNoteShareRequest extends MyServiceMrsNotesObjectRe
     ): Promise<IMrsProcedureResultList<IMyServiceMrsNotesNoteShareMeta>> => {
         return this.rest.put(noteShareParams).fetch();
     };
-
 
 }
 
@@ -680,7 +659,6 @@ export class MyServiceMrsNotesNoteUpdateParamsRequest extends MyServiceMrsNotesO
         return this.rest.put(noteUpdateParams).fetch();
     };
 
-
 }
 
 export interface IMyServiceMrsNotesNoteUpdateParams extends IMrsFetchData {
@@ -694,7 +672,6 @@ export interface IMyServiceMrsNotesNoteUpdateParams extends IMrsFetchData {
 }
 
 
-
 export class MyServiceMrsNotes extends MrsBaseSchema {
     #note?: MyServiceMrsNotesNoteRequest;
     #user?: MyServiceMrsNotesUserRequest;
@@ -705,16 +682,70 @@ export class MyServiceMrsNotes extends MrsBaseSchema {
     #noteDelete?: MyServiceMrsNotesNoteDeleteParamsRequest;
     #noteShare?: MyServiceMrsNotesNoteShareRequest;
     #noteUpdate?: MyServiceMrsNotesNoteUpdateParamsRequest;
-    public get note(): MyServiceMrsNotesNoteRequest { if (this.#note === undefined) { this.#note = new MyServiceMrsNotesNoteRequest(this); } return this.#note; }
-    public get user(): MyServiceMrsNotesUserRequest { if (this.#user === undefined) { this.#user = new MyServiceMrsNotesUserRequest(this); } return this.#user; }
-    public get userHasNote(): MyServiceMrsNotesUserHasNoteRequest { if (this.#userHasNote === undefined) { this.#userHasNote = new MyServiceMrsNotesUserHasNoteRequest(this); } return this.#userHasNote; }
-    public get notesAll(): MyServiceMrsNotesNotesAllRequest { if (this.#notesAll === undefined) { this.#notesAll = new MyServiceMrsNotesNotesAllRequest(this); } return this.#notesAll; }
-    public get notesServed(): MyServiceMrsNotesNotesServedRequest { if (this.#notesServed === undefined) { this.#notesServed = new MyServiceMrsNotesNotesServedRequest(this); } return this.#notesServed; }
-    public get noteAcceptShare(): MyServiceMrsNotesNoteAcceptShareParamsRequest { if (this.#noteAcceptShare === undefined) { this.#noteAcceptShare = new MyServiceMrsNotesNoteAcceptShareParamsRequest(this); } return this.#noteAcceptShare; }
-    public get noteDelete(): MyServiceMrsNotesNoteDeleteParamsRequest { if (this.#noteDelete === undefined) { this.#noteDelete = new MyServiceMrsNotesNoteDeleteParamsRequest(this); } return this.#noteDelete; }
-    public get noteShare(): MyServiceMrsNotesNoteShareRequest { if (this.#noteShare === undefined) { this.#noteShare = new MyServiceMrsNotesNoteShareRequest(this); } return this.#noteShare; }
-    public get noteUpdate(): MyServiceMrsNotesNoteUpdateParamsRequest { if (this.#noteUpdate === undefined) { this.#noteUpdate = new MyServiceMrsNotesNoteUpdateParamsRequest(this); } return this.#noteUpdate; }
-    
+    public get note(): MyServiceMrsNotesNoteRequest {
+        if (this.#note === undefined) {
+            this.#note = new MyServiceMrsNotesNoteRequest(this);
+        }
+
+        return this.#note;
+    }
+    public get user(): MyServiceMrsNotesUserRequest {
+        if (this.#user === undefined) {
+            this.#user = new MyServiceMrsNotesUserRequest(this);
+        }
+
+        return this.#user;
+    }
+    public get userHasNote(): MyServiceMrsNotesUserHasNoteRequest {
+        if (this.#userHasNote === undefined) {
+            this.#userHasNote = new MyServiceMrsNotesUserHasNoteRequest(this);
+        }
+
+        return this.#userHasNote;
+    }
+    public get notesAll(): MyServiceMrsNotesNotesAllRequest {
+        if (this.#notesAll === undefined) {
+            this.#notesAll = new MyServiceMrsNotesNotesAllRequest(this);
+        }
+
+        return this.#notesAll;
+    }
+    public get notesServed(): MyServiceMrsNotesNotesServedRequest {
+        if (this.#notesServed === undefined) {
+            this.#notesServed = new MyServiceMrsNotesNotesServedRequest(this);
+        }
+
+        return this.#notesServed;
+    }
+    public get noteAcceptShare(): MyServiceMrsNotesNoteAcceptShareParamsRequest {
+        if (this.#noteAcceptShare === undefined) {
+            this.#noteAcceptShare = new MyServiceMrsNotesNoteAcceptShareParamsRequest(this);
+        }
+
+        return this.#noteAcceptShare;
+    }
+    public get noteDelete(): MyServiceMrsNotesNoteDeleteParamsRequest {
+        if (this.#noteDelete === undefined) {
+            this.#noteDelete = new MyServiceMrsNotesNoteDeleteParamsRequest(this);
+        }
+
+        return this.#noteDelete;
+    }
+    public get noteShare(): MyServiceMrsNotesNoteShareRequest {
+        if (this.#noteShare === undefined) {
+            this.#noteShare = new MyServiceMrsNotesNoteShareRequest(this);
+        }
+
+        return this.#noteShare;
+    }
+    public get noteUpdate(): MyServiceMrsNotesNoteUpdateParamsRequest {
+        if (this.#noteUpdate === undefined) {
+            this.#noteUpdate = new MyServiceMrsNotesNoteUpdateParamsRequest(this);
+        }
+
+        return this.#noteUpdate;
+    }
+
 }
 
 /* =============================================================================
@@ -727,8 +758,13 @@ export class MyService extends MrsBaseService {
     public constructor() {
         super("https://localhost:8444/myService", "/authentication");
     }
-    public get mrsNotes(): MyServiceMrsNotes { if (this.#mrsNotes === undefined) { this.#mrsNotes = new MyServiceMrsNotes(this, "/mrsNotes"); } return this.#mrsNotes; }
-    
-}
+    public get mrsNotes(): MyServiceMrsNotes {
+        if (this.#mrsNotes === undefined) {
+            this.#mrsNotes = new MyServiceMrsNotes(this, "/mrsNotes");
+        }
 
+        return this.#mrsNotes;
+    }
+
+}
 

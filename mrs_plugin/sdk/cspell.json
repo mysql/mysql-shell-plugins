@@ -6,11 +6,14 @@
   ],
   "words": [
     "geometrycollection",
+    "keyof",
     "linestring",
     "multilinestring",
-    "multipolygon"
+    "multipolygon",
+    "typeof"
   ],
   "ignoreWords": [
+    "Datatypes",
     "ninstr"
   ]
 }

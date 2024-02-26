@@ -530,12 +530,12 @@ export type HighOrderFilter<Type> = {
 export type ComparisonOpExpr<Type> = {
     [Operator in keyof ISimpleOperatorProperty]?: Type & ISimpleOperatorProperty[Operator]
 } & {
-        [Operator in "$notnull" | "$null"]?: boolean | null
-    } & {
-        not?: null;
-    } & {
-        $between?: NullStartingRange<Type & BetweenRegular> | NullEndingRange<Type & BetweenRegular>;
-    };
+    [Operator in "$notnull" | "$null"]?: boolean | null
+} & {
+    not?: null;
+} & {
+    $between?: NullStartingRange<Type & BetweenRegular> | NullEndingRange<Type & BetweenRegular>;
+};
 
 type NullStartingRange<Type> = readonly [Type | null, Type];
 type NullEndingRange<Type> = readonly [Type, Type | null];

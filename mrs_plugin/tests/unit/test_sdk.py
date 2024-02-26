@@ -52,227 +52,169 @@ def test_get_interface_datatype():
     type = get_interface_datatype(**args)
     assert type == "MaybeNull<number>"
 
+    args["sdk_language"] = "Unknown"
+
+    type = get_interface_datatype(**args)
+    assert type == "unknown"
+
 
 def test_get_datatype_mapping():
     args = {
         "db_datatype": "tinyint(1)",
-        "db_not_null": True,
         "sdk_language": "TypeScript"
     }
 
     type = get_datatype_mapping(**args)
     assert type == "boolean"
 
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<boolean>"
-
     args["db_datatype"] = "bit(1)"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "boolean"
 
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<boolean>"
-
     args["db_datatype"] = "tinyint"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "number"
-
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<number>"
 
     args["db_datatype"] = "smallint"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "number"
-
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<number>"
 
     args["db_datatype"] = "mediumint"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "number"
-
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<number>"
 
     args["db_datatype"] = "int"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "number"
-
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<number>"
 
     args["db_datatype"] = "decimal"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "number"
-
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<number>"
 
     args["db_datatype"] = "numeric"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "number"
-
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<number>"
 
     args["db_datatype"] = "float"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "number"
-
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<number>"
 
     args["db_datatype"] = "double"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "number"
 
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<number>"
-
     args["db_datatype"] = "json"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "JsonValue"
 
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<JsonValue>"
-
     args["db_datatype"] = "GEOMETRY"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "Geometry"
 
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<Geometry>"
-
     args["db_datatype"] = "GEOMETRYCOLLECTION"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "GeometryCollection"
 
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<GeometryCollection>"
-
     args["db_datatype"] = "POINT"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "Point"
 
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<Point>"
-
     args["db_datatype"] = "MULTIPOINT"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "MultiPoint"
 
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<MultiPoint>"
-
     args["db_datatype"] = "LINESTRING"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "LineString"
 
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<LineString>"
-
     args["db_datatype"] = "MULTILINESTRING"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "MultiLineString"
 
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<MultiLineString>"
-
     args["db_datatype"] = "POLYGON"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "Polygon"
 
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<Polygon>"
-
     args["db_datatype"] = "MULTIPOLYGON"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "MultiPolygon"
 
-    args["db_not_null"] = False
-
-    type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<MultiPolygon>"
-
     args["db_datatype"] = "varchar"
-    args["db_not_null"] = True
 
     type = get_datatype_mapping(**args)
     assert type == "string"
 
-    args["db_not_null"] = False
+    args["sdk_language"] = "Unknown"
 
     type = get_datatype_mapping(**args)
-    assert type == "MaybeNull<string>"
+    assert type == "unknown"
+
+
+def test_datatype_is_primitive():
+    args = {
+        "client_datatype": "bigint",
+        "sdk_language": "TypeScript"
+    }
+
+    is_native = datatype_is_primitive(**args)
+    assert is_native is True
+
+    args["client_datatype"] = "boolean"
+
+    is_native = datatype_is_primitive(**args)
+    assert is_native is True
+
+    args["client_datatype"] = "null"
+
+    is_native = datatype_is_primitive(**args)
+    assert is_native is True
+
+    args["client_datatype"] = "number"
+
+    is_native = datatype_is_primitive(**args)
+    assert is_native is True
+
+    args["client_datatype"] = "string"
+
+    is_native = datatype_is_primitive(**args)
+    assert is_native is True
+
+    args["client_datatype"] = "symbol"
+
+    is_native = datatype_is_primitive(**args)
+    assert is_native is True
+
+    args["client_datatype"] = "undefined"
+
+    is_native = datatype_is_primitive(**args)
+    assert is_native is True
+
+    args["client_datatype"] = "Unknown"
+
+    is_native = datatype_is_primitive(**args)
+    assert is_native is False
+
+    args["sdk_language"] = "Unknown"
+
+    is_native = datatype_is_primitive(**args)
+    assert is_native is False
+
+
