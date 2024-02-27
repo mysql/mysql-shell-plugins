@@ -62,9 +62,12 @@ def test_GuiBackendDb_commit():
 
     result = backend_db.execute('''SELECT COUNT(*) FROM log''').fetch_one()
     count_step_3 = result[0]
+    backend_db.commit()
 
     assert count_step_1 == count_step_2 - 1
     assert count_step_1 == count_step_3
+
+    backend_db.close()
 
 
 def test_GuiBackendDb_rollback():
@@ -83,6 +86,8 @@ def test_GuiBackendDb_rollback():
     count_step_2 = result[0]
 
     assert count_step_1 == count_step_2
+
+    backend_db.close()
 
 
 def test_GuiBackendDb_insert():
@@ -111,6 +116,8 @@ def test_GuiBackendDb_insert():
     assert count_step_2 == count_step_1 + 1
     assert count_step_1 == count_step_3
 
+    backend_db.close()
+
 
 def test_GuiBackendDb_select_rows():
     backend_db = GuiBackendDb()
@@ -118,6 +125,8 @@ def test_GuiBackendDb_select_rows():
     result = backend_db.select('''SELECT * FROM data_category''')
 
     assert len(result) > 0
+
+    backend_db.close()
 
 
 def test_GuiBackendDb_check_for_previous_version_and_upgrade():
@@ -158,21 +167,6 @@ def test_GuiBackendDb_convert_workbench_sql_file_to_sqlite():
 
     if os.path.exists(target_file):
         os.remove(target_file)
-
-
-def test_convert_all_workbench_sql_files_to_sqlite():
-    convert_all_workbench_sql_files_to_sqlite()
-
-    # TODO: Make verifications here...
-    # Verify all files were created
-    # Verify that ENGINE is gone
-    # Verify that VISIBLE is gone
-    # Verify that INT is now INTEGER
-    # Verify that START TRANSACTION is now BEGIN TRANSACTION
-    # Verify that AFTER is gone
-    # Verify that default_schema is gone
-    # Verify that DEFAULT CHARACTER SET is gone
-    # Verify that DEFAULT NULL is gone
 
 
 def test_upgrade_db():
