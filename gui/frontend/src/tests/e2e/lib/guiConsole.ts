@@ -23,20 +23,20 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until, WebElement, WebDriver, error } from "selenium-webdriver";
+import { until, WebElement, error } from "selenium-webdriver";
 import * as locator from "../lib/locators.js";
+import { driver } from "../lib/driver.js";
 
 export class GuiConsole {
 
     /**
      * Opens a new Shell session, from the GUI Console page
      * Throws an exception if the session was not opened
-     * @param driver The webdriver
      * @param id Id of the session. If this parameter is set, the function will open.
      * the session with the provided id
      * @returns Promise resolving when session is opened
      */
-    public static openSession = async (driver: WebDriver, id?: number): Promise<void> => {
+    public static openSession = async (id?: number): Promise<void> => {
         if (id) {
             const buttons = await driver.findElements(locator.shellPage.sessions.open);
             for (const button of buttons) {
@@ -58,11 +58,10 @@ export class GuiConsole {
 
     /**
      * Returns the session with the provided session number, from the GUI Console page
-     * @param driver The webdriver
      * @param sessionNbr the session number
      * @returns Promise resolving with the session button
      */
-    public static getSession = async (driver: WebDriver, sessionNbr: string): Promise<WebElement | undefined> => {
+    public static getSession = async (sessionNbr: string): Promise<WebElement | undefined> => {
         try {
             const buttons = await driver.findElements(locator.shellPage.sessions.tile);
             for (const button of buttons) {

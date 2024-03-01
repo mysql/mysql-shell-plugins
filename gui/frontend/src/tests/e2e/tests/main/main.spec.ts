@@ -23,13 +23,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until, WebDriver } from "selenium-webdriver";
+import { until } from "selenium-webdriver";
 import { basename } from "path";
 import { Misc, explicitWait } from "../../lib/misc.js";
 import { ThemeEditor } from "../../lib/themeEditor.js";
 import * as locator from "../../lib/locators.js";
+import { driver, loadDriver } from "../../lib/driver.js";
 
-let driver: WebDriver;
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
 
@@ -37,11 +37,11 @@ describe("Main pages", () => {
     let testFailed = false;
 
     beforeAll(async () => {
-        driver = await Misc.loadDriver();
+        await loadDriver();
         await driver.wait(async () => {
             try {
                 console.log(`${basename(__filename)} : ${url}`);
-                await Misc.waitForHomePage(driver, url);
+                await Misc.waitForHomePage(url);
 
                 return true;
             } catch (e) {
@@ -49,7 +49,7 @@ describe("Main pages", () => {
             }
         }, explicitWait * 4, "Home page was not loaded")
             .catch(async (e) => {
-                await Misc.storeScreenShot(driver, "beforeAll_Main");
+                await Misc.storeScreenShot("beforeAll_Main");
                 throw e;
             });
     });
@@ -57,7 +57,7 @@ describe("Main pages", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot(driver);
+            await Misc.storeScreenShot();
         }
     });
 
@@ -227,11 +227,11 @@ describe("Main pages", () => {
 
             //change background color
             await settingsTreeRows[0].click();
-            await ThemeEditor.selectAppColorTheme(driver, "Default Dark");
+            await ThemeEditor.selectAppColorTheme("Default Dark");
             let color = String((await Misc.getBackgroundColor(driver))).trim();
             expect(color).toBe("#2C2C2C");
             await settingsTreeRows[0].click();
-            await ThemeEditor.selectAppColorTheme(driver, "Default Light");
+            await ThemeEditor.selectAppColorTheme("Default Light");
             color = String((await Misc.getBackgroundColor(driver))).trim();
             expect(color).toBe("#FFFFFF");
         } catch (e) {

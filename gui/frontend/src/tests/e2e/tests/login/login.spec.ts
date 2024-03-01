@@ -24,27 +24,26 @@
  */
 import { Misc, explicitWait } from "../../lib/misc.js";
 import * as locator from "../../lib/locators.js";
-import { until, WebDriver } from "selenium-webdriver";
+import { until } from "selenium-webdriver";
 import { basename } from "path";
-
-let driver: WebDriver;
+import { driver, loadDriver } from "../../lib/driver.js";
 
 describe("Login", () => {
 
     let testFailed = false;
 
     beforeAll(async () => {
-        driver = await Misc.loadDriver();
+        await loadDriver();
         await driver.wait(async () => {
             try {
-                await Misc.waitForHomePage(driver, String(process.env.SHELL_UI_MU_HOSTNAME), true);
+                await Misc.waitForHomePage(String(process.env.SHELL_UI_MU_HOSTNAME), true);
 
                 return true;
             } catch (e) {
                 await driver.navigate().refresh();
             }
         }, explicitWait * 4, "Login page was not loaded").catch(async (e) => {
-            await Misc.storeScreenShot(driver, "beforeAll_Login");
+            await Misc.storeScreenShot("beforeAll_Login");
             throw e;
         });
     });
@@ -52,7 +51,7 @@ describe("Login", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot(driver);
+            await Misc.storeScreenShot();
         }
     });
 

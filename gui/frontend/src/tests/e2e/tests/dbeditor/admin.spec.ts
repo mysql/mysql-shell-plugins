@@ -23,14 +23,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebDriver, until } from "selenium-webdriver";
+import { until } from "selenium-webdriver";
 import { Misc, explicitWait, IDBConnection } from "../../lib/misc.js";
 import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import * as locator from "../../lib/locators.js";
 import { basename } from "path";
+import { driver, loadDriver } from "../../lib/driver.js";
 
-let driver: WebDriver;
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
 
@@ -56,12 +56,12 @@ describe("MySQL Administration", () => {
     };
 
     beforeAll(async () => {
-        driver = await Misc.loadDriver();
         try {
+            await loadDriver();
             await driver.wait(async () => {
                 try {
                     console.log(`${filename} : ${url}`);
-                    await Misc.waitForHomePage(driver, url);
+                    await Misc.waitForHomePage(url);
 
                     return true;
                 } catch (e) {
@@ -69,12 +69,12 @@ describe("MySQL Administration", () => {
                 }
             }, explicitWait * 4, "Home Page was not loaded");
             await driver.findElement(locator.sqlEditorPage.icon).click();
-            const db = await DBNotebooks.createDBconnection(driver, globalConn);
+            const db = await DBNotebooks.createDBconnection(globalConn);
             await driver.executeScript("arguments[0].click();", db);
-            await Misc.setPassword(driver, globalConn);
-            await Misc.setConfirmDialog(driver, globalConn, "no");
+            await Misc.setPassword(globalConn);
+            await Misc.setConfirmDialog(globalConn, "no");
         } catch (e) {
-            await Misc.storeScreenShot(driver, "beforeAll_Admin");
+            await Misc.storeScreenShot("beforeAll_Admin");
             throw e;
         }
 
@@ -83,7 +83,7 @@ describe("MySQL Administration", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot(driver);
+            await Misc.storeScreenShot();
         }
     });
 
@@ -95,8 +95,8 @@ describe("MySQL Administration", () => {
 
     it("Server Status", async () => {
         try {
-            await DBConnection.clickAdminItem(driver, "Server Status");
-            expect(await DBConnection.getCurrentEditor(driver)).toBe("Server Status");
+            await DBConnection.clickAdminItem("Server Status");
+            expect(await DBConnection.getCurrentEditor()).toBe("Server Status");
 
             const sections = await driver?.findElements(locator.serverStatusHeadings);
             const headings = [];
@@ -116,8 +116,8 @@ describe("MySQL Administration", () => {
 
     it("Client Connections", async () => {
         try {
-            await DBConnection.clickAdminItem(driver, "Client Connections");
-            expect(await DBConnection.getCurrentEditor(driver)).toBe("Client Connections");
+            await DBConnection.clickAdminItem("Client Connections");
+            expect(await DBConnection.getCurrentEditor()).toBe("Client Connections");
             const properties = await driver?.findElements(locator.clientConnections.properties);
             const props = [];
             for (const item of properties) {
@@ -146,9 +146,9 @@ describe("MySQL Administration", () => {
 
     it("Performance Dashboard", async () => {
         try {
-            await DBConnection.clickAdminItem(driver, "Performance Dashboard");
+            await DBConnection.clickAdminItem("Performance Dashboard");
 
-            expect(await DBConnection.getCurrentEditor(driver)).toBe("Performance Dashboard");
+            expect(await DBConnection.getCurrentEditor()).toBe("Performance Dashboard");
 
             const grid = await driver?.findElement(locator.performanceDashboardGrid.exists);
             const gridItems = await grid?.findElements(locator.performanceDashboardGrid.headings);
@@ -171,17 +171,17 @@ describe("MySQL Administration", () => {
 
     it("Switch between MySQL Administration tabs", async () => {
         try {
-            await DBConnection.clickAdminItem(driver, "Server Status");
-            await DBConnection.clickAdminItem(driver, "Client Connections");
-            await DBConnection.clickAdminItem(driver, "Performance Dashboard");
+            await DBConnection.clickAdminItem("Server Status");
+            await DBConnection.clickAdminItem("Client Connections");
+            await DBConnection.clickAdminItem("Performance Dashboard");
 
-            await DBConnection.selectEditor(driver, "Server Status");
+            await DBConnection.selectEditor("Server Status");
             await driver.switchTo().defaultContent();
 
-            await DBConnection.selectEditor(driver, "Client Connections");
+            await DBConnection.selectEditor("Client Connections");
             await driver.switchTo().defaultContent();
 
-            await DBConnection.selectEditor(driver, "Performance Dashboard");
+            await DBConnection.selectEditor("Performance Dashboard");
             await driver.switchTo().defaultContent();
         } catch (e) {
             testFailed = true;
