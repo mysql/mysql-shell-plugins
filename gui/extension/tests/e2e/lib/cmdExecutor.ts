@@ -707,14 +707,30 @@ export class CommandExecutor {
      * @returns A promise resolving when the result set is closed
      */
     public closeResultSet = async (): Promise<void> => {
-        await this.getResultToolbar()
-            .findElement(locator.notebook.codeEditor.editor.result.status.toolbar.showActionMenu.open).click();
-        const menu = await driver.wait(until
-            .elementLocated(locator.notebook.codeEditor.editor.result.status.toolbar.showActionMenu.exists),
-            constants.wait5seconds, "Action menu was not displayed");
-        await menu
-            .findElement(locator.notebook.codeEditor.editor.result.status.toolbar.showActionMenu.closeResultSet)
-            .click();
+        await driver.wait(async () => {
+            try {
+                await driver.wait(waitUntil.elementLocated(this.getResultToolbar(),
+                    locator.notebook.codeEditor.editor.result.status.toolbar.showActionMenu.open),
+                    constants.wait5seconds, "Could not find Show Actions button");
+                const showActions = await this.getResultToolbar()
+                    .findElement(locator.notebook.codeEditor.editor.result.status.toolbar.showActionMenu.open);
+                await driver.executeScript("arguments[0].click()", showActions);
+
+                const menu = await driver.wait(until
+                    .elementLocated(locator.notebook.codeEditor.editor.result.status.toolbar.showActionMenu.exists),
+                    constants.wait5seconds, "Action menu was not displayed");
+                await menu
+                    .findElement(locator.notebook.codeEditor.editor.result.status.toolbar.showActionMenu.closeResultSet)
+                    .click();
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.ElementNotInteractableError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait10seconds, "Show actions button was not interactable");
+
         this.setResultId((parseInt(this.getResultId(), 10) - 1) as unknown as string);
     };
 

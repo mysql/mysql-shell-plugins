@@ -420,7 +420,8 @@ export class ThemeManager {
         // TODO: enable host theme values here.
 
         switch (data.themeClass) {
-            case "vscode-dark": {
+            case "vscode-dark":
+            case "vscode-high-contrast": {
                 document.body.setAttribute("theme", "dark");
                 this.loadTheme("Default Dark");
                 this.storeThemeName("Default Dark");
@@ -429,7 +430,8 @@ export class ThemeManager {
                 break;
             }
 
-            case "vscode-light": {
+            case "vscode-light":
+            case "vscode-high-contrast-light": {
                 document.body.setAttribute("theme", "light");
                 this.loadTheme("Default Light");
                 this.storeThemeName("Default Light");

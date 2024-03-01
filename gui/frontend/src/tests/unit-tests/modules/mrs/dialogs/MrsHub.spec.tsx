@@ -43,6 +43,7 @@ import { KeyboardKeys, sleep } from "../../../../../utilities/helpers.js";
 import {
     DialogHelper, JestReactWrapper, getDbCredentials, nextProcessTick, sendKeyPress, setupShellForTests,
 } from "../../../test-helpers.js";
+import { MrsDbObjectType } from "../../../../../modules/mrs/types.js";
 
 describe("MrsHub Tests", () => {
     let host: JestReactWrapper;
@@ -107,8 +108,8 @@ describe("MrsHub Tests", () => {
         }, []);
         authApp = await backend.mrs.getAuthApp(authAppId.authAppId);
         const schemaId = await backend.mrs.addSchema(service.id, "MRS_TEST", "/mrs-test", false, null, null);
-        const dbObjectResult = await backend.mrs.addDbObject("actor", "TABLE", false, "/actor", true, ["READ"], "FEED",
-            false, false, false, null, null, undefined, schemaId);
+        const dbObjectResult = await backend.mrs.addDbObject("actor", MrsDbObjectType.Table, false, "/actor", true,
+            ["READ"], "FEED", false, false, false, null, null, undefined, schemaId);
         await backend.mrs.getDbObject(dbObjectResult);
         host = mount<MrsHub>(<MrsHub ref={hubRef} />);
     });
