@@ -317,13 +317,6 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
 Click the [New Connection] tile to add a new database connection. Click a [Database Connection] tile to open a new DB Notebook.
 
 DB Notebooks are modern editors for working with databases. You can use them to create and manage databases schema objects, write SQL queries and scripts, and work with data."
-        helpUrls={
-          Map {
-            "Learn More >" => "https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code",
-            "Browse Tutorial >" => "https://www.mysql.com",
-            "Read Docs >" => "https://www.mysql.com",
-          }
-        }
         onCloseGreeting={[Function]}
         showGreeting={true}
       >
@@ -398,36 +391,33 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                   }
                 }
               >
-                <a
-                  href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
-                  key="Learn More >"
-                  onClick={[Function]}
-                  rel="noopener noreferrer"
-                  tabIndex={0}
-                  target="_blank"
+                <HelpLinkList
+                  helpUrlMap={
+                    Map {
+                      "Learn More" => "https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code",
+                      "Documentation" => "https://dev.mysql.com/doc/mysql-shell-gui/en/",
+                    }
+                  }
                 >
-                  Learn More &gt;
-                </a>
-                <a
-                  href="https://www.mysql.com"
-                  key="Browse Tutorial >"
-                  onClick={[Function]}
-                  rel="noopener noreferrer"
-                  tabIndex={0}
-                  target="_blank"
-                >
-                  Browse Tutorial &gt;
-                </a>
-                <a
-                  href="https://www.mysql.com"
-                  key="Read Docs >"
-                  onClick={[Function]}
-                  rel="noopener noreferrer"
-                  tabIndex={0}
-                  target="_blank"
-                >
-                  Read Docs &gt;
-                </a>
+                  <a
+                    href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
+                    key="Learn More"
+                    rel="noopener noreferrer"
+                    tabIndex={0}
+                    target="_blank"
+                  >
+                    Learn More &gt;
+                  </a>
+                  <a
+                    href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
+                    key="Documentation"
+                    rel="noopener noreferrer"
+                    tabIndex={0}
+                    target="_blank"
+                  >
+                    Documentation &gt;
+                  </a>
+                </HelpLinkList>
               </div>
             </Container>
             <Button

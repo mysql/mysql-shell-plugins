@@ -99,24 +99,33 @@ exports[`Login Page Tests Render Test 1`] = `
             }
           }
         >
-          <a
-            href="http://localhost:3001/#"
-            key="Learn More >"
+          <HelpLinkList
+            helpUrlMap={
+              Map {
+                "Learn More" => "https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code",
+                "Documentation" => "https://dev.mysql.com/doc/mysql-shell-gui/en/",
+              }
+            }
           >
-            Learn More &gt;
-          </a>
-          <a
-            href="http://localhost:3001/#"
-            key="Browse Tutorial >"
-          >
-            Browse Tutorial &gt;
-          </a>
-          <a
-            href="http://localhost:3001/#"
-            key="Read Docs >"
-          >
-            Read Docs &gt;
-          </a>
+            <a
+              href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
+              key="Learn More"
+              rel="noopener noreferrer"
+              tabIndex={0}
+              target="_blank"
+            >
+              Learn More &gt;
+            </a>
+            <a
+              href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
+              key="Documentation"
+              rel="noopener noreferrer"
+              tabIndex={0}
+              target="_blank"
+            >
+              Documentation &gt;
+            </a>
+          </HelpLinkList>
         </div>
       </Container>
       <Grid

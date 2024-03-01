@@ -69,11 +69,10 @@ describe("Login", () => {
 
             const links = await driver.findElements(locator.adminPage.links);
 
-            expect(links.length).toBe(3);
+            expect(links.length).toBe(2);
 
             expect(await links[0].getText()).toBe("Learn More >");
-            expect(await links[1].getText()).toBe("Browse Tutorial >");
-            expect(await links[2].getText()).toBe("Read Docs >");
+            expect(await links[1].getText()).toBe("Documentation >");
 
             expect(await driver.findElement(locator.adminPage.username)).toBeDefined();
             expect(await driver.findElement(locator.adminPage.password)).toBeDefined();

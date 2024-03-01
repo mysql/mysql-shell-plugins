@@ -33,7 +33,7 @@ import cloneIcon from "../../assets/images/clone.svg";
 import { ComponentChild, createRef } from "preact";
 import { Children } from "preact/compat";
 
-import { requisitions } from "../../supplement/Requisitions.js";
+import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 
 import { MySQLConnectionScheme } from "../../communication/MySQL.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
@@ -162,11 +162,6 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             />,
         );
 
-        const linkMap = new Map<string, string>();
-        linkMap.set("Learn More >", "https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code");
-        linkMap.set("Browse Tutorial >", "https://www.mysql.com");
-        linkMap.set("Read Docs >", "https://www.mysql.com");
-
         // If toolbar items are given, render a toolbar with them.
         const toolbar = <Toolbar id="connectionOverviewToolbar" dropShadow={false} >
             {toolbarItems.navigation}
@@ -221,7 +216,6 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                         "create and manage databases schema objects, write SQL queries and scripts, and work with " +
                         "data."
                     }
-                    helpUrls={linkMap}
                     onCloseGreeting={this.handleCloseGreeting}
                 >
                     <Label id="contentTitle" caption="Database Connections" />

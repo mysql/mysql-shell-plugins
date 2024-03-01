@@ -72,18 +72,10 @@ describe("Main pages", () => {
             await driver.findElement(locator.shellPage.icon).click();
             expect(await driver.findElement(locator.shellPage.title).getText())
                 .toBe("MySQL Shell - GUI Console");
-            expect(
-                (await driver.findElements(locator.shellPage.links.learnMore)).length,
-            ).toBe(1);
-            expect(
-                (await driver.findElements(locator.shellPage.links.browseTutorial)).length,
-            ).toBe(1);
-            expect((await driver.findElements(locator.shellPage.links.readDocs)).length).toBe(
-                1,
-            );
-            expect(await driver.findElement(locator.shellPage.contentTitle).getText()).toBe(
-                "MySQL Shell Sessions",
-            );
+            expect((await driver.findElements(locator.shellPage.links.learnMore)).length).toBe(1);
+            expect((await driver.findElements(locator.shellPage.links.docs)).length).toBe(1);
+            expect(await driver.findElement(locator.shellPage.contentTitle).getText())
+                .toBe("MySQL Shell Sessions");
             expect((await driver.findElements(locator.shellPage.icon)).length).toBe(1);
             expect((await driver.findElements(locator.sqlEditorPage.icon)).length).toBe(1);
             expect((await driver.findElements(locator.debuggerPage.icon)).length).toBe(1);
@@ -253,8 +245,7 @@ describe("Main pages", () => {
             expect((await driver.findElements(locator.aboutPage.sakilaLogo)).length).toBe(1);
             const aboutLinks = await driver.findElements(locator.aboutPage.links);
             expect(await aboutLinks[0].getAttribute("outerHTML")).toContain("Learn More");
-            expect(await aboutLinks[1].getAttribute("outerHTML")).toContain("Browse Tutorial");
-            expect(await aboutLinks[2].getAttribute("outerHTML")).toContain("Read Docs");
+            expect(await aboutLinks[1].getAttribute("outerHTML")).toContain("Documentation");
             const heading = await driver.wait(until.elementLocated(locator.aboutPage.otherTitle),
                 explicitWait, "Shell Build Information was not found");
             expect(await heading.getText()).toBe("Shell Build Information");

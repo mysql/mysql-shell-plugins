@@ -14,6 +14,7 @@
 - BUG#36204648 Syntax error when query filter mixes explicit OR and implicit AND operators
 - BUG#36282632 MrsBaseObjectProcedureCall instances yield a type error
 - BUG#36286261 TypeScript compiler error for accessing properties in a potential empty object
+- BUG#36347569 Links in the front page open dialog to add new REST object
 
 ## Changes in 1.14.2+8.1.1
 

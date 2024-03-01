@@ -71,6 +71,14 @@ export const isEditorLanguageSuffix = (value: unknown): value is EditorLanguageS
     return typeof value === "string" && editorLanguageSuffixes.includes(value as EditorLanguageSuffix);
 };
 
+/**
+ * These are the URLs for the existing help and documentation resources.
+ */
+export const helpUrlMap = new Map<string, string>([
+    ["Learn More", "https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"],
+    ["Documentation", "https://dev.mysql.com/doc/mysql-shell-gui/en/"],
+]);
+
 export interface ITextRange {
     readonly startLine: number;
     readonly startColumn: number;
