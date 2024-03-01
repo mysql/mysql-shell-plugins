@@ -88,6 +88,9 @@ export type ResultRowChanges = Array<{
     pkValues: unknown[];
 }>;
 
+/** A type describing what was the last keyboard or mouse event before a field editor lost focus. */
+type LastInputType = "mousedown" | "shiftTab" | "tab" | "other";
+
 export interface IResultViewProperties extends IComponentProperties {
     /** The result data to show. */
     resultSet: IResultSet;
@@ -147,6 +150,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     private editingCell?: CellComponent;
 
     #navigating = false;
+    #lastInputType: LastInputType = "other";
 
     public constructor(props: IResultViewProperties) {
         super(props);
@@ -156,6 +160,18 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
         this.addHandledProperties("resultSet", "editable", "editModeActive", "topRowIndex", "rowChanges", "selectRow",
             "onFieldEditStart", "onFieldEdited", "onFieldEditCancel", "onVerticalScroll");
+    }
+
+    public componentDidMount(): void {
+        document.addEventListener("keydown", this.handleKeyDown);
+        document.addEventListener("mousedown", this.handleMouseDown);
+        document.addEventListener("mouseup", this.handleMouseUp);
+    }
+
+    public componentWillUnmount(): void {
+        document.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("mousedown", this.handleMouseDown);
+        document.removeEventListener("mouseup", this.handleMouseUp);
     }
 
     public render(): ComponentChild {
@@ -1690,15 +1706,23 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
         cell.checkHeight();
 
-        const target = (e.relatedTarget || document.activeElement) as HTMLElement;
-        if (target.closest(".tabulator")) {
-            this.#navigating = true;
-            try {
-                if (!cell.navigateRight()) {
-                    cell.navigateNext();
+        if (this.#lastInputType === "tab" || this.#lastInputType === "shiftTab") {
+            const target = (e.relatedTarget || document.activeElement) as HTMLElement;
+            if (target.closest(".tabulator")) {
+                this.#navigating = true;
+                try {
+                    if (this.#lastInputType === "tab") {
+                        if (!cell.navigateRight()) {
+                            cell.navigateNext();
+                        }
+                    } else {
+                        if (!cell.navigateLeft()) {
+                            cell.navigatePrev();
+                        }
+                    }
+                } finally {
+                    this.#navigating = false;
                 }
-            } finally {
-                this.#navigating = false;
             }
         }
     };
@@ -1722,4 +1746,34 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
         return undefined;
     }
+
+    /**
+     * A handler for global mouse down. Used to track mouse clicks for focus-out handling.
+     */
+    private handleMouseDown = (): void => {
+        this.#lastInputType = "mousedown";
+    };
+
+    /**
+     * A handler for global mouse up. Used to track mouse clicks for focus-out handling.
+     */
+    private handleMouseUp = (): void => {
+        this.#lastInputType = "other";
+    };
+
+    /**
+     * A handler for global key down. Used to track tab presses for focus-out handling.
+     * @param e The keyboard event.
+     */
+    private handleKeyDown = (e: KeyboardEvent): void => {
+        if (e.key === "Tab") {
+            if (e.shiftKey) {
+                this.#lastInputType = "shiftTab";
+            } else {
+                this.#lastInputType = "tab";
+            }
+        } else {
+            this.#lastInputType = "other";
+        }
+    };
 }

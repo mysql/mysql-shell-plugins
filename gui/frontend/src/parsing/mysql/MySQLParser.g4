@@ -2981,7 +2981,7 @@ windowFunctionCall:
 
 samplingMethod:
     SYSTEM_SYMBOL
-    | BENROULLI_SYMBOL
+    | BERNOULLI_SYMBOL
 ;
 
 samplingPercentage:
@@ -5179,7 +5179,7 @@ identifierKeywordsUnambiguous:
         | LOG_SYMBOL
         | PARSE_TREE_SYMBOL
         | S3_SYMBOL
-        | BENROULLI_SYMBOL
+        | BERNOULLI_SYMBOL
     )
     /* INSERT OTHER KEYWORDS HERE */
 ;

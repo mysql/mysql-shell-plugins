@@ -191,6 +191,7 @@
         "sjis",
         "smallint",
         "sqleditor",
+        "srid",
         "statusmark",
         "tableholder",
         "timiscoding",

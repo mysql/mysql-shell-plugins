@@ -1044,7 +1044,7 @@ S3_SYMBOL:                          S '3'                                       
 QUALIFY_SYMBOL:                     Q U A L I F Y                                       {this.serverVersion >= 80200}?; // MYSQL
 AUTO_SYMBOL:                        A U T O                                             {this.serverVersion >= 80200}?; // MYSQL
 MANUAL_SYMBOL:                      M A N U A L                                         {this.serverVersion >= 80200}?; // MYSQL
-BENROULLI_SYMBOL:                   B E N R O U L L I                                   {this.serverVersion >= 80200}?; // MYSQL
+BERNOULLI_SYMBOL:                   B E R N O U L L I                                   {this.serverVersion >= 80200}?; // MYSQL
 TABLESAMPLE_SYMBOL:                 T A B L E S A M P L E                               {this.serverVersion >= 80200}?; // MYSQL
 
 // $antlr-format groupedAlignments on, alignTrailers off, alignLexerCommands on
