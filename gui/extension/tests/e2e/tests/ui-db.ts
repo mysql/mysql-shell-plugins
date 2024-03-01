@@ -740,7 +740,7 @@ describe("DATABASE CONNECTIONS", () => {
                 constants.wait5seconds);
             await (await Tree.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
             await Workbench.openEditor(`${constants.openEditorsDBNotebook} (${globalConn.caption})`);
-            await commandExecutor.execute("SELECT DATABASE();", true);
+            await commandExecutor.execute("select database();", true);
             expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
                 commandExecutor.getResultMessage())).to.match(/OK/);
             expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"),
@@ -753,7 +753,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await Tree.isElementDefault(constants.dbTreeSection, "sakila", "schema"),
                 errors.notDefault("sakila")).to.be.false;
             await Workbench.openEditor(`${constants.openEditorsDBNotebook} (${globalConn.caption})`);
-            await commandExecutor.execute("SELECT DATABASE();", true);
+            await commandExecutor.execute("select database();", true);
             expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
                 commandExecutor.getResultMessage())).to.match(/OK/);
             expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"),

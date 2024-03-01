@@ -23,10 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until, WebElement, Key, error, WebDriver } from "selenium-webdriver";
+import { until, WebElement, Key, error } from "selenium-webdriver";
 import { explicitWait, IDBConnection } from "./misc.js";
 import * as locator from "../lib/locators.js";
 import * as constants from "../lib/constants.js";
+import { driver } from "../lib/driver.js";
 
 export const execFullBlockSql = "Execute the selection or everything in the current block and create a new block";
 export const execFullBlockJs = "Execute everything in the current block and create a new block";
@@ -42,11 +43,10 @@ export class DBNotebooks {
 
     /**
      * Selects the database type on the Database Connection Configuration dialog
-     * @param driver The webdriver
      * @param value database type
      * @returns Promise resolving when the select is made
      */
-    public static selectDBType = async (driver: WebDriver, value: string): Promise<void> => {
+    public static selectDBType = async (value: string): Promise<void> => {
         await driver.findElement(locator.databaseConnectionConfiguration.databaseType.exists).click();
         const dropDownList = await driver.findElement(locator.databaseConnectionConfiguration.databaseType.list);
         const els = await dropDownList.findElements(locator.htmlTag.div);
@@ -57,11 +57,10 @@ export class DBNotebooks {
 
     /**
      * Selects the protocol on the Database Connection Configuration dialog
-     * @param driver The webdriver
      * @param value protocol
      * @returns Promise resolving when the select is made
      */
-    public static setProtocol = async (driver: WebDriver, value: string): Promise<void> => {
+    public static setProtocol = async (value: string): Promise<void> => {
         await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol.exists).click();
         const dropDownList = await driver
             .findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol.list);
@@ -70,11 +69,10 @@ export class DBNotebooks {
 
     /**
      * Selects the SSL Mode on the Database Connection Configuration dialog
-     * @param driver The webdriver
      * @param value SSL Mode
      * @returns Promise resolving when the select is made
      */
-    public static setSSLMode = async (driver: WebDriver, value: string): Promise<void> => {
+    public static setSSLMode = async (value: string): Promise<void> => {
         await driver.findElement(locator.databaseConnectionConfiguration.mysql.ssl.mode).click();
         const dropDownList = await driver
             .findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeList.exists);
@@ -84,11 +82,10 @@ export class DBNotebooks {
     /**
      * Creates a new database connection, from the DB Editor main page.
      * It verifies that the Connection dialog is closed, at the end.
-     * @param driver The webdriver
      * @param dbConfig SSL Mode
      * @returns Promise resolving with the connection created
      */
-    public static createDBconnection = async (driver: WebDriver, dbConfig: IDBConnection):
+    public static createDBconnection = async (dbConfig: IDBConnection):
         Promise<WebElement | undefined> => {
         const ctx = await driver.wait(until.elementLocated(locator.dbConnections.browser),
             explicitWait, "DB Connection Overview page was not loaded");
@@ -126,7 +123,7 @@ export class DBNotebooks {
         await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).clear();
         await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname)
             .sendKeys(String(dbConfig.hostname));
-        await DBNotebooks.setProtocol(driver, dbConfig.protocol);
+        await DBNotebooks.setProtocol(dbConfig.protocol);
         await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port).clear();
         await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port)
             .sendKeys(String(dbConfig.port));
@@ -137,7 +134,7 @@ export class DBNotebooks {
             .sendKeys(String(dbConfig.schema));
 
         if (dbConfig.dbType) {
-            await DBNotebooks.selectDBType(driver, dbConfig.dbType);
+            await DBNotebooks.selectDBType(dbConfig.dbType);
         }
 
         if (dbConfig.sslMode) {
@@ -176,11 +173,10 @@ export class DBNotebooks {
     /**
      * Returns the WebElement that represents the DB Connection, on the DB Connection main page
      * Throws an exception if not found.
-     * @param driver The webdriver
      * @param name Connection caption
      * @returns @returns Promise resolving with the DB Connection
      */
-    public static getConnection = async (driver: WebDriver, name: string): Promise<WebElement | undefined> => {
+    public static getConnection = async (name: string): Promise<WebElement | undefined> => {
 
         return driver.wait(async () => {
             const connections = await driver.findElements(locator.dbConnections.connections.item);
@@ -194,7 +190,7 @@ export class DBNotebooks {
 
     };
 
-    public static clickConnectionItem = async (driver: WebDriver, conn: WebElement, item: string): Promise<void> => {
+    public static clickConnectionItem = async (conn: WebElement, item: string): Promise<void> => {
         const moreActions = await conn.findElement(locator.dbConnections.connections.actions.moreActions);
         const moreActionsRect = await moreActions.getRect();
         await driver.actions().move({
@@ -236,10 +232,9 @@ export class DBNotebooks {
 
     /**
      * Returns the autocomplete context item list
-     * @param driver The webdriver
      * @returns A promise resolving when the list is fulfilled
      */
-    public static getAutoCompleteMenuItems = async (driver: WebDriver): Promise<string[]> => {
+    public static getAutoCompleteMenuItems = async (): Promise<string[]> => {
         const els = [];
         let items = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.autoCompleteItems),
             explicitWait, "Auto complete items were not displayed");
@@ -262,10 +257,9 @@ export class DBNotebooks {
 
     /**
      * Gets the line number where the mouse cursor is
-     * @param driver The webdriver
      * @returns A promise resolving with the line number
      */
-    public static getMouseCursorLine = async (driver: WebDriver): Promise<number | undefined> => {
+    public static getMouseCursorLine = async (): Promise<number | undefined> => {
         const lines = await driver.findElements(locator.notebook.codeEditor.editor.cursorLine);
         for (let i = 0; i <= lines.length - 1; i++) {
             const curLine = await lines[i].findElements(locator.notebook.codeEditor.editor.currentLine);
@@ -277,11 +271,10 @@ export class DBNotebooks {
 
     /**
      * Gets the line number where a word is found
-     * @param driver The webdriver
      * @param wordRef The word
      * @returns A promise resolving with the line number
      */
-    public static getLineFromWord = async (driver: WebDriver, wordRef: string): Promise<number | undefined> => {
+    public static getLineFromWord = async (wordRef: string): Promise<number | undefined> => {
         let line: number | undefined;
         await driver.wait(async () => {
             try {
@@ -313,13 +306,12 @@ export class DBNotebooks {
 
     /**
      * Sets the mouse cursor at the editor line where the specified word is
-     * @param driver The webdriver
      * @param word The word or command
      * @returns A promise resolving when the mouse cursor is placed at the desired spot
      */
-    public static setMouseCursorAt = async (driver: WebDriver, word: string): Promise<void> => {
-        const mouseCursorIs = await DBNotebooks.getMouseCursorLine(driver);
-        const mouseCursorShouldBe = await DBNotebooks.getLineFromWord(driver, word) ?? 0;
+    public static setMouseCursorAt = async (word: string): Promise<void> => {
+        const mouseCursorIs = await DBNotebooks.getMouseCursorLine();
+        const mouseCursorShouldBe = await DBNotebooks.getLineFromWord(word) ?? 0;
         const taps = mouseCursorShouldBe - mouseCursorIs!;
         const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
         if (taps > 0) {
@@ -337,10 +329,9 @@ export class DBNotebooks {
 
     /**
      * Sets a new line on the notebook editor
-     * @param driver The Webdriver
      * @returns A promise resolving when the new line is set
      */
-    public static setNewLineOnEditor = async (driver: WebDriver): Promise<void> => {
+    public static setNewLineOnEditor = async (): Promise<void> => {
         let newLineNumber: number;
         const getLastLineNumber = async (): Promise<number> => {
             await driver.wait(async () => {
@@ -380,10 +371,9 @@ export class DBNotebooks {
 
     /**
      * Gets the last text on the last prompt/editor line
-     * @param driver The webdriver
      * @returns A promise resolving with the text
      */
-    public static getPromptLastTextLine = async (driver: WebDriver): Promise<String> => {
+    public static getPromptLastTextLine = async (): Promise<String> => {
         const context = await driver.findElement(locator.notebook.codeEditor.editor.exists);
         let sentence = "";
         await driver.wait(async () => {
@@ -408,11 +398,10 @@ export class DBNotebooks {
 
     /**
      * Gets a toolbar button
-     * @param driver The webdriver
      * @param button The button name
      * @returns A promise resolving with the button
      */
-    public static getToolbarButton = async (driver: WebDriver, button: string): Promise<WebElement | undefined> => {
+    public static getToolbarButton = async (button: string): Promise<WebElement | undefined> => {
         const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
             constants.wait5seconds, "Toolbar was not found");
         const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
@@ -427,11 +416,10 @@ export class DBNotebooks {
 
     /**
      * Verifies if a toolbar button exists
-     * @param driver The webdriver
      * @param button The button
      * @returns A promise resolving with true if the button exists, false otherwise
      */
-    public static existsToolbarButton = async (driver: WebDriver, button: string): Promise<boolean> => {
+    public static existsToolbarButton = async (button: string): Promise<boolean> => {
         const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
             constants.wait5seconds, "Toolbar was not found");
         const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
@@ -446,11 +434,10 @@ export class DBNotebooks {
 
     /**
      * Toggles the find in selection on the find widget
-     * @param driver The webdriver
      * @param flag True to enable, false otherwise
      * @returns A promise resolving when button is clicked
      */
-    public static widgetFindInSelection = async (driver: WebDriver, flag: boolean): Promise<void> => {
+    public static widgetFindInSelection = async (flag: boolean): Promise<void> => {
         const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds);
         const actions = await findWidget.findElements(locator.findWidget.actions);
         for (const action of actions) {
@@ -473,11 +460,10 @@ export class DBNotebooks {
 
     /**
      * Expands or collapses the find and replace on the find widget
-     * @param driver The webdriver
      * @param expand True to expand, false to collapse
      * @returns A promise resolving when replacer is expanded or collapsed
      */
-    public static widgetExpandFinderReplace = async (driver: WebDriver, expand: boolean): Promise<void> => {
+    public static widgetExpandFinderReplace = async (expand: boolean): Promise<void> => {
         const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds);
         const toggleReplace = await findWidget.findElement(locator.findWidget.toggleReplace);
         const isExpanded = (await findWidget.findElements(locator.findWidget.toggleReplaceExpanded)).length > 0;
@@ -494,11 +480,10 @@ export class DBNotebooks {
 
     /**
      * Gets the replacer buttons by their name (Replace, Replace All)
-     * @param driver The webdriver
      * @param button The button name
      * @returns A promise resolving when button is returned
      */
-    public static widgetGetReplacerButton = async (driver: WebDriver, button: string):
+    public static widgetGetReplacerButton = async (button: string):
         Promise<WebElement | undefined> => {
         const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds);
         const replaceActions = await findWidget.findElements(locator.findWidget.replacerActions);
@@ -511,10 +496,9 @@ export class DBNotebooks {
 
     /**
      * Closes the widget finder
-     * @param driver The webdriver
      * @returns A promise resolving when finder is closed
      */
-    public static widgetCloseFinder = async (driver: WebDriver): Promise<void> => {
+    public static widgetCloseFinder = async (): Promise<void> => {
         await driver.wait(async () => {
             const findWidget = await driver.findElements(locator.findWidget.exists);
             if (findWidget.length > 0) {
@@ -531,11 +515,10 @@ export class DBNotebooks {
 
     /**
      * Verifies if a word exists on the notebook
-     * @param driver The webdriver
      * @param word The word
      * @returns A promise resolving with true if the word is found, false otherwise
      */
-    public static existsOnNotebook = async (driver: WebDriver, word: string): Promise<boolean> => {
+    public static existsOnNotebook = async (word: string): Promise<boolean> => {
         const commands: string[] = [];
         await driver.wait(async () => {
             try {

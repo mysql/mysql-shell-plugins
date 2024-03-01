@@ -23,19 +23,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until, WebElement, error, WebDriver } from "selenium-webdriver";
+import { until, WebElement, error } from "selenium-webdriver";
 import { explicitWait } from "./misc.js";
 import * as locator from "../lib/locators.js";
+import { driver } from "../lib/driver.js";
 
 export class ShellSession {
 
     /**
      * Returns the result of a shell session query or instruction
-     * @param driver The webdriver
      * @returns Promise resolving width the result
      *
      */
-    public static getResult = async (driver: WebDriver): Promise<string> => {
+    public static getResult = async (): Promise<string> => {
         let text = "";
         const zoneHosts = await driver.findElements(locator.shellSession.result.exists);
         if (zoneHosts.length > 0) {
@@ -64,11 +64,10 @@ export class ShellSession {
 
     /**
      * Returns the result of a shell session query or instruction that should generate a json result
-     * @param driver The webdriver
      * @returns Promise resolving width the result
      *
      */
-    public static getJsonResult = async (driver: WebDriver): Promise<string> => {
+    public static getJsonResult = async (): Promise<string> => {
         const results = await driver.findElements(locator.shellSession.result.json);
 
         return results[results.length - 1].getAttribute("innerHTML");
@@ -76,10 +75,9 @@ export class ShellSession {
 
     /**
      * Verifies if the last output result is JSON
-     * @param driver The webdriver
      * @returns Promise resolving with the result language
      */
-    public static isJSON = async (driver: WebDriver): Promise<boolean> => {
+    public static isJSON = async (): Promise<boolean> => {
         await driver.wait(until.elementLocated(locator.shellSession.result.exists), explicitWait);
         const zoneHosts = await driver.findElements(locator.shellSession.result.exists);
         const zoneHost = zoneHosts[zoneHosts.length - 1];
@@ -91,11 +89,10 @@ export class ShellSession {
 
     /**
      * Returns the shell session tab
-     * @param driver The webdriver
      * @param sessionNbr the session number
      * @returns Promise resolving with the the Session tab
      */
-    public static getTab = async (driver: WebDriver, sessionNbr: string): Promise<WebElement> => {
+    public static getTab = async (sessionNbr: string): Promise<WebElement> => {
         const tabArea = await driver.findElement(locator.shellSession.result.tabs);
         await driver.wait(
             async () => {
@@ -118,21 +115,19 @@ export class ShellSession {
 
     /**
      * Closes a shell session
-     * @param driver The webdriver
      * @param sessionNbr the session number
      * @returns Promise resolving when the session is closed
      */
-    public static closeSession = async (driver: WebDriver, sessionNbr: string): Promise<void> => {
-        const tab = await ShellSession.getTab(driver, sessionNbr);
+    public static closeSession = async (sessionNbr: string): Promise<void> => {
+        const tab = await ShellSession.getTab(sessionNbr);
         await tab.findElement(locator.shellSession.close).click();
     };
 
     /**
      * Returns the Shell tech/language after switching to javascript/python/mysql
-     * @param driver The webdriver
      * @returns Promise resolving with the the session shell language
      */
-    public static getTech = async (driver: WebDriver): Promise<string> => {
+    public static getTech = async (): Promise<string> => {
         const editorsPrompt = await driver.findElements(locator.shellSession.language);
         const lastEditorClasses = await editorsPrompt[editorsPrompt.length - 1].getAttribute("class");
 
@@ -141,11 +136,10 @@ export class ShellSession {
 
     /**
      * Verifies if a value is present on a query result data set
-     * @param driver The webdriver
      * @param value value to search for
      * @returns A promise resolving with true if exists, false otherwise
      */
-    public static isValueOnDataSet = async (driver: WebDriver, value: string): Promise<boolean | undefined> => {
+    public static isValueOnDataSet = async (value: string): Promise<boolean | undefined> => {
         const checkValue = async (): Promise<boolean | undefined> => {
             const zoneHosts = await driver.findElements(locator.shellSession.result.exists);
             const cells = await zoneHosts[zoneHosts.length - 1].findElements(locator.shellSession.result.dataSet.cells);
@@ -170,10 +164,9 @@ export class ShellSession {
 
     /**
      * Returns the text within the server tab on a shell session
-     * @param driver The webdriver
      * @returns A promise resolving with the text on the tab
      */
-    public static getServerTabStatus = async (driver: WebDriver): Promise<string> => {
+    public static getServerTabStatus = async (): Promise<string> => {
         const server = await driver.findElement(locator.shellSession.server);
 
         return server.getAttribute("data-tooltip");
@@ -181,10 +174,9 @@ export class ShellSession {
 
     /**
      * Returns the text within the schema tab on a shell session
-     * @param driver The webdriver
      * @returns A promise resolving with the text on the tab
      */
-    public static getSchemaTabStatus = async (driver: WebDriver): Promise<string> => {
+    public static getSchemaTabStatus = async (): Promise<string> => {
         const schema = await driver.findElement(locator.shellSession.schema);
 
         return schema.getAttribute("innerHTML");
@@ -192,11 +184,10 @@ export class ShellSession {
 
     /**
      * Verifies if a text is present on a json result, returned by a query
-     * @param driver The webdriver
      * @param value value to search for
      * @returns A promise resolving with true if exists, false otherwise
      */
-    public static isValueOnJsonResult = async (driver: WebDriver, value: string): Promise<boolean> => {
+    public static isValueOnJsonResult = async (value: string): Promise<boolean> => {
         const zoneHosts = await driver.findElements(locator.shellSession.result.exists);
         const zoneHost = zoneHosts[zoneHosts.length - 1];
         const spans = await zoneHost.findElements(locator.htmlTag.mix(
@@ -217,22 +208,21 @@ export class ShellSession {
 
     /**
      * Waits for the text or regexp to include/match the result of a shell session query or instruction
-     * @param driver The webdriver
      * @param text text of regexp to verify
      * @param isJson true if expected result should be json
      * @returns Promise resolving when the text or the regexp includes/matches the query result
      *
      */
-    public static waitForResult = async (driver: WebDriver, text: string | RegExp, isJson = false): Promise<void> => {
+    public static waitForResult = async (text: string | RegExp, isJson = false): Promise<void> => {
         let result: string;
         await driver.wait(async () => {
             if (typeof text === "object") {
-                return (await ShellSession.getResult(driver)).match(text);
+                return (await ShellSession.getResult()).match(text);
             } else {
                 if (isJson) {
-                    result = await ShellSession.getJsonResult(driver);
+                    result = await ShellSession.getJsonResult();
                 } else {
-                    result = await ShellSession.getResult(driver);
+                    result = await ShellSession.getResult();
                 }
 
                 return result.includes(text);
@@ -242,32 +232,30 @@ export class ShellSession {
 
     /**
      * Waits for the connection tab (server/schema) includes the given text
-     * @param driver The webdriver
      * @param tab server or schema
      * @param text to verify
      * @returns Promise resolving when the text of the tab includes the given text
      *
      */
-    public static waitForConnectionTabValue = async (driver: WebDriver, tab: string, text: string): Promise<void> => {
+    public static waitForConnectionTabValue = async (tab: string, text: string): Promise<void> => {
         if (tab === "server") {
             await driver.wait(async () => {
-                return (await ShellSession.getServerTabStatus(driver)).includes(text);
+                return (await ShellSession.getServerTabStatus()).includes(text);
             }, explicitWait, `'${text}' was not found on the server tab`);
         } else {
             await driver.wait(async () => {
-                return (await ShellSession.getSchemaTabStatus(driver)).includes(text);
+                return (await ShellSession.getSchemaTabStatus()).includes(text);
             }, explicitWait, `'${text}' was not found on the schema tab`);
         }
     };
 
     /**
      * Clicks on the schema tab and selects a new schema
-     * @param driver The webdriver
      * @param schema schema to choose
      * @returns Promise resolving when the new schema is selected
      *
      */
-    public static changeSchemaOnTab = async (driver: WebDriver, schema: string): Promise<void> => {
+    public static changeSchemaOnTab = async (schema: string): Promise<void> => {
         await driver.findElement(locator.shellSession.schema).click();
         const menuItems = await driver.wait(until.elementsLocated(locator.shellSession.tabContextMenu),
             explicitWait, "Menu items were not found");
@@ -281,7 +269,7 @@ export class ShellSession {
             }
         }
 
-        await ShellSession.waitForResult(driver, "Default schema `" + schema + "` accessible through db.");
+        await ShellSession.waitForResult("Default schema `" + schema + "` accessible through db.");
     };
 
 }

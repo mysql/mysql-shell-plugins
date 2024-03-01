@@ -21,23 +21,24 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Condition, WebDriver, WebElement, Locator, error } from "selenium-webdriver";
+import { Condition, WebElement, Locator, error } from "selenium-webdriver";
 import { DBNotebooks } from "./dbNotebooks.js";
 import * as locator from "./locators.js";
 import { CommandExecutor } from "./cmdExecutor.js";
 import * as constants from "./constants.js";
+import { driver } from "./driver.js";
 
-export const toolbarButtonIsDisabled = (driver: WebDriver, button: string): Condition<boolean> => {
+export const toolbarButtonIsDisabled = (button: string): Condition<boolean> => {
     return new Condition(`for button ${button} to be disabled`, async () => {
-        const btn = await DBNotebooks.getToolbarButton(driver, button);
+        const btn = await DBNotebooks.getToolbarButton(button);
 
         return (await btn!.getAttribute("class")).includes("disabled");
     });
 };
 
-export const toolbarButtonIsEnabled = (driver: WebDriver, button: string): Condition<boolean> => {
+export const toolbarButtonIsEnabled = (button: string): Condition<boolean> => {
     return new Condition(`for button ${button} to be enabled`, async () => {
-        const btn = await DBNotebooks.getToolbarButton(driver, button);
+        const btn = await DBNotebooks.getToolbarButton(button);
 
         return !(await btn!.getAttribute("class")).includes("disabled");
     });
@@ -49,7 +50,7 @@ export const elementLocated = (context: WebElement, locator: Locator): Condition
     });
 };
 
-export const editorHasNewPrompt = (driver: WebDriver): Condition<boolean> => {
+export const editorHasNewPrompt = (): Condition<boolean> => {
     return new Condition(`for editor to have a new prompt`, async () => {
         const editorSentences = await driver.findElements(locator.notebook.codeEditor.editor.editorLine);
 
@@ -66,12 +67,12 @@ export const resultGridIsEditable = (resultGrid: WebElement): Condition<boolean>
     });
 };
 
-export const cellIsEditable = (driver: WebDriver, commandExecutor: CommandExecutor, rowNumber: number,
+export const cellIsEditable = (commandExecutor: CommandExecutor, rowNumber: number,
     columnName: string, expectInput: boolean): Condition<boolean | undefined> => {
     return new Condition(`for row to be editable`, async () => {
         return driver.wait(async () => {
             try {
-                const cell = await commandExecutor.getCellFromResultGrid(driver, rowNumber, columnName);
+                const cell = await commandExecutor.getCellFromResultGrid(rowNumber, columnName);
                 const isEditable = (await cell.getAttribute("class")).includes("tabulator-editing");
                 if (expectInput) {
                     if (isEditable) {
@@ -103,9 +104,9 @@ export const rowWasAdded = (resultGrid: WebElement): Condition<boolean> => {
     });
 };
 
-export const rowsWereUpdated = (driver: WebDriver, commandExecutor: CommandExecutor): Condition<boolean> => {
+export const rowsWereUpdated = (commandExecutor: CommandExecutor): Condition<boolean> => {
     return new Condition(`for result message to match 'rows updated'`, async () => {
-        await commandExecutor.refreshCommandResult(driver, commandExecutor.getResultId());
+        await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
 
         return commandExecutor.getResultMessage().match(/(\d+).*updated/) !== null;
     });
@@ -123,7 +124,7 @@ export const rowIsMarkedForDeletion = (row: WebElement): Condition<boolean> => {
     });
 };
 
-export const confirmationDialogExists = (driver: WebDriver, context?: string): Condition<WebElement | undefined> => {
+export const confirmationDialogExists = (context?: string): Condition<WebElement | undefined> => {
     let msg = "for confirmation dialog to be displayed";
     if (context) {
         msg += ` ${context}`;

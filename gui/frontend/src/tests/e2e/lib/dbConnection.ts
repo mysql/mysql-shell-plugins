@@ -23,20 +23,20 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until, Key, WebElement, error, WebDriver } from "selenium-webdriver";
+import { until, Key, WebElement, error } from "selenium-webdriver";
 import { explicitWait, Misc } from "./misc.js";
 import * as locator from "../lib/locators.js";
 import * as interfaces from "../lib/interfaces.js";
 import * as constants from "../lib/constants.js";
+import { driver } from "../lib/driver.js";
 
 export class DBConnection {
 
     /**
      * Verifies if the Connection Overview tab is selected/opened, on the DB Editor
-     * @param driver The webdriver
      * @returns Promise resolving to true if it's opened, false otherwise
      */
-    public static isConnectionOverviewOpened = async (driver: WebDriver): Promise<boolean> => {
+    public static isConnectionOverviewOpened = async (): Promise<boolean> => {
         const connections = await driver.findElement(locator.dbConnections.tab);
         const classes = await connections.getAttribute("class");
 
@@ -46,11 +46,10 @@ export class DBConnection {
     /**
      * Closes the current opened connection tab, or an existing connection tab
      * Throws an exception if the existing connection tab is not found
-     * @param driver The webdriver
      * @param name Connection tab name
      * @returns Promise resolving when the connection is closed
      */
-    public static closeDBconnection = async (driver: WebDriver, name: string): Promise<void> => {
+    public static closeDBconnection = async (name: string): Promise<void> => {
         if (name === "current") {
             const tab = await driver.findElement(locator.notebook.connectionTab.opened);
             await tab.findElement(locator.notebook.connectionTab.close).click();
@@ -71,11 +70,10 @@ export class DBConnection {
     /**
      * Returns the toolbar button on the DB Editor.
      * Throws an exception if the button is not found.
-     * @param driver The webdriver
      * @param button Toolbar button tooltip
      * @returns Promise resolving with the Toolbar button
      */
-    public static getToolbarButton = async (driver: WebDriver, button: string): Promise<WebElement | undefined> => {
+    public static getToolbarButton = async (button: string): Promise<WebElement | undefined> => {
         const buttons = await driver.findElement(locator.notebook.toolbar.exists)
             .findElements(locator.notebook.toolbar.button.exists);
         for (const btn of buttons) {
@@ -90,12 +88,11 @@ export class DBConnection {
     /**
      * Clicks on a toolbar button and waits for the button to be active again.
      * Throws an exception if the button is not found.
-     * @param driver The webdriver
      * @param button Toolbar button tooltip
      * @returns Promise resolving with the Toolbar button
      */
-    public static clickToolbarButton = async (driver: WebDriver, button: string): Promise<void> => {
-        const toolbarButton = await DBConnection.getToolbarButton(driver, button);
+    public static clickToolbarButton = async (button: string): Promise<void> => {
+        const toolbarButton = await DBConnection.getToolbarButton(button);
         await toolbarButton?.click();
         await driver.wait(async () => {
             return (await toolbarButton?.getAttribute("class"))?.includes("disabled");
@@ -107,16 +104,15 @@ export class DBConnection {
 
     /**
      * Returns the result status of a query or instruction on the DB Editor
-     * @param driver The webdriver
      * @param isSelect if the expected result is from a select statement
      * @returns Promise resolving with the Result status. Ex. OK, 1 record returned
      */
-    public static getResultStatus = async (driver: WebDriver, isSelect?: boolean): Promise<string> => {
+    public static getResultStatus = async (isSelect?: boolean): Promise<string> => {
         let results: WebElement[] | undefined;
         const obj = "";
 
         await driver.wait(
-            async (driver) => {
+            async () => {
                 results = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.result.exists),
                     explicitWait, "Zone hosts were not found");
 
@@ -154,10 +150,9 @@ export class DBConnection {
 
     /**
      * Returns the current selected connection tab, on the DB Editor
-     * @param driver The webdriver
      * @returns Promise resolving with the Connection tab name
      */
-    public static getSelectedConnectionTab = async (driver: WebDriver): Promise<string> => {
+    public static getSelectedConnectionTab = async (): Promise<string> => {
         const tab = await driver.wait(until.elementLocated(locator.notebook.connectionTab.opened),
             explicitWait, "Selected tab was not found");
 
@@ -168,11 +163,10 @@ export class DBConnection {
 
     /**
      * Tell if the statement is a statement start (has a blue dot on the beginning)
-     * @param driver The webdriver
      * @param statement statement
      * @returns Promise resolving with the number of statement starts
      */
-    public static isStatementStart = async (driver: WebDriver, statement: string): Promise<boolean | undefined> => {
+    public static isStatementStart = async (statement: string): Promise<boolean | undefined> => {
 
         const getLineSentence = async (ctx: WebElement): Promise<string> => {
             const spans = await ctx.findElements(locator.htmlTag.span);
@@ -219,12 +213,11 @@ export class DBConnection {
 
     /**
      * Writes a command on the displayed textarea
-     * @param driver The webdriver
      * @param cmd cmd to write
      * @param slowWriting True to write like a human
      * @returns Promise resolving when the sql query is written
      */
-    public static writeSQL = async (driver: WebDriver, cmd: string, slowWriting?: boolean): Promise<void> => {
+    public static writeSQL = async (cmd: string, slowWriting?: boolean): Promise<void> => {
         const textArea = await driver.wait(until.elementLocated(locator.notebook.codeEditor.textArea),
             explicitWait, "Could not find the textarea");
         await driver.wait(async () => {
@@ -253,12 +246,11 @@ export class DBConnection {
 
     /**
      * Enables/Disables the Find in Selection button, on the Find and Replace box
-     * @param driver The webdriver
      * @param el find widget
      * @param flag true to enable, false otherwise
      * @returns Promise resolving when the find is made
      */
-    public static findInSelection = async (driver: WebDriver, el: WebElement, flag: boolean): Promise<void> => {
+    public static findInSelection = async (el: WebElement, flag: boolean): Promise<void> => {
         const actions = await el.findElements(locator.findWidget.actions);
         for (const action of actions) {
             if (
@@ -283,10 +275,9 @@ export class DBConnection {
 
     /**
      * Closes the finder on DB Editor
-     * @param driver The webdriver
      * @returns Promise resolving with the finder is closed
      */
-    public static closeFinder = async (driver: WebDriver): Promise<void> => {
+    public static closeFinder = async (): Promise<void> => {
         await driver.wait(async () => {
             const findWidget = await driver.findElements(locator.findWidget.isVisible);
             if (findWidget.length > 0) {
@@ -345,13 +336,11 @@ export class DBConnection {
 
     /**
      * Returns an object/item within the schema section on the DB Editor
-     * @param driver The webdriver
      * @param objType Schema/Tables/Views/Routines/Events/Triggers/Foreign Keys/Indexes
      * @param objName Name of the object
      * @returns Promise resolving with the object
      */
     public static getSchemaObject = async (
-        driver: WebDriver,
         objType: string,
         objName: string): Promise<WebElement | undefined> => {
         const scroll = await driver.wait(until.elementLocated(locator.notebook.explorerHost.schemas.scroll),
@@ -427,13 +416,12 @@ export class DBConnection {
 
     /**
      * Toggles (expand or collapse) a schema object/item on the DB Editor
-     * @param driver The webdriver
      * @param objType Schema/Tables/Views/Routines/Events/Triggers/Foreign Keys/Indexes
      * @param objName Name of the object
      * @returns Promise resolving with the object
      */
-    public static toggleSchemaObject = async (driver: WebDriver, objType: string, objName: string): Promise<void> => {
-        const obj = await DBConnection.getSchemaObject(driver, objType, objName);
+    public static toggleSchemaObject = async (objType: string, objName: string): Promise<void> => {
+        const obj = await DBConnection.getSchemaObject(objType, objName);
         const toggle = await obj!.findElement(locator.notebook.explorerHost.schemas.treeToggle);
         await driver.executeScript("arguments[0].click()", toggle);
         await driver.sleep(1000);
@@ -441,11 +429,10 @@ export class DBConnection {
 
     /**
      * Adds a script on the DB Editor
-     * @param driver The webdriver
      * @param scriptType JS/TS/SQL
      * @returns Promise resolving with the name of the created script
      */
-    public static addScript = async (driver: WebDriver, scriptType: string): Promise<string> => {
+    public static addScript = async (scriptType: string): Promise<string> => {
         let toReturn = "";
 
         await driver.wait(async () => {
@@ -488,12 +475,11 @@ export class DBConnection {
 
     /**
      * Checks if a script exists on the DB Editor
-     * @param driver The webdriver
      * @param scriptName Script name
      * @param scriptType javascript/typescript/mysql
      * @returns Promise resolving with true if exists, false otherwise
      */
-    public static existsScript = async (driver: WebDriver, scriptName: string, scriptType: string):
+    public static existsScript = async (scriptName: string, scriptType: string):
         Promise<boolean> => {
         const context = await driver.findElement(locator.notebook.explorerHost.scripts.exists);
         const items = await context.findElements(locator.notebook.explorerHost.scripts.script);
@@ -511,12 +497,10 @@ export class DBConnection {
 
     /**
      * Returns the opened editor
-     * @param driver The webdriver
      * @param editor Editor name
      * @returns Promise resolving with the Editor
      */
-    public static getOpenEditor = async (driver: WebDriver,
-        editor: string | RegExp): Promise<WebElement | undefined> => {
+    public static getOpenEditor = async (editor: string | RegExp): Promise<WebElement | undefined> => {
         const context = await driver.findElement(locator.notebook.explorerHost.openEditors.exists);
         const editors = await context.findElements(
             locator.notebook.explorerHost.openEditors.item,
@@ -530,12 +514,11 @@ export class DBConnection {
 
     /**
      * Selects an editor from the drop down list on the DB Editor
-     * @param driver The webdriver
      * @param editorName Editor name
      * @param editorType javascript/typescript/mysql
      * @returns Promise resolving when the select is made
      */
-    public static selectCurrentEditor = async (driver: WebDriver, editorName: string | RegExp, editorType: string):
+    public static selectCurrentEditor = async (editorName: string | RegExp, editorType: string):
         Promise<void> => {
 
         await driver.wait(async () => {
@@ -581,11 +564,10 @@ export class DBConnection {
 
     /**
      * Returns the result tab or a multi-query result, on the DB Editor
-     * @param driver The webdriver
      * @param tabName Tab name
      * @returns Promise resolving with the tab
      */
-    public static getResultTab = async (driver: WebDriver, tabName: string): Promise<WebElement | undefined> => {
+    public static getResultTab = async (tabName: string): Promise<WebElement | undefined> => {
         const zoneHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
         const tabs = await zoneHosts[zoneHosts.length - 1]
             .findElements(locator.notebook.codeEditor.editor.result.tabSection.tabs);
@@ -603,10 +585,9 @@ export class DBConnection {
 
     /**
      * Returns the result tab names of a multi-query result, on the DB Editor
-     * @param driver The webdriver
      * @returns Promise resolving with the tab names
      */
-    public static getResultTabs = async (driver: WebDriver): Promise<String[]> => {
+    public static getResultTabs = async (): Promise<String[]> => {
         const zoneHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
         const tabs = await zoneHosts[zoneHosts.length - 1]
             .findElements(locator.notebook.codeEditor.editor.result.tabSection.tabs);
@@ -625,13 +606,11 @@ export class DBConnection {
 
     /**
      * Returns the result column name of a sql query, on the DB Editor
-     * @param driver The webdriver
      * @param columnName Column name
      * @param retry Number of retries to get the column (default = 2)
      * @returns A promise resolving with the column
      */
     public static getResultColumnName = async (
-        driver: WebDriver,
         columnName: string,
         retry?: number): Promise<WebElement | undefined> => {
         if (!retry) {
@@ -667,17 +646,16 @@ export class DBConnection {
                     throw e;
                 }
             } else {
-                await DBConnection.getResultColumnName(driver, columnName, retry + 1);
+                await DBConnection.getResultColumnName(columnName, retry + 1);
             }
         }
     };
 
     /**
      * Returns the graph resulting from a typescript script, on the DB Editor
-     * @param driver The webdriver
      * @returns A promise resolving with the graph
      */
-    public static getGraphHost = async (driver: WebDriver): Promise<WebElement> => {
+    public static getGraphHost = async (): Promise<WebElement> => {
         const resultHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
         const lastResult = resultHosts[resultHosts.length - 1];
 
@@ -688,11 +666,10 @@ export class DBConnection {
 
     /**
      * Returns the output of switching language on the DB Editor
-     * @param driver The webdriver
      * @param penultimate get the penultimate result
      * @returns A promise resolving with the output
      */
-    public static getOutput = async (driver: WebDriver, penultimate?: boolean): Promise<string> => {
+    public static getOutput = async (penultimate?: boolean): Promise<string> => {
         let text = "";
         await driver.wait(async () => {
             try {
@@ -739,10 +716,9 @@ export class DBConnection {
 
     /**
      * Returns the current language of the prompt on the DB Editor
-     * @param driver The webdriver
      * @returns A promise resolving with the language
      */
-    public static getEditorLanguage = async (driver: WebDriver): Promise<string> => {
+    public static getEditorLanguage = async (): Promise<string> => {
         const editors = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.prompt.current),
             explicitWait, "Could not find the editor prompts");
         const editorClasses = (await editors[editors.length - 1].getAttribute("class")).split(" ");
@@ -752,12 +728,11 @@ export class DBConnection {
 
     /**
      * Sets the language on the DB Editor
-     * @param driver The webdriver
      * @param language sql/js/ts
      * @returns A promise resolving when the language is set
      */
-    public static setEditorLanguage = async (driver: WebDriver, language: string): Promise<void> => {
-        const curLang = await DBConnection.getEditorLanguage(driver);
+    public static setEditorLanguage = async (language: string): Promise<void> => {
+        const curLang = await DBConnection.getEditorLanguage();
         if (curLang !== language) {
             const contentHost = await driver.findElement(locator.notebook.exists);
             const textArea = await contentHost.findElement(locator.notebook.codeEditor.textArea);
@@ -781,11 +756,10 @@ export class DBConnection {
 
     /**
      * Clicks on the DB Editor Context menu
-     * @param driver The webdriver
      * @param item Context menu item name
      * @returns A promise resolving when the click is made
      */
-    public static clickContextItem = async (driver: WebDriver, item: string): Promise<void> => {
+    public static clickContextItem = async (item: string): Promise<void> => {
 
         const isCtxMenuDisplayed = async (): Promise<boolean> => {
             const el = await driver.executeScript(`return document.querySelector(".shadow-root-host").
@@ -819,13 +793,12 @@ export class DBConnection {
 
     /**
      * Expand or Collapses a menu on the DB Editor
-     * @param driver The webdriver
      * @param menu menu name (open editors/schemas/admin/scripts)
      * @param expand True to expand, false to collapse
      * @param retries number of retries to try to expand or collapse
      * @returns A promise resolving when the expand or collapse is made
      */
-    public static expandCollapseMenus = async (driver: WebDriver, menu: string, expand: boolean,
+    public static expandCollapseMenus = async (menu: string, expand: boolean,
         retries: number): Promise<void> => {
         if (retries === 3) {
             throw new Error(`Max retries reached on expanding collapse '${menu}'`);
@@ -902,29 +875,27 @@ export class DBConnection {
         } catch (e) {
             await driver.sleep(1000);
             console.log(e);
-            await DBConnection.expandCollapseMenus(driver, menu, expand, retries + 1);
+            await DBConnection.expandCollapseMenus(menu, expand, retries + 1);
         }
     };
 
     /**
      * Scrolls down on the DB Editor
-     * @param driver The webdriver
      * @returns A promise resolving when the scroll is made
      */
-    public static promptScrollDown = async (driver: WebDriver): Promise<void> => {
+    public static promptScrollDown = async (): Promise<void> => {
         const el = await driver.findElement(locator.notebook.codeEditor.scroll);
         await driver.executeScript("arguments[0].scrollBy(0, 5000)", el);
     };
 
     /**
      * Verifies if a new prompt exists on the DB Editor
-     * @param driver The webdriver
      * @returns A promise resolving with true if exists, false otherwise
      */
-    public static hasNewPrompt = async (driver: WebDriver): Promise<boolean> => {
+    public static hasNewPrompt = async (): Promise<boolean> => {
         let text: String;
         try {
-            await DBConnection.promptScrollDown(driver);
+            await DBConnection.promptScrollDown();
             const context = await driver.findElement(locator.notebook.codeEditor.editor.exists);
             const prompts = await context.findElements(locator.notebook.codeEditor.editor.editorPrompt);
             const lastPrompt = await prompts[prompts.length - 1]
@@ -954,10 +925,9 @@ export class DBConnection {
     /**
      * Returns the latest html query result id
      * This function is useful to verify later if a new result id is displayed, after a query
-     * @param driver The webdriver
      * @returns A promise resolving with the Id
      */
-    public static getLastQueryResultId = async (driver: WebDriver): Promise<number> => {
+    public static getLastQueryResultId = async (): Promise<number> => {
         const zoneHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
         if (zoneHosts.length > 0) {
             const zones = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
@@ -970,11 +940,10 @@ export class DBConnection {
 
     /**
      * Returns the result after executing a script, on the DB Editor
-     * @param driver The webdriver
      * @param timeout wait
      * @returns A promise resolving with the result
      */
-    public static getScriptResult = async (driver: WebDriver, timeout = explicitWait): Promise<string> => {
+    public static getScriptResult = async (timeout = explicitWait): Promise<string> => {
         let toReturn = "";
         await driver.wait(async () => {
             try {
@@ -1002,11 +971,10 @@ export class DBConnection {
 
     /**
      * Clicks on an item under the MySQL Administration section, on the DB Editor
-     * @param driver The webdriver
      * @param item Item name
      * @returns A promise resolving when the click is made
      */
-    public static clickAdminItem = async (driver: WebDriver, item: string): Promise<void> => {
+    public static clickAdminItem = async (item: string): Promise<void> => {
         const els = await driver.wait(until.elementsLocated(locator.notebook.explorerHost.administration.itemToClick),
             explicitWait, "Admin section not found");
         for (const el of els) {
@@ -1022,10 +990,9 @@ export class DBConnection {
 
     /**
      * Returns the current selected Editor, on the select list, on the DB Editor
-     * @param driver The webdriver
      * @returns A promise resolving with the editor
      */
-    public static getCurrentEditor = async (driver: WebDriver): Promise<string> => {
+    public static getCurrentEditor = async (): Promise<string> => {
         const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
         const label = await selector.findElement(locator.htmlTag.label);
 
@@ -1034,11 +1001,10 @@ export class DBConnection {
 
     /**
      * Selects an Editor from the drop down list, on the DB Editor
-     * @param driver The webdriver
      * @param editor The editor
      * @returns A promise resolving when the select is made
      */
-    public static selectEditor = async (driver: WebDriver, editor: string): Promise<void> => {
+    public static selectEditor = async (editor: string): Promise<void> => {
         const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
         await selector.click();
         const items = await driver.findElements(locator.notebook.toolbar.editorSelector.items);
@@ -1057,11 +1023,10 @@ export class DBConnection {
 
     /**
      * Opens a new notebook
-     * @param driver The webdriver
      * @returns Promise resolving when the new notebook is opened
      *
      */
-    public static openNewNotebook = async (driver: WebDriver): Promise<void> => {
+    public static openNewNotebook = async (): Promise<void> => {
         await driver.wait(async () => {
             await driver.executeScript(
                 "arguments[0].click()",
@@ -1095,24 +1060,22 @@ export class DBConnection {
 
     /**
      * Sets the database credentials on the password dialog
-     * @param driver The webdriver
      * @param data The credentials
      * @param timeout The max number of time the function should wait until the connection is successful
      * @returns A promise resolving when the credentials are set
      */
-    public static setCredentials = async (driver: WebDriver, data: interfaces.IDBConnection,
+    public static setCredentials = async (data: interfaces.IDBConnection,
         timeout?: number): Promise<void> => {
-        await DBConnection.setPassword(driver, data);
-        await DBConnection.setConfirm(driver, "no", timeout);
+        await DBConnection.setPassword(data);
+        await DBConnection.setConfirm("no", timeout);
     };
 
     /**
      * Sets the database connection password
-     * @param driver The webdriver
      * @param dbConfig The database configuration
      * @returns A promise resolving when the password is set
      */
-    private static setPassword = async (driver: WebDriver, dbConfig: interfaces.IDBConnection): Promise<void> => {
+    private static setPassword = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
         const dialog = await driver.wait(until.elementLocated((locator.passwordDialog.exists)),
             constants.wait5seconds, "No password dialog was found");
         const passwordField = await dialog.findElement(locator.passwordDialog.password);
@@ -1122,12 +1085,11 @@ export class DBConnection {
 
     /**
      * Sets the database connection confirm dialog
-     * @param driver The webdriver
      * @param value The value. (Y, N, A)
      * @param timeoutDialog The time to wait for the confirm dialog
      * @returns A promise resolving when the password is set
      */
-    private static setConfirm = async (driver: WebDriver, value: string,
+    private static setConfirm = async (value: string,
         timeoutDialog = constants.wait10seconds): Promise<void> => {
 
         const confirmDialog = await driver.wait(until.elementsLocated(locator.confirmDialog.exists),

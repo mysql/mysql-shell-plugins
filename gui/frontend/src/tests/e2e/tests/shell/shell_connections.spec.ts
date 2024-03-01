@@ -22,8 +22,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
-import { until, WebDriver } from "selenium-webdriver";
+import { until } from "selenium-webdriver";
 import { basename } from "path";
 import { GuiConsole } from "../../lib/guiConsole.js";
 import { IDBConnection, Misc, explicitWait } from "../../lib/misc.js";
@@ -31,7 +30,8 @@ import * as locator from "../../lib/locators.js";
 import { CommandExecutor } from "../../lib/cmdExecutor.js";
 import * as constants from "../../lib/constants.js";
 import * as interfaces from "../../lib/interfaces.js";
-let driver: WebDriver;
+import { driver, loadDriver } from "../../lib/driver.js";
+
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
 
@@ -67,12 +67,12 @@ describe("MySQL Shell Connections", () => {
     const portX = globalConn.portX;
 
     beforeAll(async () => {
-        driver = await Misc.loadDriver();
         try {
+            await loadDriver();
             await driver.wait(async () => {
                 try {
                     console.log(`${basename(__filename)} : ${url}`);
-                    await Misc.waitForHomePage(driver, url);
+                    await Misc.waitForHomePage(url);
 
                     return true;
                 } catch (e) {
@@ -81,9 +81,9 @@ describe("MySQL Shell Connections", () => {
             }, explicitWait * 4, "Home Page was not loaded");
 
             await driver.findElement(locator.shellPage.icon).click();
-            await GuiConsole.openSession(driver);
+            await GuiConsole.openSession();
         } catch (e) {
-            await Misc.storeScreenShot(driver, "beforeAll_ShellConnections");
+            await Misc.storeScreenShot("beforeAll_ShellConnections");
             throw e;
         }
     });
@@ -91,7 +91,7 @@ describe("MySQL Shell Connections", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot(driver);
+            await Misc.storeScreenShot();
         }
     });
 
@@ -104,7 +104,7 @@ describe("MySQL Shell Connections", () => {
     it("Connect to host", async () => {
         try {
             let connUri = `\\c ${username}:${password}@${hostname}:${port}/${schema}`;
-            await commandExecutor.execute(driver, connUri);
+            await commandExecutor.execute(connUri);
             connUri = `Creating a session to '${username}@${hostname}:${port}/${schema}'`;
             expect(commandExecutor.getResultMessage()).toMatch(new RegExp(connUri));
             expect(commandExecutor.getResultMessage()).toMatch(/Server version: (\d+).(\d+).(\d+)/);
@@ -126,9 +126,9 @@ describe("MySQL Shell Connections", () => {
 
     it("Change schemas using menu", async () => {
         try {
-            await commandExecutor.changeSchemaOnTab(driver, "world_x_cst");
+            await commandExecutor.changeSchemaOnTab("world_x_cst");
             expect(commandExecutor.getResultMessage()).toMatch(/Default schema set to `world_x_cst`/);
-            await commandExecutor.changeSchemaOnTab(driver, "sakila");
+            await commandExecutor.changeSchemaOnTab("sakila");
             expect(commandExecutor.getResultMessage()).toMatch(/Default schema set to `sakila`/);
         } catch (e) {
             testFailed = true;
@@ -159,9 +159,9 @@ describe("MySQL Shell Connections", () => {
         const port = (localConn.basic as interfaces.IConnBasicMySQL).port;
 
         try {
-            await commandExecutor.execute(driver, "shell.deleteAllCredentials()", false, undefined, true);
+            await commandExecutor.execute("shell.deleteAllCredentials()", false, undefined, true);
             let uri = `\\c ${username}@${hostname}:${port}/${schema}`;
-            await commandExecutor.executeExpectingCredentials(driver, uri, localConn);
+            await commandExecutor.executeExpectingCredentials(uri, localConn);
             uri = `Creating a session to '${username}@${hostname}:${port}/${schema}'`;
             expect(commandExecutor.getResultMessage()).toMatch(new RegExp(uri));
             expect(commandExecutor.getResultMessage()).toMatch(/Server version: (\d+).(\d+).(\d+)/);
@@ -183,10 +183,10 @@ describe("MySQL Shell Connections", () => {
 
     it("Using shell global variable", async () => {
         try {
-            await commandExecutor.execute(driver, "shell.status()", true);
+            await commandExecutor.execute("shell.status()", true);
             expect(commandExecutor.getResultMessage()).toMatch(/MySQL Shell version (\d+).(\d+).(\d+)/);
             let uri = `shell.connect('${username}:${password}@${hostname}:${portX}/${schema}')`;
-            await commandExecutor.execute(driver, uri, true);
+            await commandExecutor.execute(uri, true);
             uri = `Creating a session to '${username}@${hostname}:${portX}/${schema}'`;
             expect(commandExecutor.getResultMessage()).toMatch(new RegExp(uri));
             expect(commandExecutor.getResultMessage()).toMatch(/Server version: (\d+).(\d+).(\d+)/);
@@ -210,10 +210,10 @@ describe("MySQL Shell Connections", () => {
     it("Using mysql mysqlx global variable", async () => {
         try {
             let cmd = `mysql.getClassicSession('${username}:${password}@${hostname}:${port}/${schema}')`;
-            await commandExecutor.execute(driver, cmd, true);
+            await commandExecutor.execute(cmd, true);
             expect(commandExecutor.getResultMessage()).toMatch(/ClassicSession/);
             cmd = `mysqlx.getSession('${username}:${password}@${hostname}:${portX}/${schema}')`;
-            await commandExecutor.execute(driver, cmd, true);
+            await commandExecutor.execute(cmd, true);
             expect(commandExecutor.getResultMessage()).toMatch(/Session/);
         } catch (e) {
             testFailed = true;

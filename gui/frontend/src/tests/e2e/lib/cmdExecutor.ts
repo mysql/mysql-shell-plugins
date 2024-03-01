@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until, Key, WebElement, error, WebDriver } from "selenium-webdriver";
+import { until, Key, WebElement, error } from "selenium-webdriver";
 import * as locator from "../lib/locators.js";
 import * as interfaces from "../lib/interfaces.js";
 import * as constants from "../lib/constants.js";
@@ -30,6 +30,7 @@ import { DBConnection } from "./dbConnection.js";
 import { platform } from "os";
 import * as waitUntil from "./until.js";
 import { Misc } from "./misc.js";
+import { driver } from "../lib/driver.js";
 
 /**
  * This class aggregates the functions that will execute commands on notebooks or shell sessions, as well as its results
@@ -64,12 +65,11 @@ export class CommandExecutor {
 
     /**
      * Writes a command on the editor
-     * @param driver The webdriver
      * @param cmd The command
      * @param slowWriting True if the command should be written with a delay between each character
      * @returns A promise resolving when the command is written
      */
-    public write = async (driver: WebDriver, cmd: string, slowWriting?: boolean): Promise<void> => {
+    public write = async (cmd: string, slowWriting?: boolean): Promise<void> => {
         this.command = cmd;
         await driver.wait(async () => {
             try {
@@ -89,7 +89,7 @@ export class CommandExecutor {
                             await driver.sleep(10);
                         }
                         if (i !== lines.length - 1 && lines.length > 1) {
-                            await DBNotebooks.setNewLineOnEditor(driver);
+                            await DBNotebooks.setNewLineOnEditor();
                         }
                     }
 
@@ -97,12 +97,12 @@ export class CommandExecutor {
                     for (let i = 0; i <= lines.length - 1; i++) {
                         await textArea.sendKeys(lines[i].trim());
                         if (i !== lines.length - 1 && lines.length > 1) {
-                            await DBNotebooks.setNewLineOnEditor(driver);
+                            await DBNotebooks.setNewLineOnEditor();
                         }
                     }
                 }
 
-                return this.isTextOnEditor(driver, lines[0]);
+                return this.isTextOnEditor(lines[0]);
             } catch (e) {
                 if (e instanceof error.ElementNotInteractableError) {
                     const editorLines = await driver.findElements(locator.notebook.codeEditor.editor.currentLine);
@@ -125,10 +125,9 @@ export class CommandExecutor {
 
     /**
      * Cleans the editor
-     * @param driver The webdriver
      * @returns A promise resolving when the editor is cleaned
      */
-    public clean = async (driver: WebDriver): Promise<void> => {
+    public clean = async (): Promise<void> => {
         await driver.wait(async () => {
             try {
                 const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
@@ -140,7 +139,7 @@ export class CommandExecutor {
 
                 await textArea.sendKeys(Key.BACK_SPACE);
                 await driver.wait(async () => {
-                    return await DBNotebooks.getPromptLastTextLine(driver) === "";
+                    return await DBNotebooks.getPromptLastTextLine() === "";
                 }, constants.wait5seconds, "Prompt was not cleaned");
 
                 return true;
@@ -156,30 +155,28 @@ export class CommandExecutor {
 
     /**
      * Executes a script on the editor
-     * @param driver The webdriver
      * @param cmd The command
      * @param slowWriting True if the command should be written with a delay between each character
      * @returns A promise resolving with the script result
      */
-    public executeScript = async (driver: WebDriver, cmd: string, slowWriting: boolean): Promise<void> => {
-        await this.write(driver, cmd, slowWriting);
-        await this.exec(driver);
+    public executeScript = async (cmd: string, slowWriting: boolean): Promise<void> => {
+        await this.write(cmd, slowWriting);
+        await this.exec();
         await driver.sleep(constants.wait1second); // mandatory since there is no zoneHost id on scripts
-        await this.setResultMessage(driver, cmd, undefined, true);
-        await this.setResultContent(driver, cmd, undefined, true);
-        await this.setResultToolbar(driver, cmd, undefined, true);
+        await this.setResultMessage(cmd, undefined, true);
+        await this.setResultContent(cmd, undefined, true);
+        await this.setResultToolbar(cmd, undefined, true);
     };
 
     /**
      * Executes a command on the editor
-     * @param driver The webdriver
      * @param cmd The command
      * @param slowWriting True if the command should be written with a delay between each character
      * @param searchOnExistingId Verify the result on this result id
      * @param noOutput True if the command will generate no output, false otherwise
      * @returns A promise resolving when the command is executed
      */
-    public execute = async (driver: WebDriver, cmd: string, slowWriting = false, searchOnExistingId?: string,
+    public execute = async (cmd: string, slowWriting = false, searchOnExistingId?: string,
         noOutput = false):
         Promise<void> => {
 
@@ -187,13 +184,13 @@ export class CommandExecutor {
             throw new Error("Please use the function 'languageSwitch()'");
         }
 
-        await this.write(driver, cmd, slowWriting);
-        await this.exec(driver);
+        await this.write(cmd, slowWriting);
+        await this.exec();
         if (!noOutput) {
-            const nextId = searchOnExistingId ?? await this.getNextResultId(driver, this.resultId);
-            await this.setResultMessage(driver, cmd, nextId);
-            await this.setResultContent(driver, cmd, nextId);
-            await this.setResultToolbar(driver, cmd, nextId);
+            const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
+            await this.setResultMessage(cmd, nextId);
+            await this.setResultContent(cmd, nextId);
+            await this.setResultToolbar(cmd, nextId);
             if (nextId) {
                 this.setResultId(nextId);
             }
@@ -202,14 +199,13 @@ export class CommandExecutor {
 
     /**
      * Executes a command on the editor using a toolbar button
-     * @param driver The webdriver
      * @param cmd The command
      * @param button The button to click, to trigger the execution
      * @param slowWriting True if the command should be written with a delay between each character
      * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public executeWithButton = async (driver: WebDriver, cmd: string, button: string,
+    public executeWithButton = async (cmd: string, button: string,
         slowWriting = false, searchOnExistingId?: string):
         Promise<void> => {
 
@@ -220,14 +216,14 @@ export class CommandExecutor {
             throw new Error("Please use the function 'this.findCmdAndExecute()'");
         }
 
-        await this.write(driver, cmd, slowWriting);
-        const toolbarButton = await DBNotebooks.getToolbarButton(driver, button);
+        await this.write(cmd, slowWriting);
+        const toolbarButton = await DBNotebooks.getToolbarButton(button);
         await toolbarButton!.click();
 
-        const nextId = searchOnExistingId ?? await this.getNextResultId(driver, this.resultId);
-        await this.setResultMessage(driver, cmd, nextId);
-        await this.setResultContent(driver, cmd, nextId);
-        await this.setResultToolbar(driver, cmd, nextId);
+        const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
+        await this.setResultMessage(cmd, nextId);
+        await this.setResultContent(cmd, nextId);
+        await this.setResultToolbar(cmd, nextId);
         if (nextId) {
             this.setResultId(nextId);
         }
@@ -235,27 +231,26 @@ export class CommandExecutor {
 
     /**
      * Executes a command on the editor using a context menu item
-     * @param driver The webdriver
      * @param cmd The command
      * @param item The context menu item to click, to trigger the execution
      * @param slowWriting True if the command should be written with a delay between each character
      * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public executeWithContextMenu = async (driver: WebDriver, cmd: string, item: string,
+    public executeWithContextMenu = async (cmd: string, item: string,
         slowWriting = false, searchOnExistingId?: string): Promise<void> => {
 
         if (this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");
         }
 
-        await this.write(driver, cmd, slowWriting);
-        await DBConnection.clickContextItem(driver, item);
+        await this.write(cmd, slowWriting);
+        await DBConnection.clickContextItem(item);
 
-        const nextId = searchOnExistingId ?? await this.getNextResultId(driver, this.resultId);
-        await this.setResultMessage(driver, cmd, nextId);
-        await this.setResultContent(driver, cmd, nextId);
-        await this.setResultToolbar(driver, cmd, nextId);
+        const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
+        await this.setResultMessage(cmd, nextId);
+        await this.setResultContent(cmd, nextId);
+        await this.setResultToolbar(cmd, nextId);
         if (nextId) {
             this.setResultId(nextId);
         }
@@ -263,28 +258,27 @@ export class CommandExecutor {
 
     /**
      * Executes a command on the editor, setting the credentials right after the execution is triggered
-     * @param driver The webdriver
      * @param cmd The command
      * @param dbConnection The DB Connection to use
      * @param slowWriting True if the command should be written with a delay between each character
      * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public executeExpectingCredentials = async (driver: WebDriver, cmd: string, dbConnection: interfaces.IDBConnection,
+    public executeExpectingCredentials = async (cmd: string, dbConnection: interfaces.IDBConnection,
         slowWriting = false, searchOnExistingId?: string): Promise<void> => {
 
         if (this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");
         }
 
-        await this.write(driver, cmd, slowWriting);
-        await this.exec(driver);
-        await DBConnection.setCredentials(driver, dbConnection);
+        await this.write(cmd, slowWriting);
+        await this.exec();
+        await DBConnection.setCredentials(dbConnection);
 
-        const nextId = searchOnExistingId ?? await this.getNextResultId(driver, this.resultId);
-        await this.setResultMessage(driver, cmd, nextId);
-        await this.setResultContent(driver, cmd, nextId);
-        await this.setResultToolbar(driver, cmd, nextId);
+        const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
+        await this.setResultMessage(cmd, nextId);
+        await this.setResultContent(cmd, nextId);
+        await this.setResultToolbar(cmd, nextId);
         if (nextId) {
             this.setResultId(nextId);
         }
@@ -293,29 +287,28 @@ export class CommandExecutor {
     /**
      * Searches for a command on the editor, and execute it, using the Exec Caret button on SQL commands,
      * and Execute block button on scripts
-     * @param driver The webdriver
      * @param cmd The command
      * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public findAndExecute = async (driver: WebDriver, cmd: string, searchOnExistingId?: string): Promise<void> => {
+    public findAndExecute = async (cmd: string, searchOnExistingId?: string): Promise<void> => {
         if (this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");
         }
-        await this.setMouseCursorAt(driver, cmd);
+        await this.setMouseCursorAt(cmd);
 
-        if (await DBNotebooks.existsToolbarButton(driver, constants.execCaret)) {
-            const toolbarButton = await DBNotebooks.getToolbarButton(driver, constants.execCaret);
+        if (await DBNotebooks.existsToolbarButton(constants.execCaret)) {
+            const toolbarButton = await DBNotebooks.getToolbarButton(constants.execCaret);
             await toolbarButton!.click();
-            await driver.wait(waitUntil.toolbarButtonIsDisabled(driver, constants.execCaret), constants.wait5seconds);
-            await driver.wait(waitUntil.toolbarButtonIsEnabled(driver, constants.execCaret), constants.wait5seconds);
+            await driver.wait(waitUntil.toolbarButtonIsDisabled(constants.execCaret), constants.wait5seconds);
+            await driver.wait(waitUntil.toolbarButtonIsEnabled(constants.execCaret), constants.wait5seconds);
         } else {
-            await (await DBNotebooks.getToolbarButton(driver, constants.execFullBlockJs))!.click();
+            await (await DBNotebooks.getToolbarButton(constants.execFullBlockJs))!.click();
         }
-        const nextId = searchOnExistingId ?? await this.getNextResultId(driver, this.resultId);
-        await this.setResultMessage(driver, cmd, nextId);
-        await this.setResultContent(driver, cmd, nextId);
-        await this.setResultToolbar(driver, cmd, nextId);
+        const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
+        await this.setResultMessage(cmd, nextId);
+        await this.setResultContent(cmd, nextId);
+        await this.setResultToolbar(cmd, nextId);
         if (nextId) {
             this.setResultId(nextId);
         }
@@ -323,18 +316,17 @@ export class CommandExecutor {
 
     /**
      * Updates the object with the last existing command result on the editor
-     * @param driver The webdriver
      * @param reset Resets the result id of the current object
      * @returns A promise resolving with the last cmd result
      */
-    public loadLastExistingCommandResult = async (driver: WebDriver, reset = false): Promise<void> => {
+    public loadLastExistingCommandResult = async (reset = false): Promise<void> => {
         if (reset) {
             this.setResultId(undefined);
         }
-        const nextId = await this.getNextResultId(driver, this.resultId);
-        await this.setResultMessage(driver, undefined, nextId);
-        await this.setResultContent(driver, undefined, nextId);
-        await this.setResultToolbar(driver, undefined, nextId);
+        const nextId = await this.getNextResultId(this.resultId);
+        await this.setResultMessage(undefined, nextId);
+        await this.setResultContent(undefined, nextId);
+        await this.setResultToolbar(undefined, nextId);
         if (nextId) {
             this.setResultId(nextId);
         }
@@ -342,25 +334,24 @@ export class CommandExecutor {
 
     /**
      * Executes a language switch on the editor (sql, python, typescript or javascript)
-     * @param driver The webdriver
      * @param cmd The command to change the language
      * @param slowWriting True if the command should be written with a delay between each character
      * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public languageSwitch = async (driver: WebDriver, cmd: string, slowWriting = false, searchOnExistingId?:
+    public languageSwitch = async (cmd: string, slowWriting = false, searchOnExistingId?:
         string | undefined): Promise<void> => {
         if (!this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.execute() or others'");
         }
-        await this.write(driver, cmd, slowWriting);
-        await this.exec(driver);
+        await this.write(cmd, slowWriting);
+        await this.exec();
 
-        if ((await this.isShellSession(driver)) === true) {
-            const nextId = searchOnExistingId ?? await this.getNextResultId(driver, this.resultId);
-            await this.setResultMessage(driver, cmd, nextId);
-            await this.setResultContent(driver, cmd, nextId);
-            await this.setResultToolbar(driver, cmd, nextId);
+        if ((await this.isShellSession()) === true) {
+            const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
+            await this.setResultMessage(cmd, nextId);
+            await this.setResultContent(cmd, nextId);
+            await this.setResultToolbar(cmd, nextId);
             if (nextId) {
                 this.setResultId(nextId);
             }
@@ -369,11 +360,10 @@ export class CommandExecutor {
 
     /**
      * Changes the schema using the top tab
-     * @param driver The webdriver
      * @param schema The schema
      * @returns A promise resolving with the command result
      */
-    public changeSchemaOnTab = async (driver: WebDriver, schema: string): Promise<void> => {
+    public changeSchemaOnTab = async (schema: string): Promise<void> => {
         const tabSchema = await driver.findElement(locator.shellSession.schema);
         await tabSchema.click();
         const menu = await driver.wait(until.elementLocated(locator.shellSession.tabContextMenu),
@@ -390,15 +380,14 @@ export class CommandExecutor {
             return (await driver.findElement(locator.shellSession.schema).getText()).includes(schema);
         }, constants.wait5seconds, `${schema} was not selected`);
 
-        await this.loadLastExistingCommandResult(driver);
+        await this.loadLastExistingCommandResult();
     };
 
     /**
      * Performs the keyboard combination to execute a command on the editor
-     * @param driver The webdriver
      * @returns A promise resolving when the command is executed
      */
-    public exec = async (driver: WebDriver): Promise<void> => {
+    public exec = async (): Promise<void> => {
         if (platform() === "darwin") {
             await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.chord(Key.COMMAND, Key.ENTER));
         } else {
@@ -408,10 +397,9 @@ export class CommandExecutor {
 
     /**
      * Performs the CTRL+SPACE key combination to open the suggestions menu, on the editor
-     * @param driver The webdriver
      * @returns A promise resolving when the suggestions menu is opened
      */
-    public openSuggestionMenu = async (driver: WebDriver): Promise<void> => {
+    public openSuggestionMenu = async (): Promise<void> => {
         const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
         await textArea.sendKeys(Key.chord(Key.CONTROL, Key.SPACE));
         await driver.wait(until.elementLocated(locator.suggestWidget.exists),
@@ -420,13 +408,12 @@ export class CommandExecutor {
 
     /**
      * Returns the last existing script result on the editor
-     * @param driver The webdriver
      * @returns A promise resolving with the script result
      */
-    public loadLastScriptResult = async (driver: WebDriver): Promise<void> => {
-        await this.setResultMessage(driver, undefined, undefined, true);
-        await this.setResultContent(driver, undefined, undefined, true);
-        await this.setResultToolbar(driver, undefined, undefined, true);
+    public loadLastScriptResult = async (): Promise<void> => {
+        await this.setResultMessage(undefined, undefined, true);
+        await this.setResultContent(undefined, undefined, true);
+        await this.setResultToolbar(undefined, undefined, true);
     };
 
     /**
@@ -439,9 +426,8 @@ export class CommandExecutor {
 
     /**
      * Fetches the last result id that exists on the editor and updates the current object result id
-     * @param driver The webdriver
      */
-    public synchronizeResultId = async (driver: WebDriver): Promise<void> => {
+    public synchronizeResultId = async (): Promise<void> => {
         const lastEditorResults = await driver.wait(until
             .elementsLocated(locator.notebook.codeEditor.editor.result.exists),
             constants.wait5seconds, "Could not find any results for sync");
@@ -477,13 +463,12 @@ export class CommandExecutor {
 
     /**
      * Sets the mouse cursor at the editor line where the specified word is
-     * @param driver The webdriver
      * @param word The word or command
      * @returns A promise resolving when the mouse cursor is placed at the desired spot
      */
-    public setMouseCursorAt = async (driver: WebDriver, word: string): Promise<void> => {
-        const mouseCursorIs = await DBNotebooks.getMouseCursorLine(driver);
-        const mouseCursorShouldBe = await DBNotebooks.getLineFromWord(driver, word);
+    public setMouseCursorAt = async (word: string): Promise<void> => {
+        const mouseCursorIs = await DBNotebooks.getMouseCursorLine();
+        const mouseCursorShouldBe = await DBNotebooks.getLineFromWord(word);
         const taps = mouseCursorShouldBe! - mouseCursorIs!;
         const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
         if (taps > 0) {
@@ -501,32 +486,30 @@ export class CommandExecutor {
 
     /**
      * Updates the object with the last existing command result on the editor
-     * @param driver The webdriver
      * @param resultId The result id to load
      * @returns A promise resolving with the last cmd result
      */
-    public refreshCommandResult = async (driver: WebDriver, resultId: string | undefined): Promise<void> => {
-        await this.setResultMessage(driver, undefined, resultId);
-        await this.setResultContent(driver, undefined, resultId);
-        await this.setResultToolbar(driver, undefined, resultId);
+    public refreshCommandResult = async (resultId: string | undefined): Promise<void> => {
+        await this.setResultMessage(undefined, resultId);
+        await this.setResultContent(undefined, resultId);
+        await this.setResultToolbar(undefined, resultId);
         this.setResultId(resultId);
     };
 
     /**
      * Edits a cell of a result grid
-     * @param driver The webdriver
      * @param cells The result grid cells
      * @returns A promise resolving when the new value is set
      */
-    public editResultGridCells = async (driver: WebDriver, cells: interfaces.IResultGridCell[]): Promise<void> => {
+    public editResultGridCells = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
         await driver.wait(waitUntil.resultGridIsEditable(this.getResultToolbar()),
             constants.wait5seconds);
         // hack for UI to be rendered
         await driver.sleep(constants.wait5seconds);
         let isDate: boolean = false;
         for (let i = 0; i <= cells.length - 1; i++) {
-            await this.startEditCell(driver, cells[i].rowNumber!, cells[i].columnName, cells[i].value);
-            const cell = await this.getCellFromResultGrid(driver, cells[i].rowNumber!,
+            await this.startEditCell(cells[i].rowNumber!, cells[i].columnName, cells[i].value);
+            const cell = await this.getCellFromResultGrid(cells[i].rowNumber!,
                 cells[i].columnName); // avoid stale
             const expectInput = typeof cells[i].value === "string";
             if (expectInput) {
@@ -540,7 +523,7 @@ export class CommandExecutor {
                             return undefined;
                         });
                     if (!upDownInput) {
-                        await this.clearCellInputField(driver, input);
+                        await this.clearCellInputField(input);
                         await input.sendKeys(cells[i].value as string);
                     } else {
                         await driver.executeScript("arguments[0].value=arguments[1]", input, cells[i].value as string);
@@ -550,19 +533,19 @@ export class CommandExecutor {
                     await driver.executeScript("arguments[0].value=arguments[1]", input, cells[i].value as string);
                 }
             } else {
-                await this.setCellBooleanValue(driver, cells[i].rowNumber!, cells[i].columnName,
+                await this.setCellBooleanValue(cells[i].rowNumber!, cells[i].columnName,
                     cells[i].value as boolean);
             }
             await driver.findElement(locator.mainActivityBar).click();
-            await this.refreshCommandResult(driver, this.getResultId());
+            await this.refreshCommandResult(this.getResultId());
             if (isDate) {
                 await driver.wait(async () => {
-                    return (await this.getCellValueFromResultGrid(driver, cells[i].rowNumber!,
+                    return (await this.getCellValueFromResultGrid(cells[i].rowNumber!,
                         cells[i].columnName)) !== "Invalid Date";
                 }, constants.wait2seconds, `Invalid Date was found after inserting value '${cells[i].value}'`);
             }
             await driver.wait(async () => {
-                const cell = await this.getCellFromResultGrid(driver, cells[i].rowNumber!, cells[i].columnName);
+                const cell = await this.getCellFromResultGrid(cells[i].rowNumber!, cells[i].columnName);
 
                 return (await cell.getAttribute("class")).includes("changed");
             }, constants.wait2seconds,
@@ -572,12 +555,11 @@ export class CommandExecutor {
 
     /**
      * Gets a cell of a result grid
-     * @param driver The webdriver
      * @param gridRow The row number. If the row number is -1, the function returns the last added row
      * @param gridColumn The column
      * @returns A promise resolving with the cell
      */
-    public getCellFromResultGrid = async (driver: WebDriver, gridRow: number,
+    public getCellFromResultGrid = async (gridRow: number,
         gridColumn: string): Promise<WebElement> => {
         let cells: WebElement[];
         let cellToReturn: WebElement | undefined;
@@ -585,7 +567,7 @@ export class CommandExecutor {
 
         await driver.wait(async () => {
             try {
-                await this.refreshCommandResult(driver, this.getResultId());
+                await this.refreshCommandResult(this.getResultId());
                 const resultGrid = this.getResultContent() as WebElement;
                 if (gridRow === -1) {
                     const addedTableRows = await resultGrid
@@ -615,18 +597,17 @@ export class CommandExecutor {
 
     /**
      * Gets the value of a cell out of a result grid
-     * @param driver The webdriver
      * @param gridRow The row number. If the row number is -1, the function returns the last added row
      * @param gridColumn The column
      * @returns A promise resolving with the cell value.
      */
-    public getCellValueFromResultGrid = async (driver: WebDriver, gridRow: number,
+    public getCellValueFromResultGrid = async (gridRow: number,
         gridColumn: string): Promise<string> => {
         let toReturn: string = "";
 
         await driver.wait(async () => {
             try {
-                const cell = await this.getCellFromResultGrid(driver, gridRow, gridColumn);
+                const cell = await this.getCellFromResultGrid(gridRow, gridColumn);
                 const isSelectList = (await cell
                     .findElements(locator.notebook.codeEditor.editor.result.tableCellSelectList.exists))
                     .length > 0;
@@ -672,10 +653,9 @@ export class CommandExecutor {
 
     /**
      * Closes the current result set
-     * @param driver The webdriver
      * @returns A promise resolving when the result set is closed
      */
-    public closeResultSet = async (driver: WebDriver): Promise<void> => {
+    public closeResultSet = async (): Promise<void> => {
         await driver.wait(async () => {
             try {
                 await driver.wait(waitUntil.elementLocated(this.getResultToolbar(),
@@ -699,28 +679,25 @@ export class CommandExecutor {
                 }
             }
         }, constants.wait10seconds, "Show actions button was not interactable");
-
-        this.setResultId((parseInt(this.getResultId()!, 10) - 1) as unknown as string);
     };
 
 
     /**
      * Adds a row into a result grid
-     * @param driver The webdriver
      * @param cells The cells
      * @returns A promise resolving when the new value is set
      */
-    public addResultGridRow = async (driver: WebDriver, cells: interfaces.IResultGridCell[]): Promise<void> => {
+    public addResultGridRow = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
         // hack to wait for UI to be rendered, no other way around
         await driver.sleep(constants.wait5seconds);
-        await this.clickAddNewRowButton(driver);
+        await this.clickAddNewRowButton();
         await driver.wait(waitUntil.rowWasAdded(this.getResultContent() as WebElement), constants.wait5seconds);
 
         let isDate = false;
         for (const cell of cells) {
-            const refCell = await this.getCellFromResultGrid(driver, -1, cell.columnName);
+            const refCell = await this.getCellFromResultGrid(-1, cell.columnName);
             const expectInput = typeof cell.value === "string";
-            await this.startEditCell(driver, -1, cell.columnName, cell.value);
+            await this.startEditCell(-1, cell.columnName, cell.value);
             if (expectInput) {
                 const input = await refCell.findElement(locator.htmlTag.input);
                 const isDateTime = (await refCell
@@ -732,7 +709,7 @@ export class CommandExecutor {
                             return undefined;
                         });
                     if (!upDownInput) {
-                        await this.clearCellInputField(driver, input);
+                        await this.clearCellInputField(input);
                         await input.sendKeys(cell.value as string);
                     } else {
                         await driver.executeScript("arguments[0].value=arguments[1]",
@@ -744,17 +721,17 @@ export class CommandExecutor {
                     await driver.executeScript("arguments[0].value=arguments[1]", input, cell.value as string);
                 }
             } else {
-                await this.setCellBooleanValue(driver, -1, cell.columnName, cell.value as boolean);
+                await this.setCellBooleanValue(-1, cell.columnName, cell.value as boolean);
             }
             await driver.findElement(locator.mainActivityBar).click();
             if (isDate) {
                 await driver.wait(async () => {
-                    return (await this.getCellValueFromResultGrid(driver, -1, cell.columnName)) !== "Invalid Date";
+                    return (await this.getCellValueFromResultGrid(-1, cell.columnName)) !== "Invalid Date";
                 }, constants.wait2seconds, `Invalid Date was found after inserting value '${cell.value}'`);
             }
         }
 
-        await this.refreshCommandResult(driver, this.getResultId());
+        await this.refreshCommandResult(this.getResultId());
     };
 
     /**
@@ -771,15 +748,14 @@ export class CommandExecutor {
 
     /**
      * Gets the SQL Preview generated for a string
-     * @param driver The webdriver
      * @param returnWebEl True to return the sql preview web element
      * @returns A promise resolving with the sql preview
      */
-    public getSqlPreview = async (driver: WebDriver, returnWebEl = false): Promise<string | WebElement> => {
+    public getSqlPreview = async (returnWebEl = false): Promise<string | WebElement> => {
         if (!returnWebEl) {
             await this.getResultToolbar()
                 .findElement(locator.notebook.codeEditor.editor.result.status.toolbar.previewButton).click();
-            await this.refreshCommandResult(driver, this.getResultId());
+            await this.refreshCommandResult(this.getResultId());
             const sqlPreview = this.getResultContent() as WebElement;
 
             const words = await sqlPreview.findElements(locator.notebook.codeEditor.editor.result.previewChanges.words);
@@ -795,12 +771,11 @@ export class CommandExecutor {
     };
     /**
      * Opens the context menu for a result grid cell and selects a value from the menu
-     * @param driver The webdriver
      * @param cell The cell
      * @param contextMenuItem The menu item to select
      * @returns A promise resolving when menu item is clicked
      */
-    public openCellContextMenuAndSelect = async (driver: WebDriver, cell: WebElement,
+    public openCellContextMenuAndSelect = async (cell: WebElement,
         contextMenuItem: string): Promise<void> => {
         await driver
             .executeScript("arguments[0].dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, button: 2 }));"
@@ -837,17 +812,16 @@ export class CommandExecutor {
 
     /**
      * Clicks on the Apply Changes button of a result grid
-     * @param driver The webdriver
      * @param verifyUpdate True to verify if the changes were applied
      * @returns A promise resolving when the button is clicked
      */
-    public resultGridApplyChanges = async (driver: WebDriver, verifyUpdate = false): Promise<void> => {
+    public resultGridApplyChanges = async (verifyUpdate = false): Promise<void> => {
         const applyButton = await this.getResultToolbar()
             .findElement(locator.notebook.codeEditor.editor.result.status.toolbar.applyButton);
         if (verifyUpdate) {
             await driver.wait(async () => {
                 await applyButton.click();
-                await this.refreshCommandResult(driver, this.getResultId());
+                await this.refreshCommandResult(this.getResultId());
 
                 return this.getResultMessage().match(/(\d+).*updated/) !== null;
             }, constants.wait5seconds, "'row(s) updated' was not found on result message'");
@@ -868,12 +842,11 @@ export class CommandExecutor {
     /**
      * Returns the result block for an expected result id
      * When the nextId is undefined, the method will return the last existing command result on the editor
-     * @param driver The webdriver
      * @param cmd The command
      * @param searchOnExistingId The next expected result id
      * @returns A promise resolving when the mouse cursor is placed at the desired spot
      */
-    public getResult = async (driver: WebDriver, cmd?: string, searchOnExistingId?: string):
+    public getResult = async (cmd?: string, searchOnExistingId?: string):
         Promise<WebElement | undefined> => {
 
         cmd = cmd ?? "last result";
@@ -910,11 +883,10 @@ export class CommandExecutor {
 
     /**
      * Clicks the Copy result to clipboard button, on text result sets
-     * @param driver The webdriver
      * @returns A promise resolving when the button is clicked
      */
-    public copyResultToClipboard = async (driver: WebDriver): Promise<void> => {
-        const context = await this.getResult(driver, undefined, this.getResultId());
+    public copyResultToClipboard = async (): Promise<void> => {
+        const context = await this.getResult(undefined, this.getResultId());
         const output = await context!.findElement(locator.notebook.codeEditor.editor.result.singleOutput.exists);
         await driver.actions().move({ origin: output }).perform();
         await context!.findElement(locator.notebook.codeEditor.editor.result.singleOutput.copy).click();
@@ -922,11 +894,10 @@ export class CommandExecutor {
 
     /**
      * Clicks the add new row button in a result grid, by moving the mouse to the table headers to display the button
-     * @param driver The webdriver
      * @returns A promise resolving when the button is clicked
      */
-    private clickAddNewRowButton = async (driver: WebDriver): Promise<void> => {
-        const context = await this.getResult(driver, undefined, this.getResultId());
+    private clickAddNewRowButton = async (): Promise<void> => {
+        const context = await this.getResult(undefined, this.getResultId());
         await driver.wait(async () => {
             const tableHeader = await context!.findElement(locator.notebook.codeEditor.editor.result.tableHeaders);
             await driver.actions().move({ origin: tableHeader }).perform();
@@ -941,16 +912,15 @@ export class CommandExecutor {
 
     /**
      * Sets a boolean value on a cell
-     * @param driver The webdriver
      * @param rowNumber The row number
      * @param columnName The column name
      * @param value The value
      * @returns A promise resolving when the value is set
      */
-    private setCellBooleanValue = async (driver: WebDriver, rowNumber: number,
+    private setCellBooleanValue = async (rowNumber: number,
         columnName: string, value: boolean): Promise<void> => {
 
-        const cell = await this.getCellFromResultGrid(driver, rowNumber, columnName);
+        const cell = await this.getCellFromResultGrid(rowNumber, columnName);
         const selectList = cell.findElement(locator.notebook.codeEditor.editor.result.tableCellSelectList.exists);
         await selectList.click();
         await driver.wait(async () => {
@@ -993,10 +963,9 @@ export class CommandExecutor {
 
     /**
      * Returns the result block from a script execution
-     * @param driver The webdriver
      * @returns A promise resolving with the result block
      */
-    private getResultScript = async (driver: WebDriver): Promise<WebElement> => {
+    private getResultScript = async (): Promise<WebElement> => {
         return driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.script));
     };
 
@@ -1004,13 +973,12 @@ export class CommandExecutor {
      * Sets the message as a result of a command execution
      * If the command was a SQL query, it will return the status (ex. OK, 1 record retrieved)
      * If the command is a non SQL query, it will return the message that resulted of the command execution
-     * @param driver The webdriver
      * @param cmd The command
      * @param searchOnExistingId The next expected result id
      * @param fromScript If the result is from a script execution
      * @returns A promise resolving with the result message
      */
-    private setResultMessage = async (driver: WebDriver, cmd?: string, searchOnExistingId?: string, fromScript = false):
+    private setResultMessage = async (cmd?: string, searchOnExistingId?: string, fromScript = false):
         Promise<void> => {
 
         let result: WebElement | undefined;
@@ -1018,7 +986,7 @@ export class CommandExecutor {
         await driver.wait(async () => {
             try {
                 result = fromScript ? await this
-                    .getResultScript(driver) : await this.getResult(driver, cmd, searchOnExistingId);
+                    .getResultScript() : await this.getResult(cmd, searchOnExistingId);
                 // select
                 const statusResult = await result!.findElements(locator.notebook.codeEditor.editor.result.status.text);
                 // insert / delete / drop / call procedures
@@ -1128,13 +1096,12 @@ export class CommandExecutor {
      * If the command was a SQL query with multiples SELECT statements, it will return the data set for each one,
      * as a @string representation.
      * It can return JSON or Graphs or even text
-     * @param driver The webdriver
      * @param cmd The command
      * @param searchOnExistingId The next expected result id
      * @param fromScript If the result is from a script execution
      * @returns A promise resolving with the result content
      */
-    private setResultContent = async (driver: WebDriver, cmd?: string, searchOnExistingId?: string, fromScript = false):
+    private setResultContent = async (cmd?: string, searchOnExistingId?: string, fromScript = false):
         Promise<void> => {
 
         let result: WebElement | undefined;
@@ -1150,7 +1117,7 @@ export class CommandExecutor {
         await driver.wait(async () => {
             try {
                 result = fromScript ? await this
-                    .getResultScript(driver) : await this.getResult(driver, cmd, searchOnExistingId);
+                    .getResultScript() : await this.getResult(cmd, searchOnExistingId);
                 if (this.expectResultTabs(cmd!)) {
                     resultContent = [];
                     await driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.tabSection.exists),
@@ -1176,7 +1143,7 @@ export class CommandExecutor {
                                 locator.notebook.codeEditor.editor.result.tableCell),
                                 constants.wait2seconds, "Table cells were not loaded").catch(async () => {
                                     const result = fromScript ? await this
-                                        .getResultScript(driver) : await this.getResult(driver, cmd,
+                                        .getResultScript() : await this.getResult(cmd,
                                             searchOnExistingId);
                                     await result!
                                         .findElement(locator.notebook.codeEditor.editor.result.tableColumnTitle)
@@ -1222,7 +1189,7 @@ export class CommandExecutor {
                         await driver.wait(waitUntil.elementLocated(result!,
                             locator.notebook.codeEditor.editor.result.tableCell),
                             constants.wait2seconds, "Table cells were not loaded").catch(async () => {
-                                const result = await this.getResult(driver, cmd, searchOnExistingId);
+                                const result = await this.getResult(cmd, searchOnExistingId);
                                 await result!.findElement(locator.notebook.codeEditor.editor.result.tableColumnTitle)
                                     .click();
                                 await driver.wait(waitUntil
@@ -1263,21 +1230,20 @@ export class CommandExecutor {
 
     /**
      * Sets the toolbar of a SQL query result
-     * @param driver The webdriver
      * @param cmd The command
      * @param searchOnExistingId The next expected result id
      * @param fromScript If the result is from a script execution
      * @returns A promise resolving with the result toolbar
      */
-    private setResultToolbar = async (driver: WebDriver, cmd?: string, searchOnExistingId?: string, fromScript = false):
+    private setResultToolbar = async (cmd?: string, searchOnExistingId?: string, fromScript = false):
         Promise<void> => {
 
         let toolbar!: WebElement;
-        if ((await this.isShellSession(driver)) === false) {
+        if ((await this.isShellSession()) === false) {
             await driver.wait(async () => {
                 try {
                     const result = fromScript ? await this
-                        .getResultScript(driver) : await this.getResult(driver, cmd, searchOnExistingId);
+                        .getResultScript() : await this.getResult(cmd, searchOnExistingId);
                     const hasTableResult = (await result!.findElements(locator.notebook.codeEditor.editor.result.table))
                         .length > 0;
                     if (hasTableResult) {
@@ -1300,11 +1266,10 @@ export class CommandExecutor {
      * Calculates and returns the next expected result id
      * If the lastResultId is undefined, it will fetch the last existing result id from the editor,
      * and calculate the next one based on it
-     * @param driver The webdriver
      * @param lastResultId The last known result id
      * @returns A promise resolving with the next result id
      */
-    private getNextResultId = async (driver: WebDriver, lastResultId: string | undefined):
+    private getNextResultId = async (lastResultId: string | undefined):
         Promise<string | undefined> => {
         let resultId: string;
         if (lastResultId) {
@@ -1326,20 +1291,18 @@ export class CommandExecutor {
 
     /**
      * Returns true if the context is within a shell session
-     * @param driver The webdriver
      * @returns A promise resolving with the truthiness of the function
      */
-    private isShellSession = async (driver: WebDriver): Promise<boolean> => {
+    private isShellSession = async (): Promise<boolean> => {
         return (await driver.findElements(locator.shellSession.exists)).length > 0;
     };
 
     /**
      * Returns true if the given text exists on the editor
-     * @param driver The webdriver
      * @param text The text to search for
      * @returns A promise resolving with the truthiness of the function
      */
-    private isTextOnEditor = async (driver: WebDriver, text: string): Promise<boolean> => {
+    private isTextOnEditor = async (text: string): Promise<boolean> => {
         let isTextOnEditor = false;
         await driver.wait(async () => {
             try {
@@ -1400,11 +1363,10 @@ export class CommandExecutor {
 
     /**
      * Clears an input field
-     * @param driver The webdriver
      * @param el The element
      * @returns A promise resolving when the field is cleared
      */
-    private clearCellInputField = async (driver: WebDriver, el: WebElement): Promise<void> => {
+    private clearCellInputField = async (el: WebElement): Promise<void> => {
         await driver.wait(async () => {
             await driver.executeScript("arguments[0].click()", el);
             if (platform() === "darwin") {
@@ -1438,21 +1400,20 @@ export class CommandExecutor {
 
     /**
      * Starts to edit a cell
-     * @param driver The webdriver
      * @param rowNumber The row number
      * @param columnName The column name
      * @param valueToEdit The value to insert
      * @returns The table name
      */
-    private startEditCell = async (driver: WebDriver, rowNumber: number, columnName: string,
+    private startEditCell = async (rowNumber: number, columnName: string,
         valueToEdit: string | number | boolean): Promise<void> => {
-        const cell = await this.getCellFromResultGrid(driver, rowNumber, columnName);
+        const cell = await this.getCellFromResultGrid(rowNumber, columnName);
         const expectInput = typeof valueToEdit === "string";
         await driver.wait(async () => {
             await driver
                 .executeScript("arguments[0].dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));", cell);
             try {
-                const cell = await this.getCellFromResultGrid(driver, rowNumber, columnName);
+                const cell = await this.getCellFromResultGrid(rowNumber, columnName);
                 const isEditable = (await cell.getAttribute("class")).includes("tabulator-editing");
                 if (expectInput) {
                     if (isEditable) {

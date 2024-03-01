@@ -22,14 +22,13 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { WebDriver } from "selenium-webdriver";
 import { basename } from "path";
 import { Misc, explicitWait } from "../../lib/misc.js";
 import { GuiConsole } from "../../lib/guiConsole.js";
 import { ShellSession } from "../../lib/shellSession.js";
 import * as locator from "../../lib/locators.js";
+import { driver, loadDriver } from "../../lib/driver.js";
 
-let driver: WebDriver;
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
 
@@ -38,12 +37,12 @@ describe("GUI Console", () => {
     let testFailed: boolean;
 
     beforeAll(async () => {
-        driver = await Misc.loadDriver();
         try {
+            await loadDriver();
             await driver.wait(async () => {
                 try {
                     console.log(`${basename(__filename)} : ${url}`);
-                    await Misc.waitForHomePage(driver, url);
+                    await Misc.waitForHomePage(url);
 
                     return true;
                 } catch (e) {
@@ -52,7 +51,7 @@ describe("GUI Console", () => {
             }, explicitWait * 4, "Home Page was not loaded");
             await driver.findElement(locator.shellPage.icon).click();
         } catch (e) {
-            await Misc.storeScreenShot(driver, "beforeAll_GuiConsole");
+            await Misc.storeScreenShot("beforeAll_GuiConsole");
             throw e;
         }
     });
@@ -60,7 +59,7 @@ describe("GUI Console", () => {
     afterEach(async () => {
         if (testFailed) {
             testFailed = false;
-            await Misc.storeScreenShot(driver);
+            await Misc.storeScreenShot();
         }
     });
 
@@ -72,35 +71,35 @@ describe("GUI Console", () => {
 
     it("Open multiple sessions", async () => {
         try {
-            await GuiConsole.openSession(driver);
+            await GuiConsole.openSession();
             await driver.findElement(locator.shellPage.guiConsoleTab).click();
 
-            let session = await GuiConsole.getSession(driver, "1");
+            let session = await GuiConsole.getSession("1");
             expect(await session!.findElement(locator.shellPage.sessions.caption).getText()).toBe("Session 1");
-            await GuiConsole.openSession(driver);
+            await GuiConsole.openSession();
             await driver.findElement(locator.shellPage.guiConsoleTab).click();
 
-            session = await GuiConsole.getSession(driver, "2");
+            session = await GuiConsole.getSession("2");
             expect(await session!.findElement(locator.shellPage.sessions.caption).getText()).toBe("Session 2");
 
-            await GuiConsole.openSession(driver);
+            await GuiConsole.openSession();
             await driver.findElement(locator.shellPage.guiConsoleTab).click();
-            session = await GuiConsole.getSession(driver, "3");
+            session = await GuiConsole.getSession("3");
             expect(await session!.findElement(locator.shellPage.sessions.caption).getText()).toBe("Session 3");
 
-            await ShellSession.closeSession(driver, "1");
+            await ShellSession.closeSession("1");
             await driver.wait(async () => {
-                return (await GuiConsole.getSession(driver, "1")) === undefined;
+                return (await GuiConsole.getSession("1")) === undefined;
             }, explicitWait, "Session 1 was not closed");
 
-            await ShellSession.closeSession(driver, "2");
+            await ShellSession.closeSession("2");
             await driver.wait(async () => {
-                return (await GuiConsole.getSession(driver, "2")) === undefined;
+                return (await GuiConsole.getSession("2")) === undefined;
             }, explicitWait, "Session 2 was not closed");
 
-            await ShellSession.closeSession(driver, "3");
+            await ShellSession.closeSession("3");
             await driver.wait(async () => {
-                return (await GuiConsole.getSession(driver, "3")) === undefined;
+                return (await GuiConsole.getSession("3")) === undefined;
             }, explicitWait, "Session 3 was not closed");
 
         } catch (e) {

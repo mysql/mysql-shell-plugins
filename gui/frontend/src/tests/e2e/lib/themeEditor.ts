@@ -26,16 +26,16 @@
 import { Key, WebElement, WebDriver, error } from "selenium-webdriver";
 import * as locator from "../lib/locators.js";
 import { explicitWait } from "./misc.js";
+import { driver } from "../lib/driver.js";
 
 export class ThemeEditor {
 
     /**
      * Selects the color theme on Theme Editor section
-     * @param driver The webdriver
      * @param theme name of the theme
      * @returns Promise resolving when the select is made
      */
-    public static selectAppColorTheme = async (driver: WebDriver, theme: string): Promise<void> => {
+    public static selectAppColorTheme = async (theme: string): Promise<void> => {
         await driver.findElement(locator.themeEditorPage.themeSelectorArea.selector).click();
         const dropDownList = await driver.findElement(locator.themeEditorPage.themeSelectorArea.selectorList);
         await dropDownList.findElement(locator.searchById(theme)).click();
@@ -43,13 +43,12 @@ export class ThemeEditor {
 
     /**
      * Toggles a Theme Editor UI Colors menu
-     * @param driver The webdriver
      * @param menu Menu name
      * @param action open/close
      * @param scroll True to scroll down (menu is invisible)
      * @returns A promise resolving when the toggle is made
      */
-    public static toggleUiColorsMenu = async (driver: WebDriver, menu: string,
+    public static toggleUiColorsMenu = async (menu: string,
         action: string, scroll?: boolean): Promise<void> => {
         const isTabOpened = async (tab: WebElement) => {
             return (await tab.getAttribute("class")).includes("expanded");
@@ -167,7 +166,6 @@ export class ThemeEditor {
 
     /**
      * Sets the color (using the color pad) of a menu item, on the Theme Editor
-     * @param driver The webdriver
      * @param sectionColors Menu item name
      * @param optionId the html id of the option color
      * @param detail the field on the color pad
@@ -175,10 +173,10 @@ export class ThemeEditor {
      * @param scroll True to scroll down (menu is invisible)
      * @returns A promise resolving when the set is made
      */
-    public static setThemeEditorColors = async (driver: WebDriver, sectionColors: string, optionId: string,
+    public static setThemeEditorColors = async (sectionColors: string, optionId: string,
         detail: string, value: string, scroll?: boolean): Promise<void> => {
 
-        await ThemeEditor.toggleUiColorsMenu(driver, sectionColors, "open", scroll);
+        await ThemeEditor.toggleUiColorsMenu(sectionColors, "open", scroll);
 
         const openColorPad = async () => {
             await driver.wait(async () => {
@@ -191,7 +189,7 @@ export class ThemeEditor {
         try {
             await openColorPad();
         } catch (e) {
-            await ThemeEditor.toggleUiColorsMenu(driver, sectionColors, "open", scroll);
+            await ThemeEditor.toggleUiColorsMenu(sectionColors, "open", scroll);
             await openColorPad();
         }
 
@@ -208,11 +206,10 @@ export class ThemeEditor {
 
     /**
      * Returns the CSS value of a color pad
-     * @param driver The webdriver
      * @param position position of the color pad (1 for first, 2 for second...)
      * @returns A promise resolving with the css value
      */
-    public static getColorPadCss = async (driver: WebDriver, position: number): Promise<string> => {
+    public static getColorPadCss = async (position: number): Promise<string> => {
         const colors = await driver.findElements(locator.themeEditorPage.themeSelectorArea.colorPad.colors);
         await colors[position].click();
         const colorPopup = await driver.findElement(locator.themeEditorPage.themeSelectorArea.colorPopup);
