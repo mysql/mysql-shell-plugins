@@ -176,7 +176,7 @@ export const notebook = {
                         @monaco-view-zone='g${view}' or
                         @monaco-view-zone='h${view}' or
                         @monaco-view-zone='i${view}' or
-                        @monaco-view-zone='j${view}' or 
+                        @monaco-view-zone='j${view}' or
                         @monaco-view-zone='l${view}'
                         )]
                     `;
@@ -370,8 +370,7 @@ export const shellPage = {
     title: By.css("#shellModuleHost #title"),
     links: {
         learnMore: By.linkText("Learn More >"),
-        browseTutorial: By.linkText("Browse Tutorial >"),
-        readDocs: By.linkText("Read Docs >"),
+        docs: By.linkText("Documentation >"),
     },
     contentTitle: By.css("#shellModuleHost #contentTitle"),
     sessions: {

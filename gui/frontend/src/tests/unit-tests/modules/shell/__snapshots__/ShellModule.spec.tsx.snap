@@ -96,20 +96,12 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                     Learn More &gt;
                   </a>
                   <a
-                    href="https://www.mysql.com"
+                    href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
                     rel="noopener noreferrer"
                     tabindex="0"
                     target="_blank"
                   >
-                    Browse Tutorial &gt;
-                  </a>
-                  <a
-                    href="https://www.mysql.com"
-                    rel="noopener noreferrer"
-                    tabindex="0"
-                    target="_blank"
-                  >
-                    Read Docs &gt;
+                    Documentation &gt;
                   </a>
                 </div>
                 <div
@@ -276,20 +268,12 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                       Learn More &gt;
                     </a>
                     <a
-                      href="https://www.mysql.com"
+                      href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
                       rel="noopener noreferrer"
                       tabindex="0"
                       target="_blank"
                     >
-                      Browse Tutorial &gt;
-                    </a>
-                    <a
-                      href="https://www.mysql.com"
-                      rel="noopener noreferrer"
-                      tabindex="0"
-                      target="_blank"
-                    >
-                      Read Docs &gt;
+                      Documentation &gt;
                     </a>
                   </div>
                   <div
@@ -620,20 +604,12 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                             Learn More &gt;
                           </a>
                           <a
-                            href="https://www.mysql.com"
+                            href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
                             rel="noopener noreferrer"
                             tabindex="0"
                             target="_blank"
                           >
-                            Browse Tutorial &gt;
-                          </a>
-                          <a
-                            href="https://www.mysql.com"
-                            rel="noopener noreferrer"
-                            tabindex="0"
-                            target="_blank"
-                          >
-                            Read Docs &gt;
+                            Documentation &gt;
                           </a>
                         </div>
                         <div
@@ -743,13 +719,6 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                       <FrontPage
                         caption="MySQL Shell - GUI Console"
                         description="The GUI Console combines the advantages of MySQL Shell running in a classic terminal with the power of the interactive command editor of the MySQL Shell GUI."
-                        helpUrls={
-                          Map {
-                            "Learn More >" => "https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code",
-                            "Browse Tutorial >" => "https://www.mysql.com",
-                            "Read Docs >" => "https://www.mysql.com",
-                          }
-                        }
                         onCloseGreeting={[Function]}
                         showGreeting={true}
                       >
@@ -820,36 +789,33 @@ exports[`Shell module tests Test ShellModule instantiation 1`] = `
                                   }
                                 }
                               >
-                                <a
-                                  href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
-                                  key="Learn More >"
-                                  onClick={[Function]}
-                                  rel="noopener noreferrer"
-                                  tabIndex={0}
-                                  target="_blank"
+                                <HelpLinkList
+                                  helpUrlMap={
+                                    Map {
+                                      "Learn More" => "https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code",
+                                      "Documentation" => "https://dev.mysql.com/doc/mysql-shell-gui/en/",
+                                    }
+                                  }
                                 >
-                                  Learn More &gt;
-                                </a>
-                                <a
-                                  href="https://www.mysql.com"
-                                  key="Browse Tutorial >"
-                                  onClick={[Function]}
-                                  rel="noopener noreferrer"
-                                  tabIndex={0}
-                                  target="_blank"
-                                >
-                                  Browse Tutorial &gt;
-                                </a>
-                                <a
-                                  href="https://www.mysql.com"
-                                  key="Read Docs >"
-                                  onClick={[Function]}
-                                  rel="noopener noreferrer"
-                                  tabIndex={0}
-                                  target="_blank"
-                                >
-                                  Read Docs &gt;
-                                </a>
+                                  <a
+                                    href="https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code"
+                                    key="Learn More"
+                                    rel="noopener noreferrer"
+                                    tabIndex={0}
+                                    target="_blank"
+                                  >
+                                    Learn More &gt;
+                                  </a>
+                                  <a
+                                    href="https://dev.mysql.com/doc/mysql-shell-gui/en/"
+                                    key="Documentation"
+                                    rel="noopener noreferrer"
+                                    tabIndex={0}
+                                    target="_blank"
+                                  >
+                                    Documentation &gt;
+                                  </a>
+                                </HelpLinkList>
                               </div>
                             </Container>
                             <Button

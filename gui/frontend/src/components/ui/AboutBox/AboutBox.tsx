@@ -38,6 +38,8 @@ import { Grid } from "../Grid/Grid.js";
 import { GridCell } from "../Grid/GridCell.js";
 import { Icon } from "../Icon/Icon.js";
 import { Label } from "../Label/Label.js";
+import { HelpLinkList } from "../HelpLinkList/HelpLinkList.js";
+import { helpUrlMap } from "../../../supplement/index.js";
 
 interface IAboutBoxState extends IComponentState {
     data?: IBackendInformation;
@@ -62,20 +64,6 @@ export class AboutBox extends ComponentBase<{}, IAboutBoxState> {
         const { data } = this.state;
 
         const className = this.getEffectiveClassNames(["aboutBox"]);
-
-        const linkMap = new Map<string, string>();
-        linkMap.set("Learn More >", "http://localhost:3001/#");
-        linkMap.set("Browse Tutorial >", "http://localhost:3001/#");
-        linkMap.set("Read Docs >", "http://localhost:3001/#");
-
-        const links = [];
-        for (const url of linkMap) {
-            links.push(
-                <a key={url[0]} href={url[1]}>
-                    {url[0]}
-                </a>,
-            );
-        }
 
         // The version is injected by the vite config.
         const versionParts: string[] = process.env.versionNumber?.split(".") ?? [];
@@ -155,7 +143,7 @@ export class AboutBox extends ComponentBase<{}, IAboutBoxState> {
                     mainAlignment={ContentAlignment.Center}
                     wrap={ContentWrap.Wrap}
                 >
-                    {links}
+                    <HelpLinkList helpUrlMap={helpUrlMap} />
                 </Container>
 
                 <Grid columns={2} rowGap={12} columnGap={12}>

@@ -111,8 +111,7 @@ export class SessionBrowser extends ComponentBase<ISessionBrowserProperties> {
 
         const linkMap = new Map<string, string>();
         linkMap.set("Learn More >", "https://blogs.oracle.com/mysql/post/introducing-mysql-shell-for-vs-code");
-        linkMap.set("Browse Tutorial >", "https://www.mysql.com");
-        linkMap.set("Read Docs >", "https://www.mysql.com");
+        linkMap.set("Documentation >", "https://dev.mysql.com/doc/mysql-shell-gui/en/");
 
         return (
             <Container
@@ -126,7 +125,6 @@ export class SessionBrowser extends ComponentBase<ISessionBrowserProperties> {
                     description={"The GUI Console combines the advantages of MySQL Shell running in a classic " +
                         "terminal with the power of the interactive command editor of the MySQL Shell GUI."
                     }
-                    helpUrls={linkMap}
                     onCloseGreeting={this.handleCloseGreeting}
                 >
                     <Label id="contentTitle" caption="MySQL Shell Sessions" />

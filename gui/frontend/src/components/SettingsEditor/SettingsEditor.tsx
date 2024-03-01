@@ -30,7 +30,7 @@ import { ComponentChild, createRef, render } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
 import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase.js";
-import { requisitions } from "../../supplement/Requisitions.js";
+import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { ThemeEditor } from "../Theming/ThemeEditor.js";
 import { settingCategories, ISettingCategory } from "../../supplement/Settings/SettingsRegistry.js";
 import { SettingsEditorList } from "./SettingsEditorList.js";

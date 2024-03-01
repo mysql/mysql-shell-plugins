@@ -42,6 +42,8 @@ import { Input, IInputChangeProperties } from "../ui/Input/Input.js";
 import { Label } from "../ui/Label/Label.js";
 import { Message } from "../ui/Message/Message.js";
 import { Button } from "../ui/Button/Button.js";
+import { HelpLinkList } from "../ui/HelpLinkList/HelpLinkList.js";
+import { helpUrlMap } from "../../supplement/index.js";
 
 interface ILoginPageState extends IComponentState {
     userName: string;
@@ -64,21 +66,6 @@ export class LoginPage extends ComponentBase<{}, ILoginPageState> {
     public render(): ComponentChild {
         const { userName, password, errorMessage } = this.state;
 
-        const linkMap = new Map<string, string>([
-            ["Learn More >", "http://localhost:3001/#"],
-            ["Browse Tutorial >", "http://localhost:3001/#"],
-            ["Read Docs >", "http://localhost:3001/#"],
-        ]);
-
-        const links = [];
-        for (const url of linkMap) {
-            links.push(
-                <a key={url[0]} href={url[1]}>
-                    {url[0]}
-                </a>,
-            );
-        }
-
         return (
             <Container id="loginDialog" orientation={Orientation.TopDown}>
                 <Icon src={logo} id="loginDialogSakilaLogo" />
@@ -97,7 +84,7 @@ export class LoginPage extends ComponentBase<{}, ILoginPageState> {
                     mainAlignment={ContentAlignment.Center}
                     wrap={ContentWrap.Wrap}
                 >
-                    {links}
+                    <HelpLinkList helpUrlMap={helpUrlMap} />
                 </Container>
 
                 <Grid
