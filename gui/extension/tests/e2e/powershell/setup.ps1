@@ -253,17 +253,23 @@ try {
     }
 
     # INSTALL VSIX
-    writeMsg "Start installing the extension into vscode instances..." "-NoNewLine"
-    ForEach ($testSuite in $testSuites) {
-        $testResources = Join-Path $env:TEST_RESOURCES_PATH "test-resources-$($testSuite)"
-        $extLocation = Join-Path $env:WORKSPACE "ext-$testSuite"
-        Start-Job -Name "install-vsix" -ScriptBlock {
-            npm run e2e-tests-install-vsix -- -s $using:testResources -e $using:extLocation -f $using:dest
+    $testResources = Join-Path $env:TEST_RESOURCES_PATH "test-resources-$($testSuites[0])"
+    $firstExtLocation = Join-Path $env:WORKSPACE "ext-$($testSuites[0])"
+    writeMsg "Start installing the extension for first test suite..." "-NoNewLine"
+    New-Item -Path $firstExtLocation -ItemType "directory"
+    npm run e2e-tests-install-vsix -- -s $testResources -e $firstExtLocation -f $dest
+    writeMsg "DONE installing the extension at $firstExtLocation"
+
+    writeMsg "Copying the extension for the rest of the suites ... "
+    for ($i = 1; $i -le $testSuites.Length - 1; $i++) {
+        $extLocation = Join-Path $env:WORKSPACE "ext-$($testSuites[$i])"
+        Start-Job -Name "copy-extension" -ScriptBlock {
+            Copy-Item -Path $using:firstExtLocation -Destination $using:extLocation -Recurse
         }
     }
 
     Get-Job | Wait-Job
-    writeMsg "DONE installing the extension!"
+    writeMsg "DONE"
 
     $refExt = Join-Path $env:WORKSPACE "ext-$($testSuites[0])"
     $extFolder = Get-ChildItem -Path $refExt -Filter "*oracle*"
