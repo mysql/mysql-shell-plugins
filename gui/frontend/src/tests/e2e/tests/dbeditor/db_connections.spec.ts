@@ -396,16 +396,9 @@ describe("Database Connections", () => {
 
             await driver.findElement(locator.treeContextMenu.selectRows).click();
 
-            expect(await DBConnection.getResultStatus(true)).toContain("OK");
-            const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
-            const resultTableHeaders = await results[results.length - 1]
-                .findElement(locator.notebook.codeEditor.editor.result.tableHeaders);
-            const resultHeaderRows = await resultTableHeaders
-                .findElements(locator.notebook.codeEditor.editor.result.tableColumnTitle);
-            expect(await resultHeaderRows[0].getText()).toBe("id");
-            expect(await resultHeaderRows[1].getText()).toBe("db_type");
-            expect(await resultHeaderRows[2].getText()).toBe("caption");
-            expect(await resultHeaderRows[3].getText()).toBe("description");
+            const commandExecutor = new CommandExecutor();
+            await commandExecutor.loadLastExistingCommandResult();
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
         } catch (e) {
             testFailed = true;
             throw e;

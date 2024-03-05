@@ -244,6 +244,14 @@ describe("NOTEBOOKS", () => {
                 constants.wait5seconds, "Editor should have a new prompt");
         });
 
+        it("Connection toolbar buttons - Execute the block and print the result as text", async () => {
+            await commandExecutor.executeWithButton("SELECT * FROM sakila.actor;", constants.execAsText);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("(\\d+) record",
+                commandExecutor.getResultMessage())).to.match(/(\d+) record/);
+            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+                .to.match(/\|.*\|/);
+        });
+
         it("Connection toolbar buttons - Execute statement at the caret position", async () => {
             try {
                 const query1 = "select * from sakila.actor limit 1;";
@@ -1145,7 +1153,6 @@ describe("NOTEBOOKS", () => {
 
         it("Toolbar context menu - Capitalize, Convert to lower, upper case and mark for deletion", async () => {
             await Notebook.selectCurrentEditor(new RegExp(constants.openEditorsDBNotebook), "notebook");
-            //await commandExecutor.clean();
             await commandExecutor.execute("select * from sakila.result_sets;");
             expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
                 commandExecutor.getResultMessage())).to.match(/OK/);
