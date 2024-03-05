@@ -228,6 +228,18 @@ describe("Notebook", () => {
         }
     });
 
+    it("Connection toolbar buttons - Execute the block and print the result as text", async () => {
+        try {
+            await commandExecutor.executeWithButton("SELECT * FROM sakila.actor;", constants.execAsText);
+            expect(commandExecutor.getResultMessage()).toMatch(/(\d+) record/);
+            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+                .toMatch(/\|.*\|/);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
     it("Connection toolbar buttons - Execute statement at the caret position", async () => {
         try {
             const query1 = "select * from sakila.actor limit 1;";

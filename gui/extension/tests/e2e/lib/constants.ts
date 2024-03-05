@@ -70,6 +70,7 @@ export const tasksMaxLevel = 1;
 export const execFullBlockSql = "Execute the selection or everything in the current block and create a new block";
 export const execFullBlockJs = "Execute everything in the current block and create a new block";
 export const execCaret = "Execute the statement at the caret position";
+export const execAsText = "Execute the block and print the result as text";
 export const execFullScript = "Execute full script";
 export const find = "Find";
 export const rollback = "Rollback DB changes";
@@ -112,6 +113,7 @@ export const capitalizeText = "Capitalize Text";
 export const convertTextToLowerCase = "Covert Text to Lower Case";
 export const convertTextToUpperCase = "Covert Text to Upper Case";
 export const toggleForDeletion = "Toggle Row Deletion Mark";
+
 
 // CELL ICONS
 export const blob = "blob";
