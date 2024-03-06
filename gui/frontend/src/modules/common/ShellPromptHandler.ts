@@ -196,6 +196,8 @@ export class ShellPromptHandler {
                             } else {
                                 sendReply(ShellPromptResponseType.Ok, reply);
                             }
+                        } else {
+                            resolve(false);
                         }
 
                         break;
