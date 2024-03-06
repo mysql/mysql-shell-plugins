@@ -539,7 +539,11 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     } else {
                         // See if a new session is going to be established. That's our sign to
                         // remove a previously stored password.
-                        if (result.info && result.info.startsWith("Creating a session to")) {
+                        // If the scheme is explicit, the message will include the type of session that is being
+                        // created ("Classic" or "X"). We can be open-ended and look for any kind of session, even
+                        // those types that do not yet exist.
+                        const newSessionPattern = /^Creating (a|an)([\s\w]+)? session to/;
+                        if (result.info && newSessionPattern.test(result.info)) {
                             this.closeDbSession(result.info);
                         }
 
