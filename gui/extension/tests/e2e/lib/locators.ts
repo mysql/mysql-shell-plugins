@@ -185,6 +185,18 @@ export const notebook = {
                     lowerCase: By.id("lowerCaseMenuItem"),
                     upperCase: By.id("upperCaseMenuItem"),
                     toggleForDeletion: By.id("deleteRowMenuItem"),
+                    copySingleRow: {
+                        exists: By.id("copyRowSubmenu"),
+                        subMenu: {
+                            exists: By.css("#copyRowSubmenu .popup.visible"),
+                            copyRow: By.id("copyRowMenuItem1"),
+                            copyRowWithNames: By.id("copyRowMenuItem2"),
+                            copyRowUnquoted: By.id("copyRowMenuItem3"),
+                            copyRowWithNamesUnquoted: By.id("copyRowMenuItem4"),
+                            copyRowWithNamesTabSeparated: By.id("copyRowMenuItem5"),
+                            copyRowTabSeparated: By.id("copyRowMenuItem6"),
+                        },
+                    },
                 },
             },
         },

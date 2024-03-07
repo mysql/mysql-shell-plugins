@@ -24,6 +24,7 @@
 // TIMEOUTS
 export const wait1second = 1000;
 export const wait2seconds = 2000;
+export const wait3seconds = 3000;
 export const wait5seconds = 5000;
 export const wait10seconds = 10000;
 export const wait150MilliSeconds = 150;
@@ -39,11 +40,22 @@ export const rollback = "Rollback DB changes";
 export const commit = "Commit DB changes";
 export const saveNotebook = "Save this Notebook";
 
-// CONTEXT MENU ITEMS
-export const capitalizeText = "Capitalize Text";
-export const convertTextToLowerCase = "Covert Text to Lower Case";
-export const convertTextToUpperCase = "Covert Text to Upper Case";
-export const toggleForDeletion = "Toggle Row Deletion Mark";
+// RESULT GRID CONTEXT MENU
+export const resultGridContextMenu = {
+    capitalizeText: "Capitalize Text",
+    convertTextToLowerCase: "Covert Text to Lower Case",
+    convertTextToUpperCase: "Covert Text to Upper Case",
+    toggleForDeletion: "Toggle Row Deletion Mark",
+    copySingleRow: "Copy Single Row",
+    copySingleRowContextMenu: {
+        copyRow: "Copy Row",
+        copyRowWithNames: "Copy Row With Names",
+        copyRowUnquoted: "Copy Row Unquoted",
+        copyRowWithNamesUnquoted: "Copy Row With Names, Unquoted",
+        copyRowWithNamesTabSeparated: "Copy Row With Names, Tab Separated",
+        copyRowTabSeparated: "Copy Row Tab Separated",
+    },
+};
 
 // CELL ICONS
 export const blob = "blob";
@@ -91,6 +103,84 @@ export const dbTables = [
             `test_multipolygon`,
             `test_geometrycollection`,
             `test_bit`,
+        ],
+        columnRegexWithQuotes: [
+            /(\d+)/, // id
+            /(\d+)/, // boolean
+            /(\d+)/, // smallint
+            /(\d+)/, // med int
+            /(\d+)/, // int
+            /(\d+)/, // big int
+            /'(\d+).(\d+)'/, // decimal
+            /'(\d+).(\d+)'/, // float
+            /'(\d+).(\d+)'/, // double
+            /'(\d+)-(\d+)-(\d+)'/, // date
+            /'(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)'/, // date time
+            /'(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)'/, // timestamp
+            /'(\d+):(\d+):(\d+)'/, // time
+            /(\d+)/, // year
+            /'.*'/, // char
+            /'.*'/, // var char
+            /'.*'/, // tiny text
+            /'.*'/, // text
+            /'.*'/, // med text
+            /'.*'/, // long text
+            /0x/, // tiny blob
+            /0x/, // blob
+            /0x/, // med blob
+            /0x/, // long blob
+            /'.*'/, // enum
+            /'.*'/, // set
+            /0x/, // binary
+            /0x/, // var binary
+            /\{".*": ".*"\}/, // json
+            /''/, // point
+            /''/, // linestring
+            /''/, // polygon
+            /''/, // multipoint
+            /''/, // multilinestring
+            /''/, // multipolygon
+            /''/, // geo collection
+            /'(\d+)'/, // bit
+        ],
+        columnRegex: [
+            /(\d+)/, // id
+            /(\d+)/, // boolean
+            /(\d+)/, // smallint
+            /(\d+)/, // med int
+            /(\d+)/, // int
+            /(\d+)/, // big int
+            /(\d+).(\d+)/, // decimal
+            /(\d+).(\d+)/, // float
+            /(\d+).(\d+)/, // double
+            /(\d+)-(\d+)-(\d+)/, // date
+            /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)/, // date time
+            /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)/, // timestamp
+            /(\d+):(\d+):(\d+)/, // time
+            /(\d+)/, // year
+            /.*/, // char
+            /.*/, // var char
+            /.*/, // tiny text
+            /.*/, // text
+            /.*/, // med text
+            /.*/, // long text
+            /0x/, // tiny blob
+            /0x/, // blob
+            /0x/, // med blob
+            /0x/, // long blob
+            /.*/, // enum
+            /.*/, // set
+            /0x/, // binary
+            /0x/, // var binary
+            /\{".*": ".*"\}/, // json
+            /\s/, // point
+            /\s/, // linestring
+            /\s/, // polygon
+            /\s/, // multipoint
+            /\s/, // multilinestring
+            /\s/, // multipolygon
+            /\s/, // geo collection
+            /(\d+)/, // bit
         ],
     },
     {

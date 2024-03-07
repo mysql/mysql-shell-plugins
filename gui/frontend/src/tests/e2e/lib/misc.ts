@@ -596,4 +596,12 @@ export class Misc {
 
         return `${splitted[0]} ${splitted[1].replace(":00.000Z", "")}`;
     };
+
+    /**
+     * Reads and returns the content of the clipboard
+     * @returns A promise revolved with the clipboard content
+     */
+    public static readClipboard = async (): Promise<string> => {
+        return driver.executeScript("return await navigator.clipboard.readText()");
+    };
 }

@@ -1350,7 +1350,7 @@ describe("Notebook", () => {
 
     });
 
-    it("Toolbar context menu - Capitalize, Convert to lower, upper case and mark for deletion", async () => {
+    it("Result grid context menu - Capitalize, Convert to lower, upper case and mark for deletion", async () => {
         try {
             await DBConnection.selectCurrentEditor(/DB Notebook/, "notebook");
             await commandExecutor.clean();
@@ -1359,7 +1359,8 @@ describe("Notebook", () => {
             const rowNumber = 0;
             let cell = await commandExecutor.getCellFromResultGrid(0, "text_field");
             let cellValue = await cell.getText();
-            await commandExecutor.openCellContextMenuAndSelect(cell, constants.capitalizeText);
+            await commandExecutor.openCellContextMenuAndSelect(0, "text_field",
+                constants.resultGridContextMenu.capitalizeText);
             await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
             await driver.wait(waitUntil.cellsWereChanged(commandExecutor.getResultContent() as WebElement,
                 1), constants.wait5seconds);
@@ -1368,18 +1369,21 @@ describe("Notebook", () => {
                 .toUpperCase()}${cellValue.slice(1)}`);
             cellValue = await cell.getText();
 
-            await commandExecutor.openCellContextMenuAndSelect(cell, constants.convertTextToLowerCase);
+            await commandExecutor.openCellContextMenuAndSelect(0, "text_field",
+                constants.resultGridContextMenu.convertTextToLowerCase);
             await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
             cell = await commandExecutor.getCellFromResultGrid(rowNumber, "text_field");
             expect(await cell.getText()).toBe(cellValue.toLowerCase());
 
             cellValue = await cell.getText();
-            await commandExecutor.openCellContextMenuAndSelect(cell, constants.convertTextToUpperCase);
+            await commandExecutor.openCellContextMenuAndSelect(0, "text_field",
+                constants.resultGridContextMenu.convertTextToUpperCase);
             await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
             cell = await commandExecutor.getCellFromResultGrid(rowNumber, "text_field");
             expect(await cell.getText()).toBe(cellValue.toUpperCase());
 
-            await commandExecutor.openCellContextMenuAndSelect(cell, constants.toggleForDeletion);
+            await commandExecutor.openCellContextMenuAndSelect(0, "text_field",
+                constants.resultGridContextMenu.toggleForDeletion);
             await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
             const row = await commandExecutor.getRowFromResultGrid(commandExecutor.getResultContent() as WebElement, 0);
             await driver.wait(waitUntil.rowIsMarkedForDeletion(row),
@@ -1419,6 +1423,8 @@ describe("Notebook headless off", () => {
         sslClientCert: undefined,
         sslClientKey: undefined,
     };
+
+    const commandExecutor = new CommandExecutor();
 
     beforeAll(async () => {
         try {
@@ -1466,20 +1472,120 @@ describe("Notebook headless off", () => {
 
     it("Copy to clipboard button", async () => {
         try {
-            const commandExecutor = new CommandExecutor();
             await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
             await commandExecutor.copyResultToClipboard();
-            await commandExecutor.clean();
-            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-            if (platform() === "darwin") {
-                await textArea.sendKeys(Key.chord(Key.COMMAND, "v"));
-            } else {
-                await textArea.sendKeys(Key.chord(Key.CONTROL, "v"));
-            }
-            expect(await DBNotebooks.existsOnNotebook("Welcome")).toBe(true);
+            expect(await driver.executeScript("return await navigator.clipboard.readText()")).toContain("Welcome");
         } catch (e) {
             testFailed = true;
             throw e;
+        }
+    });
+
+    it("Result grid context menu - Copy single row", async () => {
+        const tableColumns = constants.dbTables[0].columns;
+        await commandExecutor.execute("select * from sakila.all_data_types;");
+        expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+
+        let fields: string[] = [];
+        let lines: string[] = [];
+        const row = 0;
+        const column = "test_boolean";
+
+        // copy row
+        await driver.wait(async () => {
+            await commandExecutor.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copySingleRow,
+                constants.resultGridContextMenu.copySingleRowContextMenu.copyRow);
+            fields = (await Misc.readClipboard()).split(",");
+
+            return fields.length === tableColumns.length;
+        }, constants.wait5seconds,
+            "(copy row) The copied row fields do not match the table columns");
+
+        for (let i = 0; i <= fields.length - 1; i++) {
+            expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
+        }
+
+        // copy row with names
+        await driver.wait(async () => {
+            await commandExecutor.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copySingleRow,
+                constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNames);
+            lines = (await Misc.readClipboard()).split("\n");
+            fields = lines[1].split(",");
+
+            return fields.length === tableColumns.length;
+        }, constants.wait5seconds,
+            "(copy row with names) The copied row fields do not match the table columns");
+
+        for (let i = 0; i <= fields.length - 1; i++) {
+            expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
+        }
+        expect((await Misc.readClipboard()).includes(`# ${tableColumns.join(", ")}`)).toBe(true);
+
+        // copy row unquoted
+        await driver.wait(async () => {
+            await commandExecutor.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copySingleRow,
+                constants.resultGridContextMenu.copySingleRowContextMenu.copyRowUnquoted);
+            fields = (await Misc.readClipboard()).split(",");
+
+            return fields.length === tableColumns.length;
+        }, constants.wait5seconds,
+            "(copy row unquoted) The copied row fields do not match the table columns");
+
+        for (let i = 0; i <= fields.length - 1; i++) {
+            expect(fields[i]).toMatch(constants.dbTables[0].columnRegex![i]);
+        }
+
+        // copy row with names, unquoted
+        await driver.wait(async () => {
+            await commandExecutor.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copySingleRow,
+                constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesUnquoted);
+            lines = (await Misc.readClipboard()).split("\n");
+            fields = lines[1].split(",");
+
+            return fields.length === tableColumns.length;
+        }, constants.wait5seconds,
+            "(copy row with names, unquoted) The copied row fields do not match the table columns");
+
+        for (let i = 0; i <= fields.length - 1; i++) {
+            expect(fields[i]).toMatch(constants.dbTables[0].columnRegex![i]);
+        }
+        expect((await Misc.readClipboard()).includes(`# ${tableColumns.join(", ")}`)).toBe(true);
+
+        // copy row with names, tab separated
+        await driver.wait(async () => {
+            await commandExecutor.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copySingleRow,
+                constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesTabSeparated);
+            lines = (await Misc.readClipboard()).split("\n");
+            fields = lines[1].split("\t");
+
+            return fields.length === tableColumns.length;
+        }, constants.wait5seconds,
+            "(copy row with names, tab separated) The copied row fields do not match the table columns");
+
+
+        for (let i = 0; i <= fields.length - 1; i++) {
+            expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
+        }
+        expect((await Misc.readClipboard()).includes(`# ${tableColumns.join("\t")}`)).toBe(true);
+
+        // copy row, tab separated
+        await driver.wait(async () => {
+            await commandExecutor.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copySingleRow,
+                constants.resultGridContextMenu.copySingleRowContextMenu.copyRowTabSeparated);
+            fields = (await Misc.readClipboard()).split("\t");
+
+            return fields.length === tableColumns.length;
+        }, constants.wait5seconds,
+            "(copy row, tab separated) The copied row fields do not match the table columns");
+
+        for (let i = 0; i <= fields.length - 1; i++) {
+            expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
         }
     });
 });

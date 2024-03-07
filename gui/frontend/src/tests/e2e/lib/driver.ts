@@ -54,6 +54,24 @@ export const loadDriver = async (useHeadless?: boolean): Promise<void> => {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             prompt_for_download: "false",
         },
+        profile: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            content_settings: {
+                exceptions: {
+                    clipboard: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        "http://localhost,*":
+                        {
+                            expiration: "0",
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            last_modified: Date.now(),
+                            model: 0,
+                            setting: 1,
+                        },
+                    },
+                },
+            },
+        },
     });
 
     let headless: string;
