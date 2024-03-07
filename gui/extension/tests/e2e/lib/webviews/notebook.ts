@@ -570,8 +570,10 @@ export class Notebook {
      * Scrolls down the notebook
      */
     public static scrollDown = async (): Promise<void> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
         await driver.executeScript("arguments[0].scrollBy(0, 1500)",
             await driver.findElement(locator.notebook.codeEditor.editor.scrollBar));
     };
-
 }
