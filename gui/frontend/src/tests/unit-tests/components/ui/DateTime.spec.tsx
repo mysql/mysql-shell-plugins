@@ -25,7 +25,9 @@
 
 import { mount } from "enzyme";
 
-import { DateTime, IDateTimeValueType, IDateTimeChangeProperties } from "../../../../components/ui/DataTime/DateTime.js";
+import {
+    DateTime, IDateTimeValueType,
+} from "../../../../components/ui/DataTime/DateTime.js";
 
 describe("Calendar render testing", (): void => {
 
@@ -55,23 +57,5 @@ describe("Calendar render testing", (): void => {
 
         component.unmount();
     });
-
-    // it("DateTime view test properties (onChange)", () => {
-    //     const onChange = (e: InputEvent, props: IDateTimeChangeProperties): void => {
-    //         expect(props.value).toBe("");
-    //     };
-
-    //     const component = mount<DateTime>(
-    //         <DateTime
-    //             type={IDateTimeValueType.DateTime}
-    //             autoFocus={true}
-    //             onChange={onChange}
-    //         />,
-    //     );
-    //     expect(component).toBeTruthy();
-    //     const props = component.props();
-    //     expect(props.type).toEqual(IDateTimeValueType.DateTime);
-
-    //     component.unmount();
-    // });
 });
+
