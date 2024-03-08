@@ -109,7 +109,6 @@ export class Misc {
         for (const logType of logTypes) {
             line = `---> ${logType}\n`;
             logs = await content.get(logType);
-            console.log(`Logs length for ${logType}: ${logs.length}`);
             for (const log of logs) {
                 const date = new Date(log.timestamp);
                 let time = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()} `;
@@ -564,7 +563,7 @@ export class Misc {
                 break;
             }
         }
-        if (!index) {
+        if (index === undefined) {
             throw new Error(`Could not find index on table '${tableName}' and column '${columnName}'`);
         } else {
             return index;

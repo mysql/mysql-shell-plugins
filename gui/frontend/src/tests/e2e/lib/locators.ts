@@ -270,6 +270,18 @@ export const notebook = {
                             copyRowTabSeparated: By.id("copyRowMenuItem6"),
                         },
                     },
+                    copyAllRows: {
+                        exists: By.id("copyRowsSubmenu"),
+                        subMenu: {
+                            exists: By.css("#copyRowsSubmenu .popup.visible"),
+                            copyAllRows: By.id("copyRowsMenuItem1"),
+                            copyAllRowsWithNames: By.id("copyRowsMenuItem2"),
+                            copyAllRowsUnquoted: By.id("copyRowsMenuItem3"),
+                            copyAllRowsWithNamesUnquoted: By.id("copyRowsMenuItem4"),
+                            copyAllRowsWithNamesTabSeparated: By.id("copyRowsMenuItem5"),
+                            copyAllRowsTabSeparated: By.id("copyRowsMenuItem6"),
+                        },
+                    },
                 },
             },
             promptLine: By.css(".margin-view-overlays > div"),

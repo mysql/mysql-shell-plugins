@@ -125,6 +125,16 @@ export const resultGridContextMenu = {
         copyRowWithNamesTabSeparated: "Copy Row With Names, Tab Separated",
         copyRowTabSeparated: "Copy Row Tab Separated",
     },
+
+    copyMultipleRows: "Copy Multiple Rows",
+    copyMultipleRowsContextMenu: {
+        copyAllRows: "Copy All Rows",
+        copyAllRowsWithNames: "Copy All Rows With Names",
+        copyAllRowsUnquoted: "Copy All Rows Unquoted",
+        copyAllRowsWithNamesUnquoted: "Copy All Rows With Names, Unquoted",
+        copyAllRowsWithNamesTabSeparated: "Copy All Rows With Names, Tab Separated",
+        copyAllRowsTabSeparated: "Copy All Rows Tab Separated",
+    },
 };
 
 // CELL ICONS
@@ -523,6 +533,27 @@ export const dbTables = [
             "bool_field",
             "date_field",
             "blob_field",
+        ],
+    },
+    {
+        name: "actor",
+        columns: [
+            "actor_id",
+            "first_name",
+            "last_name",
+            "last_update",
+        ],
+        columnRegex: [
+            /(\d+)/,
+            /.*/,
+            /.*/,
+            /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)/,
+        ],
+        columnRegexWithQuotes: [
+            /(\d+)/,
+            /'.*'/,
+            /'.*'/,
+            /'(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)'/,
         ],
     },
 ];

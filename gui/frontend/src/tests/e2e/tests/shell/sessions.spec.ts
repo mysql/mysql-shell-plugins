@@ -167,8 +167,6 @@ describe("Sessions", () => {
             ];
 
             for (const reg of regex) {
-                console.log(commandExecutor.getResultMessage());
-                console.log("---");
                 expect(commandExecutor.getResultMessage()).toMatch(reg);
             }
         } catch (e) {
