@@ -251,7 +251,8 @@ export class Misc {
                 break;
             }
         }
-        if (!index) {
+
+        if (index === undefined) {
             throw new Error(`Could not find index on table '${tableName}' and column '${columnName}'`);
         } else {
             return index;
