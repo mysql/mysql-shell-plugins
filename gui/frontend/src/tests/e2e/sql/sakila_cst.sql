@@ -99,7 +99,7 @@ DROP TABLE IF EXISTS `all_data_types`;
   `test_time` time DEFAULT NULL,
   `test_year` year DEFAULT '2024',
   `test_char` char(50) DEFAULT NULL,
-  `test_varchar` varchar(50) NOT NULL,
+  `test_varchar` varchar(50) DEFAULT NULL,
   `test_tinytext` tinytext,
   `test_text` text,
   `test_mediumtext` mediumtext,

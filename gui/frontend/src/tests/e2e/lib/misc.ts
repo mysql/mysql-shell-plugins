@@ -603,4 +603,13 @@ export class Misc {
     public static readClipboard = async (): Promise<string> => {
         return driver.executeScript("return await navigator.clipboard.readText()");
     };
+
+    /**
+     * Writes content to the clipboard
+     * @param text The text to write
+     * @returns A promise revolved when the clipboard ir written
+     */
+    public static writeToClipboard = async (text: string): Promise<string> => {
+        return driver.executeScript(`return await navigator.clipboard.writeText('${text}')`);
+    };
 }

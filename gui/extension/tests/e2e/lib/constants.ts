@@ -135,12 +135,16 @@ export const resultGridContextMenu = {
         copyAllRowsWithNamesTabSeparated: "Copy All Rows With Names, Tab Separated",
         copyAllRowsTabSeparated: "Copy All Rows Tab Separated",
     },
+    copyField: "Copy Field",
+    copyFieldUnquoted: "Copy Field Unquoted",
+    setFieldToNull: "Set Field to Null",
 };
 
 // CELL ICONS
 export const blob = "blob";
 export const geometry = "geometry";
 export const json = "json";
+export const isNull = "null";
 
 // CONTEXT MENUS ITEMS
 export const executeBlock = "Execute Block";

@@ -214,6 +214,18 @@ describe("Notebook", () => {
         }
     });
 
+    it("Connection toolbar buttons - Execute the block and print the result as text", async () => {
+        try {
+            await commandExecutor.executeWithButton("SELECT * FROM sakila.actor;", constants.execAsText);
+            expect(commandExecutor.getResultMessage()).toMatch(/(\d+) record/);
+            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+                .toMatch(/\|.*\|/);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
     it("Connection toolbar buttons - Execute selection or full block and create new block", async () => {
         try {
             await commandExecutor.executeWithButton("SELECT * FROM sakila.actor;", constants.execFullBlockSql);
@@ -225,18 +237,6 @@ describe("Notebook", () => {
             throw e;
         } finally {
             cleanEditor = true;
-        }
-    });
-
-    it("Connection toolbar buttons - Execute the block and print the result as text", async () => {
-        try {
-            await commandExecutor.executeWithButton("SELECT * FROM sakila.actor;", constants.execAsText);
-            expect(commandExecutor.getResultMessage()).toMatch(/(\d+) record/);
-            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
-                .toMatch(/\|.*\|/);
-        } catch (e) {
-            testFailed = true;
-            throw e;
         }
     });
 
@@ -1482,257 +1482,298 @@ describe("Notebook headless off", () => {
     });
 
     it("Result grid context menu - Copy single row", async () => {
-        const tableColumns = constants.dbTables[0].columns;
-        await commandExecutor.execute("select * from sakila.all_data_types;");
-        expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+        try {
+            const tableColumns = constants.dbTables[0].columns;
+            await commandExecutor.execute("select * from sakila.all_data_types;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
 
-        let fields: string[] = [];
-        let lines: string[] = [];
-        const row = 0;
-        const column = "test_boolean";
+            let fields: string[] = [];
+            let lines: string[] = [];
+            const row = 0;
+            const column = "test_boolean";
 
-        // Copy row.
-        await driver.wait(async () => {
-            await commandExecutor.openCellContextMenuAndSelect(row, column,
-                constants.resultGridContextMenu.copySingleRow,
-                constants.resultGridContextMenu.copySingleRowContextMenu.copyRow);
-            fields = (await Misc.readClipboard()).split(",");
+            // Copy row.
+            await driver.wait(async () => {
+                await commandExecutor.openCellContextMenuAndSelect(row, column,
+                    constants.resultGridContextMenu.copySingleRow,
+                    constants.resultGridContextMenu.copySingleRowContextMenu.copyRow);
+                fields = (await Misc.readClipboard()).split(",");
 
-            return fields.length === tableColumns.length;
-        }, constants.wait5seconds,
-            "(copy row) The copied row fields do not match the table columns");
+                return fields.length === tableColumns.length;
+            }, constants.wait5seconds,
+                "(copy row) The copied row fields do not match the table columns");
 
-        for (let i = 0; i <= fields.length - 1; i++) {
-            expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
-        }
+            for (let i = 0; i <= fields.length - 1; i++) {
+                expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
+            }
 
-        // Copy row with names.
-        await driver.wait(async () => {
-            await commandExecutor.openCellContextMenuAndSelect(row, column,
-                constants.resultGridContextMenu.copySingleRow,
-                constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNames);
-            lines = (await Misc.readClipboard()).split("\n");
-            fields = lines[1].split(",");
+            // Copy row with names.
+            await driver.wait(async () => {
+                await commandExecutor.openCellContextMenuAndSelect(row, column,
+                    constants.resultGridContextMenu.copySingleRow,
+                    constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNames);
+                lines = (await Misc.readClipboard()).split("\n");
+                fields = lines[1].split(",");
 
-            return fields.length === tableColumns.length;
-        }, constants.wait5seconds,
-            "(copy row with names) The copied row fields do not match the table columns");
+                return fields.length === tableColumns.length;
+            }, constants.wait5seconds,
+                "(copy row with names) The copied row fields do not match the table columns");
 
-        for (let i = 0; i <= fields.length - 1; i++) {
-            expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
-        }
-        expect((await Misc.readClipboard()).includes(`# ${tableColumns.join(", ")}`)).toBe(true);
+            for (let i = 0; i <= fields.length - 1; i++) {
+                expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
+            }
+            expect((await Misc.readClipboard()).includes(`# ${tableColumns.join(", ")}`)).toBe(true);
 
-        // Copy row unquoted.
-        await driver.wait(async () => {
-            await commandExecutor.openCellContextMenuAndSelect(row, column,
-                constants.resultGridContextMenu.copySingleRow,
-                constants.resultGridContextMenu.copySingleRowContextMenu.copyRowUnquoted);
-            fields = (await Misc.readClipboard()).split(",");
+            // Copy row unquoted.
+            await driver.wait(async () => {
+                await commandExecutor.openCellContextMenuAndSelect(row, column,
+                    constants.resultGridContextMenu.copySingleRow,
+                    constants.resultGridContextMenu.copySingleRowContextMenu.copyRowUnquoted);
+                fields = (await Misc.readClipboard()).split(",");
 
-            return fields.length === tableColumns.length;
-        }, constants.wait5seconds,
-            "(copy row unquoted) The copied row fields do not match the table columns");
+                return fields.length === tableColumns.length;
+            }, constants.wait5seconds,
+                "(copy row unquoted) The copied row fields do not match the table columns");
 
-        for (let i = 0; i <= fields.length - 1; i++) {
-            expect(fields[i]).toMatch(constants.dbTables[0].columnRegex![i]);
-        }
+            for (let i = 0; i <= fields.length - 1; i++) {
+                expect(fields[i]).toMatch(constants.dbTables[0].columnRegex![i]);
+            }
 
-        // Copy row with names, unquoted.
-        await driver.wait(async () => {
-            await commandExecutor.openCellContextMenuAndSelect(row, column,
-                constants.resultGridContextMenu.copySingleRow,
-                constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesUnquoted);
-            lines = (await Misc.readClipboard()).split("\n");
-            fields = lines[1].split(",");
+            // Copy row with names, unquoted.
+            await driver.wait(async () => {
+                await commandExecutor.openCellContextMenuAndSelect(row, column,
+                    constants.resultGridContextMenu.copySingleRow,
+                    constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesUnquoted);
+                lines = (await Misc.readClipboard()).split("\n");
+                fields = lines[1].split(",");
 
-            return fields.length === tableColumns.length;
-        }, constants.wait5seconds,
-            "(copy row with names, unquoted) The copied row fields do not match the table columns");
+                return fields.length === tableColumns.length;
+            }, constants.wait5seconds,
+                "(copy row with names, unquoted) The copied row fields do not match the table columns");
 
-        for (let i = 0; i <= fields.length - 1; i++) {
-            expect(fields[i]).toMatch(constants.dbTables[0].columnRegex![i]);
-        }
-        expect((await Misc.readClipboard()).includes(`# ${tableColumns.join(", ")}`)).toBe(true);
+            for (let i = 0; i <= fields.length - 1; i++) {
+                expect(fields[i]).toMatch(constants.dbTables[0].columnRegex![i]);
+            }
+            expect((await Misc.readClipboard()).includes(`# ${tableColumns.join(", ")}`)).toBe(true);
 
-        // Copy row with names, tab separated.
-        await driver.wait(async () => {
-            await commandExecutor.openCellContextMenuAndSelect(row, column,
-                constants.resultGridContextMenu.copySingleRow,
-                constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesTabSeparated);
-            lines = (await Misc.readClipboard()).split("\n");
-            fields = lines[1].split("\t");
+            // Copy row with names, tab separated.
+            await driver.wait(async () => {
+                await commandExecutor.openCellContextMenuAndSelect(row, column,
+                    constants.resultGridContextMenu.copySingleRow,
+                    constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesTabSeparated);
+                lines = (await Misc.readClipboard()).split("\n");
+                fields = lines[1].split("\t");
 
-            return fields.length === tableColumns.length;
-        }, constants.wait5seconds,
-            "(copy row with names, tab separated) The copied row fields do not match the table columns");
+                return fields.length === tableColumns.length;
+            }, constants.wait5seconds,
+                "(copy row with names, tab separated) The copied row fields do not match the table columns");
 
 
-        for (let i = 0; i <= fields.length - 1; i++) {
-            expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
-        }
-        expect((await Misc.readClipboard()).includes(`# ${tableColumns.join("\t")}`)).toBe(true);
+            for (let i = 0; i <= fields.length - 1; i++) {
+                expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
+            }
+            expect((await Misc.readClipboard()).includes(`# ${tableColumns.join("\t")}`)).toBe(true);
 
-        // Copy row, tab separated.
-        await driver.wait(async () => {
-            await commandExecutor.openCellContextMenuAndSelect(row, column,
-                constants.resultGridContextMenu.copySingleRow,
-                constants.resultGridContextMenu.copySingleRowContextMenu.copyRowTabSeparated);
-            fields = (await Misc.readClipboard()).split("\t");
+            // Copy row, tab separated.
+            await driver.wait(async () => {
+                await commandExecutor.openCellContextMenuAndSelect(row, column,
+                    constants.resultGridContextMenu.copySingleRow,
+                    constants.resultGridContextMenu.copySingleRowContextMenu.copyRowTabSeparated);
+                fields = (await Misc.readClipboard()).split("\t");
 
-            return fields.length === tableColumns.length;
-        }, constants.wait5seconds,
-            "(copy row, tab separated) The copied row fields do not match the table columns");
+                return fields.length === tableColumns.length;
+            }, constants.wait5seconds,
+                "(copy row, tab separated) The copied row fields do not match the table columns");
 
-        for (let i = 0; i <= fields.length - 1; i++) {
-            expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
+            for (let i = 0; i <= fields.length - 1; i++) {
+                expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
+            }
+        } catch (e) {
+            testFailed = true;
+            throw e;
         }
     });
 
-    fit("Result grid context menu - Copy multiple rows", async () => {
-        const tableColumns = constants.dbTables[2].columns;
-        await commandExecutor.execute("select * from sakila.actor limit 3;");
-        expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+    it("Result grid context menu - Copy multiple rows", async () => {
+        try {
+            const tableColumns = constants.dbTables[2].columns;
+            await commandExecutor.execute("select * from sakila.actor limit 3;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
 
-        let fields = [];
-        let lines: string[] = [];
-        const row = 0;
-        const column = "actor_id";
+            let fields = [];
+            let lines: string[] = [];
+            const row = 0;
+            const column = "actor_id";
 
-        // Copy all rows.
-        await driver.wait(async () => {
-            await commandExecutor.openCellContextMenuAndSelect(row, column,
-                constants.resultGridContextMenu.copyMultipleRows,
-                constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRows);
-            lines = (await Misc.readClipboard()).split("\n").filter((el) => {
-                return el !== "";
-            });
-            fields = lines[0].split(",");
+            // Copy all rows.
+            await driver.wait(async () => {
+                await commandExecutor.openCellContextMenuAndSelect(row, column,
+                    constants.resultGridContextMenu.copyMultipleRows,
+                    constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRows);
+                lines = (await Misc.readClipboard()).split("\n").filter((el) => {
+                    return el !== "";
+                });
+                fields = lines[0].split(",");
 
-            return fields.length === tableColumns.length;
-        }, constants.wait5seconds,
-            "(copy all rows) The copied row fields do not match the table columns");
+                return fields.length === tableColumns.length;
+            }, constants.wait5seconds,
+                "(copy all rows) The copied row fields do not match the table columns");
 
-        expect(lines.length).toBe(3);
+            expect(lines.length).toBe(3);
 
-        for (let lineIdx = 0; lineIdx <= lines.length - 1; lineIdx++) {
-            fields = lines[lineIdx].split(",");
-            for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i]).toMatch(constants.dbTables[2].columnRegexWithQuotes![i]);
+            for (let lineIdx = 0; lineIdx <= lines.length - 1; lineIdx++) {
+                fields = lines[lineIdx].split(",");
+                for (let i = 0; i <= fields.length - 1; i++) {
+                    expect(fields[i]).toMatch(constants.dbTables[2].columnRegexWithQuotes![i]);
+                }
             }
+
+            // Copy all rows with names.
+            await driver.wait(async () => {
+                await commandExecutor.openCellContextMenuAndSelect(row, column,
+                    constants.resultGridContextMenu.copyMultipleRows,
+                    constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNames);
+                lines = (await Misc.readClipboard()).split("\n").filter((el) => {
+                    return el !== "";
+                });
+                fields = lines[1].split(",");
+
+                return fields.length === tableColumns.length;
+            }, constants.wait5seconds,
+                "(copy all rows with names) The copied row fields do not match the table columns");
+
+            expect(lines.length).toBe(4);
+
+            for (let lineIdx = 1; lineIdx <= lines.length - 1; lineIdx++) {
+                fields = lines[lineIdx].split(",");
+                for (let i = 0; i <= fields.length - 1; i++) {
+                    expect(fields[i]).toMatch(constants.dbTables[2].columnRegexWithQuotes![i]);
+                }
+            }
+
+            // Copy all rows unquoted.
+            await driver.wait(async () => {
+                await commandExecutor.openCellContextMenuAndSelect(row, column,
+                    constants.resultGridContextMenu.copyMultipleRows,
+                    constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsUnquoted);
+                lines = (await Misc.readClipboard()).split("\n").filter((el) => {
+                    return el !== "";
+                });
+                fields = lines[0].split(",");
+
+                return fields.length === tableColumns.length;
+            }, constants.wait5seconds,
+                "(copy all rows unquoted) The copied row fields do not match the table columns");
+
+            expect(lines.length).toBe(3);
+
+            for (let lineIdx = 0; lineIdx <= lines.length - 1; lineIdx++) {
+                fields = lines[lineIdx].split(",");
+                for (let i = 0; i <= fields.length - 1; i++) {
+                    expect(fields[i]).toMatch(constants.dbTables[2].columnRegex![i]);
+                }
+            }
+
+            // Copy all rows with names unquoted.
+            await driver.wait(async () => {
+                await commandExecutor.openCellContextMenuAndSelect(row, column,
+                    constants.resultGridContextMenu.copyMultipleRows,
+                    constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesUnquoted);
+                lines = (await Misc.readClipboard()).split("\n").filter((el) => {
+                    return el !== "";
+                });
+                fields = lines[1].split(",");
+
+                return fields.length === tableColumns.length;
+            }, constants.wait5seconds,
+                "(copy all rows with names unquoted) The copied row fields do not match the table columns");
+
+            expect(lines.length).toBe(4);
+            for (let lineIdx = 1; lineIdx <= lines.length - 1; lineIdx++) {
+                fields = lines[lineIdx].split(",");
+                for (let i = 0; i <= fields.length - 1; i++) {
+                    expect(fields[i]).toMatch(constants.dbTables[2].columnRegex![i]);
+                }
+            }
+
+            // Copy all rows with names tab separated.
+            await driver.wait(async () => {
+                await commandExecutor.openCellContextMenuAndSelect(row, column,
+                    constants.resultGridContextMenu.copyMultipleRows,
+                    constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesTabSeparated);
+                lines = (await Misc.readClipboard()).split("\n").filter((el) => {
+                    return el !== "";
+                });
+                fields = lines[1].split("\t");
+
+                return fields.length === tableColumns.length;
+            }, constants.wait5seconds,
+                "(copy all rows with names tab separated) The copied row fields do not match the table columns");
+
+            expect(lines.length).toBe(4);
+            for (let lineIdx = 1; lineIdx <= lines.length - 1; lineIdx++) {
+                fields = lines[lineIdx].split("\t");
+                for (let i = 0; i <= fields.length - 1; i++) {
+                    expect(fields[i]).toMatch(constants.dbTables[2].columnRegexWithQuotes![i]);
+                }
+            }
+
+            // Copy all rows tab separated.
+            await driver.wait(async () => {
+                await commandExecutor.openCellContextMenuAndSelect(row, column,
+                    constants.resultGridContextMenu.copyMultipleRows,
+                    constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsTabSeparated);
+                lines = (await Misc.readClipboard()).split("\n").filter((el) => {
+                    return el !== "";
+                });
+                fields = lines[0].split("\t");
+
+                return fields.length === tableColumns.length;
+            }, constants.wait5seconds,
+                "(copy all rows tab separated) The copied row fields do not match the table columns");
+
+            expect(lines.length).toBe(3);
+
+            for (let lineIdx = 0; lineIdx <= lines.length - 1; lineIdx++) {
+                fields = lines[lineIdx].split("\t");
+                for (let i = 0; i <= fields.length - 1; i++) {
+                    expect(fields[i]).toMatch(constants.dbTables[2].columnRegexWithQuotes![i]);
+                }
+            }
+        } catch (e) {
+            testFailed = true;
+            throw e;
         }
+    });
 
-        // Copy all rows with names.
-        await driver.wait(async () => {
-            await commandExecutor.openCellContextMenuAndSelect(row, column,
-                constants.resultGridContextMenu.copyMultipleRows,
-                constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNames);
-            lines = (await Misc.readClipboard()).split("\n").filter((el) => {
-                return el !== "";
-            });
-            fields = lines[1].split(",");
+    it("Result grid context menu - Copy field, copy field unquoted, set field to null", async () => {
+        try {
+            await commandExecutor.clean();
+            const tableColumns = constants.dbTables[0].columns;
+            await commandExecutor.execute("select * from sakila.all_data_types;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
 
-            return fields.length === tableColumns.length;
-        }, constants.wait5seconds,
-            "(copy all rows with names) The copied row fields do not match the table columns");
+            const row = 0;
+            for (let i = 1; i <= tableColumns.length - 1; i++) {
+                await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
+                    constants.resultGridContextMenu.copyField);
+                expect(await Misc.readClipboard()).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
 
-        expect(lines.length).toBe(4);
+                await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
+                    constants.resultGridContextMenu.copyFieldUnquoted);
+                if (await Misc.readClipboard() === "") {
+                    await Misc.writeToClipboard(" ");
+                }
+                expect(await Misc.readClipboard()).toMatch(constants.dbTables[0].columnRegex![i]);
 
-        for (let lineIdx = 1; lineIdx <= lines.length - 1; lineIdx++) {
-            fields = lines[lineIdx].split(",");
-            for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i]).toMatch(constants.dbTables[2].columnRegexWithQuotes![i]);
+                await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
+                    constants.resultGridContextMenu.setFieldToNull);
+                expect(await commandExecutor.getCellValueFromResultGrid(row, tableColumns[i]))
+                    .toBe(constants.isNull);
             }
-        }
-
-        // Copy all rows unquoted.
-        await driver.wait(async () => {
-            await commandExecutor.openCellContextMenuAndSelect(row, column,
-                constants.resultGridContextMenu.copyMultipleRows,
-                constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsUnquoted);
-            lines = (await Misc.readClipboard()).split("\n").filter((el) => {
-                return el !== "";
-            });
-            fields = lines[0].split(",");
-
-            return fields.length === tableColumns.length;
-        }, constants.wait5seconds,
-            "(copy all rows unquoted) The copied row fields do not match the table columns");
-
-        expect(lines.length).toBe(3);
-
-        for (let lineIdx = 0; lineIdx <= lines.length - 1; lineIdx++) {
-            fields = lines[lineIdx].split(",");
-            for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i]).toMatch(constants.dbTables[2].columnRegex![i]);
-            }
-        }
-
-        // Copy all rows with names unquoted.
-        await driver.wait(async () => {
-            await commandExecutor.openCellContextMenuAndSelect(row, column,
-                constants.resultGridContextMenu.copyMultipleRows,
-                constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesUnquoted);
-            lines = (await Misc.readClipboard()).split("\n").filter((el) => {
-                return el !== "";
-            });
-            fields = lines[1].split(",");
-
-            return fields.length === tableColumns.length;
-        }, constants.wait5seconds,
-            "(copy all rows with names unquoted) The copied row fields do not match the table columns");
-
-        expect(lines.length).toBe(4);
-        for (let lineIdx = 1; lineIdx <= lines.length - 1; lineIdx++) {
-            fields = lines[lineIdx].split(",");
-            for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i]).toMatch(constants.dbTables[2].columnRegex![i]);
-            }
-        }
-
-        // Copy all rows with names tab separated.
-        await driver.wait(async () => {
-            await commandExecutor.openCellContextMenuAndSelect(row, column,
-                constants.resultGridContextMenu.copyMultipleRows,
-                constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesTabSeparated);
-            lines = (await Misc.readClipboard()).split("\n").filter((el) => {
-                return el !== "";
-            });
-            fields = lines[1].split("\t");
-
-            return fields.length === tableColumns.length;
-        }, constants.wait5seconds,
-            "(copy all rows with names tab separated) The copied row fields do not match the table columns");
-
-        expect(lines.length).toBe(4);
-        for (let lineIdx = 1; lineIdx <= lines.length - 1; lineIdx++) {
-            fields = lines[lineIdx].split("\t");
-            for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i]).toMatch(constants.dbTables[2].columnRegexWithQuotes![i]);
-            }
-        }
-
-        // Copy all rows tab separated.
-        await driver.wait(async () => {
-            await commandExecutor.openCellContextMenuAndSelect(row, column,
-                constants.resultGridContextMenu.copyMultipleRows,
-                constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsTabSeparated);
-            lines = (await Misc.readClipboard()).split("\n").filter((el) => {
-                return el !== "";
-            });
-            fields = lines[0].split("\t");
-
-            return fields.length === tableColumns.length;
-        }, constants.wait5seconds,
-            "(copy all rows tab separated) The copied row fields do not match the table columns");
-
-        expect(lines.length).toBe(3);
-
-        for (let lineIdx = 0; lineIdx <= lines.length - 1; lineIdx++) {
-            fields = lines[lineIdx].split("\t");
-            for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i]).toMatch(constants.dbTables[2].columnRegexWithQuotes![i]);
-            }
+        } catch (e) {
+            testFailed = true;
+            throw e;
         }
     });
 });
