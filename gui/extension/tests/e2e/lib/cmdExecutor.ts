@@ -997,6 +997,26 @@ export class CommandExecutor {
                         }
                         break;
                     }
+
+                    case constants.resultGridContextMenu.copyField: {
+                        await driver.findElement(cellContextMenu.copyField).click();
+                        break;
+                    }
+
+                    case constants.resultGridContextMenu.copyFieldUnquoted: {
+                        await driver.findElement(cellContextMenu.copyFieldUnquoted).click();
+                        break;
+                    }
+
+                    case constants.resultGridContextMenu.setFieldToNull: {
+                        const setToNull = await driver.findElement(cellContextMenu.setFieldToNull);
+                        if (!(await setToNull.getAttribute("class")).includes("disabled")) {
+                            await setToNull.click();
+                        } else {
+                            return false;
+                        }
+                        break;
+                    }
                     default: {
                         break;
                     }

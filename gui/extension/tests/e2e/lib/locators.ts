@@ -180,7 +180,7 @@ export const notebook = {
                 script: By.className("standaloneScriptHost"),
                 textOutput: By.css(".actionOutput span > span"),
                 cellContextMenu: {
-                    exists: By.id("cellContextMenu"),
+                    exists: By.css("#cellContextMenu .popup.visible"),
                     capitalize: By.id("capitalizeMenuItem"),
                     lowerCase: By.id("lowerCaseMenuItem"),
                     upperCase: By.id("upperCaseMenuItem"),
@@ -209,6 +209,9 @@ export const notebook = {
                             copyAllRowsTabSeparated: By.id("copyRowsMenuItem6"),
                         },
                     },
+                    setFieldToNull: By.id("setNullMenuItem"),
+                    copyField: By.id("copyFieldMenuItem"),
+                    copyFieldUnquoted: By.id("copyFieldUnquotedMenuItem"),
                 },
             },
         },

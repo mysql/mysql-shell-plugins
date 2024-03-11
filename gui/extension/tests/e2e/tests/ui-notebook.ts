@@ -235,6 +235,14 @@ describe("NOTEBOOKS", () => {
 
         });
 
+        it("Connection toolbar buttons - Execute the block and print the result as text", async () => {
+            await commandExecutor.executeWithButton("SELECT * FROM sakila.actor;", constants.execAsText);
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("(\\d+) record",
+                commandExecutor.getResultMessage())).to.match(/(\d+) record/);
+            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
+                .to.match(/\|.*\|/);
+        });
+
         it("Connection toolbar buttons - Execute selection or full block and create a new block", async () => {
 
             await commandExecutor.executeWithButton("SELECT * FROM sakila.actor;", constants.execFullBlockSql);
@@ -242,14 +250,6 @@ describe("NOTEBOOKS", () => {
                 commandExecutor.getResultMessage())).to.match(/(\d+) record/);
             await driver.wait(waitUntil.editorHasNewPrompt(),
                 constants.wait5seconds, "Editor should have a new prompt");
-        });
-
-        it("Connection toolbar buttons - Execute the block and print the result as text", async () => {
-            await commandExecutor.executeWithButton("SELECT * FROM sakila.actor;", constants.execAsText);
-            expect(commandExecutor.getResultMessage(), errors.queryResultError("(\\d+) record",
-                commandExecutor.getResultMessage())).to.match(/(\d+) record/);
-            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
-                .to.match(/\|.*\|/);
         });
 
         it("Connection toolbar buttons - Execute statement at the caret position", async () => {
@@ -1492,6 +1492,34 @@ describe("NOTEBOOKS", () => {
                         `(copy all rows tab separated) Copy error on column ${Misc.getDbTableColumnName(constants.dbTables[2].name, i)} for line ${lineIdx}`)
                         .to.match(constants.dbTables[2].columnRegexWithQuotes[i]);
                 }
+            }
+        });
+
+        it("Result grid context menu - Copy field, copy field unquoted, set field to null", async () => {
+            await commandExecutor.clean();
+            const tableColumns = constants.dbTables[0].columns;
+            await commandExecutor.execute("select * from sakila.all_data_types;");
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
+                commandExecutor.getResultMessage())).to.match(/OK/);
+
+            const row = 0;
+            for (let i = 1; i <= tableColumns.length - 1; i++) {
+                await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
+                    constants.resultGridContextMenu.copyField);
+                expect(clipboard.readSync(), `Copy field on column: ${tableColumns[i]}`)
+                    .to.match(constants.dbTables[0].columnRegexWithQuotes[i]);
+                await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
+                    constants.resultGridContextMenu.copyFieldUnquoted);
+                if (clipboard.readSync() === "") {
+                    clipboard.writeSync(" ");
+                }
+                expect(clipboard.readSync(), `Copy field unquoted on column: ${tableColumns[i]}`)
+                    .to.match(constants.dbTables[0].columnRegex[i]);
+                await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
+                    constants.resultGridContextMenu.setFieldToNull);
+                expect(await commandExecutor.getCellValueFromResultGrid(row, tableColumns[i]),
+                    `Set field to null (${tableColumns[i]})`)
+                    .to.equals(constants.isNull);
             }
         });
     });
