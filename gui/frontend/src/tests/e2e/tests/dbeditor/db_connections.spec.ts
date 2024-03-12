@@ -26,12 +26,13 @@
 import { Key, WebElement, until } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
-import { IDBConnection, Misc, explicitWait, shellServers } from "../../lib/misc.js";
+import { Misc, explicitWait, shellServers } from "../../lib/misc.js";
 import * as locator from "../../lib/locators.js";
 import { basename, join } from "path";
 import { platform } from "os";
 import { CommandExecutor } from "../../lib/cmdExecutor.js";
 import { driver, loadDriver } from "../../lib/driver.js";
+import * as interfaces from "../../lib/interfaces.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -40,21 +41,18 @@ describe("Database Connections", () => {
 
     let testFailed = false;
 
-    const globalConn: IDBConnection = {
-        dbType: undefined,
+    const globalConn: interfaces.IDBConnection = {
         caption: `connDBConnections`,
         description: "Local connection",
-        hostname: String(process.env.DBHOSTNAME),
-        protocol: "mysql",
-        username: "dbuser1",
-        port: String(process.env.DBPORT),
-        portX: String(process.env.DBPORTX),
-        schema: "sakila",
-        password: "dbuser1",
-        sslMode: undefined,
-        sslCA: undefined,
-        sslClientCert: undefined,
-        sslClientKey: undefined,
+        basic: {
+            hostname: String(process.env.DBHOSTNAME),
+            protocol: "mysql",
+            username: "dbuser1",
+            port: parseInt(process.env.DBPORT!, 10),
+            portX: parseInt(process.env.DBPORTX!, 10),
+            schema: "sakila",
+            password: "dbuser1",
+        },
     };
 
     beforeAll(async () => {
@@ -99,7 +97,7 @@ describe("Database Connections", () => {
 
     it("Duplicate a database connection", async () => {
         try {
-            const host = await DBNotebooks.getConnection(globalConn.caption);
+            const host = await DBNotebooks.getConnection(globalConn.caption!);
             await DBNotebooks.clickConnectionItem(host!, "duplicate");
             const conDialog = await driver.findElement(locator.databaseConnectionConfiguration.exists);
 
@@ -134,21 +132,18 @@ describe("Database Connections", () => {
     it("Edit a database connection", async () => {
         try {
 
-            const localConn: IDBConnection = {
-                dbType: undefined,
+            const localConn: interfaces.IDBConnection = {
                 caption: `conn${new Date().valueOf()}`,
                 description: "Local connection",
-                hostname: String(process.env.DBHOSTNAME),
-                protocol: "mysql",
-                username: String(process.env.DBUSERNAME),
-                port: String(process.env.DBPORT),
-                portX: String(process.env.DBPORTX),
-                schema: "sakila",
-                password: String(process.env.DBPASSWORD),
-                sslMode: undefined,
-                sslCA: undefined,
-                sslClientCert: undefined,
-                sslClientKey: undefined,
+                basic: {
+                    hostname: String(process.env.DBHOSTNAME),
+                    protocol: "mysql",
+                    username: String(process.env.DBUSERNAME),
+                    port: parseInt(process.env.DBPORT!, 10),
+                    portX: parseInt(process.env.DBPORTX!, 10),
+                    schema: "sakila",
+                    password: String(process.env.DBPASSWORD),
+                },
             };
 
             let host = await DBNotebooks.createDBconnection(localConn);
@@ -221,7 +216,7 @@ describe("Database Connections", () => {
 
     it("Edit a database connection and verify issues", async () => {
         try {
-            const host = await DBNotebooks.getConnection(globalConn.caption);
+            const host = await DBNotebooks.getConnection(globalConn.caption!);
             await DBNotebooks.clickConnectionItem(host!, "edit");
             const conDialog = await driver.findElement(locator.databaseConnectionConfiguration.exists);
             const customClear = async (el: WebElement) => {
@@ -270,21 +265,18 @@ describe("Database Connections", () => {
     it("Remove a database connection", async () => {
         try {
 
-            const localConn: IDBConnection = {
-                dbType: undefined,
+            const localConn: interfaces.IDBConnection = {
                 caption: `conn${new Date().valueOf()}`,
                 description: "Local connection",
-                hostname: String(process.env.DBHOSTNAME),
-                protocol: "mysql",
-                username: String(process.env.DBUSERNAME),
-                port: String(process.env.DBPORT),
-                portX: String(process.env.DBPORTX),
-                schema: "sakila",
-                password: String(process.env.DBPASSWORD),
-                sslMode: undefined,
-                sslCA: undefined,
-                sslClientCert: undefined,
-                sslClientKey: undefined,
+                basic: {
+                    hostname: String(process.env.DBHOSTNAME),
+                    protocol: "mysql",
+                    username: String(process.env.DBUSERNAME),
+                    port: parseInt(process.env.DBPORT!, 10),
+                    portX: parseInt(process.env.DBPORTX!, 10),
+                    schema: "sakila",
+                    password: String(process.env.DBPASSWORD),
+                },
             };
 
             const host = await DBNotebooks.createDBconnection(localConn);
@@ -298,7 +290,7 @@ describe("Database Connections", () => {
             await driver.wait(
                 async () => {
                     return (await driver.findElements(locator.dbConnections
-                        .existsByCaption(localConn.caption))).length === 0;
+                        .existsByCaption(localConn.caption!))).length === 0;
                 },
                 2000,
                 `${localConn.caption} Database Connection still exists`,
@@ -324,24 +316,22 @@ describe("Database Connections", () => {
                 return !(await driver.executeScript("return document.querySelector('#caption').value"));
             }, 3000, "caption was not cleared in time");
 
-            const localConn: IDBConnection = {
-                dbType: undefined,
+            const localConn: interfaces.IDBConnection = {
                 caption: `Sqlite DB${String(new Date().valueOf())}`,
                 description: "Local connection",
-                hostname: String(process.env.DBHOSTNAME),
-                protocol: "mysql",
-                username: String(process.env.DBUSERNAME),
-                port: String(process.env.DBPORT),
-                portX: String(process.env.DBPORTX),
-                schema: "sakila",
-                password: String(process.env.DBPASSWORD),
-                sslMode: undefined,
-                sslCA: undefined,
-                sslClientCert: undefined,
-                sslClientKey: undefined,
+                basic: {
+                    hostname: String(process.env.DBHOSTNAME),
+                    protocol: "mysql",
+                    username: String(process.env.DBUSERNAME),
+                    port: parseInt(process.env.DBPORT!, 10),
+                    portX: parseInt(process.env.DBPORTX!, 10),
+                    schema: "sakila",
+                    password: String(process.env.DBPASSWORD),
+                },
             };
 
-            await newConDialog.findElement(locator.databaseConnectionConfiguration.caption).sendKeys(localConn.caption);
+            await newConDialog.findElement(locator.databaseConnectionConfiguration.caption)
+                .sendKeys(localConn.caption!);
 
             await newConDialog.findElement(locator.databaseConnectionConfiguration.description).clear();
             await newConDialog
@@ -361,7 +351,7 @@ describe("Database Connections", () => {
             await newConDialog.findElement(locator.databaseConnectionConfiguration.sqlite.basic.dbName)
                 .sendKeys("SQLite");
             await newConDialog.findElement(locator.databaseConnectionConfiguration.ok).click();
-            const conn = await DBNotebooks.getConnection(localConn.caption);
+            const conn = await DBNotebooks.getConnection(localConn.caption!);
             expect(conn).toBeDefined();
             expect(await conn!.findElement(locator.dbConnections.description).getText()).toBe(
                 "Local Sqlite connection",
@@ -429,21 +419,23 @@ describe("Database Connections", () => {
 
             await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).clear();
 
+            const basicInfo = globalConn.basic as interfaces.IConnBasicMySQL;
+
             await newConDialog
                 .findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname)
-                .sendKeys(String(globalConn.hostname));
+                .sendKeys(String(basicInfo.hostname));
 
             await newConDialog
                 .findElement(locator.databaseConnectionConfiguration.mysql.basic.username)
-                .sendKeys(String(globalConn.username));
+                .sendKeys(String(basicInfo.username));
 
             await newConDialog
                 .findElement(locator.databaseConnectionConfiguration.mysql.basic.schema)
-                .sendKeys(String(globalConn.schema));
+                .sendKeys(String(basicInfo.schema));
 
             await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port).clear();
             await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port)
-                .sendKeys(String(globalConn.port));
+                .sendKeys(String(basicInfo.port));
 
             await newConDialog.findElement(locator.databaseConnectionConfiguration.sslTab).click();
             await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.ssl.mode).click();

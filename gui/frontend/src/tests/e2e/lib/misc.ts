@@ -32,6 +32,7 @@ import { execFullBlockJs, execFullBlockSql } from "./dbNotebooks.js";
 import * as locator from "../lib/locators.js";
 import * as constants from "../lib/constants.js";
 import { driver } from "../lib/driver.js";
+import * as interfaces from "../lib/interfaces.js";
 
 export const explicitWait = 5000;
 export const feLog = "fe.log";
@@ -46,27 +47,6 @@ export const shellServers = new Map([
     ["sessions.spec.ts", 2],
     ["shell_connections.spec.ts", 2],
 ]);
-
-/**
- * DB Connection interface
- *
- */
-export interface IDBConnection {
-    dbType: string | undefined;
-    caption: string;
-    description: string;
-    hostname: string;
-    protocol: string;
-    port: string;
-    portX: string | undefined;
-    username: string;
-    password: string;
-    schema: string;
-    sslMode: string | undefined;
-    sslCA: string | undefined;
-    sslClientCert: string | undefined;
-    sslClientKey: string | undefined;
-}
 
 export class Misc {
 
@@ -308,7 +288,7 @@ export class Misc {
      * @param dbConfig connection object
      * @returns A promise resolving when the password is set
      */
-    public static setPassword = async (dbConfig: IDBConnection): Promise<void> => {
+    public static setPassword = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
         const dialog = await driver.wait(until.elementsLocated(locator.passwordDialog.exists),
             500, "No Password dialog was found");
 
@@ -326,10 +306,12 @@ export class Misc {
             }
         }
 
-        expect(service).toBe(`${String(dbConfig.username)}@${String(dbConfig.hostname)}:${String(dbConfig.port)}`);
-        expect(username).toBe(dbConfig.username);
+        const basic = dbConfig.basic as interfaces.IConnBasicMySQL;
+
+        expect(service).toBe(`${String(basic.username)}@${String(basic.hostname)}:${String(basic.port)}`);
+        expect(username).toBe(basic.username);
         expect(await title.getText()).toBe("Open MySQL Connection");
-        await dialog[0].findElement(locator.htmlTag.input).sendKeys(String(dbConfig.password));
+        await dialog[0].findElement(locator.htmlTag.input).sendKeys(String(basic.password));
         await dialog[0].findElement(locator.passwordDialog.ok).click();
     };
 
@@ -339,15 +321,16 @@ export class Misc {
      * @param value yes/no/never
      * @returns A promise resolving when the set is made
      */
-    public static setConfirmDialog = async (dbConfig: IDBConnection, value: string):
+    public static setConfirmDialog = async (dbConfig: interfaces.IDBConnection, value: string):
         Promise<void> => {
         const confirmDialog = await driver.wait(until.elementsLocated(locator.confirmDialog.exists),
             explicitWait, "No confirm dialog was found");
 
         expect(await confirmDialog[0].findElement(locator.confirmDialog.title).getText()).toBe("Confirm");
 
-        let text = `Save password for '${String(dbConfig.username)}@${String(dbConfig.hostname)}:`;
-        text += `${String(dbConfig.port)}'?`;
+        const basic = dbConfig.basic as interfaces.IConnBasicMySQL;
+        let text = `Save password for '${String(basic.username)}@${String(basic.hostname)}:`;
+        text += `${String(basic.port)}'?`;
 
         expect(await confirmDialog[0].findElement(locator.confirmDialog.message).getText()).toContain(text);
 

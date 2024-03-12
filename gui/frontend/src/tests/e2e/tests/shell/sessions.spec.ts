@@ -26,11 +26,12 @@
 import { WebElement, until } from "selenium-webdriver";
 import { basename } from "path";
 import { GuiConsole } from "../../lib/guiConsole.js";
-import { IDBConnection, Misc, explicitWait } from "../../lib/misc.js";
+import { Misc, explicitWait } from "../../lib/misc.js";
 import * as locator from "../../lib/locators.js";
 import { CommandExecutor } from "../../lib/cmdExecutor.js";
 import * as constants from "../../lib/constants.js";
 import { driver, loadDriver } from "../../lib/driver.js";
+import * as interfaces from "../../lib/interfaces.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -38,29 +39,38 @@ const url = Misc.getUrl(basename(filename));
 describe("Sessions", () => {
 
     let testFailed: boolean;
-    const globalConn: IDBConnection = {
+    let username: string | undefined;
+    let password: string | undefined;
+    let hostname: string | undefined;
+    let schema: string | undefined;
+    let port: number | undefined;
+    let portX: number | undefined;
+
+    const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
         caption: `ClientQA test`,
         description: "Local connection",
-        hostname: String(process.env.DBHOSTNAME),
-        protocol: "mysql",
-        username: "dbuser1",
-        port: String(process.env.DBPORT),
-        portX: String(process.env.DBPORTX),
-        schema: "sakila",
-        password: "dbuser1",
-        sslMode: undefined,
-        sslCA: undefined,
-        sslClientCert: undefined,
-        sslClientKey: undefined,
+        basic: {
+            hostname: String(process.env.DBHOSTNAME),
+            protocol: "mysql",
+            username: "dbuser1",
+            port: parseInt(process.env.DBPORT!, 10),
+            portX: parseInt(process.env.DBPORTX!, 10),
+            schema: "sakila",
+            password: "dbuser1",
+        },
     };
 
-    const username = globalConn.username;
-    const password = globalConn.password;
-    const hostname = globalConn.hostname;
-    const schema = globalConn.schema;
-    const port = globalConn.port;
-    const portX = globalConn.portX;
+    if (interfaces.isMySQLConnection(globalConn.basic)) {
+        username = globalConn.basic.username;
+        password = globalConn.basic.password;
+        hostname = globalConn.basic.hostname;
+        schema = globalConn.basic.schema;
+        port = globalConn.basic.port;
+        portX = globalConn.basic.portX;
+    } else {
+        throw new Error("Unknown connection type");
+    }
 
     const commandExecutor = new CommandExecutor();
 
