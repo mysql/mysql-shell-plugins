@@ -31,7 +31,7 @@ import { Menu } from "../../../../../components/ui/Menu/Menu.js";
 import { TreeGrid } from "../../../../../components/ui/TreeGrid/TreeGrid.js";
 import { requisitions } from "../../../../../supplement/Requisitions.js";
 import { nextProcessTick } from "../../../test-helpers.js";
-import { CellComponentMock } from "../../../__mocks__/CellComponentMock.js";
+import { MockCellComponent } from "../../../__mocks__/CellComponentMock.js";
 
 describe("Result View Tests", (): void => {
 
@@ -607,7 +607,7 @@ describe("Result View Tests", (): void => {
             }
         });
 
-        const cell = new CellComponentMock();
+        const cell = new MockCellComponent();
         menu.instance().open(rect, false);
         await nextProcessTick();
 

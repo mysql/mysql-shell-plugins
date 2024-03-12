@@ -133,7 +133,7 @@ def resolve_content_set(session, content_set_id=None, service_id=None, required=
             print_list=True)
 
     if not content_set and required:
-        raise Exception("Cancelling operation. Could not determine the schema.")
+        raise Exception("Cancelling operation. Could not determine the content set.")
 
     return content_set
 

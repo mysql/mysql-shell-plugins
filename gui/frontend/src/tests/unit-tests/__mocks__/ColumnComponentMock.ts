@@ -39,6 +39,8 @@ const mockColumnsInfo: IColumnInfo = {
 
 
 export class ColumnComponentMock implements ColumnComponent {
+    public fieldType: string = "";
+
     public getElement = jest.fn();
     public getTable = jest.fn();
     public getField = jest.fn();
@@ -71,6 +73,7 @@ export class ColumnComponentMock implements ColumnComponent {
                     info: mockColumnsInfo,
                 };
             },
+            field: this.fieldType,
         };
     };
 }
