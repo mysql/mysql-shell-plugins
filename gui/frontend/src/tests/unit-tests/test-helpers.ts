@@ -25,6 +25,7 @@
 
 import { CommonWrapper, ReactWrapper } from "enzyme";
 import { ComponentChild } from "preact";
+import { screen, waitFor } from "@testing-library/preact";
 
 import { range } from "d3";
 
@@ -37,6 +38,7 @@ import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { webSession } from "../../supplement/WebSession.js";
 import { LogLevel, MySQLShellLauncher } from "../../utilities/MySQLShellLauncher.js";
+import { uuidBinary16Base64 } from "../../utilities/helpers.js";
 
 export const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipisci elit, " +
     "sed eiusmod tempor incidunt ut labore et dolore magna aliqua.";
@@ -555,6 +557,7 @@ interface IElementQuery {
     required?: boolean,
     unique?: boolean,
     parentId?: string,
+    docRoot?: Document | HTMLElement,
 }
 
 /**
@@ -569,6 +572,10 @@ const searchElements = (query: IElementQuery): Element[] => {
     let queryParent = "";
     let queryType = "";
 
+    if (query.docRoot === undefined) {
+        throw new Error("A document root needs to be supplied.");
+    }
+
     if (query.id) {
         queryId = `#${query.id}`;
     }
@@ -581,13 +588,13 @@ const searchElements = (query: IElementQuery): Element[] => {
         queryClass = `.${query.class.replaceAll(" ", ".")}`;
     }
 
-    if (query.parentId) {
+    if (query.parentId !== undefined) {
         queryParent = `#${query.parentId} `;
     }
 
     const queryString = `${queryParent} ${queryType}${queryId}${queryClass}`;
 
-    const elements = document.querySelectorAll(queryString);
+    const elements = query.docRoot.querySelectorAll(queryString);
     const result = [];
 
     for (const element of elements) {
@@ -622,10 +629,20 @@ const searchElement = <T = Element>(query: IElementQuery): T => {
 };
 
 export class DialogHelper {
+    public docRoot: Document;
     private id: string;
+    private title: string;
 
-    public constructor(id: string) {
+    public constructor(id: string, title: string, docRoot: Document = document) {
         this.id = id;
+        this.docRoot = docRoot;
+        this.title = title;
+    }
+
+    public waitForDialog(): Promise<void> {
+        return waitFor(() => {
+            expect(screen.getByText(this.title)).toBeDefined();
+        }, { timeout: 3000 });
     }
 
     /**
@@ -675,6 +692,16 @@ export class DialogHelper {
         return nextRunLoop();
     }
 
+    public clickButton(query: IElementQuery): Promise<void> {
+        const button = this.searchChild<HTMLButtonElement>(query);
+
+        expect(button).not.toBeNull();
+
+        button.click();
+
+        return nextRunLoop();
+    }
+
     /**
      * Sets the combo box selection by means of the item number in the drop down.
      *
@@ -692,7 +719,7 @@ export class DialogHelper {
         outer.click();
         await nextRunLoop();
 
-        const popup = searchElement<HTMLDivElement>({ id: `${id}Popup` });
+        const popup = searchElement<HTMLDivElement>({ id: `${id}Popup`, docRoot: this.docRoot });
 
         if (popup === null || popup.firstChild === null) {
             return;
@@ -702,6 +729,20 @@ export class DialogHelper {
         popupItem.click();
 
         return Promise.resolve();
+    }
+
+    public getTabItems(expectedTitles?: string[], query?: IElementQuery): HTMLDivElement[] {
+        if (query === undefined) {
+            query = { class: "tabItem" };
+        }
+
+        return this.searchChildren(query).map((value, index) => {
+            if (expectedTitles !== undefined) {
+                expect(value.children[0].textContent).toBe(expectedTitles[index]);
+            }
+
+            return value as HTMLDivElement;
+        });
     }
 
     /**
@@ -740,10 +781,30 @@ export class DialogHelper {
     }
 
     public searchChildren(query: IElementQuery): Element[] {
-        return searchElements({ ...query, parentId: this.id });
+        if (query.parentId === undefined) {
+            query.parentId = this.id;
+        }
+
+        if (query.docRoot === undefined) {
+            query.docRoot = this.docRoot;
+        }
+
+        return searchElements(query);
     }
 
     public searchChild<T = Element>(query: IElementQuery): T {
-        return searchElement({ ...query, parentId: this.id });
+        if (query.parentId === undefined) {
+            query.parentId = this.id;
+        }
+
+        if (query.docRoot === undefined) {
+            query.docRoot = this.docRoot;
+        }
+
+        return searchElement(query);
     }
 }
+
+// export const generateId = (): string => {
+//     const id = uuidBinary16Base64();
+// }

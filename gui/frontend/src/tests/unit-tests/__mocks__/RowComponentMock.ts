@@ -24,10 +24,15 @@
 */
 import { CellComponent, GroupComponent, RowComponent } from "tabulator-tables";
 import { GroupComponentMock } from "./GroupComponentMock.js";
+import { IMrsObjectFieldTreeItem } from "../../../modules/mrs/dialogs/MrsObjectFieldEditor.js";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export class RowComponentMock implements RowComponent {
-    public getElement = jest.fn();
+    public element: HTMLElement;
+    public row: IMrsObjectFieldTreeItem | undefined;
+    public prevRow: RowComponentMock | false = false;
+    public nextRow: RowComponentMock | false = false;
+
     public getTable = jest.fn();
     public getCells = jest.fn();
     public getCell = jest.fn();
@@ -42,13 +47,10 @@ export class RowComponentMock implements RowComponent {
     public treeCollapse = jest.fn();
     public treeToggle = jest.fn();
 
-    public getNextRow: () => RowComponent | false = () => {
-        return false;
-    };
-
-    public  getPrevRow: () => RowComponent | false = () => {
-        return false;
-    };
+    public constructor(row?: IMrsObjectFieldTreeItem) {
+        this.row = row;
+        this.element = document.createElement("div");
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public getIndex: () => any = () => {
@@ -119,8 +121,8 @@ export class RowComponentMock implements RowComponent {
         return false;
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public getData(): { [key: string]: any } {
-        return {};
-    }
+    public getData = (): IMrsObjectFieldTreeItem => { return this.row; };
+    public getElement = (): HTMLElement => { return this.element; };
+    public getPrevRow = (): RowComponent | false => { return this.prevRow; };
+    public getNextRow = (): RowComponent | false => { return this.nextRow; };
 }

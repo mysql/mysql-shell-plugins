@@ -183,6 +183,8 @@ export class JsonParser {
                     return TokenType.Unknown;
                 }
 
+                code = this.#input.codePointAt(this.#currentPosition)!;
+
                 // [fall-through]
             }
 

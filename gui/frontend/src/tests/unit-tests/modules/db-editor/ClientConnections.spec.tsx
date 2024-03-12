@@ -30,7 +30,7 @@ import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables"
 import { DBDataType, IColumnInfo } from "../../../../app-logic/Types.js";
 import { ClientConnections } from "../../../../modules/db-editor/ClientConnections.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { CellComponentMock } from "../../__mocks__/CellComponentMock.js";
+import { MockCellComponent } from "../../__mocks__/CellComponentMock.js";
 import { RowComponentMock } from "../../__mocks__/RowComponentMock.js";
 import { nextRunLoop } from "../../test-helpers.js";
 
@@ -257,7 +257,7 @@ describe("Client connections module tests", (): void => {
                 minWidth: 50,
                 resizable: true,
                 title: "Year",
-        },
+            },
         ];
 
         const definitions = instance.testGenerateColumnDefinitions(columns);
@@ -276,7 +276,7 @@ describe("Client connections module tests", (): void => {
         );
         const instance = new TestClientConnections(component.instance().props);
 
-        const result = instance.testStringFormatter(new CellComponentMock());
+        const result = instance.testStringFormatter(new MockCellComponent());
 
         expect(result).toEqual("Animal");
 

@@ -25,14 +25,20 @@
 
 /* eslint-disable max-classes-per-file */
 
-import { CellComponent, ColumnComponent, PopupPosition, type RangeComponent } from "tabulator-tables";
+import {
+    CellComponent, ColumnComponent, PopupPosition,
+    type RowComponent, type RangeComponent,
+} from "tabulator-tables";
+import { IMrsObjectFieldTreeItem, MrsObjectFieldTreeEntryType }
+    from "../../../modules/mrs/dialogs/MrsObjectFieldEditor.js";
+import { RowComponentMock } from "./RowComponentMock.js";
 import { ColumnComponentMock } from "./ColumnComponentMock.js";
 
-export class CellComponentMock implements CellComponent {
+
+export class MockCellComponent implements CellComponent {
+    public parent?: RowComponentMock;
     public getElement = jest.fn();
     public getTable = jest.fn();
-    public getRow = jest.fn();
-    public getData = jest.fn();
     public getType = jest.fn();
     public checkHeight = jest.fn();
     public edit = jest.fn();
@@ -43,10 +49,80 @@ export class CellComponentMock implements CellComponent {
     public clearValidation = jest.fn();
     public validate = jest.fn();
 
+    public data: IMrsObjectFieldTreeItem;
+    public fieldType: string = "json";
+    public row: RowComponentMock;
     private value: unknown = "Animal";
 
+    public constructor(data?: IMrsObjectFieldTreeItem) {
+        this.data = data || {
+            type: MrsObjectFieldTreeEntryType.Field,
+            expanded: false,
+            expandedOnce: false,
+            firstItem: true,
+            lastItem: true,
+            unnested: undefined,
+            field: {
+                id: "",
+                objectId: "",
+                representsReferenceId: "",
+                parentReferenceId: "",
+                name: "",
+                position: 0,
+                dbColumn: undefined,
+                enabled: true,
+                allowFiltering: true,
+                allowSorting: true,
+                noCheck: true,
+                noUpdate: true,
+                sdkOptions: undefined,
+                comments: "",
+                objectReference: undefined,
+                lev: 0,
+                caption: "",
+                storedDbColumn: undefined,
+            },
+        };
+
+        this.row = new RowComponentMock({
+            type: 1,
+            expanded: false,
+            expandedOnce: false,
+            field: {
+                id: "WpEezaKITIHsIVbnhP7kKA==",
+                objectId: "EbIyADFqTITr774mzWjfng==",
+                name: "actor",
+                position: 0,
+                enabled: false,
+                allowFiltering: false,
+                allowSorting: false,
+                noCheck: false,
+                noUpdate: false,
+                objectReference: {
+                    id: "",
+                    referenceMapping: {
+                        kind: "1:1",
+                        constraint: "",
+                        toMany: false,
+                        referencedSchema: "",
+                        referencedTable: "",
+                        columnMapping: [],
+                    },
+                    unnest: false,
+                    sdkOptions: undefined,
+                    comments: "",
+                },
+            },
+            firstItem: true,
+            lastItem: true,
+        });
+    }
+
     public getColumn = (): ColumnComponent => {
-        return new ColumnComponentMock();
+        const result = new ColumnComponentMock();
+        result.fieldType = this.fieldType;
+
+        return result;
     };
 
     public getValue = (): unknown => {
@@ -107,4 +183,11 @@ export class CellComponentMock implements CellComponent {
     };
 
     public getRanges(): RangeComponent[] { return []; }
+    public getData = (): IMrsObjectFieldTreeItem => {
+        return this.data;
+    };
+
+    public getRow = (): RowComponent => {
+        return this.row;
+    };
 }
