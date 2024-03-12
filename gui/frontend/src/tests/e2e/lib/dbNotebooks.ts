@@ -24,10 +24,11 @@
  */
 
 import { until, WebElement, Key, error } from "selenium-webdriver";
-import { explicitWait, IDBConnection } from "./misc.js";
+import { explicitWait } from "./misc.js";
 import * as locator from "../lib/locators.js";
 import * as constants from "../lib/constants.js";
 import { driver } from "../lib/driver.js";
+import * as interfaces from "../lib/interfaces.js";
 
 export const execFullBlockSql = "Execute the selection or everything in the current block and create a new block";
 export const execFullBlockJs = "Execute everything in the current block and create a new block";
@@ -85,7 +86,7 @@ export class DBNotebooks {
      * @param dbConfig SSL Mode
      * @returns Promise resolving with the connection created
      */
-    public static createDBconnection = async (dbConfig: IDBConnection):
+    public static createDBconnection = async (dbConfig: interfaces.IDBConnection):
         Promise<WebElement | undefined> => {
         const ctx = await driver.wait(until.elementLocated(locator.dbConnections.browser),
             explicitWait, "DB Connection Overview page was not loaded");
@@ -115,37 +116,38 @@ export class DBNotebooks {
 
             return !(await driver.executeScript("return document.querySelector('#caption').value"));
         }, 3000, "caption was not cleared in time");
-        await newConDialog.findElement(locator.databaseConnectionConfiguration.caption).sendKeys(dbConfig.caption);
+        const basicInfo = dbConfig.basic as interfaces.IConnBasicMySQL;
+        await newConDialog.findElement(locator.databaseConnectionConfiguration.caption).sendKeys(dbConfig.caption!);
         await newConDialog.findElement(locator.databaseConnectionConfiguration.description).clear();
         await newConDialog
             .findElement(locator.databaseConnectionConfiguration.description)
-            .sendKeys(dbConfig.description);
+            .sendKeys(dbConfig.description!);
         await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).clear();
         await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname)
-            .sendKeys(String(dbConfig.hostname));
-        await DBNotebooks.setProtocol(dbConfig.protocol);
+            .sendKeys(String(basicInfo.hostname));
+        await DBNotebooks.setProtocol(basicInfo.protocol!);
         await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port).clear();
         await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port)
-            .sendKeys(String(dbConfig.port));
+            .sendKeys(String(basicInfo.port));
         await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.username)
-            .sendKeys(String(dbConfig.username));
+            .sendKeys(String(basicInfo.username));
         await newConDialog
             .findElement(locator.databaseConnectionConfiguration.mysql.basic.schema)
-            .sendKeys(String(dbConfig.schema));
+            .sendKeys(String(basicInfo.schema));
 
         if (dbConfig.dbType) {
             await DBNotebooks.selectDBType(dbConfig.dbType);
         }
 
-        if (dbConfig.sslMode) {
+        if (dbConfig.ssl) {
             await newConDialog.findElement(locator.databaseConnectionConfiguration.sslTab).click();
             await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.ssl.mode).click();
             const dropDownList = await driver
                 .findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeList.exists);
-            await dropDownList.findElement(locator.searchById(dbConfig.sslMode)).click();
+            await dropDownList.findElement(locator.searchById(dbConfig.ssl.mode!)).click();
             expect(await newConDialog
                 .findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeLabel).getText())
-                .toBe(dbConfig.sslMode);
+                .toBe(dbConfig.ssl.mode);
 
             const certsPath = process.env.SSLCERTSPATH as string;
             const paths = await newConDialog.findElements(locator.databaseConnectionConfiguration.mysql.ssl.inputs);
@@ -163,7 +165,7 @@ export class DBNotebooks {
             const connections = await driver.findElements(locator.dbConnections.connections.item);
             for (const connection of connections) {
                 const el = await connection.findElement(locator.dbConnections.connections.caption);
-                if ((await el.getAttribute("innerHTML")).includes(dbConfig.caption)) {
+                if ((await el.getAttribute("innerHTML")).includes(dbConfig.caption!)) {
                     return connection;
                 }
             }

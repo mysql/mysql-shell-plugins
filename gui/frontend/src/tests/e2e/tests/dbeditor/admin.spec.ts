@@ -24,12 +24,13 @@
  */
 
 import { until } from "selenium-webdriver";
-import { Misc, explicitWait, IDBConnection } from "../../lib/misc.js";
+import { Misc, explicitWait } from "../../lib/misc.js";
 import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import * as locator from "../../lib/locators.js";
 import { basename } from "path";
 import { driver, loadDriver } from "../../lib/driver.js";
+import * as interfaces from "../../lib/interfaces.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -38,21 +39,18 @@ describe("MySQL Administration", () => {
 
     let testFailed = false;
 
-    const globalConn: IDBConnection = {
-        dbType: undefined,
+    const globalConn: interfaces.IDBConnection = {
         caption: `connAdmin`,
         description: "Local connection",
-        hostname: String(process.env.DBHOSTNAME),
-        protocol: "mysql",
-        username: String(process.env.DBUSERNAME),
-        port: String(process.env.DBPORT),
-        portX: String(process.env.DBPORTX),
-        schema: "sakila",
-        password: String(process.env.DBPASSWORD),
-        sslMode: undefined,
-        sslCA: undefined,
-        sslClientCert: undefined,
-        sslClientKey: undefined,
+        basic: {
+            hostname: String(process.env.DBHOSTNAME),
+            protocol: "mysql",
+            username: String(process.env.DBUSERNAME),
+            port: parseInt(process.env.DBPORT!, 10),
+            portX: parseInt(process.env.DBPORTX!, 10),
+            schema: "sakila",
+            password: String(process.env.DBPASSWORD),
+        },
     };
 
     beforeAll(async () => {

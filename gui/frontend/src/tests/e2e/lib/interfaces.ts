@@ -92,3 +92,11 @@ export interface IResultGridCell {
     columnName: string;
     value: string | boolean | number;
 }
+
+export const isMySQLConnection = (obj: unknown): obj is IConnBasicMySQL => {
+    return (obj as IConnBasicMySQL).hostname !== undefined;
+};
+
+export const isSQLiteConnection = (obj: unknown): obj is IConnBasicSqlite => {
+    return (obj as IConnBasicSqlite).dbName !== undefined;
+};

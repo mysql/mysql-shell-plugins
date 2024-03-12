@@ -28,7 +28,7 @@ import { basename, join } from "path";
 import { Key, error, until, WebElement } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
-import { IDBConnection, Misc, explicitWait } from "../../lib/misc.js";
+import { Misc, explicitWait } from "../../lib/misc.js";
 import { ShellSession } from "../../lib/shellSession.js";
 import * as locator from "../../lib/locators.js";
 import { CommandExecutor } from "../../lib/cmdExecutor.js";
@@ -41,21 +41,18 @@ import { driver, loadDriver } from "../../lib/driver.js";
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
 
-const globalConn: IDBConnection = {
-    dbType: undefined,
+const globalConn: interfaces.IDBConnection = {
     caption: `connNotebooks`,
     description: "Local connection",
-    hostname: String(process.env.DBHOSTNAME),
-    protocol: "mysql",
-    username: "dbuser2",
-    port: String(process.env.DBPORT),
-    portX: String(process.env.DBPORTX),
-    schema: "sakila",
-    password: "dbuser2",
-    sslMode: undefined,
-    sslCA: undefined,
-    sslClientCert: undefined,
-    sslClientKey: undefined,
+    basic: {
+        hostname: String(process.env.DBHOSTNAME),
+        protocol: "mysql",
+        username: "dbuser2",
+        port: parseInt(process.env.DBPORT!, 10),
+        portX: parseInt(process.env.DBPORTX!, 10),
+        schema: "sakila",
+        password: "dbuser2",
+    },
 };
 
 describe("Notebook", () => {
@@ -207,7 +204,7 @@ describe("Notebook", () => {
             const defaultSchema = await driver.findElement(
                 locator.notebook.explorerHost.schemas.default,
             );
-            expect(await defaultSchema.getText()).toBe(String(globalConn.schema));
+            expect(await defaultSchema.getText()).toBe(String((globalConn.basic as interfaces.IConnBasicMySQL).schema));
         } catch (e) {
             testFailed = true;
             throw e;
@@ -1407,21 +1404,18 @@ describe("Notebook", () => {
 describe("Notebook headless off", () => {
 
     let testFailed = false;
-    const anotherConnection: IDBConnection = {
-        dbType: undefined,
+    const anotherConnection: interfaces.IDBConnection = {
         caption: `no headless`,
         description: "Local connection",
-        hostname: String(process.env.DBHOSTNAME),
-        protocol: "mysql",
-        username: "dbuser2",
-        port: String(process.env.DBPORT),
-        portX: String(process.env.DBPORTX),
-        schema: "sakila",
-        password: "dbuser2",
-        sslMode: undefined,
-        sslCA: undefined,
-        sslClientCert: undefined,
-        sslClientKey: undefined,
+        basic: {
+            hostname: String(process.env.DBHOSTNAME),
+            protocol: "mysql",
+            username: "dbuser2",
+            port: parseInt(process.env.DBPORT!, 10),
+            portX: parseInt(process.env.DBPORTX!, 10),
+            schema: "sakila",
+            password: "dbuser2",
+        },
     };
 
     const commandExecutor = new CommandExecutor();

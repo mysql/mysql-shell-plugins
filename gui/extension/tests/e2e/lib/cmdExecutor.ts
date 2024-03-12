@@ -1013,6 +1013,8 @@ export class CommandExecutor {
                         if (!(await setToNull.getAttribute("class")).includes("disabled")) {
                             await setToNull.click();
                         } else {
+                            await driver.actions().sendKeys(Key.ESCAPE).perform();
+
                             return false;
                         }
                         break;
