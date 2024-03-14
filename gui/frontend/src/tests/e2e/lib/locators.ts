@@ -34,13 +34,18 @@ export const searchByCss = (id: string): By => {
 // DATABASE CONNECTION CONFIGURATION
 export const databaseConnectionConfiguration = {
     exists: By.className("valueEditDialog"),
+    basicTab: By.id("page0"),
+    sslTab: By.id("page1"),
+    advancedTab: By.id("page2"),
+    mdsTab: By.id("page3"),
     databaseType: {
         exists: By.id("databaseType"),
         list: By.className("dropdownList"),
+        databaseTypeMysql: By.id("MySQL"),
+        databaseTypeSqlite: By.id("Sqlite"),
     },
     caption: By.id("caption"),
     description: By.id("description"),
-    sslTab: By.id("page1"),
     mysql: {
         basic: {
             hostname: By.id("hostName"),
@@ -69,6 +74,9 @@ export const databaseConnectionConfiguration = {
         basic: {
             dbFilePath: By.id("dbFilePath"),
             dbName: By.id("dbName"),
+        },
+        advanced: {
+            otherParams: By.id("otherParameters"),
         },
     },
     close: By.id("closeButton"),
@@ -537,4 +545,13 @@ export const mainActivityBar = By.id("mainActivityBar");
 
 export const suggestWidget = {
     exists: By.css(".suggest-widget.visible"),
+};
+
+export const checkBox = {
+    unchecked: By.css(".checkbox.unchecked"),
+    checkMark: By.className("checkMark"),
+};
+
+export const genericDialog = {
+    exists: By.className("valueEditDialog"),
 };

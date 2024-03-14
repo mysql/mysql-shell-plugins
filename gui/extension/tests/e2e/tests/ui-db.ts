@@ -337,13 +337,7 @@ describe("DATABASE CONNECTIONS", () => {
                 dbName: "SQLite",
             };
 
-            await DatabaseConnection.setConnection(
-                sqliteConn.dbType,
-                sqliteConn.caption,
-                undefined,
-                sqliteConn.basic,
-            );
-
+            await DatabaseConnection.setConnection(sqliteConn);
             const sqliteWebConn = await DatabaseConnection.getConnection(sqliteConn.caption);
 
             await driver.executeScript(
@@ -399,14 +393,7 @@ describe("DATABASE CONNECTIONS", () => {
                 clientKeyPath: String(process.env.SSL_CLIENT_KEY_PATH),
             };
 
-            await DatabaseConnection.setConnection(
-                sslConn.dbType,
-                sslConn.caption,
-                undefined,
-                sslConn.basic,
-                sslConn.ssl,
-            );
-
+            await DatabaseConnection.setConnection(sslConn);
             const dbConn = await DatabaseConnection.getConnection(sslConn.caption);
 
             await driver.executeScript(
@@ -675,12 +662,7 @@ describe("DATABASE CONNECTIONS", () => {
             await DatabaseConnection.getConnection(localConn.caption);
             const treeLocalConn = await Tree.getElement(constants.dbTreeSection, localConn.caption);
             await Tree.openContextMenuAndSelect(treeLocalConn, constants.editDBConnection);
-            await DatabaseConnection.setConnection(
-                "MySQL",
-                localConn.caption,
-                undefined,
-                undefined,
-            );
+            await DatabaseConnection.setConnection(localConn);
             expect(await Tree.existsElement(constants.dbTreeSection, localConn.caption),
                 errors.doesNotExistOnTree(localConn.caption)).to.be.true;
 
@@ -688,10 +670,12 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Duplicate this MySQL connection", async () => {
 
+            const dupConn = Object.assign({}, globalConn);
+            dupConn.caption = dup;
             await Section.focus(constants.dbTreeSection);
             treeGlobalConn = await Tree.getElement(constants.dbTreeSection, globalConn.caption);
             await Tree.openContextMenuAndSelect(treeGlobalConn, constants.duplicateConnection);
-            await DatabaseConnection.setConnection(undefined, dup);
+            await DatabaseConnection.setConnection(dupConn);
             await driver.wait(async () => {
                 return (await Tree.existsElement(constants.dbTreeSection, dup)) === true;
             }, constants.wait5seconds, `${dup} does not exist on the tree`);

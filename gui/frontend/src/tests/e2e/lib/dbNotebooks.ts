@@ -29,6 +29,7 @@ import * as locator from "../lib/locators.js";
 import * as constants from "../lib/constants.js";
 import { driver } from "../lib/driver.js";
 import * as interfaces from "../lib/interfaces.js";
+import { DialogHelper } from "../lib/dialogHelper.js";
 
 export const execFullBlockSql = "Execute the selection or everything in the current block and create a new block";
 export const execFullBlockJs = "Execute everything in the current block and create a new block";
@@ -83,11 +84,10 @@ export class DBNotebooks {
     /**
      * Creates a new database connection, from the DB Editor main page.
      * It verifies that the Connection dialog is closed, at the end.
-     * @param dbConfig SSL Mode
+     * @param dbConfig Database Config object
      * @returns Promise resolving with the connection created
      */
-    public static createDBconnection = async (dbConfig: interfaces.IDBConnection):
-        Promise<WebElement | undefined> => {
+    public static createDataBaseConnection = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
         const ctx = await driver.wait(until.elementLocated(locator.dbConnections.browser),
             explicitWait, "DB Connection Overview page was not loaded");
 
@@ -108,68 +108,125 @@ export class DBNotebooks {
                 return false;
             }
         }, explicitWait, "Connection dialog was not displayed");
+        await DBNotebooks.setConnection(dbConfig);
+    };
 
-        const newConDialog = await driver.findElement(locator.databaseConnectionConfiguration.exists);
+    /**
+     * Sets a Database connection data
+     * @param dbConfig Database Config object
+     * @returns A promise resolving when the connection dialog is set
+     */
+    public static setConnection = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
+        const configDialog = locator.databaseConnectionConfiguration;
 
-        await driver.wait(async () => {
-            await newConDialog.findElement(locator.databaseConnectionConfiguration.caption).clear();
-
-            return !(await driver.executeScript("return document.querySelector('#caption').value"));
-        }, 3000, "caption was not cleared in time");
-        const basicInfo = dbConfig.basic as interfaces.IConnBasicMySQL;
-        await newConDialog.findElement(locator.databaseConnectionConfiguration.caption).sendKeys(dbConfig.caption!);
-        await newConDialog.findElement(locator.databaseConnectionConfiguration.description).clear();
-        await newConDialog
-            .findElement(locator.databaseConnectionConfiguration.description)
-            .sendKeys(dbConfig.description!);
-        await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname).clear();
-        await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname)
-            .sendKeys(String(basicInfo.hostname));
-        await DBNotebooks.setProtocol(basicInfo.protocol!);
-        await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port).clear();
-        await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.port)
-            .sendKeys(String(basicInfo.port));
-        await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.username)
-            .sendKeys(String(basicInfo.username));
-        await newConDialog
-            .findElement(locator.databaseConnectionConfiguration.mysql.basic.schema)
-            .sendKeys(String(basicInfo.schema));
+        const dialog = await driver.wait(until.elementLocated(configDialog.exists),
+            constants.wait5seconds, "Connection dialog was not displayed");
 
         if (dbConfig.dbType) {
-            await DBNotebooks.selectDBType(dbConfig.dbType);
+            const inDBType = await dialog.findElement(configDialog.databaseType.exists);
+            await inDBType.click();
+            const popup = await driver.wait(until.elementLocated(configDialog.databaseType.list),
+                constants.wait5seconds, "Database type popup was not found");
+            await popup.findElement(locator.searchById(dbConfig.dbType)).click();
+        }
+        if (dbConfig.caption) {
+            await DialogHelper.setFieldText(dialog, configDialog.caption, dbConfig.caption);
+        }
+        if (dbConfig.description) {
+            await DialogHelper.setFieldText(dialog, configDialog.description, dbConfig.description);
         }
 
-        if (dbConfig.ssl) {
-            await newConDialog.findElement(locator.databaseConnectionConfiguration.sslTab).click();
-            await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.ssl.mode).click();
-            const dropDownList = await driver
-                .findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeList.exists);
-            await dropDownList.findElement(locator.searchById(dbConfig.ssl.mode!)).click();
-            expect(await newConDialog
-                .findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeLabel).getText())
-                .toBe(dbConfig.ssl.mode);
+        if (dbConfig.dbType) {
+            let hostname: string | undefined;
+            let username: string | undefined;
+            let schema: string | undefined;
+            let port: number | undefined;
+            let ociBastion: boolean | undefined;
+            let dbPath: string | undefined;
+            let dbName: string | undefined;
+            let params: string | undefined;
 
-            const certsPath = process.env.SSLCERTSPATH as string;
-            const paths = await newConDialog.findElements(locator.databaseConnectionConfiguration.mysql.ssl.inputs);
-            await paths[0].sendKeys(`${certsPath}/ca-cert.pem`);
-            await paths[1].sendKeys(`${certsPath}/client-cert.pem`);
-            await paths[2].sendKeys(`${certsPath}/client-key.pem`);
-        }
+            if (interfaces.isMySQLConnection(dbConfig.basic)) {
+                hostname = dbConfig.basic.hostname;
+                username = dbConfig.basic.username;
+                schema = dbConfig.basic.schema;
+                port = dbConfig.basic.port;
+                ociBastion = dbConfig.basic.ociBastion;
+            } else if (interfaces.isSQLiteConnection(dbConfig.basic)) {
+                dbPath = dbConfig.basic.dbPath;
+                dbName = dbConfig.basic.dbName;
+            } else {
+                throw new Error("Unknown database type");
+            }
 
-        const okBtn = await driver.findElement(locator.databaseConnectionConfiguration.ok);
-        await driver.executeScript("arguments[0].scrollIntoView(true)", okBtn);
-        await okBtn.click();
-        expect((await driver.findElements(locator.databaseConnectionConfiguration.exists)).length).toBe(0);
-
-        return driver.wait(async () => {
-            const connections = await driver.findElements(locator.dbConnections.connections.item);
-            for (const connection of connections) {
-                const el = await connection.findElement(locator.dbConnections.connections.caption);
-                if ((await el.getAttribute("innerHTML")).includes(dbConfig.caption!)) {
-                    return connection;
+            if (dbConfig.advanced) {
+                if (interfaces.isAdvancedSqlite(dbConfig.advanced)) {
+                    params = dbConfig.advanced.params;
                 }
             }
-        }, explicitWait, `'${dbConfig.caption}' was not created`);
+
+            if (dbConfig.dbType === "MySQL") {
+                if (dbConfig.basic) {
+                    await dialog.findElement(configDialog.basicTab).click();
+                    if (hostname) {
+                        await DialogHelper.setFieldText(dialog, configDialog.mysql.basic.hostname, hostname);
+                    }
+                    if (username) {
+                        await DialogHelper.setFieldText(dialog, configDialog.mysql.basic.username, username);
+                    }
+                    if (schema) {
+                        await DialogHelper.setFieldText(dialog, configDialog.mysql.basic.schema, schema);
+                    }
+                    if (port) {
+                        await DialogHelper.setFieldText(dialog, configDialog.mysql.basic.port, String(port));
+                    }
+                    if (ociBastion !== undefined) {
+                        await DialogHelper.setCheckboxValue("useMDS", ociBastion);
+                    }
+                }
+
+                if (dbConfig.ssl) {
+                    await dialog.findElement(configDialog.sslTab).click();
+                    if (dbConfig.ssl.mode) {
+                        const inMode = await dialog.findElement(configDialog.mysql.ssl.mode);
+                        await inMode.click();
+                        const popup = await driver.findElement(configDialog.mysql.ssl.modeList.exists);
+                        await popup.findElement(locator.searchById(dbConfig.ssl.mode)).click();
+                    }
+                    if (dbConfig.ssl.caPath) {
+                        await DialogHelper.setFieldText(dialog, configDialog.mysql.ssl.ca, dbConfig.ssl.caPath);
+                    }
+                    if (dbConfig.ssl.clientCertPath) {
+                        await DialogHelper.setFieldText(dialog, configDialog.mysql.ssl.cert,
+                            dbConfig.ssl.clientCertPath);
+                    }
+                    if (dbConfig.ssl.clientKeyPath) {
+                        await DialogHelper.setFieldText(dialog, configDialog.mysql.ssl.key,
+                            dbConfig.ssl.clientKeyPath);
+                    }
+                }
+
+            } else if (dbConfig.dbType === "Sqlite") {
+                if (dbConfig.basic) {
+                    await dialog.findElement(configDialog.basicTab).click();
+                    if (dbPath) {
+                        await DialogHelper.setFieldText(dialog, configDialog.sqlite.basic.dbFilePath, dbPath);
+                    }
+                    if (dbName) {
+                        await DialogHelper.setFieldText(dialog, configDialog.sqlite.basic.dbName, dbName);
+                    }
+                }
+                if (dbConfig.advanced) {
+                    await dialog.findElement(configDialog.advancedTab).click();
+                    if (params) {
+                        await DialogHelper.setFieldText(dialog, configDialog.sqlite.advanced.otherParams, params);
+                    }
+                }
+            }
+        } else {
+            throw new Error("Could not find the database type on the db config object");
+        }
+        await dialog.findElement(configDialog.ok).click();
     };
 
     /**
@@ -179,7 +236,6 @@ export class DBNotebooks {
      * @returns @returns Promise resolving with the DB Connection
      */
     public static getConnection = async (name: string): Promise<WebElement | undefined> => {
-
         return driver.wait(async () => {
             const connections = await driver.findElements(locator.dbConnections.connections.item);
             for (const connection of connections) {
@@ -189,7 +245,6 @@ export class DBNotebooks {
                 }
             }
         }, 1500, "Could not find any connection");
-
     };
 
     public static clickConnectionItem = async (conn: WebElement, item: string): Promise<void> => {

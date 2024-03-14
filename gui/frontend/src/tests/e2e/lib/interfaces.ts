@@ -45,7 +45,7 @@ export interface IDBConnection {
     description?: string;
     basic?: IConnBasicMySQL | IConnBasicSqlite;
     ssl?: IConnSSL;
-    advanced?: IConnAdvanced;
+    advanced?: IConnMySqlAdvanced | IConnSqliteAdvanced;
 }
 
 export interface IConnBasicMySQL {
@@ -63,7 +63,7 @@ export interface IConnBasicMySQL {
 export interface IConnBasicSqlite {
     dbPath?: string;
     dbName?: string;
-    advanced?: IConnAdvancedSqlite;
+    advanced?: IConnSqliteAdvanced;
 }
 
 export interface IConnSSL {
@@ -74,7 +74,7 @@ export interface IConnSSL {
     clientKeyPath?: string;
 }
 
-export interface IConnAdvanced {
+export interface IConnMySqlAdvanced {
     mode?: string;
     timeout?: number;
     compression?: string;
@@ -83,7 +83,7 @@ export interface IConnAdvanced {
     disableHW?: boolean;
 }
 
-export interface IConnAdvancedSqlite {
+export interface IConnSqliteAdvanced {
     params?: string;
 }
 
@@ -99,4 +99,12 @@ export const isMySQLConnection = (obj: unknown): obj is IConnBasicMySQL => {
 
 export const isSQLiteConnection = (obj: unknown): obj is IConnBasicSqlite => {
     return (obj as IConnBasicSqlite).dbName !== undefined;
+};
+
+export const isAdvancedMySQL = (obj: unknown): obj is IConnMySqlAdvanced => {
+    return (obj as IConnMySqlAdvanced).mode !== undefined;
+};
+
+export const isAdvancedSqlite = (obj: unknown): obj is IConnSqliteAdvanced => {
+    return (obj as IConnSqliteAdvanced).params !== undefined;
 };
