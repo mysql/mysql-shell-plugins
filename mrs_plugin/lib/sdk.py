@@ -553,6 +553,26 @@ def field_is_unique(field):
     return False
 
 
+def field_can_be_cursor(field):
+    if field.get("lev") != 1:
+        return False
+
+    db_column_info = field.get("db_column")
+
+    if db_column_info is None:
+        return False
+
+    # the column can be used as a cursor if it is a unique and sequential
+    # e.g. if it is a timestamp or has an AUTO_INCREMENT constraint
+    id_generation = db_column_info.get("id_generation")
+    datatype = db_column_info.get("datatype")
+
+    if id_generation is not None and id_generation.startswith("auto_inc") or datatype.startswith("timestamp"):
+        return True
+
+    return False
+
+
 def get_field_by_id(fields, id):
     for field in fields:
         if field.get("id") == id:
@@ -594,6 +614,7 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language, session):
     param_interface_fields = []
     out_params_interface_fields = []
     obj_unique_list = []
+    cursor_list = []
 
     # The I{class_name}, I{class_name}Params and I{class_name}Out interfaces
     for field in fields:
@@ -663,6 +684,11 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language, session):
                         obj_unique_list.append(
                             f'    {field.get("name")}?: {datatype},\n')
 
+                        # Build list of unique columns which can potentially be used for cursor-based pagination.
+                        if (field_can_be_cursor(field)):
+                            cursor_list.append(
+                                f'    {field.get("name")}?: {datatype},\n')
+
     if len(interface_fields) > 0:
         if db_obj.get("object_type") == "PROCEDURE" or db_obj.get("object_type") == "FUNCTION":
             if obj.get("kind") != "PARAMETERS":
@@ -705,6 +731,12 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language, session):
         obj_interfaces.append(
             f"export interface I{class_name}UniqueParams {{\n" +
             "".join(obj_unique_list) +
+            "}\n\n")
+
+    if len(cursor_list) > 0:
+        obj_interfaces.append(
+            f"export interface I{class_name}Cursors {{\n" +
+            "".join(cursor_list) +
             "}\n\n")
 
     return "".join(obj_interfaces), out_params_interface_fields

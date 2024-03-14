@@ -125,25 +125,31 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                 await this.setActiveNoteById(activeNoteId);
             }
 
-            const take = 10;
-            let page; let skip = 0;
+            const take = 5;
+            let iterator = 0;
+            let skip = 0;
+            let sliceOfNotes;
 
-            do {
-                // Proof that we do not need more than "take" and "skip" for pagination.
-                // Ultimately, this can be simplified if findMany() returns an instance of IMyServiceMrsNotesNotesAll[].
-                page = await myService.mrsNotes.notesAll.findMany({
-                    take, skip, select: { content: false }, where: {
-                        title: { $like: `${noteSearchText ?? ""}%` },
+            const options = {
+                take,
+                skip,
+                select: {
+                    content: false,
+                },
+                where: {
+                    title: {
+                        $like: `${noteSearchText ?? ""}%`,
                     },
-                });
+                },
+            };
 
-                newNotes.push(...page.items);
+            while ((sliceOfNotes = await myService.mrsNotes.notesAll.findMany(options)).length) {
+                newNotes.push(...sliceOfNotes);
                 // Set a new state of the newNotes to trigger a re-render
                 this.setState({ notes: newNotes });
-
-                skip = page.items.length;
-
-            } while (page.items.length === take);
+                iterator += 1;
+                skip = iterator * take;
+            }
 
             if (newNotes.length === 0) {
                 this.setState({ forceNoteListDisplay: undefined });

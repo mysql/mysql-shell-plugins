@@ -217,23 +217,27 @@
                                                 id="toc-findmany"><span
                                                 class="toc-section-number">5.6</span>
                                                 findMany</a></li>
+                                                <li><a href="#findall"
+                                                id="toc-findall"><span
+                                                class="toc-section-number">5.7</span>
+                                                findAll</a></li>
                                                 <li><a href="#delete"
                                                 id="toc-delete"><span
-                                                class="toc-section-number">5.7</span>
+                                                class="toc-section-number">5.8</span>
                                                 delete</a></li>
                                                 <li><a
                                                 href="#deletemany"
                                                 id="toc-deletemany"><span
-                                                class="toc-section-number">5.8</span>
+                                                class="toc-section-number">5.9</span>
                                                 deleteMany</a></li>
                                                 <li><a href="#update"
                                                 id="toc-update"><span
-                                                class="toc-section-number">5.9</span>
+                                                class="toc-section-number">5.10</span>
                                                 update</a></li>
                                                 <li><a
                                                 href="#updatemany"
                                                 id="toc-updatemany"><span
-                                                class="toc-section-number">5.10</span>
+                                                class="toc-section-number">5.11</span>
                                                 updateMany</a></li>
                                                 </ul></li>
                                                 </ul>
@@ -905,7 +909,7 @@ Reference
                 TypeScript/JavaScript object or, alternatively, as an
                 instance of a particular class that encapsulates the
                 data required to create a new record. To insert multiple
-                records, see <code>createMany</code>[#createMany].</p>
+                records, see <code>createMany</code>[#createmany].</p>
                 <h3 data-number="5.1.1" id="options-create"><span
                 class="header-section-number">5.1.1</span> Options
                 (create)</h3>
@@ -1233,9 +1237,10 @@ Reference
                 </ul>
                 <h2 data-number="5.6" id="findmany"><span
                 class="header-section-number">5.6</span> findMany</h2>
-                <p><code>findMany</code> is used to query all records in
-                one or more pages, and optionally, those that match a
-                given filter.</p>
+                <p><code>findMany</code> is used to query a subset of
+                records in one or more pages, and optionally, those that
+                match a given filter. To find all records see <a
+                href="#findall">findAll</a>.</p>
                 <h3 data-number="5.6.1" id="options-findmany"><span
                 class="header-section-number">5.6.1</span> Options
                 (findMany)</h3>
@@ -1256,11 +1261,23 @@ Reference
                 </thead>
                 <tbody>
                 <tr class="odd">
-                <td>where</td>
+                <td>cursor</td>
                 <td>object</td>
                 <td>No</td>
-                <td>Filtering conditions that apply to specific
-                fields.</td>
+                <td>Retrieve records using unique and sequential fields
+                as cursor.</td>
+                </tr>
+                <tr class="even">
+                <td>iterator</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>Enable or disable iterator behavior.</td>
+                </tr>
+                <tr class="odd">
+                <td>orderBy</td>
+                <td>object</td>
+                <td>No</td>
+                <td>Determines the sort order of specific fields.</td>
                 </tr>
                 <tr class="even">
                 <td>select</td>
@@ -1277,16 +1294,17 @@ Reference
                 matches.</td>
                 </tr>
                 <tr class="even">
+                <td>where</td>
+                <td>object</td>
+                <td>No</td>
+                <td>Filtering conditions that apply to specific
+                fields.</td>
+                </tr>
+                <tr class="odd">
                 <td>take</td>
                 <td>number</td>
                 <td>No</td>
                 <td>Maximum number of records to return.</td>
-                </tr>
-                <tr class="odd">
-                <td>fetchAll</td>
-                <td>object</td>
-                <td>boolean</td>
-                <td>No</td>
                 </tr>
                 </tbody>
                 </table>
@@ -1299,18 +1317,19 @@ Reference
                 class="header-section-number">5.6.3</span> Reference
                 (findMany)</h3>
                 <div class="sourceCode" id="cb23"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">findMany</span> (args<span class="op">?:</span> IFindOptions<span class="op">&lt;</span>Selectable<span class="op">,</span> Filterable<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>IMrsResultList<span class="op">&lt;</span>Selectable<span class="op">&gt;&gt;</span> {</span>
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">findMany</span> ({ cursor<span class="op">,</span> iterator <span class="op">=</span> <span class="kw">true</span><span class="op">,</span> orderBy<span class="op">,</span> select<span class="op">,</span> skip<span class="op">,</span> take<span class="op">,</span> where }<span class="op">:</span> IFindManyOptions<span class="op">&lt;</span>Item<span class="op">,</span> Filterable<span class="op">,</span> Cursors<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>Item[]<span class="op">&gt;</span> {</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IFindOptions<span class="op">&lt;</span>Selectable<span class="op">,</span> Filterable<span class="op">&gt;</span> {</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    fetchAll<span class="op">?:</span> IFindAllOptions<span class="op">&lt;</span>Selectable<span class="op">&gt;</span> <span class="op">|</span> <span class="dt">boolean</span><span class="op">,</span></span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    orderBy<span class="op">?:</span> ColumnOrder<span class="op">&lt;</span>Filterable<span class="op">&gt;,</span></span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    select<span class="op">?:</span> BooleanFieldMapSelect<span class="op">&lt;</span>Selectable<span class="op">&gt;</span> <span class="op">|</span> FieldNameSelect<span class="op">&lt;</span>Selectable<span class="op">&gt;,</span></span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    skip<span class="op">?:</span> <span class="dt">number</span><span class="op">,</span></span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>    take<span class="op">?:</span> <span class="dt">number</span><span class="op">,</span></span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>    where<span class="op">?:</span> DataFilter<span class="op">&lt;</span>Filterable<span class="op">&gt;,</span></span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IFindManyOptions<span class="op">&lt;</span>Item<span class="op">,</span> Filterable<span class="op">,</span> Iterable<span class="op">&gt;</span> {</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    cursor<span class="op">?:</span> Cursor<span class="op">&lt;</span>Iterable<span class="op">&gt;;</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    iterator<span class="op">?:</span> <span class="dt">boolean</span><span class="op">;</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    orderBy<span class="op">?:</span> ColumnOrder<span class="op">&lt;</span>Filterable<span class="op">&gt;;</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    select<span class="op">?:</span> BooleanFieldMapSelect<span class="op">&lt;</span>Item<span class="op">&gt;</span> <span class="op">|</span> FieldNameSelect<span class="op">&lt;</span>Item<span class="op">&gt;;</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>    skip<span class="op">?:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>    take<span class="op">?:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>    where<span class="op">?:</span> DataFilter<span class="op">&lt;</span>Filterable<span class="op">&gt;;</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
                 <h3 data-number="5.6.4" id="example-findmany"><span
                 class="header-section-number">5.6.4</span> Example
                 (findMany)</h3>
@@ -1321,18 +1340,121 @@ Reference
 <span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="co">// get all notes of the first page</span></span>
 <span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">findMany</span>()<span class="op">;</span></span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="co">// get the first 3 notes of the first page</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="co">// get the first 3 notes</span></span>
 <span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">findMany</span>({ take<span class="op">:</span> <span class="dv">3</span> })<span class="op">;</span></span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="co">// get the first 50 notes</span></span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">findMany</span>({ fetchAll<span class="op">:</span> <span class="kw">true</span><span class="op">,</span> take<span class="op">:</span> <span class="dv">50</span> })<span class="op">;</span></span>
-<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="co">// get all notes whose id is greater than 10</span></span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">findMany</span>({ fetchAll<span class="op">:</span> <span class="kw">true</span><span class="op">,</span> where<span class="op">:</span> { id<span class="op">:</span> { $gt<span class="op">:</span> <span class="dv">10</span> } } })<span class="op">;</span></span></code></pre></div>
-                <h2 data-number="5.7" id="delete"><span
-                class="header-section-number">5.7</span> delete</h2>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="co">// get notes of then first page where the id is greater than 10</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">findMany</span>({ where<span class="op">:</span> { id<span class="op">:</span> { $gt<span class="op">:</span> <span class="dv">10</span> } } })<span class="op">;</span></span></code></pre></div>
+                <h2 data-number="5.7" id="findall"><span
+                class="header-section-number">5.7</span> findAll</h2>
+                <p><code>findAll</code> is used to query every record,
+                and optionally, all those that match a given filter. To
+                get a paginated subset of records, see <a
+                href="#findmany">findMany</a>.</p>
+                <h3 data-number="5.7.1" id="options-findall"><span
+                class="header-section-number">5.7.1</span> Options
+                (findAll)</h3>
+                <table>
+                <colgroup>
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Name</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>cursor</td>
+                <td>object</td>
+                <td>No</td>
+                <td>Retrieve records using unique and sequential fields
+                as cursor.</td>
+                </tr>
+                <tr class="even">
+                <td>orderBy</td>
+                <td>object</td>
+                <td>No</td>
+                <td>Determines the sort order of specific fields.</td>
+                </tr>
+                <tr class="odd">
+                <td>progress</td>
+                <td>function</td>
+                <td>No</td>
+                <td>Specifies a function to be called back when
+                reporting progress.</td>
+                </tr>
+                <tr class="even">
+                <td>select</td>
+                <td>object</td>
+                <td>No</td>
+                <td>Specifies which properties to include in the
+                returned object.</td>
+                </tr>
+                <tr class="odd">
+                <td>skip</td>
+                <td>number</td>
+                <td>No</td>
+                <td>How many records to skip before returning one of the
+                matches.</td>
+                </tr>
+                <tr class="even">
+                <td>where</td>
+                <td>object</td>
+                <td>No</td>
+                <td>Filtering conditions that apply to specific
+                fields.</td>
+                </tr>
+                </tbody>
+                </table>
+                <h3 data-number="5.7.2" id="return-type-findall"><span
+                class="header-section-number">5.7.2</span> Return Type
+                (findAll)</h3>
+                <p>An array of JSON objects representing the records
+                that match the filter.</p>
+                <h3 data-number="5.7.3" id="reference-findall"><span
+                class="header-section-number">5.7.3</span> Reference
+                (findAll)</h3>
+                <div class="sourceCode" id="cb25"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">findAll</span> (args<span class="op">?:</span> IFindAllOptions<span class="op">&lt;</span>Item<span class="op">,</span> Filterable<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>Item[]<span class="op">&gt;</span> {</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IFindAllOptions<span class="op">&lt;</span>Item<span class="op">,</span> Filterable<span class="op">&gt;</span> {</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    cursor<span class="op">?:</span> Cursor<span class="op">&lt;</span>Iterable<span class="op">&gt;;</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    orderBy<span class="op">?:</span> ColumnOrder<span class="op">&lt;</span>Filterable<span class="op">&gt;;</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    progress<span class="op">?:</span> progress<span class="op">?:</span> (items<span class="op">:</span> Item[]) <span class="kw">=&gt;</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;;</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    select<span class="op">?:</span> BooleanFieldMapSelect<span class="op">&lt;</span>Item<span class="op">&gt;</span> <span class="op">|</span> FieldNameSelect<span class="op">&lt;</span>Item<span class="op">&gt;;</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    skip<span class="op">?:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>    where<span class="op">?:</span> DataFilter<span class="op">&lt;</span>Filterable<span class="op">&gt;;</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h3 data-number="5.7.4" id="example-findall"><span
+                class="header-section-number">5.7.4</span> Example
+                (findAll)</h3>
+                <div class="sourceCode" id="cb26"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&#39;./myService.mrs.sdk/myService&#39;</span><span class="op">;</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()<span class="op">;</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="co">// get all notes</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">findAll</span>()<span class="op">;</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="co">// get all notes after the first 10</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">findAll</span>({ skip<span class="op">:</span> <span class="dv">10</span> })<span class="op">;</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="co">// get all notes and report the progress</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">findMany</span>({ progress<span class="op">:</span> (notes) <span class="kw">=&gt;</span> {</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Retrieved </span><span class="sc">${</span>notes<span class="op">.</span><span class="at">length</span><span class="sc">}</span><span class="vs"> notes.`</span>)<span class="op">;</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>}})<span class="op">;</span></span></code></pre></div>
+                <h2 data-number="5.8" id="delete"><span
+                class="header-section-number">5.8</span> delete</h2>
                 <p><code>delete</code> is used to delete the first
                 record that matches a given required filter.</p>
-                <h3 data-number="5.7.1" id="options-delete"><span
-                class="header-section-number">5.7.1</span> Options
+                <h3 data-number="5.8.1" id="options-delete"><span
+                class="header-section-number">5.8.1</span> Options
                 (delete)</h3>
                 <table>
                 <colgroup>
@@ -1359,42 +1481,42 @@ Reference
                 </tr>
                 </tbody>
                 </table>
-                <h3 data-number="5.7.2" id="return-type-delete"><span
-                class="header-section-number">5.7.2</span> Return Type
+                <h3 data-number="5.8.2" id="return-type-delete"><span
+                class="header-section-number">5.8.2</span> Return Type
                 (delete)</h3>
                 <p>A JSON object containing the number of records that
                 were deleted (always 1).</p>
-                <h3 data-number="5.7.3" id="reference-delete"><span
-                class="header-section-number">5.7.3</span> Reference
+                <h3 data-number="5.8.3" id="reference-delete"><span
+                class="header-section-number">5.8.3</span> Reference
                 (delete)</h3>
-                <div class="sourceCode" id="cb25"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">delete</span> (args<span class="op">:</span> IDeleteOptions<span class="op">&lt;</span>IMyServiceMrsNotesUserParams<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>IMrsDeleteResult<span class="op">&gt;</span> {</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IDeleteOptions<span class="op">&lt;</span>Filterable<span class="op">&gt;</span> {</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    where<span class="op">?:</span> DataFilter<span class="op">&lt;</span>Filterable<span class="op">&gt;,</span></span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsDeleteResult {</span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    itemsDeleted<span class="op">:</span> <span class="dv">1</span><span class="op">,</span></span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-                <h3 data-number="5.7.4" id="example-delete"><span
-                class="header-section-number">5.7.4</span> Example
+                <div class="sourceCode" id="cb27"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">delete</span> (args<span class="op">:</span> IDeleteOptions<span class="op">&lt;</span>IMyServiceMrsNotesUserParams<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>IMrsDeleteResult<span class="op">&gt;</span> {</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IDeleteOptions<span class="op">&lt;</span>Filterable<span class="op">&gt;</span> {</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    where<span class="op">?:</span> DataFilter<span class="op">&lt;</span>Filterable<span class="op">&gt;,</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsDeleteResult {</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>    itemsDeleted<span class="op">:</span> <span class="dv">1</span><span class="op">,</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h3 data-number="5.8.4" id="example-delete"><span
+                class="header-section-number">5.8.4</span> Example
                 (delete)</h3>
-                <div class="sourceCode" id="cb26"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&#39;./myService.mrs.sdk/myService&#39;</span><span class="op">;</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()<span class="op">;</span></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="co">// delete the first note whose title includes the string &quot;foo&quot;</span></span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">delete</span>({ where<span class="op">:</span> { title<span class="op">:</span> { $like<span class="op">:</span> <span class="st">&quot;%foo%&quot;</span> } } })<span class="op">;</span></span></code></pre></div>
-                <h2 data-number="5.8" id="deletemany"><span
-                class="header-section-number">5.8</span> deleteMany</h2>
+                <div class="sourceCode" id="cb28"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&#39;./myService.mrs.sdk/myService&#39;</span><span class="op">;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()<span class="op">;</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="co">// delete the first note whose title includes the string &quot;foo&quot;</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">delete</span>({ where<span class="op">:</span> { title<span class="op">:</span> { $like<span class="op">:</span> <span class="st">&quot;%foo%&quot;</span> } } })<span class="op">;</span></span></code></pre></div>
+                <h2 data-number="5.9" id="deletemany"><span
+                class="header-section-number">5.9</span> deleteMany</h2>
                 <p><code>delete</code> is used to delete all records
                 that match a given filter.</p>
-                <h3 data-number="5.8.1" id="options-deletemany"><span
-                class="header-section-number">5.8.1</span> Options
+                <h3 data-number="5.9.1" id="options-deletemany"><span
+                class="header-section-number">5.9.1</span> Options
                 (deleteMany)</h3>
                 <table>
                 <colgroup>
@@ -1421,127 +1543,46 @@ Reference
                 </tr>
                 </tbody>
                 </table>
-                <h3 data-number="5.8.2"
+                <h3 data-number="5.9.2"
                 id="return-type-deletemany"><span
-                class="header-section-number">5.8.2</span> Return Type
+                class="header-section-number">5.9.2</span> Return Type
                 (deleteMany)</h3>
                 <p>A JSON object containing the number of records that
                 were deleted.</p>
-                <h3 data-number="5.8.3" id="reference-deletemany"><span
-                class="header-section-number">5.8.3</span> Reference
-                (deleteMany)</h3>
-                <div class="sourceCode" id="cb27"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">deleteMany</span> (args<span class="op">:</span> IDeleteOptions<span class="op">&lt;</span>IMyServiceMrsNotesUserParams<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>IMrsDeleteResult<span class="op">&gt;</span> {</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IDeleteOptions<span class="op">&lt;</span>Filterable<span class="op">&gt;</span> {</span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    where<span class="op">?:</span> DataFilter<span class="op">&lt;</span>Filterable<span class="op">&gt;,</span></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsDeleteResult {</span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>    itemsDeleted<span class="op">:</span> <span class="dt">number</span><span class="op">,</span></span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-                <h3 data-number="5.8.4" id="example-deletemany"><span
-                class="header-section-number">5.8.4</span> Example
-                (deleteMany)</h3>
-                <div class="sourceCode" id="cb28"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&#39;./myService.mrs.sdk/myService&#39;</span><span class="op">;</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()<span class="op">;</span></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="co">// delete all notes whose title includes the string &quot;foo&quot;</span></span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">deleteMany</span>({ where<span class="op">:</span> { title<span class="op">:</span> { $like<span class="op">:</span> <span class="st">&quot;%foo%&quot;</span> } } })<span class="op">;</span></span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="co">// delete all shared notes</span></span>
-<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">deleteMany</span>({ where<span class="op">:</span> { shared<span class="op">:</span> <span class="kw">true</span> } })<span class="op">;</span></span></code></pre></div>
-                <h2 data-number="5.9" id="update"><span
-                class="header-section-number">5.9</span> update</h2>
-                <p><code>update</code> is used to update a record with a
-                given identifier or primary key.</p>
-                <h3 data-number="5.9.1" id="options-update"><span
-                class="header-section-number">5.9.1</span> Options
-                (update)</h3>
-                <table>
-                <colgroup>
-                <col style="width: 25%" />
-                <col style="width: 25%" />
-                <col style="width: 25%" />
-                <col style="width: 25%" />
-                </colgroup>
-                <thead>
-                <tr class="header">
-                <th>Name</th>
-                <th>Type</th>
-                <th>Required</th>
-                <th>Description</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr class="odd">
-                <td>data</td>
-                <td>object</td>
-                <td>Yes</td>
-                <td>Set of fields and corresponding values to
-                update.</td>
-                </tr>
-                <tr class="even">
-                <td>where</td>
-                <td>object</td>
-                <td>Yes</td>
-                <td>Matching identifier or primary key.</td>
-                </tr>
-                </tbody>
-                </table>
-                <h3 data-number="5.9.2" id="return-type-update"><span
-                class="header-section-number">5.9.2</span> Return Type
-                (update)</h3>
-                <p>A JSON object representing the up-to-date record.</p>
-                <h3 data-number="5.9.3" id="reference-update"><span
+                <h3 data-number="5.9.3" id="reference-deletemany"><span
                 class="header-section-number">5.9.3</span> Reference
-                (update)</h3>
+                (deleteMany)</h3>
                 <div class="sourceCode" id="cb29"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">update</span> (args<span class="op">:</span> IUpdateOptions<span class="op">&lt;</span>Data<span class="op">,</span> Filterable<span class="op">,</span> [<span class="st">&quot;id&quot;</span>]<span class="op">,</span> { batch<span class="op">:</span> <span class="kw">false</span> }<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>Data<span class="op">&gt;</span> {</span>
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">deleteMany</span> (args<span class="op">:</span> IDeleteOptions<span class="op">&lt;</span>IMyServiceMrsNotesUserParams<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>IMrsDeleteResult<span class="op">&gt;</span> {</span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IUpdateOptions<span class="op">&lt;</span>Data<span class="op">,</span> Filterable<span class="op">,</span> PrimaryKeys <span class="kw">extends</span> <span class="bu">Array</span><span class="op">&lt;</span><span class="dt">string</span> <span class="op">&amp;</span> <span class="kw">keyof</span> Filterable<span class="op">&gt;,</span> Config<span class="op">&gt;</span> {</span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    data<span class="op">:</span> Data<span class="op">,</span></span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    where<span class="op">:</span> Config <span class="kw">extends</span> IBatchConfig <span class="op">?</span> <span class="bu">Array</span><span class="op">&lt;</span>UpdateMatch<span class="op">&lt;</span>Filterable<span class="op">,</span> PrimaryKeys<span class="op">&gt;&gt;</span> <span class="op">:</span> UpdateMatch<span class="op">&lt;</span>Filterable<span class="op">,</span> PrimaryKeys<span class="op">&gt;</span></span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IBatchConfig {</span>
-<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>    batch<span class="op">:</span> <span class="kw">true</span></span>
-<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-                <h3 data-number="5.9.4" id="example-update"><span
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IDeleteOptions<span class="op">&lt;</span>Filterable<span class="op">&gt;</span> {</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    where<span class="op">?:</span> DataFilter<span class="op">&lt;</span>Filterable<span class="op">&gt;,</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsDeleteResult {</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>    itemsDeleted<span class="op">:</span> <span class="dt">number</span><span class="op">,</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h3 data-number="5.9.4" id="example-deletemany"><span
                 class="header-section-number">5.9.4</span> Example
-                (update)</h3>
+                (deleteMany)</h3>
                 <div class="sourceCode" id="cb30"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="im">type</span> { IMyServiceMrsNotesNote } <span class="im">from</span> <span class="st">&#39;/path/to/sdk/myService&#39;</span><span class="op">;</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&#39;./myService.mrs.sdk/myService&#39;</span><span class="op">;</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()<span class="op">;</span></span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="co">// update the note with id is 1 using a plain object</span></span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">update</span>({ where<span class="op">:</span> { id<span class="op">:</span> <span class="dv">1</span> }<span class="op">,</span> data<span class="op">:</span> { title<span class="op">:</span> <span class="st">&#39;bar&#39;</span> } } )<span class="op">;</span></span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a><span class="co">// using a custom class instance</span></span>
-<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Note <span class="kw">implements</span> IMyServiceMrsNotesNote {</span>
-<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
-<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> note <span class="op">=</span> <span class="kw">new</span> <span class="fu">Note</span>()<span class="op">;</span></span>
-<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>note<span class="op">.</span><span class="at">shared</span> <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
-<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a><span class="co">// update the note with id 1</span></span>
-<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">update</span>({ where<span class="op">:</span> { id<span class="op">:</span> <span class="dv">1</span> }<span class="op">,</span> data<span class="op">:</span> note })<span class="op">;</span></span></code></pre></div>
-                <h2 data-number="5.10" id="updatemany"><span
-                class="header-section-number">5.10</span>
-                updateMany</h2>
-                <p><code>updateMany</code> is used to update all records
-                with matching identifiers or primary keys.</p>
-                <h3 data-number="5.10.1" id="options-updatemany"><span
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&#39;./myService.mrs.sdk/myService&#39;</span><span class="op">;</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()<span class="op">;</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="co">// delete all notes whose title includes the string &quot;foo&quot;</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">deleteMany</span>({ where<span class="op">:</span> { title<span class="op">:</span> { $like<span class="op">:</span> <span class="st">&quot;%foo%&quot;</span> } } })<span class="op">;</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="co">// delete all shared notes</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">deleteMany</span>({ where<span class="op">:</span> { shared<span class="op">:</span> <span class="kw">true</span> } })<span class="op">;</span></span></code></pre></div>
+                <h2 data-number="5.10" id="update"><span
+                class="header-section-number">5.10</span> update</h2>
+                <p><code>update</code> is used to update a record with a
+                given identifier or primary key.</p>
+                <h3 data-number="5.10.1" id="options-update"><span
                 class="header-section-number">5.10.1</span> Options
-                (updateMany)</h3>
+                (update)</h3>
                 <table>
                 <colgroup>
                 <col style="width: 25%" />
@@ -1573,17 +1614,15 @@ Reference
                 </tr>
                 </tbody>
                 </table>
-                <h3 data-number="5.10.2"
-                id="return-type-updatemany"><span
+                <h3 data-number="5.10.2" id="return-type-update"><span
                 class="header-section-number">5.10.2</span> Return Type
-                (updateMany)</h3>
-                <p>An array of JSON objects representing the up-to-date
-                records.</p>
-                <h3 data-number="5.10.3" id="reference-updatemany"><span
+                (update)</h3>
+                <p>A JSON object representing the up-to-date record.</p>
+                <h3 data-number="5.10.3" id="reference-update"><span
                 class="header-section-number">5.10.3</span> Reference
-                (updateMany)</h3>
+                (update)</h3>
                 <div class="sourceCode" id="cb31"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">updateMany</span> (args<span class="op">:</span> IUpdateOptions<span class="op">&lt;</span>Data<span class="op">,</span> Filterable<span class="op">,</span> [<span class="st">&quot;id&quot;</span>]<span class="op">,</span> { batch<span class="op">:</span> <span class="kw">true</span> }<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>Data[]<span class="op">&gt;</span> {</span>
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">update</span> (args<span class="op">:</span> IUpdateOptions<span class="op">&lt;</span>Data<span class="op">,</span> Filterable<span class="op">,</span> [<span class="st">&quot;id&quot;</span>]<span class="op">,</span> { batch<span class="op">:</span> <span class="kw">false</span> }<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>Data<span class="op">&gt;</span> {</span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a></span>
@@ -1595,17 +1634,17 @@ Reference
 <span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IBatchConfig {</span>
 <span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>    batch<span class="op">:</span> <span class="kw">true</span></span>
 <span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-                <h3 data-number="5.10.4" id="example-updatemany"><span
+                <h3 data-number="5.10.4" id="example-update"><span
                 class="header-section-number">5.10.4</span> Example
-                (updateMany)</h3>
+                (update)</h3>
                 <div class="sourceCode" id="cb32"><pre
                 class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="im">type</span> { IMyServiceMrsNotesNote } <span class="im">from</span> <span class="st">&#39;/path/to/sdk/myService&#39;</span><span class="op">;</span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&#39;./myService.mrs.sdk/myService&#39;</span><span class="op">;</span></span>
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()<span class="op">;</span></span>
 <span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="co">// update the notes with id 1 and 2 using a plain object</span></span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">update</span>({ where<span class="op">:</span> [{ id<span class="op">:</span> <span class="dv">1</span> }<span class="op">,</span> { id<span class="op">:</span> <span class="dv">2</span> }]<span class="op">,</span> data<span class="op">:</span> { title<span class="op">:</span> <span class="st">&#39;bar&#39;</span> } })<span class="op">;</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="co">// update the note with id is 1 using a plain object</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">update</span>({ where<span class="op">:</span> { id<span class="op">:</span> <span class="dv">1</span> }<span class="op">,</span> data<span class="op">:</span> { title<span class="op">:</span> <span class="st">&#39;bar&#39;</span> } } )<span class="op">;</span></span>
 <span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="co">// using a custom class instance</span></span>
 <span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Note <span class="kw">implements</span> IMyServiceMrsNotesNote {</span>
@@ -1615,8 +1654,91 @@ Reference
 <span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> note <span class="op">=</span> <span class="kw">new</span> <span class="fu">Note</span>()<span class="op">;</span></span>
 <span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>note<span class="op">.</span><span class="at">shared</span> <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
 <span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a><span class="co">// update the note with id 1 and 2</span></span>
-<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">update</span>({ where<span class="op">:</span> [{ id<span class="op">:</span> <span class="dv">1</span> }<span class="op">,</span> { id<span class="op">:</span> <span class="dv">2</span> }]<span class="op">,</span> data<span class="op">:</span> note })<span class="op">;</span></span></code></pre></div>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a><span class="co">// update the note with id 1</span></span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">update</span>({ where<span class="op">:</span> { id<span class="op">:</span> <span class="dv">1</span> }<span class="op">,</span> data<span class="op">:</span> note })<span class="op">;</span></span></code></pre></div>
+                <h2 data-number="5.11" id="updatemany"><span
+                class="header-section-number">5.11</span>
+                updateMany</h2>
+                <p><code>updateMany</code> is used to update all records
+                with matching identifiers or primary keys.</p>
+                <h3 data-number="5.11.1" id="options-updatemany"><span
+                class="header-section-number">5.11.1</span> Options
+                (updateMany)</h3>
+                <table>
+                <colgroup>
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Name</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>data</td>
+                <td>object</td>
+                <td>Yes</td>
+                <td>Set of fields and corresponding values to
+                update.</td>
+                </tr>
+                <tr class="even">
+                <td>where</td>
+                <td>object</td>
+                <td>Yes</td>
+                <td>Matching identifier or primary key.</td>
+                </tr>
+                </tbody>
+                </table>
+                <h3 data-number="5.11.2"
+                id="return-type-updatemany"><span
+                class="header-section-number">5.11.2</span> Return Type
+                (updateMany)</h3>
+                <p>An array of JSON objects representing the up-to-date
+                records.</p>
+                <h3 data-number="5.11.3" id="reference-updatemany"><span
+                class="header-section-number">5.11.3</span> Reference
+                (updateMany)</h3>
+                <div class="sourceCode" id="cb33"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">updateMany</span> (args<span class="op">:</span> IUpdateOptions<span class="op">&lt;</span>Data<span class="op">,</span> Filterable<span class="op">,</span> [<span class="st">&quot;id&quot;</span>]<span class="op">,</span> { batch<span class="op">:</span> <span class="kw">true</span> }<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>Data[]<span class="op">&gt;</span> {</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IUpdateOptions<span class="op">&lt;</span>Data<span class="op">,</span> Filterable<span class="op">,</span> PrimaryKeys <span class="kw">extends</span> <span class="bu">Array</span><span class="op">&lt;</span><span class="dt">string</span> <span class="op">&amp;</span> <span class="kw">keyof</span> Filterable<span class="op">&gt;,</span> Config<span class="op">&gt;</span> {</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>    data<span class="op">:</span> Data<span class="op">,</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>    where<span class="op">:</span> Config <span class="kw">extends</span> IBatchConfig <span class="op">?</span> <span class="bu">Array</span><span class="op">&lt;</span>UpdateMatch<span class="op">&lt;</span>Filterable<span class="op">,</span> PrimaryKeys<span class="op">&gt;&gt;</span> <span class="op">:</span> UpdateMatch<span class="op">&lt;</span>Filterable<span class="op">,</span> PrimaryKeys<span class="op">&gt;</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IBatchConfig {</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>    batch<span class="op">:</span> <span class="kw">true</span></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h3 data-number="5.11.4" id="example-updatemany"><span
+                class="header-section-number">5.11.4</span> Example
+                (updateMany)</h3>
+                <div class="sourceCode" id="cb34"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="im">type</span> { IMyServiceMrsNotesNote } <span class="im">from</span> <span class="st">&#39;/path/to/sdk/myService&#39;</span><span class="op">;</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&#39;./myService.mrs.sdk/myService&#39;</span><span class="op">;</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()<span class="op">;</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="co">// update the notes with id 1 and 2 using a plain object</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">update</span>({ where<span class="op">:</span> [{ id<span class="op">:</span> <span class="dv">1</span> }<span class="op">,</span> { id<span class="op">:</span> <span class="dv">2</span> }]<span class="op">,</span> data<span class="op">:</span> { title<span class="op">:</span> <span class="st">&#39;bar&#39;</span> } })<span class="op">;</span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="co">// using a custom class instance</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Note <span class="kw">implements</span> IMyServiceMrsNotesNote {</span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> note <span class="op">=</span> <span class="kw">new</span> <span class="fu">Note</span>()<span class="op">;</span></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>note<span class="op">.</span><span class="at">shared</span> <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a><span class="co">// update the note with id 1 and 2</span></span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">update</span>({ where<span class="op">:</span> [{ id<span class="op">:</span> <span class="dv">1</span> }<span class="op">,</span> { id<span class="op">:</span> <span class="dv">2</span> }]<span class="op">,</span> data<span class="op">:</span> note })<span class="op">;</span></span></code></pre></div>
                 <p>Copyright (c) 2022, 2024, Oracle and/or its
                 affiliates.</p>
             </div>

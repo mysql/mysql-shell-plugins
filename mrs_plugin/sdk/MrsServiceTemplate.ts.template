@@ -11,11 +11,11 @@ import {
     // --- importRequiredDatatypesOnlyStart
     // --- importRequiredDatatypesOnlyEnd
     // --- importReadOnlyStart
+    IFindAllOptions,
     IFindFirstOptions,
     IFindManyOptions,
     IFindUniqueOptions,
     MrsBaseObjectQuery,
-    MrsResourceCollectionObject,
     NotFoundError,
     // --- importReadOnlyEnd
     // --- importCreateOnlyStart
@@ -68,6 +68,8 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     static readonly #schemaRequestPath = "${schema_request_path}";
     static readonly #requestPath = "${obj_request_path}";
 
+    #hasMore = true;
+
     public rest = {
         // --- crudCreateOnlyStart
         post: (${obj_name}: I${obj_class_name}): MrsBaseObjectCreate<I${obj_class_name}> => {
@@ -78,7 +80,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         get: <K extends keyof I${obj_class_name}>(
             ...args: K[]): MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params> => {
             return new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
-                this.schema, ${obj_class_name}Request.#requestPath, args, undefined, false);
+                this.schema, ${obj_class_name}Request.#requestPath, args, undefined, undefined, false);
         },
         // --- crudReadOnlyEnd
         // --- crudUpdateProcedureOnlyStart
@@ -135,25 +137,37 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     // --- crudCreateOnlyEnd
 
     // --- crudReadOnlyStart
-    public findMany = async (args?: IFindManyOptions<I${obj_class_name}, I${obj_class_name}Params>): Promise<I${obj_class_name}[]> => {
+    public findAll = async (args?: IFindAllOptions<I${obj_class_name}, I${obj_class_name}Params, I${obj_class_name}Cursors>): Promise<I${obj_class_name}[]> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
-            this.schema, ${obj_class_name}Request.#requestPath, args?.select)
-            .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
-        let response: MrsResourceCollectionObject<I${obj_class_name}>;
-        if (args?.fetchAll !== undefined && typeof args?.fetchAll === "boolean" && args?.fetchAll) {
-            response = await request.fetchAll();
-        } else if (args?.fetchAll !== undefined && typeof args?.fetchAll !== "boolean") {
-            response = await request.fetchAll(args?.fetchAll?.pageSize, args?.fetchAll?.progress);
-        } else {
-            response = await request.fetch();
+            this.schema, ${obj_class_name}Request.#requestPath, args?.select, undefined, args?.cursor)
+            .where(args?.where).orderBy(args?.orderBy).offset(args?.skip);
+        const response = await request.fetchAll(args?.progress);
+
+        return response.items;
+    };
+
+    public findMany = async ({ cursor, iterator = true, orderBy, select, skip, take, where }: IFindManyOptions<I${obj_class_name}, I${obj_class_name}Params, I${obj_class_name}Cursors>): Promise<I${obj_class_name}[]> => {
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params, I${obj_class_name}Cursors>(
+            this.schema, ${obj_class_name}Request.#requestPath, select, undefined, cursor)
+            .where({ ...where }).orderBy(orderBy).limit(take).offset(skip);
+
+        if (!this.#hasMore && iterator) {
+            this.#hasMore = true;
+            return [];
+        }
+
+        const response = await request.fetch();
+
+        if (iterator) {
+            this.#hasMore = response.hasMore;
         }
 
         return response.items;
     };
 
-    public findFirst = async (args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Params>): Promise<I${obj_class_name} | undefined> => {
+    public findFirst = async (args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Params, I${obj_class_name}Cursors>): Promise<I${obj_class_name} | undefined> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
-            this.schema, ${obj_class_name}Request.#requestPath, args?.select);
+            this.schema, ${obj_class_name}Request.#requestPath, args?.select, undefined, args?.cursor);
         const response = await request.where(args?.where).orderBy(args?.orderBy).limit(1).offset(args?.skip).fetchOne();
 
         return response;

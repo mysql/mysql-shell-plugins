@@ -6,13 +6,13 @@ import {
     IMrsFetchData,
     MrsBaseService,
     MrsBaseSchema,
-    JsonValue,
     MaybeNull,
+    JsonValue,
+    IFindAllOptions,
     IFindFirstOptions,
     IFindManyOptions,
     IFindUniqueOptions,
     MrsBaseObjectQuery,
-    MrsResourceCollectionObject,
     NotFoundError,
     ICreateOptions,
     MrsBaseObjectCreate,
@@ -47,6 +47,8 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
     static readonly #schemaRequestPath = "/mrsNotes";
     static readonly #requestPath = "/note";
 
+    #hasMore = true;
+
     public rest = {
         post: (note: IMyServiceMrsNotesNote): MrsBaseObjectCreate<IMyServiceMrsNotesNote> => {
             return new MrsBaseObjectCreate<IMyServiceMrsNotesNote>(this.schema, MyServiceMrsNotesNoteRequest.#requestPath, note, false);
@@ -54,7 +56,7 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
         get: <K extends keyof IMyServiceMrsNotesNote>(
             ...args: K[]): MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams> => {
             return new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>(
-                this.schema, MyServiceMrsNotesNoteRequest.#requestPath, args, undefined, false);
+                this.schema, MyServiceMrsNotesNoteRequest.#requestPath, args, undefined, undefined, false);
         },
         put: (
             note: IMyServiceMrsNotesNote,
@@ -84,17 +86,29 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
 
         return result;
     };
-    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>): Promise<IMyServiceMrsNotesNote[]> => {
+    public findAll = async (args?: IFindAllOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>): Promise<IMyServiceMrsNotesNote[]> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams>(
             this.schema, MyServiceMrsNotesNoteRequest.#requestPath, args?.select)
-            .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
-        let response: MrsResourceCollectionObject<IMyServiceMrsNotesNote>;
-        if (args?.fetchAll !== undefined && typeof args?.fetchAll === "boolean" && args?.fetchAll) {
-            response = await request.fetchAll();
-        } else if (args?.fetchAll !== undefined && typeof args?.fetchAll !== "boolean") {
-            response = await request.fetchAll(args?.fetchAll?.pageSize, args?.fetchAll?.progress);
-        } else {
-            response = await request.fetch();
+            .where(args?.where).orderBy(args?.orderBy).offset(args?.skip);
+        const response = await request.fetchAll(args?.progress);
+
+        return response.items;
+    };
+
+    public findMany = async ({ cursor, iterator = true, orderBy, select, skip, take, where }: IFindManyOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams, IMyServiceMrsNotesNoteCursors>): Promise<IMyServiceMrsNotesNote[]> => {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams, IMyServiceMrsNotesNoteCursors>(
+            this.schema, MyServiceMrsNotesNoteRequest.#requestPath, select, undefined, cursor)
+            .where({ ...where }).orderBy(orderBy).limit(take).offset(skip);
+
+        if (!this.#hasMore && iterator) {
+            this.#hasMore = true;
+            return [];
+        }
+
+        const response = await request.fetch();
+
+        if (iterator) {
+            this.#hasMore = response.hasMore;
         }
 
         return response.items;
@@ -187,6 +201,10 @@ export interface IMyServiceMrsNotesNoteUniqueParams {
     id?: number,
 }
 
+export interface IMyServiceMrsNotesNoteCursors {
+    id?: number,
+}
+
 
 /*
  * MRS Object - /myService/mrsNotes/user (TABLE)
@@ -197,6 +215,8 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
     static readonly #schemaRequestPath = "/mrsNotes";
     static readonly #requestPath = "/user";
 
+    #hasMore = true;
+
     public rest = {
         post: (user: IMyServiceMrsNotesUser): MrsBaseObjectCreate<IMyServiceMrsNotesUser> => {
             return new MrsBaseObjectCreate<IMyServiceMrsNotesUser>(this.schema, MyServiceMrsNotesUserRequest.#requestPath, user, false);
@@ -204,7 +224,7 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
         get: <K extends keyof IMyServiceMrsNotesUser>(
             ...args: K[]): MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams> => {
             return new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams>(
-                this.schema, MyServiceMrsNotesUserRequest.#requestPath, args, undefined, false);
+                this.schema, MyServiceMrsNotesUserRequest.#requestPath, args, undefined, undefined, false);
         },
         put: (
             user: IMyServiceMrsNotesUser,
@@ -234,17 +254,29 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
 
         return result;
     };
-    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams>): Promise<IMyServiceMrsNotesUser[]> => {
+    public findAll = async (args?: IFindAllOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams>): Promise<IMyServiceMrsNotesUser[]> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams>(
             this.schema, MyServiceMrsNotesUserRequest.#requestPath, args?.select)
-            .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
-        let response: MrsResourceCollectionObject<IMyServiceMrsNotesUser>;
-        if (args?.fetchAll !== undefined && typeof args?.fetchAll === "boolean" && args?.fetchAll) {
-            response = await request.fetchAll();
-        } else if (args?.fetchAll !== undefined && typeof args?.fetchAll !== "boolean") {
-            response = await request.fetchAll(args?.fetchAll?.pageSize, args?.fetchAll?.progress);
-        } else {
-            response = await request.fetch();
+            .where(args?.where).orderBy(args?.orderBy).offset(args?.skip);
+        const response = await request.fetchAll(args?.progress);
+
+        return response.items;
+    };
+
+    public findMany = async ({ cursor, iterator = true, orderBy, select, skip, take, where }: IFindManyOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams, IMyServiceMrsNotesUserCursors>): Promise<IMyServiceMrsNotesUser[]> => {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams, IMyServiceMrsNotesUserCursors>(
+            this.schema, MyServiceMrsNotesUserRequest.#requestPath, select, undefined, cursor)
+            .where({ ...where }).orderBy(orderBy).limit(take).offset(skip);
+
+        if (!this.#hasMore && iterator) {
+            this.#hasMore = true;
+            return [];
+        }
+
+        const response = await request.fetch();
+
+        if (iterator) {
+            this.#hasMore = response.hasMore;
         }
 
         return response.items;
@@ -333,24 +365,38 @@ export class MyServiceMrsNotesUserHasNoteRequest extends MyServiceMrsNotesObject
     static readonly #schemaRequestPath = "/mrsNotes";
     static readonly #requestPath = "/userHasNote";
 
+    #hasMore = true;
+
     public rest = {
         get: <K extends keyof IMyServiceMrsNotesUserHasNote>(
             ...args: K[]): MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams> => {
             return new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams>(
-                this.schema, MyServiceMrsNotesUserHasNoteRequest.#requestPath, args, undefined, false);
+                this.schema, MyServiceMrsNotesUserHasNoteRequest.#requestPath, args, undefined, undefined, false);
         },
     };
-    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams>): Promise<IMyServiceMrsNotesUserHasNote[]> => {
+    public findAll = async (args?: IFindAllOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams>): Promise<IMyServiceMrsNotesUserHasNote[]> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams>(
             this.schema, MyServiceMrsNotesUserHasNoteRequest.#requestPath, args?.select)
-            .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
-        let response: MrsResourceCollectionObject<IMyServiceMrsNotesUserHasNote>;
-        if (args?.fetchAll !== undefined && typeof args?.fetchAll === "boolean" && args?.fetchAll) {
-            response = await request.fetchAll();
-        } else if (args?.fetchAll !== undefined && typeof args?.fetchAll !== "boolean") {
-            response = await request.fetchAll(args?.fetchAll?.pageSize, args?.fetchAll?.progress);
-        } else {
-            response = await request.fetch();
+            .where(args?.where).orderBy(args?.orderBy).offset(args?.skip);
+        const response = await request.fetchAll(args?.progress);
+
+        return response.items;
+    };
+
+    public findMany = async ({ cursor, iterator = true, orderBy, select, skip, take, where }: IFindManyOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams, IMyServiceMrsNotesUserHasNoteCursors>): Promise<IMyServiceMrsNotesUserHasNote[]> => {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteParams, IMyServiceMrsNotesUserHasNoteCursors>(
+            this.schema, MyServiceMrsNotesUserHasNoteRequest.#requestPath, select, undefined, cursor)
+            .where({ ...where }).orderBy(orderBy).limit(take).offset(skip);
+
+        if (!this.#hasMore && iterator) {
+            this.#hasMore = true;
+            return [];
+        }
+
+        const response = await request.fetch();
+
+        if (iterator) {
+            this.#hasMore = response.hasMore;
         }
 
         return response.items;
@@ -416,24 +462,38 @@ export class MyServiceMrsNotesNotesAllRequest extends MyServiceMrsNotesObjectReq
     static readonly #schemaRequestPath = "/mrsNotes";
     static readonly #requestPath = "/notesAll";
 
+    #hasMore = true;
+
     public rest = {
         get: <K extends keyof IMyServiceMrsNotesNotesAll>(
             ...args: K[]): MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams> => {
             return new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams>(
-                this.schema, MyServiceMrsNotesNotesAllRequest.#requestPath, args, undefined, false);
+                this.schema, MyServiceMrsNotesNotesAllRequest.#requestPath, args, undefined, undefined, false);
         },
     };
-    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams>): Promise<IMyServiceMrsNotesNotesAll[]> => {
+    public findAll = async (args?: IFindAllOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams>): Promise<IMyServiceMrsNotesNotesAll[]> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams>(
             this.schema, MyServiceMrsNotesNotesAllRequest.#requestPath, args?.select)
-            .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
-        let response: MrsResourceCollectionObject<IMyServiceMrsNotesNotesAll>;
-        if (args?.fetchAll !== undefined && typeof args?.fetchAll === "boolean" && args?.fetchAll) {
-            response = await request.fetchAll();
-        } else if (args?.fetchAll !== undefined && typeof args?.fetchAll !== "boolean") {
-            response = await request.fetchAll(args?.fetchAll?.pageSize, args?.fetchAll?.progress);
-        } else {
-            response = await request.fetch();
+            .where(args?.where).orderBy(args?.orderBy).offset(args?.skip);
+        const response = await request.fetchAll(args?.progress);
+
+        return response.items;
+    };
+
+    public findMany = async ({ cursor, iterator = true, orderBy, select, skip, take, where }: IFindManyOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams, IMyServiceMrsNotesNotesAllCursors>): Promise<IMyServiceMrsNotesNotesAll[]> => {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllParams, IMyServiceMrsNotesNotesAllCursors>(
+            this.schema, MyServiceMrsNotesNotesAllRequest.#requestPath, select, undefined, cursor)
+            .where({ ...where }).orderBy(orderBy).limit(take).offset(skip);
+
+        if (!this.#hasMore && iterator) {
+            this.#hasMore = true;
+            return [];
+        }
+
+        const response = await request.fetch();
+
+        if (iterator) {
+            this.#hasMore = response.hasMore;
         }
 
         return response.items;
@@ -491,24 +551,38 @@ export class MyServiceMrsNotesNotesServedRequest extends MyServiceMrsNotesObject
     static readonly #schemaRequestPath = "/mrsNotes";
     static readonly #requestPath = "/notesServed";
 
+    #hasMore = true;
+
     public rest = {
         get: <K extends keyof IMyServiceMrsNotesNotesServed>(
             ...args: K[]): MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams> => {
             return new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams>(
-                this.schema, MyServiceMrsNotesNotesServedRequest.#requestPath, args, undefined, false);
+                this.schema, MyServiceMrsNotesNotesServedRequest.#requestPath, args, undefined, undefined, false);
         },
     };
-    public findMany = async (args?: IFindManyOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams>): Promise<IMyServiceMrsNotesNotesServed[]> => {
+    public findAll = async (args?: IFindAllOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams>): Promise<IMyServiceMrsNotesNotesServed[]> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams>(
             this.schema, MyServiceMrsNotesNotesServedRequest.#requestPath, args?.select)
-            .where(args?.where).orderBy(args?.orderBy).limit(args?.take).offset(args?.skip);
-        let response: MrsResourceCollectionObject<IMyServiceMrsNotesNotesServed>;
-        if (args?.fetchAll !== undefined && typeof args?.fetchAll === "boolean" && args?.fetchAll) {
-            response = await request.fetchAll();
-        } else if (args?.fetchAll !== undefined && typeof args?.fetchAll !== "boolean") {
-            response = await request.fetchAll(args?.fetchAll?.pageSize, args?.fetchAll?.progress);
-        } else {
-            response = await request.fetch();
+            .where(args?.where).orderBy(args?.orderBy).offset(args?.skip);
+        const response = await request.fetchAll(args?.progress);
+
+        return response.items;
+    };
+
+    public findMany = async ({ cursor, iterator = true, orderBy, select, skip, take, where }: IFindManyOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams, IMyServiceMrsNotesNotesServedCursors>): Promise<IMyServiceMrsNotesNotesServed[]> => {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedParams, IMyServiceMrsNotesNotesServedCursors>(
+            this.schema, MyServiceMrsNotesNotesServedRequest.#requestPath, select, undefined, cursor)
+            .where({ ...where }).orderBy(orderBy).limit(take).offset(skip);
+
+        if (!this.#hasMore && iterator) {
+            this.#hasMore = true;
+            return [];
+        }
+
+        const response = await request.fetch();
+
+        if (iterator) {
+            this.#hasMore = response.hasMore;
         }
 
         return response.items;
@@ -542,6 +616,8 @@ export class MyServiceMrsNotesNoteAcceptShareParamsRequest extends MyServiceMrsN
     static readonly #schemaRequestPath = "/mrsNotes";
     static readonly #requestPath = "/noteAcceptShare";
 
+    #hasMore = true;
+
     public rest = {
         put: (
             noteAcceptShareParams: IMyServiceMrsNotesNoteAcceptShareParams,
@@ -573,6 +649,8 @@ export class MyServiceMrsNotesNoteDeleteParamsRequest extends MyServiceMrsNotesO
     static readonly #schemaRequestPath = "/mrsNotes";
     static readonly #requestPath = "/noteDelete";
 
+    #hasMore = true;
+
     public rest = {
         put: (
             noteDeleteParams: IMyServiceMrsNotesNoteDeleteParams,
@@ -603,6 +681,8 @@ export class MyServiceMrsNotesNoteShareRequest extends MyServiceMrsNotesObjectRe
 
     static readonly #schemaRequestPath = "/mrsNotes";
     static readonly #requestPath = "/noteShare";
+
+    #hasMore = true;
 
     public rest = {
         put: (
@@ -648,6 +728,8 @@ export class MyServiceMrsNotesNoteUpdateParamsRequest extends MyServiceMrsNotesO
 
     static readonly #schemaRequestPath = "/mrsNotes";
     static readonly #requestPath = "/noteUpdate";
+
+    #hasMore = true;
 
     public rest = {
         put: (

@@ -218,3 +218,32 @@ def test_datatype_is_primitive():
     assert is_native is False
 
 
+def test_field_can_be_cursor():
+    field = {}
+
+    can_be_cursor = field_can_be_cursor(field)
+    assert can_be_cursor is False
+
+    field["lev"] = 0
+
+    can_be_cursor = field_can_be_cursor(field)
+    assert can_be_cursor is False
+
+    field["lev"] = 1
+
+    can_be_cursor = field_can_be_cursor(field)
+    assert can_be_cursor is False
+
+    field["db_column"] = {
+        "id_generation": "auto_inc"
+    }
+
+    can_be_cursor = field_can_be_cursor(field)
+    assert can_be_cursor is True
+
+    field["db_column"]["id_generation"] = None
+    field["db_column"]["datatype"] = "timestamp"
+
+    can_be_cursor = field_can_be_cursor(field)
+    assert can_be_cursor is True
+
