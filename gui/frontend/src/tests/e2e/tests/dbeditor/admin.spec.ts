@@ -40,6 +40,7 @@ describe("MySQL Administration", () => {
     let testFailed = false;
 
     const globalConn: interfaces.IDBConnection = {
+        dbType: "MySQL",
         caption: `connAdmin`,
         description: "Local connection",
         basic: {
@@ -67,8 +68,8 @@ describe("MySQL Administration", () => {
                 }
             }, explicitWait * 4, "Home Page was not loaded");
             await driver.findElement(locator.sqlEditorPage.icon).click();
-            const db = await DBNotebooks.createDBconnection(globalConn);
-            await driver.executeScript("arguments[0].click();", db);
+            await DBNotebooks.createDataBaseConnection(globalConn);
+            await driver.executeScript("arguments[0].click();", await DBNotebooks.getConnection(globalConn.caption!));
             await Misc.setPassword(globalConn);
             await Misc.setConfirmDialog(globalConn, "no");
         } catch (e) {

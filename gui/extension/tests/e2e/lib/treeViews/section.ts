@@ -147,17 +147,7 @@ export class Section {
         await driver.wait(waitUntil.tabIsOpened(constants.dbDefaultEditor), constants.wait5seconds);
         await Misc.switchToFrame();
         await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists), constants.wait10seconds);
-
-        await DatabaseConnection.setConnection(
-            dbConfig.dbType,
-            dbConfig.caption,
-            dbConfig.description,
-            dbConfig.basic,
-            dbConfig.ssl,
-            undefined,
-            dbConfig.mds,
-        );
-
+        await DatabaseConnection.setConnection(dbConfig);
     };
 
     /**

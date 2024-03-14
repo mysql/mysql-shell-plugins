@@ -42,6 +42,7 @@ const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
 
 const globalConn: interfaces.IDBConnection = {
+    dbType: "MySQL",
     caption: `connNotebooks`,
     description: "Local connection",
     basic: {
@@ -76,8 +77,8 @@ describe("Notebook", () => {
             }, explicitWait * 4, "Home Page was not loaded");
 
             await driver.executeScript("arguments[0].click()", await driver.findElement(locator.sqlEditorPage.icon));
-            const db = await DBNotebooks.createDBconnection(globalConn);
-            await driver.executeScript("arguments[0].click();", db);
+            await DBNotebooks.createDataBaseConnection(globalConn);
+            await driver.executeScript("arguments[0].click();", await DBNotebooks.getConnection(globalConn.caption!));
             await Misc.setPassword(globalConn);
             await Misc.setConfirmDialog(globalConn, "no");
             await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
@@ -1405,6 +1406,7 @@ describe("Notebook headless off", () => {
 
     let testFailed = false;
     const anotherConnection: interfaces.IDBConnection = {
+        dbType: "MySQL",
         caption: `no headless`,
         description: "Local connection",
         basic: {
@@ -1435,8 +1437,8 @@ describe("Notebook headless off", () => {
             }, explicitWait * 4, "Home Page was not loaded");
 
             await driver.executeScript("arguments[0].click()", await driver.findElement(locator.sqlEditorPage.icon));
-            const db = await DBNotebooks.createDBconnection(anotherConnection);
-            await driver.executeScript("arguments[0].click();", db);
+            await DBNotebooks.createDataBaseConnection(anotherConnection);
+            await driver.executeScript("arguments[0].click();", await DBNotebooks.getConnection(globalConn.caption!));
             try {
                 await Misc.setPassword(anotherConnection);
                 await Misc.setConfirmDialog(anotherConnection, "no");
