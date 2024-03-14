@@ -725,6 +725,14 @@ export interface IFilterOptions<Filterable> {
     where: DataFilter<Filterable>;
 }
 
+/**
+ * A cursor is a field which is unique and sequential. Examples are auto generated columns (such as ones created with
+ * "AUTO INCREMENT") or TIMESTAMP columns.
+ */
+export type Cursor<EligibleFields> = {
+    [Key in keyof EligibleFields]?: EligibleFields[Key]
+};
+
 // create*() API
 
 // For now, to create a record we only need to specify the details of that specific record.
@@ -733,7 +741,7 @@ export interface ICreateOptions<Type> {
 }
 
 /** Options available to find a record based on a unique identifier or primary key */
-export interface IFindUniqueOptions<Selectable, Filterable> extends Partial<IFilterOptions<Filterable>> {
+export interface IFindUniqueOptions<Item, Filterable> extends Partial<IFilterOptions<Filterable>> {
     // findUnique() should always return the same record based on the unique identifier or primary key.
     // The identifier is still specified using the "where" option.
     // Thus the only additional option available is to include a set of specific fields of that record in the result
@@ -745,11 +753,12 @@ export interface IFindUniqueOptions<Selectable, Filterable> extends Partial<IFil
     // or an array with field names containing the full field path using dot "." notation
 
     /** Fields to include in the result set. */
-    select?: BooleanFieldMapSelect<Selectable> | FieldNameSelect<Selectable>;
+    select?: BooleanFieldMapSelect<Item> | FieldNameSelect<Item>;
 }
 
 /** Options available to find the first record that optionally matches a given filter. */
-export interface IFindFirstOptions<Selectable, Filterable> extends IFindUniqueOptions<Selectable, Filterable> {
+export interface IFindFirstOptions<Item, Filterable, Iterable> extends IFindUniqueOptions<Item, Filterable> {
+    cursor?: Cursor<Iterable>;
     /* Return the first or last record depending on the specified order clause. */
     orderBy?: ColumnOrder<Filterable>;
     /** Skip a given number of records that match the same filter. */
@@ -757,25 +766,21 @@ export interface IFindFirstOptions<Selectable, Filterable> extends IFindUniqueOp
 }
 
 /** Options available to find multiple that optionally match a given filter. */
-export interface IFindManyOptions<Selectable, Filterable> extends IFindFirstOptions<Selectable, Filterable> {
-    /** Return all records from every page. */
-    fetchAll?: IFindAllOptions<Selectable> | boolean;
+export interface IFindManyOptions<Item, Filterable, Iterable> extends IFindFirstOptions<Item, Filterable, Iterable> {
+    /** Enables or disables iterator behavior for findMany(). */
+    iterator?: boolean;
     /** Set the maximum number of records in the result set. */
     take?: number;
 }
 
 /** Options available to customize the result set page size. */
-export interface IFindAllOptions<ResultSet> {
-    // Since findMany() can return all items in the table, it needs an additional optional pagination option to limit
-    // the number of of items and an optional callback function to handle progress updates.
-    /** The maximum number of records per page. */
-    pageSize?: number;
+export interface IFindAllOptions<Item, Filterable, Iterable> extends IFindFirstOptions<Item, Filterable, Iterable> {
     /**
      * Asynchronous function to handle progress updates.
      * @param items The list of records in the result set.
      * @returns A Promise that resolves once the result set is complete.
      */
-    progress?: (items: MrsResourceCollectionObject<ResultSet>) => Promise<void>;
+    progress?: (items: Item[]) => Promise<void>;
 }
 
 /**
@@ -859,13 +864,9 @@ export type UpdateMatch<Type, PrimaryKeys extends Array<string & keyof Type>> = 
     [ColumnName in keyof Pick<Type, PrimaryKeys[number]>]-?: Type[ColumnName]
 };
 
-type MrsFilterObject<Fields> = DataFilter<Fields> & {
-    $orderby: ColumnOrder<Fields>;
-};
-
 class MrsJSON {
-    public static stringify = (json: JsonValue): string => {
-        return JSON.stringify(json, (key: string, value: { not?: null; } & JsonValue) => {
+    public static stringify = <T>(obj: T): string => {
+        return JSON.stringify(obj, (key: string, value: { not?: null; } & T) => {
             // expand $notnull operator (lookup at the child level)
             // if we are operating at the root of the object, "not" is a field name, in which case, there is nothing
             // left to do
@@ -887,29 +888,114 @@ class MrsJSON {
 }
 
 /**
- * @template P The set of fields of a given database object that can be used in a query filter.
+ * @template Filterable The set of fields of a given database object that can be used in a query filter.
+ * @template Iterable The set of fields of a given database object that can be used as cursors. It has a default value
+ * to accommodate the cases where there is no support for cursors, such as "findAll()", "findFirst()", "delete()" and
+ * "deleteMany()".
  * This is an internal abstract class to hold common functionality related to query filters
  * between different types of MRS CRUD operations.
  */
-abstract class MrsRequestFilter<P> {
-    protected queryFilter?: DataFilter<P>;
+abstract class MrsRequestFilter<Filterable, Iterable={}> {
+    protected queryFilter: HighOrderFilter<Filterable> = {};
+    protected cursorFields: Cursor<Iterable> = {};
+    protected sortOrder: ColumnOrder<Filterable> = {};
+
+    public constructor(
+        protected readonly cursor?: Cursor<Iterable>) {
+        for (const key in cursor) {
+            this.cursorFields[key] = cursor[key];
+
+            if (cursor[key] !== undefined) {
+                this.queryFilter = { ...this.queryFilter, [key]: { $gt: cursor[key] } };
+                this.sortOrder = { ...this.sortOrder, [key]: "ASC" };
+            }
+        }
+    }
 
     /**
      * Specifies the query filter used in an MRS query.
-     * @param {DataFilter<P>} filter An object containing checks that should apply for the value of one or more fields
-     * which can, optionally, be part of high-order AND/OR operations.
+     * @param filter An object containing checks that should apply for the value of one or
+     * more fields which can, optionally, be part of high-order AND/OR operations.
      * @see {PureFilter}
      * @see {HighOrderFilter}
-     * @returns {MrsRequestFilter<P>} The MRS request representation as defined by the child class.
+     * @returns The MRS request representation as defined by the child class.
      */
-    public where = (filter?: DataFilter<P>): this => {
-        if (typeof filter === "undefined") {
+    public where = (filter?: DataFilter<Filterable>): this => {
+        if (filter === undefined) {
             return this;
         }
 
-        this.queryFilter = { ...this.queryFilter, ...filter };
+        Object.entries(filter).forEach(([field, value]) => {
+            if (Object.keys(this.cursorFields).indexOf(field) === -1) {
+                this.queryFilter = { ...this.queryFilter, [field]: value };
+            }
+        });
 
         return this;
+    };
+
+    /**
+     * Sort the result set according to the values of a given set of fields.
+     * @param columnOrder An object where the keys are the field names and the values can be
+     * either "ASC" or "DESC" depending on the order in which the records should be returned.
+     * that any sorting condition for the same fields is overwritten.
+     * @see {ColumnOrder}
+     * @example
+     * .orderBy({ name: "ASC" })
+     * .orderBy({ name: "ASC", age: "DESC" })
+     * @returns The MRS request representation as defined by the child class.
+     */
+    public orderBy = (columnOrder?: ColumnOrder<Filterable>): this => {
+        for (const key in columnOrder) {
+            if (Object.keys(this.cursorFields).indexOf(key) === -1) {
+                this.sortOrder[key] = columnOrder[key];
+            }
+        }
+
+        return this;
+    };
+
+    /**
+     * Check if the request instance contains one or more cursors.
+     * @returns A boolean that indicates whether the request contains one or more cursors.
+     */
+    protected hasPaginationCursor = (): boolean => {
+        // It might be the case that the cursor object actually contains fields which are undefined. Those fields
+        // should not be accounted as part of the cursor.
+        return Object.values(this.cursorFields)
+            .some((value) => {
+                return typeof value !== "undefined";
+            });
+    };
+
+    protected hasQueryFilter = (): boolean => {
+        return Object.values(this.queryFilter)
+            .some((value) => {
+                return typeof value !== "undefined";
+            });
+    };
+
+    protected hasSortOrder = (): boolean => {
+        return Object.values(this.sortOrder)
+            .some((value) => {
+                return typeof value !== "undefined";
+            });
+    };
+
+    protected increaseCursor = (field: string, value: unknown): this => {
+        if (!this.queryFilter.$or) {
+            this.queryFilter = { ...this.queryFilter, [field]: { $gt: value } };
+
+            return this;
+        }
+
+        this.queryFilter = { $and: [ this.queryFilter, { [field]: { $gt: value } } ] };
+
+        return this;
+    };
+
+    protected isCursor = (field: string): boolean => {
+        return Object.keys(this.cursorFields).indexOf(field) > -1;
     };
 }
 
@@ -1054,11 +1140,13 @@ class MrsSimplifiedCollectionObjectResponse<T> {
 }
 
 /**
- * @template C The entire set of fields of a given database object.
- * @template P The set of fields of a given database object that can be used in a query filter.
+ * @template Item The entire set of fields of a given database object.
+ * @template Filterable The set of fields of a given database object that can be used in a query filter.
+ * @template Iterable An optional set of fields of a given database object that can be used as cursors. It is optional
+ * because it is not used by "findAll()" or "findFirst()", both of which, also create an instance of MrsBaseObjectQuery.
  * Creates an object that represents an MRS GET request.
  */
-export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
+export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> extends MrsRequestFilter<Filterable, Iterable> {
     protected offsetCondition?: number;
     protected limitCondition?: number;
     protected pageSizeCondition = 25;
@@ -1066,71 +1154,85 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
     public constructor(
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
-        private readonly fieldsToGet?: string[] | BooleanFieldMapSelect<C> | FieldNameSelect<C>,
+        private readonly fieldsToGet?: string[] | BooleanFieldMapSelect<Item> | FieldNameSelect<Item>,
         private readonly fieldsToOmit?: string[],
+        protected readonly cursor?: Cursor<Iterable>,
         private readonly simplified: boolean = true) {
-        super();
+        super(cursor);
     }
 
     /**
      * Although the query filter can already be specified by now, one can incrementally introduce other optional rules
      * that are embedded in a top-level OR operation.
-     * @param {PureFilter<P>} filter An object containing checks that should apply for the value of one or more fields.
+     * @param filter An object containing checks that should apply for the value of one or
+     * more fields.
      * @see {PureFilter}
      * @example
      * .or({ name: "foo", age: 42 })
      * .or({ name: { $eq: "foo" }, age: 42 })
      * .or({ name: "foo", age: { $gte: 42 } })
      * .or({ name: { $like: "%foo%" }, age: { $lte: 42 } })
-     * @returns {MrsBaseObjectQuery<C, P>} The MRS GET request representation.
+     * @returns The MRS GET request representation.
      */
-    public or = (filter?: PureFilter<P>): this => {
-        if (typeof filter === "undefined") {
+    public or = (filter?: PureFilter<Filterable>): this => {
+        if (filter === undefined) {
             return this;
         }
 
-        // although the method accepts a PureFilter, we always want to convert it to a HighOrderFilter
-        let queryFilter = this.queryFilter as HighOrderFilter<P> ?? {};
-
-        // if there is no OR operator, we should squeeze every filter item into one
-        if (typeof queryFilter.$or === "undefined") {
-            // an implicit AND requires more than one field
-            if (typeof queryFilter.$and === "undefined" && Object.keys(queryFilter).length > 1) {
-                // implicit AND operators do not contain high-order ops
-                const explicitAnd = Object.keys(queryFilter).map((key) => {
-                    return { [key]: (queryFilter as PureFilter<P> & { [key: string]: unknown; })[key] };
-                });
-
-                queryFilter = { $or: [{ $and: explicitAnd }, filter] };
-            } else {
-                queryFilter = { $or: [queryFilter as PureFilter<P>, filter] };
+        // Discard all cursors from the additional filter.
+        for (const field in filter) {
+            if (Object.keys(this.cursorFields).indexOf(field) > -1) {
+                delete filter[field];
             }
-        } else {
-            // otherwise, we add the filter item to the existing OR operator
-            queryFilter.$or.push(filter);
         }
 
-        this.queryFilter = queryFilter;
+        const additionalFilterFields = Object.keys(filter);
 
-        return this;
-    };
-
-    /**
-     * Sort the result set according to the values of a given set of fields.
-     * @param {ColumnOrder<P>} columnOrder An object where the keys are the field names and the values can be
-     * either "ASC" or "DESC" depending on the order in which the records should be returned.
-     * @see {ColumnOrder}
-     * @example
-     * .orderBy({ name: "ASC" })
-     * .orderBy({ name: "ASC", age: "DESC" })
-     * @returns {MrsBaseObjectQuery<C, P>} The MRS GET request representation.
-     */
-    public orderBy = (columnOrder?: ColumnOrder<P>): this => {
-        if (typeof columnOrder === "undefined") {
+        // After discarding the cursors, if the additional filter is empty, there is nothing to do.
+        if (additionalFilterFields.length === 0) {
             return this;
         }
 
-        this.queryFilter = { ...this.queryFilter as MrsFilterObject<P>, $orderby: columnOrder } as DataFilter<P>;
+        // If the existing filter contains an explicit high-level OR, the fields should go there.
+        if (this.queryFilter.$or !== undefined) {
+            this.queryFilter.$or.push(filter);
+
+            return this;
+        }
+
+        const existingFilterFields = Object.keys(this.queryFilter);
+
+        // If the the existing filter contains only one field and that field is a cursor it still must be required, so
+        // it must be within the scope of an AND operator.
+        if (existingFilterFields.length === 1 && this.isCursor(existingFilterFields[0])) {
+            // If the additional filter only contains one field, it becomes part of the AND operator.
+            if (additionalFilterFields.length === 1) {
+                this.queryFilter = { $and: [this.queryFilter, filter] };
+
+                return this;
+            }
+
+            // Otherwise, the multiple fields still form an additional OR operator.
+            this.queryFilter = { $and: [this.queryFilter, { $or: [filter] }] };
+
+            return this;
+        }
+
+        // If the existing filter contains only one field and that field is not a cursor, it can safely be aggregated
+        // into a new OR operator.
+        if (existingFilterFields.length === 1) {
+            this.queryFilter = { $or: [this.queryFilter, filter] };
+
+            return this;
+        }
+
+        // If the filter contains more than one field, it means it is an implicit AND which must converted to an
+        // explicit AND in order to be shoehorned into a new high-level OR.
+        const explicitAnd = Object.entries(this.queryFilter).map(([field, value]) => {
+            return { [field]: value };
+        });
+
+        this.queryFilter = { $or: [{ $and: explicitAnd }, filter] };
 
         return this;
     };
@@ -1161,7 +1263,7 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
         return this;
     };
 
-    public fetch = async (): Promise<MrsResourceCollectionObject<C>> => {
+    public fetch = async (): Promise<MrsResourceCollectionObject<Item>> => {
         let inputStr = `${this.schema.requestPath}${this.requestPath}?`;
 
         const fields = this.fieldsToGet ?? {};
@@ -1173,18 +1275,19 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
         } else if (fieldsToGet !== undefined && fieldsToGet.length > 0) {
             inputStr += `f=${fieldsToGet.join(",")}&`;
         }
-        if (this.queryFilter !== undefined) {
-            inputStr += `q=${MrsJSON.stringify(this.queryFilter as JsonObject)}&`;
+        if (this.hasQueryFilter() && !this.hasSortOrder()) {
+            inputStr += `q=${MrsJSON.stringify(this.queryFilter)}&`;
+        } else if (!this.hasQueryFilter() && this.hasSortOrder()) {
+            inputStr += `q=${MrsJSON.stringify({ $orderby: this.sortOrder })}&`;
+        } if (this.hasQueryFilter() && this.hasSortOrder()) {
+            inputStr += `q=${MrsJSON.stringify({ ...this.queryFilter, $orderby: this.sortOrder })}&`;
         }
-        if (this.offsetCondition !== undefined) {
+        if (!this.hasPaginationCursor() && this.offsetCondition !== undefined) {
             inputStr += `offset=${this.offsetCondition}&`;
         }
         if (this.limitCondition !== undefined) {
             inputStr += `limit=${this.limitCondition}&`;
         }
-
-        // reset state
-        this.queryFilter = {};
 
         const res = await this.schema.service.session.doFetch({
             /*input: `/mrsNotes/notesAll?f=!content&offset=${offset}&limit=10${q}`,*/
@@ -1192,7 +1295,7 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
             errorMsg: "Failed to fetch items.",
         });
 
-        const responseBody = await res.json() as MrsResourceCollectionObject<C>;
+        const responseBody: MrsResourceCollectionObject<Item> = await res.json();
 
         if (this.simplified === false) {
             return responseBody;
@@ -1210,22 +1313,18 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
      * this.pageSize() function. An optional progress callback can be specified that is called with the data of each
      * page.
      *
-     * @param pageSize The optional number of items that should be fetched for each page. Default is 25 items per page.
      * @param progress An optional callback function that is called for each page that is fetched.
      * @returns A list of typed IMrsBaseObjects
      */
-    public fetchAll = async (
-        pageSize?: number,
-        progress?: (items: MrsResourceCollectionObject<C>) => Promise<void>):
-    Promise<MrsResourceCollectionObject<C>> => {
-        const resultList: MrsResourceCollectionObject<C> = {
+    public fetchAll = async (progress?: (items: Item[]) => Promise<void>):
+    Promise<MrsResourceCollectionObject<Item>> => {
+        const resultList: MrsResourceCollectionObject<Item> = {
             items: [],
             limit: this.pageSizeCondition,
             offset: 0,
             hasMore: true,
             count: 0,
         };
-        this.pageSizeCondition = pageSize ?? this.pageSizeCondition;
 
         // Initialize offsetCondition and limitCondition
         this.offsetCondition = 0;
@@ -1246,16 +1345,21 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
             resultList.hasMore = res.hasMore;
 
             if (progress !== undefined) {
-                await progress(res);
+                await progress(res.items);
             }
 
             this.offsetCondition += this.pageSizeCondition;
+
+            // increase any existing cursor
+            for (const field in this.cursorFields) {
+                this.increaseCursor(field, res.items[res.items.length - 1][field]);
+            }
         }
 
         return resultList;
     };
 
-    public fetchOne = async (): Promise<MrsResourceObject<C> | undefined> => {
+    public fetchOne = async (): Promise<MrsResourceObject<Item> | undefined> => {
         this.limitCondition = 1;
 
         const resultList = await this.fetch();
@@ -1274,7 +1378,7 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
      * and the values are "true" if the column should be included or "false" if not.
      * @returns A list of column names.
      */
-    private readonly fieldsToInclude = (fields: BooleanFieldMapSelect<C>): Array<keyof C> => {
+    private readonly fieldsToInclude = (fields: BooleanFieldMapSelect<Item>): string[] => {
         return this.fieldsWithValue(fields, true);
     };
 
@@ -1285,7 +1389,7 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
      * and the values are "true" if the column should be included or "false" if not.
      * @returns A list of column names.
      */
-    private readonly fieldsToExclude = (fields: BooleanFieldMapSelect<C>): Array<keyof C> => {
+    private readonly fieldsToExclude = (fields: BooleanFieldMapSelect<Item>): string[] => {
         return this.fieldsWithValue(fields, false);
     };
 
@@ -1299,28 +1403,24 @@ export class MrsBaseObjectQuery<C, P> extends MrsRequestFilter<P> {
      * @returns A list of column names.
      */
     private readonly fieldsWithValue = (
-        fields: BooleanFieldMapSelect<C>, value: unknown, prefix = ""): Array<keyof C> => {
-        return Object.keys(fields).reduce((acc: Array<keyof C>, field) => {
-            const ref = fields[field as keyof typeof fields];
+        fields: BooleanFieldMapSelect<Item>, value: unknown, prefix = ""): string[] => {
+        const result: string[] = [];
 
-            if (typeof ref === "object" && prefix.length > 0) {
-                return [...acc, ...this.fieldsWithValue(ref, value, `${prefix}.${field}`)];
+        for (const field in fields) {
+            const fieldValue = fields[field];
+
+            if (typeof fieldValue === "object" && prefix.length > 0) {
+                result.push(...this.fieldsWithValue(fieldValue, value, `${prefix}.${field}`));
+            } else if (typeof fieldValue === "object") {
+                result.push(...this.fieldsWithValue(fieldValue, value, field));
+            } else if (fieldValue === value && prefix.length > 0) {
+                result.push(`${prefix}.${field}`);
+            } else if (fieldValue === value) {
+                result.push(field);
             }
+        }
 
-            if (typeof ref === "object") {
-                return [...acc, ...this.fieldsWithValue(ref, value, field)];
-            }
-
-            if (ref === value && prefix.length > 0) {
-                return [...acc, `${prefix}.${field}` as keyof C];
-            }
-
-            if (ref === value) {
-                return [...acc, field as keyof C];
-            }
-
-            return acc;
-        }, []);
+        return result;
     };
 }
 

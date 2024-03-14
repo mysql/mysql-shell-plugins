@@ -5,6 +5,7 @@
 ### Additions
 
 - WL#15718 Simplify application-level interfaces in the MRS SDK
+- WL#16158 Improve the MRS SDK API for handling resource collections
 
 ### Fixes
 

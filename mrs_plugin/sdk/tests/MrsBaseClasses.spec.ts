@@ -72,7 +72,7 @@ describe("MRS SDK API", () => {
 
     describe("when retrieving resources", () => {
         it("selects fields to include in the result set using the field names", async () => {
-            const options: IFindManyOptions<ITableMetadata1, unknown> = {
+            const options: IFindManyOptions<ITableMetadata1, unknown, unknown> = {
                 select: ["str", "json", "oneToMany.oneToOne.str"],
             };
 
@@ -84,7 +84,7 @@ describe("MRS SDK API", () => {
         });
 
         it("selects fields to include in the result set using a field mapper", async () => {
-            const options: IFindManyOptions<ITableMetadata1, unknown> = {
+            const options: IFindManyOptions<ITableMetadata1, unknown, unknown> = {
                 select: {
                     str: true,
                     json: true,
@@ -104,7 +104,7 @@ describe("MRS SDK API", () => {
         });
 
         it("selects fields to exclude from the result set using a field mapper", async () => {
-            const options: IFindManyOptions<ITableMetadata1, unknown> = {
+            const options: IFindManyOptions<ITableMetadata1, unknown, unknown> = {
                 select: {
                     id: false,
                     json: false,
@@ -143,7 +143,7 @@ describe("MRS SDK API", () => {
         });
 
         it("returns the first page of records that match a given implicit filter", async () => {
-            const options: IFindManyOptions<unknown, ITableMetadata1> = {
+            const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = {
                 where: {
                     id: 1,
                 },
@@ -156,7 +156,7 @@ describe("MRS SDK API", () => {
         });
 
         it("returns the first page of records that match a given explicit filter", async () => {
-            const options: IFindManyOptions<unknown, ITableMetadata1> = {
+            const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = {
                 where: {
                     str: {
                         $like: "%foo%",
@@ -171,7 +171,7 @@ describe("MRS SDK API", () => {
         });
 
         it("returns a limited number of records from the first page", async () => {
-            const options: IFindManyOptions<unknown, ITableMetadata1> = {
+            const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = {
                 take: 2,
             };
 
@@ -182,7 +182,7 @@ describe("MRS SDK API", () => {
         });
 
         it("returns a limited number of records from the first page that match a given filter", async () => {
-            const options: IFindManyOptions<unknown, ITableMetadata1> = {
+            const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = {
                 take: 2,
                 where: {
                     id: {
@@ -198,7 +198,7 @@ describe("MRS SDK API", () => {
         });
 
         it("skips a number of records from the first page", async () => {
-            const options: IFindManyOptions<unknown, ITableMetadata1> = {
+            const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = {
                 skip: 2,
             };
 
@@ -209,7 +209,7 @@ describe("MRS SDK API", () => {
         });
 
         it("skips a number of records that match a given filter", async () => {
-            const options: IFindManyOptions<unknown, ITableMetadata1> = {
+            const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = {
                 skip: 2,
                 where: {
                     bool: true,
@@ -236,7 +236,7 @@ describe("MRS SDK API", () => {
         });
 
         it("returns all records where a given field is NULL", async () => {
-            const options: IFindManyOptions<unknown, { maybe: number | null }> = {
+            const options: IFindManyOptions<unknown, { maybe: number | null }, unknown> = {
                 where: {
                     maybe: null,
                 },
@@ -249,7 +249,7 @@ describe("MRS SDK API", () => {
         });
 
         it("returns all records where a given field is not NULL", async () => {
-            const options: IFindManyOptions<unknown, { maybe: number | null }> = {
+            const options: IFindManyOptions<unknown, { maybe: number | null }, unknown> = {
                 where: {
                     maybe: {
                         not: null,
@@ -264,7 +264,7 @@ describe("MRS SDK API", () => {
         });
 
         it(`returns all records where a field called "not" is NULL`, async () => {
-            const options: IFindManyOptions<unknown, { not: number | null }> = {
+            const options: IFindManyOptions<unknown, { not: number | null }, unknown> = {
                 where: {
                     not: null,
                 },
@@ -277,7 +277,7 @@ describe("MRS SDK API", () => {
         });
 
         it(`returns all records where a field called "not" is not NULL`, async () => {
-            const options: IFindManyOptions<unknown, { not: number | null }> = {
+            const options: IFindManyOptions<unknown, { not: number | null }, unknown> = {
                 where: {
                     not: {
                         not: null,
@@ -470,6 +470,134 @@ describe("MRS SDK API", () => {
             expect(resource._metadata).toBeDefined();
             expect(resource.links).toBeDefined();
         });
+
+        it("creates a query filter with a cursor", async () => {
+            type Filterable = Pick<ITableMetadata1, "str">;
+            type Iterable = Pick<ITableMetadata1, "id">;
+            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
+                    schema, "/baz", undefined, undefined, { id: 10 });
+
+            await query.fetch();
+
+            expect(fetch).toHaveBeenCalledWith(
+                '/foo/bar/baz?q={"id":{"$gt":10},"$orderby":{"id":"ASC"}}', expect.anything());
+        });
+
+        it("includes a cursor in an existing query filter", async () => {
+            type Filterable = Pick<ITableMetadata1, "str">;
+            type Iterable = Pick<ITableMetadata1, "id">;
+            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
+                    schema, "/baz", undefined, undefined, { id: 10 });
+
+            await query.where({ str: "foo" }).fetch();
+
+            expect(fetch).toHaveBeenCalledWith(
+                '/foo/bar/baz?q={"id":{"$gt":10},"str":"foo","$orderby":{"id":"ASC"}}', expect.anything());
+        });
+
+        it("ignores existing implicit filters using the same cursor field", async () => {
+            type Filterable = Pick<ITableMetadata1, "id" | "str">;
+            type Iterable = Pick<ITableMetadata1, "id">;
+            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
+                    schema, "/baz", undefined, undefined, { id: 10 });
+
+            await query.where({ id: 5 }).fetch();
+
+            expect(fetch).toHaveBeenCalledWith(
+                '/foo/bar/baz?q={"id":{"$gt":10},"$orderby":{"id":"ASC"}}', expect.anything());
+        });
+
+        it("ignores existing explicit filters using the same cursor field", async () => {
+            type Filterable = Pick<ITableMetadata1, "id" | "str">;
+            type Iterable = Pick<ITableMetadata1, "id">;
+            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
+                    schema, "/baz", undefined, undefined, { id: 10 });
+
+            await query.where({ id: { $gt: 5 }}).fetch();
+
+            expect(fetch).toHaveBeenNthCalledWith(1,
+                '/foo/bar/baz?q={"id":{"$gt":10},"$orderby":{"id":"ASC"}}', expect.anything());
+        });
+
+        it("ensures the cursor field becomes a required filter condition", async () => {
+            type Filterable = Pick<ITableMetadata1, "id" | "str">;
+            type Iterable = Pick<ITableMetadata1, "id">;
+            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
+                    schema, "/baz", undefined, undefined, { id: 10 });
+
+            await query.or({ id: 1, str: "foo" }).fetch();
+
+            expect(fetch).toHaveBeenNthCalledWith(1,
+                '/foo/bar/baz?q={"$and":[{"id":{"$gt":10}},{"str":"foo"}],"$orderby":{"id":"ASC"}}', expect.anything());
+        });
+
+        it("accounts for the order of a cursor field", async () => {
+            type Filterable = Pick<ITableMetadata1, "str">;
+            type Iterable = Pick<ITableMetadata1, "id">;
+            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
+                    schema, "/baz", undefined, undefined, { id: 10 });
+
+            await query.orderBy({ str: "DESC" }).fetch();
+
+            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"id":{"$gt":10},"$orderby":{"id":"ASC","str":"DESC"}}',
+                expect.anything());
+        });
+
+        it("ignores the offset when a cursor is provided", async () => {
+            type Iterable = Pick<ITableMetadata1, "id">;
+            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown, Iterable>(
+                schema, "/baz", undefined, undefined, { id: 10 });
+
+            await query.offset(20).fetch();
+
+            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"id":{"$gt":10},"$orderby":{"id":"ASC"}}',
+                expect.anything());
+        });
+
+        it("overrides the sort order of the cursor field", async () => {
+            type Iterable = Pick<ITableMetadata1, "id">;
+            type Filterable = Pick<ITableMetadata1, "id" | "str">;
+            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
+                schema, "/baz", undefined, undefined, { id: 10 });
+
+            await query.orderBy({ id: "DESC" }).fetch();
+
+            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"id":{"$gt":10},"$orderby":{"id":"ASC"}}',
+                expect.anything());
+        });
+
+        it("supports multiple cursors", async () => {
+            type Iterable = Pick<ITableMetadata1, "id" | "num">;
+            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown, Iterable>(
+                schema, "/baz", undefined, undefined, { id: 10, num: 20 });
+
+            await query.fetch();
+
+            expect(fetch).toHaveBeenCalledWith(
+                '/foo/bar/baz?q={"id":{"$gt":10},"num":{"$gt":20},"$orderby":{"id":"ASC","num":"ASC"}}',
+                expect.anything());
+        });
+
+        it("ignores undefined cursors", async () => {
+            type Iterable = Pick<ITableMetadata1, "id">;
+            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown, Iterable>(
+                schema, "/baz", undefined, undefined, { id: undefined });
+
+            await query.fetch();
+
+            expect(fetch).toHaveBeenCalledWith("/foo/bar/baz", expect.anything());
+        });
+
+        it("ignores the sort order for undefined cursors", async () => {
+            type Filterable = Pick<ITableMetadata1, "id">;
+            type Iterable = Pick<ITableMetadata1, "id">;
+            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
+                schema, "/baz", undefined, undefined, { id: undefined });
+
+            await query.orderBy({ id: "DESC" }).fetch();
+
+            expect(fetch).toHaveBeenCalledWith("/foo/bar/baz", expect.anything());
+        });
     });
 
     describe("when creating a resource", () => {
@@ -629,7 +757,7 @@ describe("MRS SDK API", () => {
 
     describe("when deleting resources", () => {
         it("removes all records where a given field is NULL", async () => {
-            const options: IFindManyOptions<unknown, { maybe: number | null }> = {
+            const options: IFindManyOptions<unknown, { maybe: number | null }, unknown> = {
                 where: {
                     maybe: null,
                 },
@@ -644,7 +772,7 @@ describe("MRS SDK API", () => {
         });
 
         it("removes all records where a given field is not NULL", async () => {
-            const options: IFindManyOptions<unknown, { maybe: number | null }> = {
+            const options: IFindManyOptions<unknown, { maybe: number | null }, unknown> = {
                 where: {
                     maybe: {
                         not: null,

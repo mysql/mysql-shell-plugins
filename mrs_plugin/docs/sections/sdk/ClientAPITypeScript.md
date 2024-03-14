@@ -25,7 +25,7 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 ## create
 
-`create` is used to insert a record in a given table. The record is represented as a plain TypeScript/JavaScript object or, alternatively, as an instance of a particular class that encapsulates the data required to create a new record. To insert multiple records, see `createMany`[#createMany].
+`create` is used to insert a record in a given table. The record is represented as a plain TypeScript/JavaScript object or, alternatively, as an instance of a particular class that encapsulates the data required to create a new record. To insert multiple records, see `createMany`[#createmany].
 
 ### Options (create)
 
@@ -233,17 +233,19 @@ await myService.mrsNotes.note.findUnique({ where: { id: { $eq: 4 } } });
 
 ## findMany
 
-`findMany` is used to query all records in one or more pages, and optionally, those that match a given filter.
+`findMany` is used to query a subset of records in one or more pages, and optionally, those that match a given filter. To find all records see [findAll](#findall).
 
 ### Options (findMany)
 
 | Name | Type | Required | Description |
 |---|---|---|---|
-| where | object  | No | Filtering conditions that apply to specific fields. |
+| cursor | object | No | Retrieve records using unique and sequential fields as cursor. |
+| iterator | boolean | No | Enable or disable iterator behavior. |
+| orderBy | object | No | Determines the sort order of specific fields. |
 | select | object | No | Specifies which properties to include in the returned object. |
 | skip  | number | No | How many records to skip before returning one of the matches. |
+| where | object  | No | Filtering conditions that apply to specific fields. |
 | take  | number | No | Maximum number of records to return. |
-| fetchAll | object | boolean | No | Retrieve all records from every page (not just the first). |
 
 ### Return Type (findMany)
 
@@ -252,17 +254,18 @@ An array of JSON objects representing the records that match the filter.
 ### Reference (findMany)
 
 ```TypeScript
-async function findMany (args?: IFindOptions<Selectable, Filterable>): Promise<IMrsResultList<Selectable>> {
+async function findMany ({ cursor, iterator = true, orderBy, select, skip, take, where }: IFindManyOptions<Item, Filterable, Cursors>): Promise<Item[]> {
     // ...
 }
 
-interface IFindOptions<Selectable, Filterable> {
-    fetchAll?: IFindAllOptions<Selectable> | boolean,
-    orderBy?: ColumnOrder<Filterable>,
-    select?: BooleanFieldMapSelect<Selectable> | FieldNameSelect<Selectable>,
-    skip?: number,
-    take?: number,
-    where?: DataFilter<Filterable>,
+interface IFindManyOptions<Item, Filterable, Iterable> {
+    cursor?: Cursor<Iterable>;
+    iterator?: boolean;
+    orderBy?: ColumnOrder<Filterable>;
+    select?: BooleanFieldMapSelect<Item> | FieldNameSelect<Item>;
+    skip?: number;
+    take?: number;
+    where?: DataFilter<Filterable>;
 }
 ```
 
@@ -275,12 +278,63 @@ const myService = new MyService();
 
 // get all notes of the first page
 await myService.mrsNotes.note.findMany();
-// get the first 3 notes of the first page
+// get the first 3 notes
 await myService.mrsNotes.note.findMany({ take: 3 });
-// get the first 50 notes
-await myService.mrsNotes.note.findMany({ fetchAll: true, take: 50 });
-// get all notes whose id is greater than 10
-await myService.mrsNotes.note.findMany({ fetchAll: true, where: { id: { $gt: 10 } } });
+// get notes of then first page where the id is greater than 10
+await myService.mrsNotes.note.findMany({ where: { id: { $gt: 10 } } });
+```
+
+## findAll
+
+`findAll` is used to query every record, and optionally, all those that match a given filter. To get a paginated subset of records, see [findMany](#findmany).
+
+### Options (findAll)
+
+| Name | Type | Required | Description |
+|---|---|---|---|
+| cursor | object | No | Retrieve records using unique and sequential fields as cursor. |
+| orderBy | object | No | Determines the sort order of specific fields. |
+| progress | function | No | Specifies a function to be called back when reporting progress. |
+| select | object | No | Specifies which properties to include in the returned object. |
+| skip  | number | No | How many records to skip before returning one of the matches. |
+| where | object  | No | Filtering conditions that apply to specific fields. |
+
+### Return Type (findAll)
+
+An array of JSON objects representing the records that match the filter.
+
+### Reference (findAll)
+
+```TypeScript
+async function findAll (args?: IFindAllOptions<Item, Filterable>): Promise<Item[]> {
+    // ...
+}
+
+interface IFindAllOptions<Item, Filterable> {
+    cursor?: Cursor<Iterable>;
+    orderBy?: ColumnOrder<Filterable>;
+    progress?: progress?: (items: Item[]) => Promise<void>;
+    select?: BooleanFieldMapSelect<Item> | FieldNameSelect<Item>;
+    skip?: number;
+    where?: DataFilter<Filterable>;
+}
+```
+
+### Example (findAll)
+
+```TypeScript
+import { MyService } from './myService.mrs.sdk/myService';
+
+const myService = new MyService();
+
+// get all notes
+await myService.mrsNotes.note.findAll();
+// get all notes after the first 10
+await myService.mrsNotes.note.findAll({ skip: 10 });
+// get all notes and report the progress
+await myService.mrsNotes.note.findMany({ progress: (notes) => {
+    console.log(`Retrieved ${notes.length} notes.`);
+}});
 ```
 
 ## delete
