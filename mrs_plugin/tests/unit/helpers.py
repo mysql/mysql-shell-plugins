@@ -30,12 +30,13 @@ from mrs_plugin.schemas import add_schema, delete_schema
 from mrs_plugin.services import add_service, delete_service, get_service
 from mrs_plugin.db_objects import add_db_object, delete_db_object
 
-def get_default_db_object_init(session, schema_id, name=None, request_path=None):
+def get_default_db_object_init(session, schema_id, name=None, request_path=None,
+                               db_object_type=None):
     object_id = lib.core.get_sequence_id(session)
     return {
         "schema_id": schema_id,
         "db_object_name": name or "ContactBasicInfo",
-        "db_object_type": "VIEW",
+        "db_object_type": db_object_type or "VIEW",
         "request_path": request_path or "/view_contact_basic_info",
         "crud_operations": ['CREATE', 'READ', 'UPDATE'],
         "crud_operation_format": "FEED",
