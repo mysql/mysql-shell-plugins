@@ -25,7 +25,7 @@ import pytest
 from mrs_plugin.db_objects import *
 from mrs_plugin.lib.services import get_current_service_id, set_current_service_id
 from mrs_plugin import lib
-from .helpers import get_db_object_privileges, TableContents, DbObjectCT, get_default_db_object_init
+from .helpers import get_db_object_privileges, TableContents, SchemaCT, DbObjectCT, get_default_db_object_init
 
 
 def test_add_delete_db_object(phone_book, table_contents):
@@ -488,3 +488,35 @@ def test_add_db_object_auto_add_schema(phone_book, table_contents):
 
     lib.db_objects.delete_db_object(session, db_object_id)
     lib.schemas.delete_schema(session, schema["id"])
+
+
+def test_special_schemas(phone_book, mobile_phone_book, table_contents):
+    session = phone_book["session"]
+    information_schema_grants: TableContents = table_contents("INFORMATION_SCHEMA.TABLE_PRIVILEGES")
+
+    with SchemaCT(phone_book["service_id"], "information_schema", "/information_schema") as schema_id:
+
+        db_object_init = get_default_db_object_init(session, schema_id, "CHARACTER_SETS", "/character_sets")
+
+        with DbObjectCT(session, **db_object_init) as db_object_id:
+            assert information_schema_grants.same_as_snapshot
+
+
+    with SchemaCT(phone_book["service_id"], "performance_schema", "/performance_schema") as schema_id:
+
+        db_object_init = get_default_db_object_init(session, schema_id,
+                                                    "accounts", "/accounts"
+                                                    "TABLE")
+
+        with DbObjectCT(session, **db_object_init) as db_object_id:
+            assert not information_schema_grants.same_as_snapshot
+
+            filtered = information_schema_grants.filter("TABLE_SCHEMA", "performance_schema")
+            assert len(filtered) == 1
+
+            row = filtered[0]
+            assert row["TABLE_NAME"] == "accounts"
+            assert row["GRANTEE"] == "'mysql_rest_service_data_provider'@'%'"
+            assert row["PRIVILEGE_TYPE"] == "SELECT"
+
+    assert information_schema_grants.same_as_snapshot

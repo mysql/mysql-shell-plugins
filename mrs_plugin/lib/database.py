@@ -175,6 +175,14 @@ def db_schema_object_is_table(session, db_schema_name, db_object_name):
 
 
 def get_grant_statements(schema_name, db_object_name, grant_privileges, objects, db_object_type=None):
+    # We can not grant/revoke the information_schema
+    if schema_name.lower() == "information_schema":
+        return []
+
+    # We can only grant select on the performance_schema
+    if schema_name.lower() == "performance_schema":
+        grant_privileges = ["SELECT"]
+
     if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
         grant_privileges = ["EXECUTE"]
 
@@ -206,14 +214,25 @@ def grant_db_object(session, schema_name, db_object_name, grant_privileges, obje
 
 
 def revoke_all_from_db_object(session, schema_name, db_object_name, db_object_type):
-    sql = f"""
-        REVOKE IF EXISTS
-        {'EXECUTE ON PROCEDURE' if db_object_type == "PROCEDURE" else 'ALL PRIVILEGES ON'}
-        {schema_name}.{db_object_name}
-        FROM 'mysql_rest_service_data_provider'@'%'
-    """
-    session.run_sql(sql)
+    # We can not grant/revoke the information_schema
+    if schema_name.lower() == "information_schema":
+        return
 
+    # We can not REVOKE ALL when dealing with the performance_schema
+    if schema_name.lower() in ["performance_schema"]:
+        sql = f"""
+            REVOKE IF EXISTS SELECT ON
+            {schema_name}.{db_object_name}
+            FROM 'mysql_rest_service_data_provider'@'%'
+        """
+    else:
+        sql = f"""
+            REVOKE IF EXISTS
+            {'EXECUTE ON PROCEDURE' if db_object_type == "PROCEDURE" else 'ALL PRIVILEGES ON'}
+            {schema_name}.{db_object_name}
+            FROM 'mysql_rest_service_data_provider'@'%'
+        """
+    session.run_sql(sql)
 
 def get_table_columns_with_references(session, schema_name, db_object_name, db_object_type):
     sql = """
@@ -280,3 +299,4 @@ def crud_mapping(crud_operations):
         grant_privileges.append(crud_to_grant_mapping[crud_operation])
 
     return grant_privileges
+

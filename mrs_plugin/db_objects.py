@@ -366,8 +366,8 @@ def add_db_object(**kwargs):
                 comments=comments, media_type=media_type, auto_detect_media_type=auto_detect_media_type,
                 auth_stored_procedure=auth_stored_procedure, options=options, objects=objects)
 
-        for grant in grants:
-            lib.core.MrsDbExec(grant).exec(session)
+            for grant in grants:
+                lib.core.MrsDbExec(grant).exec(session)
 
         if lib.core.get_interactive_result():
             return "\n" + "Object added successfully."
