@@ -120,9 +120,7 @@ def create_symlink(source: str, link_name: str) -> None:
     """
 
     if os.name == "nt":
-        p = subprocess.run(f'mklink /J "{link_name}" "{target}"', shell=True)
-        print(p.stdout)
-        p.check_returncode()
+        subprocess.run(f'mklink /J "{link_name}" "{source}"', shell=True)
     else:
         os.symlink(source, link_name)
 
@@ -246,6 +244,13 @@ class ShellTask(BaseTask):
         raise_exception: bool = True,
     ) -> str:
         return self.__shell_execute(command, mode, conn_str, False, raise_exception)
+    
+    def shell_command_execute_cli(
+        self,
+        commands: list,
+        raise_exception: bool = True,
+    ) -> str:
+        return self.__shell_execute_cli(commands, raise_exception)
 
     def shell_file_execute(
         self,
@@ -308,6 +313,52 @@ class ShellTask(BaseTask):
             if raise_exception:
                 raise TaskFailException(
                     f"Can't perform shell command: {command_or_file_path}\n\t{exc}"
+                ) from exc
+            else:
+                Logger.warning(exc)
+        return out
+    
+    def __shell_execute_cli(
+        self,
+        commands: list,
+        raise_exception: bool = True,
+    ) -> str:
+        """Executes shell command
+
+        Args:
+            commands (list): List of command line arguments to execute, using the shell CLI integration
+
+        Raises:
+            TaskFailException: task exception
+
+        Returns:
+            str: output of MySQL Shell command
+        """
+
+        out = ""
+        try:
+            args = [self.mysqlsh_executable]
+            for command in commands:
+                args.append(command)
+            out = (
+                subprocess.check_output(
+                    args,
+                    stderr=subprocess.STDOUT,
+                    env=self.environment,
+                )
+                .decode("utf-8")
+                .strip()
+            )
+            
+            if out:
+                if "WARNING" in out.upper():
+                    Logger.warning(out)
+                else:
+                    Logger.info(out)
+        except subprocess.CalledProcessError as exc:
+            if raise_exception:
+                raise TaskFailException(
+                    f"Can't perform shell command: {commands}\n\t{exc}"
                 ) from exc
             else:
                 Logger.warning(exc)
@@ -443,21 +494,21 @@ class SetMySQLServerTask(ShellTask):
             )
             self.sandbox_deployed = True
 
-        self.install_schema(name="sakila", path=SAKILA_SQL_PATH)
+        self.install_schema(name="sakila", path=str(SAKILA_SQL_PATH))
         Logger.success("Sakila db installed")
 
-        self.install_schema(name="world_x_cst", path=WORLD_SQL_PATH)
+        self.install_schema(name="world_x_cst", path=str(WORLD_SQL_PATH))
         Logger.success("World db installed")
 
         # Adding users
         self.shell_file_execute(
-            file_path=USERS_PATH, mode="--sql", conn_str=conn_string
+            file_path=str(USERS_PATH), mode="--sql", conn_str=conn_string
         )
         Logger.success("Users have been added")
 
         # Adding procedures
         self.shell_file_execute(
-            file_path=PROCEDURES_PATH, mode="--sql", conn_str=conn_string
+            file_path=str(PROCEDURES_PATH), mode="--sql", conn_str=conn_string
         )
         Logger.success("Procedures has been created")
 
@@ -488,25 +539,25 @@ class SetMySQLServerTask(ShellTask):
     def deploy_mysql_instance(self) -> None:
         """Deploying new MySQL server instance in temp dir"""
 
-        options = {
-            "password": self.environment['DBPASSWORD'],
-            "sandboxDir": self.dir_name,
-            "ignoreSslError": True if platform.system() == "Windows" else False,
-        }
-        self.shell_command_execute(
-            command=f"dba.deploy_sandbox_instance({self.environment['DBPORT']}, {options})"
-        )
+        self.shell_command_execute_cli(
+            ["--", 
+             "dba", 
+             "deploy-sandbox-instance", 
+             self.environment['DBPORT'], 
+             f"--password={self.environment['DBPASSWORD']}", 
+             f"--sandbox-dir={self.dir_name}"
+            ])
 
         cert_path = pathlib.Path(
             self.dir_name, f"{self.environment['DBPORT']}", "sandboxdata")
-
+        
         if not cert_path.joinpath("ca.pem").exists():
             raise RuntimeError("Unable to find SSL certificates")
 
         # We will use the certs deployed with the server
-        self.environment['SSL_CA_CERT_PATH'] = cert_path.joinpath("ca.pem")
-        self.environment['SSL_CLIENT_CERT_PATH'] = cert_path.joinpath("client-cert.pem")
-        self.environment['SSL_CLIENT_KEY_PATH'] = cert_path.joinpath("client-key.pem")
+        self.environment['SSL_CA_CERT_PATH'] = str((cert_path.joinpath("ca.pem")))
+        self.environment['SSL_CLIENT_CERT_PATH'] = str((cert_path.joinpath("client-cert.pem")))
+        self.environment['SSL_CLIENT_KEY_PATH'] = str((cert_path.joinpath("client-key.pem")))
 
     def find_ssl_root_folder(self, conn_string: str) -> str:
         """Returns the SSL rot folder for custom MySQL Server"""
@@ -519,15 +570,12 @@ class SetMySQLServerTask(ShellTask):
         """Clean up after task finish"""
 
         if self.sandbox_deployed:
-            options = f'{{"sandboxDir": "{self.dir_name}"}}'
-            self.shell_command_execute(
-                command=f"dba.kill_sandbox_instance({self.environment['DBPORT']}, {options})"
-            )
+            self.shell_command_execute_cli(
+                ["--", 
+                "dba", "kill-sandbox-instance", self.environment['DBPORT'], f"--sandbox-dir={self.dir_name}"])
             Logger.success("Successfully stopped MySQL instance")
-
-            self.shell_command_execute(
-                command=f"dba.delete_sandbox_instance({self.environment['DBPORT']}, {options})"
-            )
+            
+            self.shell_command_execute_cli(["--", "dba", "delete-sandbox-instance", self.environment['DBPORT'], f"--sandbox-dir={self.dir_name}"])
             Logger.success("Successfully deleted MySQL instance")
 
 class ClearCredentials(ShellTask):
@@ -568,8 +616,6 @@ class TaskExecutor:
         self.prerequisites: typing.List[Checkable] = []
         self.environment = os.environ.copy()
         self.environment["MYSQLSH_USER_CONFIG_HOME"] = os.path.join(
-            dir_name, "mysqlsh")
-        self.environment["MYSQLSH_GUI_CUSTOM_CONFIG_DIR"] = pathlib.Path(
             dir_name, "mysqlsh")
 
     def add_task(self, task: Runnable) -> None:
@@ -675,7 +721,6 @@ class BEServer:
                         f"Shell Server {self.port} has been started")
                     break
 
-        os.remove(self.be_log_path)
         if is_timeout:
             raise TaskFailException(
                 f"Shell Server: {self.port} did not start after 30secs")
