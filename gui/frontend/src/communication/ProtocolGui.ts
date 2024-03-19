@@ -697,6 +697,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbGetCatalogObjectNames]: { result: string[]; };
     [ShellAPIGui.GuiDbGetSchemaObjectNames]: { result: string[]; };
     [ShellAPIGui.GuiDbGetTableObjectNames]: { result: string[]; };
+    [ShellAPIGui.GuiDbGetColumnsMetadata]: { result: string[]; };
     [ShellAPIGui.GuiDbGetCatalogObject]: {};
     [ShellAPIGui.GuiDbGetSchemaObject]: {};
     [ShellAPIGui.GuiDbGetTableObject]: { result: ITableObjectInfo; };
