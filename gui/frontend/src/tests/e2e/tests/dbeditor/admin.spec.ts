@@ -31,6 +31,8 @@ import * as locator from "../../lib/locators.js";
 import { basename } from "path";
 import { driver, loadDriver } from "../../lib/driver.js";
 import * as interfaces from "../../lib/interfaces.js";
+import * as waitUntil from "../../lib/until.js";
+import * as constants from "../../lib/constants.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -59,7 +61,6 @@ describe("MySQL Administration", () => {
             await loadDriver();
             await driver.wait(async () => {
                 try {
-                    console.log(`${filename} : ${url}`);
                     await Misc.waitForHomePage(url);
 
                     return true;
@@ -70,8 +71,7 @@ describe("MySQL Administration", () => {
             await driver.findElement(locator.sqlEditorPage.icon).click();
             await DBNotebooks.createDataBaseConnection(globalConn);
             await driver.executeScript("arguments[0].click();", await DBNotebooks.getConnection(globalConn.caption!));
-            await Misc.setPassword(globalConn);
-            await Misc.setConfirmDialog(globalConn, "no");
+            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait10seconds);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_Admin");
             throw e;

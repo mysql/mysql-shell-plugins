@@ -35,6 +35,7 @@ import { driver, loadDriver } from "../../lib/driver.js";
 import * as interfaces from "../../lib/interfaces.js";
 import * as constants from "../../lib/constants.js";
 import { DialogHelper } from "../../lib/dialogHelper.js";
+import * as waitUntil from "../../lib/until.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -63,7 +64,6 @@ describe("Database Connections", () => {
             await loadDriver();
             await driver.wait(async () => {
                 try {
-                    console.log(`${filename} : ${url}`);
                     await Misc.waitForHomePage(url);
 
                     return true;
@@ -309,14 +309,7 @@ describe("Database Connections", () => {
             await DBNotebooks.createDataBaseConnection(sslConn);
             const conn = await DBNotebooks.getConnection(sslConn.caption!);
             await driver.executeScript("arguments[0].click();", conn);
-
-            try {
-                await Misc.setPassword(globalConn);
-                await Misc.setConfirmDialog(globalConn, "no");
-            } catch (e) {
-                //continue
-            }
-
+            await driver.wait(waitUntil.dbConnectionIsOpened(sslConn), constants.wait10seconds);
             expect(await DBConnection.getSelectedConnectionTab()).toBe(sslConn.caption);
             let query = `select * from performance_schema.session_status where variable_name in `;
             query += `("ssl_cipher") and variable_value like "%TLS%"`;

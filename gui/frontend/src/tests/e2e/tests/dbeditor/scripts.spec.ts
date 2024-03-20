@@ -23,7 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import { Misc, explicitWait } from "../../lib/misc.js";
@@ -32,6 +31,8 @@ import * as locator from "../../lib/locators.js";
 import { CommandExecutor } from "../../lib/cmdExecutor.js";
 import { driver, loadDriver } from "../../lib/driver.js";
 import * as interfaces from "../../lib/interfaces.js";
+import * as waitUntil from "../../lib/until.js";
+import * as constants from "../../lib/constants.js";
 
 const url = Misc.getUrl(basename(basename(__filename)));
 
@@ -59,10 +60,8 @@ describe("Scripts", () => {
     beforeAll(async () => {
         try {
             await loadDriver();
-            const filename = basename(__filename);
             await driver.wait(async () => {
                 try {
-                    console.log(`${filename} : ${url}`);
                     await Misc.waitForHomePage(url);
 
                     return true;
@@ -74,10 +73,7 @@ describe("Scripts", () => {
             await driver.findElement(locator.sqlEditorPage.icon).click();
             await DBNotebooks.createDataBaseConnection(globalConn);
             await driver.executeScript("arguments[0].click();", await DBNotebooks.getConnection(globalConn.caption!));
-            await Misc.setPassword(globalConn);
-            await Misc.setConfirmDialog(globalConn, "no");
-            await driver.wait(until.elementLocated(locator.notebook.toolbar.exists), explicitWait * 2,
-                "Notebook was not loaded");
+            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait10seconds);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_Scripts");
             throw e;

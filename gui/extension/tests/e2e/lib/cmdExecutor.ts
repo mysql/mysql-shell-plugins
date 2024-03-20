@@ -1010,14 +1010,19 @@ export class CommandExecutor {
 
                     case constants.resultGridContextMenu.setFieldToNull: {
                         const setToNull = await driver.findElement(cellContextMenu.setFieldToNull);
-                        if (!(await setToNull.getAttribute("class")).includes("disabled")) {
-                            await setToNull.click();
-                        } else {
-                            await driver.actions().sendKeys(Key.ESCAPE).perform();
+                        await setToNull.click();
 
-                            return false;
-                        }
-                        break;
+                        return driver.wait(async () => {
+                            return (await driver.findElements(cellContextMenu.setFieldToNull)).length === 0;
+                        }, constants.wait150MilliSeconds)
+                            .then(() => {
+                                return true;
+                            })
+                            .catch(async () => {
+                                await this.getResultToolbar().click();
+
+                                return false;
+                            });
                     }
                     default: {
                         break;

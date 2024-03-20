@@ -28,6 +28,7 @@ export const wait3seconds = 3000;
 export const wait5seconds = 5000;
 export const wait10seconds = 10000;
 export const wait150MilliSeconds = 150;
+export const wait250seconds = 250000;
 
 // BUTTONS
 export const execCaret = "Execute the statement at the caret position";
