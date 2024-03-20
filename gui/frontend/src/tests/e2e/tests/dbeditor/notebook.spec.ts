@@ -67,7 +67,6 @@ describe("Notebook", () => {
             await loadDriver();
             await driver.wait(async () => {
                 try {
-                    console.log(`${filename} : ${url}`);
                     await Misc.waitForHomePage(url);
 
                     return true;
@@ -79,10 +78,7 @@ describe("Notebook", () => {
             await driver.executeScript("arguments[0].click()", await driver.findElement(locator.sqlEditorPage.icon));
             await DBNotebooks.createDataBaseConnection(globalConn);
             await driver.executeScript("arguments[0].click();", await DBNotebooks.getConnection(globalConn.caption!));
-            await Misc.setPassword(globalConn);
-            await Misc.setConfirmDialog(globalConn, "no");
-            await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
-                explicitWait * 2, "Notebook was not loaded");
+            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait10seconds);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_Notebook");
             throw e;
@@ -1059,7 +1055,7 @@ describe("Notebook", () => {
         const testBit = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_bit");
         expect(testBit).toBe("1");
 
-    });
+    }, constants.wait250seconds);
 
     it("Edit a result grid and rollback", async () => {
         try {
@@ -1112,6 +1108,7 @@ describe("Notebook", () => {
 
     it("Add new row from result grid", async () => {
         try {
+            await commandExecutor.clean();
             await commandExecutor.execute("select * from sakila.all_data_types;");
             expect(commandExecutor.getResultMessage()).toMatch(/OK/);
 
@@ -1257,7 +1254,7 @@ describe("Notebook", () => {
             testFailed = true;
             throw e;
         }
-    });
+    }, constants.wait250seconds);
 
     it("Close a result set", async () => {
         try {
@@ -1427,7 +1424,6 @@ describe("Notebook headless off", () => {
             await loadDriver(false);
             await driver.wait(async () => {
                 try {
-                    console.log(`${filename} : ${url}`);
                     await Misc.waitForHomePage(url);
 
                     return true;
@@ -1439,14 +1435,7 @@ describe("Notebook headless off", () => {
             await driver.executeScript("arguments[0].click()", await driver.findElement(locator.sqlEditorPage.icon));
             await DBNotebooks.createDataBaseConnection(anotherConnection);
             await driver.executeScript("arguments[0].click();", await DBNotebooks.getConnection(globalConn.caption!));
-            try {
-                await Misc.setPassword(anotherConnection);
-                await Misc.setConfirmDialog(anotherConnection, "no");
-            } catch (e) {
-                // continue
-            }
-            await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
-                explicitWait * 2, "Notebook was not loaded");
+            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait10seconds);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_Notebook");
             throw e;
@@ -1771,5 +1760,5 @@ describe("Notebook headless off", () => {
             testFailed = true;
             throw e;
         }
-    });
+    }, constants.wait250seconds);
 });

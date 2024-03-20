@@ -595,4 +595,15 @@ export class Misc {
     public static writeToClipboard = async (text: string): Promise<string> => {
         return driver.executeScript(`return await navigator.clipboard.writeText('${text}')`);
     };
+
+    /**
+     * Checks if the credential helper exists/has errors
+     * @returns A promise revolved with the existence of the credentials helper
+     */
+    public static existsCredentialHelper = async (): Promise<boolean> => {
+        const mysqlSh = join(process.cwd(), "src", "tests", "e2e", "port_8000", "mysqlsh.log");
+        const fileContent = await fs.readFile(mysqlSh);
+
+        return fileContent.toString().match(/Error: Failed to initialize the default helper/) === null;
+    };
 }

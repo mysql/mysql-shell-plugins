@@ -27,6 +27,8 @@ import * as locator from "./locators.js";
 import { CommandExecutor } from "./cmdExecutor.js";
 import * as constants from "./constants.js";
 import { driver } from "./driver.js";
+import { DBConnection } from "./dbConnection.js";
+import * as interfaces from "../lib/interfaces.js";
 
 export const toolbarButtonIsDisabled = (button: string): Condition<boolean> => {
     return new Condition(`for button ${button} to be disabled`, async () => {
@@ -137,4 +139,29 @@ export const confirmationDialogExists = (context?: string): Condition<WebElement
         }
     });
 };
+
+const dbConnectionIsSuccessful = (): Condition<boolean> => {
+    return new Condition("for DB Connection is successful", async () => {
+        const editorSelectorExists = (await driver.findElements(locator.notebook.toolbar.editorSelector.exists))
+            .length > 0;
+        const notebookExists = (await driver.findElements(locator.notebook.exists)).length > 0;
+
+        return editorSelectorExists || notebookExists;
+    });
+};
+
+export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
+    return new Condition(`for DB connection ${connection.caption} to be opened`, async () => {
+        const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
+        if (existsPasswordDialog) {
+            await DBConnection.setCredentials(connection);
+            await driver.wait(dbConnectionIsSuccessful(), constants.wait10seconds);
+        }
+        const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
+        const existsGenericDialog = (await driver.findElements(locator.genericDialog.exists)).length > 0;
+
+        return existsNotebook || existsGenericDialog;
+    });
+};
+
 

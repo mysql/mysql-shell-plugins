@@ -262,10 +262,10 @@ def main() -> None:
         executor.add_task(SetFrontendTask(executor.environment))
         executor.add_task(task_utils.SetPluginsTask(
             pathlib.Path(tmp_dirname, "mysqlsh", "plugins"), be_servers))
+        executor.add_task(task_utils.AddUserToBE(executor.environment, tmp_dirname, be_servers))
         executor.add_task(task_utils.StartBeServersTask(be_servers))
         executor.add_task(task_utils.SetMySQLServerTask(
             executor.environment, tmp_dirname, True))
-        executor.add_task(task_utils.AddUserToBE(executor.environment, tmp_dirname, be_servers))
         executor.add_task(task_utils.ClearCredentials(executor.environment))
         executor.add_task(NPMScript(executor.environment, "e2e-tests-run", [f"--maxWorkers={MAX_WORKERS}"]))
 

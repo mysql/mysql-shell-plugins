@@ -525,6 +525,7 @@ export const errorPanel = {
     exists: By.css(".visible.errorPanel"),
     title: By.css(".title label"),
     content: By.css(".content label"),
+    close: By.css(".visible.errorPanel .button"),
 };
 
 export const passwordDialog = {

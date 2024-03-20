@@ -874,7 +874,6 @@ export class DBConnection {
             }
         } catch (e) {
             await driver.sleep(1000);
-            console.log(e);
             await DBConnection.expandCollapseMenus(menu, expand, retries + 1);
         }
     };
@@ -1092,30 +1091,40 @@ export class DBConnection {
     private static setConfirm = async (value: string,
         timeoutDialog = constants.wait10seconds): Promise<void> => {
 
-        const confirmDialog = await driver.wait(until.elementsLocated(locator.confirmDialog.exists),
-            timeoutDialog, "No confirm dialog was found");
+        if (await Misc.existsCredentialHelper()) {
+            const confirmDialog = await driver.wait(until.elementsLocated(locator.confirmDialog.exists),
+                timeoutDialog, "No confirm dialog was found");
 
-        const noBtn = await confirmDialog[0].findElement(locator.confirmDialog.refuse);
-        const yesBtn = await confirmDialog[0].findElement(locator.confirmDialog.accept);
-        const neverBtn = await confirmDialog[0].findElement(locator.confirmDialog.alternative);
+            const noBtn = await confirmDialog[0].findElement(locator.confirmDialog.refuse);
+            const yesBtn = await confirmDialog[0].findElement(locator.confirmDialog.accept);
+            const neverBtn = await confirmDialog[0].findElement(locator.confirmDialog.alternative);
 
-        switch (value) {
-            case "yes": {
-                await yesBtn.click();
-                break;
+            switch (value) {
+                case "yes": {
+                    await yesBtn.click();
+                    break;
+                }
+                case "no": {
+                    await noBtn.click();
+                    break;
+                }
+                case "never": {
+                    await neverBtn.click();
+                    break;
+                }
+                default: {
+                    break;
+                }
             }
-            case "no": {
-                await noBtn.click();
-                break;
-            }
-            case "never": {
-                await neverBtn.click();
-                break;
-            }
-            default: {
-                break;
-            }
+        } else {
+            await driver.wait(until.elementLocated(locator.errorPanel.close),
+                constants.wait2seconds)
+                .then(async (el) => {
+                    await el.click();
+                })
+                .catch(() => {
+                    // continue, dialog was not found
+                });
         }
     };
-
 }

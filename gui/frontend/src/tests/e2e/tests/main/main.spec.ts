@@ -40,7 +40,6 @@ describe("Main pages", () => {
         await loadDriver();
         await driver.wait(async () => {
             try {
-                console.log(`${basename(__filename)} : ${url}`);
                 await Misc.waitForHomePage(url);
 
                 return true;

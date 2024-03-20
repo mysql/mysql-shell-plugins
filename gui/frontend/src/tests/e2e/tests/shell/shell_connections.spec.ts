@@ -35,7 +35,6 @@ import { driver, loadDriver } from "../../lib/driver.js";
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
 
-jest.retryTimes(1);
 describe("MySQL Shell Connections", () => {
 
     let testFailed: boolean;
@@ -79,7 +78,6 @@ describe("MySQL Shell Connections", () => {
             await loadDriver();
             await driver.wait(async () => {
                 try {
-                    console.log(`${basename(__filename)} : ${url}`);
                     await Misc.waitForHomePage(url);
 
                     return true;
@@ -167,7 +165,7 @@ describe("MySQL Shell Connections", () => {
         const port = (localConn.basic as interfaces.IConnBasicMySQL).port;
 
         try {
-            await commandExecutor.execute("shell.deleteAllCredentials()", false, undefined, true);
+            await commandExecutor.deleteCredentials();
             let uri = `\\c ${username}@${hostname}:${port}/${schema}`;
             await commandExecutor.executeExpectingCredentials(uri, localConn);
             uri = `Creating a session to '${username}@${hostname}:${port}/${schema}'`;

@@ -169,6 +169,26 @@ export class CommandExecutor {
     };
 
     /**
+     * Deletes all stored credentials on the key chain, using shell
+     * @returns A promise resolving when the command is executed
+     */
+    public deleteCredentials = async (): Promise<void> => {
+        const cmd = "shell.deleteAllCredentials()";
+        await this.write(cmd, false);
+        await this.exec();
+        if (!(await Misc.existsCredentialHelper())) {
+            // we expect an error on the console
+            const nextId = await this.getNextResultId(this.resultId);
+            await this.setResultMessage(cmd, nextId);
+            await this.setResultContent(cmd, nextId);
+            await this.setResultToolbar(cmd, nextId);
+            if (nextId) {
+                this.setResultId(nextId);
+            }
+        }
+    };
+
+    /**
      * Executes a command on the editor
      * @param cmd The command
      * @param slowWriting True if the command should be written with a delay between each character
@@ -300,8 +320,6 @@ export class CommandExecutor {
         if (await DBNotebooks.existsToolbarButton(constants.execCaret)) {
             const toolbarButton = await DBNotebooks.getToolbarButton(constants.execCaret);
             await toolbarButton!.click();
-            await driver.wait(waitUntil.toolbarButtonIsDisabled(constants.execCaret), constants.wait5seconds);
-            await driver.wait(waitUntil.toolbarButtonIsEnabled(constants.execCaret), constants.wait5seconds);
         } else {
             await (await DBNotebooks.getToolbarButton(constants.execFullBlockJs))!.click();
         }
@@ -536,7 +554,7 @@ export class CommandExecutor {
                 await this.setCellBooleanValue(cells[i].rowNumber!, cells[i].columnName,
                     cells[i].value as boolean);
             }
-            await driver.findElement(locator.mainActivityBar).click();
+            await this.saveCellChanges("edit", cells[i].rowNumber!, cells[i].columnName);
             await this.refreshCommandResult(this.getResultId());
             if (isDate) {
                 await driver.wait(async () => {
@@ -724,7 +742,7 @@ export class CommandExecutor {
             } else {
                 await this.setCellBooleanValue(-1, cell.columnName, cell.value as boolean);
             }
-            await driver.findElement(locator.mainActivityBar).click();
+            await this.saveCellChanges("add", -1, cell.columnName);
             if (isDate) {
                 await driver.wait(async () => {
                     return (await this.getCellValueFromResultGrid(-1, cell.columnName)) !== "Invalid Date";
@@ -936,12 +954,19 @@ export class CommandExecutor {
 
                     case constants.resultGridContextMenu.setFieldToNull: {
                         const setToNull = await driver.findElement(cellContextMenu.setFieldToNull);
-                        if (!(await setToNull.getAttribute("class")).includes("disabled")) {
-                            await setToNull.click();
-                        } else {
-                            return false;
-                        }
-                        break;
+                        await setToNull.click();
+
+                        return driver.wait(async () => {
+                            return (await driver.findElements(cellContextMenu.setFieldToNull)).length === 0;
+                        }, constants.wait150MilliSeconds)
+                            .then(() => {
+                                return true;
+                            })
+                            .catch(async () => {
+                                await this.getResultToolbar().click();
+
+                                return false;
+                            });
                     }
                     default: {
                         break;
@@ -1366,7 +1391,9 @@ export class CommandExecutor {
                 }
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError) ||
-                    !(e instanceof error.ElementNotInteractableError)) {
+                    !(e instanceof error.ElementNotInteractableError) ||
+                    !(String(e).includes("No node with given id found"))
+                ) {
                     throw e;
                 }
             }
@@ -1578,4 +1605,22 @@ export class CommandExecutor {
         }, constants.wait5seconds, `Could not start editing cell on column ${columnName}`);
     };
 
+    /**
+     * Saves the changes on a cell
+     * @param action The action that was made before saving the cell value (edit/add)
+     * @param rowNumber The row number
+     * @param columnName The column name
+     * @returns The table name
+     */
+    private saveCellChanges = async (action: string, rowNumber: number, columnName: string): Promise<void> => {
+        await driver.wait(async () => {
+            await driver.findElement(locator.mainActivityBar).click();
+            const cell = await this.getCellFromResultGrid(rowNumber, columnName);
+            if (action === "edit") {
+                return (await cell.getAttribute("class")).includes("changed");
+            } else {
+                return (await cell.getAttribute("class")).includes("tabulator-editing") === false;
+            }
+        }, constants.wait5seconds, `Unable to save changes on cell, with row ${rowNumber} and column ${columnName}`);
+    };
 }
