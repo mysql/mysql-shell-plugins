@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-<!-- Copyright (c) 2022, 2023, Oracle and/or its affiliates.-->
+<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.-->
 
 <head>
     <meta charset="UTF-8" />
@@ -35,9 +35,6 @@
             window.visibleItems = [];
             window.lastVisible = null;
             const observer = new IntersectionObserver((entries) => {
-                console.log("IntersectionObserver - after enter");
-                console.log(window.visibleItems);
-                console.log(window.lastVisible);
                 // Add active css class to first match
                 entries.forEach((entry) => {
                     const id = entry.target.getAttribute('id');
@@ -76,9 +73,6 @@
                         }
                     }
                 });
-                console.log("IntersectionObserver - before exit");
-                console.log(window.visibleItems);
-                console.log(window.lastVisible);
             }/*, { threshold: 0.1, rootMargin: '0px 0px -100% 0px', root: document.body }*/);
             // Track all h that have an `id` applied
             document.querySelectorAll('.content h1[id],h2[id]').forEach((section) => {

@@ -20,9 +20,6 @@
             window.visibleItems = [];
             window.lastVisible = null;
             const observer = new IntersectionObserver((entries) => {
-                console.log("IntersectionObserver - after enter");
-                console.log(window.visibleItems);
-                console.log(window.lastVisible);
                 // Add active css class to first match
                 entries.forEach((entry) => {
                     const id = entry.target.getAttribute('id');
@@ -61,9 +58,6 @@
                         }
                     }
                 });
-                console.log("IntersectionObserver - before exit");
-                console.log(window.visibleItems);
-                console.log(window.lastVisible);
             }/*, { threshold: 0.1, rootMargin: '0px 0px -100% 0px', root: document.body }*/);
             // Track all h that have an `id` applied
             document.querySelectorAll('.content h1[id],h2[id]').forEach((section) => {
@@ -458,6 +452,7 @@ Reference
                 permission to link the program and your derivative works with the
                 separately licensed software that they have either included with
                 the program or referenced in the documentation.
+
                 This program is distributed in the hope that it will be useful,  but
                 WITHOUT ANY WARRANTY; without even the implied warranty of
                 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -532,6 +527,7 @@ Reference
                 permission to link the program and your derivative works with the
                 separately licensed software that they have either included with
                 the program or referenced in the documentation.
+
                 This program is distributed in the hope that it will be useful,  but
                 WITHOUT ANY WARRANTY; without even the implied warranty of
                 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -1755,6 +1751,7 @@ defaultRole:
                 permission to link the program and your derivative works with the
                 separately licensed software that they have either included with
                 the program or referenced in the documentation.
+
                 This program is distributed in the hope that it will be useful,  but
                 WITHOUT ANY WARRANTY; without even the implied warranty of
                 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -1962,6 +1959,7 @@ restObjectOptions: (
                 permission to link the program and your derivative works with the
                 separately licensed software that they have either included with
                 the program or referenced in the documentation.
+
                 This program is distributed in the hope that it will be useful,  but
                 WITHOUT ANY WARRANTY; without even the implied warranty of
                 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -2120,6 +2118,7 @@ restObjectOptions: (
                 permission to link the program and your derivative works with the
                 separately licensed software that they have either included with
                 the program or referenced in the documentation.
+
                 This program is distributed in the hope that it will be useful,  but
                 WITHOUT ANY WARRANTY; without even the implied warranty of
                 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -2497,7 +2496,8 @@ serviceSchemaSelector:
                 given REST auth app.</p>
                 <div class="sourceCode" id="cb89"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST AUTH APP <span class="ot">&quot;MRS&quot;</span> <span class="kw">FROM</span> SERVICE localhost<span class="op">/</span>myTestService;</span></code></pre></div>
-                <p>Copyright (c) 2023, 2024, Oracle and/or its affiliates.</p>
+                <p>Copyright (c) 2023, 2024, Oracle and/or its
+                affiliates.</p>
             </div>
         </div>
     </div>
