@@ -24,7 +24,7 @@
 import { mount } from "enzyme";
 import { MdsEndpointDialog } from "../../../../../modules/mds/dialogs/MdsEndpointDialog.js";
 import { DialogResponseClosure, MdsDialogType } from "../../../../../app-logic/Types.js";
-import { IDialogValues } from "../../../../../components/Dialogs/ValueEditDialog.js";
+import { IDialogSection, IDialogValues } from "../../../../../components/Dialogs/ValueEditDialog.js";
 import { DialogHelper, nextProcessTick, sendKeyPress } from "../../../test-helpers.js";
 import { KeyboardKeys, sleep } from "../../../../../utilities/helpers.js";
 
@@ -46,8 +46,8 @@ describe("MdsEndpointDialog show tests", () => {
 
 
   it("Test close dialog by clicking Ok button", async () => {
-    const onCloseMock = jest.fn((closure: DialogResponseClosure, dialogValues: IDialogValues, data?: IDictionary): void => {
-        // no-op
+    const onCloseMock = jest.fn((_closure: DialogResponseClosure, _values?: IDictionary): void => {
+      // no-op
     });
 
     const component = mount<MdsEndpointDialog>(
@@ -59,7 +59,7 @@ describe("MdsEndpointDialog show tests", () => {
     let portals = document.getElementsByClassName("portal");
     expect(portals.length).toBe(0);
 
-    const promise = component.instance().show(
+    component.instance().show(
       {
         id: "test-id",
         type: MdsDialogType.MdsEndpoint,
@@ -71,16 +71,16 @@ describe("MdsEndpointDialog show tests", () => {
           instanceName: "Test Instance",
           cpuCount: 4,
           memorySize: 8,
-          mysqlUserName: "testuser",
-          mysqlUserPassword: "testpassword",
+          mysqlUserName: "test_user",
+          mysqlUserPassword: "test_password",
           createDbConnection: true,
           portForwarding: true,
           sslCertificate: true,
           publicIp: true,
-          mrs: true
+          mrs: true,
         },
       },
-      "Test Title"
+      "Test Title",
     );
     await nextProcessTick();
     await sleep(500);
@@ -88,26 +88,24 @@ describe("MdsEndpointDialog show tests", () => {
     portals = document.getElementsByClassName("portal");
     expect(portals.length).toBe(1);
 
-    await dialogHelper.setInputText("domainName", "oracle.com")
+    await dialogHelper.setInputText("domainName", "oracle.com");
     await dialogHelper.clickOk();
-
-    await promise;
 
     expect(onCloseMock).toHaveBeenCalledTimes(1);
     expect(onCloseMock).toHaveBeenCalledWith(DialogResponseClosure.Accept, {
-      "cpuCount": 4,
-      "createDbConnection": true,
-      "domainName": "oracle.com",
-      "instanceName": "Test Instance",
-      "jwtSecret": "",
-      "memorySize": 8,
-      "mrs": true,
-      "mysqlUserName": "testuser",
-      "mysqlUserPassword": "testpassword",
-      "portForwarding": true,
-      "publicIp": true,
-      "shapeName": "Test Shape",
-      "sslCertificate": true,
+      cpuCount: 4,
+      createDbConnection: true,
+      domainName: "oracle.com",
+      instanceName: "Test Instance",
+      jwtSecret: "",
+      memorySize: 8,
+      mrs: true,
+      mysqlUserName: "test_user",
+      mysqlUserPassword: "test_password",
+      portForwarding: true,
+      publicIp: true,
+      shapeName: "Test Shape",
+      sslCertificate: true,
     });
 
     portals = document.getElementsByClassName("portal");
@@ -115,7 +113,7 @@ describe("MdsEndpointDialog show tests", () => {
   });
 
   it("Test close dialog by clicking Cancel button", async () => {
-    const onCloseMock = jest.fn((closure: DialogResponseClosure, dialogValues: IDialogValues, data?: IDictionary): void => {
+    const onCloseMock = jest.fn((_closure: DialogResponseClosure, _values?: IDictionary): void => {
       // no-op
     });
 
@@ -129,14 +127,14 @@ describe("MdsEndpointDialog show tests", () => {
     const shapeName = "Test Shape";
     const cpuCount = 4;
     const memorySize = 8;
-    const mysqlUserName = "testuser";
-    const mysqlUserPassword = "testpassword";
+    const mysqlUserName = "test_user";
+    const mysqlUserPassword = "test_password";
     const createDbConnection = true;
 
     let portals = document.getElementsByClassName("portal");
     expect(portals.length).toBe(0);
 
-    const promise = component.instance().show(
+    component.instance().show(
       {
         id: "test-id",
         type: MdsDialogType.MdsEndpoint,
@@ -153,7 +151,7 @@ describe("MdsEndpointDialog show tests", () => {
           createDbConnection,
         },
       },
-      "Test Title"
+      "Test Title",
     );
     await nextProcessTick();
     await sleep(500);
@@ -163,8 +161,6 @@ describe("MdsEndpointDialog show tests", () => {
 
     await dialogHelper.clickCancel();
 
-    await promise;
-
     expect(onCloseMock).toHaveBeenCalledTimes(1);
     expect(onCloseMock).toHaveBeenCalledWith(DialogResponseClosure.Decline);
 
@@ -173,7 +169,7 @@ describe("MdsEndpointDialog show tests", () => {
   });
 
   it("Test close dialog with Decline closure", async () => {
-    const onCloseMock = jest.fn((closure: DialogResponseClosure, dialogValues: IDialogValues, data?: IDictionary): void => {
+    const onCloseMock = jest.fn((_closure: DialogResponseClosure, _values?: IDictionary): void => {
       // no-op
     });
 
@@ -187,14 +183,14 @@ describe("MdsEndpointDialog show tests", () => {
     const shapeName = "Test Shape";
     const cpuCount = 4;
     const memorySize = 8;
-    const mysqlUserName = "testuser";
-    const mysqlUserPassword = "testpassword";
+    const mysqlUserName = "test_user";
+    const mysqlUserPassword = "test_password";
     const createDbConnection = true;
 
     let portals = document.getElementsByClassName("portal");
     expect(portals.length).toBe(0);
 
-    const promise = component.instance().show(
+    component.instance().show(
       {
         id: "test-id",
         type: MdsDialogType.MdsEndpoint,
@@ -211,7 +207,7 @@ describe("MdsEndpointDialog show tests", () => {
           createDbConnection,
         },
       },
-      "Test Title"
+      "Test Title",
     );
     await nextProcessTick();
     await sleep(500);
@@ -221,8 +217,6 @@ describe("MdsEndpointDialog show tests", () => {
 
     sendKeyPress(KeyboardKeys.Escape);
     await nextProcessTick();
-
-    await promise;
 
     expect(onCloseMock).toHaveBeenCalledWith(DialogResponseClosure.Decline);
 
@@ -235,15 +229,28 @@ describe("MdsEndpointDialog validateInput tests", () => {
   let dialog: MdsEndpointDialog;
 
   beforeEach(() => {
-    dialog = new MdsEndpointDialog();
+    dialog = new MdsEndpointDialog({onClose: jest.fn()});
   });
 
   it("should return empty messages when closing is false", () => {
     const values: IDialogValues = {
-      sections: new Map([
-        ["mainSection", { values: { instanceName: { value: "" }, cpuCount: { value: 4 }, memorySize: { value: 8 }, mysqlUserName: { value: "" }, mysqlUserPassword: { value: "" } } }],
-        ["featuresSection", { values: { portForwarding: { value: false }, mrs: { value: false } } }]
-      ])
+      sections: new Map<string, IDialogSection>([
+        ["mainSection", {
+          values: {
+            instanceName: { value: "", type: "text" },
+            cpuCount: { value: 4, type: "number" },
+            memorySize: { value: 8, type: "number" },
+            mysqlUserName: { value: "", type: "text" },
+            mysqlUserPassword: { value: "", type: "text" },
+          },
+        }],
+        ["featuresSection", {
+          values: {
+            portForwarding: { value: false, type: "boolean" },
+            mrs: { value: false, type: "boolean" },
+          },
+        }],
+      ]),
     };
 
     const result = dialog.validateInput(false, values);
@@ -253,10 +260,27 @@ describe("MdsEndpointDialog validateInput tests", () => {
 
   it("should return validation messages when closing is true and required fields are missing", () => {
     const values: IDialogValues = {
-      sections: new Map([
-        ["mainSection", { values: { instanceName: "", cpuCount: { value: -1 }, memorySize: { value: -1 }, mysqlUserName: { value: "" }, mysqlUserPassword: { value: "" }, sslCertificate: { value: true }, domainName: { value: "" }, publicIp: { value: "" }, createDbConnection: { value: true } } }],
-        ["featuresSection", { values: { portForwarding: { value: false }, mrs: { value: false } } }]
-      ])
+      sections: new Map<string, IDialogSection>([
+        ["mainSection", {
+          values: {
+            instanceName: { value: "", type: "text" },
+            cpuCount: { value: -1, type: "number" },
+            memorySize: { value: -1, type: "number"},
+            mysqlUserName: { value: "", type: "text" },
+            mysqlUserPassword: { value: "", type: "text"},
+            sslCertificate: { value: true, type: "boolean"},
+            domainName: { value: "", type: "text" },
+            publicIp: { value: "", type: "text"},
+            createDbConnection: { value: true, type: "boolean"},
+          },
+        }],
+        ["featuresSection", {
+          values: {
+            portForwarding: { value: false, type: "boolean"},
+            mrs: { value: false, type: "boolean"},
+          },
+        }],
+      ]),
     };
 
     const result = dialog.validateInput(true, values);
@@ -270,16 +294,33 @@ describe("MdsEndpointDialog validateInput tests", () => {
       portForwarding: "At least one feature needs to be selected.",
       sslCertificate: "A domain name needs to be assigned.",
       domainName: "A valid domain name needs at least one dot.",
-      createDbConnection: "The Port Forwarding feature needs to be enabled."
+      createDbConnection: "The Port Forwarding feature needs to be enabled.",
     });
   });
 
   it("should return empty messages when closing is true and all required fields are provided", () => {
     const values: IDialogValues = {
-      sections: new Map([
-        ["mainSection", { values: { instanceName: { value: "Test Instance" }, cpuCount: { value: 4 }, memorySize: { value: 8 }, mysqlUserName: { value: "testuser" }, mysqlUserPassword: { value: "testpassword" }, sslCertificate: { value: "" }, domainName: { value: "example.com" }, publicIp: { value: "192.168.0.1" }, createDbConnection: { value: true } } }],
-        ["featuresSection", { values: { portForwarding: { value: true }, mrs: { value: true } } }]
-      ])
+      sections: new Map<string, IDialogSection>([
+        ["mainSection", {
+          values: {
+            instanceName: { value: "Test Instance", type: "text"},
+            cpuCount: { value: 4, type: "number"},
+            memorySize: { value: 8, type: "number"},
+            mysqlUserName: { value: "test_user", type: "text"},
+            mysqlUserPassword: { value: "test_password", type: "text"},
+            sslCertificate: { value: "", type: "text"},
+            domainName: { value: "example.com", type: "text"},
+            publicIp: { value: "192.168.0.1", type: "text"},
+            createDbConnection: { value: true, type: "boolean"},
+          },
+        }],
+        ["featuresSection", {
+          values: {
+            portForwarding: { value: true, type: "boolean"},
+            mrs: { value: true, type: "boolean"},
+          },
+        }],
+      ]),
     };
 
     const result = dialog.validateInput(true, values);

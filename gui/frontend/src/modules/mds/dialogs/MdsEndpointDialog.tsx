@@ -53,6 +53,71 @@ export class MdsEndpointDialog extends ValueDialogBase {
             { shapes });
     }
 
+    public validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
+        const result: IDialogValidations = {
+            messages: {},
+            requiredContexts: [],
+        };
+
+        const mainSection = values.sections.get("mainSection");
+        const featuresSection = values.sections.get("featuresSection");
+        if (mainSection && featuresSection) {
+            if (closing) {
+                if (!mainSection.values.instanceName.value) {
+                    result.messages.instanceName = "The instance name must be specified.";
+                }
+
+                const cpuCount = mainSection.values.cpuCount.value as number;
+                if (cpuCount < 0 || cpuCount > 512) {
+                    result.messages.cpuCount = "The number of CPUs must be between 1 and 512.";
+                }
+
+                const memorySize = mainSection.values.memorySize.value as number;
+                if (memorySize < 0 || memorySize > 1024) {
+                    result.messages.memorySize = "The memory size must be between 1 and 1024 GB.";
+                }
+
+                if (!mainSection.values.mysqlUserName.value) {
+                    result.messages.mysqlUserName = "The MySQL user name must be specified.";
+                }
+
+                if (!mainSection.values.mysqlUserPassword.value) {
+                    result.messages.mysqlUserPassword = "The MySQL password must be specified.";
+                }
+
+                if (!featuresSection.values.portForwarding.value && !featuresSection.values.mrs.value) {
+                    result.messages.portForwarding = "At least one feature needs to be selected.";
+                }
+
+                if (mainSection.values.sslCertificate.value && !featuresSection.values.mrs.value) {
+                    result.messages.sslCertificate = "The MRS feature needs to be enabled.";
+                }
+
+                if (!(mainSection.values.domainName.value as string).includes(".")) {
+                    result.messages.domainName = "A valid domain name needs at least one dot.";
+                }
+
+                if (mainSection.values.domainName.value && !mainSection.values.publicIp.value) {
+                    result.messages.domainName = "A public IP needs to be assigned.";
+                }
+
+                if (mainSection.values.sslCertificate.value && !mainSection.values.publicIp.value) {
+                    result.messages.sslCertificate = "A public IP needs to be assigned.";
+                }
+
+                if (mainSection.values.sslCertificate.value && !mainSection.values.domainName.value) {
+                    result.messages.sslCertificate = "A domain name needs to be assigned.";
+                }
+
+                if (mainSection.values.createDbConnection.value && !featuresSection.values.portForwarding.value) {
+                    result.messages.createDbConnection = "The Port Forwarding feature needs to be enabled.";
+                }
+            }
+        }
+
+        return result;
+    };
+
     private dialogValues(request: IDialogRequest, shapes: string[]): IDialogValues {
 
         let selectedShape = shapes.find((shape) => {
@@ -227,70 +292,4 @@ export class MdsEndpointDialog extends ValueDialogBase {
             onClose(closure);
         }
     };
-
-    public validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
-        const result: IDialogValidations = {
-            messages: {},
-            requiredContexts: [],
-        };
-
-        const mainSection = values.sections.get("mainSection");
-        const featuresSection = values.sections.get("featuresSection");
-        if (mainSection && featuresSection) {
-            if (closing) {
-                if (!mainSection.values.instanceName.value) {
-                    result.messages.instanceName = "The instance name must be specified.";
-                }
-
-                const cpuCount = mainSection.values.cpuCount.value as number;
-                if (cpuCount < 0 || cpuCount > 512) {
-                    result.messages.cpuCount = "The number of CPUs must be between 1 and 512.";
-                }
-
-                const memorySize = mainSection.values.memorySize.value as number;
-                if (memorySize < 0 || memorySize > 1024) {
-                    result.messages.memorySize = "The memory size must be between 1 and 1024 GB.";
-                }
-
-                if (!mainSection.values.mysqlUserName.value) {
-                    result.messages.mysqlUserName = "The MySQL user name must be specified.";
-                }
-
-                if (!mainSection.values.mysqlUserPassword.value) {
-                    result.messages.mysqlUserPassword = "The MySQL password must be specified.";
-                }
-
-                if (!featuresSection.values.portForwarding.value && !featuresSection.values.mrs.value) {
-                    result.messages.portForwarding = "At least one feature needs to be selected.";
-                }
-
-                if (mainSection.values.sslCertificate.value && !featuresSection.values.mrs.value) {
-                    result.messages.sslCertificate = "The MRS feature needs to be enabled.";
-                }
-
-                if (!(mainSection.values.domainName.value as string).includes(".")) {
-                    result.messages.domainName = "A valid domain name needs at least one dot.";
-                }
-
-                if (mainSection.values.domainName.value && !mainSection.values.publicIp.value) {
-                    result.messages.domainName = "A public IP needs to be assigned.";
-                }
-
-                if (mainSection.values.sslCertificate.value && !mainSection.values.publicIp.value) {
-                    result.messages.sslCertificate = "A public IP needs to be assigned.";
-                }
-
-                if (mainSection.values.sslCertificate.value && !mainSection.values.domainName.value) {
-                    result.messages.sslCertificate = "A domain name needs to be assigned.";
-                }
-
-                if (mainSection.values.createDbConnection.value && !featuresSection.values.portForwarding.value) {
-                    result.messages.createDbConnection = "The Port Forwarding feature needs to be enabled.";
-                }
-            }
-        }
-
-        return result;
-    };
-
 }

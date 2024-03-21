@@ -23,9 +23,10 @@
 
 import { ReactWrapper, mount } from "enzyme";
 import { MdsHWClusterDialog } from "../../../../../modules/mds/dialogs/MdsHWClusterDialog.js";
-import { DialogResponseClosure } from "../../../../../app-logic/Types.js";
+import { DialogResponseClosure, IDialogRequest, MdsDialogType } from "../../../../../app-logic/Types.js";
 import { DialogHelper, nextProcessTick } from "../../../test-helpers.js";
 import { sleep } from "../../../../../utilities/helpers.js";
+import { IDialogSection, IDialogValues } from "../../../../../components/Dialogs/ValueEditDialog.js";
 
 
 describe("MdsHWClusterDialog tests", () => {
@@ -37,7 +38,11 @@ describe("MdsHWClusterDialog tests", () => {
     });
 
     beforeEach(() => {
-        component = mount(<MdsHWClusterDialog />);
+        component = mount<MdsHWClusterDialog>(
+            <MdsHWClusterDialog
+                onClose={jest.fn()}
+            />,
+        );
     });
 
     afterEach(() => {
@@ -56,9 +61,11 @@ describe("MdsHWClusterDialog tests", () => {
     });
 
     it("Test call show method", () => {
-        let portals = document.getElementsByClassName("portal");
+        const portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
-        const request = {
+        const request: IDialogRequest = {
+            type: MdsDialogType.MdsHeatWaveCluster,
+            id: "mdsHWClusterDialog",
             parameters: {
                 shapes: [
                     { name: "shape1" },
@@ -72,8 +79,8 @@ describe("MdsHWClusterDialog tests", () => {
         };
         const title = "Test Title";
 
-        if (component instanceof MdsHWClusterDialog) {
-            component.show(request, title);
+        if (component instanceof ReactWrapper) {
+            (component.instance() as MdsHWClusterDialog).show(request, title);
         }
     });
 
@@ -86,7 +93,9 @@ describe("MdsHWClusterDialog tests", () => {
             component.setProps({ onClose: onCloseMock });
         }
 
-        const request = {
+        const request: IDialogRequest = {
+            type: MdsDialogType.MdsHeatWaveCluster,
+            id: "mdsHWClusterDialog",
             parameters: {
                 shapes: [
                     { name: "shape1" },
@@ -99,10 +108,9 @@ describe("MdsHWClusterDialog tests", () => {
             },
         };
         const title = "Test Title";
-        let promise;
 
         if (component instanceof ReactWrapper) {
-            promise = component.instance().show(request, title);
+            (component.instance() as MdsHWClusterDialog).show(request, title);
         }
 
         await nextProcessTick();
@@ -113,12 +121,10 @@ describe("MdsHWClusterDialog tests", () => {
 
         await dialogHelper.clickOk();
 
-        await promise;
-
         expect(onCloseMock).toHaveBeenCalledTimes(1);
         expect(onCloseMock).toHaveBeenCalledWith(DialogResponseClosure.Accept, {
-            "clusterSize": 4,
-            "shapeName": "shape1",
+            clusterSize: 4,
+            shapeName: "shape1",
         });
 
         portals = document.getElementsByClassName("portal");
@@ -129,7 +135,9 @@ describe("MdsHWClusterDialog tests", () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        const request = {
+        const request: IDialogRequest = {
+            type: MdsDialogType.MdsHeatWaveCluster,
+            id: "mdsHWClusterDialog",
             parameters: {
                 shapes: [
                     { name: "shape1" },
@@ -140,10 +148,9 @@ describe("MdsHWClusterDialog tests", () => {
             },
         };
         const title = "Test Title";
-        let promise;
 
         if (component instanceof ReactWrapper) {
-            promise = component.instance().show(request, title);
+            (component.instance() as MdsHWClusterDialog).show(request, title);
         }
 
         await nextProcessTick();
@@ -153,8 +160,6 @@ describe("MdsHWClusterDialog tests", () => {
         expect(portals.length).toBe(1);
 
         await dialogHelper.clickOk();
-
-        await promise;
 
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(1);
@@ -168,7 +173,20 @@ describe("MdsHWClusterDialog tests", () => {
         }
 
         if (component instanceof ReactWrapper) {
-            component.instance().handleCloseDialog(DialogResponseClosure.Decline, {}, {});
+            const values: IDialogValues = {
+                sections: new Map<string, IDialogSection>([
+                    [
+                        "mainSection",
+                        {
+                            values: {
+                                clusterSize: { value: 4, type: "number" },
+                                shapeName: { value: "shape1", type: "text" },
+                            },
+                        },
+                    ],
+                ]),
+            };
+            (component.instance() as MdsHWClusterDialog).handleCloseDialog(DialogResponseClosure.Decline, values);
         }
 
         expect(onCloseMock).toHaveBeenCalledWith(DialogResponseClosure.Decline);
@@ -182,20 +200,33 @@ describe("MdsHWClusterDialog tests", () => {
         }
 
         if (component instanceof ReactWrapper) {
-            component.instance().handleCloseDialog(DialogResponseClosure.Cancel, {}, {});
+            const values: IDialogValues = {
+                sections: new Map<string, IDialogSection>([
+                    [
+                        "mainSection",
+                        {
+                            values: {
+                                clusterSize: { value: 4, type: "number" },
+                                shapeName: { value: "shape1", type: "text" },
+                            },
+                        },
+                    ],
+                ]),
+            };
+            (component.instance() as MdsHWClusterDialog).handleCloseDialog(DialogResponseClosure.Cancel, values);
         }
 
         expect(onCloseMock).toHaveBeenCalledWith(DialogResponseClosure.Cancel);
     });
 
     it("Test return validation messages", () => {
-        const values = {
-            sections: new Map([
+        const values: IDialogValues = {
+            sections: new Map<string, IDialogSection>([
                 [
                     "mainSection",
                     {
                         values: {
-                            clusterSize: { value: undefined },
+                            clusterSize: { value: undefined, type: "number" },
                         },
                     },
                 ],
@@ -203,7 +234,7 @@ describe("MdsHWClusterDialog tests", () => {
         };
 
         if (component instanceof ReactWrapper) {
-            const result = component.instance().validateInput(true, values);
+            const result = (component.instance() as MdsHWClusterDialog).validateInput(true, values);
 
             expect(result.messages).toEqual({ name: "The cluster size must be specified." });
             expect(result.requiredContexts).toEqual([]);
@@ -211,13 +242,13 @@ describe("MdsHWClusterDialog tests", () => {
     });
 
     it("Test return empty validation messages", () => {
-        const values = {
-            sections: new Map([
+        const values: IDialogValues = {
+            sections: new Map<string, IDialogSection>([
                 [
                     "mainSection",
                     {
                         values: {
-                            clusterSize: { value: 4 },
+                            clusterSize: { value: 4, type: "number" },
                         },
                     },
                 ],
@@ -225,7 +256,7 @@ describe("MdsHWClusterDialog tests", () => {
         };
 
         if (component instanceof ReactWrapper) {
-            const result = component.instance().validateInput(true, values);
+            const result = (component.instance() as MdsHWClusterDialog).validateInput(true, values);
 
             expect(result.messages).toEqual({});
             expect(result.requiredContexts).toEqual([]);
