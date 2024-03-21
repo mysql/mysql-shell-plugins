@@ -32,4 +32,4 @@ Please also see
 
 !include sections/sdk/ClientAPITypeScript.md
 
-Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+Copyright (c) 2022, 2024, Oracle and/or its affiliates.

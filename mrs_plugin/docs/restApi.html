@@ -20,9 +20,6 @@
             window.visibleItems = [];
             window.lastVisible = null;
             const observer = new IntersectionObserver((entries) => {
-                console.log("IntersectionObserver - after enter");
-                console.log(window.visibleItems);
-                console.log(window.lastVisible);
                 // Add active css class to first match
                 entries.forEach((entry) => {
                     const id = entry.target.getAttribute('id');
@@ -61,9 +58,6 @@
                         }
                     }
                 });
-                console.log("IntersectionObserver - before exit");
-                console.log(window.visibleItems);
-                console.log(window.lastVisible);
             }/*, { threshold: 0.1, rootMargin: '0px 0px -100% 0px', root: document.body }*/);
             // Track all h that have an `id` applied
             document.querySelectorAll('.content h1[id],h2[id]').forEach((section) => {
@@ -400,6 +394,7 @@ REST APIs
                 permission to link the program and your derivative works with the
                 separately licensed software that they have either included with
                 the program or referenced in the documentation.
+
                 This program is distributed in the hope that it will be useful,  but
                 WITHOUT ANY WARRANTY; without even the implied warranty of
                 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -527,6 +522,7 @@ REST APIs
                 permission to link the program and your derivative works with the
                 separately licensed software that they have either included with
                 the program or referenced in the documentation.
+
                 This program is distributed in the hope that it will be useful,  but
                 WITHOUT ANY WARRANTY; without even the implied warranty of
                 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -907,6 +903,7 @@ REST APIs
                 permission to link the program and your derivative works with the
                 separately licensed software that they have either included with
                 the program or referenced in the documentation.
+
                 This program is distributed in the hope that it will be useful,  but
                 WITHOUT ANY WARRANTY; without even the implied warranty of
                 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -970,7 +967,7 @@ REST APIs
 <span id="cb33-43"><a href="#cb33-43" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb33-44"><a href="#cb33-44" aria-hidden="true" tabindex="-1"></a>complexOperatorProperty</span>
 <span id="cb33-45"><a href="#cb33-45" aria-hidden="true" tabindex="-1"></a>    complexKey : [complexValues]</span>
-<span id="cb33-46"><a href="#cb33-46" aria-hidden="true" tabindex="-1"></a>    complexKey : simpleOperatorObject </span>
+<span id="cb33-46"><a href="#cb33-46" aria-hidden="true" tabindex="-1"></a>    complexKey : simpleOperatorObject</span>
 <span id="cb33-47"><a href="#cb33-47" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb33-48"><a href="#cb33-48" aria-hidden="true" tabindex="-1"></a>complexKey</span>
 <span id="cb33-49"><a href="#cb33-49" aria-hidden="true" tabindex="-1"></a>&quot;$and&quot;</span>
@@ -1000,7 +997,7 @@ REST APIs
 <span id="cb33-73"><a href="#cb33-73" aria-hidden="true" tabindex="-1"></a>&quot;$lte&quot; : number | date</span>
 <span id="cb33-74"><a href="#cb33-74" aria-hidden="true" tabindex="-1"></a>&quot;$gt&quot; : number | date</span>
 <span id="cb33-75"><a href="#cb33-75" aria-hidden="true" tabindex="-1"></a>&quot;$gte&quot; : number | date</span>
-<span id="cb33-76"><a href="#cb33-76" aria-hidden="true" tabindex="-1"></a>&quot;$instr&quot; : string </span>
+<span id="cb33-76"><a href="#cb33-76" aria-hidden="true" tabindex="-1"></a>&quot;$instr&quot; : string</span>
 <span id="cb33-77"><a href="#cb33-77" aria-hidden="true" tabindex="-1"></a>&quot;$ninstr&quot; : string</span>
 <span id="cb33-78"><a href="#cb33-78" aria-hidden="true" tabindex="-1"></a>&quot;$like&quot; : string</span>
 <span id="cb33-79"><a href="#cb33-79" aria-hidden="true" tabindex="-1"></a>&quot;$null&quot; : null</span>
@@ -1016,14 +1013,14 @@ REST APIs
 <span id="cb33-89"><a href="#cb33-89" aria-hidden="true" tabindex="-1"></a>betweenNotNull</span>
 <span id="cb33-90"><a href="#cb33-90" aria-hidden="true" tabindex="-1"></a>    number</span>
 <span id="cb33-91"><a href="#cb33-91" aria-hidden="true" tabindex="-1"></a>    date</span>
-<span id="cb33-92"><a href="#cb33-92" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb33-92"><a href="#cb33-92" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb33-93"><a href="#cb33-93" aria-hidden="true" tabindex="-1"></a>betweenRegular</span>
 <span id="cb33-94"><a href="#cb33-94" aria-hidden="true" tabindex="-1"></a>    string</span>
 <span id="cb33-95"><a href="#cb33-95" aria-hidden="true" tabindex="-1"></a>    number</span>
 <span id="cb33-96"><a href="#cb33-96" aria-hidden="true" tabindex="-1"></a>    date</span></code></pre></div>
                 <p>Data type definitions include the following:</p>
                 <div class="sourceCode" id="cb34"><pre
-                class="sourceCode txt"><code class="sourceCode default"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>string </span>
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>string</span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>      JSONString</span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>number</span>
 <span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>      JSONNumber</span>
@@ -1034,7 +1031,7 @@ REST APIs
                 <p>Where:</p>
                 <div class="sourceCode" id="cb35"><pre
                 class="sourceCode txt"><code class="sourceCode default"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>datechars is an RFC3339 date format in UTC (Z)</span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>JSONString</span>
 <span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>        &quot;&quot;</span>
@@ -1062,7 +1059,7 @@ REST APIs
 <span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a>    int frac exp</span>
 <span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a>int</span>
 <span id="cb35-29"><a href="#cb35-29" aria-hidden="true" tabindex="-1"></a>    digit</span>
-<span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a>    digit1-9 digits </span>
+<span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a>    digit1-9 digits</span>
 <span id="cb35-31"><a href="#cb35-31" aria-hidden="true" tabindex="-1"></a>    - digit</span>
 <span id="cb35-32"><a href="#cb35-32" aria-hidden="true" tabindex="-1"></a>    - digit1-9 digits</span>
 <span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a>frac</span>
@@ -1094,6 +1091,7 @@ REST APIs
                 permission to link the program and your derivative works with the
                 separately licensed software that they have either included with
                 the program or referenced in the documentation.
+
                 This program is distributed in the hope that it will be useful,  but
                 WITHOUT ANY WARRANTY; without even the implied warranty of
                 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
