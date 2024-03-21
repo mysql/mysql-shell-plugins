@@ -53,6 +53,42 @@ export class MdsHWClusterDialog extends ValueDialogBase {
             { shapes });
     }
 
+    public handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues,
+        data?: IDictionary): void => {
+        const { onClose } = this.props;
+
+        if (closure === DialogResponseClosure.Accept && data) {
+            const mainSection = dialogValues.sections.get("mainSection");
+            if (mainSection) {
+                const values: IDictionary = {};
+                values.clusterSize = mainSection.values.clusterSize.value as number;
+                values.shapeName = mainSection.values.shapeName.value as string;
+
+                onClose(closure, values);
+            }
+        } else {
+            onClose(closure);
+        }
+    };
+
+    public validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
+        const result: IDialogValidations = {
+            messages: {},
+            requiredContexts: [],
+        };
+
+        if (closing) {
+            const mainSection = values.sections.get("mainSection");
+            if (mainSection) {
+                if (!mainSection.values.clusterSize.value) {
+                    result.messages.name = "The cluster size must be specified.";
+                }
+            }
+        }
+
+        return result;
+    };
+
     private dialogValues(request: IDialogRequest, title: string, shapes: IMySQLDbSystemShapeSummary[]): IDialogValues {
 
         let selectedShape = shapes.find((shape) => {
@@ -92,41 +128,4 @@ export class MdsHWClusterDialog extends ValueDialogBase {
             ]),
         };
     }
-
-    private handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues,
-        data?: IDictionary): void => {
-        const { onClose } = this.props;
-
-        if (closure === DialogResponseClosure.Accept && data) {
-            const mainSection = dialogValues.sections.get("mainSection");
-            if (mainSection) {
-                const values: IDictionary = {};
-                values.clusterSize = mainSection.values.clusterSize.value as number;
-                values.shapeName = mainSection.values.shapeName.value as string;
-
-                onClose(closure, values);
-            }
-        } else {
-            onClose(closure);
-        }
-    };
-
-    private validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
-        const result: IDialogValidations = {
-            messages: {},
-            requiredContexts: [],
-        };
-
-        if (closing) {
-            const mainSection = values.sections.get("mainSection");
-            if (mainSection) {
-                if (!mainSection.values.clusterSize.value) {
-                    result.messages.name = "The cluster size must be specified.";
-                }
-            }
-        }
-
-        return result;
-    };
-
 }

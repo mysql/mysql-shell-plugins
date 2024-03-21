@@ -23,9 +23,10 @@
 
 import { ReactWrapper, mount } from "enzyme";
 import { MdsHWLoadDataDialog } from "../../../../../modules/mds/dialogs/MdsHWLoadDataDialog.js";
-import { DialogResponseClosure } from "../../../../../app-logic/Types.js";
+import { DialogResponseClosure, IDialogRequest, MdsDialogType } from "../../../../../app-logic/Types.js";
 import { DialogHelper, nextProcessTick } from "../../../test-helpers.js";
 import { sleep } from "../../../../../utilities/helpers.js";
+import { IDialogSection } from "../../../../../components/Dialogs/ValueEditDialog.js";
 
 describe("MdsHWLoadDataDialog tests", () => {
     let component: unknown;
@@ -36,7 +37,11 @@ describe("MdsHWLoadDataDialog tests", () => {
     });
 
     beforeEach(() => {
-        component = mount(<MdsHWLoadDataDialog />);
+        component = mount<MdsHWLoadDataDialog>(
+            <MdsHWLoadDataDialog
+                onClose={jest.fn()}
+            />,
+        );
     });
 
     afterEach(() => {
@@ -63,13 +68,18 @@ describe("MdsHWLoadDataDialog tests", () => {
             component.setProps({ onClose: onCloseMock });
         }
 
-        const request = { values: { allSchemas: ["schema1", "schema2"], selectedSchemas: ["schema1"] } };
+        const request: IDialogRequest = {
+            type: MdsDialogType.MdsHeatWaveLoadData,
+            id: "mdsHWLoadDataDialog",
+            values: {
+                allSchemas: ["schema1", "schema2"],
+                selectedSchemas: ["schema1"],
+            },
+        };
         const title = "Test Title";
 
-        let promise;
-
         if (component instanceof ReactWrapper) {
-            promise = component.instance().show(request, title);
+            (component.instance() as MdsHWLoadDataDialog).show(request, title);
         }
 
         await nextProcessTick();
@@ -80,23 +90,21 @@ describe("MdsHWLoadDataDialog tests", () => {
 
         await dialogHelper.clickOk();
 
-        await promise;
-
         await nextProcessTick();
         await sleep(500);
 
         expect(onCloseMock).toHaveBeenCalledTimes(1);
         expect(onCloseMock).toHaveBeenCalledWith(DialogResponseClosure.Accept, {
-            "disableUnsupportedColumns": true,
-            "enableMemoryCheck": true,
-            "excludeList": "",
-               "mode": "normal",
-               "optimizeLoadParallelism": true,
-               "output": "normal",
-               "schemas": [
+            disableUnsupportedColumns: true,
+            enableMemoryCheck: true,
+            excludeList: "",
+               mode: "normal",
+               optimizeLoadParallelism: true,
+               output: "normal",
+               schemas: [
                     "schema1",
                 ],
-               "sqlMode": "",
+               sqlMode: "",
 });
 
         portals = document.getElementsByClassName("portal");
@@ -107,7 +115,14 @@ describe("MdsHWLoadDataDialog tests", () => {
         const onCloseMock = jest.fn();
         if (component instanceof ReactWrapper) {
             component.setProps({ onClose: onCloseMock });
-            component.instance().handleCloseDialog(DialogResponseClosure.Decline, {}, {});
+            const mainSection: IDialogSection = {
+                values: {
+                    schemas: { value: [], type: "set", tagSet: [] },
+                    excludeList: { value: "invalid", type: "text" },
+                },
+            };
+            (component.instance() as MdsHWLoadDataDialog).handleCloseDialog(DialogResponseClosure.Decline,
+                {sections: new Map<string, IDialogSection>([["mainSection", mainSection]])});
             expect(onCloseMock).toHaveBeenCalledWith(DialogResponseClosure.Decline);
         }
     });
@@ -116,30 +131,47 @@ describe("MdsHWLoadDataDialog tests", () => {
         const onCloseMock = jest.fn();
         if (component instanceof ReactWrapper) {
             component.setProps({ onClose: onCloseMock });
-            component.instance().handleCloseDialog(DialogResponseClosure.Cancel, {}, {});
+            const mainSection: IDialogSection = {
+                values: {
+                    schemas: { value: [], type: "set", tagSet: [] },
+                    excludeList: { value: "invalid", type: "text" },
+                },
+            };
+            (component.instance() as MdsHWLoadDataDialog).handleCloseDialog(DialogResponseClosure.Cancel,
+                { sections: new Map<string, IDialogSection>([["mainSection", mainSection]]) });
             expect(onCloseMock).toHaveBeenCalledWith(DialogResponseClosure.Cancel);
         }
     });
 
     it("Test validate the input", () => {
-        const request = { values: { allSchemas: [], selectedSchemas: [] } };
+        const request: IDialogRequest = {
+            type: MdsDialogType.MdsHeatWaveLoadData,
+            id: "mdsHWLoadDataDialog",
+            values: {
+                allSchemas: [],
+                selectedSchemas: [],
+            },
+        };
         const title = "Test Title";
         if (component instanceof ReactWrapper) {
-            component.instance().show(request, title);
+            (component.instance() as MdsHWLoadDataDialog).show(request, title);
 
-            const mainSection = {
+            const mainSection: IDialogSection = {
                 values: {
-                    schemas: { value: [] },
-                    excludeList: { value: "invalid" },
+                    schemas: { value: [], type: "set", tagSet: [] },
+                    excludeList: { value: "invalid", type: "text"},
                 },
             };
 
-            const validations = component.instance().validateInput(true, { sections: new Map([["mainSection", mainSection]]) });
+            const validations = (component.instance() as MdsHWLoadDataDialog).validateInput(true, {
+                sections: new Map<string, IDialogSection>([["mainSection", mainSection]]),
+            });
 
             expect(validations.messages).toEqual({
                 schemas: "At least one schema needs to be selected.",
                 excludeList:
-                    "The Exclude List needs to contain a list of quoted object names, e.g.\"mySchema.myTable\", \"myOtherSchema.myOtherTable\"",
+                    "The Exclude List needs to contain a list of quoted object names, " +
+                    "e.g.\"mySchema.myTable\", \"myOtherSchema.myOtherTable\"",
             });
         }
     });

@@ -49,6 +49,56 @@ export class MdsHWLoadDataDialog extends ValueDialogBase {
         this.dialogRef.current?.show(this.dialogValues(request, title), { title: "MySQL HeatWave Cluster" });
     }
 
+    public handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues): void => {
+        const { onClose } = this.props;
+
+        if (closure === DialogResponseClosure.Accept) {
+            const mainSection = dialogValues.sections.get("mainSection");
+            if (mainSection) {
+                const values: IDictionary = {};
+                values.schemas = mainSection.values.schemas.value as string[];
+                values.mode = mainSection.values.mode.value as string;
+                values.output = mainSection.values.output.value as string;
+                values.disableUnsupportedColumns = mainSection.values.disableUnsupportedColumns.value as boolean;
+                values.optimizeLoadParallelism = mainSection.values.optimizeLoadParallelism.value as boolean;
+                values.enableMemoryCheck = mainSection.values.enableMemoryCheck.value as boolean;
+                values.sqlMode = mainSection.values.sqlMode.value as string;
+                values.excludeList = mainSection.values.excludeList.value as string;
+
+                onClose(closure, values);
+            }
+        } else {
+            onClose(closure);
+        }
+    };
+
+    public validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
+        const result: IDialogValidations = {
+            messages: {},
+            requiredContexts: [],
+        };
+
+        if (closing) {
+            const mainSection = values.sections.get("mainSection");
+            if (mainSection) {
+                if ((mainSection.values.schemas.value as string[]).length < 1) {
+                    result.messages.schemas = "At least one schema needs to be selected.";
+                }
+
+                const regEx = /^(".*?"\s*,\s*)*$/gm;
+                const excludeList = mainSection.values.excludeList.value as string;
+
+                if (excludeList !== "" && !regEx.test(excludeList + ",")) {
+                    result.messages.excludeList =
+                        "The Exclude List needs to contain a list of quoted object names, e.g."
+                        + "\"mySchema.myTable\", \"myOtherSchema.myOtherTable\"";
+                }
+            }
+        }
+
+        return result;
+    };
+
     private dialogValues(request: IDialogRequest, title: string): IDialogValues {
 
         const mainSection: IDialogSection = {
@@ -128,55 +178,4 @@ export class MdsHWLoadDataDialog extends ValueDialogBase {
             ]),
         };
     }
-
-    private handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues): void => {
-        const { onClose } = this.props;
-
-        if (closure === DialogResponseClosure.Accept) {
-            const mainSection = dialogValues.sections.get("mainSection");
-            if (mainSection) {
-                const values: IDictionary = {};
-                values.schemas = mainSection.values.schemas.value as string[];
-                values.mode = mainSection.values.mode.value as string;
-                values.output = mainSection.values.output.value as string;
-                values.disableUnsupportedColumns = mainSection.values.disableUnsupportedColumns.value as boolean;
-                values.optimizeLoadParallelism = mainSection.values.optimizeLoadParallelism.value as boolean;
-                values.enableMemoryCheck = mainSection.values.enableMemoryCheck.value as boolean;
-                values.sqlMode = mainSection.values.sqlMode.value as string;
-                values.excludeList = mainSection.values.excludeList.value as string;
-
-                onClose(closure, values);
-            }
-        } else {
-            onClose(closure);
-        }
-    };
-
-    private validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
-        const result: IDialogValidations = {
-            messages: {},
-            requiredContexts: [],
-        };
-
-        if (closing) {
-            const mainSection = values.sections.get("mainSection");
-            if (mainSection) {
-                if ((mainSection.values.schemas.value as string[]).length < 1) {
-                    result.messages.schemas = "At least one schema needs to be selected.";
-                }
-
-                const regEx = /^(".*?"\s*,\s*)*$/gm;
-                const excludeList = mainSection.values.excludeList.value as string;
-
-                if (excludeList !== "" && !regEx.test(excludeList + ",")) {
-                    result.messages.excludeList =
-                        "The Exclude List needs to contain a list of quoted object names, e.g."
-                        + "\"mySchema.myTable\", \"myOtherSchema.myOtherTable\"";
-                }
-            }
-        }
-
-        return result;
-    };
-
 }
