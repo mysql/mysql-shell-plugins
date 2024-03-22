@@ -25,10 +25,12 @@
 
 import { until } from "selenium-webdriver";
 import { basename } from "path";
-import { Misc, explicitWait } from "../../lib/misc.js";
+import { Misc } from "../../lib/misc.js";
 import { ThemeEditor } from "../../lib/themeEditor.js";
 import * as locator from "../../lib/locators.js";
 import { driver, loadDriver } from "../../lib/driver.js";
+import * as constants from "../../lib/constants.js";
+import { Os } from "../../lib/os.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -46,7 +48,7 @@ describe("Main pages", () => {
             } catch (e) {
                 await driver.navigate().refresh();
             }
-        }, explicitWait * 4, "Home page was not loaded")
+        }, constants.wait20seconds, "Home page was not loaded")
             .catch(async (e) => {
                 await Misc.storeScreenShot("beforeAll_Main");
                 throw e;
@@ -61,7 +63,7 @@ describe("Main pages", () => {
     });
 
     afterAll(async () => {
-        await Misc.writeFELogs(basename(__filename), driver.manage().logs());
+        await Os.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.close();
         await driver.quit();
     });
@@ -90,7 +92,7 @@ describe("Main pages", () => {
             await driver.findElement(locator.sqlEditorPage.icon).click();
             expect(
                 await driver.wait(until.elementLocated(locator.sqlEditorPage.tabName),
-                    explicitWait, "Connection Overview was not found").getText(),
+                    constants.wait5seconds, "Connection Overview was not found").getText(),
             ).toBe("Connection Overview");
             expect(
                 await driver.findElement(locator.sqlEditorPage.title).getText(),
@@ -246,7 +248,7 @@ describe("Main pages", () => {
             expect(await aboutLinks[0].getAttribute("outerHTML")).toContain("Learn More");
             expect(await aboutLinks[1].getAttribute("outerHTML")).toContain("Documentation");
             const heading = await driver.wait(until.elementLocated(locator.aboutPage.otherTitle),
-                explicitWait, "Shell Build Information was not found");
+                constants.wait5seconds, "Shell Build Information was not found");
             expect(await heading.getText()).toBe("Shell Build Information");
             const leftElements = await driver.findElements(locator.aboutPage.leftTableCells);
             expect(await leftElements[0].getText()).toBe("Version:");
@@ -343,7 +345,7 @@ describe("Main pages", () => {
             const url = Misc.getUrl(basename(__filename));
             await driver.get(`${String(url)}xpto`);
             const errorPanel = await driver.wait(until.elementLocated(locator.errorPanel.exists),
-                explicitWait, "Error label was not found");
+                constants.wait5seconds, "Error label was not found");
 
             expect(await (await errorPanel.findElement(locator.errorPanel.title)).getText())
                 .toBe("Communication Error");
@@ -366,7 +368,7 @@ describe("Main pages", () => {
             await driver.get(String(url).replace(String(process.env.TOKEN), ""));
 
             const errorPanel = await driver.wait(until.elementLocated(locator.errorPanel.exists),
-                explicitWait, "Error label was not found");
+                constants.wait5seconds, "Error label was not found");
 
             expect(await (await errorPanel.findElement(locator.errorPanel.title)).getText())
                 .toBe("Communication Error");

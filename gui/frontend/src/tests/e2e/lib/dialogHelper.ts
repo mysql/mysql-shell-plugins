@@ -55,17 +55,6 @@ export class DialogHelper {
     };
 
     /**
-     * Gets a checkbox value
-     * @param id The web element id
-     * @returns A promise resolving with the checkbox value (true if checked, false otherwise)
-     */
-    public static getCheckBoxValue = async (id: string): Promise<boolean> => {
-        const classes = (await driver.findElement(By.id(id)).getAttribute("class")).split(" ");
-
-        return !classes.includes("unchecked");
-    };
-
-    /**
      * Sets a text on an input field, by clearing it first
      * @param dialog The dialog where the input belongs to
      * @param fieldLocator The field locator
@@ -86,18 +75,6 @@ export class DialogHelper {
     };
 
     /**
-     * Gets the value from an input field
-     * @param dialog The dialog where the input belongs to
-     * @param fieldLocator The field locator
-     * @returns A promise resolving when the field text is returned
-     */
-    public static getFieldValue = async (dialog: WebElement, fieldLocator: Locator): Promise<string> => {
-        const field = await dialog.findElement(fieldLocator);
-
-        return field.getAttribute("value");
-    };
-
-    /**
      * Clears an input field
      * @param el The element
      * @returns A promise resolving when the field is cleared
@@ -115,26 +92,6 @@ export class DialogHelper {
 
             return (await el.getAttribute("value")).length === 0;
         }, constants.wait5seconds, `${await el.getId()} was not cleaned`);
-    };
-
-    /**
-     * Verifies if a dialog exists inside the web view
-     * @param wait wait 5 seconds for the dialog to be displayed
-     * @returns A promise resolving with true if the dialog exists, false otherwise
-     */
-    public static existsDialog = async (wait = false): Promise<boolean> => {
-        if (wait === false) {
-            return (await driver.findElements(locator.genericDialog.exists)).length > 0;
-        } else {
-            return driver.wait(async () => {
-                const genericDialog = await driver.findElements(locator.genericDialog.exists);
-                const confirmDialog = await driver.findElements(locator.confirmDialog.exists);
-
-                return (genericDialog).length > 0 || confirmDialog.length > 0;
-            }, constants.wait5seconds).catch(() => {
-                return false;
-            });
-        }
     };
 
 }

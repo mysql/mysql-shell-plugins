@@ -22,11 +22,13 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { Misc, explicitWait } from "../../lib/misc.js";
+import { Misc } from "../../lib/misc.js";
 import * as locator from "../../lib/locators.js";
 import { until } from "selenium-webdriver";
 import { basename } from "path";
 import { driver, loadDriver } from "../../lib/driver.js";
+import * as constants from "../../lib/constants.js";
+import { Os } from "../../lib/os.js";
 
 describe("Login", () => {
 
@@ -42,7 +44,7 @@ describe("Login", () => {
             } catch (e) {
                 await driver.navigate().refresh();
             }
-        }, explicitWait * 4, "Login page was not loaded").catch(async (e) => {
+        }, constants.wait20seconds, "Login page was not loaded").catch(async (e) => {
             await Misc.storeScreenShot("beforeAll_Login");
             throw e;
         });
@@ -56,7 +58,7 @@ describe("Login", () => {
     });
 
     afterAll(async () => {
-        await Misc.writeFELogs(basename(__filename), driver.manage().logs());
+        await Os.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.close();
         await driver.quit();
     });
@@ -89,7 +91,7 @@ describe("Login", () => {
             await driver.findElement(locator.adminPage.loginButton).click();
 
             const error = await driver.wait(until.elementLocated(locator.adminPage.error),
-                explicitWait * 2, "Error was not found");
+                constants.wait10seconds, "Error was not found");
 
             expect(await error.getText()).toBe("User could not be authenticated. Incorrect username or password.");
         } catch (e) {

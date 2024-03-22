@@ -28,15 +28,15 @@ import { basename, join } from "path";
 import { Key, error, until, WebElement } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
-import { Misc, explicitWait } from "../../lib/misc.js";
+import { Misc } from "../../lib/misc.js";
 import { ShellSession } from "../../lib/shellSession.js";
 import * as locator from "../../lib/locators.js";
 import { CommandExecutor } from "../../lib/cmdExecutor.js";
 import * as interfaces from "../../lib/interfaces.js";
 import * as constants from "../../lib/constants.js";
 import * as waitUntil from "../../lib/until.js";
-import { platform } from "os";
 import { driver, loadDriver } from "../../lib/driver.js";
+import { Os } from "../../lib/os.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -73,7 +73,7 @@ describe("Notebook", () => {
                 } catch (e) {
                     await driver.navigate().refresh();
                 }
-            }, explicitWait * 4, "Home Page was not loaded");
+            }, constants.wait20seconds, "Home Page was not loaded");
 
             await driver.executeScript("arguments[0].click()", await driver.findElement(locator.sqlEditorPage.icon));
             await DBNotebooks.createDataBaseConnection(globalConn);
@@ -97,7 +97,7 @@ describe("Notebook", () => {
     });
 
     afterAll(async () => {
-        await Misc.writeFELogs(basename(__filename), driver.manage().logs());
+        await Os.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.close();
         await driver.quit();
     });
@@ -126,7 +126,7 @@ describe("Notebook", () => {
                     } catch (e) {
                         // continue
                     }
-                }, explicitWait, `Line ${line} is still stale`);
+                }, constants.wait5seconds, `Line ${line} is still stale`);
             };
 
             await clickLine(0);
@@ -151,9 +151,9 @@ describe("Notebook", () => {
                 }
             }
 
-            expect(await Misc.getPromptTextLine("last-2")).toContain("testing");
-            expect(await Misc.getPromptTextLine("last-1")).toContain("testing");
-            expect(await Misc.getPromptTextLine("last")).toContain("testing");
+            expect(await DBNotebooks.getPromptTextLine("last-2")).toContain("testing");
+            expect(await DBNotebooks.getPromptTextLine("last-1")).toContain("testing");
+            expect(await DBNotebooks.getPromptTextLine("last")).toContain("testing");
         } catch (e) {
             testFailed = true;
             await driver.actions().sendKeys(Key.ESCAPE).perform();
@@ -380,7 +380,7 @@ describe("Notebook", () => {
                         throw e;
                     }
                 }
-            }, explicitWait * 2, "Tables tree was not expanded");
+            }, constants.wait10seconds, "Tables tree was not expanded");
 
             expect(await DBConnection.getSchemaObject("obj", "actor")).toBeDefined();
             expect(await DBConnection.getSchemaObject("obj", "address")).toBeDefined();
@@ -664,8 +664,8 @@ describe("Notebook", () => {
             );
 
             const input = await driver.wait(until.elementLocated(locator.notebook.explorerHost.openEditors.textBox),
-                explicitWait, "Editor host input was not found");
-            if (platform() === "darwin") {
+                constants.wait5seconds, "Editor host input was not found");
+            if (Os.isMacOs()) {
                 await input.sendKeys(Key.chord(Key.COMMAND, "a"));
             } else {
                 await input.sendKeys(Key.chord(Key.CONTROL, "a"));
@@ -739,13 +739,13 @@ describe("Notebook", () => {
             await commandExecutor.execute(`print('{"a": "b"}')`);
             await driver.wait(async () => {
                 return ShellSession.isJSON();
-            }, explicitWait, "Result is not a valid json");
+            }, constants.wait5seconds, "Result is not a valid json");
 
             await commandExecutor.execute(`print('{ a: b }')`);
             expect(commandExecutor.getResultMessage()).toBe("{ a: b }");
             await driver.wait(async () => {
                 return !(await ShellSession.isJSON());
-            }, explicitWait, "Result should not be a valid json");
+            }, constants.wait5seconds, "Result should not be a valid json");
         } catch (e) {
             testFailed = true;
             throw e;
@@ -1321,7 +1321,7 @@ describe("Notebook", () => {
             expect(await DBConnection.getOpenEditor(/DB Notebook/));
 
             const connectionBrowser = await driver.wait(until.elementLocated(locator.dbConnections.tab),
-                explicitWait, "DB Connection Overview tab was not found");
+                constants.wait5seconds, "DB Connection Overview tab was not found");
             await connectionBrowser.click();
 
             dialog = await driver.wait(waitUntil
@@ -1430,7 +1430,7 @@ describe("Notebook headless off", () => {
                 } catch (e) {
                     await driver.navigate().refresh();
                 }
-            }, explicitWait * 4, "Home Page was not loaded");
+            }, constants.wait20seconds, "Home Page was not loaded");
 
             await driver.executeScript("arguments[0].click()", await driver.findElement(locator.sqlEditorPage.icon));
             await DBNotebooks.createDataBaseConnection(anotherConnection);
@@ -1450,7 +1450,7 @@ describe("Notebook headless off", () => {
     });
 
     afterAll(async () => {
-        await Misc.writeFELogs(basename(__filename), driver.manage().logs());
+        await Os.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.close();
         await driver.quit();
     });
@@ -1482,7 +1482,7 @@ describe("Notebook headless off", () => {
                 await commandExecutor.openCellContextMenuAndSelect(row, column,
                     constants.resultGridContextMenu.copySingleRow,
                     constants.resultGridContextMenu.copySingleRowContextMenu.copyRow);
-                fields = (await Misc.readClipboard()).split(",");
+                fields = (await Os.readClipboard()).split(",");
 
                 return fields.length === tableColumns.length;
             }, constants.wait5seconds,
@@ -1497,7 +1497,7 @@ describe("Notebook headless off", () => {
                 await commandExecutor.openCellContextMenuAndSelect(row, column,
                     constants.resultGridContextMenu.copySingleRow,
                     constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNames);
-                lines = (await Misc.readClipboard()).split("\n");
+                lines = (await Os.readClipboard()).split("\n");
                 fields = lines[1].split(",");
 
                 return fields.length === tableColumns.length;
@@ -1507,14 +1507,14 @@ describe("Notebook headless off", () => {
             for (let i = 0; i <= fields.length - 1; i++) {
                 expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
             }
-            expect((await Misc.readClipboard()).includes(`# ${tableColumns.join(", ")}`)).toBe(true);
+            expect((await Os.readClipboard()).includes(`# ${tableColumns.join(", ")}`)).toBe(true);
 
             // Copy row unquoted.
             await driver.wait(async () => {
                 await commandExecutor.openCellContextMenuAndSelect(row, column,
                     constants.resultGridContextMenu.copySingleRow,
                     constants.resultGridContextMenu.copySingleRowContextMenu.copyRowUnquoted);
-                fields = (await Misc.readClipboard()).split(",");
+                fields = (await Os.readClipboard()).split(",");
 
                 return fields.length === tableColumns.length;
             }, constants.wait5seconds,
@@ -1529,7 +1529,7 @@ describe("Notebook headless off", () => {
                 await commandExecutor.openCellContextMenuAndSelect(row, column,
                     constants.resultGridContextMenu.copySingleRow,
                     constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesUnquoted);
-                lines = (await Misc.readClipboard()).split("\n");
+                lines = (await Os.readClipboard()).split("\n");
                 fields = lines[1].split(",");
 
                 return fields.length === tableColumns.length;
@@ -1539,14 +1539,14 @@ describe("Notebook headless off", () => {
             for (let i = 0; i <= fields.length - 1; i++) {
                 expect(fields[i]).toMatch(constants.dbTables[0].columnRegex![i]);
             }
-            expect((await Misc.readClipboard()).includes(`# ${tableColumns.join(", ")}`)).toBe(true);
+            expect((await Os.readClipboard()).includes(`# ${tableColumns.join(", ")}`)).toBe(true);
 
             // Copy row with names, tab separated.
             await driver.wait(async () => {
                 await commandExecutor.openCellContextMenuAndSelect(row, column,
                     constants.resultGridContextMenu.copySingleRow,
                     constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesTabSeparated);
-                lines = (await Misc.readClipboard()).split("\n");
+                lines = (await Os.readClipboard()).split("\n");
                 fields = lines[1].split("\t");
 
                 return fields.length === tableColumns.length;
@@ -1557,14 +1557,14 @@ describe("Notebook headless off", () => {
             for (let i = 0; i <= fields.length - 1; i++) {
                 expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
             }
-            expect((await Misc.readClipboard()).includes(`# ${tableColumns.join("\t")}`)).toBe(true);
+            expect((await Os.readClipboard()).includes(`# ${tableColumns.join("\t")}`)).toBe(true);
 
             // Copy row, tab separated.
             await driver.wait(async () => {
                 await commandExecutor.openCellContextMenuAndSelect(row, column,
                     constants.resultGridContextMenu.copySingleRow,
                     constants.resultGridContextMenu.copySingleRowContextMenu.copyRowTabSeparated);
-                fields = (await Misc.readClipboard()).split("\t");
+                fields = (await Os.readClipboard()).split("\t");
 
                 return fields.length === tableColumns.length;
             }, constants.wait5seconds,
@@ -1595,7 +1595,7 @@ describe("Notebook headless off", () => {
                 await commandExecutor.openCellContextMenuAndSelect(row, column,
                     constants.resultGridContextMenu.copyMultipleRows,
                     constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRows);
-                lines = (await Misc.readClipboard()).split("\n").filter((el) => {
+                lines = (await Os.readClipboard()).split("\n").filter((el) => {
                     return el !== "";
                 });
                 fields = lines[0].split(",");
@@ -1618,7 +1618,7 @@ describe("Notebook headless off", () => {
                 await commandExecutor.openCellContextMenuAndSelect(row, column,
                     constants.resultGridContextMenu.copyMultipleRows,
                     constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNames);
-                lines = (await Misc.readClipboard()).split("\n").filter((el) => {
+                lines = (await Os.readClipboard()).split("\n").filter((el) => {
                     return el !== "";
                 });
                 fields = lines[1].split(",");
@@ -1641,7 +1641,7 @@ describe("Notebook headless off", () => {
                 await commandExecutor.openCellContextMenuAndSelect(row, column,
                     constants.resultGridContextMenu.copyMultipleRows,
                     constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsUnquoted);
-                lines = (await Misc.readClipboard()).split("\n").filter((el) => {
+                lines = (await Os.readClipboard()).split("\n").filter((el) => {
                     return el !== "";
                 });
                 fields = lines[0].split(",");
@@ -1664,7 +1664,7 @@ describe("Notebook headless off", () => {
                 await commandExecutor.openCellContextMenuAndSelect(row, column,
                     constants.resultGridContextMenu.copyMultipleRows,
                     constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesUnquoted);
-                lines = (await Misc.readClipboard()).split("\n").filter((el) => {
+                lines = (await Os.readClipboard()).split("\n").filter((el) => {
                     return el !== "";
                 });
                 fields = lines[1].split(",");
@@ -1686,7 +1686,7 @@ describe("Notebook headless off", () => {
                 await commandExecutor.openCellContextMenuAndSelect(row, column,
                     constants.resultGridContextMenu.copyMultipleRows,
                     constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesTabSeparated);
-                lines = (await Misc.readClipboard()).split("\n").filter((el) => {
+                lines = (await Os.readClipboard()).split("\n").filter((el) => {
                     return el !== "";
                 });
                 fields = lines[1].split("\t");
@@ -1708,7 +1708,7 @@ describe("Notebook headless off", () => {
                 await commandExecutor.openCellContextMenuAndSelect(row, column,
                     constants.resultGridContextMenu.copyMultipleRows,
                     constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsTabSeparated);
-                lines = (await Misc.readClipboard()).split("\n").filter((el) => {
+                lines = (await Os.readClipboard()).split("\n").filter((el) => {
                     return el !== "";
                 });
                 fields = lines[0].split("\t");
@@ -1742,14 +1742,14 @@ describe("Notebook headless off", () => {
             for (let i = 1; i <= tableColumns.length - 1; i++) {
                 await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
                     constants.resultGridContextMenu.copyField);
-                expect(await Misc.readClipboard()).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
+                expect(await Os.readClipboard()).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
 
                 await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
                     constants.resultGridContextMenu.copyFieldUnquoted);
-                if (await Misc.readClipboard() === "") {
-                    await Misc.writeToClipboard(" ");
+                if (await Os.readClipboard() === "") {
+                    await Os.writeToClipboard(" ");
                 }
-                expect(await Misc.readClipboard()).toMatch(constants.dbTables[0].columnRegex![i]);
+                expect(await Os.readClipboard()).toMatch(constants.dbTables[0].columnRegex![i]);
 
                 await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
                     constants.resultGridContextMenu.setFieldToNull);

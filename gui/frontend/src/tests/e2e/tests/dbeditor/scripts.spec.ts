@@ -25,7 +25,7 @@
 
 import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
-import { Misc, explicitWait } from "../../lib/misc.js";
+import { Misc } from "../../lib/misc.js";
 import { basename } from "path";
 import * as locator from "../../lib/locators.js";
 import { CommandExecutor } from "../../lib/cmdExecutor.js";
@@ -33,6 +33,7 @@ import { driver, loadDriver } from "../../lib/driver.js";
 import * as interfaces from "../../lib/interfaces.js";
 import * as waitUntil from "../../lib/until.js";
 import * as constants from "../../lib/constants.js";
+import { Os } from "../../lib/os.js";
 
 const url = Misc.getUrl(basename(basename(__filename)));
 
@@ -68,7 +69,7 @@ describe("Scripts", () => {
                 } catch (e) {
                     await driver.navigate().refresh();
                 }
-            }, explicitWait * 4, "Home Page was not loaded");
+            }, constants.wait20seconds, "Home Page was not loaded");
 
             await driver.findElement(locator.sqlEditorPage.icon).click();
             await DBNotebooks.createDataBaseConnection(globalConn);
@@ -89,7 +90,7 @@ describe("Scripts", () => {
     });
 
     afterAll(async () => {
-        await Misc.writeFELogs(basename(__filename), driver.manage().logs());
+        await Os.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.close();
         await driver.quit();
     });
