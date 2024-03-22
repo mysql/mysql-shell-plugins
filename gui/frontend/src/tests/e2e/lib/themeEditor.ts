@@ -25,8 +25,8 @@
 
 import { Key, WebElement, WebDriver, error } from "selenium-webdriver";
 import * as locator from "../lib/locators.js";
-import { explicitWait } from "./misc.js";
 import { driver } from "../lib/driver.js";
+import * as constants from "../lib/constants.js";
 
 export class ThemeEditor {
 
@@ -71,7 +71,7 @@ export class ThemeEditor {
             } catch (e) {
                 return false;
             }
-        }, explicitWait, "Elements are stale");
+        }, constants.wait5seconds, "Elements are stale");
 
         const toggle = async () => {
             const uiColorsItems = await themeTabView

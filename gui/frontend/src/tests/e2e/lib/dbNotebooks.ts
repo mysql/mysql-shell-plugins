@@ -24,12 +24,12 @@
  */
 
 import { until, WebElement, Key, error } from "selenium-webdriver";
-import { explicitWait } from "./misc.js";
 import * as locator from "../lib/locators.js";
 import * as constants from "../lib/constants.js";
 import { driver } from "../lib/driver.js";
 import * as interfaces from "../lib/interfaces.js";
 import { DialogHelper } from "../lib/dialogHelper.js";
+import { platform } from "os";
 
 export const execFullBlockSql = "Execute the selection or everything in the current block and create a new block";
 export const execFullBlockJs = "Execute everything in the current block and create a new block";
@@ -44,44 +44,6 @@ export const saveNotebook = "Save this Notebook";
 export class DBNotebooks {
 
     /**
-     * Selects the database type on the Database Connection Configuration dialog
-     * @param value database type
-     * @returns Promise resolving when the select is made
-     */
-    public static selectDBType = async (value: string): Promise<void> => {
-        await driver.findElement(locator.databaseConnectionConfiguration.databaseType.exists).click();
-        const dropDownList = await driver.findElement(locator.databaseConnectionConfiguration.databaseType.list);
-        const els = await dropDownList.findElements(locator.htmlTag.div);
-        if (els.length > 0) {
-            await dropDownList.findElement(locator.searchById(value)).click();
-        }
-    };
-
-    /**
-     * Selects the protocol on the Database Connection Configuration dialog
-     * @param value protocol
-     * @returns Promise resolving when the select is made
-     */
-    public static setProtocol = async (value: string): Promise<void> => {
-        await driver.findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol.exists).click();
-        const dropDownList = await driver
-            .findElement(locator.databaseConnectionConfiguration.mysql.basic.protocol.list);
-        await dropDownList.findElement(locator.searchById(value)).click();
-    };
-
-    /**
-     * Selects the SSL Mode on the Database Connection Configuration dialog
-     * @param value SSL Mode
-     * @returns Promise resolving when the select is made
-     */
-    public static setSSLMode = async (value: string): Promise<void> => {
-        await driver.findElement(locator.databaseConnectionConfiguration.mysql.ssl.mode).click();
-        const dropDownList = await driver
-            .findElement(locator.databaseConnectionConfiguration.mysql.ssl.modeList.exists);
-        await dropDownList.findElement(locator.searchById(value)).click();
-    };
-
-    /**
      * Creates a new database connection, from the DB Editor main page.
      * It verifies that the Connection dialog is closed, at the end.
      * @param dbConfig Database Config object
@@ -89,7 +51,7 @@ export class DBNotebooks {
      */
     public static createDataBaseConnection = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
         const ctx = await driver.wait(until.elementLocated(locator.dbConnections.browser),
-            explicitWait, "DB Connection Overview page was not loaded");
+            constants.wait5seconds, "DB Connection Overview page was not loaded");
 
         await driver.wait(async () => {
             const isDialogVisible = (await driver.findElements(locator.databaseConnectionConfiguration.exists))
@@ -107,7 +69,7 @@ export class DBNotebooks {
 
                 return false;
             }
-        }, explicitWait, "Connection dialog was not displayed");
+        }, constants.wait5seconds, "Connection dialog was not displayed");
         await DBNotebooks.setConnection(dbConfig);
     };
 
@@ -266,19 +228,19 @@ export class DBNotebooks {
             case "edit": {
                 await moreActions.click();
                 await driver.wait(until.elementLocated(locator.dbConnections.connections.actions.edit),
-                    explicitWait, "Edit button not found").click();
+                    constants.wait5seconds, "Edit button not found").click();
                 break;
             }
             case "duplicate": {
                 await moreActions.click();
                 await driver.wait(until.elementLocated(locator.dbConnections.connections.actions.duplicate),
-                    explicitWait, "Duplicate button not found").click();
+                    constants.wait5seconds, "Duplicate button not found").click();
                 break;
             }
             case "remove": {
                 await moreActions.click();
                 await driver.wait(until.elementLocated(locator.dbConnections.connections.actions.remove),
-                    explicitWait, "Remove button not found").click();
+                    constants.wait5seconds, "Remove button not found").click();
                 break;
             }
             default: {
@@ -294,7 +256,7 @@ export class DBNotebooks {
     public static getAutoCompleteMenuItems = async (): Promise<string[]> => {
         const els = [];
         let items = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.autoCompleteItems),
-            explicitWait, "Auto complete items were not displayed");
+            constants.wait5seconds, "Auto complete items were not displayed");
 
         for (const item of items) {
             els.push(await item.getText());
@@ -303,7 +265,7 @@ export class DBNotebooks {
         await driver.actions().sendKeys(Key.ARROW_UP).perform();
 
         items = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.autoCompleteItems),
-            explicitWait, "Auto complete items were not displayed");
+            constants.wait5seconds, "Auto complete items were not displayed");
 
         for (const item of items) {
             els.push(await item.getText());
@@ -352,35 +314,12 @@ export class DBNotebooks {
                     throw e;
                 }
             }
-        }, explicitWait, "The lines were always stale");
+        }, constants.wait5seconds, "The lines were always stale");
 
         if (line === undefined) {
             throw new Error(`Could not find the line of word ${wordRef}`);
         } else {
             return line;
-        }
-    };
-
-    /**
-     * Sets the mouse cursor at the editor line where the specified word is
-     * @param word The word or command
-     * @returns A promise resolving when the mouse cursor is placed at the desired spot
-     */
-    public static setMouseCursorAt = async (word: string): Promise<void> => {
-        const mouseCursorIs = await DBNotebooks.getMouseCursorLine();
-        const mouseCursorShouldBe = await DBNotebooks.getLineFromWord(word) ?? 0;
-        const taps = mouseCursorShouldBe - mouseCursorIs!;
-        const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-        if (taps > 0) {
-            for (let i = 0; i < taps; i++) {
-                await textArea.sendKeys(Key.ARROW_DOWN);
-                await driver.sleep(300);
-            }
-        } else if (taps < 0) {
-            for (let i = 0; i < Math.abs(taps); i++) {
-                await textArea.sendKeys(Key.ARROW_UP);
-                await driver.sleep(300);
-            }
         }
     };
 
@@ -571,34 +510,69 @@ export class DBNotebooks {
     };
 
     /**
-     * Verifies if a word exists on the notebook
-     * @param word The word
-     * @returns A promise resolving with true if the word is found, false otherwise
+     * Returns the prompt text within a line, on the prompt
+     * @param prompt last (last line), last-1 (line before the last line), last-2 (line before the 2 last lines)
+     * @returns Promise resolving with the text on the selected line
      */
-    public static existsOnNotebook = async (word: string): Promise<boolean> => {
-        const commands: string[] = [];
+    public static getPromptTextLine = async (prompt: string): Promise<String> => {
+        const context = await driver.findElement(locator.notebook.codeEditor.editor.exists);
+
+        let position: number;
+        let tags;
+        switch (prompt) {
+            case "last":
+                position = 1;
+                break;
+            case "last-1":
+                position = 2;
+                break;
+            case "last-2":
+                position = 3;
+                break;
+            default:
+                throw new Error("Error getting line");
+        }
+
+        let sentence = "";
         await driver.wait(async () => {
             try {
-                const notebookCommands = await driver.wait(
-                    until.elementsLocated(locator.notebook.codeEditor.editor.editorLine),
-                    constants.wait5seconds, "No lines were found");
-                for (const cmd of notebookCommands) {
-                    const spans = await cmd.findElements(locator.htmlTag.span);
-                    let sentence = "";
-                    for (const span of spans) {
-                        sentence += (await span.getText()).replace("&nbsp;", " ");
+                const lines = await context.findElements(locator.notebook.codeEditor.editor.editorPrompt);
+                const words = locator.htmlTag.mix(locator.htmlTag.span.value, locator.htmlTag.span.value);
+                if (lines.length > 0) {
+                    tags = await lines[lines.length - position].findElements(words);
+                    for (const tag of tags) {
+                        sentence += (await tag.getText()).replace("&nbsp;", " ");
                     }
-                    commands.push(sentence);
-                }
 
-                return true;
+                    return true;
+                }
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `${word} does not exist on the notebook`);
+        }, constants.wait5seconds, "Elements were stale");
 
-        return commands.toString().match(new RegExp(word)) !== null;
+        return sentence;
     };
+
+    /**
+     * Removes all the existing text on the prompt
+     * @returns A promise resolving when the clean is made
+     */
+    public static cleanPrompt = async (): Promise<void> => {
+        const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+        if (platform() === "win32") {
+            await textArea
+                .sendKeys(Key.chord(Key.CONTROL, "a", "a"));
+        } else if (platform() === "darwin") {
+            await textArea
+                .sendKeys(Key.chord(Key.COMMAND, "a", "a"));
+        }
+        await textArea.sendKeys(Key.BACK_SPACE);
+        await driver.wait(async () => {
+            return await DBNotebooks.getPromptTextLine("last") === "";
+        }, 3000, "Prompt was not cleaned");
+    };
+
 }

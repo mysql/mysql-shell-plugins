@@ -26,16 +26,16 @@
 import { Key, WebElement, until } from "selenium-webdriver";
 import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
-import { Misc, explicitWait, shellServers } from "../../lib/misc.js";
+import { Misc, shellServers } from "../../lib/misc.js";
 import * as locator from "../../lib/locators.js";
 import { basename, join } from "path";
-import { platform } from "os";
 import { CommandExecutor } from "../../lib/cmdExecutor.js";
 import { driver, loadDriver } from "../../lib/driver.js";
 import * as interfaces from "../../lib/interfaces.js";
 import * as constants from "../../lib/constants.js";
 import { DialogHelper } from "../../lib/dialogHelper.js";
 import * as waitUntil from "../../lib/until.js";
+import { Os } from "../../lib/os.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -70,7 +70,7 @@ describe("Database Connections", () => {
                 } catch (e) {
                     await driver.navigate().refresh();
                 }
-            }, explicitWait * 4, "Home Page was not loaded");
+            }, constants.wait20seconds, "Home Page was not loaded");
 
             await driver.findElement(locator.sqlEditorPage.icon).click();
             await DBNotebooks.createDataBaseConnection(globalConn);
@@ -92,7 +92,7 @@ describe("Database Connections", () => {
     });
 
     afterAll(async () => {
-        await Misc.writeFELogs(basename(__filename), driver.manage().logs());
+        await Os.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.close();
         await driver.quit();
     });
@@ -262,7 +262,7 @@ describe("Database Connections", () => {
                 ).getAttribute("class"),
             ).toContain("expanded");
 
-            await Misc.cleanPrompt();
+            await DBNotebooks.cleanPrompt();
             const table = await DBConnection.getSchemaObject("obj", "db_connection");
             await driver.wait(async () => {
                 await driver
@@ -325,16 +325,16 @@ describe("Database Connections", () => {
     it("Copy, cut paste into the DB Connection dialog", async () => {
         try {
             const browser = await driver.wait(until.elementLocated(locator.dbConnections.browser),
-                explicitWait, "DB Connection Overview page was not loaded");
+                constants.wait5seconds, "DB Connection Overview page was not loaded");
 
             await browser.findElement(locator.dbConnections.newConnection).click();
             const newConDialog = await driver.wait(until.elementLocated(locator.databaseConnectionConfiguration.exists),
-                explicitWait);
+                constants.wait5seconds);
             const hostname = await newConDialog
                 .findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname);
             const hostnameValue = await hostname.getAttribute("value");
             await hostname.click();
-            if (platform() === "darwin") {
+            if (Os.isMacOs()) {
                 await hostname.sendKeys(Key.chord(Key.COMMAND, "a"));
                 await hostname.sendKeys(Key.chord(Key.COMMAND, "c"));
             } else {
@@ -349,7 +349,7 @@ describe("Database Connections", () => {
 
                 return !(await driver.executeScript("return document.querySelector('#caption').value"));
             }, 3000, "caption was not cleared in time");
-            if (platform() === "darwin") {
+            if (Os.isMacOs()) {
                 await inputCaption.sendKeys(Key.chord(Key.COMMAND, "v"));
             } else {
                 await inputCaption.sendKeys(Key.chord(Key.CONTROL, "v"));
@@ -359,7 +359,7 @@ describe("Database Connections", () => {
             expect(newValue).toBe(hostnameValue);
             const valueToCut = await inputCaption.getAttribute("value");
 
-            if (platform() === "darwin") {
+            if (Os.isMacOs()) {
                 await hostname.sendKeys(Key.chord(Key.COMMAND, "a"));
                 await hostname.sendKeys(Key.chord(Key.COMMAND, "x"));
             } else {
@@ -374,7 +374,7 @@ describe("Database Connections", () => {
                 .findElement(locator.databaseConnectionConfiguration.description);
             await description.click();
 
-            if (platform() === "darwin") {
+            if (Os.isMacOs()) {
                 await description.sendKeys(Key.chord(Key.COMMAND, "v"));
             } else {
                 await description.sendKeys(Key.chord(Key.CONTROL, "v"));

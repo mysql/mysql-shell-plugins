@@ -24,7 +24,7 @@
  */
 
 import { until } from "selenium-webdriver";
-import { Misc, explicitWait } from "../../lib/misc.js";
+import { Misc } from "../../lib/misc.js";
 import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import * as locator from "../../lib/locators.js";
@@ -33,6 +33,7 @@ import { driver, loadDriver } from "../../lib/driver.js";
 import * as interfaces from "../../lib/interfaces.js";
 import * as waitUntil from "../../lib/until.js";
 import * as constants from "../../lib/constants.js";
+import { Os } from "../../lib/os.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -67,7 +68,7 @@ describe("MySQL Administration", () => {
                 } catch (e) {
                     await driver.navigate().refresh();
                 }
-            }, explicitWait * 4, "Home Page was not loaded");
+            }, constants.wait20seconds, "Home Page was not loaded");
             await driver.findElement(locator.sqlEditorPage.icon).click();
             await DBNotebooks.createDataBaseConnection(globalConn);
             await driver.executeScript("arguments[0].click();", await DBNotebooks.getConnection(globalConn.caption!));
@@ -87,7 +88,7 @@ describe("MySQL Administration", () => {
     });
 
     afterAll(async () => {
-        await Misc.writeFELogs(basename(__filename), driver.manage().logs());
+        await Os.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.close();
         await driver.quit();
     });
@@ -135,7 +136,7 @@ describe("MySQL Administration", () => {
             expect(test).toContain("Aborted Connections");
             expect(test).toContain("Errors");
             await driver.wait(until.elementsLocated(locator.clientConnections.connectionListRows),
-                explicitWait, "Connections list items were not found");
+                constants.wait5seconds, "Connections list items were not found");
         } catch (e) {
             testFailed = true;
             throw e;

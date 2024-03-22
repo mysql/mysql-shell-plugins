@@ -23,12 +23,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until, Key, WebElement, error } from "selenium-webdriver";
-import { explicitWait, Misc } from "./misc.js";
+import { until, WebElement, error } from "selenium-webdriver";
 import * as locator from "../lib/locators.js";
 import * as interfaces from "../lib/interfaces.js";
 import * as constants from "../lib/constants.js";
 import { driver } from "../lib/driver.js";
+import { Os } from "../lib/os.js";
 
 export class DBConnection {
 
@@ -68,270 +68,16 @@ export class DBConnection {
     };
 
     /**
-     * Returns the toolbar button on the DB Editor.
-     * Throws an exception if the button is not found.
-     * @param button Toolbar button tooltip
-     * @returns Promise resolving with the Toolbar button
-     */
-    public static getToolbarButton = async (button: string): Promise<WebElement | undefined> => {
-        const buttons = await driver.findElement(locator.notebook.toolbar.exists)
-            .findElements(locator.notebook.toolbar.button.exists);
-        for (const btn of buttons) {
-            if ((await btn.getAttribute("data-tooltip")) === button) {
-                return btn;
-            }
-        }
-
-        throw new Error(`Could not find button '${button}'`);
-    };
-
-    /**
-     * Clicks on a toolbar button and waits for the button to be active again.
-     * Throws an exception if the button is not found.
-     * @param button Toolbar button tooltip
-     * @returns Promise resolving with the Toolbar button
-     */
-    public static clickToolbarButton = async (button: string): Promise<void> => {
-        const toolbarButton = await DBConnection.getToolbarButton(button);
-        await toolbarButton?.click();
-        await driver.wait(async () => {
-            return (await toolbarButton?.getAttribute("class"))?.includes("disabled");
-        }, explicitWait, `The button ${button} should be disabled after clicking it`);
-        await driver.wait(async () => {
-            return (await toolbarButton?.getAttribute("class"))?.includes("disabled") === false;
-        }, explicitWait, `The button ${button} should be enabled`);
-    };
-
-    /**
-     * Returns the result status of a query or instruction on the DB Editor
-     * @param isSelect if the expected result is from a select statement
-     * @returns Promise resolving with the Result status. Ex. OK, 1 record returned
-     */
-    public static getResultStatus = async (isSelect?: boolean): Promise<string> => {
-        let results: WebElement[] | undefined;
-        const obj = "";
-
-        await driver.wait(
-            async () => {
-                results = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.result.exists),
-                    explicitWait, "Zone hosts were not found");
-
-                const about = await results[0].findElements(locator.htmlTag.span);
-
-                //first element is usually the about info
-                if (about.length > 0 && (await about[0].getText()).indexOf("Welcome") !== -1) {
-                    results.shift();
-                }
-                if (results.length > 0) {
-                    if ((await results[0].findElements(locator.notebook.codeEditor.editor.result.info)).length > 0) {
-                        //if language has been changed...
-                        results.shift();
-                    }
-                } else {
-                    return false;
-                }
-
-                return results[results.length - 1] !== undefined;
-            },
-            10000,
-            `Result Status is undefined`,
-        );
-
-        const block = await driver.wait(until.elementLocated(async () => {
-            if (isSelect) {
-                return results![results!.length - 1].findElements(locator.htmlTag.label);
-            } else {
-                return results![results!.length - 1].findElements(locator.htmlTag.span);
-            }
-        }), explicitWait, `${obj} was not found`);
-
-        return block.getAttribute("innerHTML");
-    };
-
-    /**
      * Returns the current selected connection tab, on the DB Editor
      * @returns Promise resolving with the Connection tab name
      */
     public static getSelectedConnectionTab = async (): Promise<string> => {
         const tab = await driver.wait(until.elementLocated(locator.notebook.connectionTab.opened),
-            explicitWait, "Selected tab was not found");
+            constants.wait5seconds, "Selected tab was not found");
 
         const label = await tab.findElement(locator.htmlTag.label);
 
         return label.getText();
-    };
-
-    /**
-     * Tell if the statement is a statement start (has a blue dot on the beginning)
-     * @param statement statement
-     * @returns Promise resolving with the number of statement starts
-     */
-    public static isStatementStart = async (statement: string): Promise<boolean | undefined> => {
-
-        const getLineSentence = async (ctx: WebElement): Promise<string> => {
-            const spans = await ctx.findElements(locator.htmlTag.span);
-            let sentence = "";
-            for (const span of spans) {
-                sentence += (await span.getText()).replace("&nbsp;", " ");
-            }
-
-            return sentence;
-        };
-
-        let flag: boolean | undefined;
-
-        await driver.wait(async () => {
-            try {
-                const leftSideLines = await driver.findElements(locator.notebook.codeEditor.editor.promptLine);
-                const rightSideLines = await driver.findElements(locator.notebook.codeEditor.editor.editorLine);
-                let index = -1;
-                for (let i = 0; i <= rightSideLines.length - 1; i++) {
-                    const lineSentence = await getLineSentence(rightSideLines[i]);
-                    if (lineSentence.includes(statement)) {
-                        index = i;
-                        break;
-                    }
-                }
-                if (index === -1) {
-                    throw new Error(`Could not find statement ${statement}`);
-                }
-                flag = (await leftSideLines[index].findElements(locator.notebook.codeEditor.editor.statementStart))
-                    .length > 0;
-
-                return true;
-            } catch (e) {
-                if (e instanceof error.StaleElementReferenceError) {
-                    return false;
-                } else {
-                    throw e;
-                }
-            }
-        }, explicitWait, "Lines were stale");
-
-        return flag;
-    };
-
-    /**
-     * Writes a command on the displayed textarea
-     * @param cmd cmd to write
-     * @param slowWriting True to write like a human
-     * @returns Promise resolving when the sql query is written
-     */
-    public static writeSQL = async (cmd: string, slowWriting?: boolean): Promise<void> => {
-        const textArea = await driver.wait(until.elementLocated(locator.notebook.codeEditor.textArea),
-            explicitWait, "Could not find the textarea");
-        await driver.wait(async () => {
-            try {
-                if (slowWriting) {
-                    const items = cmd.split("");
-                    for (const item of items) {
-                        await textArea.sendKeys(item);
-                        await driver.sleep(20);
-                    }
-                } else {
-                    await textArea.sendKeys(cmd);
-                }
-
-                return true;
-            } catch (e) {
-                if (e instanceof error.ElementNotInteractableError) {
-                    const editorLines = await driver.findElements(locator.notebook.codeEditor.editor.line);
-                    await editorLines[editorLines.length - 1].click();
-                } else {
-                    throw e;
-                }
-            }
-        }, explicitWait, "Text area was not interactable");
-    };
-
-    /**
-     * Enables/Disables the Find in Selection button, on the Find and Replace box
-     * @param el find widget
-     * @param flag true to enable, false otherwise
-     * @returns Promise resolving when the find is made
-     */
-    public static findInSelection = async (el: WebElement, flag: boolean): Promise<void> => {
-        const actions = await el.findElements(locator.findWidget.actions);
-        for (const action of actions) {
-            if (
-                (await action.getAttribute("title")).indexOf("Find in selection") !==
-                -1
-            ) {
-                const checked = await action.getAttribute("aria-checked");
-                if (checked === "true") {
-                    if (!flag) {
-                        await action.click();
-                    }
-                } else {
-                    if (flag) {
-                        await action.click();
-                    }
-                }
-
-                return;
-            }
-        }
-    };
-
-    /**
-     * Closes the finder on DB Editor
-     * @returns Promise resolving with the finder is closed
-     */
-    public static closeFinder = async (): Promise<void> => {
-        await driver.wait(async () => {
-            const findWidget = await driver.findElements(locator.findWidget.isVisible);
-            if (findWidget.length > 0) {
-                const closeButton = await findWidget[0].findElement(locator.findWidget.close);
-                await driver.executeScript("arguments[0].click()", closeButton);
-
-                return (await driver.findElements(locator.findWidget.isVisible)).length === 0;
-            } else {
-                return true;
-            }
-        }, explicitWait, "Widget was not closed");
-    };
-
-    /**
-     * Expands the finder to show the Replace text box
-     *
-     * @param el the finder
-     * @param flag true to open, false otherwise
-     * @returns Promise resolving when the action is made
-     */
-    public static expandFinderReplace = async (el: WebElement, flag: boolean): Promise<void> => {
-        const divs = await el.findElements(locator.htmlTag.div);
-        for (const div of divs) {
-            if ((await div.getAttribute("title")) === "Toggle Replace") {
-                const expanded = await div.getAttribute("aria-expanded");
-                if (flag) {
-                    if (expanded === "false") {
-                        await div.click();
-                    }
-                } else {
-                    if (expanded === "true") {
-                        await div.click();
-                    }
-                }
-            }
-        }
-    };
-
-    /**
-     * Returns a button on the finder box dialog
-     *
-     * @param el the finder
-     * @param button button name
-     * @returns Promise resolving with the button
-     */
-    public static replacerGetButton = async (el: WebElement, button: string): Promise<WebElement | undefined> => {
-        const replaceActions = await el.findElements(locator.findWidget.replacerActions);
-        for (const action of replaceActions) {
-            if (
-                (await action.getAttribute("title")).indexOf(button) !== -1
-            ) {
-                return action;
-            }
-        }
     };
 
     /**
@@ -344,7 +90,7 @@ export class DBConnection {
         objType: string,
         objName: string): Promise<WebElement | undefined> => {
         const scroll = await driver.wait(until.elementLocated(locator.notebook.explorerHost.schemas.scroll),
-            explicitWait, "Table scroll was not found");
+            constants.wait5seconds, "Table scroll was not found");
 
         await driver.executeScript("arguments[0].scrollBy(0,-1000)", scroll);
 
@@ -468,7 +214,7 @@ export class DBConnection {
             } catch (e) {
                 return false;
             }
-        }, explicitWait * 2, "No script was created");
+        }, constants.wait10seconds, "No script was created");
 
         return toReturn;
     };
@@ -563,198 +309,6 @@ export class DBConnection {
     };
 
     /**
-     * Returns the result tab or a multi-query result, on the DB Editor
-     * @param tabName Tab name
-     * @returns Promise resolving with the tab
-     */
-    public static getResultTab = async (tabName: string): Promise<WebElement | undefined> => {
-        const zoneHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
-        const tabs = await zoneHosts[zoneHosts.length - 1]
-            .findElements(locator.notebook.codeEditor.editor.result.tabSection.tabs);
-
-        for (const tab of tabs) {
-            if (await tab.getAttribute("id") !== "selectorItemStepDown" &&
-                await tab.getAttribute("id") !== "selectorItemStepUp") {
-                const label = await tab.findElement(locator.htmlTag.label);
-                if ((await label.getAttribute("innerHTML")).indexOf(tabName) !== -1) {
-                    return tab;
-                }
-            }
-        }
-    };
-
-    /**
-     * Returns the result tab names of a multi-query result, on the DB Editor
-     * @returns Promise resolving with the tab names
-     */
-    public static getResultTabs = async (): Promise<String[]> => {
-        const zoneHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
-        const tabs = await zoneHosts[zoneHosts.length - 1]
-            .findElements(locator.notebook.codeEditor.editor.result.tabSection.tabs);
-        const resultTabs: string[] = [];
-
-        for (const tab of tabs) {
-            if (await tab.getAttribute("id") !== "selectorItemStepDown" &&
-                await tab.getAttribute("id") !== "selectorItemStepUp") {
-                const label = await tab.findElement(locator.htmlTag.label);
-                resultTabs.push(await label.getAttribute("innerHTML"));
-            }
-        }
-
-        return resultTabs;
-    };
-
-    /**
-     * Returns the result column name of a sql query, on the DB Editor
-     * @param columnName Column name
-     * @param retry Number of retries to get the column (default = 2)
-     * @returns A promise resolving with the column
-     */
-    public static getResultColumnName = async (
-        columnName: string,
-        retry?: number): Promise<WebElement | undefined> => {
-        if (!retry) {
-            retry = 0;
-        } else {
-            if (retry === 2) {
-                throw new Error("Max retries for getting column name was reached");
-            }
-        }
-        try {
-            const resultHosts = await driver.wait(until
-                .elementsLocated(locator.notebook.codeEditor.editor.result.exists),
-                explicitWait, "Result host was not found");
-
-            const resultSet = await driver.wait(until.elementLocated(async () => {
-                return resultHosts[resultHosts.length - 1]
-                    .findElements(locator.notebook.codeEditor.editor.result.tableHeaders);
-            }), explicitWait, "Table headers not found");
-
-            const resultHeaderRows = await driver.wait(until.elementsLocated(async () => {
-                return resultSet.findElements(locator.notebook.codeEditor.editor.result.tableColumnTitle);
-            }), explicitWait, "Table column titles not found");
-
-            for (const row of resultHeaderRows) {
-                if ((await row.getText()) === columnName) {
-                    return row;
-                }
-            }
-
-        } catch (e) {
-            if (e instanceof Error) {
-                if (e.message.indexOf("stale") === -1) {
-                    throw e;
-                }
-            } else {
-                await DBConnection.getResultColumnName(columnName, retry + 1);
-            }
-        }
-    };
-
-    /**
-     * Returns the graph resulting from a typescript script, on the DB Editor
-     * @returns A promise resolving with the graph
-     */
-    public static getGraphHost = async (): Promise<WebElement> => {
-        const resultHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
-        const lastResult = resultHosts[resultHosts.length - 1];
-
-        return driver.wait(async () => {
-            return lastResult.findElement(locator.notebook.codeEditor.editor.result.graphHost.exists);
-        }, 10000, "Pie Chart was not displayed");
-    };
-
-    /**
-     * Returns the output of switching language on the DB Editor
-     * @param penultimate get the penultimate result
-     * @returns A promise resolving with the output
-     */
-    public static getOutput = async (penultimate?: boolean): Promise<string> => {
-        let text = "";
-        await driver.wait(async () => {
-            try {
-                const zoneHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
-                let context;
-                if (penultimate) {
-                    context = zoneHosts[zoneHosts.length - 2];
-                } else {
-                    context = zoneHosts[zoneHosts.length - 1];
-                }
-
-                let items = await context.findElements(locator.htmlTag.label);
-                if (items.length > 0) {
-                    text = await items[0].getText();
-
-                    return true;
-                } else {
-                    items = await context.findElements(locator.notebook.codeEditor.editor.result.text.exists);
-                    if (items.length > 0) {
-                        text = await items[items.length - 1].getText();
-
-                        return true;
-                    } else {
-                        items = await context.findElements(locator.notebook.codeEditor.editor.result.text.entry);
-                        if (items.length) {
-                            text = await items[items.length - 1].getText();
-                        } else {
-                            items = await context.findElements(locator.notebook.codeEditor.editor.result.text.info);
-                            text = await items[0].getText();
-                        }
-
-                        return true;
-                    }
-                }
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
-                }
-            }
-        }, explicitWait, "Could not find the output");
-
-        return text;
-    };
-
-    /**
-     * Returns the current language of the prompt on the DB Editor
-     * @returns A promise resolving with the language
-     */
-    public static getEditorLanguage = async (): Promise<string> => {
-        const editors = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.prompt.current),
-            explicitWait, "Could not find the editor prompts");
-        const editorClasses = (await editors[editors.length - 1].getAttribute("class")).split(" ");
-
-        return editorClasses[2].replace("my", "");
-    };
-
-    /**
-     * Sets the language on the DB Editor
-     * @param language sql/js/ts
-     * @returns A promise resolving when the language is set
-     */
-    public static setEditorLanguage = async (language: string): Promise<void> => {
-        const curLang = await DBConnection.getEditorLanguage();
-        if (curLang !== language) {
-            const contentHost = await driver.findElement(locator.notebook.exists);
-            const textArea = await contentHost.findElement(locator.notebook.codeEditor.textArea);
-            await Misc.execCmd(driver, textArea, "\\" + language.replace("my", ""));
-            const results = await driver.findElements(locator.notebook.codeEditor.editor.result.info);
-            switch (language) {
-                case "sql":
-                    expect(await results[results.length - 1].getText()).toBe("Switched to MySQL mode");
-                    break;
-                case "js":
-                    expect(await results[results.length - 1].getText()).toBe("Switched to JavaScript mode");
-                    break;
-                case "ts":
-                    expect(await results[results.length - 1].getText()).toBe("Switched to TypeScript mode");
-                    break;
-                default:
-                    break;
-            }
-        }
-    };
-
-    /**
      * Clicks on the DB Editor Context menu
      * @param item Context menu item name
      * @returns A promise resolving when the click is made
@@ -774,7 +328,7 @@ export class DBConnection {
 
             return isCtxMenuDisplayed();
 
-        }, explicitWait, "Context menu was not displayed");
+        }, constants.wait5seconds, "Context menu was not displayed");
 
         await driver.wait(async () => {
             try {
@@ -788,7 +342,7 @@ export class DBConnection {
                     return true;
                 }
             }
-        }, explicitWait, "Context menu is still displayed");
+        }, constants.wait5seconds, "Context menu is still displayed");
     };
 
     /**
@@ -922,60 +476,13 @@ export class DBConnection {
     };
 
     /**
-     * Returns the latest html query result id
-     * This function is useful to verify later if a new result id is displayed, after a query
-     * @returns A promise resolving with the Id
-     */
-    public static getLastQueryResultId = async (): Promise<number> => {
-        const zoneHosts = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
-        if (zoneHosts.length > 0) {
-            const zones = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
-
-            return parseInt((await zones[zones.length - 1].getAttribute("monaco-view-zone")).match(/\d+/)![0], 10);
-        } else {
-            return 0;
-        }
-    };
-
-    /**
-     * Returns the result after executing a script, on the DB Editor
-     * @param timeout wait
-     * @returns A promise resolving with the result
-     */
-    public static getScriptResult = async (timeout = explicitWait): Promise<string> => {
-        let toReturn = "";
-        await driver.wait(async () => {
-            try {
-                const resultHost = await driver.findElements(locator.notebook.codeEditor.editor.result.host);
-                if (resultHost.length > 0) {
-                    const content = await resultHost[0]
-                        .findElements(locator.notebook.codeEditor.editor.result.anyResult);
-
-                    if (content.length) {
-                        toReturn = await content[0].getAttribute("innerHTML");
-
-                        return true;
-                    }
-                }
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
-                }
-            }
-
-        }, timeout, `No results were found`);
-
-        return toReturn;
-    };
-
-    /**
      * Clicks on an item under the MySQL Administration section, on the DB Editor
      * @param item Item name
      * @returns A promise resolving when the click is made
      */
     public static clickAdminItem = async (item: string): Promise<void> => {
         const els = await driver.wait(until.elementsLocated(locator.notebook.explorerHost.administration.itemToClick),
-            explicitWait, "Admin section not found");
+            constants.wait5seconds, "Admin section not found");
         for (const el of els) {
             const label = await el.getText();
             if (label === item) {
@@ -1021,43 +528,6 @@ export class DBConnection {
     };
 
     /**
-     * Opens a new notebook
-     * @returns Promise resolving when the new notebook is opened
-     *
-     */
-    public static openNewNotebook = async (): Promise<void> => {
-        await driver.wait(async () => {
-            await driver.executeScript(
-                "arguments[0].click()",
-                await driver.findElement(locator.notebook.explorerHost.openEditors.addConsole),
-            );
-
-            try {
-                await driver.wait(until
-                    .elementLocated(locator.notebook.explorerHost.openEditors.textBox), explicitWait);
-
-                return true;
-            } catch (e) {
-                return false;
-            }
-        }, explicitWait * 3, "Open editors new input was not found");
-
-
-        await driver.wait(async () => {
-            try {
-                const input = await driver.findElement(locator.notebook.explorerHost.openEditors.textBox);
-                await input.sendKeys(Key.ESCAPE);
-
-                return true;
-            } catch (e) {
-                if (!(e instanceof error.ElementNotInteractableError)) {
-                    throw e;
-                }
-            }
-        }, explicitWait, "Add console or the input were not interactable");
-    };
-
-    /**
      * Sets the database credentials on the password dialog
      * @param data The credentials
      * @param timeout The max number of time the function should wait until the connection is successful
@@ -1091,7 +561,7 @@ export class DBConnection {
     private static setConfirm = async (value: string,
         timeoutDialog = constants.wait10seconds): Promise<void> => {
 
-        if (await Misc.existsCredentialHelper()) {
+        if (await Os.existsCredentialHelper()) {
             const confirmDialog = await driver.wait(until.elementsLocated(locator.confirmDialog.exists),
                 timeoutDialog, "No confirm dialog was found");
 

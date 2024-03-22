@@ -31,6 +31,7 @@ import { platform } from "os";
 import * as waitUntil from "./until.js";
 import { Misc } from "./misc.js";
 import { driver } from "../lib/driver.js";
+import { Os } from "./os.js";
 
 /**
  * This class aggregates the functions that will execute commands on notebooks or shell sessions, as well as its results
@@ -176,7 +177,7 @@ export class CommandExecutor {
         const cmd = "shell.deleteAllCredentials()";
         await this.write(cmd, false);
         await this.exec();
-        if (!(await Misc.existsCredentialHelper())) {
+        if (!(await Os.existsCredentialHelper())) {
             // we expect an error on the console
             const nextId = await this.getNextResultId(this.resultId);
             await this.setResultMessage(cmd, nextId);
