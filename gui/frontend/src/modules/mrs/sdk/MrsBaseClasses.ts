@@ -121,7 +121,7 @@ export class MrsBaseSession {
      * @returns The response object
      */
     public doFetch = async (input: string | IMrsFetchInput, errorMsg?: string,
-        method?: string, body?: object | IMrsFetchData, autoResponseCheck = true,
+        method?: string, body?: object | IMrsFetchData | JsonObject, autoResponseCheck = true,
         timeout?: number): Promise<Response> => {
         // Check if parameters are passed as named parameters and if so, assign them
         if (typeof input === "object" && input !== null) {
@@ -447,10 +447,10 @@ export interface IMrsOperator {
 export type IMrsResourceCollectionData<C> = {
     items: Array<MrsResourceObject<C>>,
     limit: number,
-    offset?: number,
+    offset: number,
     hasMore: boolean,
     count: number,
-    links?: IMrsLink[]
+    links: IMrsLink[]
 } & JsonObject;
 
 /**
@@ -730,7 +730,7 @@ export interface IFilterOptions<Filterable> {
  * "AUTO INCREMENT") or TIMESTAMP columns.
  */
 export type Cursor<EligibleFields> = {
-    [Key in keyof EligibleFields]?: EligibleFields[Key]
+    [Key in keyof EligibleFields]: EligibleFields[Key]
 };
 
 // create*() API
@@ -783,6 +783,13 @@ export interface IFindAllOptions<Item, Filterable, Iterable> extends IFindFirstO
     progress?: (items: Item[]) => Promise<void>;
 }
 
+type IFindRangeOptions<Item, Filterable, Iterable> = IFindAllOptions<Item, Filterable, Iterable>
+| IFindFirstOptions<Item, Filterable, Iterable>
+| IFindManyOptions<Item, Filterable, Iterable>;
+
+export type IFindOptions<Item, Filterable, Iterable> = IFindRangeOptions<Item, Filterable, Iterable>
+| IFindUniqueOptions<Item, Filterable>;
+
 /**
  * Object with boolean fields that determine if the field should be included (or not) in the result set.
  * @example
@@ -799,11 +806,11 @@ export type BooleanFieldMapSelect<TableMetadata> = {
 };
 
 /**
- * List of fields identified by their full path using dot "." notation.
+ * Non-empty list of fields identified by their full path using dot "." notation.
  * @example
  * { foo: { bar: { baz: string } } } => ['foo.bar.baz']
  */
-export type FieldNameSelect<Type> = Array<FieldPath<Type>>;
+export type FieldNameSelect<Type> = { 0: FieldPath<Type> } & Array<FieldPath<Type>>;
 
 /** Full path of a field. */
 export type FieldPath<Type> = keyof {
@@ -849,9 +856,10 @@ export type IDeleteOptions<Type> = IFilterOptions<Type>;
 // object.
 // For batch updates, each primary key can match more than one value. Those matches are specified in a list of one or
 // more plain JavaScript objects.
-export interface IUpdateOptions<Instance, Type, PrimaryKeys extends Array<string & keyof Type>, Config>
-    extends ICreateOptions<Instance> {
-    where: Config extends IBatchConfig ? Array<UpdateMatch<Type, PrimaryKeys>> : UpdateMatch<Type, PrimaryKeys>;
+export interface IUpdateOptions<Item, Filterable, PrimaryKeys extends Array<keyof Filterable>, Config={}>
+    extends ICreateOptions<Item> {
+    where: Config extends IBatchConfig ? Array<UpdateMatch<Filterable, PrimaryKeys>>
+        : UpdateMatch<Filterable, PrimaryKeys>;
 }
 
 // Specific options for batch updates.
@@ -860,9 +868,12 @@ export interface IBatchConfig {
 }
 
 // Each matcher should only allow to specify values for the names of primary key columns.
-export type UpdateMatch<Type, PrimaryKeys extends Array<string & keyof Type>> = {
+export type UpdateMatch<Type, PrimaryKeys extends Array<keyof Type>> = {
     [ColumnName in keyof Pick<Type, PrimaryKeys[number]>]-?: Type[ColumnName]
 };
+
+export type MrsRequestFilter<Filterable> = DataFilter<Filterable> & {
+    $orderby: ColumnOrder<Filterable> | undefined } | undefined;
 
 class MrsJSON {
     public static stringify = <T>(obj: T): string => {
@@ -884,118 +895,6 @@ class MrsJSON {
 
             return value;
         });
-    };
-}
-
-/**
- * @template Filterable The set of fields of a given database object that can be used in a query filter.
- * @template Iterable The set of fields of a given database object that can be used as cursors. It has a default value
- * to accommodate the cases where there is no support for cursors, such as "findAll()", "findFirst()", "delete()" and
- * "deleteMany()".
- * This is an internal abstract class to hold common functionality related to query filters
- * between different types of MRS CRUD operations.
- */
-abstract class MrsRequestFilter<Filterable, Iterable={}> {
-    protected queryFilter: HighOrderFilter<Filterable> = {};
-    protected cursorFields: Cursor<Iterable> = {};
-    protected sortOrder: ColumnOrder<Filterable> = {};
-
-    public constructor(
-        protected readonly cursor?: Cursor<Iterable>) {
-        for (const key in cursor) {
-            this.cursorFields[key] = cursor[key];
-
-            if (cursor[key] !== undefined) {
-                this.queryFilter = { ...this.queryFilter, [key]: { $gt: cursor[key] } };
-                this.sortOrder = { ...this.sortOrder, [key]: "ASC" };
-            }
-        }
-    }
-
-    /**
-     * Specifies the query filter used in an MRS query.
-     * @param filter An object containing checks that should apply for the value of one or
-     * more fields which can, optionally, be part of high-order AND/OR operations.
-     * @see {PureFilter}
-     * @see {HighOrderFilter}
-     * @returns The MRS request representation as defined by the child class.
-     */
-    public where = (filter?: DataFilter<Filterable>): this => {
-        if (filter === undefined) {
-            return this;
-        }
-
-        Object.entries(filter).forEach(([field, value]) => {
-            if (Object.keys(this.cursorFields).indexOf(field) === -1) {
-                this.queryFilter = { ...this.queryFilter, [field]: value };
-            }
-        });
-
-        return this;
-    };
-
-    /**
-     * Sort the result set according to the values of a given set of fields.
-     * @param columnOrder An object where the keys are the field names and the values can be
-     * either "ASC" or "DESC" depending on the order in which the records should be returned.
-     * that any sorting condition for the same fields is overwritten.
-     * @see {ColumnOrder}
-     * @example
-     * .orderBy({ name: "ASC" })
-     * .orderBy({ name: "ASC", age: "DESC" })
-     * @returns The MRS request representation as defined by the child class.
-     */
-    public orderBy = (columnOrder?: ColumnOrder<Filterable>): this => {
-        for (const key in columnOrder) {
-            if (Object.keys(this.cursorFields).indexOf(key) === -1) {
-                this.sortOrder[key] = columnOrder[key];
-            }
-        }
-
-        return this;
-    };
-
-    /**
-     * Check if the request instance contains one or more cursors.
-     * @returns A boolean that indicates whether the request contains one or more cursors.
-     */
-    protected hasPaginationCursor = (): boolean => {
-        // It might be the case that the cursor object actually contains fields which are undefined. Those fields
-        // should not be accounted as part of the cursor.
-        return Object.values(this.cursorFields)
-            .some((value) => {
-                return typeof value !== "undefined";
-            });
-    };
-
-    protected hasQueryFilter = (): boolean => {
-        return Object.values(this.queryFilter)
-            .some((value) => {
-                return typeof value !== "undefined";
-            });
-    };
-
-    protected hasSortOrder = (): boolean => {
-        return Object.values(this.sortOrder)
-            .some((value) => {
-                return typeof value !== "undefined";
-            });
-    };
-
-    protected increaseCursor = (field: string, value: unknown): this => {
-        if (!this.queryFilter.$or) {
-            this.queryFilter = { ...this.queryFilter, [field]: { $gt: value } };
-
-            return this;
-        }
-
-        this.queryFilter = { $and: [ this.queryFilter, { [field]: { $gt: value } } ] };
-
-        return this;
-    };
-
-    protected isCursor = (field: string): boolean => {
-        return Object.keys(this.cursorFields).indexOf(field) > -1;
     };
 }
 
@@ -1146,161 +1045,88 @@ class MrsSimplifiedCollectionObjectResponse<T> {
  * because it is not used by "findAll()" or "findFirst()", both of which, also create an instance of MrsBaseObjectQuery.
  * Creates an object that represents an MRS GET request.
  */
-export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> extends MrsRequestFilter<Filterable, Iterable> {
-    protected offsetCondition?: number;
-    protected limitCondition?: number;
-    protected pageSizeCondition = 25;
+export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> {
+    private where?: Record<string, object>;
+    private exclude: string[] = [];
+    private include: string[] = [];
+    private offset?: number;
+    private limit?: number;
+    private hasCursor: boolean = false;
 
     public constructor(
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
-        private readonly fieldsToGet?: string[] | BooleanFieldMapSelect<Item> | FieldNameSelect<Item>,
-        private readonly fieldsToOmit?: string[],
-        protected readonly cursor?: Cursor<Iterable>,
-        private readonly simplified: boolean = true) {
-        super(cursor);
+        options?: IFindOptions<Item, Filterable, Iterable>) {
+        if (options === undefined) {
+            return;
+        }
+
+        const { cursor, orderBy, select, skip, take, where } = options as IFindManyOptions<Item, Filterable, Iterable>;
+
+        if (where !== undefined) {
+            this.where = { ...this.where, ...where };
+            if (orderBy !== undefined) {
+                this.where.$orderby = orderBy;
+            }
+        } else if (orderBy) {
+            this.where = { $orderby: orderBy };
+        }
+
+        if (Array.isArray(select)) {
+            for (const field of select) {
+                this.include.push(field as string);
+            }
+        } else if (typeof select === "object") {
+            this.include = this.fieldsToInclude(select);
+            this.exclude = this.fieldsToExclude(select);
+        }
+
+        this.offset = skip;
+        this.limit = take;
+
+        if (cursor !== undefined) {
+            this.hasCursor = true;
+
+            if (this.where === undefined) {
+                this.where = {};
+            }
+
+            for (const [key, value] of Object.entries(cursor)) {
+                this.where[key] = { $gt: value };
+                this.where.$orderby = { ...this.where.$orderby, [key]: "ASC" };
+            }
+        }
     }
 
-    /**
-     * Although the query filter can already be specified by now, one can incrementally introduce other optional rules
-     * that are embedded in a top-level OR operation.
-     * @param filter An object containing checks that should apply for the value of one or
-     * more fields.
-     * @see {PureFilter}
-     * @example
-     * .or({ name: "foo", age: 42 })
-     * .or({ name: { $eq: "foo" }, age: 42 })
-     * .or({ name: "foo", age: { $gte: 42 } })
-     * .or({ name: { $like: "%foo%" }, age: { $lte: 42 } })
-     * @returns The MRS GET request representation.
-     */
-    public or = (filter?: PureFilter<Filterable>): this => {
-        if (filter === undefined) {
-            return this;
-        }
-
-        // Discard all cursors from the additional filter.
-        for (const field in filter) {
-            if (Object.keys(this.cursorFields).indexOf(field) > -1) {
-                delete filter[field];
-            }
-        }
-
-        const additionalFilterFields = Object.keys(filter);
-
-        // After discarding the cursors, if the additional filter is empty, there is nothing to do.
-        if (additionalFilterFields.length === 0) {
-            return this;
-        }
-
-        // If the existing filter contains an explicit high-level OR, the fields should go there.
-        if (this.queryFilter.$or !== undefined) {
-            this.queryFilter.$or.push(filter);
-
-            return this;
-        }
-
-        const existingFilterFields = Object.keys(this.queryFilter);
-
-        // If the the existing filter contains only one field and that field is a cursor it still must be required, so
-        // it must be within the scope of an AND operator.
-        if (existingFilterFields.length === 1 && this.isCursor(existingFilterFields[0])) {
-            // If the additional filter only contains one field, it becomes part of the AND operator.
-            if (additionalFilterFields.length === 1) {
-                this.queryFilter = { $and: [this.queryFilter, filter] };
-
-                return this;
-            }
-
-            // Otherwise, the multiple fields still form an additional OR operator.
-            this.queryFilter = { $and: [this.queryFilter, { $or: [filter] }] };
-
-            return this;
-        }
-
-        // If the existing filter contains only one field and that field is not a cursor, it can safely be aggregated
-        // into a new OR operator.
-        if (existingFilterFields.length === 1) {
-            this.queryFilter = { $or: [this.queryFilter, filter] };
-
-            return this;
-        }
-
-        // If the filter contains more than one field, it means it is an implicit AND which must converted to an
-        // explicit AND in order to be shoehorned into a new high-level OR.
-        const explicitAnd = Object.entries(this.queryFilter).map(([field, value]) => {
-            return { [field]: value };
-        });
-
-        this.queryFilter = { $or: [{ $and: explicitAnd }, filter] };
-
-        return this;
-    };
-
-    public offset = (offset?: number): this => {
-        if (typeof offset === "undefined") {
-            return this;
-        }
-
-        this.offsetCondition = offset;
-
-        return this;
-    };
-
-    public limit = (limit?: number): this => {
-        if (typeof limit === "undefined") {
-            return this;
-        }
-
-        this.limitCondition = limit;
-
-        return this;
-    };
-
-    public pageSize = (pageSize: number): this => {
-        this.pageSizeCondition = pageSize;
-
-        return this;
-    };
-
     public fetch = async (): Promise<IMrsResourceCollectionData<Item>> => {
-        let inputStr = `${this.schema.requestPath}${this.requestPath}?`;
+        // Placeholder base URL just to avoid throwing an exception.
+        const url = new URL("https://example.com");
+        url.pathname = `${this.schema.requestPath}${this.requestPath}`;
 
-        const fields = this.fieldsToGet ?? {};
-        const fieldsToGet = Array.isArray(fields) ? fields : this.fieldsToInclude(fields);
-        const fieldsToOmit = Array.isArray(fields) ? this.fieldsToOmit : this.fieldsToExclude(fields);
-
-        if (fieldsToOmit !== undefined && fieldsToOmit.length > 0) {
-            inputStr += `f=!${fieldsToOmit.join(",!")}&`;
-        } else if (fieldsToGet !== undefined && fieldsToGet.length > 0) {
-            inputStr += `f=${fieldsToGet.join(",")}&`;
-        }
-        if (this.hasQueryFilter() && !this.hasSortOrder()) {
-            inputStr += `q=${MrsJSON.stringify(this.queryFilter)}&`;
-        } else if (!this.hasQueryFilter() && this.hasSortOrder()) {
-            inputStr += `q=${MrsJSON.stringify({ $orderby: this.sortOrder })}&`;
-        } if (this.hasQueryFilter() && this.hasSortOrder()) {
-            inputStr += `q=${MrsJSON.stringify({ ...this.queryFilter, $orderby: this.sortOrder })}&`;
-        }
-        if (!this.hasPaginationCursor() && this.offsetCondition !== undefined) {
-            inputStr += `offset=${this.offsetCondition}&`;
-        }
-        if (this.limitCondition !== undefined) {
-            inputStr += `limit=${this.limitCondition}&`;
+        if (this.where !== undefined) {
+            url.searchParams.set("q", MrsJSON.stringify(this.where));
         }
 
-        const res = await this.schema.service.session.doFetch({
-            /*input: `/mrsNotes/notesAll?f=!content&offset=${offset}&limit=10${q}`,*/
-            input: inputStr.slice(0, -1),
+        if (this.include.length > 0) {
+            url.searchParams.set("f", this.include.join(","));
+        } else if (this.exclude.length > 0) {
+            url.searchParams.set("f", `!${this.exclude.join(",!")}`);
+        }
+
+        if (this.limit !== undefined) {
+            url.searchParams.set("limit", `${this.limit}`);
+        }
+
+        if (this.offset !== undefined && !this.hasCursor) {
+            url.searchParams.set("offset", `${this.offset}`);
+        }
+
+        const response = await this.schema.service.session.doFetch({
+            input: `${url.pathname}${url.search}`,
             errorMsg: "Failed to fetch items.",
         });
 
-        const responseBody: IMrsResourceCollectionData<Item> = await res.json();
-
-        if (this.simplified === false) {
-            return responseBody;
-        }
-
+        const responseBody: IMrsResourceCollectionData<Item> = await response.json();
         const collection = new MrsSimplifiedCollectionObjectResponse(responseBody);
 
         return collection.getInstance();
@@ -1314,54 +1140,48 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> extends MrsReques
      * page.
      *
      * @param progress An optional callback function that is called for each page that is fetched.
-     * @returns A list of typed IMrsResourceDatas
+     * @returns A list of typed IMrsResourceData
      */
     public fetchAll = async (progress?: (items: Item[]) => Promise<void>):
     Promise<IMrsResourceCollectionData<Item>> => {
-        const resultList: IMrsResourceCollectionData<Item> = {
+        const res: IMrsResourceCollectionData<Item> = {
             items: [],
-            limit: this.pageSizeCondition,
+            limit: 25,
             offset: 0,
-            hasMore: true,
+            hasMore: false,
             count: 0,
+            links: [],
         };
 
-        // Initialize offsetCondition and limitCondition
-        this.offsetCondition = 0;
-        this.limitCondition = this.pageSizeCondition;
+        let hasMore = true;
 
-        // Fetch pages of the size of this.pageSizeCondition until all items have been fetched
-        while (resultList.hasMore) {
-            const res = await this.fetch();
+        while (hasMore) {
+            const current = await this.fetch();
 
-            // Add items to the newNotes list
-            resultList.items.push(...res.items);
+            // increase the global response count
+            res.count += current.count;
 
-            // Update count and limit
-            resultList.count += res.items.length;
-            resultList.limit += this.pageSizeCondition;
+            hasMore = current.hasMore;
+            res.hasMore = hasMore;
 
-            // Check if there is more to fetch
-            resultList.hasMore = res.hasMore;
+            // add the remaining items
+            for (const item of current.items) {
+                res.items.push(item);
+            }
+
+            res.limit = current.limit;
+            res.links = current.links;
+            res.offset = current.offset;
 
             if (progress !== undefined) {
                 await progress(res.items);
             }
-
-            this.offsetCondition += this.pageSizeCondition;
-
-            // increase any existing cursor
-            for (const field in this.cursorFields) {
-                this.increaseCursor(field, res.items[res.items.length - 1][field]);
-            }
         }
 
-        return resultList;
+        return res;
     };
 
     public fetchOne = async (): Promise<MrsResourceObject<Item> | undefined> => {
-        this.limitCondition = 1;
-
         const resultList = await this.fetch();
 
         if (resultList.items.length >= 1) {
@@ -1371,56 +1191,31 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> extends MrsReques
         }
     };
 
-    /**
-     * Retrieve a list of the names of columns that should be included in the result set.
-     *
-     * @param fields An object where the keys correspond to the column names (nested or not)
-     * and the values are "true" if the column should be included or "false" if not.
-     * @returns A list of column names.
-     */
-    private readonly fieldsToInclude = (fields: BooleanFieldMapSelect<Item>): string[] => {
-        return this.fieldsWithValue(fields, true);
+    private fieldsToInclude = (fields: BooleanFieldMapSelect<Item>): string[] => {
+        return this.fieldsToConsider(fields, true);
     };
 
-    /**
-     * Retrieve a list of the names of columns that should be excluded from the result set.
-     *
-     * @param fields An object where the keys correspond to the column names (nested or not)
-     * and the values are "true" if the column should be included or "false" if not.
-     * @returns A list of column names.
-     */
-    private readonly fieldsToExclude = (fields: BooleanFieldMapSelect<Item>): string[] => {
-        return this.fieldsWithValue(fields, false);
+    private fieldsToExclude = (fields: BooleanFieldMapSelect<Item>): string[] => {
+        return this.fieldsToConsider(fields, false);
     };
 
-    /**
-     * Retrieve a list of the names of columns that are assigned a given value.
-     *
-     * @param fields An object where the keys correspond to the column names (nested or not)
-     * and the values are "true" if the column should be included or "false" if not.
-     * @param value The value to check.
-     * @param [prefix] A prefix to carry when the function is called recursively on nested fields.
-     * @returns A list of column names.
-     */
-    private readonly fieldsWithValue = (
-        fields: BooleanFieldMapSelect<Item>, value: unknown, prefix = ""): string[] => {
-        const result: string[] = [];
+    private fieldsToConsider = (fields: BooleanFieldMapSelect<Item>, equalTo: boolean,
+        prefix: string = ""): string[] => {
+        const consider: string[] = [];
 
-        for (const field in fields) {
-            const fieldValue = fields[field];
+        for (const [key, value] of Object.entries(fields)) {
+            const fullyQualifiedKeyName = `${prefix}${key}`;
 
-            if (typeof fieldValue === "object" && prefix.length > 0) {
-                result.push(...this.fieldsWithValue(fieldValue, value, `${prefix}.${field}`));
-            } else if (typeof fieldValue === "object") {
-                result.push(...this.fieldsWithValue(fieldValue, value, field));
-            } else if (fieldValue === value && prefix.length > 0) {
-                result.push(`${prefix}.${field}`);
-            } else if (fieldValue === value) {
-                result.push(field);
+            if (value === equalTo) {
+                consider.push(`${fullyQualifiedKeyName}`);
+            }
+
+            if (typeof value === "object" && value !== null) {
+                consider.push(...this.fieldsToConsider(value, equalTo, `${fullyQualifiedKeyName}.`));
             }
         }
 
-        return result;
+        return consider;
     };
 }
 
@@ -1428,100 +1223,62 @@ export class MrsBaseObjectCreate<T extends object> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected item: T,
-        protected simplified: boolean = true) {
+        protected options: ICreateOptions<T>) {
     }
 
     public fetch = async (): Promise<MrsResourceObject<T>> => {
-        const input = `${this.schema.requestPath}${this.requestPath}`;
-        const body = this.item;
-
-        const res = await this.schema.service.session.doFetch({
-            input,
+        const response = await this.schema.service.session.doFetch({
+            input: `${this.schema.requestPath}${this.requestPath}`,
             method: "POST",
-            body,
+            body: this.options.data,
             errorMsg: "Failed to create item.",
         });
 
-        const responseBody = await res.json() as MrsResourceObject<T>;
-
-        if (this.simplified === false) {
-            return responseBody;
-        }
-
+        const responseBody: MrsResourceObject<T> = await response.json();
         const resource = new MrsSimplifiedObjectResponse(responseBody);
 
         return resource.getInstance();
     };
 }
 
-export class MrsBaseObjectDelete<T> extends MrsRequestFilter<T> {
+export class MrsBaseObjectDelete<T> {
     public constructor(
         protected schema: MrsBaseSchema,
-        protected requestPath: string) {
-        super();
+        protected requestPath: string,
+        protected options: IDeleteOptions<T>) {
     }
 
     public fetch = async (): Promise<IMrsDeleteResult> => {
-        let inputStr = `${this.schema.requestPath}${this.requestPath}`;
-
-        if (this.queryFilter !== undefined) {
-            inputStr += `?q=${MrsJSON.stringify(this.queryFilter as JsonObject)}&`;
-        }
-
-        const res = await this.schema.service.session.doFetch({
-            input: inputStr.slice(0, -1),
+        const response = await this.schema.service.session.doFetch({
+            input: `${this.schema.requestPath}${this.requestPath}?q=${MrsJSON.stringify(this.options.where)}`,
             method: "DELETE",
             errorMsg: "Failed to delete items.",
         });
 
-        const responseBody = await res.json();
+        const responseBody: IMrsDeleteResult = await response.json();
 
-        return responseBody as IMrsDeleteResult;
+        return responseBody;
     };
 }
 
-export class MrsBaseObjectUpdate<T extends object | undefined> {
+export class MrsBaseObjectUpdate<Item extends object, Filterable, PrimaryKeys extends Array<keyof Filterable>> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected fieldsToSet: T,
-        protected keys: string[],
-        protected simplified: boolean = true) {
+        protected options: IUpdateOptions<Item, Filterable, PrimaryKeys>) {
     }
 
-    public whereKey = (key: string | number): this => {
-        this.keys = [String(key)];
-
-        return this;
-    };
-
-    public whereKeys = (keys: string[] | number[]): this => {
-        this.keys = keys.map((k) => {
-            return String(k);
-        });
-
-        return this;
-    };
-
-    public fetch = async (): Promise<MrsResourceObject<T>> => {
-        const input = `${this.schema.requestPath}${this.requestPath}/${this.keys.join(",")}`;
-
-        const res = await this.schema.service.session.doFetch({
-            input,
+    public fetch = async (): Promise<MrsResourceObject<Item>> => {
+        const response = await this.schema.service.session.doFetch({
+            input: `${this.schema.requestPath}${this.requestPath}/${Object.values(this.options.where).join(",")}`,
             method: "PUT",
-            body: this.fieldsToSet,
+            body: this.options.data,
             errorMsg: "Failed to update item.",
         });
 
         // The REST service returns a single resource, which is an ORDS-compatible object representation decorated with
         // additional fields such as "links" and "_metadata".
-        const responseBody = await res.json() as MrsResourceObject<T>;
-
-        if (this.simplified === false) {
-            return responseBody;
-        }
-
+        const responseBody = await response.json() as MrsResourceObject<Item>;
         const resource = new MrsSimplifiedObjectResponse(responseBody);
 
         return resource.getInstance();
