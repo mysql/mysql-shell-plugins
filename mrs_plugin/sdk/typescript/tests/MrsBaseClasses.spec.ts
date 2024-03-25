@@ -25,8 +25,8 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-    IFindManyOptions, IFindUniqueOptions, IMrsResourceCollectionData, JsonObject, JsonValue, MrsBaseObjectDelete,
-    MrsBaseObjectQuery, MrsBaseObjectUpdate, MrsBaseSchema, MrsBaseService, MrsResourceObject, MrsBaseObjectCreate,
+    IFindManyOptions, IFindUniqueOptions, JsonObject, JsonValue, MrsBaseObjectQuery, MrsBaseSchema, MrsBaseService,
+    MrsResourceObject, MrsBaseObjectCreate, IFindFirstOptions, IMrsResourceCollectionData,
 } from "../MrsBaseClasses";
 
 // fixtures
@@ -76,10 +76,11 @@ describe("MRS SDK API", () => {
                 select: ["str", "json", "oneToMany.oneToOne.str"],
             };
 
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options.select);
+            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options);
             await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?f=str,json,oneToMany.oneToOne.str",
+            const searchParams = new URLSearchParams({ f: "str,json,oneToMany.oneToOne.str" });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
                 expect.anything());
         });
 
@@ -96,10 +97,11 @@ describe("MRS SDK API", () => {
                 },
             };
 
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options.select);
+            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options);
             await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?f=str,json,oneToMany.oneToOne.str",
+            const searchParams = new URLSearchParams({ f: "str,json,oneToMany.oneToOne.str" });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
                 expect.anything());
         });
 
@@ -117,45 +119,46 @@ describe("MRS SDK API", () => {
                 },
             };
 
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options.select);
+            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options);
             await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?f=!id,!json,!oneToMany.id,!oneToMany.oneToOne.id",
+            const searchParams = new URLSearchParams({ f: "!id,!json,!oneToMany.id,!oneToMany.oneToOne.id" });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
                 expect.anything());
         });
 
         it("sets the order of the records in the result set based on a given field using a literal order keyword",
                 async () => {
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            await query.orderBy({ num: "DESC" }).fetch();
+            const options: IFindFirstOptions<ITableMetadata1, unknown, unknown> = { orderBy: { num: "DESC" } };
+            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options);
+            await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"$orderby":{"num":"DESC"}}',
+            const searchParams = new URLSearchParams({ q: '{"$orderby":{"num":"DESC"}}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
                 expect.anything());
         });
 
         it("sets the order of the records in the result set based on a given field using a numeric order identifier",
                 async () => {
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            await query.orderBy({ num: -1 }).fetch();
+            const options: IFindFirstOptions<ITableMetadata1, unknown, unknown> = { orderBy: { num: -1 } };
+            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options);
+            await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"$orderby":{"num":-1}}',
+            const searchParams = new URLSearchParams({ q: '{"$orderby":{"num":-1}}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
                 expect.anything());
         });
 
-        it("returns the first page of records that match a given implicit filter", async () => {
-            const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = {
-                where: {
-                    id: 1,
-                },
-            };
+        it("filters items where a field is implicitly equal to a given value", async () => {
+            const options: IFindUniqueOptions<unknown, ITableMetadata1> = { where: { id: 1 } };
+            const query = new MrsBaseObjectQuery<unknown, ITableMetadata1>(schema, "/baz", options);
+            await query.fetch();
 
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            await query.where(options.where).fetch();
-
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"id":1}', expect.anything());
+            const searchParams = new URLSearchParams({ q: '{"id":1}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
-        it("returns the first page of records that match a given explicit filter", async () => {
+        it("filters items where a field explicitly matches a given value", async () => {
             const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = {
                 where: {
                     str: {
@@ -164,24 +167,22 @@ describe("MRS SDK API", () => {
                 },
             };
 
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            await query.where(options.where).fetch();
+            const query = new MrsBaseObjectQuery<unknown, ITableMetadata1>(schema, "/baz", options);
+            await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"str":{"$like":"%foo%"}}', expect.anything());
+            const searchParams = new URLSearchParams({ q: '{"str":{"$like":"%foo%"}}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
-        it("returns a limited number of records from the first page", async () => {
-            const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = {
-                take: 2,
-            };
-
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            await query.limit(options.take).fetch();
+        it("limits the number of items to include in the result set", async () => {
+            const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = { take: 2 };
+            const query = new MrsBaseObjectQuery<unknown, ITableMetadata1>(schema, "/baz", options);
+            await query.fetch();
 
             expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?limit=2", expect.anything());
         });
 
-        it("returns a limited number of records from the first page that match a given filter", async () => {
+        it("limits the number of items to include in the result set where a field matches a given value", async () => {
             const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = {
                 take: 2,
                 where: {
@@ -191,24 +192,22 @@ describe("MRS SDK API", () => {
                 },
             };
 
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            await query.where(options.where).limit(options.take).fetch();
+            const query = new MrsBaseObjectQuery<unknown, ITableMetadata1>(schema, "/baz", options);
+            await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"id":{"$gt":10}}&limit=2', expect.anything());
+            const searchParams = new URLSearchParams({ q: '{"id":{"$gt":10}}', limit: "2" });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
-        it("skips a number of records from the first page", async () => {
-            const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = {
-                skip: 2,
-            };
-
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            await query.offset(options.skip).fetch();
+        it("skips a number of items to not include in the result set", async () => {
+            const options: IFindManyOptions<unknown, unknown, unknown> = { skip: 2 };
+            const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz", options);
+            await query.fetch();
 
             expect(fetch).toHaveBeenCalledWith("/foo/bar/baz?offset=2", expect.anything());
         });
 
-        it("skips a number of records that match a given filter", async () => {
+        it("skips a number of items to not include in the result set where a field matches a given value", async () => {
             const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = {
                 skip: 2,
                 where: {
@@ -216,39 +215,28 @@ describe("MRS SDK API", () => {
                 },
             };
 
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            await query.where(options.where).offset(options.skip).fetch();
+            const query = new MrsBaseObjectQuery<unknown, ITableMetadata1>(schema, "/baz", options);
+            await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"bool":true}&offset=2', expect.anything());
+            const searchParams = new URLSearchParams({ q: '{"bool":true}', offset: "2" });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
-        it("returns the record that matches the given identifier or primary key", async () => {
-            const options: IFindUniqueOptions<unknown, ITableMetadata1> = {
-                where: {
-                    id: 2,
-                },
-            };
-
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            await query.where(options.where).fetch();
-
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"id":2}', expect.anything());
-        });
-
-        it("returns all records where a given field is NULL", async () => {
+        it("filters items where a field is NULL", async () => {
             const options: IFindManyOptions<unknown, { maybe: number | null }, unknown> = {
                 where: {
                     maybe: null,
                 },
             };
 
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            await query.where(options.where).fetch();
+            const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz", options);
+            await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$null":"null"}}', expect.anything());
+            const searchParams = new URLSearchParams({ q: '{"maybe":{"$null":"null"}}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
-        it("returns all records where a given field is not NULL", async () => {
+        it("filters items where a field is not NULL", async () => {
             const options: IFindManyOptions<unknown, { maybe: number | null }, unknown> = {
                 where: {
                     maybe: {
@@ -257,26 +245,28 @@ describe("MRS SDK API", () => {
                 },
             };
 
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            await query.where(options.where).fetch();
+            const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz", options);
+            await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$notnull":"null"}}', expect.anything());
+            const searchParams = new URLSearchParams({ q: '{"maybe":{"$notnull":"null"}}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
-        it(`returns all records where a field called "not" is NULL`, async () => {
+        it(`filters items where a field called "not" is NULL`, async () => {
             const options: IFindManyOptions<unknown, { not: number | null }, unknown> = {
                 where: {
                     not: null,
                 },
             };
 
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            await query.where(options.where).fetch();
+            const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz", options);
+            await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"not":{"$null":"null"}}', expect.anything());
+            const searchParams = new URLSearchParams({ q: '{"not":{"$null":"null"}}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
-        it(`returns all records where a field called "not" is not NULL`, async () => {
+        it(`filters items where a field called "not" is not NULL`, async () => {
             const options: IFindManyOptions<unknown, { not: number | null }, unknown> = {
                 where: {
                     not: {
@@ -285,53 +275,11 @@ describe("MRS SDK API", () => {
                 },
             };
 
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            await query.where(options.where).fetch();
+            const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz", options);
+            await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"not":{"$notnull":"null"}}', expect.anything());
-        });
-
-        it("embeds unions when the filter does not contain any", async () => {
-            const firstUnionItem: ITableMetadata1 = { str: "foo" };
-            const secondUnionItem: ITableMetadata1 = { num: 42 };
-
-            const query = new MrsBaseObjectQuery<unknown, ITableMetadata1>(schema, "/baz");
-
-            await query.where(firstUnionItem).or(secondUnionItem).fetch();
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"$or":[{"str":"foo"},{"num":42}]}', expect.anything());
-        });
-
-        it("aggregates unions when the filter already contains other unions", async () => {
-            const firstUnionItem: ITableMetadata1 = { str: "foo" };
-            const secondUnionItem: ITableMetadata1 = { num: 42 };
-
-            const query = new MrsBaseObjectQuery<unknown, ITableMetadata1>(schema, "/baz");
-
-            await query.where({ $or: [firstUnionItem] }).or(secondUnionItem).fetch();
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"$or":[{"str":"foo"},{"num":42}]}', expect.anything());
-        });
-
-        it("aggregates unions when the filter contains explicit intersections", async () => {
-            const firstUnionItem: ITableMetadata1 = { str: "foo" };
-            const secondUnionItem: ITableMetadata1 = { num: 42 };
-
-            const query = new MrsBaseObjectQuery<unknown, ITableMetadata1>(schema, "/baz");
-
-            await query.where({ $and: [firstUnionItem, secondUnionItem] }).or({ bool: false }).fetch();
-            expect(fetch).toHaveBeenCalledWith(
-                '/foo/bar/baz?q={"$or":[{"$and":[{"str":"foo"},{"num":42}]},{"bool":false}]}', expect.anything());
-        });
-
-        it("aggregates unions when the filter contains implicit intersections", async () => {
-            const firstUnionItem: ITableMetadata1 = { str: "foo" };
-            const secondUnionItem: ITableMetadata1 = { num: 42 };
-
-            const query = new MrsBaseObjectQuery<unknown, ITableMetadata1>(schema, "/baz");
-
-            await query.where({ ...firstUnionItem, ...secondUnionItem }).or({ bool: false }).fetch();
-            // the router does not work with something like {"$or":[{"str":"foo","num":42},{"bool":false}]}
-            expect(fetch).toHaveBeenCalledWith(
-                '/foo/bar/baz?q={"$or":[{"$and":[{"str":"foo"},{"num":42}]},{"bool":false}]}', expect.anything());
+            const searchParams = new URLSearchParams({ q: '{"not":{"$notnull":"null"}}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
         beforeEach(() => {
@@ -471,132 +419,86 @@ describe("MRS SDK API", () => {
             expect(resource.links).toBeDefined();
         });
 
-        it("creates a query filter with a cursor", async () => {
+        it("creates a query filter that includes the cursor in the absence of one", async () => {
             type Filterable = Pick<ITableMetadata1, "str">;
             type Iterable = Pick<ITableMetadata1, "id">;
             const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
-                    schema, "/baz", undefined, undefined, { id: 10 });
+                    schema, "/baz", { cursor: { id: 10 } });
 
             await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith(
-                '/foo/bar/baz?q={"id":{"$gt":10},"$orderby":{"id":"ASC"}}', expect.anything());
+            const searchParams = new URLSearchParams({ q: '{"id":{"$gt":10},"$orderby":{"id":"ASC"}}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
-        it("includes a cursor in an existing query filter", async () => {
+        it("includes the cursor in a query filter that does not include it", async () => {
             type Filterable = Pick<ITableMetadata1, "str">;
             type Iterable = Pick<ITableMetadata1, "id">;
             const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
-                    schema, "/baz", undefined, undefined, { id: 10 });
+                    schema, "/baz", { where: { str: "foo" }, cursor: { id: 10 } });
 
-            await query.where({ str: "foo" }).fetch();
+            await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith(
-                '/foo/bar/baz?q={"id":{"$gt":10},"str":"foo","$orderby":{"id":"ASC"}}', expect.anything());
+            const searchParams = new URLSearchParams({ q: '{"str":"foo","id":{"$gt":10},"$orderby":{"id":"ASC"}}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
-        it("ignores existing implicit filters using the same cursor field", async () => {
+        it("overrides the cursor in a query filter that includes it", async () => {
             type Filterable = Pick<ITableMetadata1, "id" | "str">;
             type Iterable = Pick<ITableMetadata1, "id">;
-            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
-                    schema, "/baz", undefined, undefined, { id: 10 });
 
-            await query.where({ id: 5 }).fetch();
+            // implicit query filter
+            let query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
+                    schema, "/baz", { where: { id: 5 }, cursor: { id: 10 } });
 
-            expect(fetch).toHaveBeenCalledWith(
-                '/foo/bar/baz?q={"id":{"$gt":10},"$orderby":{"id":"ASC"}}', expect.anything());
+            await query.fetch();
+
+            const searchParams = new URLSearchParams({ q: '{"id":{"$gt":10},"$orderby":{"id":"ASC"}}' });
+            expect(fetch).toHaveBeenNthCalledWith(1, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+
+            // explicit query filter
+            query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
+                schema, "/baz", { where: { id: { $gt: 5 } }, cursor: { id: 10 } });
+
+            await query.fetch();
+
+            searchParams.set("q", '{"id":{"$gt":10},"$orderby":{"id":"ASC"}}');
+            expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
-        it("ignores existing explicit filters using the same cursor field", async () => {
-            type Filterable = Pick<ITableMetadata1, "id" | "str">;
-            type Iterable = Pick<ITableMetadata1, "id">;
-            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
-                    schema, "/baz", undefined, undefined, { id: 10 });
-
-            await query.where({ id: { $gt: 5 }}).fetch();
-
-            expect(fetch).toHaveBeenNthCalledWith(1,
-                '/foo/bar/baz?q={"id":{"$gt":10},"$orderby":{"id":"ASC"}}', expect.anything());
-        });
-
-        it("ensures the cursor field becomes a required filter condition", async () => {
-            type Filterable = Pick<ITableMetadata1, "id" | "str">;
-            type Iterable = Pick<ITableMetadata1, "id">;
-            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
-                    schema, "/baz", undefined, undefined, { id: 10 });
-
-            await query.or({ id: 1, str: "foo" }).fetch();
-
-            expect(fetch).toHaveBeenNthCalledWith(1,
-                '/foo/bar/baz?q={"$and":[{"id":{"$gt":10}},{"str":"foo"}],"$orderby":{"id":"ASC"}}', expect.anything());
-        });
-
-        it("accounts for the order of a cursor field", async () => {
-            type Filterable = Pick<ITableMetadata1, "str">;
-            type Iterable = Pick<ITableMetadata1, "id">;
-            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
-                    schema, "/baz", undefined, undefined, { id: 10 });
-
-            await query.orderBy({ str: "DESC" }).fetch();
-
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"id":{"$gt":10},"$orderby":{"id":"ASC","str":"DESC"}}',
-                expect.anything());
-        });
-
-        it("ignores the offset when a cursor is provided", async () => {
+        it("ignores any offset in the presence of a cursor", async () => {
             type Iterable = Pick<ITableMetadata1, "id">;
             const query = new MrsBaseObjectQuery<ITableMetadata1, unknown, Iterable>(
-                schema, "/baz", undefined, undefined, { id: 10 });
+                schema, "/baz", { skip: 20, cursor: { id: 10 } });
 
-            await query.offset(20).fetch();
+            await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"id":{"$gt":10},"$orderby":{"id":"ASC"}}',
-                expect.anything());
+            const searchParams = new URLSearchParams({ q: '{"id":{"$gt":10},"$orderby":{"id":"ASC"}}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
-        it("overrides the sort order of the cursor field", async () => {
+        it("overrides the sort order of a cursor field", async () => {
             type Iterable = Pick<ITableMetadata1, "id">;
             type Filterable = Pick<ITableMetadata1, "id" | "str">;
             const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
-                schema, "/baz", undefined, undefined, { id: 10 });
+                schema, "/baz", { orderBy: { id: "DESC" }, cursor: { id: 10 } });
 
-            await query.orderBy({ id: "DESC" }).fetch();
+            await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"id":{"$gt":10},"$orderby":{"id":"ASC"}}',
-                expect.anything());
+            const searchParams = new URLSearchParams({ q: '{"$orderby":{"id":"ASC"},"id":{"$gt":10}}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
-        it("supports multiple cursors", async () => {
+        it("accounts for multiple cursors", async () => {
             type Iterable = Pick<ITableMetadata1, "id" | "num">;
             const query = new MrsBaseObjectQuery<ITableMetadata1, unknown, Iterable>(
-                schema, "/baz", undefined, undefined, { id: 10, num: 20 });
+                schema, "/baz", { cursor: { id: 10, num: 20 } });
 
             await query.fetch();
 
-            expect(fetch).toHaveBeenCalledWith(
-                '/foo/bar/baz?q={"id":{"$gt":10},"num":{"$gt":20},"$orderby":{"id":"ASC","num":"ASC"}}',
-                expect.anything());
-        });
-
-        it("ignores undefined cursors", async () => {
-            type Iterable = Pick<ITableMetadata1, "id">;
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown, Iterable>(
-                schema, "/baz", undefined, undefined, { id: undefined });
-
-            await query.fetch();
-
-            expect(fetch).toHaveBeenCalledWith("/foo/bar/baz", expect.anything());
-        });
-
-        it("ignores the sort order for undefined cursors", async () => {
-            type Filterable = Pick<ITableMetadata1, "id">;
-            type Iterable = Pick<ITableMetadata1, "id">;
-            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
-                schema, "/baz", undefined, undefined, { id: undefined });
-
-            await query.orderBy({ id: "DESC" }).fetch();
-
-            expect(fetch).toHaveBeenCalledWith("/foo/bar/baz", expect.anything());
+            const searchParams = new URLSearchParams({
+                q: '{"id":{"$gt":10},"$orderby":{"id":"ASC","num":"ASC"},"num":{"$gt":20}}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
     });
 
@@ -619,7 +521,7 @@ describe("MRS SDK API", () => {
 
         it("encodes the resource as a JSON string in the request body", async () => {
             const data = { id: 1, str: "qux" };
-            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", data);
+            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data });
             await query.fetch();
 
             expect(fetch).toHaveBeenCalledWith("/foo/bar/baz", expect.objectContaining({
@@ -630,21 +532,21 @@ describe("MRS SDK API", () => {
 
         it("hypermedia properties are not part of the JSON representation of an application resource instance",
                 async () => {
-            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" });
+            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { id: 1, str: "qux" } });
             const res = await query.fetch();
 
             expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
         });
 
         it("hypermedia properties are not enumerable in an application resource instance", async () => {
-            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" });
+            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { id: 1, str: "qux" } });
             const res = await query.fetch();
 
             expect(Object.keys(res)).toEqual(["id", "str"]);
         });
 
         it("hypermedia properties are not iterable in an application resource instance", async () => {
-            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" });
+            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { id: 1, str: "qux" } });
             const res = await query.fetch();
 
             expect("_metadata" in res).toBeFalsy();
@@ -652,7 +554,7 @@ describe("MRS SDK API", () => {
         });
 
         it("hypermedia properties are not writable in an application resource instance", async () => {
-            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" });
+            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { id: 1, str: "qux" } });
             const res = await query.fetch();
 
             // eslint-disable-next-line no-underscore-dangle
@@ -662,7 +564,7 @@ describe("MRS SDK API", () => {
         });
 
         it("hypermedia properties are not removable from an application resource instance", async () => {
-            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" });
+            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { id: 1, str: "qux" } });
             const res = await query.fetch() as Omit<MrsResourceObject<ITableMetadata1>, "_metadata" | "links">;
 
             // eslint-disable-next-line no-underscore-dangle
@@ -672,7 +574,7 @@ describe("MRS SDK API", () => {
 
         it("hypermedia and database object fields are directly accessible in an application resource instance",
                 async () => {
-            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" });
+            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { id: 1, str: "qux" } });
             const res = await query.fetch();
 
             expect(res.id).toEqual(1);
@@ -683,109 +585,109 @@ describe("MRS SDK API", () => {
         });
     });
 
-    describe("when updating a resource", () => {
-        beforeEach(() => {
-            const singleResourceResponse: MrsResourceObject<ITableMetadata1> = {
-                id: 1,
-                str: "qux",
-                _metadata: {
-                    etag: "XYZ",
-                },
-                links: [{
-                    href: "http://localhost:8444/foo/bar/baz/1",
-                    rel: "self",
-                }],
-            };
+    // describe("when updating a resource", () => {
+    //     beforeEach(() => {
+    //         const singleResourceResponse: MrsResourceObject<ITableMetadata1> = {
+    //             id: 1,
+    //             str: "qux",
+    //             _metadata: {
+    //                 etag: "XYZ",
+    //             },
+    //             links: [{
+    //                 href: "http://localhost:8444/foo/bar/baz/1",
+    //                 rel: "self",
+    //             }],
+    //         };
 
-            createFetchMock(singleResourceResponse as JsonObject);
-        });
+    //         createFetchMock(singleResourceResponse as JsonObject);
+    //     });
 
-        it("hypermedia properties are not part of the JSON representation of an application resource instance",
-                async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
-            const res = await query.fetch();
+    //     it("hypermedia properties are not part of the JSON representation of an application resource instance",
+    //             async () => {
+    //         const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
+    //         const res = await query.fetch();
 
-            expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
-        });
+    //         expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
+    //     });
 
-        it("hypermedia properties are not enumerable in an application resource instance", async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
-            const res = await query.fetch();
+    //     it("hypermedia properties are not enumerable in an application resource instance", async () => {
+    //         const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
+    //         const res = await query.fetch();
 
-            expect(Object.keys(res)).toEqual(["id", "str"]);
-        });
+    //         expect(Object.keys(res)).toEqual(["id", "str"]);
+    //     });
 
-        it("hypermedia properties are not iterable in an application resource instance", async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
-            const res = await query.fetch();
+    //     it("hypermedia properties are not iterable in an application resource instance", async () => {
+    //         const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
+    //         const res = await query.fetch();
 
-            expect("_metadata" in res).toBeFalsy();
-            expect("links" in res).toBeFalsy();
-        });
+    //         expect("_metadata" in res).toBeFalsy();
+    //         expect("links" in res).toBeFalsy();
+    //     });
 
-        it("hypermedia properties are not writable in an application resource instance", async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
-            const res = await query.fetch();
+    //     it("hypermedia properties are not writable in an application resource instance", async () => {
+    //         const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
+    //         const res = await query.fetch();
 
-            // eslint-disable-next-line no-underscore-dangle
-            expect(() => { res._metadata = { etag: "ZYX" }; })
-                .toThrowError('The "_metadata" property cannot be changed.');
-            expect(() => { res.links = []; }).toThrowError('The "links" property cannot be changed.');
-        });
+    //         // eslint-disable-next-line no-underscore-dangle
+    //         expect(() => { res._metadata = { etag: "ZYX" }; })
+    //             .toThrowError('The "_metadata" property cannot be changed.');
+    //         expect(() => { res.links = []; }).toThrowError('The "links" property cannot be changed.');
+    //     });
 
-        it("hypermedia properties are not removable from an application resource instance", async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
-            const res = await query.fetch() as Omit<MrsResourceObject<ITableMetadata1>, "_metadata" | "links">;
+    //     it("hypermedia properties are not removable from an application resource instance", async () => {
+    //         const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
+    //         const res = await query.fetch() as Omit<MrsResourceObject<ITableMetadata1>, "_metadata" | "links">;
 
-            // eslint-disable-next-line no-underscore-dangle
-            expect(() => { delete res._metadata; }).toThrowError('The "_metadata" property cannot be deleted.');
-            expect(() => { delete res.links; }).toThrowError('The "links" property cannot be deleted.');
-        });
+    //         // eslint-disable-next-line no-underscore-dangle
+    //         expect(() => { delete res._metadata; }).toThrowError('The "_metadata" property cannot be deleted.');
+    //         expect(() => { delete res.links; }).toThrowError('The "links" property cannot be deleted.');
+    //     });
 
-        it("hypermedia and database object fields are directly accessible in an application resource instance",
-                async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
-            const res = await query.fetch();
+    //     it("hypermedia and database object fields are directly accessible in an application resource instance",
+    //             async () => {
+    //         const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
+    //         const res = await query.fetch();
 
-            expect(res.id).toEqual(1);
-            expect(res.str).toEqual("qux");
-            // eslint-disable-next-line no-underscore-dangle
-            expect(res._metadata).toBeDefined();
-            expect(res.links).toBeDefined();
-        });
-    });
+    //         expect(res.id).toEqual(1);
+    //         expect(res.str).toEqual("qux");
+    //         // eslint-disable-next-line no-underscore-dangle
+    //         expect(res._metadata).toBeDefined();
+    //         expect(res.links).toBeDefined();
+    //     });
+    // });
 
-    describe("when deleting resources", () => {
-        it("removes all records where a given field is NULL", async () => {
-            const options: IFindManyOptions<unknown, { maybe: number | null }, unknown> = {
-                where: {
-                    maybe: null,
-                },
-            };
+    // describe("when deleting resources", () => {
+    //     it("removes all records where a given field is NULL", async () => {
+    //         const options: IFindManyOptions<unknown, { maybe: number | null }, unknown> = {
+    //             where: {
+    //                 maybe: null,
+    //             },
+    //         };
 
-            const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz");
-            await query.where(options.where).fetch();
+    //         const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz");
+    //         await query.where(options.where).fetch();
 
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$null":"null"}}', expect.objectContaining({
-                method: "DELETE",
-            }));
-        });
+    //         expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$null":"null"}}', expect.objectContaining({
+    //             method: "DELETE",
+    //         }));
+    //     });
 
-        it("removes all records where a given field is not NULL", async () => {
-            const options: IFindManyOptions<unknown, { maybe: number | null }, unknown> = {
-                where: {
-                    maybe: {
-                        not: null,
-                    },
-                },
-            };
+    //     it("removes all records where a given field is not NULL", async () => {
+    //         const options: IFindManyOptions<unknown, { maybe: number | null }, unknown> = {
+    //             where: {
+    //                 maybe: {
+    //                     not: null,
+    //                 },
+    //             },
+    //         };
 
-            const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz");
-            await query.where(options.where).fetch();
+    //         const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz");
+    //         await query.where(options.where).fetch();
 
-            expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$notnull":"null"}}', expect.objectContaining({
-                method: "DELETE",
-            }));
-        });
-    });
+    //         expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$notnull":"null"}}', expect.objectContaining({
+    //             method: "DELETE",
+    //         }));
+    //     });
+    // });
 });

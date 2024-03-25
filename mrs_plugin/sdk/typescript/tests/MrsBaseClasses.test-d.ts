@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { describe, expectTypeOf, it } from "vitest";
+import { assertType, describe, expectTypeOf, it } from "vitest";
 import type {
     PureFilter, DataFilter, BooleanFieldMapSelect, ColumnOrder, FieldNameSelect, IFindFirstOptions, IFindManyOptions,
     IFindUniqueOptions, IFindAllOptions, IMrsResourceCollectionData, MaybeNull, Point, MultiPoint, LineString,
@@ -43,10 +43,10 @@ describe("MRS SDK base types", () => {
     });
 
     describe("FieldNameSelect", () => {
-        it("accepts a list of field names", () => {
-            const select: FieldNameSelect<{ name: string, age: number; }> = [];
-            expectTypeOf(select).toBeArray();
-            expectTypeOf(select[0]).toEqualTypeOf<"name" | "age">();
+        it("allows a non-empty list of field names", () => {
+            assertType<FieldNameSelect<{ foo: string }>>(["foo"]);
+            // @ts-expect-error Empty arrays are not allowed.
+            assertType<FieldNameSelect<{ foo: string }>>([]);
         });
     });
 
@@ -251,6 +251,14 @@ describe("MRS SDK base types", () => {
     describe("Cursor", () => {
         it("allows to set a cursor of the given type", () => {
             expectTypeOf({ x: "foo" }).toMatchTypeOf<Cursor<{ x: string }>>();
+        });
+
+        it("does not allow undefined cursors", () => {
+            expectTypeOf({ x: undefined }).not.toMatchTypeOf<Cursor<{ x: string }>>();
+        });
+
+        it("does not allow an empty set of cursors", () => {
+            expectTypeOf({}).not.toMatchTypeOf<Cursor<{ x: string }>>();
         });
     });
 
