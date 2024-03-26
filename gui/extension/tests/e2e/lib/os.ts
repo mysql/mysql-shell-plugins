@@ -33,7 +33,6 @@ import { join } from "path";
 import * as constants from "./constants";
 import { driver, Misc } from "./misc";
 
-
 /**
  * This class aggregates the functions that perform operating system related operations
  */

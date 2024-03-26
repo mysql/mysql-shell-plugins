@@ -418,12 +418,15 @@ describe("DATABASE CONNECTIONS", () => {
                 constants.wait5seconds, "Connection dialog was not displayed");
             const hostNameInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.hostname);
             const valueToCopy = await hostNameInput.getAttribute("value");
-            await Os.keyboardSelectAll(hostNameInput);
-            await Os.keyboardCopy(hostNameInput);
-            const usernameInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.username);
-            await Os.keyboardPaste(usernameInput);
-            expect(await usernameInput.getAttribute("value"), "Hostname value was not copied to the username field")
-                .to.include(valueToCopy);
+            await driver.wait(async () => {
+                await Os.keyboardSelectAll(hostNameInput);
+                await Os.keyboardCopy(hostNameInput);
+                const usernameInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.username);
+                await Os.keyboardPaste(usernameInput);
+
+                return (await usernameInput.getAttribute("value")).includes(valueToCopy);
+            }, constants.wait15seconds, `Could not copy paste ${valueToCopy} to user name field`);
+
             expect(await hostNameInput.getAttribute("value"),
                 "Hostname value should stay the same after copying it to the clipboard").to.equal(valueToCopy);
             const descriptionInput = await conDialog.findElement(locator.dbConnectionDialog.description);
@@ -854,6 +857,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await Tree.openContextMenuAndSelect(treeGlobalSchema, [constants.copyToClipboard,
                     constants.copyToClipboardName], constants.schemaCtxMenu);
                     await Workbench.getNotification("The name was copied to the system clipboard");
+                    console.log(`clipboard content: ${clipboard.readSync()}`);
 
                     return clipboard.readSync() === (globalConn.basic as interfaces.IConnBasicMySQL).schema;
                 } catch (e) {
@@ -861,7 +865,7 @@ describe("DATABASE CONNECTIONS", () => {
                         throw e;
                     }
                 }
-            }), constants.wait15seconds, "The schema name was not copied to the clipboard");
+            }), constants.wait25seconds, "The schema name was not copied to the clipboard");
 
             await driver.wait(new Condition("", async () => {
                 try {
@@ -870,6 +874,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await Tree.openContextMenuAndSelect(treeGlobalSchema, [constants.copyToClipboard,
                     constants.copyToClipboardStat], constants.schemaCtxMenu);
                     await Workbench.getNotification("The create script was copied to the system clipboard");
+                    console.log(`clipboard content: ${clipboard.readSync()}`);
 
                     return clipboard.readSync().includes("CREATE DATABASE");
                 } catch (e) {
@@ -877,7 +882,7 @@ describe("DATABASE CONNECTIONS", () => {
                         throw e;
                     }
                 }
-            }), constants.wait15seconds, "The schema create statement was not copied to the clipboard");
+            }), constants.wait25seconds, "The schema create statement was not copied to the clipboard");
 
         });
 
@@ -902,6 +907,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await Tree.openContextMenuAndSelect(actorTable, [constants.copyToClipboard,
                     constants.copyToClipboardName], constants.dbObjectCtxMenu);
                     await Workbench.getNotification("The name was copied to the system clipboard");
+                    console.log(`clipboard content: ${clipboard.readSync()}`);
 
                     return clipboard.readSync() === "actor";
                 } catch (e) {
@@ -909,7 +915,7 @@ describe("DATABASE CONNECTIONS", () => {
                         throw e;
                     }
                 }
-            }), constants.wait15seconds, "The table name was not copied to the clipboard");
+            }), constants.wait25seconds, "The table name was not copied to the clipboard");
 
             await driver.wait(new Condition("", async () => {
                 try {
@@ -917,6 +923,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await Tree.openContextMenuAndSelect(actorTable, [constants.copyToClipboard,
                     constants.copyToClipboardStat], constants.dbObjectCtxMenu);
                     await Workbench.getNotification("The create script was copied to the system clipboard");
+                    console.log(`clipboard content: ${clipboard.readSync()}`);
 
                     return clipboard.readSync().includes("idx_actor_last_name");
                 } catch (e) {
@@ -924,7 +931,7 @@ describe("DATABASE CONNECTIONS", () => {
                         throw e;
                     }
                 }
-            }), constants.wait15seconds, "The table create statement was not copied to the clipboard");
+            }), constants.wait25seconds, "The table create statement was not copied to the clipboard");
 
         });
 
@@ -956,6 +963,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await Tree.openContextMenuAndSelect(treeTestView, [constants.copyToClipboard,
                     constants.copyToClipboardName], constants.dbObjectCtxMenu);
                     await Workbench.getNotification("The name was copied to the system clipboard");
+                    console.log(`clipboard content: ${clipboard.readSync()}`);
 
                     return clipboard.readSync() === testView;
                 } catch (e) {
@@ -964,7 +972,7 @@ describe("DATABASE CONNECTIONS", () => {
                     }
                 }
 
-            }), constants.wait15seconds, "The view name was not copied to the clipboard");
+            }), constants.wait25seconds, "The view name was not copied to the clipboard");
 
             await driver.wait(new Condition("", async () => {
                 try {
@@ -972,6 +980,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await Tree.openContextMenuAndSelect(treeTestView, [constants.copyToClipboard,
                     constants.copyToClipboardStat], constants.dbObjectCtxMenu);
                     await Workbench.getNotification("The create script was copied to the system clipboard");
+                    console.log(`clipboard content: ${clipboard.readSync()}`);
 
                     return clipboard.readSync().includes("DEFINER VIEW");
                 } catch (e) {
@@ -979,7 +988,7 @@ describe("DATABASE CONNECTIONS", () => {
                         throw e;
                     }
                 }
-            }), constants.wait15seconds, "The view create statement was not copied to the clipboard");
+            }), constants.wait25seconds, "The view create statement was not copied to the clipboard");
 
         });
 

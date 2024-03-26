@@ -131,10 +131,9 @@ describe("OPEN EDITORS", () => {
         await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
         const treeOEGlobalConn = await Tree.getElement(constants.openEditorsTreeSection,
             globalConn.caption);
-        await (await Tree.getActionButton(treeOEGlobalConn, constants.newMySQLScript)).click();
-        await Workbench.openEditor(globalConn.caption);
-        expect(await Notebook.getCurrentEditorName(), `The current editor name should match 'Untitled-(\\d+)'`)
-            .to.match(/Untitled-(\d+)/);
+        const newMySQLScript = await Tree.getActionButton(treeOEGlobalConn, constants.newMySQLScript);
+        await driver.executeScript("arguments[0].click()", newMySQLScript);
+        await driver.wait(waitUntil.currentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
         expect(await Notebook.getCurrentEditorType(), `The current editor type should be 'Mysql'`).to.include("Mysql");
         const treeItem = await Tree.getScript(/Untitled-/, "Mysql");
         await (await Tree.getActionButton(treeItem, "Close Editor")).click();
@@ -146,9 +145,7 @@ describe("OPEN EDITORS", () => {
         await Section.focus(constants.openEditorsTreeSection);
         const item = await Tree.getElement(constants.openEditorsTreeSection, globalConn.caption);
         await Tree.openContextMenuAndSelect(item, constants.newMySQLScript);
-        await driver.wait(async () => {
-            return (await Notebook.getCurrentEditorName()).match(/Untitled-(\d+)/);
-        }, constants.wait5seconds, "Current editor is not Untitled-(*)");
+        await driver.wait(waitUntil.currentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
         expect(await Notebook.getCurrentEditorType(), `The current editor type should be 'Mysql'`).to.include("Mysql");
         const treeItem = await Tree.getScript(/Untitled-/, "Mysql");
         await (await Tree.getActionButton(treeItem, "Close Editor")).click();
@@ -159,9 +156,7 @@ describe("OPEN EDITORS", () => {
 
         const item = await Tree.getElement(constants.openEditorsTreeSection, globalConn.caption);
         await Tree.openContextMenuAndSelect(item, constants.newJS);
-        await driver.wait(async () => {
-            return (await Notebook.getCurrentEditorName()).match(/Untitled-(\d+)/);
-        }, constants.wait5seconds, "Current editor is not Untitled-(*)");
+        await driver.wait(waitUntil.currentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
         expect(await Notebook.getCurrentEditorType(), `The current editor type should be 'scriptJs'`)
             .to.include("scriptJs");
         const treeItem = await Tree.getScript(/Untitled-/, "scriptJs");
@@ -173,9 +168,7 @@ describe("OPEN EDITORS", () => {
 
         const item = await Tree.getElement(constants.openEditorsTreeSection, globalConn.caption);
         await Tree.openContextMenuAndSelect(item, constants.newTS);
-        await driver.wait(async () => {
-            return (await Notebook.getCurrentEditorName()).match(/Untitled-(\d+)/);
-        }, constants.wait5seconds, "Current editor is not Untitled-(*)");
+        await driver.wait(waitUntil.currentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
         expect(await Notebook.getCurrentEditorType(), `The current editor type should be 'scriptTs'`)
             .to.include("scriptTs");
         const treeItem = await Tree.getScript(/Untitled-/, "scriptTs");

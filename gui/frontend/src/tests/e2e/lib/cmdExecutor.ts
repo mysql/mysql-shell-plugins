@@ -1341,9 +1341,6 @@ export class CommandExecutor {
                         }
                     }
                 } else {
-                    const isTableResult = (await result!
-                        .findElements(locator.notebook.codeEditor.editor.result.tableHeaders))
-                        .length > 0;
                     const isJsonResult = (await result!
                         .findElements(locator.notebook.codeEditor.editor.result.json.exists))
                         .length > 0;
@@ -1356,6 +1353,9 @@ export class CommandExecutor {
                         .length > 0;
                     const sqlPreview = (await result!
                         .findElements(locator.notebook.codeEditor.editor.result.previewChanges.exists))
+                        .length > 0;
+                    const isTableResult = (await result!
+                        .findElements(locator.notebook.codeEditor.editor.result.tableHeaders))
                         .length > 0;
                     if (isTableResult) {
                         await driver.wait(waitUntil.elementLocated(result!,

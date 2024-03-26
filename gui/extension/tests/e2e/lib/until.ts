@@ -201,22 +201,6 @@ export const elementLocated = (context: WebElement, locator: Locator): Condition
     });
 };
 
-export const toolbarButtonIsDisabled = (button: string): Condition<boolean> => {
-    return new Condition(`for button ${button} to be disabled`, async () => {
-        const btn = await Notebook.getToolbarButton(button);
-
-        return (await btn.getAttribute("class")).includes("disabled");
-    });
-};
-
-export const toolbarButtonIsEnabled = (button: string): Condition<boolean> => {
-    return new Condition(`for button ${button} to be enabled`, async () => {
-        const btn = await Notebook.getToolbarButton(button);
-
-        return !(await btn.getAttribute("class")).includes("disabled");
-    });
-};
-
 export const resultTabIsMaximized = (): Condition<boolean> => {
     return new Condition(`for result tab to be maximized`, async () => {
         return (await driver.findElements(locator.notebook.codeEditor.editor.result.status.normalize)).length > 0;
