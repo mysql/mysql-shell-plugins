@@ -309,8 +309,6 @@ export class CommandExecutor {
         if (await Notebook.existsToolbarButton(constants.execCaret)) {
             const toolbarButton = await Notebook.getToolbarButton(constants.execCaret);
             await toolbarButton.click();
-            await driver.wait(waitUntil.toolbarButtonIsDisabled(constants.execCaret), constants.wait5seconds);
-            await driver.wait(waitUntil.toolbarButtonIsEnabled(constants.execCaret), constants.wait5seconds);
         } else {
             await (await Notebook.getToolbarButton(constants.execFullBlockJs)).click();
         }
@@ -1299,9 +1297,6 @@ export class CommandExecutor {
                         }
                     }
                 } else {
-                    const isTableResult = (await result
-                        .findElements(locator.notebook.codeEditor.editor.result.tableHeaders))
-                        .length > 0;
                     const isJsonResult = (await result
                         .findElements(locator.notebook.codeEditor.editor.result.json.exists))
                         .length > 0;
@@ -1317,6 +1312,9 @@ export class CommandExecutor {
                         .length > 0;
                     const sqlPreview = (await result
                         .findElements(locator.notebook.codeEditor.editor.result.previewChanges.exists))
+                        .length > 0;
+                    const isTableResult = (await result
+                        .findElements(locator.notebook.codeEditor.editor.result.tableHeaders))
                         .length > 0;
 
                     if (isTableResult) {

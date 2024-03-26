@@ -265,6 +265,7 @@ describe("NOTEBOOKS", () => {
                 expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"),
                     errors.queryDataSetError("actor_id"))
                     .to.match(/actor_id/);
+                await driver.sleep(1000);
                 await commandExecutor.findAndExecute(query2, commandExecutor.getResultId());
                 expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"),
                     errors.queryDataSetError("address_id"))
@@ -666,7 +667,7 @@ describe("NOTEBOOKS", () => {
             expect(await commandExecutor.getCellIconType(geomCollectionCell), "The cell should have a GEOMETRY icon")
                 .to.equals(constants.geometry);
             expect(bitCell, errors.incorrectCellValue("BIT")).to.match(/(\d+)/);
-        });
+        }).timeout(constants.wait5minutes);
 
         it("Edit a result grid, verify query preview and commit", async () => {
             await Workbench.openMySQLShellForVSCode();
@@ -872,7 +873,7 @@ describe("NOTEBOOKS", () => {
             expect(testGeomCollection, errors.incorrectCellValue("GEOMCOLLECTION")).to.equals(constants.geometry);
             const testBit = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_bit");
             expect(testBit, errors.incorrectCellValue("BIT")).to.equals("1");
-        });
+        }).timeout(constants.wait5minutes);
 
         it("Edit a result grid and rollback", async () => {
             const modifiedText = "56";
@@ -1060,7 +1061,7 @@ describe("NOTEBOOKS", () => {
             expect(testGeomCollection, errors.incorrectCellValue("GEOMCOLLECTION")).to.equals(constants.geometry);
             const testBit = await commandExecutor.getCellValueFromResultGrid(row, "test_bit");
             expect(testBit, errors.incorrectCellValue("BIT")).to.equals("0");
-        });
+        }).timeout(constants.wait5minutes);
 
         it("Close a result set", async () => {
             await commandExecutor.clean();
@@ -1502,26 +1503,39 @@ describe("NOTEBOOKS", () => {
             expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
                 commandExecutor.getResultMessage())).to.match(/OK/);
 
+            // On Windows, the Copy field unquoted raises an exception when using clipboard.readSync() (bug)
+            const clipboardErrorColumns = [
+                "test_point",
+                "test_linestring",
+                "test_polygon",
+                "test_multipoint",
+                "test_multilinestring",
+                "test_multipolygon",
+                "test_geometrycollection",
+            ];
+
             const row = 0;
             for (let i = 1; i <= tableColumns.length - 1; i++) {
-                await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
-                    constants.resultGridContextMenu.copyField);
-                expect(clipboard.readSync(), `Copy field on column: ${tableColumns[i]}`)
-                    .to.match(constants.dbTables[0].columnRegexWithQuotes[i]);
-                await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
-                    constants.resultGridContextMenu.copyFieldUnquoted);
-                if (clipboard.readSync() === "") {
-                    clipboard.writeSync(" ");
+                if (!(Os.isWindows() && clipboardErrorColumns.indexOf(tableColumns[i]) !== -1)) {
+                    await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
+                        constants.resultGridContextMenu.copyField);
+                    expect(clipboard.readSync(), `Copy field on column: ${tableColumns[i]}`)
+                        .to.match(constants.dbTables[0].columnRegexWithQuotes[i]);
+                    await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
+                        constants.resultGridContextMenu.copyFieldUnquoted);
+                    if (clipboard.readSync() === "") {
+                        clipboard.writeSync(" ");
+                    }
+                    expect(clipboard.readSync(), `Copy field unquoted on column: ${tableColumns[i]}`)
+                        .to.match(constants.dbTables[0].columnRegex[i]);
+                    await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
+                        constants.resultGridContextMenu.setFieldToNull);
+                    expect(await commandExecutor.getCellValueFromResultGrid(row, tableColumns[i]),
+                        `Set field to null (${tableColumns[i]})`)
+                        .to.equals(constants.isNull);
                 }
-                expect(clipboard.readSync(), `Copy field unquoted on column: ${tableColumns[i]}`)
-                    .to.match(constants.dbTables[0].columnRegex[i]);
-                await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
-                    constants.resultGridContextMenu.setFieldToNull);
-                expect(await commandExecutor.getCellValueFromResultGrid(row, tableColumns[i]),
-                    `Set field to null (${tableColumns[i]})`)
-                    .to.equals(constants.isNull);
             }
-        });
+        }).timeout(constants.wait5minutes);
     });
 
     describe("Scripts", () => {

@@ -123,21 +123,6 @@ try {
         New-Item -ItemType "directory" -Path $env:TEST_RESOURCES_PATH
     }
 
-    # REMOVE INSTALLED EXTENSION
-    ForEach ($testSuite in $testSuites) {
-        $testResources = Join-Path $env:TEST_RESOURCES_PATH "test-resources-$($testSuite)"
-        $extPath = Join-Path $env:WORKSPACE "ext-$($testSuite)"
-        if(Test-Path -Path $extPath) {
-            writeMsg "Removing VSCode extension from $testSuite ..." "-NoNewLine"
-            if ($isLinux) {
-                mkdir $testResources/empty_dir && rsync -a --delete $testResources/empty_dir $testResources/ext && rm -rf $testResources/empty_dir && rm -rf $testResources/ext
-            } else {
-                Remove-Item -Path $extPath -Force -Recurse
-            }
-            writeMsg "DONE"
-        }
-    }
-
     # CHECK IF VSCODE EXISTS
     ForEach ($testSuite in $testSuites) {
         $path = Join-Path $env:TEST_RESOURCES_PATH "test-resources-$($testSuite)"
@@ -264,7 +249,11 @@ try {
     for ($i = 1; $i -le $testSuites.Length - 1; $i++) {
         $extLocation = Join-Path $env:WORKSPACE "ext-$($testSuites[$i])"
         Start-Job -Name "copy-extension" -ScriptBlock {
-            Copy-Item -Path $using:firstExtLocation -Destination $using:extLocation -Recurse
+            if ($isWindows) {
+                robocopy $using:firstExtLocation $using:extLocation -MT:6 /e > nul
+            } else {
+                Copy-Item -Path $using:firstExtLocation -Destination $using:extLocation -Recurse
+            }
         }
     }
 
