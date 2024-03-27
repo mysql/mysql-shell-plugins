@@ -568,8 +568,6 @@ export class CommandExecutor {
     public editResultGridCells = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
         await driver.wait(waitUntil.resultGridIsEditable(this.getResultToolbar()),
             constants.wait5seconds);
-        // hack for UI to be rendered
-        await driver.sleep(constants.wait5seconds);
 
         let isDate: boolean;
         for (let i = 0; i <= cells.length - 1; i++) {
@@ -738,8 +736,6 @@ export class CommandExecutor {
      * @returns A promise resolving when the new value is set
      */
     public addResultGridRow = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
-        // hack to wait for UI to be rendered, no other way around
-        await driver.sleep(constants.wait5seconds);
         await this.clickAddNewRowButton();
         await driver.wait(waitUntil.rowWasAdded(this.getResultContent() as WebElement), constants.wait5seconds);
         let isDate: boolean;

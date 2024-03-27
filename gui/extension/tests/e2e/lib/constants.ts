@@ -410,7 +410,7 @@ export const miscCtxMenu = new Map([
 
 export const dbTables = [
     {
-        name: "all_data_types",
+        name: "all_data_types_ints",
         columns: [
             `id`,
             `test_boolean`,
@@ -421,34 +421,6 @@ export const dbTables = [
             `test_decimal`,
             `test_float`,
             `test_double`,
-            `test_date`,
-            `test_datetime`,
-            `test_timestamp`,
-            `test_time`,
-            `test_year`,
-            `test_char`,
-            `test_varchar`,
-            `test_tinytext`,
-            `test_text`,
-            `test_mediumtext`,
-            `test_longtext`,
-            `test_tinyblob`,
-            `test_blob`,
-            `test_mediumblob`,
-            `test_longblob`,
-            `test_enum`,
-            `test_set`,
-            `test_binary`,
-            `test_varbinary`,
-            `test_json`,
-            `test_point`,
-            `test_linestring`,
-            `test_polygon`,
-            `test_multipoint`,
-            `test_multilinestring`,
-            `test_multipolygon`,
-            `test_geometrycollection`,
-            `test_bit`,
         ],
         columnRegexWithQuotes: [
             /(\d+)/, // id
@@ -460,34 +432,6 @@ export const dbTables = [
             /'(\d+).(\d+)'/, // decimal
             /'(\d+).(\d+)'/, // float
             /'(\d+).(\d+)'/, // double
-            /'(\d+)-(\d+)-(\d+)'/, // date
-            /'(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)'/, // date time
-            /'(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)'/, // timestamp
-            /'(\d+):(\d+):(\d+)'/, // time
-            /(\d+)/, // year
-            /'.*'/, // char
-            /'.*'/, // var char
-            /'.*'/, // tiny text
-            /'.*'/, // text
-            /'.*'/, // med text
-            /'.*'/, // long text
-            /0x/, // tiny blob
-            /0x/, // blob
-            /0x/, // med blob
-            /0x/, // long blob
-            /'.*'/, // enum
-            /'.*'/, // set
-            /0x/, // binary
-            /0x/, // var binary
-            /\{".*": ".*"\}/, // json
-            /''/, // point
-            /''/, // linestring
-            /''/, // polygon
-            /''/, // multipoint
-            /''/, // multilinestring
-            /''/, // multipolygon
-            /''/, // geo collection
-            /'(\d+)'/, // bit
         ],
         columnRegex: [
             /(\d+)/, // id
@@ -499,26 +443,131 @@ export const dbTables = [
             /(\d+).(\d+)/, // decimal
             /(\d+).(\d+)/, // float
             /(\d+).(\d+)/, // double
+        ],
+    },
+    {
+        name: "all_data_types_dates",
+        columns: [
+            `id`,
+            `test_date`,
+            `test_datetime`,
+            `test_timestamp`,
+            `test_time`,
+            `test_year`,
+        ],
+        columnRegexWithQuotes: [
+            /(\d+)/, // id
+            /'(\d+)-(\d+)-(\d+)'/, // date
+            /'(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)'/, // date time
+            /'(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)'/, // timestamp
+            /'(\d+):(\d+):(\d+)'/, // time
+            /(\d+)/, // year
+        ],
+        columnRegex: [
+            /(\d+)/, // id
             /(\d+)-(\d+)-(\d+)/, // date
             /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)/, // date time
             /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)/, // timestamp
             /(\d+):(\d+):(\d+)/, // time
             /(\d+)/, // year
+        ],
+    },
+    {
+        name: "all_data_types_chars",
+        columns: [
+            `id`,
+            `test_char`,
+            `test_varchar`,
+            `test_tinytext`,
+            `test_text`,
+            `test_mediumtext`,
+            `test_longtext`,
+            `test_enum`,
+            `test_set`,
+            `test_json`,
+        ],
+        columnRegexWithQuotes: [
+            /(\d+)/, // id
+            /'.*'/, // char
+            /'.*'/, // var char
+            /'.*'/, // tiny text
+            /'.*'/, // text
+            /'.*'/, // med text
+            /'.*'/, // long text
+            /'.*'/, // enum
+            /'.*'/, // set
+            /\{".*": ".*"\}/, // json
+        ],
+        columnRegex: [
+            /(\d+)/, // id
             /.*/, // char
             /.*/, // var char
             /.*/, // tiny text
             /.*/, // text
             /.*/, // med text
             /.*/, // long text
+            /.*/, // enum
+            /.*/, // set
+            /\{".*": ".*"\}/, // json
+        ],
+    },
+    {
+        name: "all_data_types_blobs",
+        columns: [
+            `id`,
+            `test_tinyblob`,
+            `test_blob`,
+            `test_mediumblob`,
+            `test_longblob`,
+            `test_binary`,
+            `test_varbinary`,
+        ],
+        columnRegexWithQuotes: [
+            /(\d+)/, // id
             /0x/, // tiny blob
             /0x/, // blob
             /0x/, // med blob
             /0x/, // long blob
-            /.*/, // enum
-            /.*/, // set
+            /0x/, // binary
+            /0x/, // var binary
+        ],
+        columnRegex: [
+            /(\d+)/, // id
+            /0x/, // tiny blob
+            /0x/, // blob
+            /0x/, // med blob
+            /0x/, // long blob
+            /0x/, // binary
+            /0x/, // var binary
+        ],
+    },
+    {
+        name: "all_data_types_geometries",
+        columns: [
+            `id`,
+            `test_point`,
+            `test_linestring`,
+            `test_polygon`,
+            `test_multipoint`,
+            `test_multilinestring`,
+            `test_multipolygon`,
+            `test_geometrycollection`,
+            `test_bit`,
+        ],
+        columnRegexWithQuotes: [
+            /(\d+)/, // id
+            /0x/, // tiny blob
+            /0x/, // blob
+            /0x/, // med blob
+            /0x/, // long blob
+            /'.*'/, // enum
+            /'.*'/, // set
             /0x/, // binary
             /0x/, // var binary
             /\{".*": ".*"\}/, // json
+        ],
+        columnRegex: [
+            /(\d+)/, // id
             /\s/, // point
             /\s/, // linestring
             /\s/, // polygon

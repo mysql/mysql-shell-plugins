@@ -93,5 +93,14 @@ Get-ChildItem -Path $itemsPath | % {
 # TSC
 npm run e2e-tests-tsc
 
+# RUN SQL CONFIGURATIONS FOR TESTS
+$refExt = Join-Path $testResources "ext"
+$extFolder = Get-ChildItem -Path $refExt -Filter "*oracle*"
+$shell = Join-Path $extFolder "shell" "bin" "mysqlsh"
+write-host "Running SQL configurations for tests..." "-NoNewLine"
+$runConfig = "$shell -u $env:DBUSERNAME -p$env:DBPASSWORD -h localhost --file sql/setup.sql"
+Invoke-Expression $runConfig
+write-host "DONE"
+
 # INSTALL VSIX
 npm run e2e-tests-install-vsix -- -s $testResources -e "$testResources/ext" -f $env:VSIX_PATH
