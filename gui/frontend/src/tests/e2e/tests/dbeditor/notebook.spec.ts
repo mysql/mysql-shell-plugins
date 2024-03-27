@@ -855,205 +855,211 @@ describe("Notebook", () => {
 
     it("Edit a result grid, verify query preview and commit", async () => {
 
-        await commandExecutor.clean();
-        await commandExecutor.execute("select * from sakila.all_data_types;");
-        expect(commandExecutor.getResultMessage()).toMatch(/OK/);
-        const booleanEdited = false;
-        const smallIntEdited = "32761";
-        const mediumIntEdited = "8388601";
-        const intEdited = "3";
-        const bigIntEdited = "4294967291";
-        const decimalEdited = "1.70";
-        const floatEdited = "10.767";
-        const doubleEdited = "5.72";
-        const dateEdited = "2024-01-01";
-        const dateTimeEdited = "2024-01-01 15:00";
-        const timeStampEdited = "2024-01-01 15:00";
-        const timeEdited = "23:59";
-        const yearEdited = "2030";
-        const charEdited = "test_char_edited";
-        const varCharEdited = "test_varchar_edited";
-        const tinyTextEdited = "test_tiny_edited";
-        const textEdited = "test_text_edited";
-        const textMediumEdited = "test_med_edited";
-        const longTextEdited = "test_long_edited";
-        const enumEdited = "value2";
-        const setEdited = "value2";
-        const jsonEdited = '{"test": "2"}';
-        const pointEdited = "ST_GeomFromText('POINT(1 2)')";
-        const lineStringEdited = "ST_LineStringFromText('LINESTRING(0 0,1 1,2 1)')";
-        const polygonEdited = "ST_GeomFromText('POLYGON((0 0,11 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 7, 5 5))')";
-        const multiPointEdited = "ST_GeomFromText('MULTIPOINT(0 1, 20 20, 60 60)')";
-        const multiLineStrEdited = "ST_GeomFromText('MultiLineString((2 1,2 2,3 3),(4 4,5 5))')";
-        const multiPoly = "ST_GeomFromText('MULTIPOLYGON(((0 0,11 0,12 11,0 9,0 0)),((3 5,7 4,4 7,7 7,3 5)))')";
-        const geoCollEd = "ST_GeomFromText('GEOMETRYCOLLECTION(POINT(1 2),LINESTRING(0 0,1 1,2 2,3 3,4 4))')";
-        const bitEdited = "1";
-        const rowToEdit = 0;
+        try {
+            await commandExecutor.clean();
+            await commandExecutor.execute("select * from sakila.all_data_types;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+            const booleanEdited = false;
+            const smallIntEdited = "32761";
+            const mediumIntEdited = "8388601";
+            const intEdited = "3";
+            const bigIntEdited = "4294967291";
+            const decimalEdited = "1.70";
+            const floatEdited = "10.767";
+            const doubleEdited = "5.72";
+            const dateEdited = "2024-01-01";
+            const dateTimeEdited = "2024-01-01 15:00";
+            const timeStampEdited = "2024-01-01 15:00";
+            const timeEdited = "23:59";
+            const yearEdited = "2030";
+            const charEdited = "test_char_edited";
+            const varCharEdited = "test_varchar_edited";
+            const tinyTextEdited = "test_tiny_edited";
+            const textEdited = "test_text_edited";
+            const textMediumEdited = "test_med_edited";
+            const longTextEdited = "test_long_edited";
+            const enumEdited = "value2";
+            const setEdited = "value2";
+            const jsonEdited = '{"test": "2"}';
+            const pointEdited = "ST_GeomFromText('POINT(1 2)')";
+            const lineStringEdited = "ST_LineStringFromText('LINESTRING(0 0,1 1,2 1)')";
+            const polygonEdited = "ST_GeomFromText('POLYGON((0 0,11 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 7, 5 5))')";
+            const multiPointEdited = "ST_GeomFromText('MULTIPOINT(0 1, 20 20, 60 60)')";
+            const multiLineStrEdited = "ST_GeomFromText('MultiLineString((2 1,2 2,3 3),(4 4,5 5))')";
+            const multiPoly = "ST_GeomFromText('MULTIPOLYGON(((0 0,11 0,12 11,0 9,0 0)),((3 5,7 4,4 7,7 7,3 5)))')";
+            const geoCollEd = "ST_GeomFromText('GEOMETRYCOLLECTION(POINT(1 2),LINESTRING(0 0,1 1,2 2,3 3,4 4))')";
+            const bitEdited = "1";
+            const rowToEdit = 0;
 
-        const cellsToEdit: interfaces.IResultGridCell[] = [
-            { rowNumber: rowToEdit, columnName: "test_boolean", value: booleanEdited },
-            { rowNumber: rowToEdit, columnName: "test_smallint", value: smallIntEdited },
-            { rowNumber: rowToEdit, columnName: "test_mediumint", value: mediumIntEdited },
-            { rowNumber: rowToEdit, columnName: "test_integer", value: intEdited },
-            { rowNumber: rowToEdit, columnName: "test_bigint", value: bigIntEdited },
-            { rowNumber: rowToEdit, columnName: "test_decimal", value: decimalEdited },
-            { rowNumber: rowToEdit, columnName: "test_float", value: floatEdited },
-            { rowNumber: rowToEdit, columnName: "test_double", value: doubleEdited },
-            { rowNumber: rowToEdit, columnName: "test_date", value: dateEdited },
-            { rowNumber: rowToEdit, columnName: "test_datetime", value: dateTimeEdited },
-            { rowNumber: rowToEdit, columnName: "test_timestamp", value: timeStampEdited },
-            { rowNumber: rowToEdit, columnName: "test_time", value: timeEdited },
-            { rowNumber: rowToEdit, columnName: "test_year", value: yearEdited },
-            { rowNumber: rowToEdit, columnName: "test_char", value: charEdited },
-            { rowNumber: rowToEdit, columnName: "test_varchar", value: varCharEdited },
-            { rowNumber: rowToEdit, columnName: "test_tinytext", value: tinyTextEdited },
-            { rowNumber: rowToEdit, columnName: "test_text", value: textEdited },
-            { rowNumber: rowToEdit, columnName: "test_mediumtext", value: textMediumEdited },
-            { rowNumber: rowToEdit, columnName: "test_longtext", value: longTextEdited },
-            { rowNumber: rowToEdit, columnName: "test_enum", value: enumEdited },
-            { rowNumber: rowToEdit, columnName: "test_set", value: setEdited },
-            { rowNumber: rowToEdit, columnName: "test_json", value: jsonEdited },
-            { rowNumber: rowToEdit, columnName: "test_point", value: pointEdited },
-            { rowNumber: rowToEdit, columnName: "test_linestring", value: lineStringEdited },
-            { rowNumber: rowToEdit, columnName: "test_polygon", value: polygonEdited },
-            { rowNumber: rowToEdit, columnName: "test_multipoint", value: multiPointEdited },
-            { rowNumber: rowToEdit, columnName: "test_multilinestring", value: multiLineStrEdited },
-            { rowNumber: rowToEdit, columnName: "test_multipolygon", value: multiPoly },
-            { rowNumber: rowToEdit, columnName: "test_geometrycollection", value: geoCollEd },
-            { rowNumber: rowToEdit, columnName: "test_bit", value: bitEdited },
-        ];
+            const cellsToEdit: interfaces.IResultGridCell[] = [
+                { rowNumber: rowToEdit, columnName: "test_boolean", value: booleanEdited },
+                { rowNumber: rowToEdit, columnName: "test_smallint", value: smallIntEdited },
+                { rowNumber: rowToEdit, columnName: "test_mediumint", value: mediumIntEdited },
+                { rowNumber: rowToEdit, columnName: "test_integer", value: intEdited },
+                { rowNumber: rowToEdit, columnName: "test_bigint", value: bigIntEdited },
+                { rowNumber: rowToEdit, columnName: "test_decimal", value: decimalEdited },
+                { rowNumber: rowToEdit, columnName: "test_float", value: floatEdited },
+                { rowNumber: rowToEdit, columnName: "test_double", value: doubleEdited },
+                { rowNumber: rowToEdit, columnName: "test_date", value: dateEdited },
+                { rowNumber: rowToEdit, columnName: "test_datetime", value: dateTimeEdited },
+                { rowNumber: rowToEdit, columnName: "test_timestamp", value: timeStampEdited },
+                { rowNumber: rowToEdit, columnName: "test_time", value: timeEdited },
+                { rowNumber: rowToEdit, columnName: "test_year", value: yearEdited },
+                { rowNumber: rowToEdit, columnName: "test_char", value: charEdited },
+                { rowNumber: rowToEdit, columnName: "test_varchar", value: varCharEdited },
+                { rowNumber: rowToEdit, columnName: "test_tinytext", value: tinyTextEdited },
+                { rowNumber: rowToEdit, columnName: "test_text", value: textEdited },
+                { rowNumber: rowToEdit, columnName: "test_mediumtext", value: textMediumEdited },
+                { rowNumber: rowToEdit, columnName: "test_longtext", value: longTextEdited },
+                { rowNumber: rowToEdit, columnName: "test_enum", value: enumEdited },
+                { rowNumber: rowToEdit, columnName: "test_set", value: setEdited },
+                { rowNumber: rowToEdit, columnName: "test_json", value: jsonEdited },
+                { rowNumber: rowToEdit, columnName: "test_point", value: pointEdited },
+                { rowNumber: rowToEdit, columnName: "test_linestring", value: lineStringEdited },
+                { rowNumber: rowToEdit, columnName: "test_polygon", value: polygonEdited },
+                { rowNumber: rowToEdit, columnName: "test_multipoint", value: multiPointEdited },
+                { rowNumber: rowToEdit, columnName: "test_multilinestring", value: multiLineStrEdited },
+                { rowNumber: rowToEdit, columnName: "test_multipolygon", value: multiPoly },
+                { rowNumber: rowToEdit, columnName: "test_geometrycollection", value: geoCollEd },
+                { rowNumber: rowToEdit, columnName: "test_bit", value: bitEdited },
+            ];
 
-        await commandExecutor.editResultGridCells(cellsToEdit);
-        const dateTimeToISO = Misc.convertDateToISO(dateTimeEdited);
-        const timeStampToISO = Misc.convertDateToISO(timeStampEdited);
-        const timeTransformed = Misc.convertTimeTo12H(timeEdited);
+            await commandExecutor.editResultGridCells(cellsToEdit);
+            const dateTimeToISO = Misc.convertDateToISO(dateTimeEdited);
+            const timeStampToISO = Misc.convertDateToISO(timeStampEdited);
+            const timeTransformed = Misc.convertTimeTo12H(timeEdited);
 
-        const booleanField = booleanEdited ? 1 : 0;
-        const expectedSqlPreview = [
-            /UPDATE sakila.all_data_types SET/,
-            new RegExp(`test_boolean = ${booleanField}`),
-            new RegExp(`test_smallint = ${smallIntEdited}`),
-            new RegExp(`test_mediumint = ${mediumIntEdited}`),
-            new RegExp(`test_integer = ${intEdited}`),
-            new RegExp(`test_bigint = ${bigIntEdited}`),
-            new RegExp(`test_decimal = ${decimalEdited}`),
-            new RegExp(`test_float = ${floatEdited}`),
-            new RegExp(`test_double = ${doubleEdited}`),
-            new RegExp(`test_date = '${dateEdited}'`),
-            new RegExp(`test_datetime = '(${dateTimeEdited}:00|${dateTimeToISO}:00)'`),
-            new RegExp(`test_timestamp = '(${timeStampEdited}:00|${timeStampToISO}:00)'`),
-            new RegExp(`test_time = '(${timeEdited}|${timeTransformed})'`),
-            new RegExp(`test_year = ${yearEdited}`),
-            new RegExp(`test_char = '${charEdited}'`),
-            new RegExp(`test_varchar = '${varCharEdited}'`),
-            new RegExp(`test_tinytext = '${tinyTextEdited}'`),
-            new RegExp(`test_text = '${textEdited}'`),
-            new RegExp(`test_mediumtext = '${textMediumEdited}'`),
-            new RegExp(`test_longtext = '${longTextEdited}'`),
-            new RegExp(`test_enum = '${enumEdited}'`),
-            new RegExp(`test_set = '${setEdited}'`),
-            Misc.transformToMatch(`test_json = '${jsonEdited}'`),
-            Misc.transformToMatch(`test_point = ${pointEdited}`),
-            Misc.transformToMatch(`test_linestring = ${lineStringEdited}`),
-            Misc.transformToMatch(`test_polygon = ${polygonEdited}`),
-            Misc.transformToMatch(`test_multipoint = ${multiPointEdited}`),
-            Misc.transformToMatch(`test_multilinestring = ${multiLineStrEdited}`),
-            Misc.transformToMatch(`test_multipolygon = ${multiPoly}`),
-            Misc.transformToMatch(`test_geometrycollection = ${geoCollEd}`),
-            new RegExp(`test_bit = b'${bitEdited}' WHERE id = 1;`),
-        ];
+            const booleanField = booleanEdited ? 1 : 0;
+            const expectedSqlPreview = [
+                /UPDATE sakila.all_data_types SET/,
+                new RegExp(`test_boolean = ${booleanField}`),
+                new RegExp(`test_smallint = ${smallIntEdited}`),
+                new RegExp(`test_mediumint = ${mediumIntEdited}`),
+                new RegExp(`test_integer = ${intEdited}`),
+                new RegExp(`test_bigint = ${bigIntEdited}`),
+                new RegExp(`test_decimal = ${decimalEdited}`),
+                new RegExp(`test_float = ${floatEdited}`),
+                new RegExp(`test_double = ${doubleEdited}`),
+                new RegExp(`test_date = '${dateEdited}'`),
+                new RegExp(`test_datetime = '(${dateTimeEdited}:00|${dateTimeToISO}:00)'`),
+                new RegExp(`test_timestamp = '(${timeStampEdited}:00|${timeStampToISO}:00)'`),
+                new RegExp(`test_time = '(${timeEdited}|${timeTransformed})'`),
+                new RegExp(`test_year = ${yearEdited}`),
+                new RegExp(`test_char = '${charEdited}'`),
+                new RegExp(`test_varchar = '${varCharEdited}'`),
+                new RegExp(`test_tinytext = '${tinyTextEdited}'`),
+                new RegExp(`test_text = '${textEdited}'`),
+                new RegExp(`test_mediumtext = '${textMediumEdited}'`),
+                new RegExp(`test_longtext = '${longTextEdited}'`),
+                new RegExp(`test_enum = '${enumEdited}'`),
+                new RegExp(`test_set = '${setEdited}'`),
+                Misc.transformToMatch(`test_json = '${jsonEdited}'`),
+                Misc.transformToMatch(`test_point = ${pointEdited}`),
+                Misc.transformToMatch(`test_linestring = ${lineStringEdited}`),
+                Misc.transformToMatch(`test_polygon = ${polygonEdited}`),
+                Misc.transformToMatch(`test_multipoint = ${multiPointEdited}`),
+                Misc.transformToMatch(`test_multilinestring = ${multiLineStrEdited}`),
+                Misc.transformToMatch(`test_multipolygon = ${multiPoly}`),
+                Misc.transformToMatch(`test_geometrycollection = ${geoCollEd}`),
+                new RegExp(`test_bit = b'${bitEdited}' WHERE id = 1;`),
+            ];
 
-        const sqlPreview = await commandExecutor.getSqlPreview();
-        const sqlPreviewScroll = await driver
-            .findElements(locator.notebook.codeEditor.editor.result.previewChanges.exists);
-        for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
-            if (i === 26 && sqlPreviewScroll.length > 0) {
-                await driver.executeScript("arguments[0].scrollBy(0,500)", sqlPreviewScroll[0]);
+            const sqlPreview = await commandExecutor.getSqlPreview();
+            const sqlPreviewScroll = await driver
+                .findElements(locator.notebook.codeEditor.editor.result.previewChanges.exists);
+            for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
+                if (i === 26 && sqlPreviewScroll.length > 0) {
+                    await driver.executeScript("arguments[0].scrollBy(0,500)", sqlPreviewScroll[0]);
+                }
+                expect(sqlPreview).toMatch(expectedSqlPreview[i]);
             }
-            expect(sqlPreview).toMatch(expectedSqlPreview[i]);
+
+            const sqlPreviewEl = await commandExecutor.getSqlPreview(true);
+            await (sqlPreviewEl as WebElement).click();
+            await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
+            const resultGrid = commandExecutor.getResultContent() as WebElement;
+            const rows = await resultGrid.findElements(locator.notebook.codeEditor.editor.result.tableRow);
+            expect(await rows[rowToEdit].getAttribute("class")).toContain("tabulator-selected");
+            await commandExecutor.resultGridApplyChanges();
+            await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
+            await driver.wait(waitUntil.rowsWereUpdated(commandExecutor), constants.wait5seconds);
+            await driver.wait(waitUntil.changedResultGridCellsAreDone(commandExecutor), constants.wait5seconds);
+
+            await commandExecutor.execute("select * from sakila.all_data_types where id = 1;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+
+            const testBoolean = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_boolean");
+            expect(testBoolean).toBe(booleanEdited.toString());
+            const testSmallInt = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_smallint");
+            expect(testSmallInt).toBe(smallIntEdited);
+            const testMediumInt = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_mediumint");
+            expect(testMediumInt).toBe(mediumIntEdited);
+            const testInteger = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_integer");
+            expect(testInteger).toBe(intEdited);
+            const testBigInt = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_bigint");
+            expect(testBigInt).toBe(bigIntEdited);
+            const testDecimal = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_decimal");
+            expect(testDecimal).toBe(decimalEdited);
+            const testFloat = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_float");
+            expect(testFloat).toBe(floatEdited);
+            const testDouble = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_double");
+            expect(testDouble).toBe(doubleEdited);
+            const testDate = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_date");
+            expect(testDate).toBe("01/01/2024");
+            const testDateTime = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_datetime");
+            expect(testDateTime).toBe("01/01/2024");
+            const testTimeStamp = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_timestamp");
+            expect(testTimeStamp).toBe("01/01/2024");
+            const testTime = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_time");
+            const convertedTime = Misc.convertTimeTo12H(timeEdited);
+            expect(testTime === `${timeEdited}:00` || testTime === convertedTime).toBe(true);
+            const testYear = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_year");
+            expect(testYear).toBe(yearEdited);
+            const testChar = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_char");
+            expect(testChar).toBe(charEdited);
+            const testVarChar = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_varchar");
+            expect(testVarChar).toBe(varCharEdited);
+            const testTinyText = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_tinytext");
+            expect(testTinyText).toBe(tinyTextEdited);
+            const testText = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_text");
+            expect(testText).toBe(textEdited);
+            const testMediumText = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
+                "test_mediumtext");
+            expect(testMediumText).toBe(textMediumEdited);
+            const testLongText = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_longtext");
+            expect(testLongText).toBe(longTextEdited);
+            const testEnum = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_enum");
+            expect(testEnum).toBe(enumEdited);
+            const testSet = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_set");
+            expect(testSet).toBe(setEdited);
+            const testJson = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_json");
+            expect(testJson).toBe(constants.json);
+            const testPoint = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_point");
+            expect(testPoint).toBe(constants.geometry);
+            const testLineString = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
+                "test_linestring");
+            expect(testLineString).toBe(constants.geometry);
+            const testPolygon = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_polygon");
+            expect(testPolygon).toBe(constants.geometry);
+            const testMultiPoint = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
+                "test_multipoint");
+            expect(testMultiPoint).toBe(constants.geometry);
+            const testMultiLineString = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
+                "test_multilinestring");
+            expect(testMultiLineString).toBe(constants.geometry);
+            const testMultiPolygon = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
+                "test_multipolygon");
+            expect(testMultiPolygon).toBe(constants.geometry);
+            const testGeomCollection = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
+                "test_geometrycollection");
+            expect(testGeomCollection).toBe(constants.geometry);
+            const testBit = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_bit");
+            expect(testBit).toBe("1");
+        } catch (e) {
+            testFailed = true;
+            throw e;
         }
 
-        const sqlPreviewEl = await commandExecutor.getSqlPreview(true);
-        await (sqlPreviewEl as WebElement).click();
-        await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
-        const resultGrid = commandExecutor.getResultContent() as WebElement;
-        const rows = await resultGrid.findElements(locator.notebook.codeEditor.editor.result.tableRow);
-        expect(await rows[rowToEdit].getAttribute("class")).toContain("tabulator-selected");
-        await commandExecutor.resultGridApplyChanges();
-        await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
-        await driver.wait(waitUntil.rowsWereUpdated(commandExecutor), constants.wait5seconds);
-        await driver.wait(waitUntil.changedResultGridCellsAreDone(commandExecutor), constants.wait5seconds);
-
-        await commandExecutor.execute("select * from sakila.all_data_types where id = 1;");
-        expect(commandExecutor.getResultMessage()).toMatch(/OK/);
-
-        const testBoolean = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_boolean");
-        expect(testBoolean).toBe(booleanEdited.toString());
-        const testSmallInt = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_smallint");
-        expect(testSmallInt).toBe(smallIntEdited);
-        const testMediumInt = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_mediumint");
-        expect(testMediumInt).toBe(mediumIntEdited);
-        const testInteger = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_integer");
-        expect(testInteger).toBe(intEdited);
-        const testBigInt = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_bigint");
-        expect(testBigInt).toBe(bigIntEdited);
-        const testDecimal = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_decimal");
-        expect(testDecimal).toBe(decimalEdited);
-        const testFloat = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_float");
-        expect(testFloat).toBe(floatEdited);
-        const testDouble = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_double");
-        expect(testDouble).toBe(doubleEdited);
-        const testDate = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_date");
-        expect(testDate).toBe("01/01/2024");
-        const testDateTime = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_datetime");
-        expect(testDateTime).toBe("01/01/2024");
-        const testTimeStamp = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_timestamp");
-        expect(testTimeStamp).toBe("01/01/2024");
-        const testTime = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_time");
-        const convertedTime = Misc.convertTimeTo12H(timeEdited);
-        expect(testTime === `${timeEdited}:00` || testTime === convertedTime).toBe(true);
-        const testYear = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_year");
-        expect(testYear).toBe(yearEdited);
-        const testChar = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_char");
-        expect(testChar).toBe(charEdited);
-        const testVarChar = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_varchar");
-        expect(testVarChar).toBe(varCharEdited);
-        const testTinyText = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_tinytext");
-        expect(testTinyText).toBe(tinyTextEdited);
-        const testText = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_text");
-        expect(testText).toBe(textEdited);
-        const testMediumText = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
-            "test_mediumtext");
-        expect(testMediumText).toBe(textMediumEdited);
-        const testLongText = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_longtext");
-        expect(testLongText).toBe(longTextEdited);
-        const testEnum = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_enum");
-        expect(testEnum).toBe(enumEdited);
-        const testSet = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_set");
-        expect(testSet).toBe(setEdited);
-        const testJson = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_json");
-        expect(testJson).toBe(constants.json);
-        const testPoint = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_point");
-        expect(testPoint).toBe(constants.geometry);
-        const testLineString = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
-            "test_linestring");
-        expect(testLineString).toBe(constants.geometry);
-        const testPolygon = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_polygon");
-        expect(testPolygon).toBe(constants.geometry);
-        const testMultiPoint = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
-            "test_multipoint");
-        expect(testMultiPoint).toBe(constants.geometry);
-        const testMultiLineString = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
-            "test_multilinestring");
-        expect(testMultiLineString).toBe(constants.geometry);
-        const testMultiPolygon = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
-            "test_multipolygon");
-        expect(testMultiPolygon).toBe(constants.geometry);
-        const testGeomCollection = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
-            "test_geometrycollection");
-        expect(testGeomCollection).toBe(constants.geometry);
-        const testBit = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_bit");
-        expect(testBit).toBe("1");
 
     }, constants.wait250seconds);
 

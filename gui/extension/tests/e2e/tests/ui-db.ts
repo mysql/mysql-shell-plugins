@@ -947,6 +947,7 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("View - Select Rows in DB Notebook", async () => {
+            await Section.collapse(constants.openEditorsTreeSection);
             treeGlobalSchemaViews = await Tree.getElement(constants.dbTreeSection, "Views");
             await treeGlobalSchemaViews.expand();
             const treeTestView = await Tree.getElement(constants.dbTreeSection, testView);
