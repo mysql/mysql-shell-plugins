@@ -31,6 +31,7 @@ import { IShellDictionary } from "../../../../../communication/Protocol.js";
 import {
     IMrsAddContentSetData, IMrsAuthAppData, IMrsAddAuthAppData, IMrsServiceData, IMrsUserRoleData,
     IShellMrsUpdateDbObjectKwargsValue,
+    ShellAPIMrs,
 } from "../../../../../communication/ProtocolMrs.js";
 import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
 import { IMrsDbObjectEditRequest } from "../../../../../supplement/Requisitions.js";
@@ -44,6 +45,7 @@ import {
     DialogHelper, JestReactWrapper, getDbCredentials, nextProcessTick, sendKeyPress, setupShellForTests,
 } from "../../../test-helpers.js";
 import { MrsDbObjectType } from "../../../../../modules/mrs/types.js";
+import { DataCallback } from "../../../../../communication/MessageScheduler.js";
 
 describe("MrsHub Tests", () => {
     let host: JestReactWrapper;
@@ -847,7 +849,7 @@ describe("MrsHub Tests", () => {
                 requiresAuth: boolean, options: IShellDictionary | null,
                 serviceId?: string, comments?: string,
                 enabled?: boolean, replaceExisting?: boolean,
-                progress?: (message: string) => void): Promise<IMrsAddContentSetData> => {
+                callback?: DataCallback<ShellAPIMrs.MrsAddContentSet>): Promise<IMrsAddContentSetData> => {
                 expect(requestPath).toBe("/someRequestPath");
 
                 expect(contentDir).toBeDefined();
@@ -857,7 +859,7 @@ describe("MrsHub Tests", () => {
                 expect(comments).toBeDefined();
                 expect(enabled).toBeDefined();
                 expect(replaceExisting).toBeDefined();
-                expect(progress).toBeDefined();
+                expect(callback).toBeDefined();
 
                 return Promise.resolve({});
             };
