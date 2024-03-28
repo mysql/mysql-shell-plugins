@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { MessageScheduler } from "../../communication/MessageScheduler.js";
+import { DataCallback, MessageScheduler } from "../../communication/MessageScheduler.js";
 import { IShellDictionary } from "../../communication/Protocol.js";
 import {
     ShellAPIMrs, IMrsStatusData, IMrsServiceData, IMrsAuthAppData, IMrsAuthVendorData, IMrsSchemaData,
@@ -532,7 +532,7 @@ export class ShellInterfaceMrs {
         requiresAuth: boolean, options: IShellDictionary | null,
         serviceId?: string, comments?: string,
         enabled?: boolean, replaceExisting?: boolean,
-        progress?: (message: string) => void): Promise<IMrsAddContentSetData> {
+        callback?: DataCallback<ShellAPIMrs.MrsAddContentSet>): Promise<IMrsAddContentSetData> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddContentSet,
             parameters: {
@@ -550,11 +550,7 @@ export class ShellInterfaceMrs {
                     replaceExisting,
                 },
             },
-            onData: (data) => {
-                if (progress && data.result.info) {
-                    progress(data.result.info);
-                }
-            },
+            onData: callback,
         });
 
         return response.result;

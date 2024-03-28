@@ -31,6 +31,7 @@ import {
 import { IShellDictionary } from "../../communication/Protocol.js";
 
 import {
+    IMrsAddContentSetData,
     IMrsAuthAppData, IMrsContentSetData, IMrsObject, IMrsSchemaData, IMrsServiceData, IMrsUserData,
     IMrsUserRoleData,
 } from "../../communication/ProtocolMrs.js";
@@ -699,20 +700,27 @@ export class MrsHub extends ComponentBase {
                     try {
                         updateStatusbar(`$(loading~spin) Starting to load static content set ...`);
 
-                        const addedContentSet = await backend.mrs.addContentSet(data.directory, requestPath,
-                            requiresAuth, options, serviceId, comments, enabled, true, (message) => {
-                                updateStatusbar("$(loading~spin) " + message);
+                        let addedContentSet: IMrsAddContentSetData = {};
+                        void await backend.mrs.addContentSet(data.directory, requestPath,
+                            requiresAuth, options, serviceId, comments, enabled, true, (data) => {
+                                if (data.result.info) {
+                                    updateStatusbar("$(loading~spin) " + data.result.info);
+                                } else {
+                                    addedContentSet = data.result;
+                                }
                             },
                         );
 
                         updateStatusbar();
 
                         void requisitions.executeRemote("refreshConnections", undefined);
-                        void requisitions.execute("showInfo", [
-                            "The MRS static content set has been added successfully. " +
-                            `${addedContentSet.numberOfFilesUploaded ?? ""} file` +
-                            `${addedContentSet.numberOfFilesUploaded ?? 2 > 1 ? "s" : ""} have been uploaded`,
-                        ]);
+                        if (addedContentSet.numberOfFilesUploaded !== undefined) {
+                            void requisitions.execute("showInfo", [
+                                "The MRS static content set has been added successfully. " +
+                                `${addedContentSet.numberOfFilesUploaded} file` +
+                                `${addedContentSet.numberOfFilesUploaded > 1 ? "s" : ""} have been uploaded`,
+                            ]);
+                        }
                     } catch (error) {
                         void requisitions.execute("showError",
                             [`Error while adding MRS content set: ${String(error) ?? "<unknown>"}`]);

@@ -64,7 +64,7 @@ export const execute = async (worker: PrivateWorker, code: string,
 
     const { webFetch: fetch } = await import("./web-functions.js");
     const { mrsPrintSdkCode, mrsSetCurrentService, mrsEditService, mrsExportServiceSdk, mrsSetServiceUrl,
-        mrsAuthenticate, mrsEditSchema, mrsEditDbObject,
+        mrsAuthenticate, mrsEditSchema, mrsEditDbObject, mrsAddContentSet,
     } = await import("./web-functions.js");
 
     // eslint-disable-next-line @typescript-eslint/naming-convention

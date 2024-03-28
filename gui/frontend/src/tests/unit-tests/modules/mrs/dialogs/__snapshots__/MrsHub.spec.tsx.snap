@@ -464,7 +464,40 @@ exports[`MrsHub Tests MRS Content Set dialog tests Show MRS Content Set Dialog (
         <div
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
-        />
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Folder to upload
+          </label>
+          <div
+            class="msg container fixedScrollbar fileSelector valueEditor"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input"
+              id="directory"
+              spellcheck="true"
+              type="text"
+            />
+            <div
+              caption="..."
+              class="msg button"
+              id="directoryBtn"
+              role="button"
+              tabindex="0"
+            >
+              ...
+            </div>
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The folder that should be uploaded, including all its files and sub-folders
+          </label>
+        </div>
         <div
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"

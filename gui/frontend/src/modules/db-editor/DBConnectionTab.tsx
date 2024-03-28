@@ -2144,6 +2144,22 @@ Execute \\help or \\? for help;`;
                     break;
                 }
 
+                case ScriptingApi.MrsAddContentSet: {
+                    if (backend && data.serviceId && typeof data.serviceId === "string") {
+                        const service = await backend.mrs.getService(data.serviceId, null, null, null, null);
+                        if (service !== undefined) {
+                            void requisitions.execute("showMrsContentSetDialog", {
+                                serviceId: data.serviceId,
+                                directory: data.directory,
+                                connectionId,
+                            });
+                        }
+
+                    }
+
+                    break;
+                }
+
                 case ScriptingApi.MrsSetServiceUrl: {
                     // Reset the cache to trigger a complete reload
                     this.cachedMrsServiceSdk = {
