@@ -120,7 +120,6 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                     caption: "Folder to upload",
                     value: request.values?.directory as string,
                     horizontalSpan: 8,
-                    options: request.values?.directory ? [] : [CommonDialogValueOption.Hidden],
                     description: "The folder that should be uploaded, including all its files and sub-folders",
                 },
                 enabled: {

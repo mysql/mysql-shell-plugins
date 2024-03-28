@@ -293,6 +293,10 @@ export class ${service_class_name} extends MrsBaseService {
         mrsExportServiceSdk("${service_id}");
     };
 
+    public addContentSet = (directory?: string): void => {
+        mrsAddContentSet("${service_id}", directory);
+    };
+
     public static url = (serviceUrl: string): void => {
         mrsSetServiceUrl(serviceUrl);
     };

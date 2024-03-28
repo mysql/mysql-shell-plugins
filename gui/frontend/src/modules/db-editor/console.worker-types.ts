@@ -105,6 +105,9 @@ export enum ScriptingApi {
     /** Trigger MRS SDK Export dialog */
     MrsExportServiceSdk,
 
+    /** Trigger MRS Add Content Set dialog */
+    MrsAddContentSet,
+
     /** A special API to denote that everything is done in the console worker and the task can be removed. */
     Done,
 }
@@ -149,6 +152,7 @@ export interface IConsoleWorkerResultData extends IDictionary {
     authPath?: string;
     authApp?: string;
     userName?: string;
+    directory?: string;
 }
 
 /** Same definition as in scripting-runtime.d.ts (modify in sync!). */
