@@ -647,7 +647,6 @@ describe("NOTEBOOKS", () => {
             const longTextField = await commandExecutor.getCellValueFromResultGrid(row, "test_longtext");
             const enumField = await commandExecutor.getCellValueFromResultGrid(row, "test_enum");
             const setFIeld = await commandExecutor.getCellValueFromResultGrid(row, "test_set");
-            const jsonField = await commandExecutor.getCellFromResultGrid(row, "test_json");
 
             expect(charField, errors.incorrectCellValue("CHAR")).to.match(/([a-z]|[A-Z])/);
             expect(varCharField, errors.incorrectCellValue("VARCHAR")).to.match(/([a-z]|[A-Z])/);
@@ -657,7 +656,7 @@ describe("NOTEBOOKS", () => {
             expect(longTextField, errors.incorrectCellValue("LONGTEXT")).to.match(/([a-z]|[A-Z])/);
             expect(enumField, errors.incorrectCellValue("ENUM")).to.match(/([a-z]|[A-Z])/);
             expect(setFIeld, errors.incorrectCellValue("SET")).to.match(/([a-z]|[A-Z])/);
-            expect(await commandExecutor.getCellIconType(jsonField), "The cell should have a JSON icon")
+            expect(await commandExecutor.getCellIconType(row, "test_json"), "The cell should have a JSON icon")
                 .to.equals(constants.json);
         });
 
@@ -666,17 +665,13 @@ describe("NOTEBOOKS", () => {
             expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
                 commandExecutor.getResultMessage())).to.match(/OK/);
             const row = 0;
-            const tinyBlobField = await commandExecutor.getCellFromResultGrid(row, "test_tinyblob");
-            const blobField = await commandExecutor.getCellFromResultGrid(row, "test_blob");
-            const mediumBlobField = await commandExecutor.getCellFromResultGrid(row, "test_mediumblob");
-            const longBlobField = await commandExecutor.getCellFromResultGrid(row, "test_longblob");
             const binaryField = await commandExecutor.getCellValueFromResultGrid(row, "test_binary");
             const varBinaryField = await commandExecutor.getCellValueFromResultGrid(row, "test_varbinary");
 
-            expect(await commandExecutor.getCellIconType(tinyBlobField)).to.equals(constants.blob);
-            expect(await commandExecutor.getCellIconType(blobField)).to.equals(constants.blob);
-            expect(await commandExecutor.getCellIconType(mediumBlobField)).to.equals(constants.blob);
-            expect(await commandExecutor.getCellIconType(longBlobField)).to.equals(constants.blob);
+            expect(await commandExecutor.getCellIconType(row, "test_tinyblob")).to.equals(constants.blob);
+            expect(await commandExecutor.getCellIconType(row, "test_blob")).to.equals(constants.blob);
+            expect(await commandExecutor.getCellIconType(row, "test_mediumblob")).to.equals(constants.blob);
+            expect(await commandExecutor.getCellIconType(row, "test_longblob")).to.equals(constants.blob);
             expect(binaryField, errors.incorrectCellValue("BINARY")).to.match(/0x/);
             expect(varBinaryField, errors.incorrectCellValue("BINARY")).to.match(/0x/);
         });
@@ -686,27 +681,25 @@ describe("NOTEBOOKS", () => {
             expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
                 commandExecutor.getResultMessage())).to.match(/OK/);
             const row = 0;
-            const pointCell = await commandExecutor.getCellFromResultGrid(row, "test_point");
-            const lineStringCell = await commandExecutor.getCellFromResultGrid(row, "test_linestring");
-            const polygonCell = await commandExecutor.getCellFromResultGrid(row, "test_polygon");
-            const multiPointCell = await commandExecutor.getCellFromResultGrid(row, "test_multipoint");
-            const multiLineStringCell = await commandExecutor.getCellFromResultGrid(row, "test_multilinestring");
-            const multiPolygonCell = await commandExecutor.getCellFromResultGrid(row, "test_multipolygon");
-            const geomCollectionCell = await commandExecutor.getCellFromResultGrid(row, "test_geometrycollection");
             const bitCell = await commandExecutor.getCellValueFromResultGrid(row, "test_bit");
-            expect(await commandExecutor.getCellIconType(pointCell), "The cell should have a GEOMETRY icon")
+            expect(await commandExecutor.getCellIconType(row, "test_point"), "The cell should have a GEOMETRY icon")
                 .to.equals(constants.geometry);
-            expect(await commandExecutor.getCellIconType(lineStringCell), "The cell should have a GEOMETRY icon")
+            expect(await commandExecutor.getCellIconType(row, "test_linestring"),
+                "The cell should have a GEOMETRY icon")
                 .to.equals(constants.geometry);
-            expect(await commandExecutor.getCellIconType(polygonCell), "The cell should have a GEOMETRY icon")
+            expect(await commandExecutor.getCellIconType(row, "test_polygon"), "The cell should have a GEOMETRY icon")
                 .to.equals(constants.geometry);
-            expect(await commandExecutor.getCellIconType(multiPointCell), "The cell should have a GEOMETRY icon")
+            expect(await commandExecutor.getCellIconType(row, "test_multipoint"),
+                "The cell should have a GEOMETRY icon")
                 .to.equals(constants.geometry);
-            expect(await commandExecutor.getCellIconType(multiLineStringCell), "The cell should have a GEOMETRY icon")
+            expect(await commandExecutor.getCellIconType(row, "test_multilinestring"),
+                "The cell should have a GEOMETRY icon")
                 .to.equals(constants.geometry);
-            expect(await commandExecutor.getCellIconType(multiPolygonCell), "The cell should have a GEOMETRY icon")
+            expect(await commandExecutor.getCellIconType(row, "test_multipolygon"),
+                "The cell should have a GEOMETRY icon")
                 .to.equals(constants.geometry);
-            expect(await commandExecutor.getCellIconType(geomCollectionCell), "The cell should have a GEOMETRY icon")
+            expect(await commandExecutor.getCellIconType(row, "test_geometrycollection"),
+                "The cell should have a GEOMETRY icon")
                 .to.equals(constants.geometry);
             expect(bitCell, errors.incorrectCellValue("BIT")).to.match(/(\d+)/);
         });

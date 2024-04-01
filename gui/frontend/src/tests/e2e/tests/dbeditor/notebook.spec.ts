@@ -777,12 +777,11 @@ describe("Notebook", () => {
         }
     });
 
-    it("Verify all mysql data types", async () => {
+    it("Verify mysql data types - integer columns", async () => {
         try {
             await commandExecutor.clean();
-            await commandExecutor.execute("SELECT * from sakila.all_data_types;");
+            await commandExecutor.execute("SELECT * from sakila.all_data_types_ints;");
             expect(commandExecutor.getResultMessage()).toMatch(/OK/);
-
             const row = 0;
             const booleanCell = await commandExecutor.getCellValueFromResultGrid(row, "test_boolean");
             const smallIntField = await commandExecutor.getCellValueFromResultGrid(row, "test_smallint");
@@ -792,30 +791,6 @@ describe("Notebook", () => {
             const decimalField = await commandExecutor.getCellValueFromResultGrid(row, "test_decimal");
             const floatFIeld = await commandExecutor.getCellValueFromResultGrid(row, "test_float");
             const doubleField = await commandExecutor.getCellValueFromResultGrid(row, "test_double");
-            const dateField = await commandExecutor.getCellValueFromResultGrid(row, "test_date");
-            const dateTimeField = await commandExecutor.getCellValueFromResultGrid(row, "test_datetime");
-            const timeStampField = await commandExecutor.getCellValueFromResultGrid(row, "test_timestamp");
-            const timeField = await commandExecutor.getCellValueFromResultGrid(row, "test_time");
-            const yearField = await commandExecutor.getCellValueFromResultGrid(row, "test_year");
-            const charField = await commandExecutor.getCellValueFromResultGrid(row, "test_char");
-            const varCharField = await commandExecutor.getCellValueFromResultGrid(row, "test_varchar");
-            const tinyTextField = await commandExecutor.getCellValueFromResultGrid(row, "test_tinytext");
-            const textField = await commandExecutor.getCellValueFromResultGrid(row, "test_text");
-            const mediumTextField = await commandExecutor.getCellValueFromResultGrid(row, "test_mediumtext");
-            const longTextField = await commandExecutor.getCellValueFromResultGrid(row, "test_longtext");
-            const enumField = await commandExecutor.getCellValueFromResultGrid(row, "test_enum");
-            const setFIeld = await commandExecutor.getCellValueFromResultGrid(row, "test_set");
-            const jsonCell = await commandExecutor.getCellFromResultGrid(row, "test_json");
-            const pointCell = await commandExecutor.getCellFromResultGrid(row, "test_point");
-            const lineStringCell = await commandExecutor.getCellFromResultGrid(row, "test_linestring");
-            const polygonCell = await commandExecutor.getCellFromResultGrid(row, "test_polygon");
-            const multiPointCell = await commandExecutor.getCellFromResultGrid(row, "test_multipoint");
-            const multiLineStringCell = await commandExecutor.getCellFromResultGrid(row,
-                "test_multilinestring");
-            const multiPolygonCell = await commandExecutor.getCellFromResultGrid(row, "test_multipolygon");
-            const geomCollectionCell = await commandExecutor.getCellFromResultGrid(row,
-                "test_geometrycollection");
-            const bitCell = await commandExecutor.getCellValueFromResultGrid(row, "test_bit");
 
             expect(booleanCell).toMatch(/(true|false)/);
             expect(smallIntField).toMatch(/(\d+)/);
@@ -825,11 +800,50 @@ describe("Notebook", () => {
             expect(decimalField).toMatch(/(\d+).(\d+)/);
             expect(floatFIeld).toMatch(/(\d+).(\d+)/);
             expect(doubleField).toMatch(/(\d+).(\d+)/);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+
+    });
+
+    it("Verify mysql data types - date columns", async () => {
+        try {
+            await commandExecutor.execute("SELECT * from sakila.all_data_types_dates;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+            const row = 0;
+            const dateField = await commandExecutor.getCellValueFromResultGrid(row, "test_date");
+            const dateTimeField = await commandExecutor.getCellValueFromResultGrid(row, "test_datetime");
+            const timeStampField = await commandExecutor.getCellValueFromResultGrid(row, "test_timestamp");
+            const timeField = await commandExecutor.getCellValueFromResultGrid(row, "test_time");
+            const yearField = await commandExecutor.getCellValueFromResultGrid(row, "test_year");
+
             expect(dateField).toMatch(/(\d+)\/(\d+)\/(\d+)/);
             expect(dateTimeField).toMatch(/(\d+)\/(\d+)\/(\d+)/);
             expect(timeStampField).toMatch(/(\d+)\/(\d+)\/(\d+)/);
             expect(timeField).toMatch(/(\d+):(\d+):(\d+)/);
             expect(yearField).toMatch(/(\d+)/);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+
+    });
+
+    it("Verify mysql data types - char columns", async () => {
+        try {
+            await commandExecutor.execute("SELECT * from sakila.all_data_types_chars;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+            const row = 0;
+            const charField = await commandExecutor.getCellValueFromResultGrid(row, "test_char");
+            const varCharField = await commandExecutor.getCellValueFromResultGrid(row, "test_varchar");
+            const tinyTextField = await commandExecutor.getCellValueFromResultGrid(row, "test_tinytext");
+            const textField = await commandExecutor.getCellValueFromResultGrid(row, "test_text");
+            const mediumTextField = await commandExecutor.getCellValueFromResultGrid(row, "test_mediumtext");
+            const longTextField = await commandExecutor.getCellValueFromResultGrid(row, "test_longtext");
+            const enumField = await commandExecutor.getCellValueFromResultGrid(row, "test_enum");
+            const setFIeld = await commandExecutor.getCellValueFromResultGrid(row, "test_set");
+
             expect(charField).toMatch(/([a-z]|[A-Z])/);
             expect(varCharField).toMatch(/([a-z]|[A-Z])/);
             expect(tinyTextField).toMatch(/([a-z]|[A-Z])/);
@@ -838,14 +852,48 @@ describe("Notebook", () => {
             expect(longTextField).toMatch(/([a-z]|[A-Z])/);
             expect(enumField).toMatch(/([a-z]|[A-Z])/);
             expect(setFIeld).toMatch(/([a-z]|[A-Z])/);
-            expect(await commandExecutor.getCellIconType(jsonCell)).toBe(constants.json);
-            expect(await commandExecutor.getCellIconType(pointCell)).toBe(constants.geometry);
-            expect(await commandExecutor.getCellIconType(lineStringCell)).toBe(constants.geometry);
-            expect(await commandExecutor.getCellIconType(polygonCell)).toBe(constants.geometry);
-            expect(await commandExecutor.getCellIconType(multiPointCell)).toBe(constants.geometry);
-            expect(await commandExecutor.getCellIconType(multiLineStringCell)).toBe(constants.geometry);
-            expect(await commandExecutor.getCellIconType(multiPolygonCell)).toBe(constants.geometry);
-            expect(await commandExecutor.getCellIconType(geomCollectionCell)).toBe(constants.geometry);
+            expect(await commandExecutor.getCellIconType(row, "test_json")).toBe(constants.json);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+
+    });
+
+    it("Verify mysql data types - blob columns", async () => {
+        try {
+            await commandExecutor.execute("SELECT * from sakila.all_data_types_blobs;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+            const row = 0;
+            const binaryField = await commandExecutor.getCellValueFromResultGrid(row, "test_binary");
+            const varBinaryField = await commandExecutor.getCellValueFromResultGrid(row, "test_varbinary");
+
+            expect(await commandExecutor.getCellIconType(row, "test_tinyblob")).toBe(constants.blob);
+            expect(await commandExecutor.getCellIconType(row, "test_blob")).toBe(constants.blob);
+            expect(await commandExecutor.getCellIconType(row, "test_mediumblob")).toBe(constants.blob);
+            expect(await commandExecutor.getCellIconType(row, "test_longblob")).toBe(constants.blob);
+            expect(binaryField).toMatch(/0x/);
+            expect(varBinaryField).toMatch(/0x/);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+
+    });
+
+    it("Verify mysql data types - geometry columns", async () => {
+        try {
+            await commandExecutor.execute("SELECT * from sakila.all_data_types_geometries;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+            const row = 0;
+            const bitCell = await commandExecutor.getCellValueFromResultGrid(row, "test_bit");
+            expect(await commandExecutor.getCellIconType(row, "test_point")).toBe(constants.geometry);
+            expect(await commandExecutor.getCellIconType(row, "test_linestring")).toBe(constants.geometry);
+            expect(await commandExecutor.getCellIconType(row, "test_polygon")).toBe(constants.geometry);
+            expect(await commandExecutor.getCellIconType(row, "test_multipoint")).toBe(constants.geometry);
+            expect(await commandExecutor.getCellIconType(row, "test_multilinestring")).toBe(constants.geometry);
+            expect(await commandExecutor.getCellIconType(row, "test_multipolygon")).toBe(constants.geometry);
+            expect(await commandExecutor.getCellIconType(row, "test_geometrycollection")).toBe(constants.geometry);
             expect(bitCell).toMatch(/(\d+)/);
         } catch (e) {
             testFailed = true;
@@ -853,11 +901,10 @@ describe("Notebook", () => {
         }
     });
 
-    it("Edit a result grid, verify query preview and commit", async () => {
-
+    it("Edit a result grid, verify query preview and commit - integer columns", async () => {
         try {
             await commandExecutor.clean();
-            await commandExecutor.execute("select * from sakila.all_data_types;");
+            await commandExecutor.execute("select * from sakila.all_data_types_ints;");
             expect(commandExecutor.getResultMessage()).toMatch(/OK/);
             const booleanEdited = false;
             const smallIntEdited = "32761";
@@ -867,30 +914,8 @@ describe("Notebook", () => {
             const decimalEdited = "1.70";
             const floatEdited = "10.767";
             const doubleEdited = "5.72";
-            const dateEdited = "2024-01-01";
-            const dateTimeEdited = "2024-01-01 15:00";
-            const timeStampEdited = "2024-01-01 15:00";
-            const timeEdited = "23:59";
-            const yearEdited = "2030";
-            const charEdited = "test_char_edited";
-            const varCharEdited = "test_varchar_edited";
-            const tinyTextEdited = "test_tiny_edited";
-            const textEdited = "test_text_edited";
-            const textMediumEdited = "test_med_edited";
-            const longTextEdited = "test_long_edited";
-            const enumEdited = "value2";
-            const setEdited = "value2";
-            const jsonEdited = '{"test": "2"}';
-            const pointEdited = "ST_GeomFromText('POINT(1 2)')";
-            const lineStringEdited = "ST_LineStringFromText('LINESTRING(0 0,1 1,2 1)')";
-            const polygonEdited = "ST_GeomFromText('POLYGON((0 0,11 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 7, 5 5))')";
-            const multiPointEdited = "ST_GeomFromText('MULTIPOINT(0 1, 20 20, 60 60)')";
-            const multiLineStrEdited = "ST_GeomFromText('MultiLineString((2 1,2 2,3 3),(4 4,5 5))')";
-            const multiPoly = "ST_GeomFromText('MULTIPOLYGON(((0 0,11 0,12 11,0 9,0 0)),((3 5,7 4,4 7,7 7,3 5)))')";
-            const geoCollEd = "ST_GeomFromText('GEOMETRYCOLLECTION(POINT(1 2),LINESTRING(0 0,1 1,2 2,3 3,4 4))')";
-            const bitEdited = "1";
-            const rowToEdit = 0;
 
+            const rowToEdit = 0;
             const cellsToEdit: interfaces.IResultGridCell[] = [
                 { rowNumber: rowToEdit, columnName: "test_boolean", value: booleanEdited },
                 { rowNumber: rowToEdit, columnName: "test_smallint", value: smallIntEdited },
@@ -900,38 +925,11 @@ describe("Notebook", () => {
                 { rowNumber: rowToEdit, columnName: "test_decimal", value: decimalEdited },
                 { rowNumber: rowToEdit, columnName: "test_float", value: floatEdited },
                 { rowNumber: rowToEdit, columnName: "test_double", value: doubleEdited },
-                { rowNumber: rowToEdit, columnName: "test_date", value: dateEdited },
-                { rowNumber: rowToEdit, columnName: "test_datetime", value: dateTimeEdited },
-                { rowNumber: rowToEdit, columnName: "test_timestamp", value: timeStampEdited },
-                { rowNumber: rowToEdit, columnName: "test_time", value: timeEdited },
-                { rowNumber: rowToEdit, columnName: "test_year", value: yearEdited },
-                { rowNumber: rowToEdit, columnName: "test_char", value: charEdited },
-                { rowNumber: rowToEdit, columnName: "test_varchar", value: varCharEdited },
-                { rowNumber: rowToEdit, columnName: "test_tinytext", value: tinyTextEdited },
-                { rowNumber: rowToEdit, columnName: "test_text", value: textEdited },
-                { rowNumber: rowToEdit, columnName: "test_mediumtext", value: textMediumEdited },
-                { rowNumber: rowToEdit, columnName: "test_longtext", value: longTextEdited },
-                { rowNumber: rowToEdit, columnName: "test_enum", value: enumEdited },
-                { rowNumber: rowToEdit, columnName: "test_set", value: setEdited },
-                { rowNumber: rowToEdit, columnName: "test_json", value: jsonEdited },
-                { rowNumber: rowToEdit, columnName: "test_point", value: pointEdited },
-                { rowNumber: rowToEdit, columnName: "test_linestring", value: lineStringEdited },
-                { rowNumber: rowToEdit, columnName: "test_polygon", value: polygonEdited },
-                { rowNumber: rowToEdit, columnName: "test_multipoint", value: multiPointEdited },
-                { rowNumber: rowToEdit, columnName: "test_multilinestring", value: multiLineStrEdited },
-                { rowNumber: rowToEdit, columnName: "test_multipolygon", value: multiPoly },
-                { rowNumber: rowToEdit, columnName: "test_geometrycollection", value: geoCollEd },
-                { rowNumber: rowToEdit, columnName: "test_bit", value: bitEdited },
             ];
-
             await commandExecutor.editResultGridCells(cellsToEdit);
-            const dateTimeToISO = Misc.convertDateToISO(dateTimeEdited);
-            const timeStampToISO = Misc.convertDateToISO(timeStampEdited);
-            const timeTransformed = Misc.convertTimeTo12H(timeEdited);
-
             const booleanField = booleanEdited ? 1 : 0;
             const expectedSqlPreview = [
-                /UPDATE sakila.all_data_types SET/,
+                /UPDATE sakila.all_data_types_ints SET/,
                 new RegExp(`test_boolean = ${booleanField}`),
                 new RegExp(`test_smallint = ${smallIntEdited}`),
                 new RegExp(`test_mediumint = ${mediumIntEdited}`),
@@ -940,54 +938,26 @@ describe("Notebook", () => {
                 new RegExp(`test_decimal = ${decimalEdited}`),
                 new RegExp(`test_float = ${floatEdited}`),
                 new RegExp(`test_double = ${doubleEdited}`),
-                new RegExp(`test_date = '${dateEdited}'`),
-                new RegExp(`test_datetime = '(${dateTimeEdited}:00|${dateTimeToISO}:00)'`),
-                new RegExp(`test_timestamp = '(${timeStampEdited}:00|${timeStampToISO}:00)'`),
-                new RegExp(`test_time = '(${timeEdited}|${timeTransformed})'`),
-                new RegExp(`test_year = ${yearEdited}`),
-                new RegExp(`test_char = '${charEdited}'`),
-                new RegExp(`test_varchar = '${varCharEdited}'`),
-                new RegExp(`test_tinytext = '${tinyTextEdited}'`),
-                new RegExp(`test_text = '${textEdited}'`),
-                new RegExp(`test_mediumtext = '${textMediumEdited}'`),
-                new RegExp(`test_longtext = '${longTextEdited}'`),
-                new RegExp(`test_enum = '${enumEdited}'`),
-                new RegExp(`test_set = '${setEdited}'`),
-                Misc.transformToMatch(`test_json = '${jsonEdited}'`),
-                Misc.transformToMatch(`test_point = ${pointEdited}`),
-                Misc.transformToMatch(`test_linestring = ${lineStringEdited}`),
-                Misc.transformToMatch(`test_polygon = ${polygonEdited}`),
-                Misc.transformToMatch(`test_multipoint = ${multiPointEdited}`),
-                Misc.transformToMatch(`test_multilinestring = ${multiLineStrEdited}`),
-                Misc.transformToMatch(`test_multipolygon = ${multiPoly}`),
-                Misc.transformToMatch(`test_geometrycollection = ${geoCollEd}`),
-                new RegExp(`test_bit = b'${bitEdited}' WHERE id = 1;`),
+                /WHERE id = 1;/,
             ];
-
             const sqlPreview = await commandExecutor.getSqlPreview();
-            const sqlPreviewScroll = await driver
-                .findElements(locator.notebook.codeEditor.editor.result.previewChanges.exists);
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
-                if (i === 26 && sqlPreviewScroll.length > 0) {
-                    await driver.executeScript("arguments[0].scrollBy(0,500)", sqlPreviewScroll[0]);
-                }
                 expect(sqlPreview).toMatch(expectedSqlPreview[i]);
             }
-
             const sqlPreviewEl = await commandExecutor.getSqlPreview(true);
-            await (sqlPreviewEl as WebElement).click();
+            await driver.actions().doubleClick(sqlPreviewEl as WebElement).perform();
             await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
             const resultGrid = commandExecutor.getResultContent() as WebElement;
             const rows = await resultGrid.findElements(locator.notebook.codeEditor.editor.result.tableRow);
             expect(await rows[rowToEdit].getAttribute("class")).toContain("tabulator-selected");
+
             await commandExecutor.resultGridApplyChanges();
             await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
             await driver.wait(waitUntil.rowsWereUpdated(commandExecutor), constants.wait5seconds);
             await driver.wait(waitUntil.changedResultGridCellsAreDone(commandExecutor), constants.wait5seconds);
 
-            await commandExecutor.execute("select * from sakila.all_data_types where id = 1;");
+            await commandExecutor.execute("select * from sakila.all_data_types_ints where id = 1;");
             expect(commandExecutor.getResultMessage()).toMatch(/OK/);
-
             const testBoolean = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_boolean");
             expect(testBoolean).toBe(booleanEdited.toString());
             const testSmallInt = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_smallint");
@@ -1004,6 +974,68 @@ describe("Notebook", () => {
             expect(testFloat).toBe(floatEdited);
             const testDouble = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_double");
             expect(testDouble).toBe(doubleEdited);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Edit a result grid, verify query preview and commit - date columns", async () => {
+        try {
+            await commandExecutor.clean();
+            await commandExecutor.execute("select * from sakila.all_data_types_dates;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+            const dateEdited = "2024-01-01";
+            const dateTimeEdited = "2024-01-01 15:00";
+            const timeStampEdited = "2024-01-01 15:00";
+            const timeEdited = "23:59";
+            const yearEdited = "2030";
+
+            const rowToEdit = 0;
+            const cellsToEdit: interfaces.IResultGridCell[] = [
+                { rowNumber: rowToEdit, columnName: "test_date", value: dateEdited },
+                { rowNumber: rowToEdit, columnName: "test_datetime", value: dateTimeEdited },
+                { rowNumber: rowToEdit, columnName: "test_timestamp", value: timeStampEdited },
+                { rowNumber: rowToEdit, columnName: "test_time", value: timeEdited },
+                { rowNumber: rowToEdit, columnName: "test_year", value: yearEdited },
+            ];
+            await commandExecutor.editResultGridCells(cellsToEdit);
+            const dateTimeToISO = Misc.convertDateToISO(dateTimeEdited);
+            const timeStampToISO = Misc.convertDateToISO(timeStampEdited);
+            const timeTransformed = Misc.convertTimeTo12H(timeEdited);
+
+            const expectedSqlPreview = [
+                "UPDATE sakila.all_data_types_dates SET",
+                new RegExp(`test_date = '${dateEdited}'`),
+                new RegExp(`test_datetime = '(${dateTimeEdited}:00|${dateTimeToISO}:00)'`),
+                new RegExp(`test_timestamp = '(${timeStampEdited}:00|${timeStampToISO}:00)'`),
+                new RegExp(`test_time = '(${timeEdited}|${timeTransformed})'`),
+                new RegExp(`test_year = ${yearEdited}`),
+                "WHERE id = 1;",
+            ];
+            const sqlPreview = await commandExecutor.getSqlPreview();
+            for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
+                if (expectedSqlPreview[i] instanceof RegExp) {
+                    expect(sqlPreview).toMatch(expectedSqlPreview[i]);
+                } else {
+                    expect(sqlPreview).toContain(expectedSqlPreview[i]);
+                }
+            }
+            const sqlPreviewEl = await commandExecutor.getSqlPreview(true);
+            await driver.actions().doubleClick(sqlPreviewEl as WebElement).perform();
+            await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
+            const resultGrid = commandExecutor.getResultContent() as WebElement;
+            const rows = await resultGrid.findElements(locator.notebook.codeEditor.editor.result.tableRow);
+            expect(await rows[rowToEdit].getAttribute("class")).toContain("tabulator-selected");
+
+            await commandExecutor.resultGridApplyChanges();
+            await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
+            await driver.wait(waitUntil.rowsWereUpdated(commandExecutor), constants.wait5seconds);
+            await driver.wait(waitUntil.changedResultGridCellsAreDone(commandExecutor), constants.wait5seconds);
+
+            await commandExecutor.execute("select * from sakila.all_data_types_dates where id = 1;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+
             const testDate = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_date");
             expect(testDate).toBe("01/01/2024");
             const testDateTime = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_datetime");
@@ -1015,6 +1047,76 @@ describe("Notebook", () => {
             expect(testTime === `${timeEdited}:00` || testTime === convertedTime).toBe(true);
             const testYear = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_year");
             expect(testYear).toBe(yearEdited);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Edit a result grid, verify query preview and commit - char columns", async () => {
+        try {
+            await commandExecutor.clean();
+            await commandExecutor.execute("select * from sakila.all_data_types_chars;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+            const charEdited = "test_char_edited";
+            const varCharEdited = "test_varchar_edited";
+            const tinyTextEdited = "test_tiny_edited";
+            const textEdited = "test_text_edited";
+            const textMediumEdited = "test_med_edited";
+            const longTextEdited = "test_long_edited";
+            const enumEdited = "value2";
+            const setEdited = "value2";
+            const jsonEdited = '{"test": "2"}';
+
+            const rowToEdit = 0;
+            const cellsToEdit: interfaces.IResultGridCell[] = [
+                { rowNumber: rowToEdit, columnName: "test_char", value: charEdited },
+                { rowNumber: rowToEdit, columnName: "test_varchar", value: varCharEdited },
+                { rowNumber: rowToEdit, columnName: "test_tinytext", value: tinyTextEdited },
+                { rowNumber: rowToEdit, columnName: "test_text", value: textEdited },
+                { rowNumber: rowToEdit, columnName: "test_mediumtext", value: textMediumEdited },
+                { rowNumber: rowToEdit, columnName: "test_longtext", value: longTextEdited },
+                { rowNumber: rowToEdit, columnName: "test_enum", value: enumEdited },
+                { rowNumber: rowToEdit, columnName: "test_set", value: setEdited },
+                { rowNumber: rowToEdit, columnName: "test_json", value: jsonEdited },
+            ];
+            await commandExecutor.editResultGridCells(cellsToEdit);
+
+            const expectedSqlPreview = [
+                "UPDATE sakila.all_data_types_chars SET",
+                new RegExp(`test_char = '${charEdited}'`),
+                new RegExp(`test_varchar = '${varCharEdited}'`),
+                new RegExp(`test_tinytext = '${tinyTextEdited}'`),
+                new RegExp(`test_text = '${textEdited}'`),
+                new RegExp(`test_mediumtext = '${textMediumEdited}'`),
+                new RegExp(`test_longtext = '${longTextEdited}'`),
+                new RegExp(`test_enum = '${enumEdited}'`),
+                new RegExp(`test_set = '${setEdited}'`),
+                Misc.transformToMatch(`test_json = '${jsonEdited}'`),
+                "WHERE id = 1;",
+            ];
+            const sqlPreview = await commandExecutor.getSqlPreview();
+            for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
+                if (expectedSqlPreview[i] instanceof RegExp) {
+                    expect(sqlPreview).toMatch(expectedSqlPreview[i]);
+                } else {
+                    expect(sqlPreview).toContain(expectedSqlPreview[i]);
+                }
+            }
+            const sqlPreviewEl = await commandExecutor.getSqlPreview(true);
+            await driver.actions().doubleClick(sqlPreviewEl as WebElement).perform();
+            await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
+            const resultGrid = commandExecutor.getResultContent() as WebElement;
+            const rows = await resultGrid.findElements(locator.notebook.codeEditor.editor.result.tableRow);
+            expect(await rows[rowToEdit].getAttribute("class")).toContain("tabulator-selected");
+            await commandExecutor.resultGridApplyChanges();
+            await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
+            await driver.wait(waitUntil.rowsWereUpdated(commandExecutor), constants.wait5seconds);
+            await driver.wait(waitUntil.changedResultGridCellsAreDone(commandExecutor), constants.wait5seconds);
+
+            await commandExecutor.execute("select * from sakila.all_data_types_chars where id = 1;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+
             const testChar = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_char");
             expect(testChar).toBe(charEdited);
             const testVarChar = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_varchar");
@@ -1023,8 +1125,7 @@ describe("Notebook", () => {
             expect(testTinyText).toBe(tinyTextEdited);
             const testText = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_text");
             expect(testText).toBe(textEdited);
-            const testMediumText = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
-                "test_mediumtext");
+            const testMediumText = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_mediumtext");
             expect(testMediumText).toBe(textMediumEdited);
             const testLongText = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_longtext");
             expect(testLongText).toBe(longTextEdited);
@@ -1034,15 +1135,80 @@ describe("Notebook", () => {
             expect(testSet).toBe(setEdited);
             const testJson = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_json");
             expect(testJson).toBe(constants.json);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Edit a result grid, verify query preview and commit - geometry columns", async () => {
+        try {
+            await commandExecutor.clean();
+            await commandExecutor.execute("select * from sakila.all_data_types_geometries;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+            const pointEdited = "ST_GeomFromText('POINT(1 2)')";
+            const lineStringEdited = "ST_LineStringFromText('LINESTRING(0 0,1 1,2 1)')";
+            const polygonEdited = "ST_GeomFromText('POLYGON((0 0,11 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 7, 5 5))')";
+            const multiPointEdited = "ST_GeomFromText('MULTIPOINT(0 1, 20 20, 60 60)')";
+            const multiLineStrEdited = "ST_GeomFromText('MultiLineString((2 1,2 2,3 3),(4 4,5 5))')";
+            const multiPoly = "ST_GeomFromText('MULTIPOLYGON(((0 0,11 0,12 11,0 9,0 0)),((3 5,7 4,4 7,7 7,3 5)))')";
+            const geoCollEd = "ST_GeomFromText('GEOMETRYCOLLECTION(POINT(1 2),LINESTRING(0 0,1 1,2 2,3 3,4 4))')";
+            const bitEdited = "1";
+            const rowToEdit = 0;
+
+            const cellsToEdit: interfaces.IResultGridCell[] = [
+                { rowNumber: rowToEdit, columnName: "test_point", value: pointEdited },
+                { rowNumber: rowToEdit, columnName: "test_linestring", value: lineStringEdited },
+                { rowNumber: rowToEdit, columnName: "test_polygon", value: polygonEdited },
+                { rowNumber: rowToEdit, columnName: "test_multipoint", value: multiPointEdited },
+                { rowNumber: rowToEdit, columnName: "test_multilinestring", value: multiLineStrEdited },
+                { rowNumber: rowToEdit, columnName: "test_multipolygon", value: multiPoly },
+                { rowNumber: rowToEdit, columnName: "test_geometrycollection", value: geoCollEd },
+                { rowNumber: rowToEdit, columnName: "test_bit", value: bitEdited },
+            ];
+            await commandExecutor.editResultGridCells(cellsToEdit);
+
+            const expectedSqlPreview = [
+                "UPDATE sakila.all_data_types_geometries SET",
+                Misc.transformToMatch(`test_point = ${pointEdited}`),
+                Misc.transformToMatch(`test_linestring = ${lineStringEdited}`),
+                Misc.transformToMatch(`test_polygon = ${polygonEdited}`),
+                Misc.transformToMatch(`test_multipoint = ${multiPointEdited}`),
+                Misc.transformToMatch(`test_multilinestring = ${multiLineStrEdited}`),
+                Misc.transformToMatch(`test_multipolygon = ${multiPoly}`),
+                Misc.transformToMatch(`test_geometrycollection = ${geoCollEd}`),
+                new RegExp(`test_bit = b'${bitEdited}' WHERE id = 1;`),
+            ];
+            const sqlPreview = await commandExecutor.getSqlPreview();
+            for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
+                if (expectedSqlPreview[i] instanceof RegExp) {
+                    expect(sqlPreview).toMatch(expectedSqlPreview[i]);
+                } else {
+                    expect(sqlPreview).toContain(expectedSqlPreview[i]);
+                }
+            }
+            const sqlPreviewEl = await commandExecutor.getSqlPreview(true);
+            await driver.actions().doubleClick(sqlPreviewEl as WebElement).perform();
+            await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
+            const resultGrid = commandExecutor.getResultContent() as WebElement;
+            const rows = await resultGrid.findElements(locator.notebook.codeEditor.editor.result.tableRow);
+            expect(await rows[rowToEdit].getAttribute("class")).toContain("tabulator-selected");
+
+            await commandExecutor.resultGridApplyChanges();
+            await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
+            await driver.wait(waitUntil.rowsWereUpdated(commandExecutor), constants.wait5seconds);
+            await driver.wait(waitUntil.changedResultGridCellsAreDone(commandExecutor), constants.wait5seconds);
+
+            await commandExecutor.execute("select * from sakila.all_data_types_geometries where id = 1;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+
             const testPoint = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_point");
             expect(testPoint).toBe(constants.geometry);
-            const testLineString = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
-                "test_linestring");
+            const testLineString = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_linestring");
             expect(testLineString).toBe(constants.geometry);
             const testPolygon = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_polygon");
             expect(testPolygon).toBe(constants.geometry);
-            const testMultiPoint = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
-                "test_multipoint");
+            const testMultiPoint = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_multipoint");
             expect(testMultiPoint).toBe(constants.geometry);
             const testMultiLineString = await commandExecutor.getCellValueFromResultGrid(rowToEdit,
                 "test_multilinestring");
@@ -1059,14 +1225,12 @@ describe("Notebook", () => {
             testFailed = true;
             throw e;
         }
-
-
-    }, constants.wait250seconds);
+    });
 
     it("Edit a result grid and rollback", async () => {
         try {
             const modifiedText = "56";
-            await commandExecutor.execute("select * from sakila.all_data_types;");
+            await commandExecutor.execute("select * from sakila.all_data_types_ints;");
             expect(commandExecutor.getResultMessage()).toMatch(/OK/);
             await commandExecutor.editResultGridCells(
                 [{
@@ -1112,12 +1276,11 @@ describe("Notebook", () => {
         }
     });
 
-    it("Add new row from result grid", async () => {
+    it("Add new row on result grid - integer columns", async () => {
         try {
             await commandExecutor.clean();
-            await commandExecutor.execute("select * from sakila.all_data_types;");
+            await commandExecutor.execute("select * from sakila.all_data_types_ints;");
             expect(commandExecutor.getResultMessage()).toMatch(/OK/);
-
             const booleanEdited = true;
             const smallIntEdited = "32761";
             const mediumIntEdited = "8388601";
@@ -1126,28 +1289,6 @@ describe("Notebook", () => {
             const decimalEdited = "1.70";
             const floatEdited = "10.767";
             const doubleEdited = "5.72";
-            const dateEdited = "2024-01-01";
-            const dateTimeEdited = "2024-01-01T23:59";
-            const timeStampEdited = "2024-01-01T23:59";
-            const timeEdited = "23:59";
-            const yearEdited = "2024";
-            const charEdited = "test_char_edited";
-            const varCharEdited = "test_varchar_edited";
-            const tinyTextEdited = "test_tiny_edited";
-            const textEdited = "test_text_edited";
-            const textMediumEdited = "test_med_edited";
-            const longTextEdited = "test_long_edited";
-            const enumEdited = "value4";
-            const setEdited = "value4";
-            const jsonEdited = '{"test": "2"}';
-            const pointEdited = "ST_GeomFromText('POINT(1 2)')";
-            const lineStringEdited = "ST_LineStringFromText('LINESTRING(0 0,1 1,2 1)')";
-            const polygonEdited = "ST_GeomFromText('POLYGON((0 0,11 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 7, 5 5))')";
-            const multiPointEdited = "ST_GeomFromText('MULTIPOINT(0 1, 20 20, 60 60)')";
-            const multiLineStrEdited = "ST_GeomFromText('MultiLineString((2 1,2 2,3 3),(4 4,5 5))')";
-            const multiPolyEd = "ST_GeomFromText('MULTIPOLYGON(((0 0,11 0,12 11,0 9,0 0)),((3 5,7 4,4 7,7 7,3 5)))')";
-            const geoCollEdited = "ST_GeomFromText('GEOMETRYCOLLECTION(POINT(1 2),LINESTRING(0 0,1 1,2 2,3 3,4 4))')";
-            const bitEdited = "0";
 
             const rowToAdd: interfaces.IResultGridCell[] = [
                 { columnName: "test_boolean", value: booleanEdited },
@@ -1158,28 +1299,6 @@ describe("Notebook", () => {
                 { columnName: "test_decimal", value: decimalEdited },
                 { columnName: "test_float", value: floatEdited },
                 { columnName: "test_double", value: doubleEdited },
-                { columnName: "test_date", value: dateEdited },
-                { columnName: "test_datetime", value: dateTimeEdited },
-                { columnName: "test_timestamp", value: timeStampEdited },
-                { columnName: "test_time", value: timeEdited },
-                { columnName: "test_year", value: yearEdited },
-                { columnName: "test_char", value: charEdited },
-                { columnName: "test_varchar", value: varCharEdited },
-                { columnName: "test_tinytext", value: tinyTextEdited },
-                { columnName: "test_text", value: textEdited },
-                { columnName: "test_mediumtext", value: textMediumEdited },
-                { columnName: "test_longtext", value: longTextEdited },
-                { columnName: "test_enum", value: enumEdited },
-                { columnName: "test_set", value: setEdited },
-                { columnName: "test_json", value: jsonEdited },
-                { columnName: "test_point", value: pointEdited },
-                { columnName: "test_linestring", value: lineStringEdited },
-                { columnName: "test_polygon", value: polygonEdited },
-                { columnName: "test_multipoint", value: multiPointEdited },
-                { columnName: "test_multilinestring", value: multiLineStrEdited },
-                { columnName: "test_multipolygon", value: multiPolyEd },
-                { columnName: "test_geometrycollection", value: geoCollEdited },
-                { columnName: "test_bit", value: bitEdited },
             ];
 
             await commandExecutor.addResultGridRow(rowToAdd);
@@ -1187,12 +1306,12 @@ describe("Notebook", () => {
             await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
             await driver.wait(waitUntil.rowsWereUpdated(commandExecutor), constants.wait5seconds);
             await driver.wait(waitUntil.changedResultGridCellsAreDone(commandExecutor), constants.wait5seconds);
-            await commandExecutor
-                .execute(
-                    "select * from sakila.all_data_types where id = (select max(id) from sakila.all_data_types);");
+            let query = "select * from sakila.all_data_types_ints where id =";
+            query += " (select max(id) from sakila.all_data_types_ints);";
+            await commandExecutor.execute(query);
             expect(commandExecutor.getResultMessage()).toMatch(/OK/);
-
             const row = 0;
+
             const testBoolean = await commandExecutor.getCellValueFromResultGrid(row, "test_boolean");
             expect(testBoolean).toBe(booleanEdited.toString());
             const testSmallInt = await commandExecutor.getCellValueFromResultGrid(row, "test_smallint");
@@ -1209,6 +1328,41 @@ describe("Notebook", () => {
             expect(testFloat).toBe(floatEdited);
             const testDouble = await commandExecutor.getCellValueFromResultGrid(row, "test_double");
             expect(testDouble).toBe(doubleEdited);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Add new row on result grid - date columns", async () => {
+        try {
+            await commandExecutor.clean();
+            await commandExecutor.execute("select * from sakila.all_data_types_dates;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+            const dateEdited = "2024-01-01";
+            const dateTimeEdited = "2024-01-01 15:00";
+            const timeStampEdited = "2024-01-01 15:00";
+            const timeEdited = "23:59";
+            const yearEdited = "2024";
+
+            const rowToAdd: interfaces.IResultGridCell[] = [
+                { columnName: "test_date", value: dateEdited },
+                { columnName: "test_datetime", value: dateTimeEdited },
+                { columnName: "test_timestamp", value: timeStampEdited },
+                { columnName: "test_time", value: timeEdited },
+                { columnName: "test_year", value: yearEdited },
+            ];
+
+            await commandExecutor.addResultGridRow(rowToAdd);
+            await commandExecutor.resultGridApplyChanges();
+            await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
+            await driver.wait(waitUntil.rowsWereUpdated(commandExecutor), constants.wait5seconds);
+            await driver.wait(waitUntil.changedResultGridCellsAreDone(commandExecutor), constants.wait5seconds);
+            let query = "select * from sakila.all_data_types_dates where id =";
+            query += " (select max(id) from sakila.all_data_types_dates);";
+            await commandExecutor.execute(query);
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+            const row = 0;
             const testDate = await commandExecutor.getCellValueFromResultGrid(row, "test_date");
             expect(testDate).toBe("01/01/2024");
             const testDateTime = await commandExecutor.getCellValueFromResultGrid(row, "test_datetime");
@@ -1220,6 +1374,49 @@ describe("Notebook", () => {
             expect(testTime === `${timeEdited}:00` || testTime === convertedTime).toBe(true);
             const testYear = await commandExecutor.getCellValueFromResultGrid(row, "test_year");
             expect(testYear).toBe(yearEdited);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Add new row on result grid - char columns", async () => {
+        try {
+            await commandExecutor.clean();
+            await commandExecutor.execute("select * from sakila.all_data_types_chars;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+            const charEdited = "test_char_edited";
+            const varCharEdited = "test_varchar_edited";
+            const tinyTextEdited = "test_tiny_edited";
+            const textEdited = "test_text_edited";
+            const textMediumEdited = "test_med_edited";
+            const longTextEdited = "test_long_edited";
+            const enumEdited = "value4";
+            const setEdited = "value4";
+            const jsonEdited = '{"test": "2"}';
+
+            const rowToAdd: interfaces.IResultGridCell[] = [
+                { columnName: "test_char", value: charEdited },
+                { columnName: "test_varchar", value: varCharEdited },
+                { columnName: "test_tinytext", value: tinyTextEdited },
+                { columnName: "test_text", value: textEdited },
+                { columnName: "test_mediumtext", value: textMediumEdited },
+                { columnName: "test_longtext", value: longTextEdited },
+                { columnName: "test_enum", value: enumEdited },
+                { columnName: "test_set", value: setEdited },
+                { columnName: "test_json", value: jsonEdited },
+            ];
+
+            await commandExecutor.addResultGridRow(rowToAdd);
+            await commandExecutor.resultGridApplyChanges();
+            await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
+            await driver.wait(waitUntil.rowsWereUpdated(commandExecutor), constants.wait5seconds);
+            await driver.wait(waitUntil.changedResultGridCellsAreDone(commandExecutor), constants.wait5seconds);
+            let query = "select * from sakila.all_data_types_chars where id =";
+            query += " (select max(id) from sakila.all_data_types_chars);";
+            await commandExecutor.execute(query);
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+            const row = 0;
             const testChar = await commandExecutor.getCellValueFromResultGrid(row, "test_char");
             expect(testChar).toBe(charEdited);
             const testVarChar = await commandExecutor.getCellValueFromResultGrid(row, "test_varchar");
@@ -1238,6 +1435,47 @@ describe("Notebook", () => {
             expect(testSet).toBe(setEdited);
             const testJson = await commandExecutor.getCellValueFromResultGrid(row, "test_json");
             expect(testJson).toBe(constants.json);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Add new row on result grid - geometry columns", async () => {
+        try {
+            await commandExecutor.clean();
+            await commandExecutor.execute("select * from sakila.all_data_types_geometries;");
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+            const pointEdited = "ST_GeomFromText('POINT(1 2)')";
+            const lineStringEdited = "ST_LineStringFromText('LINESTRING(0 0,1 1,2 1)')";
+            const polygonEdited = "ST_GeomFromText('POLYGON((0 0,11 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 7, 5 5))')";
+            const multiPointEdited = "ST_GeomFromText('MULTIPOINT(0 1, 20 20, 60 60)')";
+            const multiLineStrEdited = "ST_GeomFromText('MultiLineString((2 1,2 2,3 3),(4 4,5 5))')";
+            const multiPolyEd = "ST_GeomFromText('MULTIPOLYGON(((0 0,11 0,12 11,0 9,0 0)),((3 5,7 4,4 7,7 7,3 5)))')";
+            const geoCollEdited = "ST_GeomFromText('GEOMETRYCOLLECTION(POINT(1 2),LINESTRING(0 0,1 1,2 2,3 3,4 4))')";
+            const bitEdited = "0";
+
+            const rowToAdd: interfaces.IResultGridCell[] = [
+                { columnName: "test_point", value: pointEdited },
+                { columnName: "test_linestring", value: lineStringEdited },
+                { columnName: "test_polygon", value: polygonEdited },
+                { columnName: "test_multipoint", value: multiPointEdited },
+                { columnName: "test_multilinestring", value: multiLineStrEdited },
+                { columnName: "test_multipolygon", value: multiPolyEd },
+                { columnName: "test_geometrycollection", value: geoCollEdited },
+                { columnName: "test_bit", value: bitEdited },
+            ];
+
+            await commandExecutor.addResultGridRow(rowToAdd);
+            await commandExecutor.resultGridApplyChanges();
+            await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
+            await driver.wait(waitUntil.rowsWereUpdated(commandExecutor), constants.wait5seconds);
+            await driver.wait(waitUntil.changedResultGridCellsAreDone(commandExecutor), constants.wait5seconds);
+            let query = "select * from sakila.all_data_types_geometries where id = ";
+            query += "(select max(id) from sakila.all_data_types_geometries);";
+            await commandExecutor.execute(query);
+            expect(commandExecutor.getResultMessage()).toMatch(/OK/);
+            const row = 0;
             const testPoint = await commandExecutor.getCellValueFromResultGrid(row, "test_point");
             expect(testPoint).toBe(constants.geometry);
             const testLineString = await commandExecutor.getCellValueFromResultGrid(row, "test_linestring");
@@ -1246,13 +1484,11 @@ describe("Notebook", () => {
             expect(testPolygon).toBe(constants.geometry);
             const testMultiPoint = await commandExecutor.getCellValueFromResultGrid(row, "test_multipoint");
             expect(testMultiPoint).toBe(constants.geometry);
-            const testMultiLineString = await commandExecutor.getCellValueFromResultGrid(row,
-                "test_multilinestring");
+            const testMultiLineString = await commandExecutor.getCellValueFromResultGrid(row, "test_multilinestring");
             expect(testMultiLineString).toBe(constants.geometry);
             const testMultiPolygon = await commandExecutor.getCellValueFromResultGrid(row, "test_multipolygon");
             expect(testMultiPolygon).toBe(constants.geometry);
-            const testGeomCollection = await commandExecutor.getCellValueFromResultGrid(row,
-                "test_geometrycollection");
+            const testGeomCollection = await commandExecutor.getCellValueFromResultGrid(row, "test_geometrycollection");
             expect(testGeomCollection).toBe(constants.geometry);
             const testBit = await commandExecutor.getCellValueFromResultGrid(row, "test_bit");
             expect(testBit).toBe("0");
@@ -1260,7 +1496,7 @@ describe("Notebook", () => {
             testFailed = true;
             throw e;
         }
-    }, constants.wait250seconds);
+    });
 
     it("Close a result set", async () => {
         try {
@@ -1474,14 +1710,15 @@ describe("Notebook headless off", () => {
 
     it("Result grid context menu - Copy single row", async () => {
         try {
-            const tableColumns = constants.dbTables[0].columns;
-            await commandExecutor.execute("select * from sakila.all_data_types;");
+            const table = 2;
+            const tableColumns = constants.dbTables[table].columns;
+            await commandExecutor.execute("select * from sakila.all_data_types_chars;");
             expect(commandExecutor.getResultMessage()).toMatch(/OK/);
 
             let fields: string[] = [];
             let lines: string[] = [];
             const row = 0;
-            const column = "test_boolean";
+            const column = "test_text";
 
             // Copy row.
             await driver.wait(async () => {
@@ -1495,7 +1732,7 @@ describe("Notebook headless off", () => {
                 "(copy row) The copied row fields do not match the table columns");
 
             for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
+                expect(fields[i]).toMatch(constants.dbTables[table].columnRegexWithQuotes![i]);
             }
 
             // Copy row with names.
@@ -1511,7 +1748,7 @@ describe("Notebook headless off", () => {
                 "(copy row with names) The copied row fields do not match the table columns");
 
             for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
+                expect(fields[i]).toMatch(constants.dbTables[table].columnRegexWithQuotes![i]);
             }
             expect((await Os.readClipboard()).includes(`# ${tableColumns.join(", ")}`)).toBe(true);
 
@@ -1527,7 +1764,7 @@ describe("Notebook headless off", () => {
                 "(copy row unquoted) The copied row fields do not match the table columns");
 
             for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i]).toMatch(constants.dbTables[0].columnRegex![i]);
+                expect(fields[i]).toMatch(constants.dbTables[table].columnRegex![i]);
             }
 
             // Copy row with names, unquoted.
@@ -1543,7 +1780,7 @@ describe("Notebook headless off", () => {
                 "(copy row with names, unquoted) The copied row fields do not match the table columns");
 
             for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i]).toMatch(constants.dbTables[0].columnRegex![i]);
+                expect(fields[i]).toMatch(constants.dbTables[table].columnRegex![i]);
             }
             expect((await Os.readClipboard()).includes(`# ${tableColumns.join(", ")}`)).toBe(true);
 
@@ -1561,7 +1798,7 @@ describe("Notebook headless off", () => {
 
 
             for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
+                expect(fields[i]).toMatch(constants.dbTables[table].columnRegexWithQuotes![i]);
             }
             expect((await Os.readClipboard()).includes(`# ${tableColumns.join("\t")}`)).toBe(true);
 
@@ -1577,7 +1814,7 @@ describe("Notebook headless off", () => {
                 "(copy row, tab separated) The copied row fields do not match the table columns");
 
             for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i]).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
+                expect(fields[i]).toMatch(constants.dbTables[table].columnRegexWithQuotes![i]);
             }
         } catch (e) {
             testFailed = true;
@@ -1587,7 +1824,8 @@ describe("Notebook headless off", () => {
 
     it("Result grid context menu - Copy multiple rows", async () => {
         try {
-            const tableColumns = constants.dbTables[2].columns;
+            const table = 6;
+            const tableColumns = constants.dbTables[table].columns;
             await commandExecutor.execute("select * from sakila.actor limit 3;");
             expect(commandExecutor.getResultMessage()).toMatch(/OK/);
 
@@ -1615,7 +1853,7 @@ describe("Notebook headless off", () => {
             for (let lineIdx = 0; lineIdx <= lines.length - 1; lineIdx++) {
                 fields = lines[lineIdx].split(",");
                 for (let i = 0; i <= fields.length - 1; i++) {
-                    expect(fields[i]).toMatch(constants.dbTables[2].columnRegexWithQuotes![i]);
+                    expect(fields[i]).toMatch(constants.dbTables[table].columnRegexWithQuotes![i]);
                 }
             }
 
@@ -1638,7 +1876,7 @@ describe("Notebook headless off", () => {
             for (let lineIdx = 1; lineIdx <= lines.length - 1; lineIdx++) {
                 fields = lines[lineIdx].split(",");
                 for (let i = 0; i <= fields.length - 1; i++) {
-                    expect(fields[i]).toMatch(constants.dbTables[2].columnRegexWithQuotes![i]);
+                    expect(fields[i]).toMatch(constants.dbTables[table].columnRegexWithQuotes![i]);
                 }
             }
 
@@ -1661,7 +1899,7 @@ describe("Notebook headless off", () => {
             for (let lineIdx = 0; lineIdx <= lines.length - 1; lineIdx++) {
                 fields = lines[lineIdx].split(",");
                 for (let i = 0; i <= fields.length - 1; i++) {
-                    expect(fields[i]).toMatch(constants.dbTables[2].columnRegex![i]);
+                    expect(fields[i]).toMatch(constants.dbTables[table].columnRegex![i]);
                 }
             }
 
@@ -1683,7 +1921,7 @@ describe("Notebook headless off", () => {
             for (let lineIdx = 1; lineIdx <= lines.length - 1; lineIdx++) {
                 fields = lines[lineIdx].split(",");
                 for (let i = 0; i <= fields.length - 1; i++) {
-                    expect(fields[i]).toMatch(constants.dbTables[2].columnRegex![i]);
+                    expect(fields[i]).toMatch(constants.dbTables[table].columnRegex![i]);
                 }
             }
 
@@ -1705,7 +1943,7 @@ describe("Notebook headless off", () => {
             for (let lineIdx = 1; lineIdx <= lines.length - 1; lineIdx++) {
                 fields = lines[lineIdx].split("\t");
                 for (let i = 0; i <= fields.length - 1; i++) {
-                    expect(fields[i]).toMatch(constants.dbTables[2].columnRegexWithQuotes![i]);
+                    expect(fields[i]).toMatch(constants.dbTables[table].columnRegexWithQuotes![i]);
                 }
             }
 
@@ -1728,7 +1966,7 @@ describe("Notebook headless off", () => {
             for (let lineIdx = 0; lineIdx <= lines.length - 1; lineIdx++) {
                 fields = lines[lineIdx].split("\t");
                 for (let i = 0; i <= fields.length - 1; i++) {
-                    expect(fields[i]).toMatch(constants.dbTables[2].columnRegexWithQuotes![i]);
+                    expect(fields[i]).toMatch(constants.dbTables[table].columnRegexWithQuotes![i]);
                 }
             }
         } catch (e) {
@@ -1739,23 +1977,24 @@ describe("Notebook headless off", () => {
 
     it("Result grid context menu - Copy field, copy field unquoted, set field to null", async () => {
         try {
+            const table = 2;
             await commandExecutor.clean();
-            const tableColumns = constants.dbTables[0].columns;
-            await commandExecutor.execute("select * from sakila.all_data_types;");
+            const tableColumns = constants.dbTables[table].columns;
+            await commandExecutor.execute("select * from sakila.all_data_types_chars;");
             expect(commandExecutor.getResultMessage()).toMatch(/OK/);
 
             const row = 0;
             for (let i = 1; i <= tableColumns.length - 1; i++) {
                 await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
                     constants.resultGridContextMenu.copyField);
-                expect(await Os.readClipboard()).toMatch(constants.dbTables[0].columnRegexWithQuotes![i]);
+                expect(await Os.readClipboard()).toMatch(constants.dbTables[table].columnRegexWithQuotes![i]);
 
                 await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
                     constants.resultGridContextMenu.copyFieldUnquoted);
                 if (await Os.readClipboard() === "") {
                     await Os.writeToClipboard(" ");
                 }
-                expect(await Os.readClipboard()).toMatch(constants.dbTables[0].columnRegex![i]);
+                expect(await Os.readClipboard()).toMatch(constants.dbTables[table].columnRegex![i]);
 
                 await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
                     constants.resultGridContextMenu.setFieldToNull);
@@ -1766,5 +2005,5 @@ describe("Notebook headless off", () => {
             testFailed = true;
             throw e;
         }
-    }, constants.wait250seconds);
+    });
 });

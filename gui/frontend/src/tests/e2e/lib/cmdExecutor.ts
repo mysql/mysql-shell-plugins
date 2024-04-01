@@ -524,8 +524,6 @@ export class CommandExecutor {
     public editResultGridCells = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
         await driver.wait(waitUntil.resultGridIsEditable(this.getResultToolbar()),
             constants.wait5seconds);
-        // hack for UI to be rendered
-        await driver.sleep(constants.wait5seconds);
         let isDate: boolean = false;
         for (let i = 0; i <= cells.length - 1; i++) {
             await this.startEditCell(cells[i].rowNumber!, cells[i].columnName, cells[i].value);
@@ -579,7 +577,8 @@ export class CommandExecutor {
      * @param gridColumn The column
      * @returns A promise resolving with the cell
      */
-    public getCellFromResultGrid = async (gridRow: number,
+    public getCellFromResultGrid = async (
+        gridRow: number,
         gridColumn: string): Promise<WebElement> => {
         let cells: WebElement[];
         let cellToReturn: WebElement | undefined;
@@ -662,12 +661,26 @@ export class CommandExecutor {
 
     /**
      * Gets the cell icon type
-     * @param cell The result grid cell
+     * @param gridRow The row number. If the row number is -1, the function returns the last added row
+     * @param gridColumn The column
      * @returns A promise resolving with the cell icon type
      */
-    public getCellIconType = async (cell: WebElement): Promise<string | undefined> => {
-        const img = await cell.findElements(locator.notebook.codeEditor.editor.result.tableCellIcon);
-        const icon = (await img[0].getAttribute("style")).match(/assets\/data-(.*)-/)![1];
+    public getCellIconType = async (gridRow: number, gridColumn: string): Promise<string | undefined> => {
+        let icon: string | undefined;
+        await driver.wait(async () => {
+            try {
+                const cell = await this.getCellFromResultGrid(gridRow, gridColumn);
+                const img = await cell.findElements(locator.notebook.codeEditor.editor.result.tableCellIcon);
+                icon = (await img[0].getAttribute("style")).match(/assets\/data-(.*)-/)![1];
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError) &&
+                    !(String(e).includes("No node with given id found"))) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, "Unable to get the cell icon type");
 
         return icon;
     };
@@ -709,8 +722,6 @@ export class CommandExecutor {
      * @returns A promise resolving when the new value is set
      */
     public addResultGridRow = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
-        // hack to wait for UI to be rendered, no other way around
-        await driver.sleep(constants.wait5seconds);
         await this.clickAddNewRowButton();
         await driver.wait(waitUntil.rowWasAdded(this.getResultContent() as WebElement), constants.wait5seconds);
 

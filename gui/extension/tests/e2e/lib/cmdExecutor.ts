@@ -661,8 +661,7 @@ export class CommandExecutor {
      * @param gridRowColumn The column
      * @returns A promise resolving with the cell value.
      */
-    public getCellValueFromResultGrid = async (gridRow: number,
-        gridRowColumn: string): Promise<string> => {
+    public getCellValueFromResultGrid = async (gridRow: number, gridRowColumn: string): Promise<string> => {
         let toReturn: string;
 
         await driver.wait(async () => {
@@ -779,12 +778,25 @@ export class CommandExecutor {
 
     /**
      * Gets the cell icon type
-     * @param cell The result grid cell
+     * @param gridRow The row number. If the row number is -1, the function returns the last added row
+     * @param gridRowColumn The column
      * @returns A promise resolving with the cell icon type
      */
-    public getCellIconType = async (cell: WebElement): Promise<string | undefined> => {
-        const img = await cell.findElements(locator.notebook.codeEditor.editor.result.tableCellIcon);
-        const icon = (await img[0].getAttribute("style")).match(/assets\/data-(.*)-/)[1];
+    public getCellIconType = async (gridRow: number, gridRowColumn: string): Promise<string | undefined> => {
+        let icon: string;
+        await driver.wait(async () => {
+            try {
+                const cell = await this.getCellFromResultGrid(gridRow, gridRowColumn);
+                const img = await cell.findElements(locator.notebook.codeEditor.editor.result.tableCellIcon);
+                icon = (await img[0].getAttribute("style")).match(/assets\/data-(.*)-/)[1];
+
+                return true;
+            } catch (e) {
+                if (!(errors.isStaleError(e as Error))) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, "Unable to get the cell icon type");
 
         return icon;
     };
