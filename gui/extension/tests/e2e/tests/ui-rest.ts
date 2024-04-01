@@ -26,7 +26,7 @@
 import { join } from "path";
 import * as fs from "fs/promises";
 import { expect } from "chai";
-import { Workbench as extWorkbench, BottomBarPanel, ModalDialog } from "vscode-extension-tester";
+import { BottomBarPanel, ModalDialog } from "vscode-extension-tester";
 import clipboard from "clipboardy";
 import { driver, Misc } from "../lib/misc";
 import { Section } from "../lib/treeViews/section";
@@ -94,24 +94,8 @@ describe("MySQL REST Service", () => {
             if (await Workbench.requiresMRSMetadataUpgrade(globalConn)) {
                 await Workbench.upgradeMRSMetadata();
             }
+            await Tree.configureMySQLRestService(globalConn);
             const treeGlobalConn = await Tree.getElement(constants.dbTreeSection, globalConn.caption);
-            await Tree.openContextMenuAndSelect(treeGlobalConn, constants.configureREST);
-            const ntf = await Workbench.getNotification(
-                `Do you want to configure this instance for MySQL REST Service Support?`, false);
-            await Workbench.clickOnNotificationButton(ntf, "Yes");
-            await driver.wait(async () => {
-                const inputWidget = await driver.findElements(locator.inputBox.exists);
-                const hasNotifications = (await new extWorkbench().getNotifications()).length > 0;
-                if (hasNotifications) {
-                    return true;
-                } else if (inputWidget.length > 0) {
-                    if (await inputWidget[0].isDisplayed()) {
-                        await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
-                    }
-                }
-            }, constants.wait20seconds, `MySQL REST Service was not configured`);
-            await driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
-                constants.wait5seconds);
             await Tree.openContextMenuAndSelect(treeGlobalConn, constants.showSystemSchemas, undefined);
             expect(await Tree.existsElement(constants.dbTreeSection, "mysql_rest_service_metadata"),
                 errors.doesNotExistOnTree("mysql_rest_service_metadata")).to.be.true;
