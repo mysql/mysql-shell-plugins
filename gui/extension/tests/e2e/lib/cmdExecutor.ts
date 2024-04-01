@@ -503,21 +503,20 @@ export class CommandExecutor {
      * @returns A promise resolving when the mouse cursor is placed at the desired spot
      */
     public setMouseCursorAt = async (word: string): Promise<void> => {
-        const mouseCursorIs = await Notebook.getMouseCursorLine();
-        const mouseCursorShouldBe = await Notebook.getLineFromWord(word);
-        const taps = mouseCursorShouldBe - mouseCursorIs;
-        const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-        if (taps > 0) {
-            for (let i = 0; i < taps; i++) {
-                await textArea.sendKeys(Key.ARROW_DOWN);
-                await driver.sleep(300);
+        await driver.wait(async () => {
+            try {
+                const mouseCursorShouldBe = await Notebook.getLineFromWord(word);
+                const lines = await driver.findElements(locator.notebook.codeEditor.editor.promptLine);
+                const lineSpan = await lines[mouseCursorShouldBe].findElement(locator.htmlTag.span);
+                await lineSpan.click();
+
+                return true;
+            } catch (e) {
+                if (!(errors.isStaleError(e as Error))) {
+                    throw e;
+                }
             }
-        } else if (taps < 0) {
-            for (let i = 0; i < Math.abs(taps); i++) {
-                await textArea.sendKeys(Key.ARROW_UP);
-                await driver.sleep(300);
-            }
-        }
+        }, constants.wait5seconds, "The elements were always stale - setMouseCursorAt");
     };
 
     /**

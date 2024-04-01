@@ -126,23 +126,6 @@ export class Notebook {
     };
 
     /**
-     * Gets the line number where the mouse cursor is
-     * @returns A promise resolving with the line number
-     */
-    public static getMouseCursorLine = async (): Promise<number> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-        const lines = await driver.findElements(locator.notebook.codeEditor.editor.lines);
-        for (let i = 0; i <= lines.length - 1; i++) {
-            const curLine = await lines[i].findElements(locator.notebook.codeEditor.editor.currentLine);
-            if (curLine.length > 0) {
-                return i;
-            }
-        }
-    };
-
-    /**
      * Gets the line number where a word is found
      * @param wordRef The word
      * @returns A promise resolving with the line number
