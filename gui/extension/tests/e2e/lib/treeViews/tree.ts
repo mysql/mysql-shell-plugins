@@ -556,4 +556,34 @@ export class Tree {
             throw new Error(`TreeItem for context menu '${ctxMenuItem.toString()}' is undefined`);
         }
     };
+
+    /**
+     * Configures the Rest Service for a given database connection
+     * @param dbConnection The database connection
+     * @returns A promise resolving when the rest service is configured
+     */
+    public static configureMySQLRestService = async (dbConnection: interfaces.IDBConnection): Promise<void> => {
+        await driver.wait(async () => {
+            const treeElement = await this.getElement(constants.dbTreeSection, dbConnection.caption);
+            await Tree.openContextMenuAndSelect(treeElement, constants.configureREST);
+            const ntf = await Workbench.getNotification(
+                `Do you want to configure this instance for MySQL REST Service Support?`, false);
+            await Workbench.clickOnNotificationButton(ntf, "Yes");
+            const inputWidget = await driver.findElements(locator.inputBox.exists);
+            if (inputWidget.length > 0) {
+                if (await inputWidget[0].isDisplayed()) {
+                    await Workbench.setInputPassword((dbConnection.basic as interfaces.IConnBasicMySQL).password);
+
+                    return true;
+                } else {
+                    if (await Workbench.existsNotifications()) {
+                        await Workbench.dismissNotifications();
+                    }
+                }
+            }
+        }, constants.wait20seconds, `MySQL REST Service was not configured`);
+
+        await driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
+            constants.wait5seconds);
+    };
 }
