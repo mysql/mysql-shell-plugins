@@ -569,21 +569,29 @@ export class Tree {
             const ntf = await Workbench.getNotification(
                 `Do you want to configure this instance for MySQL REST Service Support?`, false);
             await Workbench.clickOnNotificationButton(ntf, "Yes");
-            const inputWidget = await driver.findElements(locator.inputBox.exists);
-            if (inputWidget.length > 0) {
-                if (await inputWidget[0].isDisplayed()) {
-                    await Workbench.setInputPassword((dbConnection.basic as interfaces.IConnBasicMySQL).password);
-
-                    return true;
-                } else {
-                    if (await Workbench.existsNotifications()) {
-                        await Workbench.dismissNotifications();
-                    }
+            await driver.wait(async () => {
+                const widget = await driver.findElements(locator.inputBox.exists);
+                if (widget) {
+                    return widget[0].isDisplayed();
                 }
-            }
-        }, constants.wait20seconds, `MySQL REST Service was not configured`);
+            }, constants.wait5seconds, "Password widget was not displayed");
+            await Workbench.setInputPassword((dbConnection.basic as interfaces.IConnBasicMySQL).password);
 
-        await driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
-            constants.wait5seconds);
+            return driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
+                constants.wait5seconds)
+                .then(() => {
+                    return true;
+                })
+                .catch(async (e) => {
+                    if (String(e).includes("There is a notification with error")) {
+                        console.log("Shell session error");
+                        await Workbench.dismissNotifications();
+
+                        return false;
+                    } else {
+                        throw e;
+                    }
+                });
+        }, constants.wait1minute, `There was a problem configuring the MySQL REST Service`);
     };
 }
