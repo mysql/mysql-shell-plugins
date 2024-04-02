@@ -66,13 +66,6 @@ if (!(Test-Path $(Join-Path $extensionFolder "router"))) {
     Copy-Item -Path $routerLocation -Destination $(Join-Path $extensionFolder "router") -Recurse
     Write-host "DONE"
 }
-$pluginsDir = Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins"
-if (Test-Path $pluginsDir) {
-    Remove-Item -Path $pluginsDir -Force -Recurse
-}
-Write-host "Creating plugins folder..." -NoNewLine
-New-Item -ItemType Directory -Path $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins")
-Write-host "DONE"
 
 Write-host "Creating MRS plugin..." -NoNewLine
 Copy-Item -Path $(Join-Path $shellPluginsFolder "mrs_plugin") -Destination $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "mrs_plugin") -Recurse

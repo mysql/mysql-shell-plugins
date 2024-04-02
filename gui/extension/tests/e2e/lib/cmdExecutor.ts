@@ -508,7 +508,7 @@ export class CommandExecutor {
                 const mouseCursorShouldBe = await Notebook.getLineFromWord(word);
                 const lines = await driver.findElements(locator.notebook.codeEditor.editor.promptLine);
                 const lineSpan = await lines[mouseCursorShouldBe].findElement(locator.htmlTag.span);
-                await lineSpan.click();
+                await driver.actions().doubleClick(lineSpan).perform();
 
                 return true;
             } catch (e) {
