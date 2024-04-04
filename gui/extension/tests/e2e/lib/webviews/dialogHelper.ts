@@ -35,40 +35,57 @@ export class DialogHelper {
 
     /**
      * Sets a checkbox value
-     * @param id The web element id
+     * @param el The web element id or the web element
      * @param checked True to check, false otherwise
      * @returns A promise resolving with the text
      */
-    public static setCheckboxValue = async (id: string, checked: boolean): Promise<void> => {
+    public static setCheckboxValue = async (el: string | WebElement, checked: boolean): Promise<void> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
         const isUnchecked = async () => {
-            return (await driver.findElement(By.id(id)).getAttribute("class")).split(" ")
-                .includes("unchecked");
+            if (el instanceof WebElement) {
+                return (await el.getAttribute("class")).split(" ").includes("unchecked");
+            } else {
+                return (await driver.findElement(By.id(el)).getAttribute("class")).split(" ")
+                    .includes("unchecked");
+            }
         };
 
         if (checked && (await isUnchecked())) {
-            await driver.findElement(By.id(id)).findElement(locator.checkBox.checkMark).click();
+            if (el instanceof WebElement) {
+                await el.findElement(locator.checkBox.checkMark).click();
+            } else {
+                await driver.findElement(By.id(el)).findElement(locator.checkBox.checkMark).click();
+            }
         } else {
             if (!checked && !(await isUnchecked())) {
-                await driver.findElement(By.id(id)).findElement(locator.checkBox.checkMark).click();
+                if (el instanceof WebElement) {
+                    await el.findElement(locator.checkBox.checkMark).click();
+                } else {
+                    await driver.findElement(By.id(el)).findElement(locator.checkBox.checkMark).click();
+                }
             }
         }
     };
 
     /**
      * Gets a checkbox value
-     * @param id The web element id
+     * @param el The web element id or the web element
      * @returns A promise resolving with the checkbox value (true if checked, false otherwise)
      */
-    public static getCheckBoxValue = async (id: string): Promise<boolean> => {
+    public static getCheckBoxValue = async (el: string | WebElement): Promise<boolean> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
-        const classes = (await driver.findElement(By.id(id)).getAttribute("class")).split(" ");
+        let classes = [];
+        if (el instanceof WebElement) {
+            classes = (await el.getAttribute("class")).split(" ");
+        } else {
+            classes = (await driver.findElement(By.id(el)).getAttribute("class")).split(" ");
+        }
 
         return !classes.includes("unchecked");
     };

@@ -1076,7 +1076,8 @@ export class CommandExecutor {
                 .length > 0;
         }, constants.wait5seconds, "Add new button was not displayed");
 
-        await (context).findElement(locator.notebook.codeEditor.editor.result.status.toolbar.addNewRowButton).click();
+        await driver.executeScript("arguments[0].click()",
+            await (context).findElement(locator.notebook.codeEditor.editor.result.status.toolbar.addNewRowButton));
     };
 
     /**

@@ -27,7 +27,6 @@ export interface IConnBasicMySQL {
     hostname?: string;
     protocol?: string;
     port?: number;
-    portX?: number;
     username?: string;
     password?: string;
     schema?: string;
@@ -53,21 +52,42 @@ export interface IConnSSL {
     clientKeyPath?: string;
 }
 
-export interface IConnAdvanced {
-    mode?: string;
-    timeout?: number;
+export interface IConnAdvancedMySQL {
+    mode?: {
+        ansi: boolean,
+        traditional: boolean,
+        allowInvalidDates: boolean,
+        ansiQuotes: boolean,
+        errorForDivisionByZero: boolean,
+        highNotPrecedence: boolean,
+        ignoreSpace: boolean,
+        noAutoValueOnZero: boolean,
+        noUnsignedSubtraction: boolean,
+        noZeroDate: boolean,
+        noZeroInDate: boolean,
+        onlyFullGroupBy: boolean,
+        padCharToFullLength: boolean,
+        pipesAsConcat: boolean,
+        realAsFloat: boolean,
+        strictAllTables: boolean,
+        strictTransTables: boolean,
+        timeTruncateFractional: boolean,
+    };
+    timeout?: string;
     compression?: string;
-    compLevel?: string;
-    compAlgorithms?: string;
-    disableHW?: boolean;
+    compressionLevel?: string;
+    compressionAlgorithms?: string;
+    disableHeatWave?: boolean;
 }
 
 export interface IConnMDS {
     profile?: string;
-    sshPrivKey?: string;
-    sshPubKey?: string;
+    sshPrivateKey?: string;
+    sshPublicKey?: string;
     dbSystemOCID?: string;
     bastionOCID?: string;
+    dbSystemName?: string;
+    bastionName?: string;
 }
 
 export interface IDBConnection {
@@ -76,8 +96,15 @@ export interface IDBConnection {
     description?: string;
     basic?: IConnBasicMySQL | IConnBasicSqlite;
     ssl?: IConnSSL;
-    advanced?: IConnAdvanced;
+    advanced?: IConnAdvancedMySQL | IConnAdvancedSqlite;
+    ssh?: IConnSSH;
     mds?: IConnMDS;
+}
+
+export interface IConnSSH {
+    uri: string;
+    privateKey: string;
+    customPath: string;
 }
 
 export interface IRestServiceSettings {
@@ -238,3 +265,19 @@ export interface IResultGridCell {
     columnName: string;
     value: string | boolean | number;
 }
+
+export const isMySQLConnection = (obj: unknown): obj is IConnBasicMySQL => {
+    return (obj as IConnBasicMySQL).hostname !== undefined;
+};
+
+export const isSQLiteConnection = (obj: unknown): obj is IConnBasicSqlite => {
+    return (obj as IConnBasicSqlite).dbName !== undefined;
+};
+
+export const isAdvancedMySQL = (obj: unknown): obj is IConnAdvancedMySQL => {
+    return (obj as IConnAdvancedMySQL).mode !== undefined;
+};
+
+export const isAdvancedSqlite = (obj: unknown): obj is IConnAdvancedSqlite => {
+    return (obj as IConnAdvancedSqlite).params !== undefined;
+};

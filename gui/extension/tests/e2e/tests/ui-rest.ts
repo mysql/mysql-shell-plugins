@@ -56,9 +56,6 @@ describe("MySQL REST Service", () => {
     if (!process.env.DBPORT) {
         throw new Error("Please define the environment variable DBPORT");
     }
-    if (!process.env.DBPORTX) {
-        throw new Error("Please define the environment variable DBPORTX");
-    }
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
@@ -68,7 +65,6 @@ describe("MySQL REST Service", () => {
             hostname: String(process.env.DBHOSTNAME),
             username: String(process.env.DBUSERNAME),
             port: Number(process.env.DBPORT),
-            portX: Number(process.env.DBPORTX),
             schema: "sakila",
             password: String(process.env.DBPASSWORD),
         },
