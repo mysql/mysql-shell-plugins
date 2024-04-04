@@ -38,8 +38,6 @@ describe("Toggle testing", () => {
                 disabled={false}
                 round={true}
                 caption="My toggle"
-                value={12}
-                name="toggle1"
                 borderWidth={123}
                 color={Color.rgb(12, 12, 12)}
                 checkedColor={Color.rgb(1, 1, 1)}
@@ -51,8 +49,6 @@ describe("Toggle testing", () => {
         expect(props.disabled).toEqual(false);
         expect(props.round).toEqual(true);
         expect(props.caption).toEqual("My toggle");
-        expect(props.value).toEqual(12);
-        expect(props.name).toEqual("toggle1");
         expect(props.borderWidth).toEqual(123);
         expect(props.color).toEqual(Color.rgb(12, 12, 12));
         expect(props.checkedColor).toEqual(Color.rgb(1, 1, 1));
@@ -65,8 +61,6 @@ describe("Toggle testing", () => {
                 disabled={false}
                 round={true}
                 caption="My toggle"
-                value={12}
-                name="toggle1"
                 borderWidth={123}
                 color={Color.rgb(12, 12, 12)}
                 checkedColor={Color.rgb(1, 1, 1)}

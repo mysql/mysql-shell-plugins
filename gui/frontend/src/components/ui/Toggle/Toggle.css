@@ -43,6 +43,10 @@ label.msg.toggle {
     --toggle-checked-color: 217, 65%, 51%;
 }
 
+label.msg.toggle[disabled] {
+    color: var(--text-dimmedForeground);
+}
+
 /* The toggle background. */
 label.msg.toggle::before {
     display: block;
@@ -96,7 +100,6 @@ label.msg.toggle.huge::before {
 
 /* The circle (handle) in the toggle - unchecked, standard size. */
 label.msg.toggle::after {
-    flex: 0 0 auto;
     align-self: center;
     content: "";
 

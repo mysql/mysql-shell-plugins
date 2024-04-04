@@ -419,3 +419,7 @@
     width: 250px;
     padding: 5px;
 }
+
+.msg#toggleGrid .gridCell .toggle {
+    padding: 4px 0;
+}

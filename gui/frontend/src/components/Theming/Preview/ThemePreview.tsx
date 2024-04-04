@@ -25,60 +25,64 @@
 
 import "./ThemePreview.css";
 
-import code from "./assets/code-examples.txt?raw";
-import exampleBlocks from "./assets/code-block-example.json";
-import gearIcon from "../../../assets/images/settings.svg";
 import closeIcon from "../../../assets/images/close.svg";
+import gearIcon from "../../../assets/images/settings.svg";
 import imageImage from "../Preview/assets/image.svg";
+import exampleBlocks from "./assets/code-block-example.json";
+import code from "./assets/code-examples.txt?raw";
 
 import { ComponentChild } from "preact";
+import Color from "color";
 
 import { TablePreview } from "./TablePreview.js";
 
-import { DialogContent } from "../../ui/Dialog/DialogContent.js";
-import { ActivityBar } from "../../ui/ActivityBar/ActivityBar.js";
-import { ActivityBarItem } from "../../ui/ActivityBar/ActivityBarItem.js";
-import { SymbolGrid } from "./SymbolGrid.js";
-import { CodeEditor, ICodeEditorModel, IEditorPersistentState } from "../../ui/CodeEditor/CodeEditor.js";
-import { CodeEditorMode, Monaco } from "../../ui/CodeEditor/index.js";
+import { IDictionary } from "../../../app-logic/Types.js";
+import { MySQLConnectionScheme } from "../../../communication/MySQL.js";
 import { Notebook } from "../../../modules/db-editor/Notebook.js";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
-import { MySQLConnectionScheme } from "../../../communication/MySQL.js";
-import { DBType } from "../../../supplement/ShellInterface/index.js";
 import { EditorLanguage } from "../../../supplement/index.js";
-import { IDictionary } from "../../../app-logic/Types.js";
+import { DBType } from "../../../supplement/ShellInterface/index.js";
+import { ActivityBar } from "../../ui/ActivityBar/ActivityBar.js";
+import { ActivityBarItem } from "../../ui/ActivityBar/ActivityBarItem.js";
+import { CodeEditor, ICodeEditorModel, IEditorPersistentState } from "../../ui/CodeEditor/CodeEditor.js";
+import { CodeEditorMode, Monaco } from "../../ui/CodeEditor/index.js";
+import { DialogContent } from "../../ui/Dialog/DialogContent.js";
+import { SymbolGrid } from "./SymbolGrid.js";
 
+import { ISavedEditorState } from "../../../modules/db-editor/DBConnectionTab.js";
+import { EntityType } from "../../../modules/db-editor/index.js";
 import { loremIpsum } from "../../../tests/unit-tests/test-helpers.js";
 import { Accordion } from "../../ui/Accordion/Accordion.js";
 import { Breadcrumb } from "../../ui/Breadcrumb/Breadcrumb.js";
 import { BrowserTileType } from "../../ui/BrowserTile/BrowserTile.js";
+import { Button } from "../../ui/Button/Button.js";
 import { Checkbox, CheckState } from "../../ui/Checkbox/Checkbox.js";
-import { IComponentState, ComponentBase, ComponentSize } from "../../ui/Component/ComponentBase.js";
+import { ComponentBase, ComponentSize, IComponentState } from "../../ui/Component/ComponentBase.js";
 import { ConnectionTile } from "../../ui/ConnectionTile/ConnectionTile.js";
-import { Container, Orientation, ContentAlignment, ContentWrap } from "../../ui/Container/Container.js";
+import { Container, ContentAlignment, ContentWrap, Orientation } from "../../ui/Container/Container.js";
 import { Divider } from "../../ui/Divider/Divider.js";
 import { Dropdown } from "../../ui/Dropdown/Dropdown.js";
 import { Grid } from "../../ui/Grid/Grid.js";
 import { GridCell } from "../../ui/Grid/GridCell.js";
 import { Icon } from "../../ui/Icon/Icon.js";
 import { Input } from "../../ui/Input/Input.js";
+import { JsonView } from "../../ui/JsonView/JsonView.js";
 import { Label } from "../../ui/Label/Label.js";
 import { MenuBar } from "../../ui/Menu/MenuBar.js";
 import { MenuItem } from "../../ui/Menu/MenuItem.js";
 import { ProgressIndicator } from "../../ui/ProgressIndicator/ProgressIndicator.js";
 import { Radiobutton } from "../../ui/Radiobutton/Radiobutton.js";
 import { Search } from "../../ui/Search/Search.js";
-import { Tabview, TabPosition } from "../../ui/Tabview/Tabview.js";
+import { TabPosition, Tabview } from "../../ui/Tabview/Tabview.js";
 import { TagInput } from "../../ui/TagInput/TagInput.js";
+import { Toggle } from "../../ui/Toggle/Toggle.js";
 import { Toolbar } from "../../ui/Toolbar/Toolbar.js";
-import { Button } from "../../ui/Button/Button.js";
-import { ISavedEditorState } from "../../../modules/db-editor/DBConnectionTab.js";
-import { EntityType } from "../../../modules/db-editor/index.js";
-import { JsonView } from "../../ui/JsonView/JsonView.js";
 
 interface IThemePreviewState extends IComponentState {
     editorLanguage: EditorLanguage;
     codeExamples: IDictionary;
+
+    toggleChecked: boolean;
 }
 
 /** A component that contains UI elements for preview in the theme editor. */
@@ -116,6 +120,7 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
         this.state = {
             editorLanguage: "javascript",
             codeExamples,
+            toggleChecked: false,
         };
 
         let content = `\nprint("typescript");\n\\js\n`;
@@ -173,8 +178,10 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
     }
 
     public render(): ComponentChild {
-        const { editorLanguage, codeExamples } = this.state;
+        const { editorLanguage, codeExamples, toggleChecked } = this.state;
+
         const codeExample = codeExamples[editorLanguage] as string;
+        const toggleCheckState = toggleChecked ? CheckState.Checked : CheckState.Unchecked;
 
         return (
             <Container
@@ -321,6 +328,47 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
                         </Radiobutton>
                     </GridCell>
 
+                </Grid>
+
+                <p>Toggle</p>
+                <Grid id="toggleGrid" columns={3} columnGap={20}>
+                    <GridCell orientation={Orientation.TopDown} crossAlignment={ContentAlignment.Start}>
+                        <Toggle
+                            checkState={toggleCheckState} caption="Default Enabled"
+                            onChange={(): void => {
+                                const { toggleChecked } = this.state;
+                                this.setState({ toggleChecked: !toggleChecked });
+                            }}
+                        />
+                        <Toggle checkState={toggleCheckState} caption="Default Disabled" disabled />
+                        <Toggle checkState={toggleCheckState} round={false} caption="Default Enabled Square" />
+                        <Toggle checkState={toggleCheckState} round={false} caption="Default Disabled Square"
+                            disabled />
+                    </GridCell>
+                    <GridCell orientation={Orientation.TopDown} crossAlignment={ContentAlignment.Start}>
+                        <Toggle checkState={toggleCheckState} round={false} className="tiny" caption="Tiny" />
+                        <Toggle checkState={toggleCheckState} round={true} className="small" caption="Small" />
+                        <Toggle checkState={toggleCheckState} round={false} className="medium" caption="Normal" />
+                        <Toggle checkState={toggleCheckState} round={true} className="big" caption="Big" />
+                        <Toggle checkState={toggleCheckState} round={false} className="huge" caption="Huge" />
+                    </GridCell>
+                    <GridCell orientation={Orientation.TopDown} crossAlignment={ContentAlignment.Start}>
+                        <Toggle
+                            checkState={toggleCheckState}
+                            round={true}
+                            className="big"
+                            caption="Border 4px"
+                            borderWidth={4}
+                        />
+                        <Toggle
+                            checkState={toggleCheckState}
+                            round={true}
+                            className="big"
+                            caption="Custom Color"
+                            color={new Color("#E91E63")}
+                            checkedColor={new Color("#9C27B0")}
+                        />
+                    </GridCell>
                 </Grid>
 
                 <p>Dropdown</p>
