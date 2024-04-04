@@ -25,20 +25,18 @@
 
 import "./Toggle.css";
 
-import { ComponentChild, createRef } from "preact";
 import Color from "color";
+import { ComponentChild, createRef } from "preact";
 
 import { convertPropValue } from "../../../utilities/string-helpers.js";
 import { CheckState } from "../Checkbox/Checkbox.js";
-import { IComponentProperties, ComponentBase, MouseEventType } from "../Component/ComponentBase.js";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 
 export interface IToggleProperties extends IComponentProperties {
     checkState?: CheckState;
     disabled?: boolean;
     round?: boolean;
     caption?: string;
-    value?: string | number;
-    name?: string;
 
     borderWidth?: number;
     color?: Color;
@@ -60,8 +58,8 @@ export class Toggle extends ComponentBase<IToggleProperties> {
     public constructor(props: IToggleProperties) {
         super(props);
 
-        this.addHandledProperties("checkState", "disabled", "round", "caption", "value", "name", "size", "color",
-            "checkedColor", "borderWidth");
+        this.addHandledProperties("checkState", "disabled", "round", "caption", "borderWidth", "color",
+            "checkedColor", "onChange");
     }
 
     public componentDidMount(): void {
@@ -87,8 +85,16 @@ export class Toggle extends ComponentBase<IToggleProperties> {
         }
     }
 
+    public componentDidUpdate(): void {
+        if (this.toggleRef.current) {
+            const { checkState } = this.mergedProps;
+
+            this.toggleRef.current.checked = checkState === CheckState.Checked;
+        }
+    }
+
     public render(): ComponentChild {
-        const { children, id = "", disabled, round, caption, value, name } = this.mergedProps;
+        const { children, id = "", disabled, round, caption } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "toggle",
             this.classFromProperty(round, "round"),
@@ -103,12 +109,10 @@ export class Toggle extends ComponentBase<IToggleProperties> {
             <>
                 <input
                     type="checkbox"
+                    id={id}
                     ref={this.toggleRef}
                     className={className}
-                    name={name}
-                    value={value}
                     readOnly
-                    disabled={disabled}
 
                     onInput={this.handleInput}
 
@@ -118,6 +122,10 @@ export class Toggle extends ComponentBase<IToggleProperties> {
                 <label
                     htmlFor={id}
                     className={className}
+                    tabIndex={0}
+                    disabled={disabled}
+                    onClick={this.handleClick}
+                    onKeyPress={this.handleInput}
                 >
                     {content}
                 </label>
@@ -125,22 +133,23 @@ export class Toggle extends ComponentBase<IToggleProperties> {
         );
     }
 
-    protected handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
+    private handleClick = (e: MouseEvent): void => {
         const { disabled } = this.mergedProps;
 
         if (disabled) {
             e.preventDefault();
 
-            return false;
+            return;
         }
 
-        return true;
-    }
+        this.handleInput(e);
+    };
 
     private handleInput = (e: Event): void => {
         if (e.target) {
             const { onChange } = this.mergedProps;
 
+            e.preventDefault();
             const element = e.target as HTMLInputElement;
             onChange?.(e as InputEvent,
                 element.indeterminate

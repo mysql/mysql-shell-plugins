@@ -25,7 +25,7 @@
 
 import {
     Condition, until, WebElement,
-    TreeItem, EditorView, Button, error,
+    TreeItem, EditorView, Button, error, Workbench as extWorkbench,
 } from "vscode-extension-tester";
 import * as constants from "../constants";
 import * as waitUntil from "../until";
@@ -564,34 +564,38 @@ export class Tree {
      */
     public static configureMySQLRestService = async (dbConnection: interfaces.IDBConnection): Promise<void> => {
         await driver.wait(async () => {
-            const treeElement = await this.getElement(constants.dbTreeSection, dbConnection.caption);
-            await Tree.openContextMenuAndSelect(treeElement, constants.configureREST);
-            const ntf = await Workbench.getNotification(
-                `Do you want to configure this instance for MySQL REST Service Support?`, false);
-            await Workbench.clickOnNotificationButton(ntf, "Yes");
-            await driver.wait(async () => {
-                const widget = await driver.findElements(locator.inputBox.exists);
-                if (widget) {
-                    return widget[0].isDisplayed();
-                }
-            }, constants.wait5seconds, "Password widget was not displayed");
-            await Workbench.setInputPassword((dbConnection.basic as interfaces.IConnBasicMySQL).password);
-
-            return driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
-                constants.wait5seconds)
-                .then(() => {
-                    return true;
-                })
-                .catch(async (e) => {
-                    if (String(e).includes("There is a notification with error")) {
-                        console.log("Shell session error");
-                        await Workbench.dismissNotifications();
-
-                        return false;
-                    } else {
-                        throw e;
+            try {
+                const treeElement = await this.getElement(constants.dbTreeSection, dbConnection.caption);
+                await Tree.openContextMenuAndSelect(treeElement, constants.configureREST);
+                const ntf = await Workbench.getNotification(
+                    `Do you want to configure this instance for MySQL REST Service Support?`, false);
+                await Workbench.clickOnNotificationButton(ntf, "Yes");
+                await driver.wait(async () => {
+                    const widget = await driver.findElements(locator.inputBox.exists);
+                    if (widget) {
+                        return widget[0].isDisplayed();
                     }
-                });
+                }, constants.wait5seconds, "Password widget was not displayed");
+                await Workbench.setInputPassword((dbConnection.basic as interfaces.IConnBasicMySQL).password);
+
+                await driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
+                    constants.wait5seconds);
+
+                return true;
+            } catch (e) {
+                if (await Workbench.existsNotifications()) {
+                    const notifications = await new extWorkbench().getNotifications();
+                    for (const notification of notifications) {
+                        if ((await notification.getMessage()).match(/Error.*Shell.open_session/) !== null) {
+                            console.log("Shell session error, retrying...");
+                            await Workbench.dismissNotifications();
+
+                            return false;
+                        }
+                    }
+                }
+                throw e;
+            }
         }, constants.wait1minute, `There was a problem configuring the MySQL REST Service`);
     };
 }

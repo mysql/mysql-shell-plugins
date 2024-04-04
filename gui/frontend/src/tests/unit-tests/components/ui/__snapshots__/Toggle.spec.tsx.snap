@@ -28,22 +28,22 @@ exports[`Toggle testing Render test 1`] = `
     }
   }
   disabled={false}
-  name="toggle1"
   round={true}
-  value={12}
 >
   <input
     className="msg toggle round"
-    disabled={false}
-    name="toggle1"
+    id=""
     onInput={[Function]}
     readOnly={true}
     type="checkbox"
-    value={12}
   />
   <label
     className="msg toggle round"
+    disabled={false}
     htmlFor=""
+    onClick={[Function]}
+    onKeyPress={[Function]}
+    tabIndex={0}
   >
     My toggle
   </label>
