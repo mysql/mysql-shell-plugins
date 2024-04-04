@@ -65,11 +65,11 @@ describe("DATABASE CONNECTIONS", () => {
     if (!process.env.DBPORT) {
         throw new Error("Please define the environment variable DBPORT");
     }
-    if (!process.env.DBPORTX) {
-        throw new Error("Please define the environment variable DBPORTX");
-    }
     if (!process.env.SSL_ROOT_FOLDER) {
         throw new Error("Please define the environment variable SSL_ROOT_FOLDER");
+    }
+    if (!process.env.MYSQLSH_OCI_CONFIG_FILE) {
+        throw new Error("Please define the environment variable MYSQLSH_OCI_CONFIG_FILE");
     }
 
     const globalConn: interfaces.IDBConnection = {
@@ -80,7 +80,6 @@ describe("DATABASE CONNECTIONS", () => {
             hostname: String(process.env.DBHOSTNAME),
             username: String(process.env.DBUSERNAME),
             port: Number(process.env.DBPORT),
-            portX: Number(process.env.DBPORTX),
             schema: "sakila",
             password: String(process.env.DBPASSWORD),
         },
@@ -218,7 +217,7 @@ describe("DATABASE CONNECTIONS", () => {
         });
     });
 
-    describe("Database connections", () => {
+    describe("DB Connection Overview", () => {
 
         before(async function () {
             try {
@@ -241,7 +240,6 @@ describe("DATABASE CONNECTIONS", () => {
         beforeEach(async function () {
             try {
                 await Notebook.selectCurrentEditor(new RegExp(constants.dbConnectionsLabel), "overviewPage");
-                await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -259,7 +257,7 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("MySQL - Verify mandatory fields", async () => {
-
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
             const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
                 constants.wait5seconds, "Connection dialog was not displayed");
 
@@ -290,7 +288,7 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("SQLite - Verify mandatory fields", async () => {
-
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
             const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
                 constants.wait5seconds, "Connection dialog was not displayed");
 
@@ -336,7 +334,7 @@ describe("DATABASE CONNECTIONS", () => {
                     "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3"),
                 dbName: "SQLite",
             };
-
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
             await DatabaseConnection.setConnection(sqliteConn);
             const sqliteWebConn = await DatabaseConnection.getConnection(sqliteConn.caption);
 
@@ -393,6 +391,7 @@ describe("DATABASE CONNECTIONS", () => {
                 clientKeyPath: String(process.env.SSL_CLIENT_KEY_PATH),
             };
 
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
             await DatabaseConnection.setConnection(sslConn);
             const dbConn = await DatabaseConnection.getConnection(sslConn.caption);
 
@@ -414,6 +413,7 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("Copy paste and cut paste into the DB Connection dialog", async () => {
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
             const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
                 constants.wait5seconds, "Connection dialog was not displayed");
             const hostNameInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.hostname);
@@ -440,6 +440,110 @@ describe("DATABASE CONNECTIONS", () => {
             await Os.keyboardPaste(schemaInput);
             expect(await schemaInput.getAttribute("value"),
                 "Hostname value was not pasted to the description field").to.include(valueToCut);
+            await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
+        });
+
+        it("Edit connection", async () => {
+            const editConn: interfaces.IDBConnection = {
+                dbType: "MySQL",
+                caption: `connectionToEdit`,
+                description: "Local connection",
+                basic: {
+                    hostname: String(process.env.DBHOSTNAME),
+                    username: String(process.env.DBUSERNAME),
+                    port: Number(process.env.DBPORT),
+                    schema: "sakila",
+                    password: String(process.env.DBPASSWORD),
+                },
+            };
+
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            await DatabaseConnection.setConnection(editConn);
+            await DatabaseConnection.editConnection(editConn.caption);
+            editConn.caption = "edited caption";
+            editConn.description = "edited description";
+            if (interfaces.isMySQLConnection(editConn.basic)) {
+                editConn.basic.hostname = "hostname edited";
+                editConn.basic.username = "username edited";
+                editConn.basic.schema = "edited schema";
+                editConn.basic.protocol = "mysqlx";
+                editConn.basic.port = 3305;
+                editConn.basic.sshTunnel = true;
+                editConn.basic.ociBastion = true;
+                editConn.ssl = {
+                    mode: "Require",
+                    ciphers: "ciphers, edited",
+                    caPath: "ca edited",
+                    clientCertPath: "cert edited",
+                    clientKeyPath: "key edited",
+                };
+                editConn.ssh = {
+                    uri: "edited uri",
+                    privateKey: "edited private key",
+                    customPath: "edited custom path",
+                };
+                editConn.advanced = {
+                    // bug : https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=36482559
+                    /*mode: {
+                        ansi: true,
+                        traditional: true,
+                        allowInvalidDates: true,
+                        ansiQuotes: true,
+                        errorForDivisionByZero: true,
+                        highNotPrecedence: true,
+                        ignoreSpace: true,
+                        noAutoValueOnZero: true,
+                        noUnsignedSubtraction: true,
+                        noZeroDate: true,
+                        noZeroInDate: true,
+                        onlyFullGroupBy: true,
+                        padCharToFullLength: true,
+                        pipesAsConcat: true,
+                        realAsFloat: true,
+                        strictAllTables: true,
+                        strictTransTables: true,
+                        timeTruncateFractional: true,
+                    },
+                    timeout: "5",*/
+                    mode: {
+                        ansi: false,
+                        traditional: false,
+                        allowInvalidDates: false,
+                        ansiQuotes: false,
+                        errorForDivisionByZero: false,
+                        highNotPrecedence: false,
+                        ignoreSpace: false,
+                        noAutoValueOnZero: false,
+                        noUnsignedSubtraction: false,
+                        noZeroDate: false,
+                        noZeroInDate: false,
+                        onlyFullGroupBy: false,
+                        padCharToFullLength: false,
+                        pipesAsConcat: false,
+                        realAsFloat: false,
+                        strictAllTables: false,
+                        strictTransTables: false,
+                        timeTruncateFractional: false,
+                    },
+                    timeout: "0",
+                    compression: "Required",
+                    compressionLevel: "5",
+                    disableHeatWave: true,
+                };
+                editConn.mds = {
+                    profile: "E2ETESTS",
+                    sshPrivateKey: "edited private key",
+                    sshPublicKey: "edited public key",
+                    // eslint-disable-next-line max-len
+                    dbSystemOCID: "ocid1.mysqldbsystem.oc1.iad.aaaaaaaakj7775hxfupaggyci4x2nze45gaqyhcufae23fm5fl2bynwy4tpq",
+                    bastionOCID: "ocid1.bastion.oc1.iad.amaaaaaaumfjfyaaectz7jrnfnuses2qc6qvg6ksseu6i2xfow2cnqpbn44q",
+                };
+            }
+            delete (editConn.basic as interfaces.IConnBasicMySQL).password;
+            await DatabaseConnection.setConnection(editConn);
+            await DatabaseConnection.editConnection(editConn.caption);
+            const verifyConn = await DatabaseConnection.getConnectionDetails(editConn.caption);
+            expect(verifyConn).to.deep.equal(editConn);
         });
 
     });

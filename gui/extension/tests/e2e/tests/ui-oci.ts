@@ -487,8 +487,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     .to.match(/(\d+).(\d+).(\d+).(\d+)/);
                 await newConDialog.findElement(locator.dbConnectionDialog.mysql.basic.username)
                     .sendKeys((bastionConn.basic as interfaces.IConnBasicMySQL).username);
-                const mdsTab = await newConDialog.findElement(locator.dbConnectionDialog.mdsTab);
-                await mdsTab.click();
+                await DatabaseConnection.selectTab(constants.mdsTab);
                 await driver.wait(async () => {
                     return await driver
                         .findElement(locator.dbConnectionDialog.mysql.mds.dbSystemId).getAttribute("value") !== "";
@@ -548,8 +547,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 },
                 mds: {
                     profile: "E2ETESTS",
-                    sshPrivKey: "id_rsa_mysql_shell",
-                    sshPubKey: "id_rsa_mysql_shell.pub",
+                    sshPrivateKey: "id_rsa_mysql_shell",
+                    sshPublicKey: "id_rsa_mysql_shell.pub",
                     dbSystemOCID: String(dbSystemOCID),
                     bastionOCID: String(bastionOCID),
                 },

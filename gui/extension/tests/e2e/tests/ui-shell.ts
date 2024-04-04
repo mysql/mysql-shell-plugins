@@ -46,7 +46,6 @@ describe("MYSQL SHELL CONSOLES", () => {
             hostname: String(process.env.DBHOSTNAME),
             username: String(process.env.DBUSERNAME),
             port: Number(process.env.DBPORT),
-            portX: Number(process.env.DBPORTX),
             schema: "sakila",
             password: String(process.env.DBPASSWORD),
         },
@@ -56,7 +55,6 @@ describe("MYSQL SHELL CONSOLES", () => {
     const password = String((globalConn.basic as interfaces.IConnBasicMySQL).password);
     const hostname = String((globalConn.basic as interfaces.IConnBasicMySQL).hostname);
     const port = String((globalConn.basic as interfaces.IConnBasicMySQL).port);
-    const portX = String((globalConn.basic as interfaces.IConnBasicMySQL).portX);
     const schema = String((globalConn.basic as interfaces.IConnBasicMySQL).schema);
 
     before(async function () {
@@ -72,9 +70,6 @@ describe("MYSQL SHELL CONSOLES", () => {
         }
         if (!process.env.DBPORT) {
             throw new Error("Please define the environment variable DBPORT");
-        }
-        if (!process.env.DBPORTX) {
-            throw new Error("Please define the environment variable DBPORTX");
         }
 
         await Misc.loadDriver();
@@ -230,9 +225,9 @@ describe("MYSQL SHELL CONSOLES", () => {
                 errors.queryResultError("MySQL Shell version (\\d+).(\\d+).(\\d+)",
                     commandExecutor.getResultMessage())).to.match(/MySQL Shell version (\d+).(\d+).(\d+)/);
 
-            let uri = `shell.connect('${username}:${password}@${hostname}:${portX}/${schema}')`;
+            let uri = `shell.connect('${username}:${password}@${hostname}:33060/${schema}')`;
             await commandExecutor.execute(uri, true);
-            uri = `Creating a session to '${username}@${hostname}:${portX}/${schema}'`;
+            uri = `Creating a session to '${username}@${hostname}:33060/${schema}'`;
             expect(commandExecutor.getResultMessage(), errors.queryResultError(uri,
                 commandExecutor.getResultMessage())).to.match(new RegExp(uri));
             expect(commandExecutor.getResultMessage(), errors.queryResultError("Server version: (\\d+).(\\d+).(\\d+)",
@@ -257,7 +252,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             await commandExecutor.execute(cmd, true);
             expect(commandExecutor.getResultMessage(), errors.queryResultError("ClassicSession",
                 commandExecutor.getResultMessage())).to.match(/ClassicSession/);
-            cmd = `mysqlx.getSession('${username}:${password}@${hostname}:${portX}/${schema}')`;
+            cmd = `mysqlx.getSession('${username}:${password}@${hostname}:33060/${schema}')`;
             await commandExecutor.execute(cmd, true);
             expect(commandExecutor.getResultMessage(), errors.queryResultError("Session",
                 commandExecutor.getResultMessage())).to.match(/Session/);
@@ -282,20 +277,20 @@ describe("MYSQL SHELL CONSOLES", () => {
                     "arguments[0].click();",
                     await editor.findElement(locator.shellConsole.currentLine),
                 );
-                let uri = `\\c ${username}:${password}@${hostname}:${portX}/${schema}`;
+                let uri = `\\c ${username}:${password}@${hostname}:33060/${schema}`;
 
                 await commandExecutor.execute(uri);
-                uri = `Creating a session to '${username}@${hostname}:${portX}/${schema}'`;
+                uri = `Creating a session to '${username}@${hostname}:33060/${schema}'`;
                 expect(commandExecutor.getResultMessage(), errors.queryResultError(uri,
                     commandExecutor.getResultMessage())).to.match(new RegExp(uri));
-                uri = `Connection to server ${hostname} at port ${portX},`;
+                uri = `Connection to server ${hostname} at port 33060,`;
                 uri += ` using the X protocol`;
                 const server = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.server),
                     constants.wait5seconds);
                 const schemaEl = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schema),
                     constants.wait5seconds);
                 await driver.wait(until.elementTextContains(server,
-                    `${hostname}:${String(portX)}`),
+                    `${hostname}:33060`),
                     constants.wait5seconds, `Server tab does not contain '${hostname}:${port}'`);
                 await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
                     constants.wait5seconds, `Schema tab does not contain '${schema}'`);

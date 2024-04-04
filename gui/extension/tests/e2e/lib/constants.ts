@@ -99,6 +99,13 @@ export const editUser = "Edit MRS User";
 export const mrsDocs = "MRS Docs";
 export const welcomeTab = "Welcome to MySQL Shell";
 
+// DATABASE CONNECTION DIALOG
+export const basicTab = "Basic";
+export const sslTab = "SSL";
+export const advancedTab = "Advanced";
+export const sshTab = "SSH Tunnel";
+export const mdsTab = "MDS/Bastion Service";
+
 // MISC
 export const openEditorsDBNotebook = "DB Notebook";
 export const dbConnectionsLabel = "DB Connection Overview";

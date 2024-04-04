@@ -65,9 +65,6 @@ describe("NOTEBOOKS", () => {
     if (!process.env.DBPORT) {
         throw new Error("Please define the environment variable DBPORT");
     }
-    if (!process.env.DBPORTX) {
-        throw new Error("Please define the environment variable DBPORTX");
-    }
     if (!process.env.SSL_ROOT_FOLDER) {
         throw new Error("Please define the environment variable SSL_ROOT_FOLDER");
     }
@@ -80,7 +77,6 @@ describe("NOTEBOOKS", () => {
             hostname: String(process.env.DBHOSTNAME),
             username: String(process.env.DBUSERNAME),
             port: Number(process.env.DBPORT),
-            portX: Number(process.env.DBPORTX),
             schema: "sakila",
             password: String(process.env.DBPASSWORD),
         },
@@ -93,7 +89,6 @@ describe("NOTEBOOKS", () => {
             hostname: String(process.env.DBHOSTNAME),
             username: String(process.env.DBUSERNAME),
             port: Number(process.env.DBPORT),
-            portX: Number(process.env.DBPORTX),
             schema: "sakila",
             password: String(process.env.DBPASSWORD),
         },

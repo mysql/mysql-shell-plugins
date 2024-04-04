@@ -172,7 +172,7 @@ try {
     }
 
     # DEFINE OCI ENV VARS
-    if ($env:TEST_SUITE -eq "oci"){
+    if (($env:TEST_SUITE -eq "oci") -or ($env:TEST_SUITE -eq "db")){
         if (!$env:MYSQLSH_OCI_CONFIG_FILE) {
             Throw "Please set the MYSQLSH_OCI_CONFIG_FILE environment variable"
         }
