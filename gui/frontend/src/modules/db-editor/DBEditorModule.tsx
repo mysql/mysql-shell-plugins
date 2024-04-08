@@ -108,7 +108,7 @@ export interface IDBEditorTabInfo {
 
 type IDBEditorModuleProperties = IModuleProperties;
 
-interface IDBEditorModuleState extends IModuleState {
+export interface IDBEditorModuleState extends IModuleState {
     editorTabs: IDBEditorTabInfo[];
 
     // The IDs of editors which have been changed.
