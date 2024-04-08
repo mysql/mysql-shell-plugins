@@ -413,3 +413,16 @@ export const confirmationDialogExists = (context?: string): Condition<WebElement
     });
 };
 
+export const existsOnDBConnectionOverview = (dbConnection: string): Condition<boolean> => {
+    return new Condition(`${dbConnection} to exist`, async () => {
+        const hosts = await driver.findElements(locator.dbConnectionOverview.dbConnection.tile);
+        for (const host of hosts) {
+            const el = await (await host
+                .findElement(locator.dbConnectionOverview.dbConnection.caption)).getText();
+            if (el === dbConnection) {
+                return true;
+            }
+        }
+    });
+};
+

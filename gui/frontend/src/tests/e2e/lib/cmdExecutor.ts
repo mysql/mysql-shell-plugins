@@ -722,8 +722,17 @@ export class CommandExecutor {
      * @returns A promise resolving when the new value is set
      */
     public addResultGridRow = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
-        await this.clickAddNewRowButton();
-        await driver.wait(waitUntil.rowWasAdded(this.getResultContent() as WebElement), constants.wait5seconds);
+        await driver.wait(async () => {
+            return this.clickAddNewRowButton().then(async () => {
+                return driver.wait(waitUntil.rowWasAdded(this.getResultContent() as WebElement),
+                    constants.wait2seconds).then(() => {
+                        return true;
+                    })
+                    .catch(() => {
+                        // repeat
+                    });
+            });
+        }, constants.wait10seconds, "The new row was not added");
 
         let isDate = false;
         for (const cell of cells) {

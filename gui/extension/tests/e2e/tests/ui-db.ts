@@ -229,6 +229,10 @@ describe("DATABASE CONNECTIONS", () => {
                 await Misc.switchToFrame();
                 await driver.wait(until.elementLocated(locator.dbConnectionOverview.exists),
                     constants.wait10seconds, "DB Connection Overview page was not displayed");
+                const closeHeaderButton = await driver.findElements(locator.dbConnectionOverview.closeHeader);
+                if (closeHeaderButton.length > 0) {
+                    await closeHeaderButton[0].click();
+                }
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -256,7 +260,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Workbench.openMySQLShellForVSCode();
         });
 
-        it("MySQL - Verify mandatory fields", async () => {
+        it("MySQL Database connection - Verify mandatory fields", async () => {
             await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
             const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
                 constants.wait5seconds, "Connection dialog was not displayed");
@@ -287,7 +291,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it("SQLite - Verify mandatory fields", async () => {
+        it("SQLite Database connection - Verify mandatory fields", async () => {
             await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
             const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
                 constants.wait5seconds, "Connection dialog was not displayed");
@@ -443,7 +447,7 @@ describe("DATABASE CONNECTIONS", () => {
             await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
         });
 
-        it("Edit connection", async () => {
+        it("Edit a MySQL connection", async () => {
             const editConn: interfaces.IDBConnection = {
                 dbType: "MySQL",
                 caption: `connectionToEdit`,
@@ -459,7 +463,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
             await DatabaseConnection.setConnection(editConn);
-            await DatabaseConnection.editConnection(editConn.caption);
+            await DatabaseConnection.moreActions(editConn.caption, constants.editConnection);
             editConn.caption = "edited caption";
             editConn.description = "edited description";
             if (interfaces.isMySQLConnection(editConn.basic)) {
@@ -541,9 +545,88 @@ describe("DATABASE CONNECTIONS", () => {
             }
             delete (editConn.basic as interfaces.IConnBasicMySQL).password;
             await DatabaseConnection.setConnection(editConn);
-            await DatabaseConnection.editConnection(editConn.caption);
+            await DatabaseConnection.moreActions(editConn.caption, constants.editConnection);
             const verifyConn = await DatabaseConnection.getConnectionDetails(editConn.caption);
             expect(verifyConn).to.deep.equal(editConn);
+        });
+
+        it("Edit an Sqlite connection", async () => {
+            const editSqliteConn: interfaces.IDBConnection = {
+                dbType: "Sqlite",
+                caption: `sqliteConnectionToEdit`,
+                description: "Local connection",
+                basic: {
+                    dbPath: join(process.env.TEST_RESOURCES_PATH,
+                        `mysqlsh-${String(process.env.TEST_SUITE)}`,
+                        "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3"),
+                    dbName: "SQLite",
+                },
+                advanced: {
+                    params: "one parameter",
+                },
+            };
+
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            await DatabaseConnection.setConnection(editSqliteConn);
+            await DatabaseConnection.moreActions(editSqliteConn.caption, constants.editConnection);
+            editSqliteConn.caption = "edited sqlite caption";
+            editSqliteConn.description = "edited sqlite description";
+            if (interfaces.isSQLiteConnection(editSqliteConn.basic)) {
+                editSqliteConn.basic.dbPath = "edited path";
+                // https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=36492230
+                // editConn.basic.dbName = "edited name";
+            }
+            if (interfaces.isAdvancedSqlite(editSqliteConn.advanced)) {
+                editSqliteConn.advanced.params = "another param";
+            }
+
+            await DatabaseConnection.setConnection(editSqliteConn);
+            await DatabaseConnection.moreActions(editSqliteConn.caption, constants.editConnection);
+            const verifyConn = await DatabaseConnection.getConnectionDetails(editSqliteConn.caption);
+            delete (verifyConn.basic as interfaces.IConnBasicSqlite).dbName;
+            delete (editSqliteConn.basic as interfaces.IConnBasicSqlite).dbName;
+            expect(verifyConn).to.deep.equal(editSqliteConn);
+        });
+
+        it("Duplicate a MySQL Connection", async () => {
+            await DatabaseConnection.moreActions(globalConn.caption, constants.dupConnection);
+            const duplicate: interfaces.IDBConnection = {
+                dbType: "MySQL",
+                caption: "duplicateFromGlobal",
+                basic: {
+                    hostname: "localhost",
+                    username: String(process.env.DBUSERNAME),
+                },
+            };
+            await DatabaseConnection.setConnection(duplicate);
+            await driver.wait(waitUntil.existsOnDBConnectionOverview(duplicate.caption), constants.wait5seconds);
+        });
+
+        it("Duplicate a Sqlite Connection", async () => {
+            const sqliteConn: interfaces.IDBConnection = {
+                dbType: "Sqlite",
+                caption: `sqliteConnectionToDuplicate`,
+                description: "Local connection",
+                basic: {
+                    dbPath: join(process.env.TEST_RESOURCES_PATH,
+                        `mysqlsh-${String(process.env.TEST_SUITE)}`,
+                        "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3"),
+                    dbName: "SQLite",
+                },
+                advanced: {
+                    params: "one parameter",
+                },
+            };
+
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            await DatabaseConnection.setConnection(sqliteConn);
+            await DatabaseConnection.moreActions(sqliteConn.caption, constants.dupConnection);
+            const duplicateSqlite: interfaces.IDBConnection = {
+                dbType: "Sqlite",
+                caption: "duplicateSqliteFromGlobal",
+            };
+            await DatabaseConnection.setConnection(duplicateSqlite);
+            await driver.wait(waitUntil.existsOnDBConnectionOverview(duplicateSqlite.caption), constants.wait5seconds);
         });
 
     });
@@ -762,7 +845,8 @@ describe("DATABASE CONNECTIONS", () => {
         });
 
         it("Edit MySQL connection", async () => {
-
+            await Section.clickToolbarButton(await Section.getSection(constants.dbTreeSection),
+                constants.collapseAll);
             const localConn = Object.assign({}, globalConn);
             localConn.caption = `connectionToEdit`;
             await Section.createDatabaseConnection(localConn);

@@ -472,6 +472,7 @@ export const dbConnectionOverview = {
         },
         contextMenu: By.css(".noArrow.menu"),
     },
+    closeHeader: By.id("closeButton"),
 };
 
 export const mysqlAdministration = {

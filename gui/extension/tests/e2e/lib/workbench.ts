@@ -498,6 +498,22 @@ export class Workbench {
     };
 
     /**
+     * Verifies if notifications exist on the workbench
+     * @param notificationToMatch The notification to find
+     * @returns A promise resolving with true if notifications exist, false otherwise
+     */
+    public static existsNotification = async (notificationToMatch: RegExp): Promise<boolean> => {
+        return driver.wait(async () => {
+            const notifications = await new extWorkbench().getNotifications();
+            for (const notification of notifications) {
+                if ((await notification.getMessage()).match(notificationToMatch) !== null) {
+                    return true;
+                }
+            }
+        });
+    };
+
+    /**
      * Opens the MySQL Shell for VSCode Extension
      * @returns A promise resolving when the extension view is opened
      */

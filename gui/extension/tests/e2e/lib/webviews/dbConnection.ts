@@ -280,9 +280,14 @@ export class DatabaseConnection {
                 }
                 if (dbConfig.advanced) {
                     await this.selectTab(constants.advancedTab);
-                    if (sqliteData.advanced.params) {
-                        await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.sqlite.advanced.otherParams,
-                            sqliteData.advanced.params);
+                    if (interfaces.isAdvancedSqlite(dbConfig.advanced)) {
+                        if ((dbConfig.advanced)) {
+                            await DialogHelper.setFieldText(dialog,
+                                locator.dbConnectionDialog.sqlite.advanced.otherParams,
+                                dbConfig.advanced.params);
+                        }
+                    } else {
+                        throw new Error("Please define the params object field");
                     }
                 }
             }
@@ -292,6 +297,7 @@ export class DatabaseConnection {
 
         await dialog.findElement(locator.dbConnectionDialog.ok).click();
     };
+
     /**
      * Gets a Database connection from the connection overview
      * @param name The database connection caption
@@ -324,21 +330,35 @@ export class DatabaseConnection {
 
     /**
      * Clicks on a database connection edit button
-     * @param name The database connection caption
+     * @param dbConnection The database connection caption
+     * @param option The option to click
      * @returns A promise resolving with the connection details
      */
-    public static editConnection = async (name: string): Promise<void> => {
+    public static moreActions = async (dbConnection: string, option: string): Promise<void> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
-        const connection = await DatabaseConnection.getConnection(name);
+        const connection = await DatabaseConnection.getConnection(dbConnection);
         const moreActions = await connection.findElement(locator.dbConnectionOverview.dbConnection.moreActions);
         await driver.actions().move({ origin: moreActions }).perform();
         await driver.executeScript("arguments[0].click()", moreActions);
         await driver.wait(until.elementLocated(locator.dbConnectionOverview.dbConnection.moreActionsMenu.exists),
             constants.wait5seconds, "More actions menu was not displayed");
-        await driver.findElement(locator.dbConnectionOverview.dbConnection.moreActionsMenu.editConnection)
-            .click();
+        switch (option) {
+            case constants.editConnection: {
+                await driver.findElement(locator.dbConnectionOverview.dbConnection.moreActionsMenu.editConnection)
+                    .click();
+                break;
+            }
+            case constants.dupConnection: {
+                await driver.findElement(locator.dbConnectionOverview.dbConnection.moreActionsMenu.duplicateConnection)
+                    .click();
+                break;
+            }
+            default: {
+                break;
+            }
+        }
     };
 
     /**
@@ -350,7 +370,7 @@ export class DatabaseConnection {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
-        await this.editConnection(name);
+        await this.moreActions(name, constants.editConnection);
         const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
             constants.wait25seconds, "Connection dialog was not displayed");
         const dbConnection: interfaces.IDBConnection = {
@@ -489,6 +509,7 @@ export class DatabaseConnection {
                 dbPath: await DialogHelper.getFieldValue(dialog, locator.dbConnectionDialog.sqlite.basic.dbFilePath),
                 dbName: await DialogHelper.getFieldValue(dialog, locator.dbConnectionDialog.sqlite.basic.dbName),
             };
+            await this.selectTab(constants.advancedTab);
             const advanced: interfaces.IConnAdvancedSqlite = {
                 params: await DialogHelper.getFieldValue(dialog,
                     locator.dbConnectionDialog.sqlite.advanced.otherParams),
