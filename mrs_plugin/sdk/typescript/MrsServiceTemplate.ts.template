@@ -6,6 +6,7 @@
 // --- importLoopStart
 import {
     IMrsFetchData,
+    IMrsResourceData,
     MrsBaseService,
     MrsBaseSchema,
     // --- importRequiredDatatypesOnlyStart
@@ -114,7 +115,6 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         // --- crudDeleteOnlyEnd
     };
 
-
     // --- crudCreateOnlyStart
     public create = async (args: ICreateOptions<I${obj_class_name}>): Promise<I${obj_class_name}> => {
         const request = new MrsBaseObjectCreate<I${obj_class_name}>(this.schema, ${obj_class_name}Request.#requestPath, args.data);
@@ -135,7 +135,6 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return result;
     };
     // --- crudCreateOnlyEnd
-
     // --- crudReadOnlyStart
     public findAll = async (args?: IFindAllOptions<I${obj_class_name}, I${obj_class_name}Params, I${obj_class_name}Cursors>): Promise<I${obj_class_name}[]> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
@@ -153,6 +152,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
 
         if (!this.#hasMore && iterator) {
             this.#hasMore = true;
+
             return [];
         }
 
@@ -173,7 +173,6 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return response;
     };
     // --- crudReadOnlyEnd
-
     // --- crudReadUniqueOnlyStart
     public findUnique = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueParams>): Promise<I${obj_class_name} | undefined> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}UniqueParams>(
@@ -193,7 +192,6 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return response;
     };
     // --- crudReadUniqueOnlyEnd
-
     // --- crudUpdateOnlyStart
     public update = async (args: IUpdateOptions<I${obj_class_name}, I${obj_class_name}Params, [${obj_quoted_pk_list}], { batch: false }>): Promise<I${obj_class_name}> => {
         const request = new MrsBaseObjectUpdate<I${obj_class_name}>(
@@ -215,7 +213,6 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return result;
     };
     // --- crudUpdateOnlyEnd
-
     // --- crudUpdateProcedureOnlyStart
     public call = (
         ${obj_name}Params: I${obj_param_interface},
@@ -223,7 +220,6 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return this.rest.put(${obj_name}Params).fetch();
     };
     // --- crudUpdateProcedureOnlyEnd
-
     // --- crudReadFunctionOnlyStart
     public call = (
         ${obj_name}Params: I${obj_param_interface},
@@ -231,7 +227,6 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return this.rest.get(${obj_name}Params).fetch();
     };
     // --- crudReadFunctionOnlyEnd
-
     // --- crudDeleteOnlyStart
     public delete = async (args: IDeleteOptions<I${obj_class_name}Params>): Promise<IMrsDeleteResult> => {
         const response = await this.rest.delete().where(args.where).fetch();

@@ -1017,7 +1017,7 @@ export class MrsHub extends ComponentBase {
             title: `Export MRS SDK Files for ${service.hostCtx}`,
             parameters: {
                 serviceName: service.hostCtx,
-                languages: ["TypeScript"],
+                languages: ["TypeScript", "Python"],
                 appBaseClasses: [
                     {
                         language: "TypeScript",

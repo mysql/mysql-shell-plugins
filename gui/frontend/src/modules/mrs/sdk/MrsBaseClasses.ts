@@ -444,7 +444,7 @@ export interface IMrsOperator {
  * @see IMrsLink
  * @see JsonObject
  */
-export type MrsResourceCollectionObject<C> = {
+export type IMrsResourceCollectionData<C> = {
     items: Array<MrsResourceObject<C>>,
     limit: number,
     offset?: number,
@@ -456,9 +456,9 @@ export type MrsResourceCollectionObject<C> = {
 /**
  * A single MRS resource object is represented by JSON object returned by the MySQL Router, which includes the
  * corresponding fields and values alongside additional hypermedia-related properties.
- * @see IMrsBaseObject
+ * @see IMrsResourceData
  */
-export type MrsResourceObject<T> = T & IMrsBaseObject;
+export type MrsResourceObject<T> = T & IMrsResourceData;
 
 /**
  * A resource object is always represented as JSON and can include specific hypermedia properties such as a potential
@@ -467,7 +467,7 @@ export type MrsResourceObject<T> = T & IMrsBaseObject;
  * @see IMrsResourceMetadata
  * @see JsonObject
  */
-export type IMrsBaseObject = {
+export type IMrsResourceData = {
     links: IMrsLink[];
     _metadata: IMrsResourceMetadata;
 } & JsonObject;
@@ -1083,16 +1083,16 @@ class MrsSimplifiedObjectResponse<T> {
  * @template T The set of fields of a given database object that should be part of the result set.
  */
 class MrsSimplifiedCollectionObjectResponse<T> {
-    #json: MrsResourceCollectionObject<T>;
+    #json: IMrsResourceCollectionData<T>;
 
-    public constructor (json: MrsResourceCollectionObject<T>) {
+    public constructor (json: IMrsResourceCollectionData<T>) {
         this.#json = json;
     }
 
     /**
      * Retrieve an application resource instance that hides hypermedia-related properties and prevents the application
      * from changing or deleting them.
-     * @see {MrsResourceCollectionObject}
+     *Data{IMrsResourceCollectionObject}
      * @returns A list of the database object items without hypermedia-related properties.
      */
     public getInstance () {
@@ -1101,8 +1101,8 @@ class MrsSimplifiedCollectionObjectResponse<T> {
                 throw new Error(`The "${String(p)}" property cannot be deleted.`);
             },
 
-            get: (target: MrsResourceCollectionObject<T> & { [key: symbol]: unknown }, key,
-                receiver: MrsResourceCollectionObject<T>) => {
+            get: (target: IMrsResourceCollectionData<T> & { [key: symbol]: unknown }, key,
+                receiver: IMrsResourceCollectionData<T>) => {
                 if (key !== "toJSON" && key !== "items") {
                     return target[key];
                 }
@@ -1263,7 +1263,7 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> extends MrsReques
         return this;
     };
 
-    public fetch = async (): Promise<MrsResourceCollectionObject<Item>> => {
+    public fetch = async (): Promise<IMrsResourceCollectionData<Item>> => {
         let inputStr = `${this.schema.requestPath}${this.requestPath}?`;
 
         const fields = this.fieldsToGet ?? {};
@@ -1295,7 +1295,7 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> extends MrsReques
             errorMsg: "Failed to fetch items.",
         });
 
-        const responseBody: MrsResourceCollectionObject<Item> = await res.json();
+        const responseBody: IMrsResourceCollectionData<Item> = await res.json();
 
         if (this.simplified === false) {
             return responseBody;
@@ -1314,11 +1314,11 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> extends MrsReques
      * page.
      *
      * @param progress An optional callback function that is called for each page that is fetched.
-     * @returns A list of typed IMrsBaseObjects
+     * @returns A list of typed IMrsResourceDatas
      */
     public fetchAll = async (progress?: (items: Item[]) => Promise<void>):
-    Promise<MrsResourceCollectionObject<Item>> => {
-        const resultList: MrsResourceCollectionObject<Item> = {
+    Promise<IMrsResourceCollectionData<Item>> => {
+        const resultList: IMrsResourceCollectionData<Item> = {
             items: [],
             limit: this.pageSizeCondition,
             offset: 0,

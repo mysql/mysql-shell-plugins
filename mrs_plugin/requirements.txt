@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 pytest >= 6.1.2, <= 7.0
 websocket-client >= 0.57.0
 pytest-cov >= 2.10.1

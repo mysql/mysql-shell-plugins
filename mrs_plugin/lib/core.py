@@ -1137,6 +1137,10 @@ def convert_snake_to_camel_case(snake_str):
     return snake_str[0].lower() + snake_str[1:]
 
 
+def convert_to_snake_case(str):
+    return re.sub(r'(?<!^)(?=[A-Z])', '_', str).lower()
+
+
 def unquote(name):
     if name.startswith("`"):
         return name.strip("`")

@@ -26,7 +26,7 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type {
     PureFilter, DataFilter, BooleanFieldMapSelect, ColumnOrder, FieldNameSelect, IFindFirstOptions, IFindManyOptions,
-    IFindUniqueOptions, IFindAllOptions, MrsResourceCollectionObject, MaybeNull, Point, MultiPoint, LineString,
+    IFindUniqueOptions, IFindAllOptions, IMrsResourceCollectionData, MaybeNull, Point, MultiPoint, LineString,
     MultiLineString, Polygon, MultiPolygon, Geometry, GeometryCollection, HighOrderFilter, ComparisonOpExpr,
     MrsResourceObject,
     Cursor,
@@ -741,7 +741,7 @@ describe("MRS SDK base types", () => {
         });
     });
 
-    describe("MrsResourceCollectionObject", () => {
+    describe("IMrsResourceCollectionData", () => {
         it("contains hypermedia-related properties and the list of individual resources in a collection", () => {
             const collection = {
                 items: [{
@@ -765,7 +765,7 @@ describe("MRS SDK base types", () => {
                 }],
             };
 
-            expectTypeOf(collection).toMatchTypeOf<MrsResourceCollectionObject<{ name: string, age: number }>>();
+            expectTypeOf(collection).toMatchTypeOf<IMrsResourceCollectionData<{ name: string, age: number }>>();
         });
     });
 });
