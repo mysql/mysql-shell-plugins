@@ -35,7 +35,7 @@ import * as errors from "../errors";
 /**
  * This class aggregates the functions that perform operations related to REST
  */
-export class Rest {
+export class RestDialog {
 
     /**
      * Sets a Rest service using the web view dialog

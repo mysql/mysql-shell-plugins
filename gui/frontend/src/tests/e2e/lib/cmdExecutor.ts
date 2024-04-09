@@ -320,7 +320,26 @@ export class CommandExecutor {
 
         if (await DBNotebooks.existsToolbarButton(constants.execCaret)) {
             const toolbarButton = await DBNotebooks.getToolbarButton(constants.execCaret);
-            await toolbarButton!.click();
+            await driver.wait(async () => {
+                try {
+                    await toolbarButton?.click();
+                    await driver.wait(async () => {
+                        return (await toolbarButton?.getAttribute("class"))?.includes("disabled");
+                    }, constants.wait5seconds, `repeat - disabled`);
+                    await driver.wait(async () => {
+                        return !((await toolbarButton?.getAttribute("class"))?.includes("disabled"));
+                    }, constants.wait5seconds, `repeat - enabled`);
+
+                    return true;
+                } catch (e) {
+                    if (!String(e).includes("repeat")) {
+                        throw e;
+                    } else {
+                        console.log(`[DEBUG] ${String(e)}`);
+                        console.log("------");
+                    }
+                }
+            }, constants.wait5seconds, "There was a problem clicking the Exec caret button");
         } else {
             await (await DBNotebooks.getToolbarButton(constants.execFullBlockJs))!.click();
         }
@@ -488,20 +507,24 @@ export class CommandExecutor {
     public setMouseCursorAt = async (word: string): Promise<void> => {
         await driver.wait(async () => {
             try {
+                const currentLine = await driver.findElement(locator.notebook.codeEditor.editor.currentLine);
                 const mouseCursorShouldBe = await DBNotebooks.getLineFromWord(word);
                 const lines = await driver.findElements(locator.notebook.codeEditor.editor.editorPrompt);
                 const lineSpan = await lines[mouseCursorShouldBe!].findElement(locator.htmlTag.span);
                 await driver.actions().doubleClick(lineSpan).perform();
 
-                return true;
+                return driver.wait(until.stalenessOf(currentLine), constants.wait2seconds)
+                    .then(() => {
+                        return true;
+                    }).catch(() => {
+                        return false;
+                    });
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError) ||
-                    !(String(e).includes("No node with given id found"))
-                ) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "The elements were always stale - setMouseCursorAt");
+        }, constants.wait10seconds, "Could not place the mouse cursor at the correct spot");
     };
 
     /**

@@ -35,7 +35,7 @@ import { Notebook } from "../lib/webviews/notebook";
 import { CommandExecutor } from "../lib/cmdExecutor";
 import { Section } from "../lib/treeViews/section";
 import { Tree } from "../lib/treeViews/tree";
-import { DatabaseConnection } from "../lib/webviews/dbConnection";
+import { DatabaseConnectionOverview } from "../lib/webviews/dbConnectionOverview";
 import { Os } from "../lib/os";
 import { Workbench } from "../lib/workbench";
 import * as constants from "../lib/constants";
@@ -102,7 +102,7 @@ describe("NOTEBOOKS", () => {
             await Workbench.removeAllDatabaseConnections();
             await Section.createDatabaseConnection(anotherConn);
             await Section.createDatabaseConnection(globalConn);
-            await (await DatabaseConnection.getConnection(globalConn.caption)).click();
+            await (await DatabaseConnectionOverview.getConnection(globalConn.caption)).click();
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait10seconds);
             await Section.focus(constants.dbTreeSection);
             if (await Workbench.requiresMRSMetadataUpgrade(globalConn)) {

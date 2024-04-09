@@ -22,7 +22,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { By, WebElement, Locator, Key } from "vscode-extension-tester";
+import { By, WebElement, Locator, Key, until } from "vscode-extension-tester";
 import { driver, Misc } from "../misc";
 import { Os } from "../os";
 import * as locator from "../locators";
@@ -173,6 +173,48 @@ export class DialogHelper {
             }, constants.wait5seconds).catch(() => {
                 return false;
             });
+        }
+    };
+
+    /**
+     * Selects a Database connection tab
+     * @param name The tab name
+     * @returns A promise resolving when the tab is selected
+     */
+    public static selectTab = async (name: string): Promise<void> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
+
+        const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
+            constants.wait25seconds, "Connection dialog was not displayed");
+        const tabs = await dialog.findElements(locator.dbConnectionDialog.tab);
+        for (const tab of tabs) {
+            if ((await tab.getText() === name)) {
+                await tab.click();
+
+                break;
+            }
+        }
+    };
+
+    /**
+     * Verifies if a Database connection tab exists
+     * @param name The tab name
+     * @returns A promise resolving with true if the tab exists, false otherwise
+     */
+    public static existsTab = async (name: string): Promise<boolean> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
+
+        const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
+            constants.wait25seconds, "Connection dialog was not displayed");
+        const tabs = await dialog.findElements(locator.dbConnectionDialog.tab);
+        for (const tab of tabs) {
+            if ((await tab.getText() === name)) {
+                return true;
+            }
         }
     };
 

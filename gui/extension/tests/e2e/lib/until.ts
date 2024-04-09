@@ -38,7 +38,7 @@ import { Misc, driver } from "./misc";
 import { Notebook } from "./webviews/notebook";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
-import { DatabaseConnection } from "./webviews/dbConnection";
+import { PasswordDialog } from "./webviews/passwordDialog";
 import { Section } from "./treeViews/section";
 import { Tree } from "./treeViews/tree";
 import { Os } from "./os";
@@ -136,7 +136,7 @@ export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Cond
 
         const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
         if (existsPasswordDialog) {
-            await DatabaseConnection.setCredentials(connection);
+            await PasswordDialog.setCredentials(connection);
             await driver.wait(dbConnectionIsSuccessful(), constants.wait15seconds);
         }
         const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
@@ -159,7 +159,7 @@ export const mdsConnectionIsOpened = (connection: interfaces.IDBConnection): Con
             await driver.findElement(locator.confirmDialog.accept).click();
         }
         if (existsPasswordDialog) {
-            await DatabaseConnection.setCredentials(connection);
+            await PasswordDialog.setCredentials(connection);
         }
         if (existsErrorDialog) {
             const errorDialog = await driver.findElement(locator.errorDialog.exists);
@@ -177,7 +177,7 @@ export const shellSessionIsOpened = (connection: interfaces.IDBConnection): Cond
         await Misc.switchToFrame();
         const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
         if (existsPasswordDialog) {
-            await DatabaseConnection.setCredentials(connection);
+            await PasswordDialog.setCredentials(connection);
             await driver.wait(shellSessionIsSuccessful(),
                 constants.wait15seconds, "Shell session was not successful");
         }

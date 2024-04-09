@@ -245,7 +245,6 @@ describe("Notebook", () => {
             expect(commandExecutor.getResultMessage()).toMatch(/OK/);
             expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
                 .toMatch(/actor_id/);
-            await driver.sleep(1000);
             await commandExecutor.findAndExecute(query2, commandExecutor.getResultId());
             expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
                 .toMatch(/address_id/);

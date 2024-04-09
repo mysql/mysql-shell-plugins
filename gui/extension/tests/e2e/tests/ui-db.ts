@@ -31,7 +31,7 @@ import {
 import { expect } from "chai";
 import clipboard from "clipboardy";
 import { driver, Misc } from "../lib/misc";
-import { DatabaseConnection } from "../lib/webviews/dbConnection";
+import { DatabaseConnectionDialog } from "../lib/webviews/dbConnectionDialog";
 import { Notebook } from "../lib/webviews/notebook";
 import { CommandExecutor } from "../lib/cmdExecutor";
 import { Section } from "../lib/treeViews/section";
@@ -39,6 +39,7 @@ import { Tree } from "../lib/treeViews/tree";
 import { Os } from "../lib/os";
 import { Workbench } from "../lib/workbench";
 import { DialogHelper } from "../lib/webviews/dialogHelper";
+import { DatabaseConnectionOverview } from "../lib/webviews/dbConnectionOverview";
 import * as constants from "../lib/constants";
 import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
@@ -339,8 +340,8 @@ describe("DATABASE CONNECTIONS", () => {
                 dbName: "SQLite",
             };
             await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-            await DatabaseConnection.setConnection(sqliteConn);
-            const sqliteWebConn = await DatabaseConnection.getConnection(sqliteConn.caption);
+            await DatabaseConnectionDialog.setConnection(sqliteConn);
+            const sqliteWebConn = await DatabaseConnectionOverview.getConnection(sqliteConn.caption);
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -396,8 +397,8 @@ describe("DATABASE CONNECTIONS", () => {
             };
 
             await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-            await DatabaseConnection.setConnection(sslConn);
-            const dbConn = await DatabaseConnection.getConnection(sslConn.caption);
+            await DatabaseConnectionDialog.setConnection(sslConn);
+            const dbConn = await DatabaseConnectionOverview.getConnection(sslConn.caption);
 
             await driver.executeScript(
                 "arguments[0].click();",
@@ -462,8 +463,8 @@ describe("DATABASE CONNECTIONS", () => {
             };
 
             await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-            await DatabaseConnection.setConnection(editConn);
-            await DatabaseConnection.moreActions(editConn.caption, constants.editConnection);
+            await DatabaseConnectionDialog.setConnection(editConn);
+            await DatabaseConnectionOverview.moreActions(editConn.caption, constants.editConnection);
             editConn.caption = "edited caption";
             editConn.description = "edited description";
             if (interfaces.isMySQLConnection(editConn.basic)) {
@@ -544,9 +545,9 @@ describe("DATABASE CONNECTIONS", () => {
                 };
             }
             delete (editConn.basic as interfaces.IConnBasicMySQL).password;
-            await DatabaseConnection.setConnection(editConn);
-            await DatabaseConnection.moreActions(editConn.caption, constants.editConnection);
-            const verifyConn = await DatabaseConnection.getConnectionDetails(editConn.caption);
+            await DatabaseConnectionDialog.setConnection(editConn);
+            await DatabaseConnectionOverview.moreActions(editConn.caption, constants.editConnection);
+            const verifyConn = await DatabaseConnectionDialog.getConnectionDetails(editConn.caption);
             expect(verifyConn).to.deep.equal(editConn);
         });
 
@@ -567,8 +568,8 @@ describe("DATABASE CONNECTIONS", () => {
             };
 
             await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-            await DatabaseConnection.setConnection(editSqliteConn);
-            await DatabaseConnection.moreActions(editSqliteConn.caption, constants.editConnection);
+            await DatabaseConnectionDialog.setConnection(editSqliteConn);
+            await DatabaseConnectionOverview.moreActions(editSqliteConn.caption, constants.editConnection);
             editSqliteConn.caption = "edited sqlite caption";
             editSqliteConn.description = "edited sqlite description";
             if (interfaces.isSQLiteConnection(editSqliteConn.basic)) {
@@ -580,16 +581,16 @@ describe("DATABASE CONNECTIONS", () => {
                 editSqliteConn.advanced.params = "another param";
             }
 
-            await DatabaseConnection.setConnection(editSqliteConn);
-            await DatabaseConnection.moreActions(editSqliteConn.caption, constants.editConnection);
-            const verifyConn = await DatabaseConnection.getConnectionDetails(editSqliteConn.caption);
+            await DatabaseConnectionDialog.setConnection(editSqliteConn);
+            await DatabaseConnectionOverview.moreActions(editSqliteConn.caption, constants.editConnection);
+            const verifyConn = await DatabaseConnectionDialog.getConnectionDetails(editSqliteConn.caption);
             delete (verifyConn.basic as interfaces.IConnBasicSqlite).dbName;
             delete (editSqliteConn.basic as interfaces.IConnBasicSqlite).dbName;
             expect(verifyConn).to.deep.equal(editSqliteConn);
         });
 
         it("Duplicate a MySQL Connection", async () => {
-            await DatabaseConnection.moreActions(globalConn.caption, constants.dupConnection);
+            await DatabaseConnectionOverview.moreActions(globalConn.caption, constants.dupConnection);
             const duplicate: interfaces.IDBConnection = {
                 dbType: "MySQL",
                 caption: "duplicateFromGlobal",
@@ -598,7 +599,7 @@ describe("DATABASE CONNECTIONS", () => {
                     username: String(process.env.DBUSERNAME),
                 },
             };
-            await DatabaseConnection.setConnection(duplicate);
+            await DatabaseConnectionDialog.setConnection(duplicate);
             await driver.wait(waitUntil.existsOnDBConnectionOverview(duplicate.caption), constants.wait5seconds);
         });
 
@@ -619,14 +620,58 @@ describe("DATABASE CONNECTIONS", () => {
             };
 
             await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-            await DatabaseConnection.setConnection(sqliteConn);
-            await DatabaseConnection.moreActions(sqliteConn.caption, constants.dupConnection);
+            await DatabaseConnectionDialog.setConnection(sqliteConn);
+            await DatabaseConnectionOverview.moreActions(sqliteConn.caption, constants.dupConnection);
             const duplicateSqlite: interfaces.IDBConnection = {
                 dbType: "Sqlite",
                 caption: "duplicateSqliteFromGlobal",
             };
-            await DatabaseConnection.setConnection(duplicateSqlite);
+            await DatabaseConnectionDialog.setConnection(duplicateSqlite);
             await driver.wait(waitUntil.existsOnDBConnectionOverview(duplicateSqlite.caption), constants.wait5seconds);
+        });
+
+        it("Remove a MySQL connection", async () => {
+            const connectionToRemove: interfaces.IDBConnection = {
+                dbType: "MySQL",
+                caption: `connectionToRemove`,
+                description: "Local connection",
+                basic: {
+                    hostname: String(process.env.DBHOSTNAME),
+                    username: String(process.env.DBUSERNAME),
+                },
+            };
+
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            await DatabaseConnectionDialog.setConnection(connectionToRemove);
+            await DatabaseConnectionOverview.moreActions(connectionToRemove.caption, constants.removeConnection);
+            const dialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists),
+                constants.wait5seconds, "confirm dialog was not found");
+
+            await dialog.findElement(locator.confirmDialog.accept).click();
+            expect(await DatabaseConnectionOverview.existsConnection(connectionToRemove.caption)).to.be.false;
+        });
+
+        it("Remove a Sqlite connection", async () => {
+            const sqliteConnToRemove: interfaces.IDBConnection = {
+                dbType: "Sqlite",
+                caption: `sqliteConnectionToEdit`,
+                description: "Local connection",
+                basic: {
+                    dbPath: join(process.env.TEST_RESOURCES_PATH,
+                        `mysqlsh-${String(process.env.TEST_SUITE)}`,
+                        "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3"),
+                    dbName: "SQLite",
+                },
+            };
+
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            await DatabaseConnectionDialog.setConnection(sqliteConnToRemove);
+            await DatabaseConnectionOverview.moreActions(sqliteConnToRemove.caption, constants.removeConnection);
+            const dialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists),
+                constants.wait5seconds, "confirm dialog was not found");
+
+            await dialog.findElement(locator.confirmDialog.accept).click();
+            expect(await DatabaseConnectionOverview.existsConnection(sqliteConnToRemove.caption)).to.be.false;
         });
 
     });
@@ -751,7 +796,7 @@ describe("DATABASE CONNECTIONS", () => {
 
     });
 
-    describe("Context menu items", () => {
+    describe("Tree context menu items", () => {
 
         let treeGlobalSchema: TreeItem;
         let treeGlobalSchemaTables: TreeItem;
@@ -850,10 +895,10 @@ describe("DATABASE CONNECTIONS", () => {
             const localConn = Object.assign({}, globalConn);
             localConn.caption = `connectionToEdit`;
             await Section.createDatabaseConnection(localConn);
-            await DatabaseConnection.getConnection(localConn.caption);
+            await DatabaseConnectionOverview.getConnection(localConn.caption);
             const treeLocalConn = await Tree.getElement(constants.dbTreeSection, localConn.caption);
             await Tree.openContextMenuAndSelect(treeLocalConn, constants.editDBConnection);
-            await DatabaseConnection.setConnection(localConn);
+            await DatabaseConnectionDialog.setConnection(localConn);
             expect(await Tree.existsElement(constants.dbTreeSection, localConn.caption),
                 errors.doesNotExistOnTree(localConn.caption)).to.be.true;
 
@@ -866,7 +911,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Section.focus(constants.dbTreeSection);
             treeGlobalConn = await Tree.getElement(constants.dbTreeSection, globalConn.caption);
             await Tree.openContextMenuAndSelect(treeGlobalConn, constants.duplicateConnection);
-            await DatabaseConnection.setConnection(dupConn);
+            await DatabaseConnectionDialog.setConnection(dupConn);
             await driver.wait(async () => {
                 return (await Tree.existsElement(constants.dbTreeSection, dup)) === true;
             }, constants.wait5seconds, `${dup} does not exist on the tree`);
@@ -1014,7 +1059,7 @@ describe("DATABASE CONNECTIONS", () => {
                 (globalConn.basic as interfaces.IConnBasicMySQL).schema);
             await Tree.openContextMenuAndSelect(sakilaItem, constants.loadDataToHW);
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-            await DatabaseConnection.setDataToHeatWave();
+            await DatabaseConnectionDialog.setDataToHeatWave();
             await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Workbench.getNotification("The data load to the HeatWave cluster operation has finished");
             await new BottomBarPanel().toggle(false);

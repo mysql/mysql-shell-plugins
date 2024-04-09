@@ -469,6 +469,7 @@ export const dbConnectionOverview = {
             exists: By.css("#tileActionMenu > div.popup.visible"),
             editConnection: By.id("edit"),
             duplicateConnection: By.id("duplicate"),
+            removeConnection: By.id("remove"),
         },
         contextMenu: By.css(".noArrow.menu"),
     },

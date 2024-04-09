@@ -32,7 +32,7 @@ import {
     OutputView,
 } from "vscode-extension-tester";
 import { driver, Misc } from "../lib/misc";
-import { DatabaseConnection } from "../lib/webviews/dbConnection";
+import { DatabaseConnectionOverview } from "../lib/webviews/dbConnectionOverview";
 import { Shell } from "../lib/shell";
 import { CommandExecutor } from "../lib/cmdExecutor";
 import { Section } from "../lib/treeViews/section";
@@ -44,6 +44,7 @@ import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import * as errors from "../lib/errors";
+import { DialogHelper } from "../lib/webviews/dialogHelper";
 
 let ociConfig: { [key: string]: string; };
 let ociTree: RegExp[];
@@ -487,7 +488,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     .to.match(/(\d+).(\d+).(\d+).(\d+)/);
                 await newConDialog.findElement(locator.dbConnectionDialog.mysql.basic.username)
                     .sendKeys((bastionConn.basic as interfaces.IConnBasicMySQL).username);
-                await DatabaseConnection.selectTab(constants.mdsTab);
+                await DialogHelper.selectTab(constants.mdsTab);
                 await driver.wait(async () => {
                     return await driver
                         .findElement(locator.dbConnectionDialog.mysql.mds.dbSystemId).getAttribute("value") !== "";
@@ -501,7 +502,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 bastionOCID = await driver
                     .findElement(locator.dbConnectionDialog.mysql.mds.bastionId).getAttribute("value");
                 await newConDialog.findElement(locator.dbConnectionDialog.ok).click();
-                const mds = await DatabaseConnection.getConnection(bastionConn.caption);
+                const mds = await DatabaseConnectionOverview.getConnection(bastionConn.caption);
                 await mds.click();
                 try {
                     await driver.wait(waitUntil.mdsConnectionIsOpened(bastionConn), constants.wait1minute);
