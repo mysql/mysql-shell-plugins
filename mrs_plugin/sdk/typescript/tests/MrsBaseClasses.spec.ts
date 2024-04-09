@@ -25,7 +25,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-    IFindManyOptions, IFindUniqueOptions, MrsResourceCollectionObject, JsonObject, JsonValue, MrsBaseObjectDelete,
+    IFindManyOptions, IFindUniqueOptions, IMrsResourceCollectionData, JsonObject, JsonValue, MrsBaseObjectDelete,
     MrsBaseObjectQuery, MrsBaseObjectUpdate, MrsBaseSchema, MrsBaseService, MrsResourceObject, MrsBaseObjectCreate,
 } from "../MrsBaseClasses";
 
@@ -335,7 +335,7 @@ describe("MRS SDK API", () => {
         });
 
         beforeEach(() => {
-            const collectionResponse: MrsResourceCollectionObject<ITableMetadata1> = {
+            const collectionResponse: IMrsResourceCollectionData<ITableMetadata1> = {
                 count: 2,
                 hasMore: false,
                 limit: 25,
@@ -432,7 +432,7 @@ describe("MRS SDK API", () => {
 
         it("hypermedia options are not removable from an application resource instance", async () => {
             const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            const collection = await query.fetch() as Omit<MrsResourceCollectionObject<ITableMetadata1>,
+            const collection = await query.fetch() as Omit<IMrsResourceCollectionData<ITableMetadata1>,
                 "count" | "hasMore" | "limit" | "offset" | "links">;
 
             expect(() => { delete collection.count; }).toThrowError('The "count" property cannot be deleted.');

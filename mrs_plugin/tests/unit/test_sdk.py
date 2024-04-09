@@ -44,13 +44,22 @@ def test_get_interface_datatype():
     type = get_interface_datatype(**args)
     assert type == "string"
 
+    args["sdk_language"] = "Python"
+    type = get_interface_datatype(**args)
+    assert type == "str"
+
     args["field"]["db_column"] = {
         "datatype": "int",
         "not_null": False
     }
+    args["sdk_language"] = "TypeScript"
 
     type = get_interface_datatype(**args)
     assert type == "MaybeNull<number>"
+
+    args["sdk_language"] = "Python"
+    type = get_interface_datatype(**args)
+    assert type == "Optional[int]"
 
     args["sdk_language"] = "Unknown"
 
@@ -162,6 +171,62 @@ def test_get_datatype_mapping():
     type = get_datatype_mapping(**args)
     assert type == "string"
 
+    args["sdk_language"] = "Python"
+    args["db_datatype"] = "tinyint(1)"
+
+    type = get_datatype_mapping(**args)
+    assert type == "bool"
+
+    args["db_datatype"] = "bit(1)"
+
+    type = get_datatype_mapping(**args)
+    assert type == "bool"
+
+    args["db_datatype"] = "tinyint"
+
+    type = get_datatype_mapping(**args)
+    assert type == "int"
+
+    args["db_datatype"] = "smallint"
+
+    type = get_datatype_mapping(**args)
+    assert type == "int"
+
+    args["db_datatype"] = "mediumint"
+
+    type = get_datatype_mapping(**args)
+    assert type == "int"
+
+    args["db_datatype"] = "int"
+
+    type = get_datatype_mapping(**args)
+    assert type == "int"
+
+    args["db_datatype"] = "decimal"
+
+    type = get_datatype_mapping(**args)
+    assert type == "float"
+
+    args["db_datatype"] = "numeric"
+
+    type = get_datatype_mapping(**args)
+    assert type == "float"
+
+    args["db_datatype"] = "float"
+
+    type = get_datatype_mapping(**args)
+    assert type == "float"
+
+    args["db_datatype"] = "double"
+
+    type = get_datatype_mapping(**args)
+    assert type == "float"
+
+    args["db_datatype"] = "varchar"
+
+    type = get_datatype_mapping(**args)
+    assert type == "str"
+
     args["sdk_language"] = "Unknown"
 
     type = get_datatype_mapping(**args)
@@ -170,19 +235,9 @@ def test_get_datatype_mapping():
 
 def test_datatype_is_primitive():
     args = {
-        "client_datatype": "bigint",
+        "client_datatype": "boolean",
         "sdk_language": "TypeScript"
     }
-
-    is_native = datatype_is_primitive(**args)
-    assert is_native is True
-
-    args["client_datatype"] = "boolean"
-
-    is_native = datatype_is_primitive(**args)
-    assert is_native is True
-
-    args["client_datatype"] = "null"
 
     is_native = datatype_is_primitive(**args)
     assert is_native is True
@@ -197,12 +252,28 @@ def test_datatype_is_primitive():
     is_native = datatype_is_primitive(**args)
     assert is_native is True
 
-    args["client_datatype"] = "symbol"
+    args["client_datatype"] = "Unknown"
+
+    is_native = datatype_is_primitive(**args)
+    assert is_native is False
+
+    args["client_datatype"] = "bool"
+    args["sdk_language"] = "Python"
 
     is_native = datatype_is_primitive(**args)
     assert is_native is True
 
-    args["client_datatype"] = "undefined"
+    args["client_datatype"] = "float"
+
+    is_native = datatype_is_primitive(**args)
+    assert is_native is True
+
+    args["client_datatype"] = "int"
+
+    is_native = datatype_is_primitive(**args)
+    assert is_native is True
+
+    args["client_datatype"] = "str"
 
     is_native = datatype_is_primitive(**args)
     assert is_native is True
@@ -248,35 +319,6 @@ def test_field_can_be_cursor():
     assert can_be_cursor is True
 
 
-def test_generate_interfaces():
-    class_name = "Foo"
-    db_obj = { "object_type": "TABLE" }
-    obj = {}
-    fields = []
-    want = "type IFooCursors = never;\n\n"
-
-    got, _ = generate_interfaces(db_obj, obj, fields, class_name, "TypeScript", None)
-
-    assert got == want
-
-    db_column = { "datatype": "varchar(3)", "not_null": True, "id_generation": "auto_inc" }
-    fields = [{ "lev": 1, "enabled": True, "db_column": db_column, "name": "bar" }]
-    want = (
-"""export interface IFoo {
-    bar?: string,
-}
-
-export interface IFooCursors {
-    bar?: string,
-}
-
-""")
-
-    got, _ = generate_interfaces(db_obj, obj, fields, class_name, "TypeScript", None)
-
-    assert got == want
-
-
 def test_substitute_imports_in_template():
     template = """// --- importLoopStart
 import {
@@ -289,7 +331,7 @@ import {
     foo,
 } from "somewhere";\n"""
 
-    res = substitute_imports_in_template(template, [], {"foo"})
+    res = substitute_imports_in_template(template, [], {"foo"}, "TypeScript")
     got = res.get("template")
 
     assert got == want
@@ -299,8 +341,209 @@ import {
     foo,
 } from "somewhere";\n"""
 
-    res = substitute_imports_in_template(template, [], {"foo","bar"})
+    res = substitute_imports_in_template(template, [], {"foo","bar"}, "TypeScript")
     got = res.get("template")
 
     assert got == want
 
+
+def test_generate_interfaces():
+    class_name = "Foo"
+    db_obj = { "object_type": "TABLE" }
+    obj = {}
+    fields = []
+    want = "type IFooCursors = never;\n\n"
+
+    got, _ = generate_interfaces(db_obj, obj, fields, class_name, "TypeScript")
+
+    assert got == want
+
+    db_column = { "datatype": "varchar(3)", "not_null": True, "id_generation": "auto_inc" }
+    fields = [{ "lev": 1, "enabled": True, "db_column": db_column, "name": "bar" }]
+    want = """export type IFooData = {
+    bar?: string,
+} & IMrsResourceData;
+
+export interface IFoo {
+    bar?: string,
+}
+
+export interface IFooCursors {
+    bar?: string,
+}
+
+"""
+
+    got, _ = generate_interfaces(db_obj, obj, fields, class_name, "TypeScript")
+
+    assert got == want
+
+    want = """class IFooData(IMrsResourceData, total=False):
+    bar: str
+
+
+@dataclass(init=False, repr=True)
+class IFoo(Record):
+
+    bar: str
+
+    def __init__(self, data: IFooData) -> None:
+        self.bar = data["bar"]
+
+        for key in Record._reserved_keys:
+            self.__dict__.update({key:data.get(key)})
+
+
+IFooField: TypeAlias = Literal[
+    "bar",
+]
+
+
+IFooNestedField: TypeAlias = None
+
+
+class IFooSelectable(TypedDict, total=False):
+    bar: bool
+
+
+class IFooSortable(TypedDict, total=False):
+    bar: Order
+
+
+class IFooCursors(TypedDict, total=False):
+    bar: StringField
+
+
+"""
+
+    got, _ = generate_interfaces(db_obj, obj, fields, class_name, "Python")
+
+    assert got == want
+
+
+def test_generate_field_enum():
+    field_enum = generate_field_enum("Foo")
+    assert field_enum == ""
+
+    field_enum = generate_field_enum("Foo", ["bar"])
+    assert field_enum == ""
+
+    field_enum = generate_field_enum("Foo", ["bar"], "TypeScript")
+    assert field_enum == ""
+
+    field_enum = generate_field_enum("Foo", [], "Python")
+    assert field_enum == "IFooField: TypeAlias = None\n\n\n"
+
+    field_enum = generate_field_enum("Foo", None, "Python")
+    assert field_enum == "IFooField: TypeAlias = None\n\n\n"
+
+    field_enum = generate_field_enum("Foo", ["bar", "baz"], "Python")
+    assert field_enum == """IFooField: TypeAlias = Literal[
+    "bar",
+    "baz",
+]\n\n\n"""
+
+
+def test_generate_type_declaration_field():
+    type_declaration_field = generate_type_declaration_field("foo", "bar", "TypeScript")
+    assert type_declaration_field == "    foo?: bar,\n"
+
+    type_declaration_field = generate_type_declaration_field("foo", "bar", "Python")
+    assert type_declaration_field == "    foo: bar\n"
+
+    type_declaration_field = generate_type_declaration_field("foo", ["bar"], "TypeScript")
+    assert type_declaration_field == "    foo?: bar[],\n"
+
+    type_declaration_field = generate_type_declaration_field("foo", ["bar"], "Python")
+    assert type_declaration_field == "    foo: list[bar]\n"
+
+    type_declaration_field = generate_type_declaration_field("fooBar", "baz", "Python")
+    assert type_declaration_field == "    foo_bar: baz\n"
+
+    type_declaration_field = generate_type_declaration_field("fooBar", "baz", "Python", False)
+    assert type_declaration_field == "    fooBar: baz\n"
+
+
+def test_generate_type_declaration_placeholder():
+    type_declaration_placeholder = generate_type_declaration_placeholder("Foo", "TypeScript")
+    assert type_declaration_placeholder == "type IFoo = never;\n\n"
+
+    type_declaration_placeholder = generate_type_declaration_placeholder("Foo", "Python")
+    assert type_declaration_placeholder == "IFoo: TypeAlias = None\n\n\n"
+
+
+def test_generate_type_declaration():
+    type_declaration = generate_type_declaration("Foo")
+    assert type_declaration == "export interface IFoo {\n}\n\n"
+
+    type_declaration = generate_type_declaration("Foo", ["Bar", "Baz"])
+    assert type_declaration == "export interface IFoo extends Bar, Baz {\n}\n\n"
+
+    type_declaration = generate_type_declaration("Foo", ["Bar", "Baz"], {"qux":"quux"})
+    assert type_declaration == ("export interface IFoo extends Bar, Baz {\n" +
+                                "    qux?: quux,\n" +
+                                "}\n\n")
+
+    type_declaration = generate_type_declaration(name="Foo", parents=["Bar", "Baz"], sdk_language="Python")
+    assert type_declaration == ("class IFoo(TypedDict, Bar, Baz, total=False):\n" +
+                                "    pass\n\n\n")
+
+    type_declaration = generate_type_declaration("Foo", ["Bar", "Baz"], {"qux":"quux"}, "Python")
+    assert type_declaration == ("class IFoo(TypedDict, Bar, Baz, total=False):\n" +
+                                "    qux: quux\n\n\n")
+
+
+def test_generate_data_class():
+    data_class = generate_data_class("Foobar", {"foo": "baz", "bar": "qux"}, "TypeScript")
+    assert data_class == generate_type_declaration(name="Foobar", fields={"foo": "baz", "bar": "qux"},
+                                                   sdk_language="TypeScript")
+
+    data_class = generate_data_class("Foobar", {"foo": "baz", "barBaz": "qux"}, "Python")
+    assert data_class == ("@dataclass(init=False, repr=True)\n" +
+                          "class IFoobar(Record):\n\n" +
+                          "    foo: baz\n" +
+                          "    bar_baz: qux\n\n" +
+                          "    def __init__(self, data: IFoobarData) -> None:\n" +
+                          '        self.foo = data["foo"]\n' +
+                          '        self.bar_baz = data["barBaz"]\n\n' +
+                          "        for key in Record._reserved_keys:\n" +
+                          "            self.__dict__.update({key:data.get(key)})\n\n\n")
+
+
+def test_generate_literal_type():
+    literal = generate_literal_type(["foo", "bar"], "TypeScript")
+    assert literal == '"foo" | "bar"'
+
+    literal = generate_literal_type(["foo", "bar"], "Python")
+    assert literal == """Literal[
+    "foo",
+    "bar",
+]"""
+
+
+def test_generate_selectable():
+    selectable = generate_selectable("Foo", { "bar": "baz", "qux": "quux" }, "TypeScript")
+    assert selectable == ""
+
+    selectable = generate_selectable("Foo", { "bar": "baz", "qux": "quux" }, "Python")
+    assert selectable == ("class IFooSelectable(TypedDict, total=False):\n" +
+                          "    bar: bool\n" +
+                          "    qux: bool\n\n\n")
+
+
+def test_generate_sortable():
+    sortable = generate_sortable("Foo", { "bar": "baz", "qux": "quux" }, "TypeScript")
+    assert sortable == ""
+
+    sortable = generate_sortable("Foo", { "bar": "baz", "qux": "quux" }, "Python")
+    assert sortable == ("class IFooSortable(TypedDict, total=False):\n" +
+                          "    bar: Order\n" +
+                          "    qux: Order\n\n\n")
+
+
+def test_generate_union():
+    union = generate_union("Foo", ["Bar", "Baz"], "TypeScript")
+    assert union == 'export type Foo = Bar | Baz;\n\n'
+
+    union = generate_union("Foo", ["Bar", "Baz"], "Python")
+    assert union == 'Foo: TypeAlias = Bar | Baz\n\n\n'

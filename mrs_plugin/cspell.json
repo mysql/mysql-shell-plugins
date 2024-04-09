@@ -8,7 +8,8 @@
         "unregister",
         "UPDATEPROCEDURE",
         "READFUNCTION",
-        "urandom"
+        "urandom",
+        "quux"
     ],
     "flagWords": [
         "hte"

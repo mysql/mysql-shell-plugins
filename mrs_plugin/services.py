@@ -33,6 +33,7 @@ import os
 import shutil
 import json
 import datetime
+import re
 
 
 def verify_value_keys(**kwargs):
@@ -213,6 +214,22 @@ def call_update_service(op_text, **kwargs):
                 return f"The services have been {op_text}."
             return True
     return False
+
+
+def file_name_using_language_convention(name, sdk_language):
+    if sdk_language == "Python":
+        return lib.core.convert_to_snake_case(name)
+    return name
+
+
+def default_copyright_header(sdk_language):
+    header = "Copyright (c) 2023, 2024, Oracle and/or its affiliates."
+
+    if sdk_language == "TypeScript":
+        return f"// {header}"
+
+    if sdk_language == "Python":
+        return f"# {header}"
 
 
 @plugin_function('mrs.add.service', shell=True, cli=True, web=True)
@@ -927,7 +944,7 @@ def dump_sdk_service_files(**kwargs):
         mrs_config["addAppBaseClass"] = options.get("add_app_base_class")
         mrs_config["dbConnectionUri"] = options.get("db_connection_uri")
         mrs_config["header"] = options.get(
-            "header", "/* Copyright (c) 2023, 2024, Oracle and/or its affiliates.*/")
+            "header", default_copyright_header(mrs_config["sdkLanguage"]))
 
     mrs_config["generationDate"] = datetime.datetime.now(
         datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
@@ -941,33 +958,52 @@ def dump_sdk_service_files(**kwargs):
     if mrs_config.get("sdkLanguage") is None:
         raise Exception("No SDK Language given.")
 
+    sdk_language = mrs_config.get("sdkLanguage")
+
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         service = resolve_service(session, serviceId, True, True)
         service_name = lib.core.convert_path_to_camel_case(
             service.get("url_context_root"))
 
+        if sdk_language == "TypeScript":
+            file_type = "ts"
+            base_classes_file = os.path.join(directory, "MrsBaseClasses.ts")
+        elif sdk_language == "Python":
+            file_type = "py"
+            base_classes_file = os.path.join(directory, "mrs_base_classes.py")
+
         base_classes = get_sdk_base_classes(
-            sdk_language=mrs_config.get("sdkLanguage"), session=session)
-        with open(os.path.join(directory, "MrsBaseClasses.ts"), 'w') as f:
+            sdk_language=sdk_language, session=session)
+        with open(base_classes_file, 'w') as f:
             f.write(base_classes)
+
+        file_name = file_name_using_language_convention(service_name, sdk_language)
 
         service_classes = get_sdk_service_classes(
             service_id=serviceId, service_url=mrs_config.get("serviceUrl"),
-            sdk_language=mrs_config.get("sdkLanguage"), session=session)
-        with open(os.path.join(directory, f"{service_name}.ts"), 'w') as f:
+            sdk_language=sdk_language, session=session)
+        with open(os.path.join(directory, f"{file_name}.{file_type}"), 'w') as f:
             f.write(service_classes)
 
         add_app_base_class = mrs_config.get("addAppCaseClass")
 
         if add_app_base_class is not None and isinstance(add_app_base_class, str) and add_app_base_class != '':
             path = os.path.abspath(__file__)
-            filePath = Path(os.path.dirname(path), "sdk", add_app_base_class)
-            shutil.copy(filePath, os.path.join(directory, add_app_base_class))
+            file_path = Path(os.path.dirname(path), "sdk", add_app_base_class)
+            shutil.copy(file_path, os.path.join(directory, add_app_base_class))
 
     # cspell:ignore timespec
     conf_file = Path(directory, "mrs.config.json")
     with open(conf_file, 'w') as f:
         f.write(json.dumps(mrs_config, indent=4))
+
+    # TODO: this should be in a separate function (maybe context-aware for each language)
+    if sdk_language == "Python":
+        # In Python, we should create a "__init__.py" file to be able to import the directory as a regular package
+        package_file = Path(directory, "__init__.py")
+        with open(package_file, "w") as f:
+            copyright_header = mrs_config["header"]
+            f.write(copyright_header)
 
     return True
 

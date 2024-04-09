@@ -1,0 +1,93 @@
+# Copyright (c) 2024, Oracle and/or its affiliates.
+
+from typing import Literal, Optional, TypeAlias, TypedDict, cast
+from dataclasses import dataclass
+# --- importLoopStart
+from .mrs_base_classes import (
+    # --- importReadOnlyStart
+    FindFirstOptions,
+    # --- importReadOnlyEnd
+    IMrsResourceData,
+    MrsBaseObjectQuery,
+    MrsBaseSchema,
+    MrsBaseService,
+    Order,
+    Record,
+    RecordNotFoundError,
+    # --- importRequiredDatatypesOnlyStart
+    # --- importRequiredDatatypesOnlyEnd
+)
+# --- importLoopEnd
+
+
+# --- schemaLoopStart
+# --- objectLoopStart
+${obj_interfaces}
+class ${obj_class_name}Request:
+    request_path: str = "${obj_request_path}"
+
+    def __init__(self, request_path: str):
+        self.request_parent_path = request_path
+
+    # --- crudReadOnlyStart
+    async def find_first(
+        self,
+        options: Optional[
+            FindFirstOptions[
+                I${obj_class_name}Params,
+                I${obj_class_name}Selectable,
+                I${obj_class_name}Sortable,
+                I${obj_class_name}Field,
+                I${obj_class_name}NestedField
+            ]
+        ] = None,
+    ) -> Optional[I${obj_class_name}]:
+        request = MrsBaseObjectQuery[I${obj_class_name}Data](
+            f"{self.request_parent_path}${obj_request_path}", options
+        )
+        response = await request.fetch_one()
+
+        json = cast(I${obj_class_name}Data, response)
+        return I${obj_class_name}(json)
+
+    async def find_first_or_throw(
+        self,
+        options: Optional[
+            FindFirstOptions[
+                I${obj_class_name}Params,
+                I${obj_class_name}Selectable,
+                I${obj_class_name}Sortable,
+                I${obj_class_name}Field,
+                I${obj_class_name}NestedField
+            ]
+        ] = None,
+    ) -> I${obj_class_name}:
+        item = await self.find_first(options)
+
+        if item is None:
+            raise RecordNotFoundError("No record exists matching the query criteria")
+        return item
+    # --- crudReadOnlyEnd
+# --- objectLoopEnd
+
+
+class ${schema_class_name}(MrsBaseSchema):
+    request_path = "${schema_request_path}"
+
+    def __init__(self, service_url: str) -> None:
+        # --- objectLoopStart
+        self.${obj_name}: ${obj_class_name}Request = ${obj_class_name}Request(
+            f"{service_url}${schema_request_path}"
+        )
+        # --- objectLoopEnd
+# --- schemaLoopEnd
+
+
+class ${service_class_name}(MrsBaseService):
+    request_path = "${service_url}"
+
+    def __init__(self) -> None:
+        super().__init__(${service_class_name}.request_path)
+        # --- schemaLoopStart
+        self.${schema_name} = ${schema_class_name}(self.service_url)
+        # --- schemaLoopEnd
