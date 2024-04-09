@@ -22,7 +22,7 @@
  */
 
 import { error, Key, until, WebElement } from "vscode-extension-tester";
-import { DatabaseConnection } from "./webviews/dbConnection";
+import { PasswordDialog } from "./webviews/passwordDialog";
 import { Notebook } from "./webviews/notebook";
 import * as constants from "./constants";
 import * as locator from "./locators";
@@ -281,7 +281,7 @@ export class CommandExecutor {
 
         await this.write(cmd, slowWriting);
         await this.exec();
-        await DatabaseConnection.setCredentials(dbConnection);
+        await PasswordDialog.setCredentials(dbConnection);
 
         const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
         await this.setResultMessage(cmd, nextId);

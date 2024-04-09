@@ -563,7 +563,6 @@ export class Tree {
      * @returns A promise resolving when the rest service is configured
      */
     public static configureMySQLRestService = async (dbConnection: interfaces.IDBConnection): Promise<void> => {
-        const repeatConfig = "repeat config";
         await driver.wait(async () => {
             try {
                 const treeElement = await this.getElement(constants.dbTreeSection, dbConnection.caption);
@@ -587,20 +586,18 @@ export class Tree {
                     if (await Workbench.existsNotifications()) {
                         if (await Workbench.existsNotification(/MySQL REST Service configured successfully/)) {
                             return true;
-                        } else if (await Workbench.existsNotification(/Error.*Shell.open_session/)) {
-                            throw new Error(repeatConfig);
+                        } else {
+                            throw new Error("Something wrong. Check notification");
                         }
                     }
-
-                }, constants.wait3seconds, "Password widget was not displayed");
+                }, constants.wait5seconds, "Password widget was not displayed");
 
                 return true;
             } catch (e) {
-                if (String(e).includes(repeatConfig)) {
+                console.log("[DEBUG] An error occurred");
+                if (await Workbench.existsNotification(/Error.*Shell.open_session/)) {
                     console.log("Shell session error, retrying...");
                     await Workbench.dismissNotifications();
-
-                    return false;
                 } else {
                     throw e;
                 }

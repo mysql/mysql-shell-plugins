@@ -109,6 +109,7 @@ export const mdsTab = "MDS/Bastion Service";
 // DB CONNECTION OVERVIEW
 export const editConnection = "Edit Connection";
 export const dupConnection = "Duplicate Connection";
+export const removeConnection = "Remove Connection";
 
 // MISC
 export const openEditorsDBNotebook = "DB Notebook";

@@ -30,7 +30,7 @@ import * as waitUntil from "../until";
 import * as locator from "../locators";
 import * as interfaces from "../interfaces";
 import * as errors from "../errors";
-import { DatabaseConnection } from "../webviews/dbConnection";
+import { DatabaseConnectionDialog } from "../webviews/dbConnectionDialog";
 import { Misc, driver } from "../misc";
 import { Os } from "../os";
 import { Workbench } from "..//workbench";
@@ -147,7 +147,7 @@ export class Section {
         await driver.wait(waitUntil.tabIsOpened(constants.dbDefaultEditor), constants.wait5seconds);
         await Misc.switchToFrame();
         await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists), constants.wait10seconds);
-        await DatabaseConnection.setConnection(dbConfig);
+        await DatabaseConnectionDialog.setConnection(dbConfig);
     };
 
     /**
