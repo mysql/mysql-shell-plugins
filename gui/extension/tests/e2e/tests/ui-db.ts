@@ -45,6 +45,7 @@ import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import * as errors from "../lib/errors";
+import { Shell } from "../lib/shell";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -672,6 +673,37 @@ describe("DATABASE CONNECTIONS", () => {
 
             await dialog.findElement(locator.confirmDialog.accept).click();
             expect(await DatabaseConnectionOverview.existsConnection(sqliteConnToRemove.caption)).to.be.false;
+        });
+
+        it("Create new notebook", async () => {
+            const connection = await DatabaseConnectionOverview.getConnection(globalConn.caption);
+            const newNotebook = await connection.findElement(locator.dbConnectionOverview.dbConnection.newNotebook);
+            await driver.actions().move({ origin: newNotebook }).perform();
+            await driver.wait(until.elementIsVisible(newNotebook), constants.wait5seconds,
+                "New notebook button was not visible");
+            await newNotebook.click();
+            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait5seconds);
+            const dbNotebook = await Tree.getElement(constants.openEditorsTreeSection, constants.openEditorsDBNotebook);
+            expect(dbNotebook).to.exist;
+        });
+
+        it("Create new script", async () => {
+            const connection = await DatabaseConnectionOverview.getConnection("duplicateFromGlobal");
+            const newScript = await connection.findElement(locator.dbConnectionOverview.dbConnection.newScript);
+            await driver.actions().move({ origin: newScript }).perform();
+            await driver.wait(until.elementIsVisible(newScript), constants.wait5seconds,
+                "New script button was not visible");
+            await driver.executeScript("arguments[0].click()", newScript);
+            await driver.wait(waitUntil.scriptIsOpened(globalConn), constants.wait5seconds);
+            await Section.focus(constants.openEditorsTreeSection);
+            const script = await Tree.getElement(constants.openEditorsTreeSection, "Script");
+            expect(script).to.exist;
+        });
+
+        it("Open new shell console", async () => {
+            await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),
+                constants.wait10seconds).click();
+            await driver.wait(Shell.isShellLoaded(), constants.wait15seconds, "Shell Console was not loaded");
         });
 
     });

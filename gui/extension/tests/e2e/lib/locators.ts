@@ -471,6 +471,8 @@ export const dbConnectionOverview = {
             duplicateConnection: By.id("duplicate"),
             removeConnection: By.id("remove"),
         },
+        newNotebook: By.id("tileNewNotebookAction"),
+        newScript: By.id("tileNewScriptAction"),
         contextMenu: By.css(".noArrow.menu"),
     },
     closeHeader: By.id("closeButton"),

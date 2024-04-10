@@ -32,9 +32,8 @@ export class Shell {
     public static isShellLoaded = (): Condition<boolean> => {
         return new Condition("Shell is not loaded",
             async () => {
-                if (!(await Misc.insideIframe())) {
-                    await Misc.switchToFrame();
-                }
+                await Misc.switchBackToTopFrame();
+                await Misc.switchToFrame();
 
                 const title = await driver.findElements(locator.shellConsole.title);
                 const textarea = await driver.findElements(locator.notebook.codeEditor.textArea);
