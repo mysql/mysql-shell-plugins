@@ -412,9 +412,8 @@ export class Notebook {
      */
     public static selectCurrentEditor = async (editorName: RegExp, editorType: string,
         occurrenceNumber = 1): Promise<void> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
+        await Misc.switchBackToTopFrame();
+        await Misc.switchToFrame();
 
         const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
         await driver.executeScript("arguments[0].click()", selector);
@@ -422,11 +421,10 @@ export class Notebook {
         await driver.wait(async () => {
             return (await driver.findElements(locator.notebook.toolbar.editorSelector.item)).length >= 1;
         }, constants.wait2seconds, "No elements located on editors dropdown list");
-
         const dropDownItems = await driver.findElements(locator.notebook.toolbar.editorSelector.item);
+
         let occurrences = 0;
         let item2click = -1;
-
         for (let i = 0; i <= dropDownItems.length - 1; i++) {
             const name = await dropDownItems[i].findElement(locator.htmlTag.label).getText();
             const el = await dropDownItems[i].findElements(locator.htmlTag.img);
@@ -449,11 +447,9 @@ export class Notebook {
                 }
             }
         }
-
         if (item2click === -1) {
             throw new Error(`Could not find ${editorName}, type ${editorType} on the select list`);
         }
-
         await (await driver.findElements(locator.notebook.toolbar.editorSelector.item))[item2click].click();
     };
 

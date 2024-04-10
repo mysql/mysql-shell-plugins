@@ -146,6 +146,21 @@ export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Cond
     });
 };
 
+export const scriptIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
+    return new Condition(`for script to be opened`, async () => {
+        await Misc.switchBackToTopFrame();
+        await Misc.switchToFrame();
+
+        const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
+        if (existsPasswordDialog) {
+            await PasswordDialog.setCredentials(connection);
+            await driver.wait(dbConnectionIsSuccessful(), constants.wait15seconds);
+        }
+
+        return (await Notebook.getCurrentEditorName()).match(/Script/) !== null;
+    });
+};
+
 export const mdsConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
     return new Condition(`for MDS connection ${connection.caption} to be opened`, async () => {
         await Misc.switchBackToTopFrame();
