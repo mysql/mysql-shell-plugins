@@ -62,8 +62,8 @@ export const isDefault = (name: string): string => {
 };
 
 export const isStaleError = (err: Error): boolean => {
-    return err instanceof error.StaleElementReferenceError || String(err.message)
-        .includes("No node with given id found");
+    return err instanceof error.StaleElementReferenceError ||
+        err.message.includes("No node with given id found");
 };
 
 export const incorrectCellValue = (value: string): string => {

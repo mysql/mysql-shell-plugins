@@ -37,7 +37,7 @@ const parsedHtml = new JSDOM(html, { includeNodeLocations: true });
 const document = parsedHtml.window.document;
 const mainFile = fs.readFileSync(join(baseDir, "tests", "main", "main.spec.ts"));
 const notebookFile = fs.readFileSync(join(baseDir, "tests", "dbeditor", "notebook.spec.ts"));
-const dbConnectionsFile = fs.readFileSync(join(baseDir, "tests", "dbeditor", "db_connections.spec.ts"));
+const dbConnectionOverviewFile = fs.readFileSync(join(baseDir, "tests", "dbeditor", "db_connection_overview.spec.ts"));
 const scriptsFile = fs.readFileSync(join(baseDir, "tests", "dbeditor", "scripts.spec.ts"));
 const adminFile = fs.readFileSync(join(baseDir, "tests", "dbeditor", "admin.spec.ts"));
 
@@ -101,7 +101,7 @@ for (let i = 0; i <= refDivs.length - 1; i++) {
                 codeLines = notebookFile.toString().split("\n");
                 break;
             case "Database Connections":
-                codeLines = dbConnectionsFile.toString().split("\n");
+                codeLines = dbConnectionOverviewFile.toString().split("\n");
                 break;
             case "MySQL Administration":
                 codeLines = adminFile.toString().split("\n");

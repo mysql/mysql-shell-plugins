@@ -167,6 +167,7 @@
         "multipolygon",
         "multiselect",
         "mysql-notebook",
+        "mysqldbsystem",
         "mysqlsh",
         "mysqltooling",
         "mysqlx",

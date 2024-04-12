@@ -27,8 +27,9 @@ import * as locator from "./locators.js";
 import { CommandExecutor } from "./cmdExecutor.js";
 import * as constants from "./constants.js";
 import { driver } from "./driver.js";
-import { DBConnection } from "./dbConnection.js";
+import { OpenConnectionDialog } from "./openConnectionDialog.js";
 import * as interfaces from "../lib/interfaces.js";
+import { DatabaseConnectionOverview } from "../lib/databaseConnectionOverview.js";
 
 export const toolbarButtonIsDisabled = (button: string): Condition<boolean> => {
     return new Condition(`for button ${button} to be disabled`, async () => {
@@ -76,6 +77,7 @@ export const cellIsEditable = (commandExecutor: CommandExecutor, rowNumber: numb
             try {
                 const cell = await commandExecutor.getCellFromResultGrid(rowNumber, columnName);
                 const isEditable = (await cell.getAttribute("class")).includes("tabulator-editing");
+
                 if (expectInput) {
                     if (isEditable) {
                         return (await cell.findElements(locator.htmlTag.input)).length > 0;
@@ -83,7 +85,9 @@ export const cellIsEditable = (commandExecutor: CommandExecutor, rowNumber: numb
                 } else {
                     return (await cell.getAttribute("class")).includes("changed") || isEditable;
                 }
+
             } catch (e) {
+
                 if (!(e instanceof error.StaleElementReferenceError) ||
                     !(e instanceof error.ElementNotInteractableError)) {
                     throw e;
@@ -134,6 +138,7 @@ export const confirmationDialogExists = (context?: string): Condition<WebElement
 
     return new Condition(msg, async () => {
         const confirmDialog = await driver.findElements(locator.confirmDialog.exists);
+
         if (confirmDialog) {
             return confirmDialog[0];
         }
@@ -153,14 +158,22 @@ const dbConnectionIsSuccessful = (): Condition<boolean> => {
 export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
     return new Condition(`for DB connection ${connection.caption} to be opened`, async () => {
         const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
+
         if (existsPasswordDialog) {
-            await DBConnection.setCredentials(connection);
+            await OpenConnectionDialog.setCredentials(connection);
             await driver.wait(dbConnectionIsSuccessful(), constants.wait10seconds);
         }
+
         const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
         const existsGenericDialog = (await driver.findElements(locator.genericDialog.exists)).length > 0;
 
         return existsNotebook || existsGenericDialog;
+    });
+};
+
+export const dbConnectionDoesNotExist = (dbConnection: string): Condition<boolean> => {
+    return new Condition(`for DB Connection ${dbConnection} to not exist`, async () => {
+        return !(await DatabaseConnectionOverview.existsConnection(dbConnection));
     });
 };
 

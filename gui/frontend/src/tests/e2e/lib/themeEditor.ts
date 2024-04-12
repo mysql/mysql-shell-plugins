@@ -45,18 +45,18 @@ export class ThemeEditor {
      * Toggles a Theme Editor UI Colors menu
      * @param menu Menu name
      * @param action open/close
-     * @param scroll True to scroll down (menu is invisible)
+     * @param scrollMenu True to scroll down (menu is invisible)
      * @returns A promise resolving when the toggle is made
      */
     public static toggleUiColorsMenu = async (menu: string,
-        action: string, scroll?: boolean): Promise<void> => {
+        action: string, scrollMenu?: boolean): Promise<void> => {
         const isTabOpened = async (tab: WebElement) => {
             return (await tab.getAttribute("class")).includes("expanded");
         };
 
         const themeTabView = await driver.findElement(locator.themeEditorPage.themeEditorTabs.container);
 
-        if (scroll) {
+        if (scrollMenu) {
             await driver.executeScript("arguments[0].scrollBy(0,500)",
                 await themeTabView.findElement(locator.themeEditorPage.themeEditorTabs.scroll));
         }
@@ -77,17 +77,20 @@ export class ThemeEditor {
             const uiColorsItems = await themeTabView
                 .findElements(locator.themeEditorPage.themeEditorTabs.tabElements);
             for (let i = 0; i <= uiColorsItems.length - 1; i++) {
+
                 if (await uiColorsItems[i].findElement(locator.htmlTag.label).getText() === menu) { //base colors
                     await driver.executeScript("arguments[0].scrollIntoView(true)",
                         await uiColorsItems[i].findElement(locator.htmlTag.label));
+
                     if (action === "open") {
+
                         if (!(await isTabOpened(uiColorsItems[i]))) {
                             await driver.wait(async () => {
                                 await uiColorsItems[i]
                                     .findElement(locator.themeEditorPage.themeEditorTabs.toggleElement).click();
 
                                 return isTabOpened(uiColorsItems[i]);
-                            }, 3000, `${menu} did not open`);
+                            }, constants.wait5seconds, `${menu} did not open`);
                         }
                     } else {
                         if (await isTabOpened(uiColorsItems[i])) {
@@ -103,6 +106,7 @@ export class ThemeEditor {
         try {
             await toggle();
         } catch (e) {
+
             if (!(e instanceof error.StaleElementReferenceError)) {
                 throw e;
             } else {
@@ -115,12 +119,13 @@ export class ThemeEditor {
      * Checks if the UI Colors menu is expanded, on the Theme Editor
      * @param driver The webdriver
      * @param menuName Menu name
-     * @param scroll True to scroll down (menu is invisible)
+     * @param scrollMenu True to scroll down (menu is invisible)
      * @returns A promise resolving to true if it's expanded, false otherwise. Undefined if the menu is not found
      */
     public static isUiColorsMenuExpanded = async (
         driver: WebDriver,
-        menuName: string, scroll?: boolean): Promise<boolean | undefined> => {
+        menuName: string,
+        scrollMenu?: boolean): Promise<boolean | undefined> => {
         const isTabOpened = async (tab: WebElement) => {
             return (await tab.getAttribute("class")).includes("expanded");
         };
@@ -128,12 +133,15 @@ export class ThemeEditor {
         const check = async () => {
             const themeTabView = await driver.findElement(locator.themeEditorPage.themeEditorTabs.container);
             const scrollBar = await driver.findElement(locator.themeEditorPage.themeEditorTabs.scroll);
-            if (scroll) {
+
+            if (scrollMenu) {
                 await driver.executeScript("arguments[0].scrollBy(0,500)", scrollBar);
             }
             const uiColorsItems = await themeTabView
                 .findElements(locator.themeEditorPage.themeEditorTabs.tabElements);
+
             for (let i = 0; i <= uiColorsItems.length - 1; i++) {
+
                 if (await uiColorsItems[i].findElement(locator.htmlTag.label).getText() === menuName) { //base colors
                     await driver.executeScript("arguments[0].scrollIntoView(true)",
                         await uiColorsItems[i].findElement(locator.htmlTag.label));
@@ -141,7 +149,9 @@ export class ThemeEditor {
                     return isTabOpened(uiColorsItems[i]);
                 }
             }
+
             const scrollPosition: number = await driver.executeScript("return arguments[0].scrollTop", scrollBar);
+
             if (scrollPosition === 0) {
                 return false;
             } else {
@@ -154,6 +164,7 @@ export class ThemeEditor {
 
             return result;
         } catch (e) {
+
             if (e instanceof error.StaleElementReferenceError) {
                 const result = await check();
 
@@ -183,7 +194,7 @@ export class ThemeEditor {
                 await driver.findElement(locator.searchById(optionId)).click();
 
                 return (await driver.findElements(locator.themeEditorPage.themeSelectorArea.colorPopup)).length > 0;
-            }, 3000, "Color Pallet was not opened");
+            }, constants.wait5seconds, "Color Pallet was not opened");
         };
 
         try {
@@ -201,7 +212,7 @@ export class ThemeEditor {
 
         await driver.wait(async () => {
             return !(await ThemeEditor.isUiColorsMenuExpanded(driver, sectionColors, scroll));
-        }, 7000, `${sectionColors} menu is not collapsed`);
+        }, constants.wait10seconds, `${sectionColors} menu is not collapsed`);
     };
 
     /**

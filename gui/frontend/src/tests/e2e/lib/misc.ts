@@ -30,7 +30,7 @@ import { driver } from "../lib/driver.js";
 export const feLog = "fe.log";
 export const shellServers = new Map([
     ["admin.spec.ts", 0],
-    ["db_connections.spec.ts", 1],
+    ["db_connection_overview.spec.ts", 1],
     ["notebook.spec.ts", 1],
     ["scripts.spec.ts", 1],
     ["main.spec.ts", 0],
@@ -49,6 +49,7 @@ export class Misc {
      */
     public static getUrl = (filename: string): string => {
         let url = process.env.SHELL_UI_HOSTNAME;
+
         if (process.env.MAX_WORKERS) {
             const port = shellServers.get(filename);
             url += `:800${String(port)}/?token=${String(process.env.TOKEN)}`;
@@ -67,6 +68,7 @@ export class Misc {
      */
     public static waitForHomePage = async (url: string, loginPage = false): Promise<void> => {
         await driver.get(url);
+
         if (loginPage) {
             await driver.wait(until.elementLocated(locator.loginPage.sakilaLogo), 10000, "Sakila logo was not found");
         } else {
@@ -103,11 +105,13 @@ export class Misc {
     public static async storeScreenShot(name?: string): Promise<string> {
         const img = await driver.takeScreenshot();
         let testName = "";
+
         if (!name) {
             testName = Misc.currentTestName() ?? "<unknown test>";
         } else {
             testName = name;
         }
+
         await fs.mkdir("src/tests/e2e/screenshots", { recursive: true });
         await fs.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
 
@@ -141,12 +145,15 @@ export class Misc {
      */
     public static getDbTableColumnIndex = (tableName: string, columnName: string): number => {
         let index: number | undefined;
+
         for (const table of constants.dbTables) {
+
             if (table.name === tableName) {
                 index = table.columns.indexOf(columnName);
                 break;
             }
         }
+
         if (index === undefined) {
             throw new Error(`Could not find index on table '${tableName}' and column '${columnName}'`);
         } else {
