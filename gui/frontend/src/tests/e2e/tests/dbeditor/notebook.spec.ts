@@ -26,7 +26,6 @@
 import fs from "fs/promises";
 import { basename, join } from "path";
 import { Key, error, until, WebElement } from "selenium-webdriver";
-import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import { Misc } from "../../lib/misc.js";
 import { ShellSession } from "../../lib/shellSession.js";
@@ -167,12 +166,12 @@ describe("Notebook", () => {
         try {
             await commandExecutor.executeWithContextMenu("select * from actor limit 1", "Execute Block");
             expect(commandExecutor.getResultMessage()).toMatch(/OK, (\d+) record retrieved/);
-            expect(await DBConnection.hasNewPrompt()).toBe(false);
+            expect(await DBNotebooks.hasNewPrompt()).toBe(false);
             await commandExecutor.clean();
             await commandExecutor.executeWithContextMenu("select * from address limit 1", "Execute Block and Advance",
                 false);
             expect(commandExecutor.getResultMessage()).toMatch(/OK, (\d+) record retrieved/);
-            expect(await DBConnection.hasNewPrompt()).toBe(true);
+            expect(await DBNotebooks.hasNewPrompt()).toBe(true);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -357,17 +356,17 @@ describe("Notebook", () => {
     it("Expand Collapse schema objects", async () => {
         try {
 
-            await DBConnection.expandCollapseMenus("open editors", false, 0);
-            await DBConnection.expandCollapseMenus("scripts", false, 0);
-            const sakila = await DBConnection.getSchemaObject("Schema", "sakila");
+            await DBNotebooks.toggleSection("open editors", false, 0);
+            await DBNotebooks.toggleSection("scripts", false, 0);
+            const sakila = await DBNotebooks.getSchemaObject("Schema", "sakila");
             expect(
                 await (
                     await sakila!.findElement(locator.notebook.explorerHost.schemas.treeToggle)
                 ).getAttribute("class"),
             ).toContain("expanded");
 
-            await DBConnection.toggleSchemaObject("Tables", "Tables");
-            const tables = await DBConnection.getSchemaObject("Tables", "Tables");
+            await DBNotebooks.toggleSchemaObject("Tables", "Tables");
+            const tables = await DBNotebooks.getSchemaObject("Tables", "Tables");
 
             await driver.wait(async () => {
                 try {
@@ -381,35 +380,35 @@ describe("Notebook", () => {
                 }
             }, constants.wait10seconds, "Tables tree was not expanded");
 
-            expect(await DBConnection.getSchemaObject("obj", "actor")).toBeDefined();
-            expect(await DBConnection.getSchemaObject("obj", "address")).toBeDefined();
-            expect(await DBConnection.getSchemaObject("obj", "category")).toBeDefined();
-            expect(await DBConnection.getSchemaObject("obj", "city")).toBeDefined();
-            expect(await DBConnection.getSchemaObject("obj", "country")).toBeDefined();
-            await DBConnection.toggleSchemaObject("Tables", "Tables");
+            expect(await DBNotebooks.getSchemaObject("obj", "actor")).toBeDefined();
+            expect(await DBNotebooks.getSchemaObject("obj", "address")).toBeDefined();
+            expect(await DBNotebooks.getSchemaObject("obj", "category")).toBeDefined();
+            expect(await DBNotebooks.getSchemaObject("obj", "city")).toBeDefined();
+            expect(await DBNotebooks.getSchemaObject("obj", "country")).toBeDefined();
+            await DBNotebooks.toggleSchemaObject("Tables", "Tables");
 
             let attr = await (
-                await DBConnection.getSchemaObject("Tables", "Tables")
+                await DBNotebooks.getSchemaObject("Tables", "Tables")
             )!.getAttribute("class");
 
             expect(attr.split(" ").includes("expanded") === false).toBe(true);
-            await DBConnection.toggleSchemaObject("Views", "Views");
+            await DBNotebooks.toggleSchemaObject("Views", "Views");
             expect(
                 await (
-                    await DBConnection.getSchemaObject("Views", "Views")
+                    await DBNotebooks.getSchemaObject("Views", "Views")
                 )!.getAttribute("class"),
             ).toContain("expanded");
 
-            expect(await DBConnection.getSchemaObject("obj", "test_view")).toBeDefined();
-            await DBConnection.toggleSchemaObject("Views", "Views");
+            expect(await DBNotebooks.getSchemaObject("obj", "test_view")).toBeDefined();
+            await DBNotebooks.toggleSchemaObject("Views", "Views");
             attr = await (
-                await DBConnection.getSchemaObject("Views", "Views")
+                await DBNotebooks.getSchemaObject("Views", "Views")
             )!.getAttribute("class");
 
             expect(attr.split(" ").includes("expanded") === false).toBe(true);
-            await DBConnection.toggleSchemaObject("Schema", "sakila");
+            await DBNotebooks.toggleSchemaObject("Schema", "sakila");
             attr = await (
-                await DBConnection.getSchemaObject("Schema", "sakila")
+                await DBNotebooks.getSchemaObject("Schema", "sakila")
             )!.getAttribute("class");
             expect(attr.split(" ").includes("expanded") === false).toBe(true);
         } catch (e) {
@@ -421,7 +420,7 @@ describe("Notebook", () => {
     it("Expand_Collapse menus", async () => {
         try {
 
-            await DBConnection.expandCollapseMenus("open editors", true, 0);
+            await DBNotebooks.toggleSection("open editors", true, 0);
             expect(
                 await driver
                     .findElement(locator.notebook.explorerHost.openEditors.exists)
@@ -429,7 +428,7 @@ describe("Notebook", () => {
                     .getAttribute("class"),
             ).toContain("expanded");
 
-            await DBConnection.expandCollapseMenus("open editors", false, 0);
+            await DBNotebooks.toggleSection("open editors", false, 0);
             await driver.wait(
                 async () => {
                     return !(
@@ -443,7 +442,7 @@ describe("Notebook", () => {
                 "'Open Editors' is still expanded",
             );
 
-            await DBConnection.expandCollapseMenus("open editors", true, 0);
+            await DBNotebooks.toggleSection("open editors", true, 0);
 
             await driver.wait(
                 async () => {
@@ -465,7 +464,7 @@ describe("Notebook", () => {
                     .getAttribute("class"),
             ).toContain("expanded");
 
-            await DBConnection.expandCollapseMenus("schemas", false, 0);
+            await DBNotebooks.toggleSection("schemas", false, 0);
 
             await driver.wait(
                 async () => {
@@ -480,7 +479,7 @@ describe("Notebook", () => {
                 "'Schemas' is still expanded",
             );
 
-            await DBConnection.expandCollapseMenus("schemas", true, 0);
+            await DBNotebooks.toggleSection("schemas", true, 0);
 
             await driver.wait(
                 async () => {
@@ -495,7 +494,7 @@ describe("Notebook", () => {
                 "'Schemas' is still collapsed",
             );
 
-            await DBConnection.expandCollapseMenus("admin", false, 0);
+            await DBNotebooks.toggleSection("admin", false, 0);
 
             await driver.wait(
                 async () => {
@@ -510,7 +509,7 @@ describe("Notebook", () => {
                 "'Administration' is still expanded",
             );
 
-            await DBConnection.expandCollapseMenus("admin", true, 0);
+            await DBNotebooks.toggleSection("admin", true, 0);
 
             await driver.wait(
                 async () => {
@@ -525,7 +524,7 @@ describe("Notebook", () => {
                 "'Administration' is still collapsed",
             );
 
-            await DBConnection.expandCollapseMenus("scripts", false, 0);
+            await DBNotebooks.toggleSection("scripts", false, 0);
 
             await driver.wait(
                 async () => {
@@ -540,7 +539,7 @@ describe("Notebook", () => {
                 "'Scripts' is still expanded",
             );
 
-            await DBConnection.expandCollapseMenus("scripts", true, 0);
+            await DBNotebooks.toggleSection("scripts", true, 0);
 
             await driver.wait(
                 async () => {
@@ -672,7 +671,7 @@ describe("Notebook", () => {
             await input.sendKeys(Key.BACK_SPACE);
             await input.sendKeys("myNewConsole");
             await input.sendKeys(Key.ENTER);
-            expect(await DBConnection.getOpenEditor(/myNewConsole/)).toBeDefined();
+            expect(await DBNotebooks.getOpenEditor(/myNewConsole/)).toBeDefined();
             const documentSelector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
             const currentValue = await documentSelector
                 .findElement(locator.notebook.toolbar.editorSelector.currentValue);
@@ -684,11 +683,11 @@ describe("Notebook", () => {
                 .findElement(locator.notebook.codeEditor.textArea)
                 .sendKeys("select actor from actor");
 
-            await DBConnection.selectCurrentEditor(/DB Notebook/, "notebook");
-            await DBConnection.selectCurrentEditor(/myNewConsole/, "notebook");
-            const console = await DBConnection.getOpenEditor(/myNewConsole/);
+            await DBNotebooks.selectCurrentEditor(/DB Notebook/, "notebook");
+            await DBNotebooks.selectCurrentEditor(/myNewConsole/, "notebook");
+            const console = await DBNotebooks.getOpenEditor(/myNewConsole/);
             await console!.findElement(locator.notebook.explorerHost.openEditors.close).click();
-            expect(await DBConnection.getOpenEditor(/myNewConsole/)).toBeUndefined();
+            expect(await DBNotebooks.getOpenEditor(/myNewConsole/)).toBeUndefined();
             expect(
                 await documentSelector.findElement(locator.notebook.toolbar.editorSelector.currentValue).getText(),
             ).toContain("DB Notebook");
@@ -1517,9 +1516,9 @@ describe("Notebook", () => {
 
     it("Unsaved changes dialog on result grid", async () => {
         try {
-            const script = await DBConnection.addScript("TS");
+            const script = await DBNotebooks.addScript("TS");
             await commandExecutor.executeScript("Math.random()", false);
-            await DBConnection.selectCurrentEditor(/DB Notebook/, "notebook");
+            await DBNotebooks.selectCurrentEditor(/DB Notebook/, "notebook");
 
             await commandExecutor.clean();
             await commandExecutor.execute("select * from sakila.result_sets");
@@ -1531,7 +1530,7 @@ describe("Notebook", () => {
             }];
             await commandExecutor.editResultGridCells(cellsToEdit);
 
-            await DBConnection.clickAdminItem("Server Status");
+            await DBNotebooks.clickAdminItem("Server Status");
             let dialog = await driver.wait(waitUntil.confirmationDialogExists(
                 " after switching to Server Status page")
                 , constants.wait5seconds);
@@ -1539,9 +1538,9 @@ describe("Notebook", () => {
                 .getText())
                 .toMatch(/is currently being edited, do you want to commit or rollback the changes before continuing/);
             await dialog!.findElement(locator.confirmDialog.cancel).click();
-            expect(await DBConnection.getOpenEditor(/DB Notebook/));
+            expect(await DBNotebooks.getOpenEditor(/DB Notebook/));
 
-            await DBConnection.clickAdminItem("Client Connections");
+            await DBNotebooks.clickAdminItem("Client Connections");
             dialog = await driver.wait(waitUntil
                 .confirmationDialogExists(" after switching to Client Connections page"),
                 constants.wait5seconds);
@@ -1549,9 +1548,9 @@ describe("Notebook", () => {
                 .getText())
                 .toMatch(/is currently being edited, do you want to commit or rollback the changes before continuing/);
             await dialog!.findElement(locator.confirmDialog.cancel).click();
-            expect(await DBConnection.getOpenEditor(/DB Notebook/));
+            expect(await DBNotebooks.getOpenEditor(/DB Notebook/));
 
-            await DBConnection.clickAdminItem("Performance Dashboard");
+            await DBNotebooks.clickAdminItem("Performance Dashboard");
             dialog = await driver.wait(waitUntil
                 .confirmationDialogExists(" after switching to Performance Dashboard page"),
                 constants.wait5seconds);
@@ -1559,9 +1558,9 @@ describe("Notebook", () => {
                 .getText())
                 .toMatch(/is currently being edited, do you want to commit or rollback the changes before continuing/);
             await dialog!.findElement(locator.confirmDialog.cancel).click();
-            expect(await DBConnection.getOpenEditor(/DB Notebook/));
+            expect(await DBNotebooks.getOpenEditor(/DB Notebook/));
 
-            const connectionBrowser = await driver.wait(until.elementLocated(locator.dbConnections.tab),
+            const connectionBrowser = await driver.wait(until.elementLocated(locator.dbConnectionOverview.tab),
                 constants.wait5seconds, "DB Connection Overview tab was not found");
             await connectionBrowser.click();
 
@@ -1572,7 +1571,7 @@ describe("Notebook", () => {
                 .getText())
                 .toMatch(/is currently being edited, do you want to commit or rollback the changes before continuing/);
             await dialog!.findElement(locator.confirmDialog.cancel).click();
-            await DBConnection.selectCurrentEditor(script, "scriptTs");
+            await DBNotebooks.selectCurrentEditor(script, "scriptTs");
             dialog = await driver.wait(waitUntil.confirmationDialogExists(" after switching to a script page"),
                 constants.wait5seconds);
             expect(await (await dialog!.findElement(locator.confirmDialog.message))
@@ -1588,7 +1587,7 @@ describe("Notebook", () => {
 
     it("Result grid context menu - Capitalize, Convert to lower, upper case and mark for deletion", async () => {
         try {
-            await DBConnection.selectCurrentEditor(/DB Notebook/, "notebook");
+            await DBNotebooks.selectCurrentEditor(/DB Notebook/, "notebook");
             await commandExecutor.clean();
             await commandExecutor.execute("select * from sakila.result_sets");
             expect(commandExecutor.getResultMessage()).toMatch(/OK/);

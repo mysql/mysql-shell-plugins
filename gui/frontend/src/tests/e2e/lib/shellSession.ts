@@ -38,7 +38,6 @@ export class ShellSession {
         await driver.wait(until.elementLocated(locator.shellSession.result.exists), constants.wait5seconds);
         const zoneHosts = await driver.findElements(locator.shellSession.result.exists);
         const zoneHost = zoneHosts[zoneHosts.length - 1];
-
         const json = await zoneHost.findElements(locator.shellSession.result.json);
 
         return json.length > 0;
@@ -61,7 +60,7 @@ export class ShellSession {
                     ).length > 0
                 );
             },
-            10000,
+            constants.wait10seconds,
             "Session was not opened",
         );
 

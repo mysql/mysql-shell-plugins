@@ -72,6 +72,18 @@ export const resultGridContextMenu = {
     setFieldToNull: "Set Field to Null",
 };
 
+// DATABASE CONNECTION DIALOG
+export const basicTab = "Basic";
+export const sslTab = "SSL";
+export const advancedTab = "Advanced";
+export const sshTab = "SSH Tunnel";
+export const mdsTab = "MDS/Bastion Service";
+
+// DB CONNECTION OVERVIEW
+export const editConnection = "Edit Connection";
+export const dupConnection = "Duplicate Connection";
+export const removeConnection = "Remove Connection";
+
 // CELL ICONS
 export const blob = "blob";
 export const geometry = "geometry";

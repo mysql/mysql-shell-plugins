@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,16 +22,15 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { WebElement, By, until, Key, Condition, error } from "vscode-extension-tester";
-import { driver, Misc } from "../misc";
-import * as constants from "../constants";
-import * as interfaces from "../interfaces";
-import * as locator from "../locators";
-import { DialogHelper } from "./dialogHelper";
-import { DatabaseConnectionOverview } from "./dbConnectionOverview";
-/**
- * This class aggregates the functions that perform database related operations
- */
+
+import { until, By, WebElement, Condition, error } from "selenium-webdriver";
+import * as locator from "./locators.js";
+import * as constants from "./constants.js";
+import { driver } from "./driver.js";
+import * as interfaces from "./interfaces.js";
+import { DialogHelper } from "./dialogHelper.js";
+import { DatabaseConnectionOverview } from "./databaseConnectionOverview.js";
+
 export class DatabaseConnectionDialog {
 
     /**
@@ -40,12 +39,8 @@ export class DatabaseConnectionDialog {
      * @returns A promise resolving when the connection dialog is set
      */
     public static setConnection = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
         const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
-            constants.wait25seconds, "Connection dialog was not displayed");
+            constants.wait5seconds, "Connection dialog was not displayed");
         if (dbConfig.dbType) {
             const inDBType = await dialog.findElement(locator.dbConnectionDialog.databaseType);
             await inDBType.click();
@@ -53,45 +48,57 @@ export class DatabaseConnectionDialog {
                 constants.wait5seconds, "Database type popup was not found");
             await popup.findElement(By.id(dbConfig.dbType)).click();
         }
+
         if (dbConfig.caption) {
             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.caption, dbConfig.caption);
         }
+
         if (dbConfig.description) {
             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.description, dbConfig.description);
         }
+
         if (dbConfig.dbType) {
+
             if (dbConfig.dbType === "MySQL") {
+
                 if (interfaces.isMySQLConnection(dbConfig.basic)) {
                     await DialogHelper.selectTab(constants.basicTab);
                     if (dbConfig.basic.hostname) {
                         await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.hostname,
                             dbConfig.basic.hostname);
                     }
+
                     if (dbConfig.basic.username) {
                         await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.username,
                             dbConfig.basic.username);
                     }
+
                     if (dbConfig.basic.schema) {
                         await DialogHelper
                             .setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.defaultSchema,
                                 dbConfig.basic.schema);
                     }
+
                     if (dbConfig.basic.port) {
                         await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.port,
                             String(dbConfig.basic.port));
                     }
+
                     if (dbConfig.basic.protocol) {
                         await dialog.findElement(locator.dbConnectionDialog.mysql.basic.protocol).click();
                         const list = await driver.wait(until.elementLocated(locator.dbConnectionDialog.mysql.basic
                             .protocolList), constants.wait5seconds, "Protocol list was not displayed");
                         await list.findElement(By.id(dbConfig.basic.protocol)).click();
                     }
+
                     if (dbConfig.basic.sshTunnel !== undefined) {
                         await DialogHelper.setCheckboxValue("useSSH", dbConfig.basic.sshTunnel);
                     }
+
                     if (dbConfig.basic.ociBastion !== undefined) {
                         await DialogHelper.setCheckboxValue("useMDS", dbConfig.basic.ociBastion);
                     }
+
                     if (dbConfig.ssl) {
                         await DialogHelper.selectTab(constants.sslTab);
                         if (dbConfig.ssl.mode) {
@@ -100,50 +107,71 @@ export class DatabaseConnectionDialog {
                             const popup = await driver.findElement(locator.dbConnectionDialog.mysql.ssl.modeList);
                             await popup.findElement(By.id(dbConfig.ssl.mode)).click();
                         }
+
                         if (dbConfig.ssl.ciphers) {
                             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssl.ciphers,
                                 dbConfig.ssl.ciphers);
                         }
+
                         if (dbConfig.ssl.caPath) {
                             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssl.ca,
                                 dbConfig.ssl.caPath);
                         }
+
                         if (dbConfig.ssl.clientCertPath) {
                             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssl.cert,
                                 dbConfig.ssl.clientCertPath);
                         }
+
                         if (dbConfig.ssl.clientKeyPath) {
                             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssl.key,
                                 dbConfig.ssl.clientKeyPath);
                         }
                     }
+
                     if (dbConfig.advanced) {
                         await DialogHelper.selectTab(constants.advancedTab);
+
                         if (interfaces.isAdvancedMySQL(dbConfig.advanced)) {
                             if (dbConfig.advanced.mode) {
-                                const getModeItem = async (name: string): Promise<WebElement> => {
-                                    const modeItems = await driver.wait(until
-                                        .elementsLocated(locator.dbConnectionDialog.mysql
-                                            .advanced.sqlModeItem), constants.wait5seconds);
-                                    for (const item of modeItems) {
-                                        if ((await item.getText()).toLowerCase().replace(/_/g, "") ===
-                                            name.toLowerCase().replace(/_/g, "")) {
-                                            return item;
+                                const getModeItem = async (name: string): Promise<WebElement | undefined> => {
+                                    let mode: WebElement | undefined;
+                                    await driver.wait(async () => {
+                                        try {
+                                            const modeItems = await driver.wait(until
+                                                .elementsLocated(locator.dbConnectionDialog.mysql
+                                                    .advanced.sqlModeItem), constants.wait5seconds);
+                                            for (const item of modeItems) {
+                                                if ((await item.getText()).toLowerCase().replace(/_/g, "") ===
+                                                    name.toLowerCase().replace(/_/g, "")) {
+                                                    mode = item;
+
+                                                    return true;
+                                                }
+                                            }
+                                        } catch (e) {
+                                            if (!(e instanceof error.StaleElementReferenceError)) {
+                                                throw e;
+                                            }
                                         }
-                                    }
+                                    }, constants.wait5seconds, `Could not get the mode ${name}`);
+
+                                    return mode;
                                 };
 
                                 const modes = Object.keys(dbConfig.advanced.mode);
                                 for (const mode of modes) {
-                                    await DialogHelper.setCheckboxValue(await getModeItem(mode),
-                                        dbConfig.advanced.mode[mode] as boolean);
+                                    await DialogHelper.setCheckboxValue(await getModeItem(mode) as WebElement,
+                                        dbConfig.advanced.mode[mode as keyof typeof dbConfig.advanced.mode] as boolean);
                                 }
                             }
+
                             if (dbConfig.advanced.timeout) {
                                 await DialogHelper.setFieldText(dialog,
                                     locator.dbConnectionDialog.mysql.advanced.connectionTimeout,
                                     dbConfig.advanced.timeout);
                             }
+
                             if (dbConfig.advanced.compression) {
                                 await dialog.findElement(locator.dbConnectionDialog.mysql.advanced.compression).click();
                                 const list = await driver
@@ -152,11 +180,13 @@ export class DatabaseConnectionDialog {
                                         "Compression list was not displayed");
                                 await list.findElement(By.id(dbConfig.advanced.compression)).click();
                             }
+
                             if (dbConfig.advanced.compressionLevel) {
                                 await DialogHelper.setFieldText(dialog,
                                     locator.dbConnectionDialog.mysql.advanced.compressionLevel,
                                     dbConfig.advanced.compressionLevel);
                             }
+
                             if (dbConfig.advanced.disableHeatWave) {
                                 await DialogHelper.setCheckboxValue("disableHeatwaveCheck",
                                     dbConfig.advanced.disableHeatWave);
@@ -165,23 +195,28 @@ export class DatabaseConnectionDialog {
                             throw new Error("Please define the 'mode' field for the advanced section");
                         }
                     }
+
                     if (dbConfig.basic.sshTunnel === true && dbConfig.ssh) {
                         await DialogHelper.selectTab(constants.sshTab);
                         if (dbConfig.ssh.uri) {
                             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssh.uri,
                                 dbConfig.ssh.uri);
                         }
+
                         if (dbConfig.ssh.privateKey) {
                             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssh.privateKey,
                                 dbConfig.ssh.privateKey);
                         }
+
                         if (dbConfig.ssh.customPath) {
                             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.ssh.customPath,
                                 dbConfig.ssh.customPath);
                         }
                     }
+
                     if (dbConfig.mds) {
                         await DialogHelper.selectTab(constants.mdsTab);
+
                         if (dbConfig.mds.profile) {
                             const inProfile = await dialog.findElement(locator.dbConnectionDialog.mysql
                                 .mds.profileName);
@@ -192,14 +227,17 @@ export class DatabaseConnectionDialog {
                             await driver.wait(until.elementLocated(By.id(dbConfig.mds.profile)),
                                 constants.wait5seconds).click();
                         }
+
                         if (dbConfig.mds.sshPrivateKey) {
                             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.sshPrivateKey,
                                 dbConfig.mds.sshPrivateKey);
                         }
+
                         if (dbConfig.mds.sshPublicKey) {
                             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.sshPublicKey,
                                 dbConfig.mds.sshPublicKey);
                         }
+
                         if (dbConfig.mds.dbSystemOCID) {
                             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.dbSystemId,
                                 dbConfig.mds.dbSystemOCID);
@@ -209,6 +247,7 @@ export class DatabaseConnectionDialog {
                                 return !(await dbSystemName.getAttribute("value")).includes("Loading");
                             }), constants.wait10seconds, "DB System name is still loading");
                         }
+
                         if (dbConfig.mds.bastionOCID) {
                             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.bastionId,
                                 dbConfig.mds.bastionOCID);
@@ -218,12 +257,15 @@ export class DatabaseConnectionDialog {
                                 return !(await bastionName.getAttribute("value")).includes("Loading");
                             }), constants.wait10seconds, "Bastion name is still loading");
                         }
+
                     }
                 } else {
                     throw new Error("Please define the 'hostname' field for the basic section");
                 }
+
             } else if (dbConfig.dbType === "Sqlite") {
                 const sqliteData = (dbConfig.basic as interfaces.IConnBasicSqlite);
+
                 if (dbConfig.basic) {
                     await DialogHelper.selectTab(constants.basicTab);
                     if (sqliteData.dbPath) {
@@ -235,18 +277,20 @@ export class DatabaseConnectionDialog {
                             sqliteData.dbName);
                     }
                 }
+
                 if (dbConfig.advanced) {
                     await DialogHelper.selectTab(constants.advancedTab);
                     if (interfaces.isAdvancedSqlite(dbConfig.advanced)) {
                         if ((dbConfig.advanced)) {
                             await DialogHelper.setFieldText(dialog,
                                 locator.dbConnectionDialog.sqlite.advanced.otherParams,
-                                dbConfig.advanced.params);
+                                dbConfig.advanced.params!);
                         }
                     } else {
                         throw new Error("Please define the params object field");
                     }
                 }
+
             }
         } else {
             throw new Error("Could not find the database type on the db object");
@@ -255,24 +299,23 @@ export class DatabaseConnectionDialog {
         await dialog.findElement(locator.dbConnectionDialog.ok).click();
     };
 
+
     /**
      * Gets a Database connection details by opening the connection dialog
      * @param name The database connection caption
      * @returns A promise resolving with the connection details
      */
     public static getConnectionDetails = async (name: string): Promise<interfaces.IDBConnection> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
         await DatabaseConnectionOverview.moreActions(name, constants.editConnection);
         const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
-            constants.wait25seconds, "Connection dialog was not displayed");
+            constants.wait5seconds, "Connection dialog was not displayed");
         const dbConnection: interfaces.IDBConnection = {
             dbType: await dialog.findElement(locator.dbConnectionDialog.databaseType).findElement(locator.htmlTag.label)
                 .getText(),
             caption: await DialogHelper.getFieldValue(dialog, locator.dbConnectionDialog.caption),
             description: await DialogHelper.getFieldValue(dialog, locator.dbConnectionDialog.description),
         };
+
         if (dbConnection.dbType === "MySQL") {
             const basic: interfaces.IConnBasicMySQL = {
                 hostname: await DialogHelper.getFieldValue(dialog, locator.dbConnectionDialog.mysql.basic.hostname),
@@ -297,22 +340,26 @@ export class DatabaseConnectionDialog {
             };
             dbConnection.ssl = ssl;
             await DialogHelper.selectTab(constants.advancedTab);
-            const getModeItem = async (name: string): Promise<WebElement> => {
-                let itemToReturn: WebElement;
+            const getModeItem = async (name: string): Promise<WebElement | undefined> => {
+                let itemToReturn: WebElement | undefined;
                 await driver.wait(async () => {
                     try {
                         const modeItems = await driver.findElements(locator.dbConnectionDialog.mysql
                             .advanced.sqlModeItem);
                         if (modeItems.length > 0) {
+
                             for (const item of modeItems) {
                                 if ((await item.getText() === name)) {
                                     await item.getAttribute("class");
                                     itemToReturn = item;
+                                    await itemToReturn.getAttribute("class"); // test if its stale
 
                                     return true;
                                 }
                             }
+
                         }
+
                     } catch (e) {
                         if (!(e instanceof error.StaleElementReferenceError)) {
                             throw e;
@@ -324,28 +371,36 @@ export class DatabaseConnectionDialog {
             };
             const advanced: interfaces.IConnAdvancedMySQL = {
                 mode: {
-                    ansi: await DialogHelper.getCheckBoxValue(await getModeItem("ANSI")),
-                    traditional: await DialogHelper.getCheckBoxValue(await getModeItem("TRADITIONAL")),
-                    allowInvalidDates: await DialogHelper.getCheckBoxValue(await getModeItem("ALLOW_INVALID_DATES")),
-                    ansiQuotes: await DialogHelper.getCheckBoxValue(await getModeItem("ANSI_QUOTES")),
+                    ansi: await DialogHelper.getCheckBoxValue(await getModeItem("ANSI") as WebElement),
+                    traditional: await DialogHelper.getCheckBoxValue(await getModeItem("TRADITIONAL") as WebElement),
+                    allowInvalidDates: await DialogHelper
+                        .getCheckBoxValue(await getModeItem("ALLOW_INVALID_DATES") as WebElement),
+                    ansiQuotes: await DialogHelper.getCheckBoxValue(await getModeItem("ANSI_QUOTES") as WebElement),
                     errorForDivisionByZero: await DialogHelper
-                        .getCheckBoxValue(await getModeItem("ERROR_FOR_DIVISION_BY_ZERO")),
-                    highNotPrecedence: await DialogHelper.getCheckBoxValue(await getModeItem("HIGH_NOT_PRECEDENCE")),
-                    ignoreSpace: await DialogHelper.getCheckBoxValue(await getModeItem("IGNORE_SPACE")),
-                    noAutoValueOnZero: await DialogHelper.getCheckBoxValue(await getModeItem("NO_AUTO_VALUE_ON_ZERO")),
+                        .getCheckBoxValue(await getModeItem("ERROR_FOR_DIVISION_BY_ZERO") as WebElement),
+                    highNotPrecedence: await DialogHelper
+                        .getCheckBoxValue(await getModeItem("HIGH_NOT_PRECEDENCE") as WebElement),
+                    ignoreSpace: await DialogHelper.getCheckBoxValue(await getModeItem("IGNORE_SPACE") as WebElement),
+                    noAutoValueOnZero: await DialogHelper
+                        .getCheckBoxValue(await getModeItem("NO_AUTO_VALUE_ON_ZERO") as WebElement),
                     noUnsignedSubtraction: await DialogHelper
-                        .getCheckBoxValue(await getModeItem("NO_UNSIGNED_SUBTRACTION")),
-                    noZeroDate: await DialogHelper.getCheckBoxValue(await getModeItem("NO_ZERO_DATE")),
-                    noZeroInDate: await DialogHelper.getCheckBoxValue(await getModeItem("NO_ZERO_IN_DATE")),
-                    onlyFullGroupBy: await DialogHelper.getCheckBoxValue(await getModeItem("ONLY_FULL_GROUP_BY")),
+                        .getCheckBoxValue(await getModeItem("NO_UNSIGNED_SUBTRACTION") as WebElement),
+                    noZeroDate: await DialogHelper.getCheckBoxValue(await getModeItem("NO_ZERO_DATE") as WebElement),
+                    noZeroInDate: await DialogHelper
+                        .getCheckBoxValue(await getModeItem("NO_ZERO_IN_DATE") as WebElement),
+                    onlyFullGroupBy: await DialogHelper
+                        .getCheckBoxValue(await getModeItem("ONLY_FULL_GROUP_BY") as WebElement),
                     padCharToFullLength: await DialogHelper
-                        .getCheckBoxValue(await getModeItem("PAD_CHAR_TO_FULL_LENGTH")),
-                    pipesAsConcat: await DialogHelper.getCheckBoxValue(await getModeItem("PIPES_AS_CONCAT")),
-                    realAsFloat: await DialogHelper.getCheckBoxValue(await getModeItem("REAL_AS_FLOAT")),
-                    strictAllTables: await DialogHelper.getCheckBoxValue(await getModeItem("STRICT_ALL_TABLES")),
-                    strictTransTables: await DialogHelper.getCheckBoxValue(await getModeItem("STRICT_TRANS_TABLES")),
+                        .getCheckBoxValue(await getModeItem("PAD_CHAR_TO_FULL_LENGTH") as WebElement),
+                    pipesAsConcat: await DialogHelper
+                        .getCheckBoxValue(await getModeItem("PIPES_AS_CONCAT") as WebElement),
+                    realAsFloat: await DialogHelper.getCheckBoxValue(await getModeItem("REAL_AS_FLOAT") as WebElement),
+                    strictAllTables: await DialogHelper
+                        .getCheckBoxValue(await getModeItem("STRICT_ALL_TABLES") as WebElement),
+                    strictTransTables: await DialogHelper
+                        .getCheckBoxValue(await getModeItem("STRICT_TRANS_TABLES") as WebElement),
                     timeTruncateFractional: await DialogHelper
-                        .getCheckBoxValue(await getModeItem("TIME_TRUNCATE_FRACTIONAL")),
+                        .getCheckBoxValue(await getModeItem("TIME_TRUNCATE_FRACTIONAL") as WebElement),
                 },
                 timeout: await DialogHelper.getFieldValue(dialog,
                     locator.dbConnectionDialog.mysql.advanced.connectionTimeout),
@@ -363,6 +418,7 @@ export class DatabaseConnectionDialog {
                 disableHeatWave: await DialogHelper.getCheckBoxValue("disableHeatwaveCheck"),
             };
             dbConnection.advanced = advanced;
+
             if (await DialogHelper.existsTab(constants.sshTab)) {
                 await DialogHelper.selectTab(constants.sshTab);
                 const ssh: interfaces.IConnSSH = {
@@ -374,6 +430,7 @@ export class DatabaseConnectionDialog {
                 };
                 dbConnection.ssh = ssh;
             }
+
             if (await DialogHelper.existsTab(constants.mdsTab)) {
                 await DialogHelper.selectTab(constants.mdsTab);
 
@@ -416,77 +473,4 @@ export class DatabaseConnectionDialog {
         return dbConnection;
     };
 
-    /**
-     * Sets the database schema data to Heat Wave
-     * @param schemas The schemas
-     * @param opMode The operational mode
-     * @param output The output
-     * @param disableCols True to disable unsupported columns, false otherwise
-     * @param optimize True to optimize load parallelism, false otherwise
-     * @param enableMemory True to enable memory check, false otherwise
-     * @param sqlMode The SQL mode
-     * @param excludeList The exclude list
-     * @returns A promise resolving when the schema data is set
-     */
-    public static setDataToHeatWave = async (
-        schemas?: string[],
-        opMode?: string,
-        output?: string,
-        disableCols?: boolean,
-        optimize?: boolean,
-        enableMemory?: boolean,
-        sqlMode?: string,
-        excludeList?: string,
-    ): Promise<void> => {
-
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
-        const dialog = await driver.wait(until.elementLocated(locator.hwDialog.exists),
-            constants.wait5seconds, "MDS dialog was not found");
-        if (schemas) {
-            const schemaInput = await dialog.findElement(locator.hwDialog.schemas);
-            await schemaInput.click();
-            const popup = await driver.wait(until.elementLocated(locator.hwDialog.schemasList));
-            for (const schema of schemas) {
-                await popup.findElement(By.id(schema)).click();
-            }
-            await driver.actions().sendKeys(Key.ESCAPE).perform();
-        }
-        if (opMode) {
-            const modeInput = await dialog.findElement(locator.hwDialog.mode);
-            await modeInput.click();
-            const popup = await driver.wait(until.elementLocated(locator.hwDialog.modeList));
-            await popup.findElement(By.id(opMode)).click();
-        }
-        if (output) {
-            const outputInput = await dialog.findElement(locator.hwDialog.output);
-            await outputInput.click();
-            const popup = await driver.wait(until.elementLocated(locator.hwDialog.outputList));
-            await popup.findElement(By.id(output)).click();
-        }
-        if (disableCols) {
-            const disableColsInput = await dialog.findElement(locator.hwDialog.disableUnsupportedColumns);
-            await disableColsInput.click();
-        }
-        if (optimize) {
-            const optimizeInput = await dialog.findElement(locator.hwDialog.optimizeLoadParallelism);
-            await optimizeInput.click();
-        }
-        if (enableMemory) {
-            const enableInput = await dialog.findElement(locator.hwDialog.enableMemoryCheck);
-            await enableInput.click();
-        }
-        if (sqlMode) {
-            const sqlModeInput = await dialog.findElement(locator.hwDialog.sqlMode);
-            await sqlModeInput.sendKeys(sqlMode);
-        }
-        if (excludeList) {
-            const excludeListInput = await dialog.findElement(locator.hwDialog.excludeList);
-            await excludeListInput.sendKeys(excludeList);
-        }
-
-        await dialog.findElement(locator.hwDialog.ok).click();
-    };
 }

@@ -26,6 +26,7 @@
 import { until, WebElement, error } from "selenium-webdriver";
 import * as locator from "../lib/locators.js";
 import { driver } from "../lib/driver.js";
+import { wait15seconds } from "./constants.js";
 
 export class GuiConsole {
 
@@ -37,6 +38,7 @@ export class GuiConsole {
      * @returns Promise resolving when session is opened
      */
     public static openSession = async (id?: number): Promise<void> => {
+
         if (id) {
             const buttons = await driver.findElements(locator.shellPage.sessions.open);
             for (const button of buttons) {
@@ -51,7 +53,7 @@ export class GuiConsole {
 
         await driver.wait(
             until.elementLocated(locator.shellSession.exists),
-            15000,
+            wait15seconds,
             "Session was not opened",
         );
     };
@@ -64,7 +66,9 @@ export class GuiConsole {
     public static getSession = async (sessionNbr: string): Promise<WebElement | undefined> => {
         try {
             const buttons = await driver.findElements(locator.shellPage.sessions.tile);
+
             for (const button of buttons) {
+
                 if ((await button.getAttribute("id")) === sessionNbr) {
                     return button;
                 }

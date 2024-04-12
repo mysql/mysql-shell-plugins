@@ -25,7 +25,6 @@
 
 import { until } from "selenium-webdriver";
 import { Misc } from "../../lib/misc.js";
-import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import * as locator from "../../lib/locators.js";
 import { basename } from "path";
@@ -95,8 +94,8 @@ describe("MySQL Administration", () => {
 
     it("Server Status", async () => {
         try {
-            await DBConnection.clickAdminItem("Server Status");
-            expect(await DBConnection.getCurrentEditor()).toBe("Server Status");
+            await DBNotebooks.clickAdminItem("Server Status");
+            expect(await DBNotebooks.getCurrentEditor()).toBe("Server Status");
 
             const sections = await driver?.findElements(locator.serverStatusHeadings);
             const headings = [];
@@ -116,8 +115,8 @@ describe("MySQL Administration", () => {
 
     it("Client Connections", async () => {
         try {
-            await DBConnection.clickAdminItem("Client Connections");
-            expect(await DBConnection.getCurrentEditor()).toBe("Client Connections");
+            await DBNotebooks.clickAdminItem("Client Connections");
+            expect(await DBNotebooks.getCurrentEditor()).toBe("Client Connections");
             const properties = await driver?.findElements(locator.clientConnections.properties);
             const props = [];
             for (const item of properties) {
@@ -146,9 +145,8 @@ describe("MySQL Administration", () => {
 
     it("Performance Dashboard", async () => {
         try {
-            await DBConnection.clickAdminItem("Performance Dashboard");
-
-            expect(await DBConnection.getCurrentEditor()).toBe("Performance Dashboard");
+            await DBNotebooks.clickAdminItem("Performance Dashboard");
+            expect(await DBNotebooks.getCurrentEditor()).toBe("Performance Dashboard");
 
             const grid = await driver?.findElement(locator.performanceDashboardGrid.exists);
             const gridItems = await grid?.findElements(locator.performanceDashboardGrid.headings);
@@ -171,17 +169,17 @@ describe("MySQL Administration", () => {
 
     it("Switch between MySQL Administration tabs", async () => {
         try {
-            await DBConnection.clickAdminItem("Server Status");
-            await DBConnection.clickAdminItem("Client Connections");
-            await DBConnection.clickAdminItem("Performance Dashboard");
+            await DBNotebooks.clickAdminItem("Server Status");
+            await DBNotebooks.clickAdminItem("Client Connections");
+            await DBNotebooks.clickAdminItem("Performance Dashboard");
 
-            await DBConnection.selectEditor("Server Status");
+            await DBNotebooks.selectEditor("Server Status");
             await driver.switchTo().defaultContent();
 
-            await DBConnection.selectEditor("Client Connections");
+            await DBNotebooks.selectEditor("Client Connections");
             await driver.switchTo().defaultContent();
 
-            await DBConnection.selectEditor("Performance Dashboard");
+            await DBNotebooks.selectEditor("Performance Dashboard");
             await driver.switchTo().defaultContent();
         } catch (e) {
             testFailed = true;

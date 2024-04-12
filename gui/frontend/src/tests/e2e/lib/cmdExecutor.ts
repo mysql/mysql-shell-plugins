@@ -26,7 +26,7 @@ import * as locator from "../lib/locators.js";
 import * as interfaces from "../lib/interfaces.js";
 import * as constants from "../lib/constants.js";
 import { DBNotebooks } from "../lib/dbNotebooks.js";
-import { DBConnection } from "./dbConnection.js";
+import { OpenConnectionDialog } from "./openConnectionDialog.js";
 import { platform } from "os";
 import * as waitUntil from "./until.js";
 import { Misc } from "./misc.js";
@@ -81,6 +81,7 @@ export class CommandExecutor {
                     await driver.findElement(locator.notebook.codeEditor.editor.currentLine),
                 );
                 const lines = cmd.split("\n");
+
                 if (slowWriting) {
                     for (let i = 0; i <= lines.length - 1; i++) {
                         lines[i] = lines[i].trim();
@@ -105,12 +106,14 @@ export class CommandExecutor {
 
                 return this.isTextOnEditor(lines[0]);
             } catch (e) {
+
                 if (e instanceof error.ElementNotInteractableError) {
                     const editorLines = await driver.findElements(locator.notebook.codeEditor.editor.currentLine);
                     await editorLines[editorLines.length - 1].click();
                 } else if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
+
             }
         }, constants.wait5seconds, "Text area was not interactable");
 
@@ -132,6 +135,7 @@ export class CommandExecutor {
         await driver.wait(async () => {
             try {
                 const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+
                 if (platform() === "darwin") {
                     await textArea.sendKeys(Key.chord(Key.COMMAND, "a", "a"));
                 } else {
@@ -177,6 +181,7 @@ export class CommandExecutor {
         const cmd = "shell.deleteAllCredentials()";
         await this.write(cmd, false);
         await this.exec();
+
         if (!(await Os.existsCredentialHelper())) {
             // we expect an error on the console
             const nextId = await this.getNextResultId(this.resultId);
@@ -207,6 +212,7 @@ export class CommandExecutor {
 
         await this.write(cmd, slowWriting);
         await this.exec();
+
         if (!noOutput) {
             const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
             await this.setResultMessage(cmd, nextId);
@@ -233,6 +239,7 @@ export class CommandExecutor {
         if (this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");
         }
+
         if (button === constants.execCaret) {
             throw new Error("Please use the function 'this.findCmdAndExecute()'");
         }
@@ -245,6 +252,7 @@ export class CommandExecutor {
         await this.setResultMessage(cmd, nextId);
         await this.setResultContent(cmd, nextId);
         await this.setResultToolbar(cmd, nextId);
+
         if (nextId) {
             this.setResultId(nextId);
         }
@@ -266,12 +274,13 @@ export class CommandExecutor {
         }
 
         await this.write(cmd, slowWriting);
-        await DBConnection.clickContextItem(item);
+        await DBNotebooks.clickContextItem(item);
 
         const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
         await this.setResultMessage(cmd, nextId);
         await this.setResultContent(cmd, nextId);
         await this.setResultToolbar(cmd, nextId);
+
         if (nextId) {
             this.setResultId(nextId);
         }
@@ -294,12 +303,13 @@ export class CommandExecutor {
 
         await this.write(cmd, slowWriting);
         await this.exec();
-        await DBConnection.setCredentials(dbConnection);
+        await OpenConnectionDialog.setCredentials(dbConnection);
 
         const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
         await this.setResultMessage(cmd, nextId);
         await this.setResultContent(cmd, nextId);
         await this.setResultToolbar(cmd, nextId);
+
         if (nextId) {
             this.setResultId(nextId);
         }
@@ -313,6 +323,7 @@ export class CommandExecutor {
      * @returns A promise resolving when the command is executed
      */
     public findAndExecute = async (cmd: string, searchOnExistingId?: string): Promise<void> => {
+
         if (this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");
         }
@@ -343,10 +354,12 @@ export class CommandExecutor {
         } else {
             await (await DBNotebooks.getToolbarButton(constants.execFullBlockJs))!.click();
         }
+
         const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
         await this.setResultMessage(cmd, nextId);
         await this.setResultContent(cmd, nextId);
         await this.setResultToolbar(cmd, nextId);
+
         if (nextId) {
             this.setResultId(nextId);
         }
@@ -358,13 +371,16 @@ export class CommandExecutor {
      * @returns A promise resolving with the last cmd result
      */
     public loadLastExistingCommandResult = async (reset = false): Promise<void> => {
+
         if (reset) {
             this.setResultId(undefined);
         }
+
         const nextId = await this.getNextResultId(this.resultId);
         await this.setResultMessage(undefined, nextId);
         await this.setResultContent(undefined, nextId);
         await this.setResultToolbar(undefined, nextId);
+
         if (nextId) {
             this.setResultId(nextId);
         }
@@ -379,9 +395,11 @@ export class CommandExecutor {
      */
     public languageSwitch = async (cmd: string, slowWriting = false, searchOnExistingId?:
         string | undefined): Promise<void> => {
+
         if (!this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.execute() or others'");
         }
+
         await this.write(cmd, slowWriting);
         await this.exec();
 
@@ -426,11 +444,13 @@ export class CommandExecutor {
      * @returns A promise resolving when the command is executed
      */
     public exec = async (): Promise<void> => {
+
         if (platform() === "darwin") {
             await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.chord(Key.COMMAND, Key.ENTER));
         } else {
             await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.chord(Key.CONTROL, Key.ENTER));
         }
+
     };
 
     /**
@@ -548,27 +568,32 @@ export class CommandExecutor {
         await driver.wait(waitUntil.resultGridIsEditable(this.getResultToolbar()),
             constants.wait5seconds);
         let isDate: boolean = false;
+
         for (let i = 0; i <= cells.length - 1; i++) {
             await this.startEditCell(cells[i].rowNumber!, cells[i].columnName, cells[i].value);
             const cell = await this.getCellFromResultGrid(cells[i].rowNumber!,
                 cells[i].columnName); // avoid stale
             const expectInput = typeof cells[i].value === "string";
+
             if (expectInput) {
                 const input = await cell.findElement(locator.htmlTag.input);
                 const isDateTime = (await cell
                     .findElements(locator.notebook.codeEditor.editor.result.tableCellDateTime)).length > 0;
+
                 if (!isDateTime) {
                     isDate = false;
                     const upDownInput = await cell
                         .findElement(locator.notebook.codeEditor.editor.result.tableCellUpDownInput).catch(() => {
                             return undefined;
                         });
+
                     if (!upDownInput) {
                         await this.clearCellInputField(input);
                         await input.sendKeys(cells[i].value as string);
                     } else {
                         await driver.executeScript("arguments[0].value=arguments[1]", input, cells[i].value as string);
                     }
+
                 } else {
                     isDate = true;
                     await driver.executeScript("arguments[0].value=arguments[1]", input, cells[i].value as string);
@@ -579,6 +604,7 @@ export class CommandExecutor {
             }
             await this.saveCellChanges("edit", cells[i].rowNumber!, cells[i].columnName);
             await this.refreshCommandResult(this.getResultId());
+
             if (isDate) {
                 await driver.wait(async () => {
                     return (await this.getCellValueFromResultGrid(cells[i].rowNumber!,
@@ -611,6 +637,7 @@ export class CommandExecutor {
             try {
                 await this.refreshCommandResult(this.getResultId());
                 const resultGrid = this.getResultContent() as WebElement;
+
                 if (gridRow === -1) {
                     const addedTableRows = await resultGrid
                         .findElements(locator.notebook.codeEditor.editor.result.addedTableRow);
@@ -620,6 +647,7 @@ export class CommandExecutor {
                     const rows = await resultGrid.findElements(locator.notebook.codeEditor.editor.result.tableRow);
                     cells = await rows[gridRow].findElements(locator.notebook.codeEditor.editor.result.tableCell);
                 }
+
                 cellToReturn = cells[Misc.getDbTableColumnIndex(table, gridColumn)];
 
                 return true;
@@ -656,6 +684,7 @@ export class CommandExecutor {
                     .length > 0;
                 const isIcon = (await cell.findElements(locator.notebook.codeEditor.editor.result.tableCellIcon))
                     .length > 0;
+
                 if (isSelectList) {
                     const selectList = cell
                         .findElement(locator.notebook.codeEditor.editor.result.tableCellSelectList.exists);
@@ -762,16 +791,19 @@ export class CommandExecutor {
             const refCell = await this.getCellFromResultGrid(-1, cell.columnName);
             const expectInput = typeof cell.value === "string";
             await this.startEditCell(-1, cell.columnName, cell.value);
+
             if (expectInput) {
                 const input = await refCell.findElement(locator.htmlTag.input);
                 const isDateTime = (await refCell
                     .findElements(locator.notebook.codeEditor.editor.result.tableCellDateTime)).length > 0;
+
                 if (!isDateTime) {
                     isDate = false;
                     const upDownInput = await refCell
                         .findElement(locator.notebook.codeEditor.editor.result.tableCellUpDownInput).catch(() => {
                             return undefined;
                         });
+
                     if (!upDownInput) {
                         await this.clearCellInputField(input);
                         await input.sendKeys(cell.value as string);
@@ -787,7 +819,9 @@ export class CommandExecutor {
             } else {
                 await this.setCellBooleanValue(-1, cell.columnName, cell.value as boolean);
             }
+
             await this.saveCellChanges("add", -1, cell.columnName);
+
             if (isDate) {
                 await driver.wait(async () => {
                     return (await this.getCellValueFromResultGrid(-1, cell.columnName)) !== "Invalid Date";
@@ -824,6 +858,7 @@ export class CommandExecutor {
 
             const words = await sqlPreview.findElements(locator.notebook.codeEditor.editor.result.previewChanges.words);
             let toReturn = "";
+
             for (const word of words) {
                 toReturn += (await word.getText()).replace("&nbsp;", " ");
             }
@@ -1035,6 +1070,7 @@ export class CommandExecutor {
     public resultGridApplyChanges = async (verifyUpdate = false): Promise<void> => {
         const applyButton = await this.getResultToolbar()
             .findElement(locator.notebook.codeEditor.editor.result.status.toolbar.applyButton);
+
         if (verifyUpdate) {
             await driver.wait(async () => {
                 await applyButton.click();
@@ -1069,6 +1105,7 @@ export class CommandExecutor {
         cmd = cmd ?? "last result";
         let result: WebElement;
         try {
+
             if (searchOnExistingId) {
                 result = await driver.wait(until
                     .elementLocated(locator.notebook.codeEditor.editor.result.existsById(String(searchOnExistingId))),
@@ -1086,6 +1123,7 @@ export class CommandExecutor {
             return result;
         } catch (e) {
             const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
+
             if (results.length > 0) {
                 console.log(`[DEBUG] Last result id found: ${await results[results.length - 1]
                     .getAttribute("monaco-view-zone")}`);
@@ -1149,6 +1187,7 @@ export class CommandExecutor {
             .findElement(locator.notebook.codeEditor.editor.result.tableCellSelectList.list.exists);
         const items = await list
             .findElements(locator.notebook.codeEditor.editor.result.tableCellSelectList.list.item);
+
         for (const item of items) {
             const itemName = await item.getText();
             if (itemName === value.toString()) {
@@ -1294,6 +1333,7 @@ export class CommandExecutor {
                         }
                     }
                 }
+
                 if (resultToReturn !== undefined && resultToReturn !== "") {
                     return true;
                 }
@@ -1335,11 +1375,13 @@ export class CommandExecutor {
             try {
                 result = fromScript ? await this
                     .getResultScript() : await this.getResult(cmd, searchOnExistingId);
+
                 if (this.expectResultTabs(cmd!)) {
                     resultContent = [];
                     await driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.tabSection.exists),
                         constants.wait5seconds, `A result tab should exist for cmd ${cmd}`);
                     const tabs = await result!.findElements(locator.notebook.codeEditor.editor.result.tabSection.tab);
+
                     for (const tab of tabs) {
                         // is data set ?
                         const tableRows = await result!
@@ -1350,6 +1392,7 @@ export class CommandExecutor {
                             .findElement(locator.notebook.codeEditor.editor.result.textOutput)
                             .catch(() => { return undefined; });
                         await tab.click();
+
                         if (tableRows) {
                             await driver.wait(until.stalenessOf(tableRows), constants.wait2seconds,
                                 "Result table was not updated");
@@ -1402,6 +1445,7 @@ export class CommandExecutor {
                     const isTableResult = (await result!
                         .findElements(locator.notebook.codeEditor.editor.result.tableHeaders))
                         .length > 0;
+
                     if (isTableResult) {
                         await driver.wait(waitUntil.elementLocated(result!,
                             locator.notebook.codeEditor.editor.result.tableCell),
@@ -1430,6 +1474,7 @@ export class CommandExecutor {
                             .findElement(locator.notebook.codeEditor.editor.result.previewChanges.exists);
                     }
                 }
+
                 if ((resultContent instanceof WebElement && resultContent !== undefined) ||
                     (resultContent.length > 0)) {
                     return true;
@@ -1458,6 +1503,7 @@ export class CommandExecutor {
         Promise<void> => {
 
         let toolbar!: WebElement;
+
         if ((await this.isShellSession()) === false) {
             await driver.wait(async () => {
                 try {
@@ -1465,6 +1511,7 @@ export class CommandExecutor {
                         .getResultScript() : await this.getResult(cmd, searchOnExistingId);
                     const hasTableResult = (await result!.findElements(locator.notebook.codeEditor.editor.result.table))
                         .length > 0;
+
                     if (hasTableResult) {
                         toolbar = result!.findElement(locator.notebook.codeEditor.editor.result.status.toolbar.exists);
                     }
@@ -1491,11 +1538,13 @@ export class CommandExecutor {
     private getNextResultId = async (lastResultId: string | undefined):
         Promise<string | undefined> => {
         let resultId: string;
+
         if (lastResultId) {
             resultId = String(parseInt(lastResultId, 10) + 1);
         } else {
             const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
             // the editor may not have any previous results at all (it has been cleaned)
+
             if (results.length > 0) {
                 const result = results[results.length - 1];
                 const id = (await result.getAttribute("monaco-view-zone")).match(/(\d+)/)![1];
@@ -1530,6 +1579,7 @@ export class CommandExecutor {
                     .replace(/\./g, ".*")
                     .replace(/;/g, ".*")
                     .replace(/\s/g, ".*");
+
                 const prompts = await driver.findElements(locator.notebook.codeEditor.editor.editorLine);
                 for (const prompt of prompts) {
                     const html = await prompt.getAttribute("innerHTML");
@@ -1557,6 +1607,7 @@ export class CommandExecutor {
      * @returns A promise resolving with the truthiness of the function
      */
     private expectResultTabs = (cmd: string): boolean | undefined => {
+
         if (cmd) {
             const selectMatch = cmd.match(/(select|SELECT)/g);
             const matchSpecial = cmd.match(/(UNION|INTERSECT|EXCEPT|for update|\()/g);
@@ -1588,11 +1639,13 @@ export class CommandExecutor {
     private clearCellInputField = async (el: WebElement): Promise<void> => {
         await driver.wait(async () => {
             await driver.executeScript("arguments[0].click()", el);
-            if (platform() === "darwin") {
+
+            if (Os.isMacOs()) {
                 await el.sendKeys(Key.chord(Key.COMMAND, "a"));
             } else {
                 await el.sendKeys(Key.chord(Key.CONTROL, "a"));
             }
+
             await el.sendKeys(Key.BACK_SPACE);
 
             return (await el.getAttribute("value")).length === 0;
@@ -1605,14 +1658,18 @@ export class CommandExecutor {
      */
     private getTableFromCommand = (): string => {
         const keywords = this.command.split(" ");
+
         for (let i = 0; i <= keywords.length - 1; i++) {
+
             if (keywords[i].match(/(from|FROM)/) !== null) {
+
                 if (keywords[i + 1].includes(".")) {
                     return (keywords[i + 1].split("."))[1].replace(";", "");
                 } else {
                     return keywords[i + 1].replace(";", "");
                 }
             }
+
         }
         throw new Error(`Could not get the table from command ${this.command}`);
     };
@@ -1634,6 +1691,7 @@ export class CommandExecutor {
             try {
                 const cell = await this.getCellFromResultGrid(rowNumber, columnName);
                 const isEditable = (await cell.getAttribute("class")).includes("tabulator-editing");
+
                 if (expectInput) {
                     if (isEditable) {
                         return (await cell.findElements(locator.htmlTag.input)).length > 0;
@@ -1642,6 +1700,7 @@ export class CommandExecutor {
                     return (await cell.getAttribute("class")).includes("changed") || isEditable;
                 }
             } catch (e) {
+
                 if (!(e instanceof error.StaleElementReferenceError) ||
                     !(e instanceof error.ElementNotInteractableError)) {
                     throw e;
@@ -1661,6 +1720,7 @@ export class CommandExecutor {
         await driver.wait(async () => {
             await driver.findElement(locator.mainActivityBar).click();
             const cell = await this.getCellFromResultGrid(rowNumber, columnName);
+
             if (action === "edit") {
                 return (await cell.getAttribute("class")).includes("changed");
             } else {

@@ -45,7 +45,25 @@ export interface IDBConnection {
     description?: string;
     basic?: IConnBasicMySQL | IConnBasicSqlite;
     ssl?: IConnSSL;
-    advanced?: IConnMySqlAdvanced | IConnSqliteAdvanced;
+    advanced?: IConnAdvancedMySQL | IConnAdvancedSqlite;
+    ssh?: IConnSSH;
+    mds?: IConnMDS;
+}
+
+export interface IConnSSH {
+    uri: string;
+    privateKey: string;
+    customPath: string;
+}
+
+export interface IConnMDS {
+    profile?: string;
+    sshPrivateKey?: string;
+    sshPublicKey?: string;
+    dbSystemOCID?: string;
+    bastionOCID?: string;
+    dbSystemName?: string;
+    bastionName?: string;
 }
 
 export interface IConnBasicMySQL {
@@ -63,7 +81,7 @@ export interface IConnBasicMySQL {
 export interface IConnBasicSqlite {
     dbPath?: string;
     dbName?: string;
-    advanced?: IConnSqliteAdvanced;
+    advanced?: IConnAdvancedSqlite;
 }
 
 export interface IConnSSL {
@@ -74,16 +92,35 @@ export interface IConnSSL {
     clientKeyPath?: string;
 }
 
-export interface IConnMySqlAdvanced {
-    mode?: string;
-    timeout?: number;
+export interface IConnAdvancedMySQL {
+    mode?: {
+        ansi: boolean,
+        traditional: boolean,
+        allowInvalidDates: boolean,
+        ansiQuotes: boolean,
+        errorForDivisionByZero: boolean,
+        highNotPrecedence: boolean,
+        ignoreSpace: boolean,
+        noAutoValueOnZero: boolean,
+        noUnsignedSubtraction: boolean,
+        noZeroDate: boolean,
+        noZeroInDate: boolean,
+        onlyFullGroupBy: boolean,
+        padCharToFullLength: boolean,
+        pipesAsConcat: boolean,
+        realAsFloat: boolean,
+        strictAllTables: boolean,
+        strictTransTables: boolean,
+        timeTruncateFractional: boolean,
+    };
+    timeout?: string;
     compression?: string;
-    compLevel?: string;
-    compAlgorithms?: string;
-    disableHW?: boolean;
+    compressionLevel?: string;
+    compressionAlgorithms?: string;
+    disableHeatWave?: boolean;
 }
 
-export interface IConnSqliteAdvanced {
+export interface IConnAdvancedSqlite {
     params?: string;
 }
 
@@ -101,10 +138,10 @@ export const isSQLiteConnection = (obj: unknown): obj is IConnBasicSqlite => {
     return (obj as IConnBasicSqlite).dbName !== undefined;
 };
 
-export const isAdvancedMySQL = (obj: unknown): obj is IConnMySqlAdvanced => {
-    return (obj as IConnMySqlAdvanced).mode !== undefined;
+export const isAdvancedMySQL = (obj: unknown): obj is IConnAdvancedMySQL => {
+    return (obj as IConnAdvancedMySQL).mode !== undefined;
 };
 
-export const isAdvancedSqlite = (obj: unknown): obj is IConnSqliteAdvanced => {
-    return (obj as IConnSqliteAdvanced).params !== undefined;
+export const isAdvancedSqlite = (obj: unknown): obj is IConnAdvancedSqlite => {
+    return (obj as IConnAdvancedSqlite).params !== undefined;
 };

@@ -23,7 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import { Misc } from "../../lib/misc.js";
 import { basename } from "path";
@@ -98,10 +97,10 @@ describe("Scripts", () => {
 
     it("Add_run JS script", async () => {
         try {
-            await DBConnection.expandCollapseMenus("scripts", true, 0);
-            const script = await DBConnection.addScript("JS");
-            await DBConnection.selectCurrentEditor(script, "scriptJs");
-            expect(await DBConnection.existsScript(script, "scriptJs")).toBe(true);
+            await DBNotebooks.toggleSection("scripts", true, 0);
+            const script = await DBNotebooks.addScript("JS");
+            await DBNotebooks.selectCurrentEditor(script, "scriptJs");
+            expect(await DBNotebooks.existsScript(script, "scriptJs")).toBe(true);
             expect(
                 await driver
                     .findElement(locator.notebook.toolbar.exists)
@@ -117,11 +116,11 @@ describe("Scripts", () => {
             ).toBe(script);
 
             expect(
-                await (await DBConnection.getOpenEditor(script))!.getAttribute("class"),
+                await (await DBNotebooks.getOpenEditor(script))!.getAttribute("class"),
             ).toContain("selected");
 
             expect(
-                await (await DBConnection.getOpenEditor(script))!
+                await (await DBNotebooks.getOpenEditor(script))!
                     .findElement(locator.notebook.toolbar.editorSelector.currentImage)
                     .getAttribute("src"),
             ).toContain("scriptJs");
@@ -136,9 +135,9 @@ describe("Scripts", () => {
 
     it("Add_run SQL script", async () => {
         try {
-            const script = await DBConnection.addScript("SQL");
-            await DBConnection.selectCurrentEditor(script, "Mysql");
-            expect(await DBConnection.existsScript(script, "Mysql")).toBe(true);
+            const script = await DBNotebooks.addScript("SQL");
+            await DBNotebooks.selectCurrentEditor(script, "Mysql");
+            expect(await DBNotebooks.existsScript(script, "Mysql")).toBe(true);
             expect(
                 await driver
                     .findElement(locator.notebook.codeEditor.editor.editorHost)
@@ -158,10 +157,10 @@ describe("Scripts", () => {
                     .getText(),
             ).toBe(script);
             expect(
-                await (await DBConnection.getOpenEditor(script))!.getAttribute("class"),
+                await (await DBNotebooks.getOpenEditor(script))!.getAttribute("class"),
             ).toContain("selected");
             expect(
-                await (await DBConnection.getOpenEditor(script))!
+                await (await DBNotebooks.getOpenEditor(script))!
                     .findElement(locator.notebook.toolbar.editorSelector.currentImage)
                     .getAttribute("src"),
             ).toContain("Mysql");
@@ -175,9 +174,9 @@ describe("Scripts", () => {
 
     it("Add_run TS script", async () => {
         try {
-            const script = await DBConnection.addScript("TS");
-            await DBConnection.selectCurrentEditor(script, "scriptTs");
-            expect(await DBConnection.existsScript(script, "scriptTs")).toBe(true);
+            const script = await DBNotebooks.addScript("TS");
+            await DBNotebooks.selectCurrentEditor(script, "scriptTs");
+            expect(await DBNotebooks.existsScript(script, "scriptTs")).toBe(true);
             expect(
                 await driver.findElement(locator.notebook.codeEditor.editor.editorHost).getAttribute("data-mode-id"),
 
@@ -199,10 +198,10 @@ describe("Scripts", () => {
             ).toBe(script);
 
             expect(
-                await (await DBConnection.getOpenEditor(script))!.getAttribute("class"),
+                await (await DBNotebooks.getOpenEditor(script))!.getAttribute("class"),
             ).toContain("selected");
 
-            src = (await (await DBConnection.getOpenEditor(script))!
+            src = (await (await DBNotebooks.getOpenEditor(script))!
                 .findElement(locator.notebook.toolbar.editorSelector.currentImage)
                 .getAttribute("src"));
 
@@ -218,30 +217,30 @@ describe("Scripts", () => {
 
     it("Switch between scripts", async () => {
         try {
-            await DBConnection.selectCurrentEditor("DB Notebook", "notebook");
-            const script1 = await DBConnection.addScript("JS");
-            await DBConnection.selectCurrentEditor(script1, "scriptJs");
+            await DBNotebooks.selectCurrentEditor("DB Notebook", "notebook");
+            const script1 = await DBNotebooks.addScript("JS");
+            await DBNotebooks.selectCurrentEditor(script1, "scriptJs");
 
             let textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
                 .findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys("c");
             await textArea.sendKeys("onsole.log('Hello JavaScript')");
 
-            const script2 = await DBConnection.addScript("TS");
-            await DBConnection.selectCurrentEditor(script2, "scriptTs");
+            const script2 = await DBNotebooks.addScript("TS");
+            await DBNotebooks.selectCurrentEditor(script2, "scriptTs");
             textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
                 .findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys("c");
             await textArea.sendKeys("onsole.log('Hello Typescript')");
 
-            const script3 = await DBConnection.addScript("SQL");
-            await DBConnection.selectCurrentEditor(script3, "Mysql");
+            const script3 = await DBNotebooks.addScript("SQL");
+            await DBNotebooks.selectCurrentEditor(script3, "Mysql");
             textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
                 .findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys("S");
             await textArea.sendKeys("ELECT * FROM sakila.actor;");
 
-            await DBConnection.selectCurrentEditor(script1, "scriptJs");
+            await DBNotebooks.selectCurrentEditor(script1, "scriptJs");
 
             expect(
                 await driver
@@ -250,7 +249,7 @@ describe("Scripts", () => {
                     .getAttribute("value"),
             ).toBe("console.log('Hello JavaScript')");
 
-            await DBConnection.selectCurrentEditor(script2, "scriptTs");
+            await DBNotebooks.selectCurrentEditor(script2, "scriptTs");
 
             expect(
                 await driver
@@ -259,7 +258,7 @@ describe("Scripts", () => {
                     .getAttribute("value"),
             ).toBe("console.log('Hello Typescript')");
 
-            await DBConnection.selectCurrentEditor(script3, "Mysql");
+            await DBNotebooks.selectCurrentEditor(script3, "Mysql");
 
             expect(
                 await driver
@@ -271,7 +270,7 @@ describe("Scripts", () => {
             testFailed = true;
             throw e;
         } finally {
-            await DBConnection.selectCurrentEditor("DB Notebook", "notebook");
+            await DBNotebooks.selectCurrentEditor("DB Notebook", "notebook");
         }
     });
 

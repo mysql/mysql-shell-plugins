@@ -22,11 +22,11 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { By, WebElement, Locator, Key } from "selenium-webdriver";
+import { By, WebElement, Locator, Key, until } from "selenium-webdriver";
 import * as locator from "../lib/locators.js";
 import * as constants from "../lib/constants.js";
 import { driver } from "../lib/driver.js";
-import { platform } from "os";
+import { Os } from "./os.js";
 
 /**
  * This class aggregates the functions that perform operations inside web view dialogs
@@ -35,23 +35,53 @@ export class DialogHelper {
 
     /**
      * Sets a checkbox value
-     * @param id The web element id
+     * @param el The web element id or the web element
      * @param checked True to check, false otherwise
      * @returns A promise resolving with the text
      */
-    public static setCheckboxValue = async (id: string, checked: boolean): Promise<void> => {
+    public static setCheckboxValue = async (el: string | WebElement, checked: boolean): Promise<void> => {
         const isUnchecked = async () => {
-            return (await driver.findElement(By.id(id)).getAttribute("class")).split(" ")
-                .includes("unchecked");
+
+            if (el instanceof WebElement) {
+                return (await el.getAttribute("class")).split(" ").includes("unchecked");
+            } else {
+                return (await driver.findElement(By.id(el)).getAttribute("class")).split(" ")
+                    .includes("unchecked");
+            }
         };
 
         if (checked && (await isUnchecked())) {
-            await driver.findElement(By.id(id)).findElement(locator.checkBox.checkMark).click();
+            if (el instanceof WebElement) {
+                await el.findElement(locator.checkBox.checkMark).click();
+            } else {
+                await driver.findElement(By.id(el)).findElement(locator.checkBox.checkMark).click();
+            }
         } else {
             if (!checked && !(await isUnchecked())) {
-                await driver.findElement(By.id(id)).findElement(locator.checkBox.checkMark).click();
+                if (el instanceof WebElement) {
+                    await el.findElement(locator.checkBox.checkMark).click();
+                } else {
+                    await driver.findElement(By.id(el)).findElement(locator.checkBox.checkMark).click();
+                }
             }
         }
+    };
+
+    /**
+     * Gets a checkbox value
+     * @param el The web element id or the web element
+     * @returns A promise resolving with the checkbox value (true if checked, false otherwise)
+     */
+    public static getCheckBoxValue = async (el: string | WebElement): Promise<boolean> => {
+        let classes = [];
+
+        if (el instanceof WebElement) {
+            classes = (await el.getAttribute("class")).split(" ");
+        } else {
+            classes = (await driver.findElement(By.id(el)).getAttribute("class")).split(" ");
+        }
+
+        return !classes.includes("unchecked");
     };
 
     /**
@@ -64,6 +94,7 @@ export class DialogHelper {
     public static setFieldText = async (dialog: WebElement, fieldLocator: Locator, text: string): Promise<void> => {
         const field = await dialog.findElement(fieldLocator);
         const fieldValue = await field.getAttribute("value");
+
         if (fieldValue.trim() !== "") {
             if (fieldValue !== text) {
                 await DialogHelper.clearInputField(field);
@@ -75,6 +106,18 @@ export class DialogHelper {
     };
 
     /**
+     * Gets the value from an input field
+     * @param dialog The dialog where the input belongs to
+     * @param fieldLocator The field locator
+     * @returns A promise resolving when the field text is returned
+     */
+    public static getFieldValue = async (dialog: WebElement, fieldLocator: Locator): Promise<string> => {
+        const field = await dialog.findElement(fieldLocator);
+
+        return field.getAttribute("value");
+    };
+
+    /**
      * Clears an input field
      * @param el The element
      * @returns A promise resolving when the field is cleared
@@ -83,15 +126,75 @@ export class DialogHelper {
         await driver.wait(async () => {
             await el.clear();
             await driver.executeScript("arguments[0].click()", el);
-            if (platform() === "darwin") {
+
+            if (Os.isMacOs()) {
                 await el.sendKeys(Key.chord(Key.COMMAND, "a"));
             } else {
                 await el.sendKeys(Key.chord(Key.CONTROL, "a"));
             }
+
             await el.sendKeys(Key.BACK_SPACE);
 
             return (await el.getAttribute("value")).length === 0;
         }, constants.wait5seconds, `${await el.getId()} was not cleaned`);
     };
 
+    /**
+     * Verifies if a dialog exists inside the web view
+     * @param wait wait 5 seconds for the dialog to be displayed
+     * @returns A promise resolving with true if the dialog exists, false otherwise
+     */
+    public static existsDialog = async (wait = false): Promise<boolean> => {
+
+        if (wait === false) {
+            return (await driver.findElements(locator.genericDialog.exists)).length > 0;
+        } else {
+            return driver.wait(async () => {
+                const genericDialog = await driver.findElements(locator.genericDialog.exists);
+                const confirmDialog = await driver.findElements(locator.confirmDialog.exists);
+
+                return (genericDialog).length > 0 || confirmDialog.length > 0;
+            }, constants.wait5seconds).catch(() => {
+                return false;
+            });
+        }
+    };
+
+    /**
+     * Selects a Database connection tab
+     * @param name The tab name
+     * @returns A promise resolving when the tab is selected
+     */
+    public static selectTab = async (name: string): Promise<void> => {
+        const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
+            constants.wait5seconds, "Connection dialog was not displayed");
+        const tabs = await dialog.findElements(locator.dbConnectionDialog.tab);
+
+        for (const tab of tabs) {
+
+            if ((await tab.getText() === name)) {
+                await tab.click();
+
+                break;
+            }
+        }
+    };
+
+    /**
+     * Verifies if a Database connection tab exists
+     * @param name The tab name
+     * @returns A promise resolving with true if the tab exists, false otherwise
+     */
+    public static existsTab = async (name: string): Promise<boolean | undefined> => {
+        const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
+            constants.wait5seconds, "Connection dialog was not displayed");
+        const tabs = await dialog.findElements(locator.dbConnectionDialog.tab);
+
+        for (const tab of tabs) {
+
+            if ((await tab.getText() === name)) {
+                return true;
+            }
+        }
+    };
 }

@@ -102,10 +102,10 @@ describe("Main pages", () => {
                     .findElement(locator.sqlEditorPage.contentTitle)
                     .getText(),
             ).toBe("Database Connections");
-            const addButton = await driver.findElement(locator.dbConnections.newConnection);
-            expect(await addButton.findElement(locator.dbConnections.connections.caption,
+            const addButton = await driver.findElement(locator.dbConnectionOverview.newDBConnection);
+            expect(await addButton.findElement(locator.dbConnectionOverview.dbConnection.caption,
             ).getAttribute("innerHTML")).toContain("New Connection");
-            expect(await addButton.findElement(locator.dbConnections.connections.description,
+            expect(await addButton.findElement(locator.dbConnectionOverview.dbConnection.description,
             ).getAttribute("innerHTML")).toContain("Add a new database connection");
         } catch (e) {
             testFailed = true;

@@ -22,6 +22,7 @@
  */
 
 import fs from "fs/promises";
+import { existsSync } from "fs";
 import { join } from "path";
 import { Logs, logging } from "selenium-webdriver";
 import { driver } from "../lib/driver.js";
@@ -42,22 +43,6 @@ export const shellServers = new Map([
 export class Os {
 
     /**
-     * Checks if a file exists
-     *
-     * @param path to the file
-     * @returns true if exists, false otherwise
-     */
-    public static fileExists = async (path: string): Promise<boolean> => {
-        try {
-            await fs.access(path);
-
-            return true;
-        } catch (e) {
-            return false;
-        }
-    };
-
-    /**
      * Writes the FE logs to a file
      *
      * @param testName Name of the test
@@ -65,7 +50,8 @@ export class Os {
      * @returns A promise resolving when the logs are written
      */
     public static writeFELogs = async (testName: string, content: Logs): Promise<void> => {
-        if (await this.fileExists(join(process.cwd(), feLog))) {
+
+        if (existsSync(join(process.cwd(), feLog))) {
             await fs.appendFile(feLog, `\n---- ${testName} ------`);
         } else {
             await fs.writeFile(feLog, `---- ${testName} -----\n`);
@@ -77,9 +63,11 @@ export class Os {
         ];
         let line = "";
         let logs: logging.Entry[];
+
         for (const logType of logTypes) {
             line = `---> ${logType}\n`;
             logs = await content.get(logType);
+
             for (const log of logs) {
                 const date = new Date(log.timestamp);
                 let time = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()} `;

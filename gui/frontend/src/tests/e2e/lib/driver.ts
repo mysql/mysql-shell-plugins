@@ -75,6 +75,7 @@ export const loadDriver = async (useHeadless?: boolean): Promise<void> => {
     });
 
     let headless: string;
+
     if (useHeadless === undefined) {
         headless = process.env.HEADLESS ?? "1"; // headless is enabled by default
     } else {
@@ -88,6 +89,7 @@ export const loadDriver = async (useHeadless?: boolean): Promise<void> => {
     if (headless === "1") {
         options.headless().windowSize({ width: 1024, height: 768 });
     }
+
     if (process.env.CHROMEDRIVER_PATH) {
         const builder = new ServiceBuilder(process.env.CHROMEDRIVER_PATH);
         driver = await new Builder()
@@ -101,5 +103,6 @@ export const loadDriver = async (useHeadless?: boolean): Promise<void> => {
             .setChromeOptions(options)
             .build();
     }
+
     await driver.manage().setTimeouts({ implicit: 0 });
 };

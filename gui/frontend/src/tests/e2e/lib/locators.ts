@@ -32,42 +32,57 @@ export const searchByCss = (id: string): By => {
 };
 
 // DATABASE CONNECTION CONFIGURATION
-export const databaseConnectionConfiguration = {
-    exists: By.className("valueEditDialog"),
-    basicTab: By.id("page0"),
-    sslTab: By.id("page1"),
-    advancedTab: By.id("page2"),
-    mdsTab: By.id("page3"),
-    databaseType: {
-        exists: By.id("databaseType"),
-        list: By.className("dropdownList"),
-        databaseTypeMysql: By.id("MySQL"),
-        databaseTypeSqlite: By.id("Sqlite"),
-    },
+export const dbConnectionDialog = {
+    exists: By.css(".visible.valueEditDialog"),
+    tab: By.css(".tabArea label"),
+    databaseType: By.id("databaseType"),
     caption: By.id("caption"),
     description: By.id("description"),
+    databaseTypeList: By.id("databaseTypePopup"),
+    databaseTypeMysql: By.id("MySQL"),
+    databaseTypeSqlite: By.id("Sqlite"),
     mysql: {
         basic: {
             hostname: By.id("hostName"),
-            protocol: {
-                exists: By.id("scheme"),
-                list: By.className("dropdownList"),
-            },
             username: By.id("userName"),
-            schema: By.id("defaultSchema"),
+            defaultSchema: By.id("defaultSchema"),
+            protocol: By.id("scheme"),
+            protocolList: By.id("schemePopup"),
             port: By.css("#port input"),
         },
         ssl: {
-            modeList: {
-                exists: By.id("sslModePopup"),
-                requireAndVerifyCA: By.id("Require and Verify CA"),
-            },
+            modeList: By.id("sslModePopup"),
             mode: By.id("sslMode"),
-            modeLabel: By.css("#sslMode label"),
+            ciphers: By.id("sslCipher"),
             ca: By.id("sslCaFile"),
             cert: By.id("sslCertFile"),
             key: By.id("sslKeyFile"),
-            inputs: By.css(".tabview.top input.msg"),
+        },
+        ssh: {
+            uri: By.id("ssh"),
+            privateKey: By.id("sshKeyFile"),
+            customPath: By.id("sshConfigFilePath"),
+        },
+        mds: {
+            profileNameList: By.id("profileNamePopup"),
+            profileName: By.id("profileName"),
+            sshPrivateKey: By.id("sshKeyFile"),
+            sshPublicKey: By.id("sshPublicKeyFile"),
+            dbSystemId: By.id("mysqlDbSystemId"),
+            dbSystemName: By.id("mysqlDbSystemName"),
+            bastionId: By.id("bastionId"),
+            bastionName: By.id("bastionName"),
+        },
+        advanced: {
+            sqlModeItem: By.css("#listContainer > label"),
+            connectionTimeout: By.css("#content > input"),
+            compression: By.id("compression"),
+            compressionPopup: By.id("compressionPopup"),
+            compressionLevel: By.css("#compressionLevel input"),
+            compressionAlgorithms: By.id("compressionAlgorithms"),
+            disableHeatwaveCheck: By.id("disableHeatwaveCheck"),
+            addNewProperty: By.id("buttonAddEntry"),
+            removeProperty: By.id("buttonRemoveEntry"),
         },
     },
     sqlite: {
@@ -79,10 +94,9 @@ export const databaseConnectionConfiguration = {
             otherParams: By.id("otherParameters"),
         },
     },
-    close: By.id("closeButton"),
     ok: By.id("ok"),
     cancel: By.id("cancel"),
-    errors: By.css(".message.error"),
+    errorMessage: By.css(".message.error"),
 };
 
 // CONFIRM DIALOG
@@ -96,30 +110,30 @@ export const confirmDialog = {
     cancel: By.id("alternative"),
 };
 
-// DB CONNECTIONS
-export const dbConnections = {
-    browser: By.className("connectionBrowser"),
-    description: By.css(".tileDescription"),
-    existsByCaption: (name: string): By => {
-        return By.xpath(`//label[contains(text(), '${name}')]`);
-    },
-    newConnection: By.id("-1"),
-    title: By.id("title"),
+// DB CONNECTION OVERVIEW
+export const dbConnectionOverview = {
     tab: By.id("connections"),
-    tabName: By.css("#connections > label"),
-    connections: {
-        item: By.css("#tilesHost .connectionTile"),
+    exists: By.id("connectionOverviewToolbar"),
+    title: By.id("title"),
+    newConsoleButton: By.id("newConsoleMenuButton"),
+    browser: By.className("connectionBrowser"),
+    newDBConnection: By.id("-1"),
+    dbConnection: {
+        tile: By.css("#tilesHost .connectionTile"),
         caption: By.className("tileCaption"),
-        description: By.className("tileDescription"),
-        actions: {
-            moreActions: By.id("tileMoreActionsAction"),
-            newNotebook: By.id("tileNewNotebookAction"),
-            newScript: By.id("tileNewScriptAction"),
-            edit: By.id("edit"),
-            duplicate: By.id("duplicate"),
-            remove: By.id("remove"),
+        description: By.css(".tileDescription"),
+        moreActions: By.id("tileMoreActionsAction"),
+        moreActionsMenu: {
+            exists: By.css("#tileActionMenu > div.popup.visible"),
+            editConnection: By.id("edit"),
+            duplicateConnection: By.id("duplicate"),
+            removeConnection: By.id("remove"),
         },
+        newNotebook: By.id("tileNewNotebookAction"),
+        newScript: By.id("tileNewScriptAction"),
+        contextMenu: By.css(".noArrow.menu"),
     },
+    closeHeader: By.id("closeButton"),
 };
 
 // NOTEBOOK

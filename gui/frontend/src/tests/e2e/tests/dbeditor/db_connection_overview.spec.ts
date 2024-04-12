@@ -24,7 +24,6 @@
  */
 
 import { Key, WebElement, until } from "selenium-webdriver";
-import { DBConnection } from "../../lib/dbConnection.js";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import { Misc, shellServers } from "../../lib/misc.js";
 import * as locator from "../../lib/locators.js";
@@ -36,6 +35,8 @@ import * as constants from "../../lib/constants.js";
 import { DialogHelper } from "../../lib/dialogHelper.js";
 import * as waitUntil from "../../lib/until.js";
 import { Os } from "../../lib/os.js";
+import { DatabaseConnectionOverview } from "../../lib/databaseConnectionOverview.js";
+import { DatabaseConnectionDialog } from "../../lib/databaseConnectionDialog.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -86,8 +87,8 @@ describe("Database Connections", () => {
             await Misc.storeScreenShot();
         }
 
-        if (!await DBConnection.isConnectionOverviewOpened()) {
-            await DBConnection.closeDBconnection("current");
+        if (!await DatabaseConnectionOverview.isOpened()) {
+            await DBNotebooks.closeNotebook("current");
         }
     });
 
@@ -99,15 +100,14 @@ describe("Database Connections", () => {
 
     it("Duplicate a database connection", async () => {
         try {
-            const host = await DBNotebooks.getConnection(globalConn.caption!);
-            await DBNotebooks.clickConnectionItem(host!, "duplicate");
+            await DatabaseConnectionOverview.moreActions(globalConn.caption!, constants.dupConnection);
             const duplicateConnection = Object.assign({}, globalConn);
             duplicateConnection.caption = "DuplicatedConnection";
             duplicateConnection.description = "my other connection";
-            await DBNotebooks.setConnection(duplicateConnection);
+            await DatabaseConnectionDialog.setConnection(duplicateConnection);
             const conn = await DBNotebooks.getConnection(duplicateConnection.caption);
             expect(conn).toBeDefined();
-            expect(await conn!.findElement(locator.dbConnections.description).getText())
+            expect(await conn!.findElement(locator.dbConnectionOverview.dbConnection.description).getText())
                 .toBe(duplicateConnection.description);
         } catch (e) {
             testFailed = true;
@@ -115,20 +115,100 @@ describe("Database Connections", () => {
         }
     });
 
-    it("Edit a database connection", async () => {
+    it("Edit a MySQL connection", async () => {
         try {
-            const editedConnection = Object.assign({}, globalConn);
-            editedConnection.caption = "editedConnection";
-            editedConnection.description = "new description";
+            const editConn: interfaces.IDBConnection = {
+                dbType: "MySQL",
+                caption: `connectionToEdit`,
+                description: "Local connection",
+                basic: {
+                    hostname: String(process.env.DBHOSTNAME),
+                    username: String(process.env.DBUSERNAME),
+                    port: Number(process.env.DBPORT),
+                    schema: "sakila",
+                    password: String(process.env.DBPASSWORD),
+                },
+            };
 
-            await DBNotebooks.createDataBaseConnection(editedConnection);
-            const host = await DBNotebooks.getConnection(editedConnection.caption);
-            await DBNotebooks.clickConnectionItem(host!, "edit");
-            await DBNotebooks.setConnection(editedConnection);
-            const conn = await DBNotebooks.getConnection(editedConnection.caption);
-            expect(conn).toBeDefined();
-            expect(await conn!.findElement(locator.dbConnections.description).getText())
-                .toBe(editedConnection.description);
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            await DatabaseConnectionDialog.setConnection(editConn);
+            await DatabaseConnectionOverview.moreActions(editConn.caption!, constants.editConnection);
+            editConn.caption = "edited caption";
+            editConn.description = "edited description";
+            if (interfaces.isMySQLConnection(editConn.basic)) {
+                editConn.basic.hostname = "hostname edited";
+                editConn.basic.username = "username edited";
+                editConn.basic.schema = "edited schema";
+                editConn.basic.protocol = "mysqlx";
+                editConn.basic.port = 3305;
+                editConn.basic.sshTunnel = true;
+                editConn.basic.ociBastion = false;
+                editConn.ssl = {
+                    mode: "Require",
+                    ciphers: "ciphers, edited",
+                    caPath: "ca edited",
+                    clientCertPath: "cert edited",
+                    clientKeyPath: "key edited",
+                };
+                editConn.ssh = {
+                    uri: "edited uri",
+                    privateKey: "edited private key",
+                    customPath: "edited custom path",
+                };
+                editConn.advanced = {
+                    // bug : https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=36482559
+                    /*mode: {
+                        ansi: true,
+                        traditional: true,
+                        allowInvalidDates: true,
+                        ansiQuotes: true,
+                        errorForDivisionByZero: true,
+                        highNotPrecedence: true,
+                        ignoreSpace: true,
+                        noAutoValueOnZero: true,
+                        noUnsignedSubtraction: true,
+                        noZeroDate: true,
+                        noZeroInDate: true,
+                        onlyFullGroupBy: true,
+                        padCharToFullLength: true,
+                        pipesAsConcat: true,
+                        realAsFloat: true,
+                        strictAllTables: true,
+                        strictTransTables: true,
+                        timeTruncateFractional: true,
+                    },
+                    timeout: "5",*/
+                    mode: {
+                        ansi: false,
+                        traditional: false,
+                        allowInvalidDates: false,
+                        ansiQuotes: false,
+                        errorForDivisionByZero: false,
+                        highNotPrecedence: false,
+                        ignoreSpace: false,
+                        noAutoValueOnZero: false,
+                        noUnsignedSubtraction: false,
+                        noZeroDate: false,
+                        noZeroInDate: false,
+                        onlyFullGroupBy: false,
+                        padCharToFullLength: false,
+                        pipesAsConcat: false,
+                        realAsFloat: false,
+                        strictAllTables: false,
+                        strictTransTables: false,
+                        timeTruncateFractional: false,
+                    },
+                    timeout: "0",
+                    compression: "Required",
+                    compressionLevel: "5",
+                    disableHeatWave: true,
+                };
+            }
+            delete (editConn.basic as interfaces.IConnBasicMySQL).password;
+            await DatabaseConnectionDialog.setConnection(editConn);
+            await DatabaseConnectionOverview.moreActions(editConn.caption, constants.editConnection);
+            const verifyConn = await DatabaseConnectionDialog.getConnectionDetails(editConn.caption);
+            expect(verifyConn).toStrictEqual(editConn);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -137,22 +217,22 @@ describe("Database Connections", () => {
 
     it("MySQL - Verify mandatory fields", async () => {
         try {
-            await driver.findElement(locator.dbConnections.newConnection).click();
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
 
-            const conDialog = await driver.wait(until.elementLocated(locator.databaseConnectionConfiguration.exists),
+            const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
                 constants.wait5seconds, "Connection dialog was not displayed");
 
-            const caption = await conDialog.findElement(locator.databaseConnectionConfiguration.caption);
-            const hostname = await conDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname);
+            const caption = await conDialog.findElement(locator.dbConnectionDialog.caption);
+            const hostname = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.hostname);
             await DialogHelper.clearInputField(caption);
             await DialogHelper.clearInputField(hostname);
 
-            await conDialog.findElement(locator.databaseConnectionConfiguration.ok).click();
+            await conDialog.findElement(locator.dbConnectionDialog.ok).click();
             await driver.wait(async () => {
-                return (await conDialog.findElements(locator.databaseConnectionConfiguration.errors)).length > 0;
+                return (await conDialog.findElements(locator.dbConnectionDialog.errorMessage)).length > 0;
             }, constants.wait5seconds, "The DB Connection dialog should have errors");
 
-            const dialogErrors = await conDialog.findElements(locator.databaseConnectionConfiguration.errors);
+            const dialogErrors = await conDialog.findElements(locator.dbConnectionDialog.errorMessage);
             const errorMsgs = await Promise.all(
                 dialogErrors.map((item: WebElement) => {
                     return item.getText();
@@ -160,7 +240,7 @@ describe("Database Connections", () => {
             expect(errorMsgs).toContain("The user name must not be empty");
             expect(await caption.getAttribute("value")).toContain("New Connection");
             expect(await hostname.getAttribute("value")).toBe("localhost");
-            await conDialog.findElement(locator.databaseConnectionConfiguration.cancel).click();
+            await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
 
         } catch (e) {
             testFailed = true;
@@ -169,33 +249,38 @@ describe("Database Connections", () => {
     });
 
     it("SQLite - Verify mandatory fields", async () => {
-        await driver.findElement(locator.dbConnections.newConnection).click();
-        const conDialog = await driver.wait(until.elementLocated(locator.databaseConnectionConfiguration.exists),
-            constants.wait5seconds, "Connection dialog was not displayed");
-        await conDialog.findElement(locator.databaseConnectionConfiguration.databaseType.exists).click();
-        const popup = await driver.wait(until.elementLocated(locator.databaseConnectionConfiguration.databaseType.list),
-            constants.wait5seconds, "Database type popup was not found");
-        await popup.findElement(locator.databaseConnectionConfiguration.databaseType.databaseTypeSqlite).click();
-        const caption = await conDialog.findElement(locator.databaseConnectionConfiguration.caption);
-        await DialogHelper.clearInputField(caption);
-        await conDialog.findElement(locator.databaseConnectionConfiguration.ok).click();
-        await driver.wait(async () => {
-            return (await conDialog.findElements(locator.databaseConnectionConfiguration.errors)).length > 0;
-        }, constants.wait5seconds, "The DB Connection dialog should have errors");
-        const dialogErrors = await conDialog.findElements(locator.databaseConnectionConfiguration.errors);
-        const errorMsgs = await Promise.all(
-            dialogErrors.map((item: WebElement) => {
-                return item.getText();
-            }));
-        expect(await caption.getAttribute("value")).toContain("New Connection");
-        expect(errorMsgs).toContain("Specify the path to an existing Sqlite DB file");
-        await conDialog.findElement(locator.databaseConnectionConfiguration.cancel).click();
+        try {
+            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
+                constants.wait5seconds, "Connection dialog was not displayed");
+            await conDialog.findElement(locator.dbConnectionDialog.databaseType).click();
+            const popup = await driver.wait(until.elementLocated(locator.dbConnectionDialog.databaseTypeList),
+                constants.wait5seconds, "Database type popup was not found");
+            await popup.findElement(locator.dbConnectionDialog.databaseTypeSqlite).click();
+            const caption = await conDialog.findElement(locator.dbConnectionDialog.caption);
+            await DialogHelper.clearInputField(caption);
+            await conDialog.findElement(locator.dbConnectionDialog.ok).click();
+            await driver.wait(async () => {
+                return (await conDialog.findElements(locator.dbConnectionDialog.errorMessage)).length > 0;
+            }, constants.wait5seconds, "The DB Connection dialog should have errors");
+            const dialogErrors = await conDialog.findElements(locator.dbConnectionDialog.errorMessage);
+            const errorMsgs = await Promise.all(
+                dialogErrors.map((item: WebElement) => {
+                    return item.getText();
+                }));
+            expect(await caption.getAttribute("value")).toContain("New Connection");
+            expect(errorMsgs).toContain("Specify the path to an existing Sqlite DB file");
+            await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
     });
 
     it("Remove a database connection", async () => {
         const localConn: interfaces.IDBConnection = {
             dbType: "MySQL",
-            caption: `conn${new Date().valueOf()}`,
+            caption: `connectionToRemove`,
             description: "Local connection",
             basic: {
                 hostname: String(process.env.DBHOSTNAME),
@@ -209,22 +294,14 @@ describe("Database Connections", () => {
         };
         try {
             await DBNotebooks.createDataBaseConnection(localConn);
-            const host = await DBNotebooks.getConnection(localConn.caption!);
-            await DBNotebooks.clickConnectionItem(host!, "remove");
+            await DatabaseConnectionOverview.moreActions(localConn.caption!, constants.removeConnection);
             const dialog = await driver.findElement(locator.confirmDialog.exists);
             expect(dialog).toBeDefined();
             await driver.executeScript(
                 "arguments[0].click();",
                 await dialog.findElement(locator.confirmDialog.accept),
             );
-            await driver.wait(
-                async () => {
-                    return (await driver.findElements(locator.dbConnections
-                        .existsByCaption(localConn.caption!))).length === 0;
-                },
-                2000,
-                `${localConn.caption} Database Connection still exists`,
-            );
+            await driver.wait(waitUntil.dbConnectionDoesNotExist(localConn.caption!), constants.wait5seconds);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -249,13 +326,13 @@ describe("Database Connections", () => {
             const conn = await DBNotebooks.getConnection(sqliteConn.caption!);
             expect(conn).toBeDefined();
             await driver.executeScript("arguments[0].click();", conn);
-            expect(await DBConnection.getSelectedConnectionTab()).toBe(sqliteConn.caption);
-            await DBConnection.toggleSchemaObject("Schema", "main");
-            const main = await DBConnection.getSchemaObject("Schema", "main");
+            expect(await DatabaseConnectionOverview.getSelectedTab()).toBe(sqliteConn.caption);
+            await DBNotebooks.toggleSchemaObject("Schema", "main");
+            const main = await DBNotebooks.getSchemaObject("Schema", "main");
             const attr = await main!.getAttribute("class");
             expect(attr.split(" ").includes("expanded")).toBe(true);
-            await DBConnection.toggleSchemaObject("Tables", "Tables");
-            const tables = await DBConnection.getSchemaObject("Tables", "Tables");
+            await DBNotebooks.toggleSchemaObject("Tables", "Tables");
+            const tables = await DBNotebooks.getSchemaObject("Tables", "Tables");
             expect(
                 await (
                     await tables!.findElement(locator.treeToggle)
@@ -263,7 +340,7 @@ describe("Database Connections", () => {
             ).toContain("expanded");
 
             await DBNotebooks.cleanPrompt();
-            const table = await DBConnection.getSchemaObject("obj", "db_connection");
+            const table = await DBNotebooks.getSchemaObject("obj", "db_connection");
             await driver.wait(async () => {
                 await driver
                     .actions()
@@ -310,7 +387,7 @@ describe("Database Connections", () => {
             const conn = await DBNotebooks.getConnection(sslConn.caption!);
             await driver.executeScript("arguments[0].click();", conn);
             await driver.wait(waitUntil.dbConnectionIsOpened(sslConn), constants.wait10seconds);
-            expect(await DBConnection.getSelectedConnectionTab()).toBe(sslConn.caption);
+            expect(await DatabaseConnectionOverview.getSelectedTab()).toBe(sslConn.caption);
             let query = `select * from performance_schema.session_status where variable_name in `;
             query += `("ssl_cipher") and variable_value like "%TLS%"`;
             const cmdExecutor = new CommandExecutor();
@@ -324,14 +401,14 @@ describe("Database Connections", () => {
 
     it("Copy, cut paste into the DB Connection dialog", async () => {
         try {
-            const browser = await driver.wait(until.elementLocated(locator.dbConnections.browser),
+            const browser = await driver.wait(until.elementLocated(locator.dbConnectionOverview.browser),
                 constants.wait5seconds, "DB Connection Overview page was not loaded");
 
-            await browser.findElement(locator.dbConnections.newConnection).click();
-            const newConDialog = await driver.wait(until.elementLocated(locator.databaseConnectionConfiguration.exists),
+            await browser.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            const newConDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
                 constants.wait5seconds);
             const hostname = await newConDialog
-                .findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname);
+                .findElement(locator.dbConnectionDialog.mysql.basic.hostname);
             const hostnameValue = await hostname.getAttribute("value");
             await hostname.click();
             if (Os.isMacOs()) {
@@ -342,7 +419,7 @@ describe("Database Connections", () => {
                 await hostname.sendKeys(Key.chord(Key.CONTROL, "c"));
             }
 
-            const inputCaption = await newConDialog.findElement(locator.databaseConnectionConfiguration.caption);
+            const inputCaption = await newConDialog.findElement(locator.dbConnectionDialog.caption);
 
             await driver.wait(async () => {
                 await inputCaption.clear();
@@ -367,11 +444,11 @@ describe("Database Connections", () => {
                 await hostname.sendKeys(Key.chord(Key.CONTROL, "x"));
             }
 
-            expect(await (await newConDialog.findElement(locator.databaseConnectionConfiguration.mysql.basic.hostname))
+            expect(await (await newConDialog.findElement(locator.dbConnectionDialog.mysql.basic.hostname))
                 .getAttribute("value")).toBe("");
 
             const description = await newConDialog
-                .findElement(locator.databaseConnectionConfiguration.description);
+                .findElement(locator.dbConnectionDialog.description);
             await description.click();
 
             if (Os.isMacOs()) {
