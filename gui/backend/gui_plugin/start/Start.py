@@ -167,10 +167,10 @@ def web_server(port=None, secure=None, webrootpath=None,
         server.single_instance_token = single_instance_token
 
         if secure:
-            server.socket = ssl.wrap_socket(
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            context.load_cert_chain(certfile=secure['certfile'], keyfile=secure['keyfile'])
+            server.socket = context.wrap_socket(
                 server.socket,
-                keyfile=secure['keyfile'],
-                certfile=secure['certfile'],
                 server_side=True)
 
         def user_signal_handler(signum, frame):
