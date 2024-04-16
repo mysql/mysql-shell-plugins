@@ -23,17 +23,22 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { screen, waitFor } from "@testing-library/preact";
 import { createRef } from "preact";
 
 import { mount } from "enzyme";
+import { DataCallback } from "../../../../../communication/MessageScheduler.js";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../../communication/MySQL.js";
 import { IShellDictionary } from "../../../../../communication/Protocol.js";
 import {
-    IMrsAddContentSetData, IMrsAuthAppData, IMrsAddAuthAppData, IMrsServiceData, IMrsUserRoleData,
+    IMrsAddAuthAppData,
+    IMrsAddContentSetData, IMrsAuthAppData,
+    IMrsServiceData, IMrsUserRoleData,
     IShellMrsUpdateDbObjectKwargsValue,
     ShellAPIMrs,
 } from "../../../../../communication/ProtocolMrs.js";
 import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
+import { MrsDbObjectType } from "../../../../../modules/mrs/types.js";
 import { IMrsDbObjectEditRequest } from "../../../../../supplement/Requisitions.js";
 import { ShellInterface } from "../../../../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -42,10 +47,14 @@ import { webSession } from "../../../../../supplement/WebSession.js";
 import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
 import { KeyboardKeys, sleep } from "../../../../../utilities/helpers.js";
 import {
-    DialogHelper, JestReactWrapper, getDbCredentials, nextProcessTick, sendKeyPress, setupShellForTests,
+    DialogHelper, JestReactWrapper, getDbCredentials, sendKeyPress, setupShellForTests,
 } from "../../../test-helpers.js";
-import { MrsDbObjectType } from "../../../../../modules/mrs/types.js";
-import { DataCallback } from "../../../../../communication/MessageScheduler.js";
+import {
+    testReqShowMrsAuthAppDialog, testReqShowMrsContentSetDialog,
+    testReqShowMrsDbObjectDialog, testReqShowMrsSchemaDialog,
+    testReqShowMrsSdkExportDialog, testReqShowMrsServiceDialog,
+    testReqShowMrsUserDialog,
+} from "../../db-editor/DbEditorModuleRequisitionsMRSDialogs.js";
 
 describe("MrsHub Tests", () => {
     let host: JestReactWrapper;
@@ -56,6 +65,8 @@ describe("MrsHub Tests", () => {
     let service: IMrsServiceData;
     let authApp: IMrsAuthAppData;
     let dialogHelper: DialogHelper;
+    let serviceID: string;
+    let connID: number;
 
     const hubRef = createRef<MrsHub>();
 
@@ -83,6 +94,7 @@ describe("MrsHub Tests", () => {
         testConnection.id = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
             testConnection, "unit-tests") ?? -1;
         expect(testConnection.id).toBeGreaterThan(-1);
+        connID = testConnection.id;
 
         backend = new ShellInterfaceSqlEditor();
         await backend.startSession("mrsHubTests");
@@ -109,6 +121,7 @@ describe("MrsHub Tests", () => {
             defaultRoleId: "0x31000000000000000000000000000000",
         }, []);
         authApp = await backend.mrs.getAuthApp(authAppId.authAppId);
+        serviceID = service.id;
         const schemaId = await backend.mrs.addSchema(service.id, "MRS_TEST", "/mrs-test", false, null, null);
         const dbObjectResult = await backend.mrs.addDbObject("actor", MrsDbObjectType.Table, false, "/actor", true,
             ["READ"], "FEED", false, false, false, null, null, undefined, schemaId);
@@ -130,7 +143,6 @@ describe("MrsHub Tests", () => {
         expect(host).toMatchSnapshot();
     });
 
-
     describe("MRS Service dialog tests", () => {
         beforeAll(() => {
             dialogHelper = new DialogHelper("mrsServiceDialog");
@@ -141,8 +153,9 @@ describe("MrsHub Tests", () => {
             expect(portals.length).toBe(0);
 
             const promise = hubRef.current!.showMrsServiceDialog(backend);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MySQL REST Service")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -164,8 +177,9 @@ describe("MrsHub Tests", () => {
             expect(portals.length).toBe(0);
 
             const promise = hubRef.current!.showMrsServiceDialog(backend);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MySQL REST Service")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -219,8 +233,9 @@ describe("MrsHub Tests", () => {
 
             await sleep(500);
             const promise = hubRef.current!.showMrsServiceDialog(backend);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MySQL REST Service")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -264,8 +279,9 @@ describe("MrsHub Tests", () => {
             expect(portals.length).toBe(0);
 
             const promise = hubRef.current!.showMrsSchemaDialog(backend);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MySQL REST Schema")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -287,8 +303,9 @@ describe("MrsHub Tests", () => {
             expect(portals.length).toBe(0);
 
             const promise = hubRef.current!.showMrsSchemaDialog(backend);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MySQL REST Schema")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -320,8 +337,9 @@ describe("MrsHub Tests", () => {
             };
 
             const promise = hubRef.current!.showMrsSchemaDialog(backend);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MySQL REST Schema")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -343,7 +361,6 @@ describe("MrsHub Tests", () => {
 
     describe("MRS AuthApp dialog tests", () => {
 
-
         beforeAll(() => {
             dialogHelper = new DialogHelper("mrsAuthenticationAppDialog");
         });
@@ -353,8 +370,9 @@ describe("MrsHub Tests", () => {
             expect(portals.length).toBe(0);
 
             const promise = hubRef.current!.showMrsAuthAppDialog(backend);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MySQL REST Authentication App")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -376,8 +394,9 @@ describe("MrsHub Tests", () => {
             expect(portals.length).toBe(0);
 
             const promise = hubRef.current!.showMrsAuthAppDialog(backend);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MySQL REST Authentication App")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -407,8 +426,9 @@ describe("MrsHub Tests", () => {
                 return Promise.resolve({ authAppId: "can't calculate the id at this stage of the tests" });
             };
 
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MySQL REST Authentication App")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -451,8 +471,9 @@ describe("MrsHub Tests", () => {
             };
 
             const promise = hubRef.current!.showMrsDbObjectDialog(backend, dialogRequest);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MySQL REST Object")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -486,8 +507,9 @@ describe("MrsHub Tests", () => {
             };
 
             const promise = hubRef.current!.showMrsDbObjectDialog(backend, dialogRequest);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MySQL REST Object")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -670,8 +692,9 @@ describe("MrsHub Tests", () => {
             };
 
             const promise = hubRef.current!.showMrsDbObjectDialog(backend, dialogRequest);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MySQL REST Object")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -705,8 +728,9 @@ describe("MrsHub Tests", () => {
             expect(portals.length).toBe(0);
 
             const promise = hubRef.current!.showMrsUserDialog(backend, authApp);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MySQL REST User")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -728,8 +752,9 @@ describe("MrsHub Tests", () => {
             expect(portals.length).toBe(0);
 
             const promise = hubRef.current!.showMrsUserDialog(backend, authApp);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MySQL REST User")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -764,8 +789,9 @@ describe("MrsHub Tests", () => {
             };
 
             const promise = hubRef.current!.showMrsUserDialog(backend, authApp);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MySQL REST User")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -804,8 +830,9 @@ describe("MrsHub Tests", () => {
             expect(portals.length).toBe(0);
 
             const promise = hubRef.current!.showMrsContentSetDialog(backend);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MRS Content Set")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -827,8 +854,9 @@ describe("MrsHub Tests", () => {
             expect(portals.length).toBe(0);
 
             const promise = hubRef.current!.showMrsContentSetDialog(backend);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MRS Content Set")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -865,8 +893,9 @@ describe("MrsHub Tests", () => {
             };
 
             const promise = hubRef.current!.showMrsContentSetDialog(backend);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("MRS Content Set")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -899,8 +928,9 @@ describe("MrsHub Tests", () => {
             let portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(0);
             const promise = hubRef.current!.showMrsSdkExportDialog(backend, service.id, 1);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("Export MRS SDK for /myService")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -921,8 +951,9 @@ describe("MrsHub Tests", () => {
             let portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(0);
             const promise = hubRef.current!.showMrsSdkExportDialog(backend, service.id, 1);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("Export MRS SDK for /myService")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -941,8 +972,9 @@ describe("MrsHub Tests", () => {
             let portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(0);
             const promise = hubRef.current!.showMrsSdkExportDialog(backend, service.id, 1);
-            await nextProcessTick();
-            await sleep(500);
+            await waitFor(() => {
+                expect(screen.getByText("Export MRS SDK for /myService")).toBeDefined();
+            });
 
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(1);
@@ -955,5 +987,40 @@ describe("MrsHub Tests", () => {
             portals = document.getElementsByClassName("portal");
             expect(portals.length).toBe(0);
         });
+    });
+
+    describe("DBEditorModule requisitions MRS Dialogs Tests", () => {
+        beforeAll(() => {
+            dialogHelper = new DialogHelper("mrsRequisitionsDialogTests");
+        });
+
+        it("Test DBEditorModule function requisitions.showMrsDbObjectDialog", async () => {
+            await testReqShowMrsDbObjectDialog(dialogHelper, serviceID, connID);
+        });
+
+        it("Test DBEditorModule function requisitions.showMrsServiceDialog", async () => {
+            await testReqShowMrsServiceDialog(dialogHelper, serviceID, connID);
+        });
+
+        it("Test DBEditorModule function requisitions.showMrsSchemaDialog", async () => {
+            await testReqShowMrsSchemaDialog(dialogHelper, serviceID, connID);
+        });
+
+        it("Test DBEditorModule function requisitions.showMrsContentSetDialog", async () => {
+            await testReqShowMrsContentSetDialog(dialogHelper, serviceID, connID);
+        });
+
+        it("Test DBEditorModule function requisitions.showMrsAuthAppDialog", async () => {
+            await testReqShowMrsAuthAppDialog(dialogHelper, authApp, serviceID, connID);
+        });
+
+        it("Test DBEditorModule function requisitions.showMrsUserDialog", async () => {
+            await testReqShowMrsUserDialog(dialogHelper, authApp, connID);
+        });
+
+        it("Test DBEditorModule function requisitions.showMrsSdkExportDialog", async () => {
+            await testReqShowMrsSdkExportDialog(dialogHelper, serviceID, connID);
+        });
+
     });
 });
