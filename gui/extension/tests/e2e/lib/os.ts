@@ -25,7 +25,7 @@
 import { WebElement, Key } from "vscode-extension-tester";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 import clipboard from "clipboardy";
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { spawnSync, execSync } from "child_process";
 import fs from "fs/promises";
 import { platform } from "os";
@@ -69,7 +69,7 @@ export class Os {
      */
     public static setRouterConfigFile = async (options: { [key: string]: string; }): Promise<void> => {
         const keys = Object.keys(options);
-        const configFile = Os.getRouterConfigFile();
+        const configFile = await Os.getRouterConfigFile();
         const file = await fs.readFile(configFile);
         const fileLines = file.toString().split("\n");
         for (let i = 0; i <= fileLines.length - 1; i++) {
@@ -86,6 +86,26 @@ export class Os {
         }
 
         await fs.writeFile(configFile, text);
+    };
+
+    /**
+     * Gets the desired value of the router configuration file
+     * @param option The configuration option
+     * @returns A promise resolving with the configuration value
+     */
+    public static getValueFromRouterConfigFile = async (option: string): Promise<string> => {
+        const configFile = await Os.getRouterConfigFile();
+        if (existsSync(configFile)) {
+            const file = readFileSync(configFile);
+            const fileLines = file.toString().split("\n");
+            const regex = new RegExp(`^${option}=(.*)`);
+            for (const line of fileLines) {
+                const match = line.match(regex);
+                if (match !== null) {
+                    return match[1];
+                }
+            }
+        }
     };
 
     /**
@@ -204,9 +224,12 @@ export class Os {
      * Gets the location of the router configuration file
      * @returns A promise resolving with the location of the router configuration file
      */
-    public static getRouterConfigFile = (): string => {
-        return join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${process.env.TEST_SUITE}`,
-            "plugin_data", "mrs_plugin", "router_configs", "1", "mysqlrouter", "mysqlrouter.conf");
+    public static getRouterConfigFile = async (): Promise<string> => {
+        const path = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${process.env.TEST_SUITE}`,
+            "plugin_data", "mrs_plugin", "router_configs");
+        const dirs = await fs.readdir(path);
+
+        return join(path, dirs[0], "mysqlrouter", "mysqlrouter.conf");
     };
 
     /**
@@ -214,7 +237,7 @@ export class Os {
      * @returns A promise resolving with the location of the router log file
      */
     public static getRouterLogFile = async (): Promise<string> => {
-        const routerConfigFilePath = Os.getRouterConfigFile();
+        const routerConfigFilePath = await Os.getRouterConfigFile();
         const fileContent = (await fs.readFile(routerConfigFilePath)).toString();
 
         return join(fileContent.match(/logging_folder=(.*)/)[1], "mysqlrouter.log");

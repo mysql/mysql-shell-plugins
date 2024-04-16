@@ -352,11 +352,10 @@ export class MRSCommandHandler {
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.copyDbObjectRequestPath",
             async (entry?: ICdmRestDbObjectEntry) => {
                 if (entry) {
-                    const item = entry.treeItem;
-                    if (item.value) {
-                        const o = item.value;
-                        await env.clipboard.writeText((o.hostCtx ?? "") + (o.schemaRequestPath ?? "") + o.requestPath);
-                        showMessageWithTimeout("The DB Object was copied to the system clipboard");
+                    const dbObjectPath = this.buildDbObjectRequestPath(entry);
+                    if (dbObjectPath) {
+                        await env.clipboard.writeText(String(dbObjectPath));
+                        showMessageWithTimeout("The DB Object Path was copied to the system clipboard");
                     }
                 }
             }));
@@ -364,19 +363,9 @@ export class MRSCommandHandler {
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.openDbObjectRequestPath",
             async (entry?: ICdmRestDbObjectEntry) => {
                 if (entry) {
-                    const item = entry.treeItem;
-                    if (item.value) {
-                        const o = item.value;
-                        const port = getRouterPortForConnection(entry.treeItem.connectionId);
-                        let url = (o.hostCtx ?? "") + (o.schemaRequestPath ?? "") + o.requestPath;
-
-                        if (url.startsWith("/")) {
-                            url = `https://localhost:${port}${url}`;
-                        } else {
-                            url = `https://${url}`;
-                        }
-
-                        await env.openExternal(Uri.parse(url));
+                    const dbObjectPath = this.buildDbObjectRequestPath(entry);
+                    if (dbObjectPath) {
+                        await env.openExternal(dbObjectPath);
                     }
                 }
             }));
@@ -1310,5 +1299,28 @@ export class MRSCommandHandler {
 
     private handleDocsWebviewPanelDispose = () => {
         this.#docsWebviewPanel = undefined;
+    };
+
+    private buildDbObjectRequestPath = (entry: ICdmRestDbObjectEntry): Uri | undefined => {
+        const item = entry.treeItem;
+        if (item.value) {
+            try {
+                const o = item.value;
+                const port = getRouterPortForConnection(entry.treeItem.connectionId);
+                let url = (o.hostCtx ?? "") + (o.schemaRequestPath ?? "") + o.requestPath;
+
+                if (url.startsWith("/")) {
+                    url = `https://localhost:${port}${url}`;
+                } else {
+                    url = `https://${url}`;
+                }
+
+                return Uri.parse(url);
+            } catch (error) {
+                let errorMsg = `An error occurred when trying to build the DB Object Path.`;
+                errorMsg += ` Error: ${error instanceof Error ? error.message : String(error)}`;
+                void window.showErrorMessage(errorMsg);
+            }
+        }
     };
 }
