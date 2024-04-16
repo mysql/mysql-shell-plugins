@@ -179,7 +179,7 @@ const getErrorLineInfo = (lineno: number, colno: number) => {
     // Construct line info only for the passed-in code.
     const line = lineno - 1;
 
-    if (worker.sourceMap.length === 0) {
+    if (!worker.sourceMap || worker.sourceMap.length === 0) {
         // No source map (e.g. for JS code).
         return `(Ln ${lineno}, Col ${colno + 1})`;
     }

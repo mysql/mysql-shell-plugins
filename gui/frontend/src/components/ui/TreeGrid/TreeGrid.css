@@ -367,14 +367,6 @@
     user-select: none;
 }
 
-.msg.treeGrid.tabulator .tabulator-row .tabulator-cell .tabulator-data-tree-branch {
-    visibility: hidden;
-    flex: 0 0 7px;
-
-    border-left: 2px solid var(--list-gridColor);
-    border-bottom: 2px solid var(--list-gridColor);
-}
-
 .msg.treeGrid.tabulator .tabulator-row .tabulator-cell .tabulator-data-tree-control {
     border: 1px solid var(--rowTextColor);
 }
@@ -394,6 +386,16 @@
 
 .msg.treeGrid.tabulator .tabulator-row .tabulator-cell .tabulator-data-tree-control .tabulator-data-tree-control-expand:after {
     background: var(--rowTextColor);
+}
+
+.msg.treeGrid.tabulator .tabulator-row .tabulator-cell .tabulator-data-tree-branch-empty {
+    /*
+     * Keep the (hidden) tree branch element from automatic shrinking, as that creates an odd visual effect.
+     * Unfortunately, this element cannot be removed from the DOM, as it is used to determine the indentation.
+     */
+    flex: none;
+    width: 0;
+    height: 100%;
 }
 
 /* row grouping element */

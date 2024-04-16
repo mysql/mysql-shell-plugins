@@ -184,6 +184,9 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     #tableReady = false;
     #timeoutId: ReturnType<typeof setTimeout> | null;
 
+    // Used when we need to wait for a double click, to decide whether to expand or collapse a row.
+    #toggleTimeoutId: ReturnType<typeof setTimeout> | null;
+
     // A counter to manage redraw blocks.
     #updateLockCount = 0;
 
@@ -254,6 +257,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                 this.#tabulator.on("rowContext", this.handleRowContext);
                 this.#tabulator.on("cellContext", this.handleCellContext);
                 this.#tabulator.on("rowSelected", this.handleRowSelected);
+                this.#tabulator.on("rowClick", this.handleRowClicked);
                 this.#tabulator.on("rowDeselected", this.handleRowDeselected);
                 this.#tabulator.on("columnResized", this.handleColumnResized);
                 this.#tabulator.on("scrollVertical", this.handleVerticalScroll);
@@ -531,7 +535,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             dataTreeElementColumn: options?.treeColumn,
             dataTreeExpandElement: "<span class='treeToggle' />",
             dataTreeCollapseElement: "<span class='treeToggle expanded' />",
-            dataTreeBranchElement: true,
+            dataTreeBranchElement: false,
             dataTreeStartExpanded: options?.expandedLevels ?? false,
 
             rowFormatter: onFormatRow,
@@ -594,12 +598,29 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         onCellContext?.(event, cell);
     };
 
-    private handleRowSelected = (row: RowComponent): void => {
-        const { options } = this.mergedProps;
-        if (options?.treeColumn) {
-            // Toggle the selected row if this is actually a tree.
+    private handleRowClicked = (event: Event, row: RowComponent): void => {
+        const { options, columns } = this.mergedProps;
+
+        if (this.#toggleTimeoutId) {
+            clearTimeout(this.#toggleTimeoutId);
+            this.#toggleTimeoutId = null;
+
+            return;
+        }
+
+        if (options?.treeColumn && columns && columns?.length > 0 && columns[0].cellDblClick !== undefined) {
+            // Toggle the selected row if this is actually a tree (after a delay to see if a double click follows).
+            this.#toggleTimeoutId = setTimeout(() => {
+                this.#toggleTimeoutId = null;
+                row.treeToggle();
+            }, 200);
+        } else {
             row.treeToggle();
         }
+    };
+
+    private handleRowSelected = (row: RowComponent): void => {
+        const { options } = this.mergedProps;
 
         if (options?.autoScrollOnSelect) {
             const selected = this.#tabulator?.getSelectedRows() ?? [];

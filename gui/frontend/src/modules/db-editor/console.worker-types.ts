@@ -35,7 +35,7 @@ export class PrivateWorker /*extends Worker*/ {
     public pendingRequests: Map<string, (res: unknown) => void>;
 
     /** Holds the inline source map, if one was found in the code to executed. */
-    public sourceMap: string;
+    public sourceMap?: string;
     public libCodeLineNumbers = 0;
 
     public postContextMessage: (taskId: number, message: IConsoleWorkerResultData) => void;
