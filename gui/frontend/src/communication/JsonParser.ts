@@ -153,9 +153,10 @@ export class JsonParser {
         }
 
         switch (code) {
+            case 0x27:   // '
             case 0x22: { // "
                 ++this.#currentPosition;
-                this.tokenText = this.scanString();
+                this.tokenText = this.scanString(code);
 
                 return TokenType.String;
             }
@@ -213,9 +214,9 @@ export class JsonParser {
     }
 
     /**
-     * Helper method to collect a number of hex digits.
+     * Helper method for collecting a number of hex digits.
      *
-     * @param count The number of digits to collect.
+     * @param count Specify the number of digits to collect.
      *
      * @returns The value of the collected digits or -1 if the number of digits is less than count.
      */
@@ -242,7 +243,7 @@ export class JsonParser {
     }
 
     /**
-     * Helper method to collect a number string.
+     * Helper method for collecting a number string.
      *
      * @returns the number as a string.
      */
@@ -297,11 +298,13 @@ export class JsonParser {
     }
 
     /**
-     * Helper method to collect a string.
+     * This is a helper method for collecting a string. The initial quote character is already consumed upon opening.
+     *
+     * @param quote The quote character that started the string.
      *
      * @returns the string.
      */
-    private scanString(): string {
+    private scanString(quote: number): string {
         let result = "";
         let start = this.#currentPosition;
 
@@ -312,7 +315,7 @@ export class JsonParser {
             }
 
             const ch = this.#input.codePointAt(this.#currentPosition)!;
-            if (ch === 0x22) { // "
+            if (ch === quote) {
                 result += this.#input.substring(start, this.#currentPosition);
                 ++this.#currentPosition;
                 break;
@@ -329,41 +332,55 @@ export class JsonParser {
                 switch (ch2) {
                     case 0x22: { // "
                         result += '"';
+
+                        break;
+                    }
+
+                    case 0x27: { // '
+                        result += "'";
+
                         break;
                     }
 
                     case 0x5C: { // \
                         result += "\\";
+
                         break;
                     }
 
                     case 0x2F: { // /
                         result += "/";
+
                         break;
                     }
 
                     case 0x62: { // b
                         result += "\b";
+
                         break;
                     }
 
                     case 0x66: { // f
                         result += "\f";
+
                         break;
                     }
 
                     case 0x6E: { // n
                         result += "\n";
+
                         break;
                     }
 
                     case 0x72: { // r
                         result += "\r";
+
                         break;
                     }
 
                     case 0x74: {
                         result += "\t";
+
                         break;
                     }
 
@@ -378,6 +395,7 @@ export class JsonParser {
 
                     default:
                 }
+
                 start = this.#currentPosition;
                 continue;
             }
@@ -385,6 +403,8 @@ export class JsonParser {
             if (ch >= 0 && ch <= 0x1f) {
                 if (this.isLineBreak(ch)) {
                     result += this.#input.substring(start, this.#currentPosition);
+                    start = this.#currentPosition;
+
                     break;
                 }
             }
@@ -398,7 +418,7 @@ export class JsonParser {
         return ch === 0x20 || ch === 0x09;
     }
 
-    private isLineBreak(ch: number): boolean {
+    private isLineBreak(ch: number): boolean { // TODO: do we need to handle Unicode line breaks?
         return ch === 0x0D || ch === 0x0A;
     }
 

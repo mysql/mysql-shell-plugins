@@ -110,7 +110,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         const {
             standaloneMode, toolbarItemsTemplate, savedState, backend, dbType, readOnly, extraLibs, fontSize,
             onScriptExecution, onHelpCommand,
-        } = this.props;
+        } = this.mergedProps;
 
         const dialect = this.dialectFromDbType(dbType);
 
@@ -169,6 +169,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                     flex: "1 1 auto",
                 }}
                 mainAlignment={ContentAlignment.Stretch}
+                {...this.unhandledProperties}
             >
                 <DBEditorToolbar
                     toolbarItems={toolbarItems}

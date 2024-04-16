@@ -69,7 +69,7 @@
     align-self: center;
 
     /* Corresponds to the width of the tree toggle and is used when there are no children and hence no toggle. */
-    padding-left: 21px;
+    padding-left: 19px;
 }
 
 .msg.connectionTabHost .scriptingExplorer .treeToggle + .schemaTreeEntry {
