@@ -503,14 +503,12 @@ export class Workbench {
      * @returns A promise resolving with true if notifications exist, false otherwise
      */
     public static existsNotification = async (notificationToMatch: RegExp): Promise<boolean> => {
-        return driver.wait(async () => {
-            const notifications = await new extWorkbench().getNotifications();
-            for (const notification of notifications) {
-                if ((await notification.getMessage()).match(notificationToMatch) !== null) {
-                    return true;
-                }
+        const notifications = await new extWorkbench().getNotifications();
+        for (const notification of notifications) {
+            if ((await notification.getMessage()).match(notificationToMatch) !== null) {
+                return true;
             }
-        });
+        }
     };
 
     /**

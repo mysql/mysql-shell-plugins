@@ -1016,7 +1016,7 @@ export class RestDialog {
             await Misc.switchToFrame();
         }
 
-        const dialog = await driver.wait(until.elementLocated(locator.mrsSdkDialog.exists), constants.wait5seconds,
+        const dialog = await driver.wait(until.elementLocated(locator.mrsSdkDialog.exists), constants.wait10seconds,
             "Export MRS SDK dialog was not found");
 
         if (data) {

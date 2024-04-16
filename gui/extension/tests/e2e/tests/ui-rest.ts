@@ -73,6 +73,7 @@ describe("MySQL REST Service", () => {
     const schemaToDump = "dummyschema";
     const tableToDump = "abc";
     const actorTable = "actor";
+    let routerPort: string;
 
     before(async function () {
         await Misc.loadDriver();
@@ -125,6 +126,7 @@ describe("MySQL REST Service", () => {
 
         after(async function () {
             try {
+                routerPort = await Os.getValueFromRouterConfigFile("port");
                 await new BottomBarPanel().toggle(false);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -188,7 +190,6 @@ describe("MySQL REST Service", () => {
             await Os.setRouterConfigFile({
                 sinks: "filelog",
             });
-
         });
 
         it("Start Local MySQL Router Instance", async () => {
@@ -233,10 +234,9 @@ describe("MySQL REST Service", () => {
 
         const globalService: interfaces.IRestService = {
             servicePath: `/service1`,
-            enabled: false,
+            enabled: true,
             default: false,
             settings: {
-                hostNameFilter: "localhost",
                 comments: "testing",
             },
             authentication: {
@@ -284,7 +284,6 @@ describe("MySQL REST Service", () => {
         };
 
         const sakilaRestSchema: interfaces.IRestSchema = {
-            restServicePath: `${globalService.settings.hostNameFilter}${globalService.servicePath}`,
             restSchemaPath: `/sakila`,
             enabled: true,
             requiresAuth: false,
@@ -296,7 +295,6 @@ describe("MySQL REST Service", () => {
         };
 
         const worldRestSchema: interfaces.IRestSchema = {
-            restServicePath: `${globalService.settings.hostNameFilter}${globalService.servicePath}`,
             restSchemaPath: `/world_x_cst`,
             enabled: true,
             requiresAuth: false,
@@ -308,7 +306,6 @@ describe("MySQL REST Service", () => {
         };
 
         const restSchemaToDump: interfaces.IRestSchema = {
-            restServicePath: `${globalService.settings.hostNameFilter}${globalService.servicePath}`,
             restSchemaPath: `/${schemaToDump}`,
             settings: {
                 schemaName: schemaToDump,
@@ -341,7 +338,6 @@ describe("MySQL REST Service", () => {
         };
 
         let tableToEdit: interfaces.IRestObject = {
-            restServicePath: `${globalService.settings.hostNameFilter}${globalService.servicePath}`,
             restSchemaPath: sakilaRestSchema.restSchemaPath,
             jsonRelDuality: {
                 dbObject: tableToDump,
@@ -354,6 +350,16 @@ describe("MySQL REST Service", () => {
 
         before(async function () {
             try {
+                globalService.settings.hostNameFilter = `localhost:${routerPort}`;
+                sakilaRestSchema.restServicePath = globalService.settings.hostNameFilter;
+                sakilaRestSchema.restServicePath += globalService.servicePath;
+                worldRestSchema.restServicePath = globalService.settings.hostNameFilter;
+                worldRestSchema.restServicePath += globalService.servicePath;
+                restSchemaToDump.restServicePath = globalService.settings.hostNameFilter;
+                restSchemaToDump.restServicePath += globalService.servicePath;
+                tableToEdit.restServicePath = globalService.settings.hostNameFilter;
+                tableToEdit.restServicePath += globalService.servicePath;
+
                 const treeMySQLRestService = await Tree.getElement(constants.dbTreeSection,
                     constants.mysqlRestService);
                 await treeMySQLRestService.expand();
@@ -396,7 +402,6 @@ describe("MySQL REST Service", () => {
         });
 
         it("Edit REST Service", async () => {
-
             let treeRandomService = await Tree.getElement(constants.dbTreeSection,
                 `${serviceToEdit.servicePath} (${serviceToEdit.settings.hostNameFilter})`);
             await Tree.openContextMenuAndSelect(treeRandomService, constants.editRESTService);
@@ -633,13 +638,14 @@ describe("MySQL REST Service", () => {
             const actorTree = await Tree.getElement(constants.dbTreeSection,
                 `/${actorTable} (${actorTable})`);
             await Tree.openContextMenuAndSelect(actorTree, constants.copyRESTObjReqPath);
-            await driver.wait(waitUntil.notificationExists("The DB Object was copied to the system clipboard"),
+            await driver.wait(waitUntil.notificationExists("The DB Object Path was copied to the system clipboard"),
                 constants.wait5seconds);
-            const expected = `${sakilaRestSchema.restServicePath}${sakilaRestSchema.restSchemaPath}/${actorTable}`;
+            const url = `https://${sakilaRestSchema.restServicePath}${sakilaRestSchema.restSchemaPath}/${actorTable}`;
             await driver.wait(() => {
-                return clipboard.readSync() === expected;
-            }, constants.wait5seconds, `${expected} was not found on the clipboard`);
+                console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
 
+                return clipboard.readSync() === url;
+            }, constants.wait5seconds, `${url} was not found on the clipboard`);
         });
 
         it("Delete REST Object", async () => {
@@ -906,12 +912,11 @@ describe("MySQL REST Service", () => {
             servicePath: `/crudService`,
             enabled: true,
             settings: {
-                hostNameFilter: `127.0.0.1:8444`,
+                hostNameFilter: "",
             },
         };
 
         const crudSchema: interfaces.IRestSchema = {
-            restServicePath: `${crudService.settings.hostNameFilter}${crudService.servicePath}`,
             restSchemaPath: `/sakila`,
             enabled: true,
             requiresAuth: false,
@@ -921,7 +926,6 @@ describe("MySQL REST Service", () => {
         };
 
         const crudObject: interfaces.IRestObject = {
-            restServicePath: `${crudService.settings.hostNameFilter}${crudService.servicePath}`,
             requiresAuth: false,
             restObjectPath: "/actor",
             jsonRelDuality: {
@@ -934,11 +938,16 @@ describe("MySQL REST Service", () => {
             },
         };
 
-        let baseUrl = `https://${crudService.settings.hostNameFilter}`;
-        baseUrl += `${crudService.servicePath}${crudSchema.restSchemaPath}`;
+        let baseUrl: string;
 
         before(async function () {
             try {
+                crudService.settings.hostNameFilter = `127.0.0.1:${routerPort}`;
+                crudSchema.restServicePath = `${crudService.settings.hostNameFilter}${crudService.servicePath}`;
+                crudObject.restServicePath = `${crudService.settings.hostNameFilter}${crudService.servicePath}`;
+                baseUrl = `https://${crudService.settings.hostNameFilter}`;
+                baseUrl += `${crudService.servicePath}${crudSchema.restSchemaPath}`;
+
                 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
                 await Os.deleteCredentials();
                 let treeMySQLRestService = await Tree.getElement(constants.dbTreeSection,

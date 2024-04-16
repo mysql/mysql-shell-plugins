@@ -573,15 +573,13 @@ export class Tree {
                 await driver.wait(async () => {
                     const existsPasswordWidget = await driver.findElements(locator.inputBox.exists);
                     if (existsPasswordWidget) {
-                        if (await existsPasswordWidget[0].isDisplayed()) {
-                            await Workbench.setInputPassword((dbConnection.basic as interfaces.IConnBasicMySQL)
-                                .password);
-                            await driver.wait(waitUntil
-                                .notificationExists("MySQL REST Service configured successfully."),
-                                constants.wait5seconds);
+                        await Workbench.setInputPassword((dbConnection.basic as interfaces.IConnBasicMySQL)
+                            .password);
+                        await driver.wait(waitUntil
+                            .notificationExists("MySQL REST Service configured successfully."),
+                            constants.wait5seconds);
 
-                            return true;
-                        }
+                        return true;
                     }
                     if (await Workbench.existsNotifications()) {
                         if (await Workbench.existsNotification(/MySQL REST Service configured successfully/)) {
