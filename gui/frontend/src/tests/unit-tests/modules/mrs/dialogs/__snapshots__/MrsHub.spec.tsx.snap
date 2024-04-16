@@ -880,7 +880,6 @@ exports[`MrsHub Tests MRS Db Object dialog tests Show MRS DB Object Dialog (snap
                 >
                   <div
                     class="slider"
-                    style="display: none;"
                   />
                 </div>
               </div>
@@ -988,102 +987,8 @@ exports[`MrsHub Tests MRS Db Object dialog tests Show MRS DB Object Dialog (snap
                       </div>
                     </div>
                     <div
-                      class="msg treeGrid mrsObjectTreeGrid tabulator"
-                      role="grid"
-                      style="height: 100%;"
-                      tabulator-layout="fitColumns"
-                    >
-                      <div
-                        class="tabulator-header tabulator-header-hidden"
-                        role="rowgroup"
-                      >
-                        <div
-                          class="tabulator-header-contents"
-                          role="rowgroup"
-                        >
-                          <div
-                            class="tabulator-headers"
-                            role="row"
-                            style="height: 0px;"
-                          >
-                            <div
-                              aria-sort="none"
-                              class="tabulator-col tabulator-sortable tabulator-col-sorter-element"
-                              role="columnheader"
-                              style="min-width: 40px; width: 40px;"
-                              tabulator-field="json"
-                            >
-                              <div
-                                class="tabulator-col-content"
-                              >
-                                <div
-                                  class="tabulator-col-title-holder"
-                                >
-                                  <div
-                                    class="tabulator-col-title"
-                                  >
-                                    Json
-                                  </div>
-                                  <div
-                                    class="tabulator-col-sorter"
-                                  >
-                                    <div
-                                      class="tabulator-arrow"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <span
-                              class="tabulator-col-resize-handle"
-                            />
-                            <div
-                              aria-sort="none"
-                              class="tabulator-col tabulator-sortable tabulator-col-sorter-element"
-                              role="columnheader"
-                              style="min-width: 40px; width: 40px;"
-                              tabulator-field="relational"
-                            >
-                              <div
-                                class="tabulator-col-content"
-                              >
-                                <div
-                                  class="tabulator-col-title-holder"
-                                >
-                                  <div
-                                    class="tabulator-col-title"
-                                  >
-                                    Relational
-                                  </div>
-                                  <div
-                                    class="tabulator-col-sorter"
-                                  >
-                                    <div
-                                      class="tabulator-arrow"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <br />
-                          <div
-                            class="tabulator-frozen-rows-holder"
-                            style="min-width: 0px;"
-                          />
-                        </div>
-                      </div>
-                      <div
-                        class="tabulator-tableholder fixedScrollbar"
-                        style="min-height: falsepx; height: calc(100% - 0px); max-height: calc(100% - 0px);"
-                        tabindex="0"
-                      >
-                        <div
-                          class="tabulator-table"
-                          role="rowgroup"
-                        />
-                      </div>
-                    </div>
+                      class="msg treeGrid mrsObjectTreeGrid"
+                    />
                   </div>
                 </div>
               </div>

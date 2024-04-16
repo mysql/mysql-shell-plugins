@@ -38,7 +38,9 @@ import { Button } from "../../../../components/ui/Button/Button.js";
 import { Divider } from "../../../../components/ui/Divider/Divider.js";
 import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
 import { Dropdown } from "../../../../components/ui/Dropdown/Dropdown.js";
-import { getDbCredentials, nextProcessTick, nextRunLoop, setupShellForTests } from "../../test-helpers.js";
+import {
+        getDbCredentials, nextProcessTick, nextRunLoop, setupShellForTests,
+    } from "../../test-helpers.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import {
     IMySQLConnectionOptions,
@@ -55,6 +57,7 @@ describe("DBEditor module tests", (): void => {
     let launcher: MySQLShellLauncher;
     let backend: ShellInterfaceSqlEditor;
     let connID: number;
+
     const credentials = getDbCredentials();
 
     const options: IMySQLConnectionOptions = {
@@ -619,4 +622,5 @@ describe("DBEditor module tests", (): void => {
 
         component.unmount();
     });
+
 });
