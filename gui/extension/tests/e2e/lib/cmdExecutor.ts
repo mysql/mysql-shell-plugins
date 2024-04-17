@@ -31,6 +31,7 @@ import { Misc, driver } from "./misc";
 import { Os } from "./os";
 import * as waitUntil from "./until";
 import * as errors from "../lib/errors";
+import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 
 /**
  * This class aggregates the functions that will execute commands on notebooks or shell sessions, as well as its results
@@ -219,6 +220,7 @@ export class CommandExecutor {
         if (this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");
         }
+
         if (button === constants.execCaret) {
             throw new Error("Please use the function 'this.findCmdAndExecute()'");
         }
@@ -253,7 +255,6 @@ export class CommandExecutor {
 
         await this.write(cmd, slowWriting);
         await Notebook.clickContextItem(item);
-
         const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
         await this.setResultMessage(cmd, nextId);
         await this.setResultContent(cmd, nextId);
@@ -312,6 +313,7 @@ export class CommandExecutor {
         } else {
             await (await Notebook.getToolbarButton(constants.execFullBlockJs)).click();
         }
+
         const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultId);
         await this.setResultMessage(cmd, nextId);
         await this.setResultContent(cmd, nextId);
@@ -334,6 +336,7 @@ export class CommandExecutor {
         if (reset) {
             this.setResultId(undefined);
         }
+
         const nextId = await this.getNextResultId(this.resultId);
         await this.setResultMessage(undefined, nextId);
         await this.setResultContent(undefined, nextId);
@@ -373,6 +376,7 @@ export class CommandExecutor {
         if (!this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.execute() or others'");
         }
+
         await this.write(cmd, slowWriting);
         await this.exec();
 
@@ -399,6 +403,7 @@ export class CommandExecutor {
         const menu = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schemaMenu),
             constants.wait5seconds, "Schema list was not displayed");
         const items = await menu.findElements(locator.shellConsole.connectionTab.schemaItem);
+
         for (const item of items) {
             if ((await item.getAttribute("innerHTML")).includes(schema)) {
                 await item.click();
@@ -419,6 +424,7 @@ export class CommandExecutor {
      * @returns A promise resolving when the command is executed
      */
     public exec = async (): Promise<void> => {
+
         if (Os.isMacOs()) {
             await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.chord(Key.COMMAND, Key.ENTER));
         } else {
@@ -444,9 +450,11 @@ export class CommandExecutor {
      * @returns A promise resolving with the script result
      */
     public loadLastScriptResult = async (): Promise<void> => {
+
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
+
         await this.setResultMessage(undefined, undefined, true);
         await this.setResultContent(undefined, undefined, true);
         await this.setResultToolbar(undefined, undefined, true);
@@ -568,49 +576,73 @@ export class CommandExecutor {
         await driver.wait(waitUntil.resultGridIsEditable(this.getResultToolbar()),
             constants.wait5seconds);
 
-        let isDate: boolean;
-        for (let i = 0; i <= cells.length - 1; i++) {
-            await this.startEditCell(cells[i].rowNumber, cells[i].columnName, cells[i].value);
-            const cell = await this.getCellFromResultGrid(cells[i].rowNumber, cells[i].columnName); // avoid stale
-            const expectInput = typeof cells[i].value === "string";
+        const performEdit = async (cellRef: interfaces.IResultGridCell): Promise<void> => {
+            let isDate: boolean;
+
+            await this.startEditCell(cellRef.rowNumber, cellRef.columnName, cellRef.value);
+            const cell = await this.getCellFromResultGrid(cellRef.rowNumber, cellRef.columnName); // avoid stale
+            const expectInput = typeof cellRef.value === "string";
+
             if (expectInput) {
                 const input = await cell.findElement(locator.htmlTag.input);
                 const isDateTime = (await cell
                     .findElements(locator.notebook.codeEditor.editor.result.tableCellDateTime)).length > 0;
+
                 if (!isDateTime) {
                     isDate = false;
                     const upDownInput = await cell
                         .findElement(locator.notebook.codeEditor.editor.result.tableCellUpDownInput).catch(() => {
                             return undefined;
                         });
+
                     if (!upDownInput) {
                         await this.clearCellInputField(input);
-                        await input.sendKeys(cells[i].value as string);
+                        await input.sendKeys(cellRef.value as string);
                     } else {
-                        await driver.executeScript("arguments[0].value=arguments[1]", input, cells[i].value as string);
+                        await driver.executeScript("arguments[0].value=arguments[1]",
+                            input, cellRef.value as string);
                     }
                 } else {
                     isDate = true;
-                    await driver.executeScript("arguments[0].value=arguments[1]", input, cells[i].value as string);
+                    await driver.executeScript("arguments[0].value=arguments[1]", input, cellRef.value as string);
                 }
             } else {
-                await this.setCellBooleanValue(cells[i].rowNumber, cells[i].columnName,
-                    cells[i].value as boolean);
+                await this.setCellBooleanValue(cellRef.rowNumber, cellRef.columnName,
+                    cellRef.value as boolean);
             }
+
             await this.getResultToolbar().click();
             await this.refreshCommandResult(this.getResultId());
+
             if (isDate) {
                 await driver.wait(async () => {
-                    return (await this.getCellValueFromResultGrid(cells[i].rowNumber,
-                        cells[i].columnName)) !== "Invalid Date";
-                }, constants.wait2seconds, `Invalid Date was found after inserting value '${cells[i].value}'`);
+                    return (await this.getCellValueFromResultGrid(cellRef.rowNumber,
+                        cellRef.columnName)) !== "Invalid Date";
+                }, constants.wait2seconds, `Invalid Date was found after inserting value '${cellRef.value}'`);
             }
             await driver.wait(async () => {
-                const cell = await this.getCellFromResultGrid(cells[i].rowNumber, cells[i].columnName);
+                const cell = await this.getCellFromResultGrid(cellRef.rowNumber, cellRef.columnName);
 
                 return (await cell.getAttribute("class")).includes("changed");
             }, constants.wait2seconds,
-                `Yellow background does not exist on cell after inserting value '${cells[i].value}'`);
+                `Yellow background does not exist on cell after inserting value '${cellRef.value}'`);
+
+        };
+
+        for (const cellRef of cells) {
+            await driver.wait(async () => {
+                try {
+                    await performEdit(cellRef);
+
+                    return true;
+                } catch (err) {
+                    if (errors.isStaleError(err as Error)) {
+                        await keyboard.type(nutKey.Escape);
+                    } else {
+                        throw err;
+                    }
+                }
+            }, constants.wait10seconds, `The cell on column ${cellRef.columnName} was always stale`);
         }
     };
 
@@ -736,21 +768,25 @@ export class CommandExecutor {
     public addResultGridRow = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
         await this.clickAddNewRowButton();
         await driver.wait(waitUntil.rowWasAdded(this.getResultContent() as WebElement), constants.wait5seconds);
-        let isDate: boolean;
-        for (const cell of cells) {
+
+        const performAdd = async (cell: interfaces.IResultGridCell): Promise<void> => {
+            let isDate: boolean;
             const refCell = await this.getCellFromResultGrid(-1, cell.columnName);
             const expectInput = typeof cell.value === "string";
             await this.startEditCell(-1, cell.columnName, cell.value);
+
             if (expectInput) {
                 const input = await refCell.findElement(locator.htmlTag.input);
                 const isDateTime = (await refCell
                     .findElements(locator.notebook.codeEditor.editor.result.tableCellDateTime)).length > 0;
+
                 if (!isDateTime) {
                     isDate = false;
                     const upDownInput = await refCell
                         .findElement(locator.notebook.codeEditor.editor.result.tableCellUpDownInput).catch(() => {
                             return undefined;
                         });
+
                     if (!upDownInput) {
                         await this.clearCellInputField(input);
                         await input.sendKeys(cell.value as string);
@@ -765,12 +801,30 @@ export class CommandExecutor {
             } else {
                 await this.setCellBooleanValue(-1, cell.columnName, cell.value as boolean);
             }
+
             await this.getResultToolbar().click();
+
             if (isDate) {
                 await driver.wait(async () => {
                     return (await this.getCellValueFromResultGrid(-1, cell.columnName)) !== "Invalid Date";
                 }, constants.wait2seconds, `Invalid Date was found after inserting value '${cell.value}'`);
             }
+        };
+
+        for (const cell of cells) {
+            await driver.wait(async () => {
+                try {
+                    await performAdd(cell);
+
+                    return true;
+                } catch (err) {
+                    if (errors.isStaleError(err as Error)) {
+                        await keyboard.type(nutKey.Escape);
+                    } else {
+                        throw err;
+                    }
+                }
+            }, constants.wait10seconds, `The cell on column ${cell.columnName} was always stale`);
         }
 
         await this.refreshCommandResult(this.getResultId());
@@ -1359,7 +1413,7 @@ export class CommandExecutor {
                     return true;
                 }
             } catch (e) {
-                if (!(errors.isStaleError(e as Error)) ||
+                if (!(errors.isStaleError(e as Error)) &&
                     !(e instanceof error.ElementNotInteractableError)) {
                     throw e;
                 }
