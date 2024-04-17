@@ -567,13 +567,14 @@ export class CommandExecutor {
     public editResultGridCells = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
         await driver.wait(waitUntil.resultGridIsEditable(this.getResultToolbar()),
             constants.wait5seconds);
-        let isDate: boolean = false;
 
-        for (let i = 0; i <= cells.length - 1; i++) {
-            await this.startEditCell(cells[i].rowNumber!, cells[i].columnName, cells[i].value);
-            const cell = await this.getCellFromResultGrid(cells[i].rowNumber!,
-                cells[i].columnName); // avoid stale
-            const expectInput = typeof cells[i].value === "string";
+        const performEdit = async (cellRef: interfaces.IResultGridCell): Promise<void> => {
+            let isDate: boolean = false;
+
+            await this.startEditCell(cellRef.rowNumber!, cellRef.columnName, cellRef.value);
+            const cell = await this.getCellFromResultGrid(cellRef.rowNumber!,
+                cellRef.columnName); // avoid stale
+            const expectInput = typeof cellRef.value === "string";
 
             if (expectInput) {
                 const input = await cell.findElement(locator.htmlTag.input);
@@ -589,34 +590,52 @@ export class CommandExecutor {
 
                     if (!upDownInput) {
                         await this.clearCellInputField(input);
-                        await input.sendKeys(cells[i].value as string);
+                        await input.sendKeys(cellRef.value as string);
                     } else {
-                        await driver.executeScript("arguments[0].value=arguments[1]", input, cells[i].value as string);
+                        await driver.executeScript("arguments[0].value=arguments[1]", input, cellRef.value as string);
                     }
 
                 } else {
                     isDate = true;
-                    await driver.executeScript("arguments[0].value=arguments[1]", input, cells[i].value as string);
+                    await driver.executeScript("arguments[0].value=arguments[1]", input, cellRef.value as string);
                 }
             } else {
-                await this.setCellBooleanValue(cells[i].rowNumber!, cells[i].columnName,
-                    cells[i].value as boolean);
+                await this.setCellBooleanValue(cellRef.rowNumber!, cellRef.columnName,
+                    cellRef.value as boolean);
             }
-            await this.saveCellChanges("edit", cells[i].rowNumber!, cells[i].columnName);
+            await this.saveCellChanges("edit", cellRef.rowNumber!, cellRef.columnName);
             await this.refreshCommandResult(this.getResultId());
 
             if (isDate) {
                 await driver.wait(async () => {
-                    return (await this.getCellValueFromResultGrid(cells[i].rowNumber!,
-                        cells[i].columnName)) !== "Invalid Date";
-                }, constants.wait2seconds, `Invalid Date was found after inserting value '${cells[i].value}'`);
+                    return (await this.getCellValueFromResultGrid(cellRef.rowNumber!,
+                        cellRef.columnName)) !== "Invalid Date";
+                }, constants.wait2seconds, `Invalid Date was found after inserting value '${cellRef.value}'`);
             }
             await driver.wait(async () => {
-                const cell = await this.getCellFromResultGrid(cells[i].rowNumber!, cells[i].columnName);
+                const cell = await this.getCellFromResultGrid(cellRef.rowNumber!, cellRef.columnName);
 
                 return (await cell.getAttribute("class")).includes("changed");
             }, constants.wait2seconds,
-                `Yellow background does not exist on cell after inserting value '${cells[i].value}'`);
+                `Yellow background does not exist on cell after inserting value '${cellRef.value}'`);
+        };
+
+
+        for (const cell of cells) {
+            await driver.wait(async () => {
+                try {
+                    await performEdit(cell);
+
+                    return true;
+                } catch (err) {
+                    if (err instanceof error.StaleElementReferenceError) {
+                        const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+                        await textArea.sendKeys(Key.ESCAPE);
+                    } else {
+                        throw err;
+                    }
+                }
+            }, constants.wait10seconds, `The cell on column ${cell.columnName} was always stale`);
         }
     };
 
@@ -786,8 +805,9 @@ export class CommandExecutor {
             });
         }, constants.wait10seconds, "The new row was not added");
 
-        let isDate = false;
-        for (const cell of cells) {
+        const performAdd = async (cell: interfaces.IResultGridCell): Promise<void> => {
+            let isDate = false;
+
             const refCell = await this.getCellFromResultGrid(-1, cell.columnName);
             const expectInput = typeof cell.value === "string";
             await this.startEditCell(-1, cell.columnName, cell.value);
@@ -827,6 +847,23 @@ export class CommandExecutor {
                     return (await this.getCellValueFromResultGrid(-1, cell.columnName)) !== "Invalid Date";
                 }, constants.wait2seconds, `Invalid Date was found after inserting value '${cell.value}'`);
             }
+        };
+
+        for (const cell of cells) {
+            await driver.wait(async () => {
+                try {
+                    await performAdd(cell);
+
+                    return true;
+                } catch (err) {
+                    if (err instanceof error.StaleElementReferenceError) {
+                        const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+                        await textArea.sendKeys(Key.ESCAPE);
+                    } else {
+                        throw err;
+                    }
+                }
+            }, constants.wait10seconds, `The cell on column ${cell.columnName} was always stale`);
         }
 
         await this.refreshCommandResult(this.getResultId());
@@ -1480,8 +1517,8 @@ export class CommandExecutor {
                     return true;
                 }
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError) ||
-                    !(e instanceof error.ElementNotInteractableError) ||
+                if (!(e instanceof error.StaleElementReferenceError) &&
+                    !(e instanceof error.ElementNotInteractableError) &&
                     !(String(e).includes("No node with given id found"))
                 ) {
                     throw e;
@@ -1701,7 +1738,7 @@ export class CommandExecutor {
                 }
             } catch (e) {
 
-                if (!(e instanceof error.StaleElementReferenceError) ||
+                if (!(e instanceof error.StaleElementReferenceError) &&
                     !(e instanceof error.ElementNotInteractableError)) {
                     throw e;
                 }
