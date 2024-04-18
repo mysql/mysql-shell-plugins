@@ -254,7 +254,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                            self.current_service_host if self.current_service_host is not None else "") +
             mrs_object.get("url_context_root",
                            self.current_service if self.current_service is not None else "") +
-            mrs_object.get("schema_request_path",
+            mrs_object.get("request_path",
                            self.current_schema if self.current_schema is not None else "") +
             request_path
         )
@@ -360,7 +360,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 if do_replace == True:
                     schema = lib.schemas.get_schema(
                         service_id=service_id,
-                        request_path=mrs_object.get("request_path"),
+                        request_path=mrs_object.get("schema_request_path"),
                         session=self.session)
                     if schema is not None:
                         lib.schemas.delete_schema(
@@ -1473,14 +1473,14 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
             schema = lib.schemas.get_schema(
                 service_id=service_id,
-                request_path=mrs_object.get("schema_request_path"),
+                request_path=mrs_object.get("request_path"),
                 session=self.session)
 
             if schema is None:
                 raise Exception("The REST schema was not found.")
 
-            stmt = f'CREATE OR REPLACE REST SCHEMA {schema.get("request_path")} FROM \'{schema.get("name")}\'\n'
-            stmt += f'    ON SERVICE {service.get("host_ctx")}\n'
+            stmt = f'CREATE OR REPLACE REST SCHEMA {schema.get("request_path")} ON SERVICE {service.get("host_ctx")}\n'
+            stmt += f'    FROM `{schema.get("name")}`\n'
 
             if schema.get("enabled") != 1:
                 stmt += "    DISABLED\n"
@@ -1558,7 +1558,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             options = []
 
             stmt = (f'CREATE OR REPLACE REST {rest_object_type} {db_object.get("request_path")}\n' +
-                    f'    ON SERVICE {mrs_object.get("url_context_root")} SCHEMA {db_object.get("schema_request_path")}\n' +
+                    f'    ON SERVICE {mrs_object.get("host_ctx")} SCHEMA {db_object.get("schema_request_path")}\n' +
                     f'    AS {db_object.get("qualified_name")}')
 
             if rest_object_type != "PROCEDURE" and rest_object_type != "FUNCTION":
@@ -1606,12 +1606,12 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 stmt += f'    COMMENTS "{db_object["comments"]}"\n'
 
             if db_object["media_type"] is not None:
-                stmt += f'    MEDIA TYPE {db_object["media_type"]}\n'
+                stmt += f'    MEDIA TYPE "{db_object["media_type"]}"\n'
 
             if db_object["crud_operation_format"] != "FEED":
                 stmt += f'    FORMAT {db_object["crud_operation_format"]}\n'
 
-            if db_object["auth_stored_procedure"] is not None:
+            if db_object["auth_stored_procedure"]:
                 stmt += f'    AUTHENTICATION PROCEDURE {db_object["auth_stored_procedure"]}\n'
 
             options = db_object.get("options")

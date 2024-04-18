@@ -21,7 +21,8 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import core
+from mrs_plugin.lib import core, schemas
+from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
 
 
 def prompt_for_url_context_root(default=None):
@@ -265,8 +266,14 @@ def query_services(session, service_id: bytes = None, url_context_root=None, url
                    get_default=False):
     """Query MRS services
 
-    If no service is specified, the service that is set as current service is
-    returned if it was defined before
+    Query the existing services. Filters may be applied as the 'service_id' or
+    the 'url_context_root' with the 'url_host_name'.
+
+    In the case no service is found, the default service may be fetched if the
+    'get_default' is set to True.
+
+    To get the default service, don't set any other filters and set 'get_default'
+    to True.
 
     Args:
         session (object): The database session to use.
@@ -276,7 +283,7 @@ def query_services(session, service_id: bytes = None, url_context_root=None, url
         get_default (bool): Whether to return the default service
 
     Returns:
-        The service as dict or None on error in interactive mode
+        The list of found services.
     """
     if url_context_root and not url_context_root.startswith('/'):
         raise Exception("The url_context_root has to start with '/'.")
@@ -304,19 +311,28 @@ def query_services(session, service_id: bytes = None, url_context_root=None, url
     if service_id:
         wheres.append("se.id = ?")
         params.append(service_id)
-    elif not get_default:
-        if url_context_root and url_host_name is not None:
-            wheres.append("h.name = ?")
-            wheres.append("url_context_root = ?")
-            params.append(url_host_name)
-            params.append(url_context_root)
-    else:
-        wheres.append("se.id = ?")
-        params.append(current_service_id)
+    elif url_context_root is not None and url_host_name is not None:
+        wheres.append("h.name = ?")
+        wheres.append("url_context_root = ?")
+        params.append(url_host_name)
+        params.append(url_context_root)
+    elif get_default:
+        #if nothing else is supplied and get_default is True, then get the default service
+        wheres = ["se.id = ?"]
+        params = [current_service_id, current_service_id]
 
-    sql += core._generate_where(wheres)
+        return core.MrsDbExec(sql + core._generate_where(wheres), params).exec(session).items
 
-    return core.MrsDbExec(sql, params).exec(session).items
+    result = core.MrsDbExec(sql + core._generate_where(wheres), params).exec(session).items
+
+    if len(result) == 0 and get_default:
+        # No service was found s if we should get the default, then lets get it
+        wheres = ["se.id = ?"]
+        params = [current_service_id, current_service_id]
+
+        result = core.MrsDbExec(sql + core._generate_where(wheres), params).exec(session).items
+
+    return result
 
 
 def get_service(session, service_id: bytes = None, url_context_root=None, url_host_name=None,
@@ -338,7 +354,7 @@ def get_service(session, service_id: bytes = None, url_context_root=None, url_ho
     """
     result = query_services(session, service_id=service_id, url_context_root=url_context_root,
                             url_host_name=url_host_name, get_default=get_default)
-    return result[0] if result else None
+    return result[0] if len(result) == 1 else None
 
 
 def get_services(session):
@@ -409,3 +425,24 @@ def set_current_service_id(session, service_id: bytes):
 
     config.settings["current_objects"] = current_objects
     config.store()
+
+def get_create_statement(session, service) -> str:
+    executor = MrsDdlExecutor(
+        session=session,
+        current_service_id=service["id"])
+
+    executor.showCreateRestService({
+        "current_operation": "SHOW CREATE REST SERVICE",
+        **service
+    })
+
+    if executor.results[0]["type"] == "error":
+        raise Exception(executor.results[0]['message'])
+
+    service_schemas = schemas.get_schemas(session, service["id"])
+
+    result = [executor.results[0]['result'][0]['CREATE REST SERVICE']]
+    for service_schema in service_schemas:
+        result.append(schemas.get_create_statement(session, service_schema))
+
+    return "\n".join(result)

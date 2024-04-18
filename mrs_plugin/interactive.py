@@ -22,6 +22,9 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 import mrs_plugin.lib as lib
 import json
+import os
+from pathlib import Path
+
 
 def resolve_service(session, service_id=None, required=True, auto_select_single=False):
     service = None
@@ -81,6 +84,32 @@ def resolve_schema(session, schema_id=None, service_id=None, required=True):
 
     return schema
 
+def resolve_db_object(session, db_object_id=None, schema_id=None, service_id=None, required=True):
+    db_object = None
+
+    if db_object_id:
+        db_object = lib.db_objects.get_db_object(session, db_object_id)
+
+    if db_object:
+        return db_object
+
+    if lib.core.get_interactive_default():
+        schema = resolve_schema(session, schema_id, service_id)
+
+        db_objects = lib.db_objects.get_db_objects(session, schema["id"])
+
+        db_object = lib.core.prompt_for_list_item(
+            item_list=db_objects,
+            prompt_caption='Please enter the name or index of a db_object: ',
+            item_name_property="name",
+            print_list=True)
+
+    if not db_object and required:
+        raise Exception("Cancelling operation. Could not determine the db_object.")
+
+    return db_object
+
+
 
 def resolve_options(options, default = None):
     # it should be possible to override the default value with an empty dict
@@ -128,3 +157,35 @@ def resolve_auth_app(session, auth_app_id=None, service_id=None, required=True):
         raise Exception("Cancelling operation. Could not determine the auth_app.")
 
     return selection
+
+def resolve_file_path(file_path=None, required=True):
+    if file_path is None and lib.core.get_interactive_default():
+        file_path = lib.core.prompt("Please set the file path", {
+            "defaultValue": None,
+        })
+
+    if not file_path and required:
+        raise Exception("Cancelling operation. Could not determine the file path.")
+
+    if file_path.startswith("~"):
+        file_path = os.path.expanduser(file_path)
+
+    if not os.path.isabs(file_path):
+        return Path(Path.home() / file_path).as_posix()
+
+    return Path(file_path).as_posix()
+
+def resolve_overwrite_file(file_path, overwrite) -> None:
+    if not os.path.exists(file_path):
+        return
+
+    if os.path.isdir(file_path):
+        raise Exception("Cancelling operation. Path already exists and it's a directory.")
+
+    if overwrite is None and lib.core.get_interactive_default():
+        overwrite = lib.core.prompt(f"Overwrite {file_path}? [y/N]: ",
+                           {'defaultValue': 'n'}).strip().lower() == "y"
+
+    if overwrite is False:
+        raise Exception(f"Cancelling operation. File '{file_path}' already exists.")
+

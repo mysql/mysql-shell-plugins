@@ -22,10 +22,24 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import pytest
+import os
+from pathlib import Path
 from ... schemas import *
 import mysqlsh
-from .helpers import SchemaCT
+from .helpers import SchemaCT, DbObjectCT, get_default_db_object_init
 
+schema_create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE localhost/test
+    FROM `PhoneBook`;
+CREATE OR REPLACE REST DUALITY VIEW /Contacts
+    ON SERVICE localhost/test SCHEMA /PhoneBook
+    AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
+        id: id @SORTABLE,
+        fName: f_name,
+        lName: l_name,
+        number: number,
+        email: email
+    }
+    AUTHENTICATION REQUIRED;"""
 
 def test_add_schema(phone_book, table_contents):
     schemas_table = table_contents("db_schema")
@@ -232,3 +246,145 @@ def test_change_schema(phone_book, table_contents):
         with pytest.raises(Exception) as exc_info:
             update_schema(schema_id=schema_id, **args)
         assert str(exc_info.value) == "Attempting to change an invalid schema value."
+
+
+def test_get_create_statement(phone_book, table_contents):
+
+    sql = get_create_statement(schema_id=phone_book["schema_id"], session=phone_book["session"])
+
+    assert sql == schema_create_statement
+
+
+def test_dump_create_statement(phone_book, table_contents):
+    home_file = "~/schema.dump.sql"
+    relative_file = "schema.dump.sql"
+    full_path_file = os.path.expanduser("~/schema.dump.sql")
+
+    # Test home path
+    create_function = lambda file_path, overwrite: \
+        store_create_statement(file_path=file_path,
+                                    overwrite=overwrite,
+                                    schema_id=phone_book["schema_id"],
+                                    session=phone_book["session"])
+
+    result = create_function(file_path=home_file, overwrite=True)
+
+    assert result == True
+
+    with open(os.path.expanduser(home_file), "r+") as f:
+        assert f.read() == schema_create_statement
+
+    # Test overwrite
+    with open(os.path.expanduser(home_file), "a+") as f:
+        f.write("<=============================>")
+
+    with pytest.raises(Exception, match=f"Cancelling operation. File '{os.path.expanduser(home_file)}' already exists."):
+        create_function(file_path=home_file, overwrite=False)
+
+    with open(os.path.expanduser(home_file), "r") as f:
+        contents = f.read()
+        assert contents.startswith(schema_create_statement)
+        assert contents.endswith("<=============================>")
+
+
+    result = create_function(file_path=home_file, overwrite=True)
+
+    with open(os.path.expanduser(home_file), "r") as f:
+        assert f.read() == schema_create_statement
+
+    os.remove(os.path.expanduser(home_file))
+
+    # Test relative path
+    if os.path.exists(str(Path.home() / relative_file)):
+        os.remove(Path.home() / relative_file)
+
+    result = create_function(file_path=relative_file, overwrite=False)
+
+    assert result == True
+    with open(Path.home() / relative_file, "r") as f:
+        assert f.read() == schema_create_statement
+
+    # Test absolute path
+    if os.path.exists(full_path_file):
+        os.remove(full_path_file)
+
+    result = create_function(file_path=full_path_file, overwrite=False)
+
+    assert result == True
+    with open(full_path_file, "r") as f:
+        assert f.read() == schema_create_statement
+
+
+def test_dump_and_recover(phone_book, table_contents):
+    create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE localhost/test
+    FROM `PhoneBook`;
+CREATE OR REPLACE REST DUALITY VIEW /addresses
+    ON SERVICE localhost/test SCHEMA /PhoneBook2
+    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE {
+        id: id
+    }
+    ITEMS PER PAGE 10
+    COMMENTS "Object that will be removed"
+    MEDIA TYPE "application/json"
+    OPTIONS {
+        "aaa": "val aaa",
+        "bbb": "val bbb"
+    };"""
+    create_function = lambda file_path, schema_id, overwrite=True: \
+        store_create_statement(file_path=file_path,
+                                overwrite=overwrite,
+                                schema_id=schema_id,
+                                session=session)
+    session = phone_book["session"]
+    service_id = phone_book["service_id"]
+
+    script = ""
+
+    full_path_file = os.path.expanduser("~/schema_compare_1.dump.sql")
+    full_path_file2 = os.path.expanduser("~/schema_compare_2.dump.sql")
+
+    schemas = lib.schemas.get_schemas(session, service_id)
+    assert len(schemas) == 3
+
+    with SchemaCT(service_id, "PhoneBook", "/PhoneBook2") as schema_id:
+
+        db_object = get_default_db_object_init(session, schema_id, name="Addresses", request_path="/addresses")
+        with DbObjectCT(session, **db_object) as db_object_id:
+            result = create_function(file_path=full_path_file, schema_id=schema_id, overwrite=True)
+
+            assert result == True
+
+            schemas = lib.schemas.get_schemas(session, service_id)
+            assert len(schemas) == 4
+
+
+    with open(os.path.expanduser(full_path_file), "r+") as f:
+        script = f.read()
+        assert script == create_statement
+
+
+    schemas = lib.schemas.get_schemas(session, service_id)
+    assert len(schemas) == 3
+
+    with open(full_path_file, "r") as f:
+        script = f.read()
+
+    results = lib.script.run_mrs_script(mrs_script=script)
+
+    schemas = lib.schemas.get_schemas(session, service_id)
+    assert len(schemas) == 4
+
+    for schema in schemas:
+        if schema["request_path"] == "/PhoneBook2":
+            create_function(full_path_file2, schema["id"], True)
+
+    for schema in schemas:
+        if schema["request_path"] == "/PhoneBook2":
+            lib.schemas.delete_schema(session, schema["id"])
+
+    schemas = lib.schemas.get_schemas(session, service_id)
+    assert len(schemas) == 3
+
+    with open(full_path_file2, "r") as f:
+        assert f.read() == script
+

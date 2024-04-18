@@ -21,8 +21,8 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import core, database
-import json
+from mrs_plugin.lib import core, database, db_objects
+from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
 
 def format_schema_listing(schemas, print_header=False):
     """Formats the listing of schemas
@@ -292,3 +292,25 @@ def get_current_schema(session):
         current_schema = get_schema(session, schema_id=current_schema_id)
 
     return current_schema
+
+def get_create_statement(session, schema) -> str:
+    executor = MrsDdlExecutor(
+        session=session,
+        current_schema_id=schema["id"])
+
+    executor.showCreateRestSchema({
+        "current_operation": "SHOW CREATE REST SCHEMA",
+        "request_path": schema["request_path"],
+    })
+
+    if executor.results[0]["type"] == "error":
+        raise Exception(executor.results[0]['message'])
+
+    result = [executor.results[0]["result"][0]["CREATE REST SCHEMA "]]
+
+    schema_db_objects = db_objects.get_db_objects(session, schema["id"])
+
+    for schema_db_object in schema_db_objects:
+        result.append(db_objects.get_create_statement(session, schema_db_object))
+
+    return "\n".join(result)

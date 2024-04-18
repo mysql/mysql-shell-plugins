@@ -27,7 +27,7 @@
 
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
-from .interactive import resolve_service
+from .interactive import resolve_service, resolve_schema, resolve_file_path, resolve_overwrite_file
 
 
 def verify_value_keys(**kwargs):
@@ -201,6 +201,16 @@ def call_update_schema(**kwargs):
             return True
     return False
 
+
+def generate_create_statement(**kwargs) -> str:
+    lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
+    service_id = kwargs.get("service_id")
+    schema_id = kwargs.get("schema_id")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        schema = resolve_schema(session, schema_id, service_id)
+
+        return lib.schemas.get_create_statement(session, schema)
 
 @plugin_function('mrs.add.schema', shell=True, cli=True, web=True)
 def add_schema(**kwargs):
@@ -622,3 +632,56 @@ def update_schema(**kwargs):
     kwargs = resolve_comments(**kwargs)
 
     return call_update_schema(**kwargs)
+
+
+@plugin_function('mrs.get.schemaCreateStatement', shell=True, cli=True, web=True)
+def get_create_statement(**kwargs):
+    """Returns the corresponding CREATE REST SCHEMA SQL statement of the given MRS service object.
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        service_id (str): The ID of the service where the schema belongs.
+        schema_id (str): The ID of the schema to generate.
+        session (object): The database session to use.
+
+    Returns:
+        The SQL that represents the create statement for the MRS schema
+    """
+    return generate_create_statement(**kwargs)
+
+
+@plugin_function('mrs.dump.schemaCreateStatement', shell=True, cli=True, web=True)
+def store_create_statement(**kwargs):
+    """Stores the corresponding CREATE REST schema SQL statement of the given MRS schema
+    object into a file.
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        service_id (str): The ID of the service where the schema belongs.
+        schema_id (str): The ID of the schema to dump.
+        file_path (str): The path where to store the file.
+        overwrite (bool): Overwrite the file, if already exists.
+        session (object): The database session to use.
+
+    Returns:
+        True if the file was saved.
+    """
+    file_path = kwargs.get("file_path")
+    overwrite = kwargs.get("overwrite")
+
+    file_path = resolve_file_path(file_path)
+    resolve_overwrite_file(file_path, overwrite)
+
+    sql = generate_create_statement(**kwargs)
+
+    with open(file_path, "w") as f:
+        f.write(sql)
+
+    if lib.core.get_interactive_result():
+        return f"File created in {file_path}."
+
+    return True

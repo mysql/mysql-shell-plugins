@@ -46,7 +46,7 @@ def get_default_db_object_init(session, schema_id, name=None, request_path=None,
         "row_user_ownership_column": "",
         "comments": "Object that will be removed",
         "enabled": True,
-        "media_type": "media type",
+        "media_type": "application/json",
         "auto_detect_media_type": True,
         "auth_stored_procedure": None,
         "options": {
@@ -128,21 +128,27 @@ class SchemaCT(object):
 
 
 class ServiceCT(object):
-    def __init__(self, url_context_root, url_host_name, **kwargs):
+    def __init__(self, session, url_context_root, url_host_name, **kwargs):
         self._args = kwargs
         self._args["url_context_root"] = url_context_root
-        self._args["url_host_name"] = url_host_name
         self._args["url_protocol"] = ["HTTP"]
-        self._args["is_default"] = kwargs.get("is_default", False)
+        self._args["enabled"] = 1
+        self._args["auth_path"] = "/authentication"
         self._args["comments"] = kwargs.get("comments", "")
+
+        auth_apps = []
         if "auth_apps" in kwargs:
-            self._args["auth_apps"] = kwargs.get("auth_apps")
 
-        result = add_service(**self._args)
-        assert result is not None
-        assert isinstance(result, dict)
+            for app in kwargs["auth_apps"]:
+                app = lib.core.convert_json(app)
+                lib.core.convert_ids_to_binary(
+                    ["auth_vendor_id", "service_id", "default_role_id"], app)
+                app["id"] = lib.core.get_sequence_id(session)
+                auth_apps.append(app)
+        self._args["auth_apps"] = auth_apps
 
-        self._service_id = result["id"]
+        self._service_id = lib.services.add_service(session, url_host_name, self._args)
+        assert self._service_id is not None
 
     def __enter__(self):
         return self._service_id
@@ -429,7 +435,7 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
         WHERE GRANTEE LIKE '%mysql_rest_service_data_provider%'
         """).exec(session).items
 
-    service = lib.services.get_service(session, url_context_root=service_context_root)
+    service = lib.services.get_service(session, url_context_root=service_context_root, url_host_name="localhost")
 
     if not service:
         url_host = lib.core.select("url_host", where="name = ?").exec(session, ["localhost"]).first
@@ -512,28 +518,143 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
 
         content_set = lib.content_sets.get_content_set(session, content_set_id=content_set_result["content_set_id"])
 
+    object_key = lib.core.convert_id_to_string(lib.core.get_sequence_id(session))
     db_object = {
-        "service_id": service["id"],
-        "db_object_name": "Contacts",
-        "db_object_type": "TABLE",
+        "db_object_name":"Contacts",
+        "db_object_type":"TABLE",
         "schema_id": schema_id,
-        "schema_name": schema["name"],
         "auto_add_schema": False,
-        "request_path": "/test_table",
-        "crud_operations": ['READ'],
-        "crud_operation_format": "ITEM",
-        "requires_auth": False,
-        "items_per_page": 10,
+        "request_path":"/Contacts",
+        "enabled": True,
+        "crud_operations":["READ"],
+        "crud_operation_format":"FEED",
+        "requires_auth": True,
         "row_user_ownership_enforced": False,
-        "row_user_ownership_column": "",
-        "row_ownership_parameter": "",
-        "comments": "Test table",
-        "session": session,
-        "media_type": None,
-        "auto_detect_media_type": True,
-        "auth_stored_procedure": '0',
+        "comments":"",
+        "auto_detect_media_type": False,
+        "auth_stored_procedure":"",
         "options": None,
-        "fields": None
+        "objects":[
+            {
+                "id": object_key,
+                "db_object_id":"",
+                "name":"MyServiceAnalogPhoneBookContacts",
+                "position":0,
+                "kind":"RESULT",
+                "fields":[
+                    {
+                        "id": lib.core.convert_id_to_string(lib.core.get_sequence_id(session)),
+                        "object_id": object_key,
+                        "name":"id",
+                        "position":1,
+                        "db_column":{
+                            "comment":"",
+                            "datatype":"int",
+                            "id_generation": None,
+                            "is_generated": False,
+                            "is_primary": True,
+                            "is_unique": False,
+                            "name":"id",
+                            "not_null": True,
+                            "srid": None
+                        },
+                        "enabled": True,
+                        "allow_filtering": True,
+                        "allow_sorting": True,
+                        "no_check": False,
+                        "no_update": False
+                    },
+                    {
+                        "id": lib.core.convert_id_to_string(lib.core.get_sequence_id(session)),
+                        "object_id": object_key,
+                        "name":"fName",
+                        "position":2,
+                        "db_column":{
+                            "comment":"",
+                            "datatype":"varchar(45)",
+                            "id_generation": None,
+                            "is_generated": False,
+                            "is_primary": False,
+                            "is_unique": False,
+                            "name":"f_name",
+                            "not_null": False,
+                            "srid": None
+                        },
+                        "enabled": True,
+                        "allow_filtering": True,
+                        "allow_sorting": False,
+                        "no_check": False,
+                        "no_update": False
+                    },
+                    {
+                        "id": lib.core.convert_id_to_string(lib.core.get_sequence_id(session)),
+                        "object_id": object_key,
+                        "name":"lName",
+                        "position":3,
+                        "db_column":{
+                            "comment":"",
+                            "datatype":"varchar(45)",
+                            "id_generation": None,
+                            "is_generated": False,
+                            "is_primary": False,
+                            "is_unique": False,
+                            "name":"l_name",
+                            "not_null": False,
+                            "srid": None
+                        },
+                        "enabled": True,
+                        "allow_filtering": True,
+                        "allow_sorting": False,
+                        "no_check": False,
+                        "no_update": False
+                    },
+                    {
+                        "id": lib.core.convert_id_to_string(lib.core.get_sequence_id(session)),
+                        "object_id": object_key,
+                        "name":"number",
+                        "position":4,
+                        "db_column":{
+                            "comment":"",
+                            "datatype":"varchar(20)",
+                            "id_generation": None,
+                            "is_generated": False,
+                            "is_primary": False,
+                            "is_unique": False,
+                            "name":"number",
+                            "not_null": False,
+                            "srid": None
+                        },
+                        "enabled": True,
+                        "allow_filtering": True,
+                        "allow_sorting": False,
+                        "no_check": False,
+                        "no_update": False
+                    },
+                    {
+                        "id": lib.core.convert_id_to_string(lib.core.get_sequence_id(session)),
+                        "object_id": object_key,
+                        "name":"email",
+                        "position":5,
+                        "db_column":{
+                            "comment":"",
+                            "datatype":"varchar(45)",
+                            "id_generation": None,
+                            "is_generated": False,
+                            "is_primary": False,
+                            "is_unique": False,
+                            "name":"email",
+                            "not_null": False,
+                            "srid": None
+                        },
+                        "enabled": True,
+                        "allow_filtering": True,
+                        "allow_sorting": False,
+                        "no_check": False,
+                        "no_update": False
+                    }
+                ]
+            }
+        ]
     }
 
     from ... db_objects import add_db_object

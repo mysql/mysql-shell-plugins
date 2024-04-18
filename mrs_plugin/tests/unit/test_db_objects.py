@@ -22,11 +22,23 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import pytest
+from pathlib import Path
+
 from mrs_plugin.db_objects import *
 from mrs_plugin.lib.services import get_current_service_id, set_current_service_id
 from mrs_plugin import lib
 from .helpers import get_db_object_privileges, TableContents, SchemaCT, DbObjectCT, get_default_db_object_init
 
+db_object_create_statement = """CREATE OR REPLACE REST DUALITY VIEW /Contacts
+    ON SERVICE localhost/test SCHEMA /PhoneBook
+    AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
+        id: id @SORTABLE,
+        fName: f_name,
+        lName: l_name,
+        number: number,
+        email: email
+    }
+    AUTHENTICATION REQUIRED;"""
 
 def test_add_delete_db_object(phone_book, table_contents):
     session = phone_book["session"]
@@ -151,7 +163,7 @@ def test_get_db_object(phone_book):
         get_db_object(request_path="test_db", db_object_name="db", **args)
     assert str(exc_info.value) == "The request_path has to start with '/'."
 
-    result = get_db_object(request_path="/test_table", db_object_name="Contacts", **args)
+    result = get_db_object(request_path="/Contacts", db_object_name="Contacts", **args)
     assert result is not None
     assert isinstance(result, dict)
     assert result == expected_db_object
@@ -520,3 +532,130 @@ def test_special_schemas(phone_book, mobile_phone_book, table_contents):
             assert row["PRIVILEGE_TYPE"] == "SELECT"
 
     assert information_schema_grants.same_as_snapshot
+
+
+def test_get_create_statement(phone_book, table_contents):
+
+    sql = get_create_statement(db_object_id=phone_book["db_object_id"], session=phone_book["session"])
+
+    assert sql == db_object_create_statement
+
+
+def test_dump_create_statement(phone_book, table_contents):
+    home_file = "~/db_object.dump.sql"
+    relative_file = "db_object.dump.sql"
+    full_path_file = os.path.expanduser("~/db_object.dump.sql")
+
+    # Test home path
+    create_function = lambda file_path, overwrite: \
+        store_create_statement(file_path=file_path,
+                                    overwrite=overwrite,
+                                    db_object_id=phone_book["db_object_id"],
+                                    session=phone_book["session"])
+
+    result = create_function(file_path=home_file, overwrite=True)
+
+    assert result == True
+
+    with open(os.path.expanduser(home_file), "r+") as f:
+        assert f.read() == db_object_create_statement
+
+    # Test overwrite
+    with open(os.path.expanduser(home_file), "a+") as f:
+        f.write("<=============================>")
+
+    with pytest.raises(Exception, match=f"Cancelling operation. File '{os.path.expanduser(home_file)}' already exists."):
+        create_function(file_path=home_file, overwrite=False)
+
+    with open(os.path.expanduser(home_file), "r") as f:
+        contents = f.read()
+        assert contents.startswith(db_object_create_statement)
+        assert contents.endswith("<=============================>")
+
+
+    result = create_function(file_path=home_file, overwrite=True)
+
+    with open(os.path.expanduser(home_file), "r") as f:
+        assert f.read() == db_object_create_statement
+
+    os.remove(os.path.expanduser(home_file))
+
+    # Test relative path
+    if os.path.exists(str(Path.home() / relative_file)):
+        os.remove(Path.home() / relative_file)
+
+    result = create_function(file_path=relative_file, overwrite=False)
+
+    assert result == True
+    with open(Path.home() / relative_file, "r") as f:
+        assert f.read() == db_object_create_statement
+
+    # Test absolute path
+    if os.path.exists(full_path_file):
+        os.remove(full_path_file)
+
+    result = create_function(file_path=full_path_file, overwrite=False)
+
+    assert result == True
+    with open(full_path_file, "r") as f:
+        assert f.read() == db_object_create_statement
+
+def test_dump_and_recover(phone_book):
+    db_object_create_statement2 = """CREATE OR REPLACE REST DUALITY VIEW /addresses
+    ON SERVICE localhost/test SCHEMA /PhoneBook
+    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE {
+        id: id
+    }
+    ITEMS PER PAGE 10
+    COMMENTS "Object that will be removed"
+    MEDIA TYPE "application/json"
+    OPTIONS {
+        "aaa": "val aaa",
+        "bbb": "val bbb"
+    };"""
+
+    session = phone_book["session"]
+    schema_id = phone_book["schema_id"]
+    db_object = get_default_db_object_init(session, schema_id, name="Addresses", request_path="/addresses")
+    script = ""
+
+    db_objects = lib.db_objects.get_db_objects(session, schema_id)
+    assert len(db_objects) == 1
+
+    with DbObjectCT(session, **db_object) as db_object_id:
+        db_objects = lib.db_objects.get_db_objects(session, schema_id)
+        assert len(db_objects) == 2
+
+        full_path_file = os.path.expanduser("~/db_object2.dump.sql")
+
+        # Test home path
+        create_function = lambda file_path, overwrite: \
+            store_create_statement(file_path=file_path,
+                                        overwrite=overwrite,
+                                        db_object_id=db_object_id,
+                                        session=phone_book["session"])
+
+        result = create_function(file_path=full_path_file, overwrite=True)
+
+        assert result == True
+
+
+        with open(os.path.expanduser(full_path_file), "r+") as f:
+            script = f.read()
+            assert script == db_object_create_statement2
+
+
+    db_objects = lib.db_objects.get_db_objects(session, schema_id)
+    assert len(db_objects) == 1
+
+    lib.script.run_mrs_script(path=full_path_file)
+
+    db_objects = lib.db_objects.get_db_objects(session, schema_id)
+    assert len(db_objects) == 2
+
+    for db_object in db_objects:
+        if db_object["name"] == "Addresses":
+            lib.db_objects.delete_db_object(session, db_object["id"])
+
+    db_objects = lib.db_objects.get_db_objects(session, schema_id)
+    assert len(db_objects) == 1

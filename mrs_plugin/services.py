@@ -27,7 +27,7 @@
 
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
-from .interactive import resolve_service, resolve_options
+from .interactive import resolve_service, resolve_options, resolve_file_path, resolve_overwrite_file
 from pathlib import Path
 import os
 import shutil
@@ -230,6 +230,16 @@ def default_copyright_header(sdk_language):
 
     if sdk_language == "Python":
         return f"# {header}"
+
+
+def generate_create_statement(**kwargs):
+    lib.core.convert_ids_to_binary(["service_id"], kwargs)
+    service_id = kwargs.get("service_id")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        service = resolve_service(session, service_id=service_id)
+
+        return lib.services.get_create_statement(session=session, service=service)
 
 
 @plugin_function('mrs.add.service', shell=True, cli=True, web=True)
@@ -1052,3 +1062,54 @@ def get_runtime_management_code(**kwargs):
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         return lib.sdk.get_mrs_runtime_management_code(session=session)
+
+
+@plugin_function('mrs.get.serviceCreateStatement', shell=True, cli=True, web=True)
+def get_create_statement(**kwargs):
+    """Returns the corresponding CREATE REST SERVICE SQL statement of the given MRS service object.
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        service_id (str): The ID of the service to generate.
+        session (object): The database session to use.
+
+    Returns:
+        The SQL that represents the create statement for the MRS service
+    """
+    return generate_create_statement(**kwargs)
+
+
+@plugin_function('mrs.dump.serviceCreateStatement', shell=True, cli=True, web=True)
+def store_create_statement(**kwargs):
+    """Stores the corresponding CREATE REST SERVICE SQL statement of the given MRS service
+    object into a file.
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        service_id (str): The ID of the service to dump.
+        file_path (str): The path where to store the file.
+        overwrite (bool): Overwrite the file, if already exists.
+        session (object): The database session to use.
+
+    Returns:
+        True if the file was saved.
+    """
+    file_path = kwargs.get("file_path")
+    overwrite = kwargs.get("overwrite")
+
+    file_path = resolve_file_path(file_path)
+    resolve_overwrite_file(file_path, overwrite)
+
+    sql = generate_create_statement(**kwargs)
+
+    with open(file_path, "w") as f:
+        f.write(sql)
+
+    if lib.core.get_interactive_result():
+        return f"File created in {file_path}."
+
+    return True

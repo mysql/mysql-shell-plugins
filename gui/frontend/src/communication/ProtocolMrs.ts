@@ -79,6 +79,10 @@ export enum ShellAPIMrs {
     MrsGetSdkOptions = "mrs.get.sdk_options",
     /** Returns the SDK service classes source for the given language */
     MrsGetRuntimeManagementCode = "mrs.get.runtime_management_code",
+    /** Returns the corresponding CREATE REST SERVICE SQL statement of the given MRS service object. */
+    MrsGetServiceCreateStatement = "mrs.get.service_create_statement",
+    /** Stores the corresponding CREATE REST SERVICE SQL statement of the given MRS service object into a file. */
+    MrsDumpServiceCreateStatement = "mrs.dump.service_create_statement",
     /** Add a schema to the given MRS service */
     MrsAddSchema = "mrs.add.schema",
     /** Gets a specific MRS schema */
@@ -103,6 +107,10 @@ export enum ShellAPIMrs {
     MrsSetSchemaComments = "mrs.set.schema.comments",
     /** Updates the given schema */
     MrsUpdateSchema = "mrs.update.schema",
+    /** Returns the corresponding CREATE REST SCHEMA SQL statement of the given MRS service object. */
+    MrsGetSchemaCreateStatement = "mrs.get.schema_create_statement",
+    /** Stores the corresponding CREATE REST schema SQL statement of the given MRS schema object into a file. */
+    MrsDumpSchemaCreateStatement = "mrs.dump.schema_create_statement",
     /** Adds an auth_app to the given MRS service */
     MrsGetAuthenticationVendors = "mrs.get.authentication_vendors",
     /** Adds an auth_app to the given MRS service */
@@ -143,6 +151,10 @@ export enum ShellAPIMrs {
     MrsGetObjects = "mrs.get.objects",
     /** Gets the list of object fields and references */
     MrsGetObjectFieldsWithReferences = "mrs.get.object_fields_with_references",
+    /** Returns the corresponding CREATE REST <DB OBJECT> SQL statement of the given MRS service object. */
+    MrsGetDbObjectCreateStatement = "mrs.get.db_object_create_statement",
+    /** Stores the corresponding CREATE REST <DB OBJECT> SQL statement of the given MRS schema object into a file. */
+    MrsDumpDbObjectCreateStatement = "mrs.dump.db_object_create_statement",
     /** Adds content to the given MRS service */
     MrsAddContentSet = "mrs.add.content_set",
     /** Returns all content sets for the given MRS service */
@@ -447,6 +459,24 @@ export interface IShellMrsGetRuntimeManagementCodeKwargs {
     moduleSessionId?: string;
 }
 
+export interface IShellMrsGetServiceCreateStatementKwargs {
+    /** The ID of the service to generate. */
+    serviceId?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsDumpServiceCreateStatementKwargs {
+    /** The ID of the service to dump. */
+    serviceId?: string;
+    /** The path where to store the file. */
+    filePath?: string;
+    /** Overwrite the file, if already exists. */
+    overwrite?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
 export interface IShellMrsAddSchemaKwargs {
     /** The id of the service the schema should be added to */
     serviceId?: string;
@@ -616,6 +646,28 @@ export interface IShellMrsUpdateSchemaKwargs {
     schemaName?: string;
     /** The values as dict #TODO: check why dicts cannot be passed */
     value: IShellMrsUpdateSchemaKwargsValue | null;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsGetSchemaCreateStatementKwargs {
+    /** The ID of the service where the schema belongs. */
+    serviceId?: string;
+    /** The ID of the schema to generate. */
+    schemaId?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsDumpSchemaCreateStatementKwargs {
+    /** The ID of the service where the schema belongs. */
+    serviceId?: string;
+    /** The ID of the schema to dump. */
+    schemaId?: string;
+    /** The path where to store the file. */
+    filePath?: string;
+    /** Overwrite the file, if already exists. */
+    overwrite?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -887,6 +939,32 @@ export interface IShellMrsGetObjectFieldsWithReferencesKwargs {
     moduleSessionId?: string;
 }
 
+export interface IShellMrsGetDbObjectCreateStatementKwargs {
+    /** The ID of the service where the db_object belongs. */
+    serviceId?: string;
+    /** The ID of the schema where the db_object belongs. */
+    schemaId?: string;
+    /** The ID of the db_object to generate. */
+    dbObjectId?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsDumpDbObjectCreateStatementKwargs {
+    /** The ID of the service where the db_object belongs. */
+    serviceId?: string;
+    /** The ID of the schema where the db_object belongs. */
+    schemaId?: string;
+    /** The ID of the db_object to dump. */
+    dbObjectId?: string;
+    /** The path where to store the file. */
+    filePath?: string;
+    /** Overwrite the file, if already exists. */
+    overwrite?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
 export interface IShellMrsAddContentSetKwargs {
     /** The request_path */
     requestPath: string | null;
@@ -1149,6 +1227,8 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsDumpSdkServiceFiles]: { kwargs?: IShellMrsDumpSdkServiceFilesKwargs; };
     [ShellAPIMrs.MrsGetSdkOptions]: { args: { directory: string; }; };
     [ShellAPIMrs.MrsGetRuntimeManagementCode]: { kwargs?: IShellMrsGetRuntimeManagementCodeKwargs; };
+    [ShellAPIMrs.MrsGetServiceCreateStatement]: { kwargs?: IShellMrsGetServiceCreateStatementKwargs; };
+    [ShellAPIMrs.MrsDumpServiceCreateStatement]: { kwargs?: IShellMrsDumpServiceCreateStatementKwargs; };
     [ShellAPIMrs.MrsAddSchema]: { kwargs?: IShellMrsAddSchemaKwargs; };
     [ShellAPIMrs.MrsGetSchema]: { kwargs?: IShellMrsGetSchemaKwargs; };
     [ShellAPIMrs.MrsListSchemas]: { args: { serviceId?: string; }; kwargs?: IShellMrsListSchemasKwargs; };
@@ -1161,6 +1241,8 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsSetSchemaItemsPerPage]: { kwargs?: IShellMrsSetSchemaItemsPerPageKwargs; };
     [ShellAPIMrs.MrsSetSchemaComments]: { kwargs?: IShellMrsSetSchemaCommentsKwargs; };
     [ShellAPIMrs.MrsUpdateSchema]: { kwargs?: IShellMrsUpdateSchemaKwargs; };
+    [ShellAPIMrs.MrsGetSchemaCreateStatement]: { kwargs?: IShellMrsGetSchemaCreateStatementKwargs; };
+    [ShellAPIMrs.MrsDumpSchemaCreateStatement]: { kwargs?: IShellMrsDumpSchemaCreateStatementKwargs; };
     [ShellAPIMrs.MrsGetAuthenticationVendors]: { kwargs?: IShellMrsGetAuthenticationVendorsKwargs; };
     [ShellAPIMrs.MrsAddAuthenticationApp]: { args: { appName?: string; serviceId?: string; }; kwargs?: IShellMrsAddAuthenticationAppKwargs; };
     [ShellAPIMrs.MrsGetAuthenticationApp]: { args: { appId?: string; moduleSessionId?: string; }; };
@@ -1181,6 +1263,8 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsGetTableColumnsWithReferences]: { args: { dbObjectId?: string; schemaId?: string; requestPath?: string; dbObjectName?: string; }; kwargs?: IShellMrsGetTableColumnsWithReferencesKwargs; };
     [ShellAPIMrs.MrsGetObjects]: { args: { dbObjectId?: string; }; kwargs?: IShellMrsGetObjectsKwargs; };
     [ShellAPIMrs.MrsGetObjectFieldsWithReferences]: { args: { objectId?: string; }; kwargs?: IShellMrsGetObjectFieldsWithReferencesKwargs; };
+    [ShellAPIMrs.MrsGetDbObjectCreateStatement]: { kwargs?: IShellMrsGetDbObjectCreateStatementKwargs; };
+    [ShellAPIMrs.MrsDumpDbObjectCreateStatement]: { kwargs?: IShellMrsDumpDbObjectCreateStatementKwargs; };
     [ShellAPIMrs.MrsAddContentSet]: { args: { serviceId?: string; contentDir?: string; }; kwargs?: IShellMrsAddContentSetKwargs; };
     [ShellAPIMrs.MrsListContentSets]: { args: { serviceId?: string; }; kwargs?: IShellMrsListContentSetsKwargs; };
     [ShellAPIMrs.MrsGetContentSet]: { kwargs?: IShellMrsGetContentSetKwargs; };
