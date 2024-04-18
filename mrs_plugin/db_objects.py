@@ -25,13 +25,14 @@
 
 # cSpell:ignore mysqlsh, mrs, privs
 
-
+import os
+from pathlib import Path
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
-from .interactive import resolve_schema, resolve_service
+from .interactive import resolve_schema, resolve_service, resolve_db_object, resolve_file_path, resolve_overwrite_file
 
 
-def resolve_db_object_ids(db_object_name=None, schema_id=None, request_path=None, **kwargs):
+def resolve_db_object_ids(db_object_name=None, schema_id=None, service_id=None, request_path=None, **kwargs):
     session = kwargs.get("session")
 
     db_object_id = kwargs.pop("db_object_id", None)
@@ -40,7 +41,7 @@ def resolve_db_object_ids(db_object_name=None, schema_id=None, request_path=None
         db_object_id] if db_object_id is not None else []
 
     if not db_object_id:
-        schema = resolve_schema(session, schema_id)
+        schema = resolve_schema(session, schema_id, service_id)
         schema_id = schema.get("id")
 
         if db_object_name:
@@ -72,6 +73,18 @@ def resolve_db_object_ids(db_object_name=None, schema_id=None, request_path=None
             kwargs["db_object_ids"] = [item["id"] for item in selection]
 
     return kwargs
+
+
+def generate_create_statement(**kwargs) -> str:
+    lib.core.convert_ids_to_binary(["service_id", "schema_id", "db_object_id"], kwargs)
+    db_object_id = kwargs.get("db_object_id")
+    schema_id = kwargs.get("schema_id")
+    service_id = kwargs.get("service_id")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        db_object = resolve_db_object(session, db_object_id, schema_id, service_id)
+
+        return lib.db_objects.get_create_statement(session, db_object)
 
 
 @plugin_function('mrs.add.dbObject', shell=True, cli=True, web=True)
@@ -1087,3 +1100,57 @@ def get_object_fields_with_references(object_id=None, **kwargs):
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         return lib.db_objects.get_object_fields_with_references(session, object_id=object_id)
+
+
+@plugin_function('mrs.get.dbObjectCreateStatement', shell=True, cli=True, web=True)
+def get_create_statement(**kwargs):
+    """Returns the corresponding CREATE REST <DB OBJECT> SQL statement of the given MRS service object.
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        service_id (str): The ID of the service where the db_object belongs.
+        schema_id (str): The ID of the schema where the db_object belongs.
+        db_object_id (str): The ID of the db_object to generate.
+        session (object): The database session to use.
+
+    Returns:
+        The SQL that represents the create statement for the MRS DB OBJECT or False if it fails.
+    """
+    return generate_create_statement(**kwargs)
+
+@plugin_function('mrs.dump.dbObjectCreateStatement', shell=True, cli=True, web=True)
+def store_create_statement(**kwargs):
+    """Stores the corresponding CREATE REST <DB OBJECT> SQL statement of the given MRS schema
+    object into a file.
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        service_id (str): The ID of the service where the db_object belongs.
+        schema_id (str): The ID of the schema where the db_object belongs.
+        db_object_id (str): The ID of the db_object to dump.
+        file_path (str): The path where to store the file.
+        overwrite (bool): Overwrite the file, if already exists.
+        session (object): The database session to use.
+
+    Returns:
+        True if the file was saved.
+    """
+    file_path = kwargs.get("file_path")
+    overwrite = kwargs.get("overwrite")
+
+    file_path = resolve_file_path(file_path)
+    resolve_overwrite_file(file_path, overwrite)
+
+    sql = generate_create_statement(**kwargs)
+
+    with open(file_path, "w") as f:
+        f.write(sql)
+
+    if lib.core.get_interactive_result():
+        return f"File created in {file_path}."
+
+    return True

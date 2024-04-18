@@ -22,6 +22,7 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 from mrs_plugin.lib import core, schemas, database
+from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
 import json
 
 
@@ -98,7 +99,7 @@ def delete_db_object(session, db_object_id):
     if db_object_id is None:
         raise ValueError("The specified db_object was not found.")
 
-    # Update all given services
+    # Revoke grants for this db_object
     db_object = get_db_object(session, db_object_id)
     db_schema = schemas.get_schema(session, db_object["db_schema_id"])
 
@@ -576,3 +577,22 @@ def set_object_fields_with_references(session, db_object_id, obj):
                 "sdk_options": core.convert_dict_to_json_string(field.get("sdk_options")),
                 "comments": field.get("comments"),
             }).exec(session)
+
+def get_create_statement(session, db_object) -> str:
+    executor = MrsDdlExecutor(session=session)
+    db_object_type = "DUALITY VIEW" if db_object["object_type"] in ["TABLE", "VIEW"] else db_object["object_type"]
+
+    executor.showCreateRestDbObject({
+        "current_operation": "SHOW CREATE REST DB_OBJECT",
+        "type": db_object_type,
+        "host_ctx": db_object["host_ctx"],
+        "url_host_name": db_object["host_ctx"].split("/")[0],
+        "url_context_root": "/" + db_object["host_ctx"].split("/")[1],
+        **db_object
+    })
+
+    if executor.results[0]["type"] == "error":
+        raise Exception(executor.results[0]['message'])
+
+    return executor.results[0]["result"][0][f"CREATE REST {db_object_type}"]
+

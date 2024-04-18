@@ -23,7 +23,7 @@
 
 import pytest
 from mrs_plugin import lib
-from mrs_plugin.tests.unit.helpers import ServiceCT
+from mrs_plugin.tests.unit.helpers import ServiceCT, TableContents
 from lib.core import MrsDbSession
 
 
@@ -50,7 +50,7 @@ def test_get_service(phone_book, table_contents):
             'is_current': 1,
         }
 
-        with ServiceCT("/service2", "localhost") as service_id:
+        with ServiceCT(session, "/service2", "localhost") as service_id:
             assert service_table.count == service_table.snapshot.count + 1
 
             service2 = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost")
@@ -69,7 +69,20 @@ def test_get_service(phone_book, table_contents):
                 'auth_completed_url': None,
                 'auth_completed_url_validation': None,
                 'auth_path': '/authentication',
-                'options': None,
+                'options': {
+                    'headers': {
+                        'Access-Control-Allow-Credentials': 'true',
+                        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token',
+                        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                    },
+                    'http': { 'allowedOrigin': 'auto' },
+                    'logging': {
+                        'exceptions': True,
+                        'request': { 'body': True, 'headers': True },
+                        'response': { 'body': True, 'headers': True },
+                    },
+                    'returnInternalErrorDetails': True,
+                },
                 'is_current': 0,
             }
 
@@ -84,7 +97,20 @@ def test_get_service(phone_book, table_contents):
                 'auth_completed_url': None,
                 'auth_completed_url_validation': None,
                 'auth_path': '/authentication',
-                'options': None,
+                    'options': {
+                    'headers': {
+                        'Access-Control-Allow-Credentials': 'true',
+                        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token',
+                        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                    },
+                    'http': { 'allowedOrigin': 'auto' },
+                    'logging': {
+                        'exceptions': True,
+                        'request': { 'body': True, 'headers': True },
+                        'response': { 'body': True, 'headers': True },
+                    },
+                    'returnInternalErrorDetails': True,
+                },
                 'custom_metadata_schema': None,
                 'enable_sql_endpoint': 0,
             }
@@ -100,7 +126,7 @@ def test_get_service(phone_book, table_contents):
         result = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost", get_default=True)
         assert result is not None
 
-        with ServiceCT("/service2", "localhost") as service_id:
+        with ServiceCT(session, "/service2", "localhost") as service_id:
             lib.services.set_current_service_id(session, service_id)
 
         result = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost", get_default=False)
@@ -114,6 +140,32 @@ def test_get_service(phone_book, table_contents):
         result = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost", get_default=True)
         assert result is not None
 
+
+def test_get_services(phone_book, table_contents):
+    with MrsDbSession(session=phone_book["session"]) as session:
+        service_table: TableContents = table_contents("service")
+        services = lib.services.get_services(session=session)
+
+        assert len(service_table.items) == len(services)
+        assert len(services) == 1
+
+        with ServiceCT(session, "/service2", "localhost") as service2_id:
+            services = lib.services.get_services(session=session)
+            assert len(service_table.items) == len(services)
+            assert len(services) == 2
+
+            with ServiceCT(session, "/service3", "") as service3_id:
+                services = lib.services.get_services(session=session)
+                assert len(service_table.items) == len(services)
+                assert len(services) == 3
+
+            services = lib.services.get_services(session=session)
+            assert len(service_table.items) == len(services)
+            assert len(services) == 2
+
+        services = lib.services.get_services(session=session)
+        assert len(service_table.items) == len(services)
+        assert len(services) == 1
 
 
 def test_change_service(phone_book, table_contents):
@@ -141,7 +193,7 @@ def test_change_service(phone_book, table_contents):
                 lib.services.update_services(session=session, service_ids=[1000], value={"enabled": True})
         assert str(exc_info.value) == "'int' object has no attribute 'hex'"
 
-        with ServiceCT("/service2", "localhost", auth_apps=auth_apps) as service_id:
+        with ServiceCT(session, "/service2", "localhost", auth_apps=auth_apps) as service_id:
             auth_apps_in_db = auth_app_table.filter("service_id", service_id)
             assert len(auth_apps_in_db) == 2
 

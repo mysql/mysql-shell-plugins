@@ -44,7 +44,7 @@ def test_add_db_object(phone_book, table_contents):
             'format': 'FEED',
             'id': db_object_id,
             'items_per_page': 10,
-            'media_type': 'media type',
+            'media_type': 'application/json',
             'name': 'ContactBasicInfo',
             'object_type': 'VIEW',
             'options': {
@@ -197,7 +197,7 @@ def test_get_db_object(phone_book, mobile_phone_book):
         assert db_object['object_type'] == 'TABLE'
 
         # This might take one of these values depending on if the db_object tests already ran
-        assert db_object['request_path'] == '/test_table'
+        assert db_object['request_path'] == '/Contacts'
         assert db_object['db_schema_id'] == phone_book["schema_id"]
 
 
@@ -224,7 +224,7 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
                 'crud_operation_format': 'FEED',
                 'enabled': int(db_object["enabled"]),
                 'items_per_page': 10,
-                'media_type': 'media type',
+                'media_type': 'application/json',
                 'options': db_object["options"],
                 'request_path': db_object["request_path"],
                 'requires_auth': 0,
@@ -271,7 +271,7 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
                 'crud_operation_format': 'FEED',
                 'enabled': int(db_object["enabled"]),
                 'items_per_page': 10,
-                'media_type': 'media type',
+                'media_type': 'application/json',
                 'options': db_object["options"],
                 'request_path': db_object["request_path"],
                 'requires_auth': 0,
@@ -313,7 +313,7 @@ def test_set_crud_operations(phone_book, mobile_phone_book, table_contents):
                 'crud_operation_format': 'FEED',
                 'enabled': int(db_object["enabled"]),
                 'items_per_page': 10,
-                'media_type': 'media type',
+                'media_type': 'application/json',
                 'options': db_object["options"],
                 'request_path': db_object["request_path"],
                 'requires_auth': 0,

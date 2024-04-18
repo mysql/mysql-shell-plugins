@@ -25,15 +25,54 @@ import pytest
 
 from tests.conftest import table_contents
 from ... services import *
-from .helpers import ServiceCT
+from .helpers import ServiceCT, SchemaCT, DbObjectCT, get_default_db_object_init
 from mrs_plugin import lib
 
+service_create_statement = """CREATE REST SERVICE localhost/test
+    COMMENTS "Test service";
+CREATE OR REPLACE REST SCHEMA /AnalogPhoneBook ON SERVICE localhost/test
+    FROM `AnalogPhoneBook`;
+CREATE OR REPLACE REST DUALITY VIEW /Contacts
+    ON SERVICE localhost/test SCHEMA /AnalogPhoneBook
+    AS AnalogPhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
+        id: id @SORTABLE,
+        fName: f_name,
+        lName: l_name,
+        number: number,
+        email: email
+    }
+    AUTHENTICATION REQUIRED;
+CREATE OR REPLACE REST SCHEMA /MobilePhoneBook ON SERVICE localhost/test
+    FROM `MobilePhoneBook`;
+CREATE OR REPLACE REST DUALITY VIEW /Contacts
+    ON SERVICE localhost/test SCHEMA /MobilePhoneBook
+    AS MobilePhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
+        id: id @SORTABLE,
+        fName: f_name,
+        lName: l_name,
+        number: number,
+        email: email
+    }
+    AUTHENTICATION REQUIRED;
+CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE localhost/test
+    FROM `PhoneBook`;
+CREATE OR REPLACE REST DUALITY VIEW /Contacts
+    ON SERVICE localhost/test SCHEMA /PhoneBook
+    AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
+        id: id @SORTABLE,
+        fName: f_name,
+        lName: l_name,
+        number: number,
+        email: email
+    }
+    AUTHENTICATION REQUIRED;"""
 
 def test_add_service(phone_book, table_contents):
+    session = phone_book["session"]
     args = {
         "url_protocol": ["HTTP"],
         "comments": "Test service",
-        "session": phone_book["session"]
+        "session": session
     }
 
     services_table = table_contents("service")
@@ -47,10 +86,9 @@ def test_add_service(phone_book, table_contents):
     args = {
         "url_protocol": ["HTTP"],
         "comments": "Test service 2",
-        "session": phone_book["session"]
     }
 
-    with ServiceCT("/service2", "localhost", **args) as service_id:
+    with ServiceCT(session, "/service2", "localhost", **args) as service_id:
         assert service_id is not None
         assert services_table.count == services_table.snapshot.count + 1
 
@@ -87,8 +125,8 @@ def test_get_services(phone_book, table_contents):
 
 def test_get_service(phone_book, table_contents):
     service_table = table_contents("service")
+    session = phone_book["session"]
     args = {
-        "session": phone_book["session"]
     }
     service = get_service(url_host_name="localhost", url_context_root="/test", **args)
 
@@ -126,7 +164,7 @@ def test_get_service(phone_book, table_contents):
         'enable_sql_endpoint': 0,
     }
 
-    with ServiceCT("/service2", "localhost", **args) as service_id:
+    with ServiceCT(session, "/service2", "localhost", **args) as service_id:
         assert service_id is not None
         service = get_service(url_host_name="localhost", url_context_root="/service2", **args)
         assert service is not None
@@ -140,7 +178,20 @@ def test_get_service(phone_book, table_contents):
             'auth_completed_url': None,
             'auth_completed_url_validation': None,
             'auth_path': '/authentication',
-            'options': None,
+            'options': {
+                'headers': {
+                    'Access-Control-Allow-Credentials': 'true',
+                    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token',
+                    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                },
+                'http': { 'allowedOrigin': 'auto' },
+                'logging': {
+                    'exceptions': True,
+                    'request': { 'body': True, 'headers': True },
+                    'response': { 'body': True, 'headers': True },
+                },
+                'returnInternalErrorDetails': True,
+            },
             'url_context_root': '/service2',
             'url_host_id': service["url_host_id"],
             'url_host_name': 'localhost',
@@ -152,10 +203,9 @@ def test_get_service(phone_book, table_contents):
 def test_change_service(phone_book):
     session = phone_book["session"]
     args = {
-        "session": session
     }
 
-    with ServiceCT(url_host_name="localhost", url_context_root="/service2", **args) as service_id:
+    with ServiceCT(session, url_host_name="localhost", url_context_root="/service2", **args) as service_id:
         assert service_id is not None
 
         args_for_get_service = {
@@ -251,3 +301,164 @@ def test_delete_service(phone_book, table_contents):
     assert str(exc_info.value) == "Invalid base64 string for service_id."
 
     assert delete_service(service_id=result["id"]) == True
+
+
+def test_get_create_statement(phone_book, table_contents):
+
+    sql = get_create_statement(service_id=phone_book["service_id"], session=phone_book["session"])
+
+    assert sql == service_create_statement
+
+def test_dump_create_statement(phone_book, table_contents):
+    home_file = "~/service.dump.sql"
+    relative_file = "service.dump.sql"
+    full_path_file = os.path.expanduser("~/service.dump.sql")
+
+    # Test home path
+    create_function = lambda file_path, overwrite: \
+        store_create_statement(file_path=file_path,
+                                    overwrite=overwrite,
+                                    service_id=phone_book["service_id"],
+                                    session=phone_book["session"])
+
+    result = create_function(file_path=home_file, overwrite=True)
+
+    assert result == True
+
+    with open(os.path.expanduser(home_file), "r+") as f:
+        assert f.read() == service_create_statement
+
+    # Test overwrite
+    with open(os.path.expanduser(home_file), "a+") as f:
+        f.write("<=============================>")
+
+    with pytest.raises(Exception, match=f"Cancelling operation. File '{os.path.expanduser(home_file)}' already exists."):
+        create_function(file_path=home_file, overwrite=False)
+
+    with open(os.path.expanduser(home_file), "r") as f:
+        contents = f.read()
+        assert contents.startswith(service_create_statement)
+        assert contents.endswith("<=============================>")
+
+
+    result = create_function(file_path=home_file, overwrite=True)
+
+    with open(os.path.expanduser(home_file), "r") as f:
+        assert f.read() == service_create_statement
+
+    os.remove(os.path.expanduser(home_file))
+
+    # Test relative path
+    if os.path.exists(str(Path.home() / relative_file)):
+        os.remove(Path.home() / relative_file)
+
+    result = create_function(file_path=relative_file, overwrite=False)
+
+    assert result == True
+    with open(Path.home() / relative_file, "r") as f:
+        assert f.read() == service_create_statement
+
+    # Test absolute path
+    if os.path.exists(full_path_file):
+        os.remove(full_path_file)
+
+    result = create_function(file_path=full_path_file, overwrite=False)
+
+    assert result == True
+    with open(full_path_file, "r") as f:
+        assert f.read() == service_create_statement
+
+
+def test_dump_and_recover(phone_book, table_contents):
+    create_statement = """CREATE REST SERVICE localhost/test2
+    COMMENTS ""
+    OPTIONS {
+        "http": {
+            "allowedOrigin": "auto"
+        },
+        "headers": {
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Credentials": "true"
+        },
+        "logging": {
+            "request": {
+                "body": true,
+                "headers": true
+            },
+            "response": {
+                "body": true,
+                "headers": true
+            },
+            "exceptions": true
+        },
+        "returnInternalErrorDetails": true
+    };
+CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE localhost/test2
+    FROM `PhoneBook`;
+CREATE OR REPLACE REST DUALITY VIEW /addresses
+    ON SERVICE localhost/test2 SCHEMA /PhoneBook2
+    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE {
+        id: id
+    }
+    ITEMS PER PAGE 10
+    COMMENTS "Object that will be removed"
+    MEDIA TYPE "application/json"
+    OPTIONS {
+        "aaa": "val aaa",
+        "bbb": "val bbb"
+    };"""
+    create_function = lambda file_path, service_id, overwrite=True: \
+        store_create_statement(file_path=file_path,
+                                    overwrite=overwrite,
+                                    service_id=service_id,
+                                    session=phone_book["session"])
+    session = phone_book["session"]
+
+    script = ""
+
+    full_path_file = os.path.expanduser("~/service_compare_1.dump.sql")
+    full_path_file2 = os.path.expanduser("~/service_compare_2.dump.sql")
+
+    services = lib.services.get_services(session)
+    assert len(services) == 1
+
+    with ServiceCT(session, "/test2", "localhost") as service_id:
+        with SchemaCT(service_id, "PhoneBook", "/PhoneBook2") as schema_id:
+
+            db_object = get_default_db_object_init(session, schema_id, name="Addresses", request_path="/addresses")
+            with DbObjectCT(session, **db_object) as db_object_id:
+                result = create_function(file_path=full_path_file, service_id=service_id)
+
+                assert result == True
+
+                services = lib.services.get_services(session)
+                assert len(services) == 2
+
+    with open(os.path.expanduser(full_path_file), "r+") as f:
+        script = f.read()
+        assert script == create_statement
+
+
+    services = lib.services.get_services(session)
+    assert len(services) == 1
+
+    with open(full_path_file, "r") as f:
+        script = f.read()
+
+    results = lib.script.run_mrs_script(mrs_script=script)
+
+    services = lib.services.get_services(session)
+    assert len(services) == 2
+
+    for service in services:
+        if service["host_ctx"] == "localhost/test2":
+            create_function(full_path_file2, service["id"])
+            lib.services.delete_service(session, service["id"])
+
+    services = lib.services.get_services(session)
+    assert len(services) == 1
+
+    with open(full_path_file2, "r") as f:
+        assert f.read() == script
+
