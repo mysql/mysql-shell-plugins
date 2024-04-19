@@ -48,6 +48,11 @@ import { CommandExecutor } from "./cmdExecutor";
 
 export let credentialHelperOk = true;
 
+/**
+ * Waits until the section is not loading
+ * @param section The section
+ * @returns A promise resolving when the section is not loading anymore
+ */
 export const sectionIsNotLoading = (section: string): Condition<boolean> => {
     return new Condition(`for ${section} to NOT be loading`, async () => {
         const sec = await Section.getSection(section);
@@ -60,6 +65,10 @@ export const sectionIsNotLoading = (section: string): Condition<boolean> => {
     });
 };
 
+/**
+ * Waits until the Modal dialog is opened
+ * @returns A promise resolving when the model dialog is opened
+ */
 export const modalDialogIsOpened = (): Condition<boolean> => {
     return new Condition(`for vscode dialog to be opened`, async () => {
         try {
@@ -77,18 +86,31 @@ export const modalDialogIsOpened = (): Condition<boolean> => {
     });
 };
 
+/**
+ * Waits until the tab is opened
+ * @param tabName The tab name
+ * @returns A promise resolving when the tab is opened
+ */
 export const tabIsOpened = (tabName: string): Condition<boolean> => {
     return new Condition(`for ${tabName} to be opened`, async () => {
         return (await Workbench.getOpenEditorTitles()).includes(tabName);
     });
 };
 
+/**
+ * Waits until the editor selector exists, which means that the front end is loaded
+ * @returns A promise resolving when the front end is loaded
+ */
 export const isFELoaded = (): Condition<boolean> => {
     return new Condition("for Frontend to be loaded", async () => {
         return (await driver.findElements(locator.notebook.toolbar.editorSelector.exists)).length > 0;
     });
 };
 
+/**
+ * Waits until the database connection is successful
+ * @returns A promise resolving when the database connection is successful
+ */
 const dbConnectionIsSuccessful = (): Condition<boolean> => {
     return new Condition("for DB Connection is successful", async () => {
         const editorSelectorExists = (await driver.findElements(locator.notebook.toolbar.editorSelector.exists))
@@ -99,12 +121,22 @@ const dbConnectionIsSuccessful = (): Condition<boolean> => {
     });
 };
 
+/**
+ * Waits until the web view is ready to be used
+ * @param iframe The iframe
+ * @returns A promise resolving when the web view is ready
+ */
 export const webViewIsReady = (iframe: WebElement): Condition<boolean> => {
     return new Condition("for web view to be ready", async () => {
         return (await iframe.getAttribute("class")).includes("webview ready");
     });
 };
 
+/**
+ * Waits until the current editor is the one expected
+ * @param editor The editor name
+ * @returns A promise resolving when the editor is the one expected
+ */
 export const currentEditorIs = (editor: RegExp): Condition<boolean> => {
     return new Condition(`current editor to be ${editor.toString()}`, async () => {
         await Misc.switchBackToTopFrame();
@@ -114,12 +146,20 @@ export const currentEditorIs = (editor: RegExp): Condition<boolean> => {
     });
 };
 
+/**
+ * Waits until the shell session is successful
+ * @returns A promise resolving when the shell session is successful
+ */
 const shellSessionIsSuccessful = (): Condition<boolean> => {
-    return new Condition("for DB Connection is successful", async () => {
+    return new Condition("for Shell connection to be successful", async () => {
         return (await driver.findElements(locator.shellSession.exists)).length > 0;
     });
 };
 
+/**
+ * Waits until the password dialog exists
+ * @returns A promise resolving when the password dialog exists
+ */
 export const existsPasswordDialog = (): Condition<boolean> => {
     return new Condition(`for password dialog to be opened`, async () => {
         await Misc.switchBackToTopFrame();
@@ -129,6 +169,11 @@ export const existsPasswordDialog = (): Condition<boolean> => {
     });
 };
 
+/**
+ * Waits until the database connection is opened
+ * @param connection The database connection
+ * @returns A promise resolving when the database connection is opened
+ */
 export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
     return new Condition(`for DB connection ${connection.caption} to be opened`, async () => {
         await Misc.switchBackToTopFrame();
@@ -146,6 +191,11 @@ export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Cond
     });
 };
 
+/**
+ * Waits until the script is opened
+ * @param connection The database connection
+ * @returns A promise resolving when the script is opened
+ */
 export const scriptIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
     return new Condition(`for script to be opened`, async () => {
         await Misc.switchBackToTopFrame();
@@ -161,6 +211,11 @@ export const scriptIsOpened = (connection: interfaces.IDBConnection): Condition<
     });
 };
 
+/**
+ * Waits until the MDS connection is opened
+ * @param connection The database connection
+ * @returns A promise resolving when the MDS connection is opened
+ */
 export const mdsConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
     return new Condition(`for MDS connection ${connection.caption} to be opened`, async () => {
         await Misc.switchBackToTopFrame();
@@ -186,6 +241,11 @@ export const mdsConnectionIsOpened = (connection: interfaces.IDBConnection): Con
     });
 };
 
+/**
+ * Waits until the shell session is opened
+ * @param connection The database connection
+ * @returns A promise resolving when the shell session is opened
+ */
 export const shellSessionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
     return new Condition(`for Shell session ${connection.caption} to be opened`, async () => {
         await Misc.switchBackToTopFrame();
@@ -201,6 +261,13 @@ export const shellSessionIsOpened = (connection: interfaces.IDBConnection): Cond
     });
 };
 
+/**
+ * Waits until the tree item is marked as default
+ * @param section The section
+ * @param treeItemName The item name on the tree
+ * @param itemType The item type
+ * @returns A promise resolving when the item is marked as default
+ */
 export const isDefaultItem = (section: string, treeItemName: string, itemType: string): Condition<boolean> => {
     return new Condition(`for ${treeItemName} to be marked as default on section ${section}`, async () => {
         await driver.wait(sectionIsNotLoading(section), constants.wait25seconds,
@@ -210,24 +277,42 @@ export const isDefaultItem = (section: string, treeItemName: string, itemType: s
     });
 };
 
+/**
+ * Waits until the element is located within a context
+ * @param context The context
+ * @param locator The locator
+ * @returns A promise resolving when the element is located
+ */
 export const elementLocated = (context: WebElement, locator: Locator): Condition<boolean> => {
     return new Condition(`for element ${String(locator)} to be found`, async () => {
         return (await context.findElements(locator)).length > 0;
     });
 };
 
+/**
+ * Waits until the result tab of a query is maximized
+ * @returns A promise resolving when the result tab is maximized
+ */
 export const resultTabIsMaximized = (): Condition<boolean> => {
     return new Condition(`for result tab to be maximized`, async () => {
         return (await driver.findElements(locator.notebook.codeEditor.editor.result.status.normalize)).length > 0;
     });
 };
 
+/**
+ * Waits until the result tab of a query is normalized
+ * @returns A promise resolving when the result tab is normalized
+ */
 export const resultTabIsNormalized = (): Condition<boolean> => {
     return new Condition(`for result tab to be maximized`, async () => {
         return (await driver.findElements(locator.notebook.codeEditor.editor.result.status.normalize)).length === 0;
     });
 };
 
+/**
+ * Waits until the notebook's editor has a new prompt/line
+ * @returns A promise resolving when the new prompt exists
+ */
 export const editorHasNewPrompt = (): Condition<boolean> => {
     return new Condition(`for editor to have a new prompt`, async () => {
         const editorSentences = await driver.findElements(locator.notebook.codeEditor.editor.sentence);
@@ -237,6 +322,13 @@ export const editorHasNewPrompt = (): Condition<boolean> => {
     });
 };
 
+/**
+ * Waits until the notification exists
+ * @param notification The notification
+ * @param dismiss True to close the notification, false otherwise
+ * @param expectFailure True if it expects a notification with failure/error
+ * @returns A promise resolving when the notification exists
+ */
 export const notificationExists = (notification: string, dismiss = true,
     expectFailure = false): Condition<boolean> => {
     return new Condition(`for notification '${notification}' to be displayed`, async () => {
@@ -271,6 +363,10 @@ export const notificationExists = (notification: string, dismiss = true,
     });
 };
 
+/**
+ * Waits until router tree element is active
+ * @returns A promise resolving when router icon is active
+ */
 export const routerIconIsActive = (): Condition<boolean> => {
     return new Condition(`for router icon to be active`, async () => {
         const dbSection = await Section.getSection(constants.dbTreeSection);
@@ -281,6 +377,10 @@ export const routerIconIsActive = (): Condition<boolean> => {
     });
 };
 
+/**
+ * Waits until router tree element is inactive
+ * @returns A promise resolving when router icon is inactive
+ */
 export const routerIconIsInactive = (): Condition<boolean> => {
     return new Condition(`for router icon to be inactive`, async () => {
         const dbSection = await Section.getSection(constants.dbTreeSection);
@@ -291,6 +391,10 @@ export const routerIconIsInactive = (): Condition<boolean> => {
     });
 };
 
+/**
+ * Waits until the MySQL Shell for VS Code extension is fully loaded and ready to be tested
+ * @returns A promise resolving when the extension is ready
+ */
 export const extensionIsReady = (): Condition<boolean> => {
     return new Condition("for the Extension to be ready", async () => {
         let tryNumber = 1;
@@ -346,6 +450,14 @@ export const extensionIsReady = (): Condition<boolean> => {
 
 };
 
+/**
+ * Waits until the a result grid cell is editable
+ * @param commandExecutor The command executor object
+ * @param rowNumber The row number
+ * @param columnName The column name
+ * @param expectInput True if the when the cell is editable, an input box is displayed
+ * @returns A promise resolving when the extension is ready
+ */
 export const cellIsEditable = (commandExecutor: CommandExecutor, rowNumber: number,
     columnName: string, expectInput: boolean): Condition<boolean> => {
     return new Condition(`for row to be editable`, async () => {
@@ -370,6 +482,11 @@ export const cellIsEditable = (commandExecutor: CommandExecutor, rowNumber: numb
     });
 };
 
+/**
+ * Waits until the result grid is editable
+ * @param resultGrid The result grid
+ * @returns A promise resolving when the result grid is editable
+ */
 export const resultGridIsEditable = (resultGrid: WebElement): Condition<boolean> => {
     return new Condition(`for result grid to be editable`, async () => {
         const edit = await resultGrid.findElement(locator.notebook.codeEditor.editor.result.status.toolbar.editButton);
@@ -378,6 +495,12 @@ export const resultGridIsEditable = (resultGrid: WebElement): Condition<boolean>
     });
 };
 
+/**
+ * Waits until the result grid cells were changed
+ * @param resultGrid The result grid
+ * @param changed The expected number of changed cells
+ * @returns A promise resolving when the cells were changed
+ */
 export const cellsWereChanged = (resultGrid: WebElement, changed: number): Condition<boolean> => {
     return new Condition(`for changed ${changed} cells to be marked has changed (yellow background)`, async () => {
         return (await resultGrid
@@ -385,12 +508,22 @@ export const cellsWereChanged = (resultGrid: WebElement, changed: number): Condi
     });
 };
 
+/**
+ * Waits until a row was added to a result grid
+ * @param resultGrid The result grid
+ * @returns A promise resolving when the row was added
+ */
 export const rowWasAdded = (resultGrid: WebElement): Condition<boolean> => {
     return new Condition(`for added table row`, async () => {
         return (await resultGrid.findElements(locator.notebook.codeEditor.editor.result.addedTableRow)).length > 0;
     });
 };
 
+/**
+ * Waits until the rows were updated on a result grid
+ * @param commandExecutor The command executor
+ * @returns A promise resolving when rows were updated
+ */
 export const rowsWereUpdated = (commandExecutor: CommandExecutor): Condition<boolean> => {
     return new Condition(`for result message to match 'rows updated'`, async () => {
         await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
@@ -399,18 +532,33 @@ export const rowsWereUpdated = (commandExecutor: CommandExecutor): Condition<boo
     });
 };
 
+/**
+ * Waits until the message "x number of rows were updated" is displayed on the result grid toolbar
+ * @param commandExecutor The command executor
+ * @returns A promise resolving when the message is displayed
+ */
 export const changedResultGridCellsAreDone = (commandExecutor: CommandExecutor): Condition<boolean> => {
     return new Condition(`for yellow background on result grid cells to not be displayed`, () => {
         return commandExecutor.getResultMessage().match(/(\d+).*updated/) !== null;
     });
 };
 
+/**
+ * Waits until the row is marked for deletion (red background)
+ * @param row The row
+ * @returns A promise resolving when the row is marked for deletion
+ */
 export const rowIsMarkedForDeletion = (row: WebElement): Condition<boolean> => {
     return new Condition(`for row to be marked for deletion`, async () => {
         return (await row.getAttribute("class")).includes("deleted");
     });
 };
 
+/**
+ * Waits until the confirmation dialog exists
+ * @param context The context
+ * @returns A promise resolving when the confirmation dialog exists
+ */
 export const confirmationDialogExists = (context?: string): Condition<WebElement> => {
     let msg = "for confirmation dialog to be displayed";
     if (context) {
@@ -428,6 +576,11 @@ export const confirmationDialogExists = (context?: string): Condition<WebElement
     });
 };
 
+/**
+ * Waits until the database connection exists on the db connection overview page
+ * @param dbConnection The database connection
+ * @returns A promise resolving when the database connection exists
+ */
 export const existsOnDBConnectionOverview = (dbConnection: string): Condition<boolean> => {
     return new Condition(`${dbConnection} to exist`, async () => {
         const hosts = await driver.findElements(locator.dbConnectionOverview.dbConnection.tile);
