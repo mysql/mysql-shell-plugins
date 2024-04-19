@@ -1199,7 +1199,9 @@ export class CommandExecutor {
                 .length > 0;
         }, constants.wait5seconds, "Add new button was not displayed");
 
-        await (context!).findElement(locator.notebook.codeEditor.editor.result.status.toolbar.addNewRowButton).click();
+        const addNewRowLocator = locator.notebook.codeEditor.editor.result.status.toolbar.addNewRowButton;
+        const addNewRow = context!.findElement(addNewRowLocator);
+        await driver.executeScript("arguments[0].click()", addNewRow);
     };
 
     /**

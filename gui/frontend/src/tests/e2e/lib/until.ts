@@ -31,6 +31,11 @@ import { OpenConnectionDialog } from "./openConnectionDialog.js";
 import * as interfaces from "../lib/interfaces.js";
 import { DatabaseConnectionOverview } from "../lib/databaseConnectionOverview.js";
 
+/**
+ * Waits until the toolbar button is disabled
+ * @param button The button
+ * @returns A promise resolving when the toolbar button is disabled
+ */
 export const toolbarButtonIsDisabled = (button: string): Condition<boolean> => {
     return new Condition(`for button ${button} to be disabled`, async () => {
         const btn = await DBNotebooks.getToolbarButton(button);
@@ -39,6 +44,11 @@ export const toolbarButtonIsDisabled = (button: string): Condition<boolean> => {
     });
 };
 
+/**
+ * Waits until the toolbar button is enabled
+ * @param button The button
+ * @returns A promise resolving when the toolbar button is enabled
+ */
 export const toolbarButtonIsEnabled = (button: string): Condition<boolean> => {
     return new Condition(`for button ${button} to be enabled`, async () => {
         const btn = await DBNotebooks.getToolbarButton(button);
@@ -47,12 +57,22 @@ export const toolbarButtonIsEnabled = (button: string): Condition<boolean> => {
     });
 };
 
+/**
+ * Waits until the element is located within a context
+ * @param context The context
+ * @param locator The locator
+ * @returns A promise resolving when the element is located
+ */
 export const elementLocated = (context: WebElement, locator: Locator): Condition<boolean> => {
     return new Condition(`for element ${String(locator)} to be found`, async () => {
         return (await context.findElements(locator)).length > 0;
     });
 };
 
+/**
+ * Waits until the notebook's editor has a new prompt/line
+ * @returns A promise resolving when the new prompt exists
+ */
 export const editorHasNewPrompt = (): Condition<boolean> => {
     return new Condition(`for editor to have a new prompt`, async () => {
         const editorSentences = await driver.findElements(locator.notebook.codeEditor.editor.editorLine);
@@ -62,6 +82,11 @@ export const editorHasNewPrompt = (): Condition<boolean> => {
     });
 };
 
+/**
+ * Waits until the result grid is editable
+ * @param resultGrid The result grid
+ * @returns A promise resolving when the result grid is editable
+ */
 export const resultGridIsEditable = (resultGrid: WebElement): Condition<boolean> => {
     return new Condition(`for result grid to be editable`, async () => {
         const edit = await resultGrid.findElement(locator.notebook.codeEditor.editor.result.status.toolbar.editButton);
@@ -70,6 +95,14 @@ export const resultGridIsEditable = (resultGrid: WebElement): Condition<boolean>
     });
 };
 
+/**
+ * Waits until the a result grid cell is editable
+ * @param commandExecutor The command executor object
+ * @param rowNumber The row number
+ * @param columnName The column name
+ * @param expectInput True if the when the cell is editable, an input box is displayed
+ * @returns A promise resolving when the extension is ready
+ */
 export const cellIsEditable = (commandExecutor: CommandExecutor, rowNumber: number,
     columnName: string, expectInput: boolean): Condition<boolean | undefined> => {
     return new Condition(`for row to be editable`, async () => {
@@ -97,6 +130,12 @@ export const cellIsEditable = (commandExecutor: CommandExecutor, rowNumber: numb
     });
 };
 
+/**
+ * Waits until the result grid cells were changed
+ * @param resultGrid The result grid
+ * @param changed The expected number of changed cells
+ * @returns A promise resolving when the cells were changed
+ */
 export const cellsWereChanged = (resultGrid: WebElement, changed: number): Condition<boolean> => {
     return new Condition(`for changed ${changed} cells to be marked has changed (yellow background)`, async () => {
         return (await resultGrid
@@ -104,12 +143,22 @@ export const cellsWereChanged = (resultGrid: WebElement, changed: number): Condi
     });
 };
 
+/**
+ * Waits until a row was added to a result grid
+ * @param resultGrid The result grid
+ * @returns A promise resolving when the row was added
+ */
 export const rowWasAdded = (resultGrid: WebElement): Condition<boolean> => {
     return new Condition(`for added table row`, async () => {
         return (await resultGrid.findElements(locator.notebook.codeEditor.editor.result.addedTableRow)).length > 0;
     });
 };
 
+/**
+ * Waits until the rows were updated on a result grid
+ * @param commandExecutor The command executor
+ * @returns A promise resolving when rows were updated
+ */
 export const rowsWereUpdated = (commandExecutor: CommandExecutor): Condition<boolean> => {
     return new Condition(`for result message to match 'rows updated'`, async () => {
         await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
@@ -118,18 +167,33 @@ export const rowsWereUpdated = (commandExecutor: CommandExecutor): Condition<boo
     });
 };
 
+/**
+ * Waits until the message "x number of rows were updated" is displayed on the result grid toolbar
+ * @param commandExecutor The command executor
+ * @returns A promise resolving when the message is displayed
+ */
 export const changedResultGridCellsAreDone = (commandExecutor: CommandExecutor): Condition<boolean> => {
     return new Condition(`for yellow background on result grid cells to not be displayed`, () => {
         return commandExecutor.getResultMessage().match(/(\d+).*updated/) !== null;
     });
 };
 
+/**
+ * Waits until the row is marked for deletion (red background)
+ * @param row The row
+ * @returns A promise resolving when the row is marked for deletion
+ */
 export const rowIsMarkedForDeletion = (row: WebElement): Condition<boolean> => {
     return new Condition(`for row to be marked for deletion`, async () => {
         return (await row.getAttribute("class")).includes("deleted");
     });
 };
 
+/**
+ * Waits until the confirmation dialog exists
+ * @param context The context
+ * @returns A promise resolving when the confirmation dialog exists
+ */
 export const confirmationDialogExists = (context?: string): Condition<WebElement | undefined> => {
     let msg = "for confirmation dialog to be displayed";
     if (context) {
@@ -145,6 +209,10 @@ export const confirmationDialogExists = (context?: string): Condition<WebElement
     });
 };
 
+/**
+ * Waits until the database connection is successful
+ * @returns A promise resolving when the database connection is successful
+ */
 const dbConnectionIsSuccessful = (): Condition<boolean> => {
     return new Condition("for DB Connection is successful", async () => {
         const editorSelectorExists = (await driver.findElements(locator.notebook.toolbar.editorSelector.exists))
@@ -155,6 +223,11 @@ const dbConnectionIsSuccessful = (): Condition<boolean> => {
     });
 };
 
+/**
+ * Waits until the database connection is opened
+ * @param connection The database connection
+ * @returns A promise resolving when the database connection is opened
+ */
 export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
     return new Condition(`for DB connection ${connection.caption} to be opened`, async () => {
         const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
@@ -171,10 +244,13 @@ export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Cond
     });
 };
 
+/**
+ * Waits until the database connection does not exist on the DB Connection overview page
+ * @param dbConnection The database connection
+ * @returns A promise resolving when the database connection does not exist
+ */
 export const dbConnectionDoesNotExist = (dbConnection: string): Condition<boolean> => {
     return new Condition(`for DB Connection ${dbConnection} to not exist`, async () => {
         return !(await DatabaseConnectionOverview.existsConnection(dbConnection));
     });
 };
-
-
