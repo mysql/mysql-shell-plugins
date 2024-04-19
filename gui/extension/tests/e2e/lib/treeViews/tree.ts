@@ -113,7 +113,7 @@ export class Tree {
             await Misc.switchBackToTopFrame();
         }
 
-        if (type.match(/(ociDbSystem|ociBastion)/) !== null) {
+        if (type.match(/(ociDbSystem|ociBastion|ociCompute)/) !== null) {
             const sectionTree = await Section.getSection(section);
             const treeItems = await sectionTree.getVisibleItems();
             for (const treeItem of treeItems) {
