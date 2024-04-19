@@ -42,6 +42,7 @@ export const tasksTreeSection = "MYSQL SHELL TASKS";
 // OCI
 export const dbSystemType = "ociDbSystem";
 export const bastionType = "ociBastion";
+export const ociComputeType = "ociCompute";
 
 // OCI E2E TESTS BASTION CREDENTIALS
 export const bastionUsername = process.env.OCI_BASTION_USERNAME;
@@ -239,9 +240,11 @@ export const newTS = "New TypeScript Script";
 export const newMySQLNotebook = "New MySQL Notebook";
 export const openNotebookWithConn = "Open the Notebook with connection...";
 export const getBastionInfo = "Get Bastion Information";
+export const viewComputeInstanceInfo = "View Compute Instance Information";
 export const setAsCurrentBastion = "Set as Current Bastion";
 export const refreshBastion = "Refresh When Bastion Reaches Active State";
 export const deleteBastion = "Delete Bastion";
+export const deleteComputeInstance = "Delete Compute Instance";
 export const deleteUser = "Delete User";
 export const editAuthenticationApp = "Edit Authentication App";
 export const deleteAuthenticationApp = "Delete Authentication App";
@@ -418,6 +421,11 @@ export const openEditCtxMenu = new Map([
 
 export const miscCtxMenu = new Map([
     [openNotebookWithConn, 5],
+]);
+
+export const ociComputeInstanceCtxMenu = new Map([
+    [viewComputeInstanceInfo, 1],
+    [deleteComputeInstance, 3],
 ]);
 
 export const dbTables = [

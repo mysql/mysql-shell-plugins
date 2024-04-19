@@ -66,6 +66,11 @@ if (!process.env.OCI_BASTION_PASSWORD) {
 
 describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
+    let dbSystemOCID: string;
+    let bastionOCID: string;
+    let mdsEndPoint: string;
+    let skipTest = false;
+
     before(async function () {
 
         ociConfig = await Misc.mapOciConfig();
@@ -274,6 +279,80 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }, constants.wait5seconds, `No text was found inside ${await treeDbSystem.getLabel()} Info.json`);
         });
 
+        it("Create connection with Bastion Service", async function () {
+
+            const treeDbSystem = await Tree.getOciElementByType(constants.ociTreeSection, constants.dbSystemType);
+            const dbSystemName = await treeDbSystem.getLabel();
+            if (!await Tree.isDBSystemStopped(treeDbSystem)) {
+                await Tree.openContextMenuAndSelect(treeDbSystem, constants.createConnWithBastion);
+
+                const bastionConn: interfaces.IDBConnection = {
+                    dbType: "MySQL",
+                    caption: dbSystemName,
+                    description: "DB System used to test the MySQL Shell for VSCode Extension.",
+                    basic: {
+                        username: constants.bastionUsername,
+                        password: constants.bastionPassword,
+                    },
+                };
+
+                await driver.wait(waitUntil.dbConnectionIsOpened(bastionConn),
+                    constants.wait5seconds);
+                const newConDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
+                    constants.wait10seconds, "Connection dialog was not loaded");
+                expect(await newConDialog.findElement(locator.dbConnectionDialog.caption).getAttribute("value"),
+                    `Caption should be ${bastionConn.caption}`)
+                    .to.equal(bastionConn.caption);
+                expect(await newConDialog.findElement(locator.dbConnectionDialog.description).getAttribute("value"),
+                    `Description should be ${bastionConn.description}`)
+                    .to.equal(bastionConn.description);
+                mdsEndPoint = await newConDialog
+                    .findElement(locator.dbConnectionDialog.mysql.basic.hostname).getAttribute("value");
+                expect(mdsEndPoint, `MDS endpoint should match '(\\d+).(\\d+).(\\d+).(\\d+)`)
+                    .to.match(/(\d+).(\d+).(\d+).(\d+)/);
+                await newConDialog.findElement(locator.dbConnectionDialog.mysql.basic.username)
+                    .sendKeys((bastionConn.basic as interfaces.IConnBasicMySQL).username);
+                await DialogHelper.selectTab(constants.mdsTab);
+                await driver.wait(async () => {
+                    return await driver
+                        .findElement(locator.dbConnectionDialog.mysql.mds.dbSystemId).getAttribute("value") !== "";
+                }, constants.wait5seconds, "DbSystemID field was not set");
+                dbSystemOCID = await driver
+                    .findElement(locator.dbConnectionDialog.mysql.mds.dbSystemId).getAttribute("value");
+                await driver.wait(async () => {
+                    return await driver
+                        .findElement(locator.dbConnectionDialog.mysql.mds.bastionId).getAttribute("value") !== "";
+                }, constants.wait5seconds, "BastionID field was not set");
+                bastionOCID = await driver
+                    .findElement(locator.dbConnectionDialog.mysql.mds.bastionId).getAttribute("value");
+                await newConDialog.findElement(locator.dbConnectionDialog.ok).click();
+                const mds = await DatabaseConnectionOverview.getConnection(bastionConn.caption);
+                await mds.click();
+                try {
+                    await driver.wait(waitUntil.mdsConnectionIsOpened(bastionConn), constants.wait1minute);
+                } catch (e) {
+                    if (String(e).match(/Tunnel/) !== null) {
+                        await Workbench.closeEditor(constants.dbDefaultEditor);
+                        skipTest = true;
+                        this.skip();
+                    } else {
+                        throw e;
+                    }
+                }
+                const commandExecutor = new CommandExecutor();
+                await commandExecutor.execute("select version();");
+                expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
+                    commandExecutor.getResultMessage())).to.match(/OK/);
+            } else {
+                await Tree.openContextMenuAndSelect(treeDbSystem, constants.startDBSystem);
+                const ntf = await Workbench.getNotification("Are you sure you want to start the DB System", false);
+                await Workbench.clickOnNotificationButton(ntf, "Yes");
+                skipTest = true;
+                this.skip();
+            }
+
+        });
+
         it("Start a DB System (and cancel)", async () => {
 
             const treeDbSystem = await Tree.getOciElementByType(constants.ociTreeSection, constants.dbSystemType);
@@ -355,14 +434,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
     describe("Bastion", () => {
 
-        let mdsEndPoint = "";
-        let dbSystemOCID = "";
-        let bastionOCID = "";
-        let skip = false;
-
         before(async function () {
             try {
-                await Tree.expandElement(constants.ociTreeSection, ociTree, constants.wait5seconds * 5);
+                await Tree.expandElement(constants.ociTreeSection, ociTree, constants.wait25seconds);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -455,83 +529,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         });
 
-        it("Create connection with Bastion Service", async function () {
-
-            const treeDbSystem = await Tree.getOciElementByType(constants.ociTreeSection, constants.dbSystemType);
-            const dbSystemName = await treeDbSystem.getLabel();
-            if (!await Tree.isDBSystemStopped(treeDbSystem)) {
-                await Tree.openContextMenuAndSelect(treeDbSystem, constants.createConnWithBastion);
-
-                const bastionConn: interfaces.IDBConnection = {
-                    dbType: "MySQL",
-                    caption: dbSystemName,
-                    description: "DB System used to test the MySQL Shell for VSCode Extension.",
-                    basic: {
-                        username: constants.bastionUsername,
-                        password: constants.bastionPassword,
-                    },
-                };
-
-                await driver.wait(waitUntil.dbConnectionIsOpened(bastionConn),
-                    constants.wait5seconds);
-                const newConDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
-                    constants.wait10seconds, "Connection dialog was not loaded");
-                expect(await newConDialog.findElement(locator.dbConnectionDialog.caption).getAttribute("value"),
-                    `Caption should be ${bastionConn.caption}`)
-                    .to.equal(bastionConn.caption);
-                expect(await newConDialog.findElement(locator.dbConnectionDialog.description).getAttribute("value"),
-                    `Description should be ${bastionConn.description}`)
-                    .to.equal(bastionConn.description);
-                mdsEndPoint = await newConDialog
-                    .findElement(locator.dbConnectionDialog.mysql.basic.hostname).getAttribute("value");
-                expect(mdsEndPoint, `MDS endpoint should match '(\\d+).(\\d+).(\\d+).(\\d+)`)
-                    .to.match(/(\d+).(\d+).(\d+).(\d+)/);
-                await newConDialog.findElement(locator.dbConnectionDialog.mysql.basic.username)
-                    .sendKeys((bastionConn.basic as interfaces.IConnBasicMySQL).username);
-                await DialogHelper.selectTab(constants.mdsTab);
-                await driver.wait(async () => {
-                    return await driver
-                        .findElement(locator.dbConnectionDialog.mysql.mds.dbSystemId).getAttribute("value") !== "";
-                }, constants.wait5seconds, "DbSystemID field was not set");
-                dbSystemOCID = await driver
-                    .findElement(locator.dbConnectionDialog.mysql.mds.dbSystemId).getAttribute("value");
-                await driver.wait(async () => {
-                    return await driver
-                        .findElement(locator.dbConnectionDialog.mysql.mds.bastionId).getAttribute("value") !== "";
-                }, constants.wait5seconds, "BastionID field was not set");
-                bastionOCID = await driver
-                    .findElement(locator.dbConnectionDialog.mysql.mds.bastionId).getAttribute("value");
-                await newConDialog.findElement(locator.dbConnectionDialog.ok).click();
-                const mds = await DatabaseConnectionOverview.getConnection(bastionConn.caption);
-                await mds.click();
-                try {
-                    await driver.wait(waitUntil.mdsConnectionIsOpened(bastionConn), constants.wait1minute);
-                } catch (e) {
-                    if (String(e).match(/Tunnel/) !== null) {
-                        await Workbench.closeEditor(constants.dbDefaultEditor);
-                        skip = true;
-                        this.skip();
-                    } else {
-                        throw e;
-                    }
-                }
-                const commandExecutor = new CommandExecutor();
-                await commandExecutor.execute("select version();");
-                expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
-                    commandExecutor.getResultMessage())).to.match(/OK/);
-            } else {
-                await Tree.openContextMenuAndSelect(treeDbSystem, constants.startDBSystem);
-                const ntf = await Workbench.getNotification("Are you sure you want to start the DB System", false);
-                await Workbench.clickOnNotificationButton(ntf, "Yes");
-                skip = true;
-                this.skip();
-            }
-
-        });
-
         it("Create a new MDS Connection", async function () {
 
-            if (skip) {
+            if (skipTest) {
                 this.skip();
             }
 
@@ -570,6 +570,81 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         });
 
+    });
+
+    describe("Compute Instance", () => {
+
+        before(async function () {
+            try {
+                await Tree.expandElement(constants.ociTreeSection, ociTree, constants.wait25seconds);
+                await Section.focus(constants.ociTreeSection);
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
+        });
+
+        afterEach(async function () {
+            if (this.currentTest?.state === "failed") {
+                await Misc.processFailure(this);
+            }
+
+            const editors = await Workbench.getOpenEditorTitles();
+            for (const editor of editors) {
+                await Workbench.closeEditor(editor);
+                try {
+                    await Workbench.pushDialogButton("Don't Save");
+                } catch (e) {
+                    //continue
+                }
+            }
+        });
+
+        it("View Compute Instance Information", async () => {
+            const treeComputeInstance = await Tree.getOciElementByType(constants.ociTreeSection,
+                constants.ociComputeType);
+            const computeName = await treeComputeInstance.getLabel();
+            await Tree.openContextMenuAndSelect(treeComputeInstance, constants.viewComputeInstanceInfo);
+            await driver.wait(waitUntil.tabIsOpened(`${computeName} Info.json`), constants.wait5seconds);
+
+            const textEditor = new TextEditor();
+            await driver.wait(async () => {
+                const text = await textEditor.getText();
+
+                return text.indexOf("{") !== -1;
+            }, constants.wait5seconds, `No text was found inside the ${computeName} Info.json file`);
+
+            let json: string;
+            await driver.wait(async () => {
+                json = await textEditor.getText();
+
+                return Misc.isJson(json);
+            }, constants.wait5seconds, "Bastion json file content is not json");
+
+            await Workbench.closeEditor(`${computeName} Info.json`);
+            await Workbench.pushDialogButton("Don't Save");
+        });
+
+        it("Delete Compute Instance", async () => {
+            const treeComputeInstance = await Tree.getOciElementByType(constants.ociTreeSection,
+                constants.ociComputeType);
+            const instanceLabel = await treeComputeInstance.getLabel();
+            await Tree.openContextMenuAndSelect(treeComputeInstance, constants.deleteComputeInstance);
+            try {
+                const msg = "Delete Compute Instance (running)";
+                expect(await Tree.existsElement(constants.tasksTreeSection, msg),
+                    errors.doesNotExistOnTree(msg)).to.be.true;
+
+                const text = `Are you sure you want to delete the instance ${instanceLabel}`;
+                const ntf = await Workbench.getNotification(text, false);
+                await Workbench.clickOnNotificationButton(ntf, "NO");
+                await driver.wait(async () => {
+                    return (Tree.existsElement(constants.tasksTreeSection, "Delete Compute Instance (error)"));
+                }, constants.wait10seconds, "Delete Compute Instance (error)");
+            } finally {
+                await Section.collapse(constants.tasksTreeSection);
+            }
+        });
     });
 
 });
