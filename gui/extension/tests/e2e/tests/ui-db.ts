@@ -548,7 +548,7 @@ describe("DATABASE CONNECTIONS", () => {
             delete (editConn.basic as interfaces.IConnBasicMySQL).password;
             await DatabaseConnectionDialog.setConnection(editConn);
             await DatabaseConnectionOverview.moreActions(editConn.caption, constants.editConnection);
-            const verifyConn = await DatabaseConnectionDialog.getConnectionDetails(editConn.caption);
+            const verifyConn = await DatabaseConnectionDialog.getConnectionDetails();
             expect(verifyConn).to.deep.equal(editConn);
         });
 
@@ -584,7 +584,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await DatabaseConnectionDialog.setConnection(editSqliteConn);
             await DatabaseConnectionOverview.moreActions(editSqliteConn.caption, constants.editConnection);
-            const verifyConn = await DatabaseConnectionDialog.getConnectionDetails(editSqliteConn.caption);
+            const verifyConn = await DatabaseConnectionDialog.getConnectionDetails();
             delete (verifyConn.basic as interfaces.IConnBasicSqlite).dbName;
             delete (editSqliteConn.basic as interfaces.IConnBasicSqlite).dbName;
             expect(verifyConn).to.deep.equal(editSqliteConn);

@@ -421,7 +421,15 @@ export class Workbench {
      */
     public static closeAllEditors = async (): Promise<void> => {
         await Misc.switchBackToTopFrame();
-        await new EditorView().closeAllEditors();
+        const editors = await Workbench.getOpenEditorTitles();
+        for (const editor of editors) {
+            await Workbench.closeEditor(editor);
+            try {
+                await Workbench.pushDialogButton("Don't Save");
+            } catch (e) {
+                //continue
+            }
+        }
     };
 
     /**
