@@ -28,7 +28,7 @@ import * as constants from "../constants";
 import * as interfaces from "../interfaces";
 import * as locator from "../locators";
 import { DialogHelper } from "./dialogHelper";
-import { DatabaseConnectionOverview } from "./dbConnectionOverview";
+
 /**
  * This class aggregates the functions that perform database related operations
  */
@@ -256,15 +256,14 @@ export class DatabaseConnectionDialog {
     };
 
     /**
-     * Gets a Database connection details by opening the connection dialog
-     * @param name The database connection caption
+     * Gets the database connection details from the connection dialog
      * @returns A promise resolving with the connection details
      */
-    public static getConnectionDetails = async (name: string): Promise<interfaces.IDBConnection> => {
+    public static getConnectionDetails = async (): Promise<interfaces.IDBConnection> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
-        await DatabaseConnectionOverview.moreActions(name, constants.editConnection);
+
         const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
             constants.wait25seconds, "Connection dialog was not displayed");
         const dbConnection: interfaces.IDBConnection = {

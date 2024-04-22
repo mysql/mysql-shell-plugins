@@ -1715,18 +1715,30 @@ describe("NOTEBOOKS", () => {
                 commandExecutor.getResultMessage())).to.match(/OK/);
 
             const row = 0;
+            let err: string;
             for (let i = 1; i <= tableColumns.length - 1; i++) {
-                await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
-                    constants.resultGridContextMenu.copyField);
-                expect(clipboard.readSync(), `Copy field on column: ${tableColumns[i]}`)
-                    .to.match(constants.dbTables[table].columnRegexWithQuotes[i]);
-                await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
-                    constants.resultGridContextMenu.copyFieldUnquoted);
-                if (clipboard.readSync() === "") {
-                    clipboard.writeSync(" ");
-                }
-                expect(clipboard.readSync(), `Copy field unquoted on column: ${tableColumns[i]}`)
-                    .to.match(constants.dbTables[table].columnRegex[i]);
+                err += `Copy field on column: ${tableColumns[i]} did not match `;
+                err += constants.dbTables[table].columnRegexWithQuotes[i];
+                await driver.wait(async () => {
+                    await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
+                        constants.resultGridContextMenu.copyField);
+
+                    return clipboard.readSync().match(constants.dbTables[table].columnRegexWithQuotes[i]) !== null;
+                }, constants.wait5seconds, err);
+
+                err = `Copy field unquoted on column: ${tableColumns[i]} did not match `;
+                err += constants.dbTables[table].columnRegex[i];
+
+                await driver.wait(async () => {
+                    await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
+                        constants.resultGridContextMenu.copyFieldUnquoted);
+                    if (clipboard.readSync() === "") {
+                        clipboard.writeSync(" ");
+                    }
+
+                    return clipboard.readSync().match(constants.dbTables[table].columnRegex[i]) !== null;
+                }, constants.wait5seconds, err);
+
                 await commandExecutor.openCellContextMenuAndSelect(row, tableColumns[i],
                     constants.resultGridContextMenu.setFieldToNull);
                 expect(await commandExecutor.getCellValueFromResultGrid(row, tableColumns[i]),
