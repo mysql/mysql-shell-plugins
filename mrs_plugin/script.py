@@ -61,7 +61,8 @@ def run_mrs_script(mrs_script=None, **kwargs):
                     if res.get("affectedItemsCount") is None and res.get("message") is not None:
                         print(res.get("message"))
                     elif res.get("affectedItemsCount") is not None:
-                        print(f'{res.get("affectedItemsCount")} row{"s" if res.get("affectedItemsCount") > 1 else ""} affected.')
+                        print(
+                            f'{res.get("affectedItemsCount")} row{"s" if res.get("affectedItemsCount") > 1 else ""} affected.')
                 else:
                     print(f'ERROR: {res.get("message")}')
 
@@ -116,8 +117,9 @@ def get_shell_result(mrs_result):
     return shell_result
 
 
-@sql_handler(prefixes=MRS_PREFIXES)
+@sql_handler("MRS", prefixes=MRS_PREFIXES)
 def mrs_sql_handler(session, sql):
+    "MySQL REST Service SQL Extension"
     try:
         if not session.connection_id in mrs_sql_handler.state:
             mrs_sql_handler.state[session.connection_id] = {}
