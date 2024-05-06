@@ -642,6 +642,7 @@ describe("NOTEBOOKS", () => {
             const longTextField = await commandExecutor.getCellValueFromResultGrid(row, "test_longtext");
             const enumField = await commandExecutor.getCellValueFromResultGrid(row, "test_enum");
             const setFIeld = await commandExecutor.getCellValueFromResultGrid(row, "test_set");
+            const jsonField = await commandExecutor.getCellValueFromResultGrid(row, "test_json");
 
             expect(charField, errors.incorrectCellValue("CHAR")).to.match(/([a-z]|[A-Z])/);
             expect(varCharField, errors.incorrectCellValue("VARCHAR")).to.match(/([a-z]|[A-Z])/);
@@ -651,8 +652,7 @@ describe("NOTEBOOKS", () => {
             expect(longTextField, errors.incorrectCellValue("LONGTEXT")).to.match(/([a-z]|[A-Z])/);
             expect(enumField, errors.incorrectCellValue("ENUM")).to.match(/([a-z]|[A-Z])/);
             expect(setFIeld, errors.incorrectCellValue("SET")).to.match(/([a-z]|[A-Z])/);
-            expect(await commandExecutor.getCellIconType(row, "test_json"), "The cell should have a JSON icon")
-                .to.equals(constants.json);
+            expect(jsonField).to.match(/\{.*\}/);
         });
 
         it("Verify mysql data types - blob columns", async () => {
@@ -928,7 +928,7 @@ describe("NOTEBOOKS", () => {
             const testSet = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_set");
             expect(testSet, errors.incorrectCellValue("SET")).to.equals(setEdited);
             const testJson = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_json");
-            expect(testJson, errors.incorrectCellValue("JSON")).to.equals(constants.json);
+            expect(testJson, errors.incorrectCellValue("JSON")).to.equals(jsonEdited);
         });
 
         it("Edit a result grid, verify query preview and commit - geometry columns", async () => {
@@ -1211,7 +1211,7 @@ describe("NOTEBOOKS", () => {
             const testSet = await commandExecutor.getCellValueFromResultGrid(row, "test_set");
             expect(testSet, errors.incorrectCellValue("SET")).to.equals(setEdited);
             const testJson = await commandExecutor.getCellValueFromResultGrid(row, "test_json");
-            expect(testJson, errors.incorrectCellValue("JSON")).to.equals(constants.json);
+            expect(testJson, errors.incorrectCellValue("JSON")).to.equals(jsonEdited);
 
         });
 
@@ -1745,7 +1745,108 @@ describe("NOTEBOOKS", () => {
                     `Set field to null (${tableColumns[i]})`)
                     .to.equals(constants.isNull);
             }
+            await commandExecutor.resultGridRollbackChanges();
+            const confirmDialog = await driver.wait(waitUntil.confirmationDialogExists("for rollback"));
+            await confirmDialog.findElement(locator.confirmDialog.accept).click();
         });
+
+        it("Result grid cell tooltips - integer columns", async () => {
+            const rowNumber = 0;
+            await commandExecutor.clean();
+            await commandExecutor.execute("\\about");
+            await commandExecutor.execute("SELECT * from sakila.all_data_types_ints limit 1;");
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
+                commandExecutor.getResultMessage())).to.match(/OK/);
+
+            const table = 0;
+            const tableColumns = constants.dbTables[table].columns;
+
+            for (let i = 1; i <= tableColumns.length - 1; i++) {
+                const column = Misc.getDbTableColumnName("all_data_types_ints", i);
+                await commandExecutor.setResultGridCellWidth(0, column);
+                const cellText = await commandExecutor.getCellValueFromResultGrid(rowNumber, column);
+                await driver.wait(waitUntil.cellTooltipIs(commandExecutor, rowNumber, column, cellText),
+                    constants.wait3seconds);
+            }
+        });
+
+        it("Result grid cell tooltips - date columns", async () => {
+            const rowNumber = 0;
+            await commandExecutor.clean();
+            await commandExecutor.execute("\\about");
+            await commandExecutor.execute("SELECT * from sakila.all_data_types_dates limit 1;");
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
+                commandExecutor.getResultMessage())).to.match(/OK/);
+
+            const table = 1;
+            const tableColumns = constants.dbTables[table].columns;
+
+            for (let i = 1; i <= tableColumns.length - 1; i++) {
+                const column = Misc.getDbTableColumnName("all_data_types_dates", i);
+                await commandExecutor.setResultGridCellWidth(rowNumber, column);
+                const cellText = await commandExecutor.getCellValueFromResultGrid(rowNumber, column);
+                await driver.wait(waitUntil.cellTooltipIs(commandExecutor, rowNumber, column, cellText),
+                    constants.wait3seconds);
+            }
+        });
+
+        it("Result grid cell tooltips - char columns", async () => {
+            const rowNumber = 0;
+            await commandExecutor.clean();
+            await commandExecutor.execute("\\about");
+            await commandExecutor.execute("SELECT * from sakila.all_data_types_chars limit 1;");
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
+                commandExecutor.getResultMessage())).to.match(/OK/);
+
+            const table = 2;
+            const tableColumns = constants.dbTables[table].columns;
+
+            for (let i = 1; i <= tableColumns.length - 1; i++) {
+                const column = Misc.getDbTableColumnName("all_data_types_chars", i);
+                await commandExecutor.setResultGridCellWidth(rowNumber, column);
+                const cellText = await commandExecutor.getCellValueFromResultGrid(rowNumber, column);
+                await driver.wait(waitUntil.cellTooltipIs(commandExecutor, rowNumber, column, cellText),
+                    constants.wait3seconds);
+            }
+        });
+
+        it("Result grid cell tooltips - binary and varbinary columns", async () => {
+            const rowNumber = 0;
+            await commandExecutor.clean();
+            await commandExecutor.execute("\\about");
+            await commandExecutor.execute("SELECT * from sakila.all_data_types_blobs limit 1;");
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
+                commandExecutor.getResultMessage())).to.match(/OK/);
+
+            const table = 3;
+            const tableColumns = constants.dbTables[table].columns;
+
+            for (let i = 5; i <= tableColumns.length - 1; i++) {
+                const column = Misc.getDbTableColumnName("all_data_types_blobs", i);
+                await commandExecutor.setResultGridCellWidth(rowNumber, column);
+                const cellText = await commandExecutor.getCellValueFromResultGrid(rowNumber, column);
+                await driver.wait(waitUntil.cellTooltipIs(commandExecutor, rowNumber, column, cellText),
+                    constants.wait3seconds);
+            }
+        });
+
+        it("Result grid cell tooltips - bit column", async () => {
+            const rowNumber = 0;
+            await commandExecutor.clean();
+            await commandExecutor.execute("\\about");
+            await commandExecutor.execute("SELECT * from sakila.all_data_types_geometries limit 1;");
+            expect(commandExecutor.getResultMessage(), errors.queryResultError("OK",
+                commandExecutor.getResultMessage())).to.match(/OK/);
+
+            const table = 4;
+            const tableColumns = constants.dbTables[table].columns;
+            const column = Misc.getDbTableColumnName("all_data_types_geometries", tableColumns.length - 1);
+            await commandExecutor.setResultGridCellWidth(rowNumber, column);
+            const cellText = await commandExecutor.getCellValueFromResultGrid(rowNumber, column);
+            await driver.wait(waitUntil.cellTooltipIs(commandExecutor, rowNumber, column, cellText),
+                constants.wait3seconds);
+        });
+
     });
 
     describe("Scripts", () => {

@@ -596,17 +596,22 @@ export const existsOnDBConnectionOverview = (dbConnection: string): Condition<bo
 };
 
 /**
- * Waits until a tab with json content to be opened
- * @param filename The file name
- * @returns A promise resolving when the tab with json content is opened
+ * Waits until the cell tooltip is equal to the expected value
+ * @param commandExecutor The command executor
+ * @param rowNumber The row number
+ * @param rowColumn The column name
+ * @param expectedTooltip The expected tooltip
+ * @returns A promise resolving when the tooltip is equal to the expected value
  */
-export const jsonFileIsOpened = (filename: string): Condition<boolean> => {
-    return new Condition(`${filename} to be opened`, async () => {
-        const textEditor = new TextEditor();
-        const json = await textEditor.getText();
-        if (json.includes("{")) {
-            return Misc.isJson(json);
-        }
+export const cellTooltipIs = (
+    commandExecutor: CommandExecutor,
+    rowNumber: number,
+    rowColumn: string,
+    expectedTooltip: string): Condition<boolean> => {
+    return new Condition(` tooltip to be '${expectedTooltip}'`, async () => {
+        const tooltip = await commandExecutor.getCellTooltip(rowNumber, rowColumn);
+
+        return tooltip.replace(/\s/g, "") === expectedTooltip.replace(/\s/g, "");
     });
 };
 

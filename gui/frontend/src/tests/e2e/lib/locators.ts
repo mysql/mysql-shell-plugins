@@ -319,6 +319,7 @@ export const notebook = {
         prompt: {
             current: By.className("editorPromptFirst"),
         },
+        tooltip: By.className("tooltip"),
         scroll: By.css(".codeEditor .monaco-scrollable-element"),
         autoCompleteItems: By.css(".monaco-list .monaco-highlighted-label"),
         suggestionsMenu: By.css("div.contents"),
@@ -399,6 +400,7 @@ export const htmlTag = {
     div: By.css("div"),
     img: By.css("img"),
     input: By.css("input"),
+    textArea: By.css("textarea"),
     mix: (...locators: string[]): By => {
         return By.css(locators.join(" > "));
     },

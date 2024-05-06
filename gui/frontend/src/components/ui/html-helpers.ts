@@ -26,6 +26,7 @@
 import { ComponentPlacement } from "./Component/ComponentBase.js";
 
 // Helper functions required for direct work with HTML DOM elements.
+// Testing notes: These functions are not covered by unit tests, as they require a browser environment.
 
 /**
  * Computes the target coordinates for the content element for a given placement.
@@ -37,6 +38,7 @@ import { ComponentPlacement } from "./Component/ComponentBase.js";
  *
  * @returns Left and top values in the coordinate system of the parent of the reference element.
  */
+// istanbul ignore next
 const computePositionForPlacement = (placement: ComponentPlacement, content: HTMLElement, reference: DOMRect,
     offset: number): { left: number; top: number; } => {
 
@@ -142,9 +144,9 @@ const computePositionForPlacement = (placement: ComponentPlacement, content: HTM
  *
  * @returns Left and top values in the coordinate system of the parent of the reference element.
  */
+// istanbul ignore next
 export const computeContentPosition = (placement: ComponentPlacement, content: HTMLElement, reference: DOMRect,
-    offset: number, canFlip: boolean,
-    container: HTMLElement = document.body): { left: number; top: number; } => {
+    offset: number, canFlip: boolean, container: HTMLElement = document.body): { left: number; top: number; } => {
     let { left, top } = computePositionForPlacement(placement, content, reference, offset);
     const { width, height } = content.getBoundingClientRect();
     const containerBounds = container.getBoundingClientRect();
@@ -397,4 +399,140 @@ export const computeContentPosition = (placement: ComponentPlacement, content: H
     }
 
     return { left, top };
+};
+
+/**
+ * Checks if the given element is clipped by any of its parent elements.
+ *
+ * @param element The element to check.
+ *
+ * @param checkVertical If true, the function checks for vertical clipping.
+ * @param checkHorizontal If true, the function checks for horizontal clipping.
+ * @returns True if the element is clipped, false otherwise.
+ */
+// istanbul ignore next
+export const isElementClipped = (element: HTMLElement, checkVertical: boolean, checkHorizontal: boolean): boolean => {
+    const elementRect = element.getBoundingClientRect();
+
+    let parent = element.parentElement;
+    while (parent) {
+        const parentRect = parent.getBoundingClientRect();
+
+        if (checkVertical && (elementRect.top < parentRect.top || elementRect.bottom > parentRect.bottom)) {
+            return true;
+        }
+
+        if (checkHorizontal && (elementRect.left < parentRect.left || elementRect.right > parentRect.right)) {
+            return true;
+        }
+
+        parent = parent.parentElement;
+    }
+
+    return false;
+};
+
+/**
+ * Checks if the given element has the nowrap style.
+ *
+ * @param element The element to check.
+ *
+ * @returns True if the element has the nowrap style, false otherwise.
+ */
+// istanbul ignore next
+export const hasNoWrap = (element: HTMLElement): boolean => {
+    const style = window.getComputedStyle(element);
+
+    return style.whiteSpace === "nowrap";
+};
+
+/**
+ * Convert document (actually: viewport) coordinates to screen coordinates.
+ *
+ * @param x The x-coordinate in the document.
+ * @param y The y-coordinate in the document.
+ *
+ * @returns The x and y coordinates in the screen coordinate system.
+ */
+// istanbul ignore next
+export const documentToScreen = (x: number, y: number): [number, number] => {
+    const screenX = x + window.scrollX + window.screenX;
+    const screenY = y + window.scrollY + window.screenY;
+
+    return [screenX, screenY];
+};
+
+/**
+ * Convert screen coordinates to document (viewport) coordinates.
+ *
+ * @param x The x-coordinate in the screen coordinate system.
+ * @param y The y-coordinate in the screen coordinate system.
+ *
+ * @returns The x and y coordinates in the document.
+ */
+// istanbul ignore next
+export const screenToDocument = (x: number, y: number): [number, number] => {
+    const documentX = x - window.scrollX - window.screenX;
+    const documentY = y - window.scrollY - window.screenY;
+
+    return [documentX, documentY];
+};
+
+/**
+ * Clamps the given coordinates to the document bounds, considering also the screen position of the browser window.
+ * Unfortunately, screen clamping only works for the primary screen.
+ *
+ * @param bounds The bounds of the element to clamp.
+ * @param offsetX An additional offset for the x-coordinate.
+ * @param offsetY An additional offset for the y-coordinate.
+ *
+ * @returns The clamped x and y coordinates.
+ */
+// istanbul ignore next
+export const clampToDocument = (bounds: DOMRect, offsetX: number, offsetY: number): [number, number] => {
+    // First compute the new x and y coordinates within the document bounds.
+    const newX = Math.min(Math.max(bounds.left + offsetX, 0), window.innerWidth - bounds.width + offsetX);
+    const newY = Math.min(Math.max(bounds.top + offsetY, 0), window.innerHeight - bounds.height + offsetY);
+
+    // Then clamp the new coordinates to the screen bounds.
+    let [screenX, screenY] = documentToScreen(newX, newY);
+    screenX = Math.min(Math.max(screenX, 0), window.screen.availWidth - bounds.width + offsetX);
+    screenY = Math.min(Math.max(screenY, 0), window.screen.availHeight - bounds.height + offsetY);
+
+    return screenToDocument(screenX, screenY);
+};
+
+/**
+ * Computes the dimensions of the given content with the given style, which can include font, size and border values.
+ *
+ * @param content The text to measure.
+ * @param style The style to apply to the text.
+ *
+ * @returns A tuple with the computed width and height of the content.
+ */
+export const computeBounds = (content: string, style: Partial<CSSStyleDeclaration>): [number, number] => {
+    // Create a new element, set its properties to the given style and measure the text.
+    const element = document.createElement("div");
+    element.style.position = "absolute";
+    element.style.visibility = "hidden";
+    element.style.whiteSpace = style.whiteSpace ?? "nowrap";
+    element.style.width = style.width ?? "fit-content";
+    element.style.maxWidth = style.maxWidth ?? "800px";
+    element.style.height = style.height ?? "fit-content";
+    element.style.maxHeight = style.maxHeight ?? "500px";
+    element.style.padding = style.padding ?? "6px";
+    element.style.font = style.font ?? "";
+    element.style.fontWeight = style.fontWeight ?? "";
+    element.style.fontStyle = style.fontStyle ?? "";
+    element.style.lineHeight = style.lineHeight ?? "";
+    element.innerText = content;
+
+    document.body.appendChild(element);
+
+    const width = element.offsetWidth;
+    const height = element.offsetHeight;
+
+    document.body.removeChild(element);
+
+    return [width, height];
 };

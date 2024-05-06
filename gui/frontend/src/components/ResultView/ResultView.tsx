@@ -39,27 +39,32 @@ import {
     RowComponent, ValueBooleanCallback, ValueVoidCallback,
 } from "tabulator-tables";
 
-import { ITreeGridOptions, SetDataAction, TreeGrid } from "../ui/TreeGrid/TreeGrid.js";
-import { IResultSet, IResultSetRows } from "../../script-execution/index.js";
-import { convertCamelToTitleCase, formatBase64ToHex } from "../../utilities/string-helpers.js";
 import { DBDataType, DialogType, IColumnInfo, MessageType } from "../../app-logic/Types.js";
+import { IResultSet, IResultSetRows } from "../../script-execution/index.js";
 import { requisitions } from "../../supplement/Requisitions.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { saveArrayAsFile, saveTextAsFile, selectFile } from "../../utilities/helpers.js";
+import { convertCamelToTitleCase, formatBase64ToHex } from "../../utilities/string-helpers.js";
+import { Button, IButtonProperties } from "../ui/Button/Button.js";
 import {
-    IComponentProperties, ComponentBase, SelectionType, ComponentPlacement,
+    ComponentBase, ComponentPlacement, IComponentProperties, SelectionType,
 } from "../ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../ui/Container/Container.js";
-import { Icon } from "../ui/Icon/Icon.js";
-import { Menu } from "../ui/Menu/Menu.js";
-import { MenuItem, IMenuItemProperties } from "../ui/Menu/MenuItem.js";
-import { Input, IInputChangeProperties } from "../ui/Input/Input.js";
-import { TextAlignment } from "../ui/Label/Label.js";
-import { UpDown } from "../ui/UpDown/UpDown.js";
 import { DateTime, IDateTimeChangeProperties, IDateTimeValueType } from "../ui/DataTime/DateTime.js";
-import { FieldEditor } from "./FieldEditor.js";
-import { Settings } from "../../supplement/Settings/Settings.js";
-import { Button, IButtonProperties } from "../ui/Button/Button.js";
-import { saveArrayAsFile, saveTextAsFile, selectFile } from "../../utilities/helpers.js";
 import { Dropdown } from "../ui/Dropdown/Dropdown.js";
+import { Icon } from "../ui/Icon/Icon.js";
+import { IInputChangeProperties, Input } from "../ui/Input/Input.js";
+import { TextAlignment } from "../ui/Label/Label.js";
+import { Menu } from "../ui/Menu/Menu.js";
+import { IMenuItemProperties, MenuItem } from "../ui/Menu/MenuItem.js";
+import { ITreeGridOptions, SetDataAction, TreeGrid } from "../ui/TreeGrid/TreeGrid.js";
+import { UpDown } from "../ui/UpDown/UpDown.js";
+import { FieldEditor } from "./FieldEditor.js";
+
+/** How we structure the formatter params used for the individual cell formatters. */
+interface IFormatterParams {
+    info: IColumnInfo;
+}
 
 /** Records a single change in a cell. The row it belongs to is the owner of this change. */
 export interface IResultCellChange {
@@ -216,7 +221,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 }
 
                 <Container className="actionHost" orientation={Orientation.LeftToRight}>
-                    <Button
+                    {editable && canEdit && <Button
                         id="addNewRow"
                         data-tooltip="Add New Row"
                         imageOnly={true}
@@ -224,7 +229,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                         onClick={this.handleAction}
                     >
                         <Icon src={addRowIcon} data-tooltip="inherit" />
-                    </Button>
+                    </Button>}
                 </Container>
 
                 {!gotError && !gotResponse && <FieldEditor ref={this.editorRef} />}
@@ -434,11 +439,11 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     private generateColumnDefinitions = (columns: IColumnInfo[], editable: boolean): ColumnDefinition[] => {
         // Map column info from the backend to column definitions for
         return columns.map((info): ColumnDefinition => {
-            let formatter: Formatter | undefined;
-            const formatterParams: FormatterParams = () => { return { info }; };
-            let editorParams: EditorParams = () => { return { info }; };
-            let minWidth = 50;
+            let formatter;
+            const formatterParams: FormatterParams = (): IFormatterParams => { return { info }; };
+            const editorParams: EditorParams = () => { return { info }; };
 
+            let minWidth = 50;
             let editor: Editor | undefined;
 
             switch (info.dataType.type) {
@@ -454,7 +459,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 }
 
                 case DBDataType.Json: {
-                    formatter = this.jsonFormatter;
+                    formatter = this.stringFormatter; // this.jsonFormatter; re-enable when we have a JSON editor
                     editor = this.editorHost;
                     minWidth = 150;
 
@@ -534,12 +539,6 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 default: {
                     formatter = this.stringFormatter;
                     editor = this.editorHost;
-                    editorParams = (): { info: IColumnInfo; verticalNavigation: string; } => {
-                        return {
-                            info,
-                            verticalNavigation: "editor",
-                        };
-                    };
 
                     break;
                 }
@@ -550,9 +549,9 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             return {
                 title: info.title,
                 field: info.field,
-                formatter,
+                formatter: formatter as Formatter,
                 formatterParams,
-                formatterClipboard: formatter,
+                formatterClipboard: formatter as Formatter,
                 editor,
                 editorParams,
                 width,
@@ -576,8 +575,6 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     if (!this.editingCell) {
                         const { rowChanges } = this.mergedProps;
                         const rowChange = rowChanges?.[cell.getRow().getPosition() as number - 1];
-                        const info = this.columnInfoFromCell(cell);
-
                         if (editable && editor != null && (!info?.autoIncrement || !rowChange?.added)) {
                             cell.edit(true);
                         }
@@ -1432,7 +1429,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
     // Also here: cannot test if it is not rendered.
     // istanbul ignore next
-    private stringFormatter = (cell: CellComponent): string | HTMLElement => {
+    private stringFormatter = (cell: CellComponent, formatterParams: IFormatterParams,
+        onRendered: EmptyCallback): string | HTMLElement => {
         this.markIfChanged(cell);
 
         const value = cell.getValue();
@@ -1446,6 +1444,15 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
             return host;
         } else {
+            onRendered(() => {
+                const info = formatterParams.info;
+                const element = cell.getElement();
+                element.setAttribute("data-tooltip", "expand");
+                if (info?.dataType.type === DBDataType.Json) {
+                    element.setAttribute("data-tooltip-lang", "json");
+                }
+            });
+
             return String(value);
         }
     };
@@ -1466,10 +1473,11 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     };
 
     // istanbul ignore next
-    private numberFormatter = (cell: CellComponent): string | HTMLElement => {
+    private numberFormatter = (cell: CellComponent, formatterParams: IFormatterParams,
+        onRendered: EmptyCallback): string | HTMLElement => {
         const added = this.markIfChanged(cell);
 
-        const info = this.columnInfoFromCell(cell);
+        const info = formatterParams.info;
         if (added && info?.autoIncrement) {
             return "AI";
         }
@@ -1485,11 +1493,17 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             return host;
         }
 
+        onRendered(() => {
+            const element = cell.getElement();
+            element.setAttribute("data-tooltip", "expand");
+        });
+
         return String(value);
     };
 
     // istanbul ignore next
-    private binaryFormatter = (cell: CellComponent): string | HTMLElement => {
+    private binaryFormatter = (cell: CellComponent, formatterParams: IFormatterParams,
+        onRendered: EmptyCallback): string | HTMLElement => {
         this.markIfChanged(cell);
 
         let element;
@@ -1503,6 +1517,11 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
             return host;
         } else {
+            onRendered(() => {
+                const element = cell.getElement();
+                element.setAttribute("data-tooltip", "expand");
+            });
+
             // Binary data is given as a based64 encoded string
             if (value) {
                 return formatBase64ToHex(value, 64);
@@ -1543,7 +1562,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     };
 
     // istanbul ignore next
-    private dateFormatter = (cell: CellComponent): string | HTMLElement => {
+    private dateFormatter = (cell: CellComponent, formatterParams: IFormatterParams,
+        onRendered: EmptyCallback): string | HTMLElement => {
         this.markIfChanged(cell);
 
         const value = cell.getValue();
@@ -1557,9 +1577,14 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             return host;
         }
 
-        const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+        onRendered(() => {
+            const element = cell.getElement();
+            element.setAttribute("data-tooltip", "expand");
+        });
 
-        const info = this.columnInfoFromCell(cell);
+        const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+        const stringValue = String(value);
+        const info = formatterParams.info;
         if (info) {
             let date: Date;
             const options: Intl.DateTimeFormatOptions = {};
@@ -1567,7 +1592,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             switch (info.dataType.type) {
                 case DBDataType.Date:
                 case DBDataType.DateTime: {
-                    date = new Date(value as string);
+                    date = new Date(stringValue);
                     options.year = "numeric";
                     options.month = "2-digit";
                     options.day = "2-digit";
@@ -1576,21 +1601,21 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 }
 
                 case DBDataType.Time: {
-                    date = new Date(`1970-01-01T${value as string}`);
+                    date = new Date(`1970-01-01T${stringValue}`);
                     const formattedTime = date.toLocaleTimeString(locale);
 
                     return formattedTime;
                 }
 
                 case DBDataType.Year: {
-                    date = new Date(value as string);
+                    date = new Date(stringValue);
                     options.year = "numeric";
 
                     break;
                 }
 
                 default: {
-                    date = new Date(value as string);
+                    date = new Date(stringValue);
 
                     break;
                 }
@@ -1599,10 +1624,11 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             return date.toLocaleDateString(locale, options);
         }
 
-        return value as string;
+        return stringValue;
     };
 
-    private booleanFormatter = (cell: CellComponent): string | HTMLElement => {
+    private booleanFormatter = (cell: CellComponent, formatterParams: IFormatterParams,
+        onRendered: EmptyCallback): string | HTMLElement => {
         this.markIfChanged(cell);
 
         const host = document.createElement("div");
@@ -1614,6 +1640,11 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
             return host;
         } else {
+            onRendered(() => {
+                const element = cell.getElement();
+                element.setAttribute("data-tooltip", "expand");
+            });
+
             return cell.getValue() === 0 ? "false" : "true";
         }
     };
@@ -1679,6 +1710,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
      */
     private useMultiLineEditor(type: DBDataType): boolean | undefined {
         switch (type) {
+            case DBDataType.String:
+            case DBDataType.Json:
             case DBDataType.Varchar:
             case DBDataType.Nvarchar:
             case DBDataType.MediumText:

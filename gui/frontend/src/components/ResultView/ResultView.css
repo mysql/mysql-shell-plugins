@@ -53,6 +53,10 @@
     background: transparent;
 }
 
+.msg.resultHost .resultView {
+    flex: 1 1 auto;
+}
+
 .msg.resultHost {
     font-family: var(--msg-monospace-font-family);
     height: 100%;
@@ -124,13 +128,8 @@
 .msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell {
     padding: 3px 9px 2px 10px;
 
-    /* These properties ensure ellipses on large multi line content */
-    display: -webkit-inline-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-
     overflow: hidden;
-    /* white-space: pre-wrap; this causes wrong row heights on first load. */
+    white-space: pre-wrap;
 }
 
 .msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell.changed {
@@ -195,12 +194,12 @@
 
 .msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .labelHost {
     width: 100%;
+    overflow: hidden;
 }
 
 .msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .labelHost .label {
     white-space: pre-line;
-    max-height: 100px;
-    overflow: scroll;
+    overflow: hidden;
 }
 
 /* A message which is part of a result view. */
@@ -239,6 +238,8 @@
 
 .msg.resultHost .resultView .label {
     white-space: pre-wrap;
+    display: block;
+    height: 100%;
 }
 
 .msg .resultText.actionLabel:not(.error, .warning),
@@ -400,13 +401,9 @@
     font-family: var(--msg-monospace-font-family);
 }
 
-.resultHost > .resultTabview .resultView .actionHost,
+.zoneHost > .renderTarget > .resultHost .copyButton,
 .zoneHost > .renderTarget > .outputHost .copyButton {
     display: none;
-}
-
-.zoneHost > .renderTarget > .outputHost:hover .copyButton {
-    display: block;
     position: absolute;
     align-self: flex-end;
     top: 0;
@@ -419,8 +416,13 @@
     z-index: 1;
 }
 
-.resultHost > .resultTabview .resultView:hover .actionHost {
-    display: flex;
+.zoneHost > .renderTarget > .resultHost:hover .copyButton,
+.zoneHost > .renderTarget > .outputHost:hover .copyButton {
+    display: block;
+}
+
+.resultHost > .resultTabview .resultView .actionHost {
+    display: none;
     position: absolute;
     align-self: flex-end;
     top: 0;
@@ -428,6 +430,10 @@
     min-width: 0;
     padding: 2px;
     z-index: 1;
+}
+
+.resultHost > .resultTabview .resultView:hover .actionHost {
+    display: flex;
 }
 
 .resultHost > .resultTabview .resultView:hover .actionHost .icon {

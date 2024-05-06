@@ -138,6 +138,7 @@ export const notebook = {
                 addedTableRow: By.css(".tabulator-row.added"),
                 deletedTableRow: By.css(".tabulator-row.deleted"),
                 tableHeaders: By.className("tabulator-headers"),
+                tableColumn: By.className("tabulator-col"),
                 tableColumnTitle: By.className("tabulator-col-title"),
                 tableCell: By.className("tabulator-cell"),
                 changedTableCell: By.css(".tabulator-cell.changed"),
@@ -151,6 +152,7 @@ export const notebook = {
                 tableCellUpDownInput: By.id("upDownInput"),
                 tableCellDateTime: By.css("input.dateTime"),
                 tableCellIcon: By.css(".iconHost .icon"),
+                resultGridScrollBar: By.className("tabulator-tableholder"),
                 status: {
                     exists: By.className("resultStatus"),
                     text: By.css(".resultStatus > label"),
@@ -237,6 +239,7 @@ export const notebook = {
             exists: By.css(".codeEditor .margin-view-overlays > div"),
             current: By.className("editorPromptFirst"),
         },
+        tooltip: By.className("tooltip"),
     },
     toolbar: {
         exists: By.id("dbEditorToolbar"),
@@ -567,6 +570,7 @@ export const htmlTag = {
     span: By.css("span"),
     h2: By.css("h2"),
     input: By.css("input"),
+    textArea: By.css("textarea"),
 };
 
 export const dialogBox = {

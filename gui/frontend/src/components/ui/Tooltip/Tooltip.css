@@ -40,7 +40,7 @@
     border: 1px solid var(--tooltip-border);
     border-radius: 4px;
     background-color: var(--tooltip-background);
-    box-shadow: 0px 2px 6px 0 var(--widget-shadow);
+    box-shadow: 0 2px 6px 0 var(--widget-shadow);
     opacity: 0.95;
 
     overflow: auto;
@@ -50,4 +50,8 @@
 
 .msg.tooltip:not(.expand) {
     font-size: 10pt;
+}
+
+.msg.tooltip .label {
+    background: none;
 }

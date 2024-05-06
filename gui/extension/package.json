@@ -23,7 +23,7 @@
         "Data Science"
     ],
     "activationEvents": [
-        "onStartupFinished"
+        "onView:msg-view"
     ],
     "main": "./out/main.cjs",
     "type": "module",

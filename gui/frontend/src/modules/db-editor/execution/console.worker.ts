@@ -34,7 +34,10 @@ import { execute } from "../runtime/execute.js";
 
 import { Buffer } from "buffer";
 
-const sourceMapSignature = "//# sourceMappingURL=data:application/json;base64";
+// Looks strange, but this two-step approach is used to prevent vite from trying to load this constant as a source map.
+const sourceMapPrefix = "//# source";
+const sourceMapSuffix = "MappingURL=data:application/json;base64";
+const sourceMapSignature = sourceMapPrefix + sourceMapSuffix;
 
 const worker = self as unknown as PrivateWorker;
 
