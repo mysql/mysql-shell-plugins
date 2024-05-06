@@ -24,6 +24,7 @@
 - BUG#36347569 Links in the front page open dialog to add new REST object
 - BUG#36363355 Connection fails with scheme and non-standard port or socket in a Shell Session
 - BUG#36508205 Unable to launch VS Code extension in dev mode using latest MySQL Shell
+- BUG#36590424 SDK file missing "*Cursors" type declaration
 
 ## Changes in 1.14.2+8.1.1
 

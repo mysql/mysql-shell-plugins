@@ -684,10 +684,10 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language, session):
                         obj_unique_list.append(
                             f'    {field.get("name")}?: {datatype},\n')
 
-                        # Build list of unique columns which can potentially be used for cursor-based pagination.
-                        if (field_can_be_cursor(field)):
-                            cursor_list.append(
-                                f'    {field.get("name")}?: {datatype},\n')
+            # Build list of columns which can potentially be used for cursor-based pagination.
+            if (field_can_be_cursor(field)):
+                cursor_list.append(
+                    f'    {field.get("name")}?: {datatype},\n')
 
     if len(interface_fields) > 0:
         if db_obj.get("object_type") == "PROCEDURE" or db_obj.get("object_type") == "FUNCTION":
@@ -738,6 +738,11 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language, session):
             f"export interface I{class_name}Cursors {{\n" +
             "".join(cursor_list) +
             "}\n\n")
+    # To avoid conditional logic in the template, we should generate a void type declaration for database objects that
+    # do not contain any field eligible to be a cursor. Functions and Procedures should also be ignored.
+    elif (db_obj.get("object_type") != "PROCEDURE" and db_obj.get("object_type") != "FUNCTION"
+          and obj.get("kind") != "PARAMETERS"):
+        obj_interfaces.append(f"type I{class_name}Cursors = never;\n\n")
 
     return "".join(obj_interfaces), out_params_interface_fields
 

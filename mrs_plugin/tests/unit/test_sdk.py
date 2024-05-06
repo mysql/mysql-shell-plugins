@@ -247,3 +247,31 @@ def test_field_can_be_cursor():
     can_be_cursor = field_can_be_cursor(field)
     assert can_be_cursor is True
 
+
+def test_generate_interfaces():
+    class_name = "Foo"
+    db_obj = { "object_type": "TABLE" }
+    obj = {}
+    fields = []
+    want = "type IFooCursors = never;\n\n"
+
+    got, _ = generate_interfaces(db_obj, obj, fields, class_name, "TypeScript", None)
+
+    assert got == want
+
+    db_column = { "datatype": "varchar(3)", "not_null": True, "id_generation": "auto_inc" }
+    fields = [{ "lev": 1, "enabled": True, "db_column": db_column, "name": "bar" }]
+    want = (
+"""export interface IFoo {
+    bar?: string,
+}
+
+export interface IFooCursors {
+    bar?: string,
+}
+
+""")
+
+    got, _ = generate_interfaces(db_obj, obj, fields, class_name, "TypeScript", None)
+
+    assert got == want
