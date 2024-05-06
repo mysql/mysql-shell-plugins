@@ -1257,21 +1257,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                       <div
                         class="msg container fixedScrollbar actionHost"
                         style="flex-direction: row;"
-                      >
-                        <div
-                          class="msg button imageOnly"
-                          data-tooltip="Add New Row"
-                          id="addNewRow"
-                          role="button"
-                          tabindex="0"
-                        >
-                          <div
-                            class="msg icon"
-                            data-tooltip="inherit"
-                            style="mask-image: url(plus.svg);"
-                          />
-                        </div>
-                      </div>
+                      />
                     </div>
                   </div>,
                 }
@@ -1356,50 +1342,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                               "justifyContent": undefined,
                             }
                           }
-                        >
-                          <Button
-                            data-tooltip="Add New Row"
-                            focusOnClick={false}
-                            id="addNewRow"
-                            imageOnly={true}
-                            onClick={[Function]}
-                          >
-                            <div
-                              className="msg button imageOnly"
-                              data-tooltip="Add New Row"
-                              id="addNewRow"
-                              onClick={[Function]}
-                              onMouseDown={[Function]}
-                              role="button"
-                              style={
-                                {
-                                  "flexDirection": undefined,
-                                }
-                              }
-                              tabIndex={0}
-                            >
-                              <Icon
-                                data-tooltip="inherit"
-                                disabled={false}
-                                src="plus.svg"
-                              >
-                                <div
-                                  className="msg icon"
-                                  data-tooltip="inherit"
-                                  style={
-                                    {
-                                      "WebkitMaskImage": "url(plus.svg)",
-                                      "backgroundColor": undefined,
-                                      "height": undefined,
-                                      "maskImage": "url(plus.svg)",
-                                      "width": undefined,
-                                    }
-                                  }
-                                />
-                              </Icon>
-                            </div>
-                          </Button>
-                        </div>
+                        />
                       </Container>
                       <Menu
                         id="cellContextMenu"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -185,5 +185,26 @@ export class Misc {
         const splitted = toReturn.split("T");
 
         return `${splitted[0]} ${splitted[1].replace(":00.000Z", "")}`;
+    };
+
+    /**
+     * Gets the index of a column, from a table
+     * @param tableName The table
+     * @param columnIndex The column index
+     *  @returns The index of the column
+     */
+    public static getDbTableColumnName = (tableName: string, columnIndex: number): string => {
+        let name: string | undefined;
+        for (const table of constants.dbTables) {
+            if (table.name === tableName) {
+                name = table.columns[columnIndex];
+                break;
+            }
+        }
+        if (!name) {
+            throw new Error(`Could not find on table column name '${tableName}' with index column '${columnIndex}'`);
+        } else {
+            return name;
+        }
     };
 }

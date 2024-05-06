@@ -577,7 +577,18 @@ export class CommandExecutor {
             const expectInput = typeof cellRef.value === "string";
 
             if (expectInput) {
-                const input = await cell.findElement(locator.htmlTag.input);
+                let input: WebElement;
+                const inputBox = await cell.findElements(locator.htmlTag.input);
+                const textArea = await cell.findElements(locator.htmlTag.textArea);
+                if (inputBox.length > 0) {
+                    input = inputBox[0];
+                } else if (textArea.length > 0) {
+                    input = textArea[0];
+                } else {
+                    throw new Error(`Could not find an input nor a textarea when editing cell for ${cellRef
+                        .columnName}`);
+                }
+
                 const isDateTime = (await cell
                     .findElements(locator.notebook.codeEditor.editor.result.tableCellDateTime)).length > 0;
 
@@ -813,7 +824,19 @@ export class CommandExecutor {
             await this.startEditCell(-1, cell.columnName, cell.value);
 
             if (expectInput) {
-                const input = await refCell.findElement(locator.htmlTag.input);
+                let input: WebElement;
+                const inputBox = await refCell.findElements(locator.htmlTag.input);
+                const textArea = await refCell.findElements(locator.htmlTag.textArea);
+
+                if (inputBox.length > 0) {
+                    input = inputBox[0];
+                } else if (textArea.length > 0) {
+                    input = textArea[0];
+                } else {
+                    throw new Error(`Could not find an input nor a textarea when editing cell for ${cell
+                        .columnName}`);
+                }
+
                 const isDateTime = (await refCell
                     .findElements(locator.notebook.codeEditor.editor.result.tableCellDateTime)).length > 0;
 
@@ -879,6 +902,52 @@ export class CommandExecutor {
         const rows = await resultGrid.findElements(locator.notebook.codeEditor.editor.result.tableRow);
 
         return rows[gridRow];
+    };
+
+    /**
+     * Sets a result grid cell with
+     * @param gridRow The row number. If the row number is -1, the function returns the last added row
+     * @param gridRowColumn The column
+     * @param width The width of the cell. Defaults to 40px
+     * @returns A promise resolving when the cell is resized
+     */
+    public setResultGridCellWidth = async (gridRow: number, gridRowColumn: string, width = "40"): Promise<void> => {
+        await driver.wait(async () => {
+            try {
+                let cell = await this.getCellFromResultGrid(gridRow, gridRowColumn);
+                await driver.executeScript(`arguments[0].setAttribute("style", "width: ${width}px; height: 20px;")`,
+                    cell);
+                cell = await this.getCellFromResultGrid(gridRow, gridRowColumn);
+
+                return (await cell.getCssValue("width")).includes(`${width}px`);
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, `Could not resize result grid cell on column ${gridRowColumn}`);
+    };
+
+    /**
+     * Gets a cell tooltip
+     * @param gridRow The row number
+     * @param columnName The column name
+     * @returns A promise resolving with the cell tooltip
+     */
+    public getCellTooltip = async (gridRow: number, columnName: string): Promise<string | undefined> => {
+        const cell = await this.getCellFromResultGrid(gridRow, columnName);
+        await driver.actions().move({
+            origin: cell,
+            x: -5,
+            y: -5,
+        }).perform();
+
+        return driver.wait(async () => {
+            const tooltip = await driver.findElements(locator.notebook.codeEditor.tooltip);
+            if (tooltip.length > 0) {
+                return tooltip[0].getText();
+            }
+        }, constants.wait5seconds, `Could not find tooltip for cell on row '${gridRow}' and column '${columnName}'`);
     };
 
     /**
@@ -1733,7 +1802,8 @@ export class CommandExecutor {
 
                 if (expectInput) {
                     if (isEditable) {
-                        return (await cell.findElements(locator.htmlTag.input)).length > 0;
+                        return (await cell.findElements(locator.htmlTag.input)).length > 0 ||
+                            (await cell.findElements(locator.htmlTag.textArea)).length > 0;
                     }
                 } else {
                     return (await cell.getAttribute("class")).includes("changed") || isEditable;

@@ -254,3 +254,23 @@ export const dbConnectionDoesNotExist = (dbConnection: string): Condition<boolea
         return !(await DatabaseConnectionOverview.existsConnection(dbConnection));
     });
 };
+
+/**
+ * Waits until the cell tooltip is equal to the expected value
+ * @param commandExecutor The command executor
+ * @param rowNumber The row number
+ * @param rowColumn The column name
+ * @param expectedTooltip The expected tooltip
+ * @returns A promise resolving when the tooltip is equal to the expected value
+ */
+export const cellTooltipIs = (
+    commandExecutor: CommandExecutor,
+    rowNumber: number,
+    rowColumn: string,
+    expectedTooltip: string): Condition<boolean> => {
+    return new Condition(` tooltip to be '${expectedTooltip}'`, async () => {
+        const tooltip = await commandExecutor.getCellTooltip(rowNumber, rowColumn);
+
+        return tooltip!.replace(/\s/g, "") === expectedTooltip.replace(/\s/g, "");
+    });
+};

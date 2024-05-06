@@ -1320,50 +1320,7 @@ exports[`Result View Tests Render with Columns 1`] = `
               "justifyContent": undefined,
             }
           }
-        >
-          <Button
-            data-tooltip="Add New Row"
-            focusOnClick={false}
-            id="addNewRow"
-            imageOnly={true}
-            onClick={[Function]}
-          >
-            <div
-              className="msg button imageOnly"
-              data-tooltip="Add New Row"
-              id="addNewRow"
-              onClick={[Function]}
-              onMouseDown={[Function]}
-              role="button"
-              style={
-                {
-                  "flexDirection": undefined,
-                }
-              }
-              tabIndex={0}
-            >
-              <Icon
-                data-tooltip="inherit"
-                disabled={false}
-                src="plus.svg"
-              >
-                <div
-                  className="msg icon"
-                  data-tooltip="inherit"
-                  style={
-                    {
-                      "WebkitMaskImage": "url(plus.svg)",
-                      "backgroundColor": undefined,
-                      "height": undefined,
-                      "maskImage": "url(plus.svg)",
-                      "width": undefined,
-                    }
-                  }
-                />
-              </Icon>
-            </div>
-          </Button>
-        </div>
+        />
       </Container>
       <FieldEditor>
         <ValueEditDialog
@@ -1535,50 +1492,7 @@ exports[`Result View Tests Render with Error/Response 1`] = `
               "justifyContent": undefined,
             }
           }
-        >
-          <Button
-            data-tooltip="Add New Row"
-            focusOnClick={false}
-            id="addNewRow"
-            imageOnly={true}
-            onClick={[Function]}
-          >
-            <div
-              className="msg button imageOnly"
-              data-tooltip="Add New Row"
-              id="addNewRow"
-              onClick={[Function]}
-              onMouseDown={[Function]}
-              role="button"
-              style={
-                {
-                  "flexDirection": undefined,
-                }
-              }
-              tabIndex={0}
-            >
-              <Icon
-                data-tooltip="inherit"
-                disabled={false}
-                src="plus.svg"
-              >
-                <div
-                  className="msg icon"
-                  data-tooltip="inherit"
-                  style={
-                    {
-                      "WebkitMaskImage": "url(plus.svg)",
-                      "backgroundColor": undefined,
-                      "height": undefined,
-                      "maskImage": "url(plus.svg)",
-                      "width": undefined,
-                    }
-                  }
-                />
-              </Icon>
-            </div>
-          </Button>
-        </div>
+        />
       </Container>
       <Menu
         id="cellContextMenu"
@@ -1681,50 +1595,7 @@ exports[`Result View Tests Standard Rendering 1`] = `
               "justifyContent": undefined,
             }
           }
-        >
-          <Button
-            data-tooltip="Add New Row"
-            focusOnClick={false}
-            id="addNewRow"
-            imageOnly={true}
-            onClick={[Function]}
-          >
-            <div
-              className="msg button imageOnly"
-              data-tooltip="Add New Row"
-              id="addNewRow"
-              onClick={[Function]}
-              onMouseDown={[Function]}
-              role="button"
-              style={
-                {
-                  "flexDirection": undefined,
-                }
-              }
-              tabIndex={0}
-            >
-              <Icon
-                data-tooltip="inherit"
-                disabled={false}
-                src="plus.svg"
-              >
-                <div
-                  className="msg icon"
-                  data-tooltip="inherit"
-                  style={
-                    {
-                      "WebkitMaskImage": "url(plus.svg)",
-                      "backgroundColor": undefined,
-                      "height": undefined,
-                      "maskImage": "url(plus.svg)",
-                      "width": undefined,
-                    }
-                  }
-                />
-              </Icon>
-            </div>
-          </Button>
-        </div>
+        />
       </Container>
       <FieldEditor>
         <ValueEditDialog

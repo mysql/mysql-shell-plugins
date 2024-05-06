@@ -415,7 +415,7 @@ export class JsonParser {
     }
 
     private isWhiteSpace(ch: number): boolean {
-        return ch === 0x20 || ch === 0x09;
+        return ch === 0x20 || ch === 0x09 || ch === 0xA0;
     }
 
     private isLineBreak(ch: number): boolean { // TODO: do we need to handle Unicode line breaks?

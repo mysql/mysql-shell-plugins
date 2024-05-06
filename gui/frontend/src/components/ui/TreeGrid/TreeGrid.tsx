@@ -114,7 +114,7 @@ export interface ITreeGridOptions {
 interface ITreeGridProperties extends IComponentProperties {
     /**
      * The height for the grid. Can be given as number of pixels or a CSS property.
-     * If not specified, the grid will fill the available space.
+     * If not specified, the grid will act according to its CSS rules.
      */
     height?: string | number;
 
@@ -251,6 +251,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                     }
 
                     this.#tableReady = true;
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                    this.#tabulator!.columnManager.redraw(true);
                 });
                 this.#tabulator.on("dataTreeRowExpanded", this.handleRowExpanded);
                 this.#tabulator.on("dataTreeRowCollapsed", this.handleRowCollapsed);
@@ -276,7 +278,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         }
     }
 
-    public componentDidUpdate(): void {
+    public componentDidUpdate(_prevProps: ITreeGridProperties): void {
         if (this.#tabulator && this.#tableReady) {
             const { selectedRows, columns, tableData } = this.mergedProps;
 
@@ -285,10 +287,9 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                 return;
             }
 
-            // We are in a dilemma here. New table data should be set when the tableData object has been replaced
-            // (so we can do a simple comparison of the two objects). However, when changing just a field deep down
-            // in the object, we have to update the table data as well, but don't get a new object.
-            // Doing a deep comparison is too expensive, so we may set the table data even if not strictly necessary.
+            // TODO: switch to the comparison of the data objects. Need to always update until the duality view editor
+            // is changed to use the setData API.
+            //if (prevProps.tableData !== tableData) {
             if (tableData) {
                 // The call to replaceData does not change the scroll position.
                 void this.#tabulator.replaceData(tableData as Array<{}>).then(() => {
@@ -601,21 +602,23 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     private handleRowClicked = (event: Event, row: RowComponent): void => {
         const { options, columns } = this.mergedProps;
 
-        if (this.#toggleTimeoutId) {
-            clearTimeout(this.#toggleTimeoutId);
-            this.#toggleTimeoutId = null;
-
-            return;
-        }
-
-        if (options?.treeColumn && columns && columns?.length > 0 && columns[0].cellDblClick !== undefined) {
-            // Toggle the selected row if this is actually a tree (after a delay to see if a double click follows).
-            this.#toggleTimeoutId = setTimeout(() => {
+        if (options?.treeColumn) {
+            if (this.#toggleTimeoutId) {
+                clearTimeout(this.#toggleTimeoutId);
                 this.#toggleTimeoutId = null;
+
+                return;
+            }
+
+            if (columns && columns?.length > 0 && columns[0].cellDblClick !== undefined) {
+                // Toggle the selected row if this is actually a tree (after a delay to see if a double click follows).
+                this.#toggleTimeoutId = setTimeout(() => {
+                    this.#toggleTimeoutId = null;
+                    row.treeToggle();
+                }, 200);
+            } else {
                 row.treeToggle();
-            }, 200);
-        } else {
-            row.treeToggle();
+            }
         }
     };
 
@@ -655,9 +658,12 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     private handleVerticalScroll = (_top: number): void => {
         const { onVerticalScroll } = this.mergedProps;
 
-        const topRow = this.#tabulator!.getRows("visible")[0];
+        const rows = this.#tabulator!.getRows("visible");
+        if (rows.length > 0) {
+            const topRow = rows[0];
 
-        onVerticalScroll?.(topRow.getPosition() as number);
+            onVerticalScroll?.(topRow.getPosition() as number);
+        }
     };
 
     private handleCellEditing = () => {

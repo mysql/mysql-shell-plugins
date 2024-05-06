@@ -161,7 +161,7 @@ INSERT INTO result_sets VALUES(
     `test_multilinestring` multilinestring DEFAULT NULL,
     `test_multipolygon` multipolygon DEFAULT NULL,
     `test_geometrycollection` geomcollection DEFAULT NULL,
-    `test_bit` bit(1) DEFAULT NULL,
+    `test_bit` bit(15) DEFAULT NULL,
     PRIMARY KEY (`id`)
   ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -218,5 +218,5 @@ ST_GeomFromText('MULTIPOINT(0 0, 20 20, 60 60)'), -- multipoint
 ST_GeomFromText('MultiLineString((1 1,2 2,3 3),(4 4,5 5))'), -- multilinestring
 ST_GeomFromText('MULTIPOLYGON(((0 0,10 0,10 10,0 10,0 0)),((5 5,7 5,7 7,5 7, 5 5)))'), -- multipolygon
 ST_GeomFromText('GEOMETRYCOLLECTION(POINT(1 1),LINESTRING(0 0,1 1,2 2,3 3,4 4))'), -- geomcollection
-b'0' -- bit
+b'11111011111111' -- bit
 );

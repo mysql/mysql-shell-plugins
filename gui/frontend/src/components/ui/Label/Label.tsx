@@ -68,6 +68,9 @@ export interface ILabelProperties extends IComponentProperties {
     /** When set applies special colors to the text. This should be used only with plain text. */
     type?: MessageType;
 
+    /** When set to true the text will wrap. */
+    wrap?: boolean;
+
     /** An optional reference object to hold the ref to the generated HTML element. */
     innerRef?: preact.RefObject<HTMLLabelElement>;
 }
@@ -85,7 +88,7 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
 
         this.state = {};
         this.labelRef = props.innerRef ?? createRef<HTMLLabelElement>();
-        this.addHandledProperties("caption", "textAlignment", "quoted", "code", "heading", "language", "type",
+        this.addHandledProperties("caption", "textAlignment", "quoted", "code", "heading", "language", "type", "wrap",
             "innerRef");
     }
 
@@ -101,7 +104,9 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
     }
 
     public render(): ComponentChild {
-        const { children, caption, textAlignment, quoted, code, heading, language, type, style } = this.mergedProps;
+        const {
+            children, caption, textAlignment, quoted, code, heading, language, type, style, wrap,
+        } = this.mergedProps;
         const { labelEntries } = this.state;
 
         const actualStyle = { ...style };
@@ -117,6 +122,7 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
                 this.classFromProperty(quoted, "quote"),
                 this.classFromProperty(code, "code"),
                 this.classFromProperty(heading, "heading"),
+                this.classFromProperty(wrap, "wrap"),
             ]);
 
             return (
@@ -137,6 +143,7 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
                 this.classFromProperty(quoted, "quote"),
                 this.classFromProperty(code, "code"),
                 this.classFromProperty(heading, "heading"),
+                this.classFromProperty(wrap, "wrap"),
             ]);
 
             return (

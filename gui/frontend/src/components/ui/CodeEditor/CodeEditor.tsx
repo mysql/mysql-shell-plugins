@@ -314,12 +314,13 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         languages.registerDocumentFormattingEditProvider(editorLanguages, new FormattingProvider());
         languages.registerRenameProvider(editorLanguages, new RenameProvider());
 
-        // Register our combined language and create dummy text models for JS and TS, to trigger their
+        // Register our combined language and create dummy text models for some languages, to trigger their
         // initialization. Otherwise we will get errors when they are used by the combined language code.
         languages.register(msg);
 
         Monaco.createModel("", "typescript").dispose();
         Monaco.createModel("", "javascript").dispose();
+        Monaco.createModel("", "json").dispose();
 
         if (languages.typescript) { // This field is not set when running under Jest.
             const compilerOptions: languages.typescript.CompilerOptions = {

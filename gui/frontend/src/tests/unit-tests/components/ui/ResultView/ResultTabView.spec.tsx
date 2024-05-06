@@ -161,8 +161,8 @@ describe("Result Tabview Tests", (): void => {
             />,
         );
 
-        let tabs = component.find(Button); // Also contains the "add new row" button.
-        expect(tabs).toHaveLength(3);
+        let tabs = component.find(Button);
+        expect(tabs).toHaveLength(2);
 
         let found = false;
         tabs.forEach((tab) => {
@@ -254,7 +254,7 @@ describe("Result Tabview Tests", (): void => {
 
         // Check the output tab.
         tabs = component.find(Button);
-        expect(tabs).toHaveLength(4); // Like before, but now with the output tab.
+        expect(tabs).toHaveLength(3); // Like before, but now with the output tab.
 
         found = false;
         tabs.forEach((tab) => {
@@ -328,7 +328,7 @@ describe("Result Tabview Tests", (): void => {
 
         // Select the second result set.
         const tabs = component.find(Button);
-        expect(tabs).toHaveLength(6);
+        expect(tabs).toHaveLength(5);
 
         let found = false;
         tabs.forEach((tab) => {
@@ -345,7 +345,7 @@ describe("Result Tabview Tests", (): void => {
         expect(toolbars).toHaveLength(1);
 
         const buttons = component.getDOMNode().getElementsByClassName("button");
-        expect(buttons).toHaveLength(13);
+        expect(buttons).toHaveLength(12);
 
         const dividers = component.getDOMNode().getElementsByClassName("divider");
         expect(dividers).toHaveLength(3);
