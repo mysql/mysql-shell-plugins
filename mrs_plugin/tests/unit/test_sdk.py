@@ -275,3 +275,32 @@ export interface IFooCursors {
     got, _ = generate_interfaces(db_obj, obj, fields, class_name, "TypeScript", None)
 
     assert got == want
+
+
+def test_substitute_imports_in_template():
+    template = """// --- importLoopStart
+import {
+    // --- importRequiredDatatypesOnlyStart
+    // --- importRequiredDatatypesOnlyEnd
+} from "somewhere";
+// --- importLoopEnd\n"""
+
+    want = """import {
+    foo,
+} from "somewhere";\n"""
+
+    res = substitute_imports_in_template(template, [], {"foo"})
+    got = res.get("template")
+
+    assert got == want
+
+    want = """import {
+    bar,
+    foo,
+} from "somewhere";\n"""
+
+    res = substitute_imports_in_template(template, [], {"foo","bar"})
+    got = res.get("template")
+
+    assert got == want
+

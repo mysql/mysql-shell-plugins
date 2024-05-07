@@ -118,13 +118,14 @@ def substitute_imports_in_template(template, enabled_crud_ops, required_datatype
         # if there are no required datatypes, we should remove the template tags
         datatypes_block = ""
         # otherwise we should replace them with the corresponding import block
-        if len(required_datatypes) > 1:
+        if len(required_datatypes) > 0:
             # tab size to be converted to spaces
             indent = " " * 4
             # each datatype should be comma separated and belongs in a new line
             separator = f",\n{indent}"
-            # the first and last datatypes should also follow the same rules
-            datatypes_block = f'{indent}{separator.join(required_datatypes)},\n'
+            # the first and last datatypes should also follow the same rules and they should be sorted alphabetically,
+            # mostly for testing purposes, but it is always good to be deterministic
+            datatypes_block = f'{indent}{separator.join(sorted(required_datatypes))},\n'
 
         import_template = re.sub("^\s*?// --- importRequiredDatatypesOnlyStart.*?" +
                                  "^\s*?// --- importRequiredDatatypesOnlyEnd\n",
@@ -432,7 +433,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
         template = template.replace(loop.group(), filled_temp)
 
-    return {"template": template, "enabled_crud_ops": frozenset(enabled_crud_ops), "required_datatypes": frozenset(required_datatypes)}
+    return {"template": template, "enabled_crud_ops": frozenset(enabled_crud_ops), "required_datatypes": set(required_datatypes)}
 
 
 def get_datatype_mapping(db_datatype, sdk_language):
