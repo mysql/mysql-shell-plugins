@@ -615,3 +615,18 @@ export const cellTooltipIs = (
     });
 };
 
+/**
+ * Waits until a tab with json content to be opened
+ * @param filename The file name
+ * @returns A promise resolving when the tab with json content is opened
+ */
+export const jsonFileIsOpened = (filename: string): Condition<boolean> => {
+    return new Condition(`${filename} to be opened`, async () => {
+        const textEditor = new TextEditor();
+        const json = await textEditor.getText();
+        if (json.includes("{")) {
+            return Misc.isJson(json);
+        }
+    });
+};
+
