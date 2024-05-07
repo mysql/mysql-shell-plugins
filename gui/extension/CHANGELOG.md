@@ -1,11 +1,13 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.15.0+8.3.0
+## Changes in 1.15.0+8.4.0
 
 ### Additions
 
 - WL#15718 Simplify application-level interfaces in the MRS SDK
 - WL#16158 Improve the MRS SDK API for handling resource collections
+
+- Upgraded to MySQL Shell 8.4.0
 
 ### Fixes
 
