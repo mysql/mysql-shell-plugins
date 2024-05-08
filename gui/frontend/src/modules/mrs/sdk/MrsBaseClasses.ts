@@ -756,32 +756,36 @@ export interface IFindUniqueOptions<Item, Filterable> extends Partial<IFilterOpt
     select?: BooleanFieldMapSelect<Item> | FieldNameSelect<Item>;
 }
 
+type CursorEnabledOptions<Item, Filterable, Iterable> = [Iterable] extends [never]
+    ? IFindUniqueOptions<Item, Filterable> : (IFindUniqueOptions<Item, Filterable> & {
+        cursor?: Cursor<Iterable>
+    });
+
 /** Options available to find the first record that optionally matches a given filter. */
-export interface IFindFirstOptions<Item, Filterable, Iterable> extends IFindUniqueOptions<Item, Filterable> {
-    cursor?: Cursor<Iterable>;
+export type IFindFirstOptions<Item, Filterable, Iterable = never> = CursorEnabledOptions<Item, Filterable, Iterable> & {
     /* Return the first or last record depending on the specified order clause. */
     orderBy?: ColumnOrder<Filterable>;
     /** Skip a given number of records that match the same filter. */
     skip?: number;
-}
+};
 
 /** Options available to find multiple that optionally match a given filter. */
-export interface IFindManyOptions<Item, Filterable, Iterable> extends IFindFirstOptions<Item, Filterable, Iterable> {
+export type IFindManyOptions<Item, Filterable, Iterable = never> = IFindFirstOptions<Item, Filterable, Iterable> & {
     /** Enables or disables iterator behavior for findMany(). */
     iterator?: boolean;
     /** Set the maximum number of records in the result set. */
     take?: number;
-}
+};
 
 /** Options available to customize the result set page size. */
-export interface IFindAllOptions<Item, Filterable, Iterable> extends IFindFirstOptions<Item, Filterable, Iterable> {
+export type IFindAllOptions<Item, Filterable, Iterable = never> = IFindFirstOptions<Item, Filterable, Iterable> & {
     /**
      * Asynchronous function to handle progress updates.
      * @param items The list of records in the result set.
      * @returns A Promise that resolves once the result set is complete.
      */
     progress?: (items: Item[]) => Promise<void>;
-}
+};
 
 type IFindRangeOptions<Item, Filterable, Iterable> = IFindAllOptions<Item, Filterable, Iterable>
 | IFindFirstOptions<Item, Filterable, Iterable>
@@ -1062,7 +1066,8 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> {
             return;
         }
 
-        const { cursor, orderBy, select, skip, take, where } = options as IFindManyOptions<Item, Filterable, Iterable>;
+        const { cursor, orderBy, select, skip, take, where } = options as IFindManyOptions<Item, Filterable, Iterable>
+        & { cursor?: Cursor<Iterable> };
 
         if (where !== undefined) {
             this.where = { ...this.where, ...where };
