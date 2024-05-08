@@ -40,13 +40,13 @@ $routerLocation = $((Get-ChildItem -Path $pluginsDeps -Directory -Filter "*mysql
 
 # NPM INSTALL
 Set-Location $frontEndFolder
+Remove-Item "build" -Force -Recurse
+Remove-Item "node_modules" -Force -Recurse
+Remove-Item "package-lock.json" -Force -Recurse
 npm install
 
 # NPM BUILD
 $guiPluginBuild = Join-Path $frontEndFolder "build"
-if (Test-Path $guiPluginBuild) {
-    Remove-Item $guiPluginBuild -Force -Recurse
-}
 if ($isWindows) {
     npm run build-win
 } else {
@@ -56,11 +56,35 @@ if ($isWindows) {
 $guiPluginBackend = Join-Path $shellPluginsGuiFolder "backend" "gui_plugin"
 
 # SET PLUGINS, SHELL AND ROUTER ON EXTENSION FOLDER
-if (!(Test-Path $(Join-Path $extensionFolder "shell"))) {
+if (Test-Path $(Join-Path $extensionFolder "shell")) {
+    $guiPlugin = Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin" 
+    $mdsPlugin = Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "mds_plugin" 
+    $mrsPlugin = Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "mrs_plugin"
+    if (Test-Path $guiplugin) {
+        Write-Host "Removing gui_plugin ..." -NoNewLine
+        Remove-Item $guiPlugin -Force -Recurse
+        Write-host "DONE"
+    }
+    if (Test-Path $mdsPlugin) {
+        Write-Host "Removing mds_plugin ..." -NoNewLine
+        Remove-Item $mdsPlugin -Force -Recurse
+        Write-host "DONE"
+    }
+    if (Test-Path $mrsPlugin) {
+        Write-Host "Removing mrs_plugin ..." -NoNewLine
+        Remove-Item $mrsPlugin -Force -Recurse
+        Write-host "DONE"
+    }
+} else {
     Write-host "Copying shell..." -NoNewLine
-    Copy-Item -Path $shellLocation -Destination $(Join-Path $extensionFolder "shell") -Recurse
+    if ($isWindows) {
+        Copy-Item -Path $shellLocation -Destination $(Join-Path $extensionFolder "shell") -Recurse
+    } else {
+        cp -r $shellLocation $(Join-Path $extensionFolder "shell")
+    }
     Write-host "DONE"
 }
+
 if (!(Test-Path $(Join-Path $extensionFolder "router"))) {
     Write-host "Copying router..." -NoNewLine
     Copy-Item -Path $routerLocation -Destination $(Join-Path $extensionFolder "router") -Recurse
@@ -94,5 +118,7 @@ Write-host "DONE"
 
 # BUILD EXTENSION
 Set-Location $extensionFolder
+Remove-Item "node_modules" -Force -Recurse
+Remove-Item "package-lock.json" -Force -Recurse
 npm install
 npm run build-dev-package
