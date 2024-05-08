@@ -5,5 +5,5 @@
     "addAppBaseClass": "MrsBaseAppPreact.ts",
     "dbConnectionUri": "mysqlroot@localhost:3306",
     "header": "// Copyright (c) 2023, 2024, Oracle and/or its affiliates.",
-    "generationDate": "2024-07-26 11:49:28"
+    "generationDate": "2024-07-26 11:55:57"
 }

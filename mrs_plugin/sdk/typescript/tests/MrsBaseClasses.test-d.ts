@@ -297,11 +297,15 @@ describe("MRS SDK base types", () => {
             expectTypeOf<IFindFirstOptions<unknown, unknown, unknown>>().not.toHaveProperty("iterator");
         });
 
-        it("allows to set a pagination cursor", () => {
+        it("allows to set a pagination cursor when there is an eligible field", () => {
             interface IIterable { id: string }
             const options: IFindFirstOptions<unknown, unknown, IIterable> = {};
             expectTypeOf(options).toHaveProperty("cursor");
             expectTypeOf(options.cursor).toEqualTypeOf<Cursor<IIterable> | undefined>();
+        });
+
+        it("does not allow to set a pagination cursor when there are no eligible fields", () => {
+            expectTypeOf<IFindFirstOptions<unknown, unknown>>().not.toHaveProperty("cursor");
         });
     });
 
@@ -347,11 +351,15 @@ describe("MRS SDK base types", () => {
             expectTypeOf<IFindManyOptions<unknown, unknown, unknown>>().not.toHaveProperty("progress");
         });
 
-        it("allows to set a pagination cursor", () => {
+        it("allows to set a pagination cursor when there is an eligible field", () => {
             interface IIterable { id: string }
             const options: IFindManyOptions<unknown, unknown, IIterable> = {};
             expectTypeOf(options).toHaveProperty("cursor");
             expectTypeOf(options.cursor).toEqualTypeOf<Cursor<IIterable> | undefined>();
+        });
+
+        it("does not allow to set a pagination cursor when there are no eligible fields", () => {
+            expectTypeOf<IFindManyOptions<unknown, unknown>>().not.toHaveProperty("cursor");
         });
     });
 
@@ -400,11 +408,15 @@ describe("MRS SDK base types", () => {
             expectTypeOf(fetchAll.progress).toEqualTypeOf<typeof callback | undefined>();
         });
 
-        it("allows to set a pagination cursor", () => {
+        it("allows to set a pagination cursor when there is an eligible field", () => {
             interface IIterable { id: string }
             const options: IFindAllOptions<unknown, unknown, IIterable> = {};
             expectTypeOf(options).toHaveProperty("cursor");
             expectTypeOf(options.cursor).toEqualTypeOf<Cursor<IIterable> | undefined>();
+        });
+
+        it("does not allow to set a pagination cursor when there are no eligible fields", () => {
+            expectTypeOf<IFindAllOptions<unknown, unknown>>().not.toHaveProperty("cursor");
         });
     });
 
