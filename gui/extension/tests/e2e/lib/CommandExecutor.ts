@@ -22,15 +22,15 @@
  */
 
 import { error, Key, until, WebElement } from "vscode-extension-tester";
-import { PasswordDialog } from "./webviews/passwordDialog";
-import { Notebook } from "./webviews/notebook";
+import { PasswordDialog } from "./WebViews/PasswordDialog";
+import { Notebook } from "./WebViews/Notebook";
 import * as constants from "./constants";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
-import { Misc, driver } from "./misc";
-import { Os } from "./os";
+import { Misc, driver } from "./Misc";
+import { Os } from "./Os";
 import * as waitUntil from "./until";
-import * as errors from "../lib/errors";
+import * as errors from "./errors";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 
 /**

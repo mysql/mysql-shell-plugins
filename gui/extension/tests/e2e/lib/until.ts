@@ -22,7 +22,6 @@
  */
 import {
     Condition,
-    ActivityBar,
     logging,
     WebElement,
     Locator,
@@ -35,36 +34,17 @@ import {
 import { join } from "path";
 import fs from "fs/promises";
 import * as constants from "./constants";
-import { Misc, driver } from "./misc";
-import { Notebook } from "./webviews/notebook";
+import { Misc, driver } from "./Misc";
+import { Notebook } from "./WebViews/Notebook";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
-import { PasswordDialog } from "./webviews/passwordDialog";
-import { Section } from "./treeViews/section";
-import { Tree } from "./treeViews/tree";
-import { Os } from "./os";
-import { Workbench } from "./workbench";
+import { PasswordDialog } from "./WebViews/PasswordDialog";
+import { Os } from "./Os";
+import { Workbench } from "./Workbench";
 import * as errors from "../lib/errors";
-import { CommandExecutor } from "./cmdExecutor";
+import { CommandExecutor } from "./CommandExecutor";
 
 export let credentialHelperOk = true;
-
-/**
- * Waits until the section is not loading
- * @param section The section
- * @returns A promise resolving when the section is not loading anymore
- */
-export const sectionIsNotLoading = (section: string): Condition<boolean> => {
-    return new Condition(`for ${section} to NOT be loading`, async () => {
-        const sec = await Section.getSection(section);
-        const loading = await sec.findElements(locator.section.loadingBar);
-        const activityBar = new ActivityBar();
-        const icon = await activityBar.getViewControl(constants.extensionName);
-        const progressBadge = await icon.findElements(locator.shellForVscode.loadingIcon);
-
-        return (loading.length === 0) && (progressBadge.length === 0);
-    });
-};
 
 /**
  * Waits until the Modal dialog is opened
@@ -263,22 +243,6 @@ export const shellSessionIsOpened = (connection: interfaces.IDBConnection): Cond
 };
 
 /**
- * Waits until the tree item is marked as default
- * @param section The section
- * @param treeItemName The item name on the tree
- * @param itemType The item type
- * @returns A promise resolving when the item is marked as default
- */
-export const isDefaultItem = (section: string, treeItemName: string, itemType: string): Condition<boolean> => {
-    return new Condition(`for ${treeItemName} to be marked as default on section ${section}`, async () => {
-        await driver.wait(sectionIsNotLoading(section), constants.wait25seconds,
-            `${section} is still loading`);
-
-        return Tree.isElementDefault(section, treeItemName, itemType);
-    });
-};
-
-/**
  * Waits until the element is located within a context
  * @param context The context
  * @param locator The locator
@@ -361,34 +325,6 @@ export const notificationExists = (notification: string, dismiss = true,
                 throw e;
             }
         }
-    });
-};
-
-/**
- * Waits until router tree element is active
- * @returns A promise resolving when router icon is active
- */
-export const routerIconIsActive = (): Condition<boolean> => {
-    return new Condition(`for router icon to be active`, async () => {
-        const dbSection = await Section.getSection(constants.dbTreeSection);
-        await Section.clickToolbarButton(dbSection, constants.reloadConnections);
-        await driver.wait(sectionIsNotLoading(constants.dbTreeSection), constants.wait5seconds);
-
-        return Tree.isRouterActive();
-    });
-};
-
-/**
- * Waits until router tree element is inactive
- * @returns A promise resolving when router icon is inactive
- */
-export const routerIconIsInactive = (): Condition<boolean> => {
-    return new Condition(`for router icon to be inactive`, async () => {
-        const dbSection = await Section.getSection(constants.dbTreeSection);
-        await Section.clickToolbarButton(dbSection, constants.reloadConnections);
-        await driver.wait(sectionIsNotLoading(constants.dbTreeSection), constants.wait5seconds);
-
-        return !(await Tree.isRouterActive());
     });
 };
 

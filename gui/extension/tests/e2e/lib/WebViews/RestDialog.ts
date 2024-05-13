@@ -25,11 +25,11 @@
 
 import { By, until, Key, error } from "vscode-extension-tester";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
-import { driver, Misc } from "../misc";
+import { driver, Misc } from "../Misc";
 import * as constants from "../constants";
 import * as interfaces from "../interfaces";
 import * as locator from "../locators";
-import { DialogHelper } from "./dialogHelper";
+import { DialogHelper } from "./DialogHelper";
 import * as errors from "../errors";
 
 /**

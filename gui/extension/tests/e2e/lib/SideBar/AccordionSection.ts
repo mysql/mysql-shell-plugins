@@ -23,57 +23,80 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Condition, CustomTreeSection, error, SideBarView, until, WebElement } from "vscode-extension-tester";
+import {
+    Condition, CustomTreeSection, error, SideBarView, until, WebElement,
+    ActivityBar,
+} from "vscode-extension-tester";
 import * as constants from "../constants";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 import * as waitUntil from "../until";
 import * as locator from "../locators";
 import * as interfaces from "../interfaces";
 import * as errors from "../errors";
-import { DatabaseConnectionDialog } from "../webviews/dbConnectionDialog";
-import { Misc, driver } from "../misc";
-import { Os } from "../os";
-import { Workbench } from "..//workbench";
+import { DatabaseConnectionDialog } from "../WebViews/DatabaseConnectionDialog";
+import { Misc, driver } from "../Misc";
+import { Os } from "../Os";
+import { Workbench } from "../Workbench";
+import { Tree } from "./Tree";
 
-export class Section {
+export class AccordionSection {
+
+    public tree: Tree;
+
+    /** Accordion Section name */
+    public accordionSectionName: string;
+
+    public constructor(sectionName: string) {
+        this.accordionSectionName = sectionName;
+        this.tree = new Tree(this.accordionSectionName);
+    }
 
     /**
-     * Gets a section
-     * @param name The name of the section
-     * @returns A promise resolving with the section
+     * Gets a tree explorer
+     * @returns A promise resolving with the tree explorer
      */
-    public static getSection = async (name: string): Promise<CustomTreeSection> => {
+    public get = async (): Promise<CustomTreeSection> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
 
-        return new SideBarView().getContent().getSection(name);
+        return new SideBarView().getContent().getSection(this.accordionSectionName);
+    };
+
+    /**
+     * Verifies if a section exists
+     * @returns A condition resolving to true if exists, false otherwise
+     */
+    public exists = (): Condition<boolean> => {
+        return new Condition(`for ${this.accordionSectionName} to exist`, async () => {
+            return (await this.get()) !== undefined;
+        });
     };
 
     /**
      * Clicks a section toolbar button
-     * @param section The section
      * @param button The button
      * @returns A promise resolving when the button is clicked
      */
-    public static clickToolbarButton = async (section: CustomTreeSection, button: string): Promise<void> => {
+    public clickToolbarButton = async (button: string): Promise<void> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
 
-        await driver.wait(waitUntil.sectionIsNotLoading(await section.getTitle()), constants.wait20seconds,
+        await driver.wait(this.isNotLoading(), constants.wait20seconds,
             `${constants.ociTreeSection} is still loading`);
 
         let sectionActions: WebElement;
+        const thisSection = await this.get();
         await driver.wait(async () => {
             try {
                 await driver.wait(async () => {
-                    await driver.actions().move({ origin: section }).perform();
+                    await driver.actions().move({ origin: thisSection }).perform();
                     sectionActions = await driver
-                        .findElement(locator.section.actions(await section.getTitle()));
+                        .findElement(locator.section.actions(this.accordionSectionName));
 
                     return sectionActions.isDisplayed();
-                }, constants.wait5seconds, `Toolbar buttons for ${await section.getTitle()} were not displayed`);
+                }, constants.wait5seconds, `Toolbar buttons for ${this.accordionSectionName} were not displayed`);
 
                 const actionItems = await sectionActions.findElements(locator.htmlTag.li);
                 for (const action of actionItems) {
@@ -89,35 +112,33 @@ export class Section {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `${button} on section '${await section.getTitle()}' was not interactable`);
+        }, constants.wait5seconds, `${button} on section '${this.accordionSectionName}' was not interactable`);
 
     };
 
     /**
      * Selects an item from the "More Actions" context menu
-     * @param section The section
      * @param item The item
      * @returns A promise resolving when the button is clicked
      */
-    public static selectMoreActionsItem = async (
-        section: CustomTreeSection,
-        item: string,
-    ): Promise<void> => {
+    public selectMoreActionsItem = async (item: string): Promise<void> => {
 
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
 
-        const button = await section?.getAction("More Actions...");
+        const thisSection = await this.get();
+
+        const button = await thisSection.getAction("More Actions...");
 
         await driver.wait(async () => {
-            await section.click();
+            await thisSection.click();
 
             return button?.isDisplayed();
         }, constants.wait5seconds, `'More Actions...' button was not visible`);
 
         if (Os.isMacOs()) {
-            const moreActions = await section.findElement(locator.section.moreActions);
+            const moreActions = await thisSection.findElement(locator.section.moreActions);
             await moreActions.click();
             await driver.sleep(500);
             const taps = Misc.getValueFromMap(item);
@@ -126,7 +147,7 @@ export class Section {
             }
             await keyboard.type(nutKey.Enter);
         } else {
-            const moreActions = await section?.moreActions();
+            const moreActions = await thisSection.moreActions();
             const moreActionsItem = await moreActions?.getItem(item);
             await moreActionsItem?.select();
         }
@@ -137,13 +158,12 @@ export class Section {
      * @param dbConfig The database configuration data
      * @returns A promise resolving when the connection is created
      */
-    public static createDatabaseConnection = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
+    public createDatabaseConnection = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
 
-        await Section.clickToolbarButton(await Section.getSection(constants.dbTreeSection),
-            constants.createDBConnection);
+        await this.clickToolbarButton(constants.createDBConnection);
         await driver.wait(waitUntil.tabIsOpened(constants.dbDefaultEditor), constants.wait5seconds);
         await Misc.switchToFrame();
         await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists), constants.wait10seconds);
@@ -151,22 +171,22 @@ export class Section {
     };
 
     /**
-     * Focus a section, by expanding the section and collapsing all the others
-     * @param section The section
+     * Focus a tree explorer, by expanding the section and collapsing all the others
      * @returns A promise resolving when the section is focused
      */
-    public static focus = async (section: string): Promise<void> => {
+    public focus = async (): Promise<void> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
 
-        const treeDBSection = await Section.getSection(constants.dbTreeSection);
-        const treeOCISection = await Section.getSection(constants.ociTreeSection);
-        const treeOpenEditorsSection = await Section.getSection(constants.openEditorsTreeSection);
-        const treeTasksSection = await Section.getSection(constants.tasksTreeSection);
+        const treeDBSection = await new SideBarView().getContent().getSection(constants.dbTreeSection);
+        const treeOCISection = await new SideBarView().getContent().getSection(constants.ociTreeSection);
+        const treeOpenEditorsSection = await new SideBarView().getContent()
+            .getSection(constants.openEditorsTreeSection);
+        const treeTasksSection = await new SideBarView().getContent().getSection(constants.tasksTreeSection);
         await driver.actions().move({ origin: treeTasksSection }).perform();
 
-        if ((await treeDBSection.getTitle()) === section) {
+        if ((await treeDBSection.getTitle()) === this.accordionSectionName) {
             await driver.wait(new Condition("", async () => {
                 try {
                     await treeDBSection.expand();
@@ -183,8 +203,8 @@ export class Section {
                         throw e;
                     }
                 }
-            }), constants.wait5seconds, `${section} was not focused`);
-        } else if ((await treeOCISection.getTitle()) === section) {
+            }), constants.wait5seconds, `${this.accordionSectionName} was not focused`);
+        } else if ((await treeOCISection.getTitle()) === this.accordionSectionName) {
             await driver.wait(new Condition("", async () => {
                 try {
                     await treeOCISection.expand();
@@ -203,8 +223,8 @@ export class Section {
                         throw e;
                     }
                 }
-            }), constants.wait5seconds, `${section} was not focused`);
-        } else if ((await treeOpenEditorsSection.getTitle()) === section) {
+            }), constants.wait5seconds, `${this.accordionSectionName} was not focused`);
+        } else if ((await treeOpenEditorsSection.getTitle()) === this.accordionSectionName) {
             await driver.wait(new Condition("", async () => {
                 try {
                     await treeOpenEditorsSection.expand();
@@ -221,8 +241,8 @@ export class Section {
                         throw e;
                     }
                 }
-            }), constants.wait5seconds, `${section} was not focused`);
-        } else if ((await treeTasksSection.getTitle()) === section) {
+            }), constants.wait5seconds, `${this.accordionSectionName} was not focused`);
+        } else if ((await treeTasksSection.getTitle()) === this.accordionSectionName) {
             await driver.wait(new Condition("", async () => {
                 try {
                     await treeTasksSection.expand();
@@ -240,48 +260,46 @@ export class Section {
                     }
                 }
 
-            }), constants.wait5seconds, `${section} was not focused`);
+            }), constants.wait5seconds, `${this.accordionSectionName} was not focused`);
         } else {
-            throw new Error(`Unknown section: ${section}`);
+            throw new Error(`Unknown section: ${this.accordionSectionName}`);
         }
     };
 
     /**
-     * Expand a section
-     * @param section The section
+     * Expands a tree explorer
      * @returns A promise resolving when the section is expanded
      */
-    public static expand = async (section: string): Promise<void> => {
+    public expand = async (): Promise<void> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
 
-        const sec = await Section.getSection(section);
-        if (!(await sec.isExpanded())) {
+        const thisSection = await this.get();
+        if (!(await thisSection.isExpanded())) {
             await driver.wait(async () => {
-                await sec.expand();
+                await thisSection.expand();
 
-                return sec.isExpanded();
-            }, constants.wait5seconds, `Could not expand '${section}' section`);
+                return thisSection.isExpanded();
+            }, constants.wait5seconds, `Could not expand '${this.accordionSectionName}' tree explorer`);
         }
     };
 
     /**
-     * Collapse a section
-     * @param section The section
+     * Collapse a tree explorer
      * @returns A promise resolving when the section is collapsed
      */
-    public static collapse = async (section: string): Promise<void> => {
+    public collapse = async (): Promise<void> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
-        const sec = await Section.getSection(section);
-        if (await sec.isExpanded()) {
+        const thisSection = await this.get();
+        if (await thisSection.isExpanded()) {
             await driver.wait(async () => {
-                await sec.collapse();
+                await thisSection.collapse();
 
-                return (await sec.isExpanded()) === false;
-            }, constants.wait5seconds, `Could not expand '${section}' section`);
+                return (await thisSection.isExpanded()) === false;
+            }, constants.wait5seconds, `Could not expand '${this.accordionSectionName}' section`);
         }
     };
 
@@ -289,13 +307,13 @@ export class Section {
      * Restarts MySQL Shell from the toolbar context menu
      * @returns A promise resolving when MySQL Shell is restarted
      */
-    public static restartShell = async (): Promise<void> => {
+    public restartShell = async (): Promise<void> => {
         const existsRootHost = async (): Promise<boolean> => {
             return (await driver.findElements(locator.contextMenu.exists)).length > 0;
         };
 
-        const treeDBSection = await Section.getSection(constants.dbTreeSection);
-        await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait5seconds);
+        const treeDBSection = await new SideBarView().getContent().getSection(this.accordionSectionName);
+        await driver.wait(this.isNotLoading, constants.wait5seconds);
         await treeDBSection.click();
         const moreActions = await treeDBSection.findElement(locator.section.moreActions);
         await moreActions.click();
@@ -330,6 +348,66 @@ export class Section {
         await driver.wait(async () => {
             return Os.findOnMySQLShLog(/Info/);
         }, constants.wait5seconds * 3, "Shell server did not start");
+    };
+
+    /**
+     * Gets the database connections from the DATABASE CONNECTIONS section
+     * @returns A promise resolving with the database connections
+     */
+    public getDatabaseConnections = async (): Promise<interfaces.ITreeDBConnection[]> => {
+        if ((await Misc.insideIframe())) {
+            await Misc.switchBackToTopFrame();
+        }
+        const dbConnections: interfaces.ITreeDBConnection[] = [];
+        await Misc.switchBackToTopFrame();
+        await this.focus();
+        await this.clickToolbarButton(constants.collapseAll);
+        const treeItems = await driver.findElements(locator.section.item);
+        for (const item of treeItems) {
+            const icon = await item.findElement(locator.section.itemIcon);
+            const backgroundImage = await icon.getCssValue("background-image");
+            if (backgroundImage.match(/connection/) !== null || backgroundImage.match(/ociDbSystem/) !== null) {
+                const itemName = await (await item.findElement(locator.section.itemName)).getText();
+                let mysql = false;
+                if (backgroundImage.match(/Sqlite/) === null) {
+                    mysql = true;
+                }
+                dbConnections.push({
+                    name: itemName,
+                    isMySQL: mysql,
+                });
+            }
+        }
+
+        return dbConnections;
+    };
+
+    /**
+     * Verifies if the section is not loading
+     * @returns A condition resolving to true if the section is not loading, false otherwise
+     */
+    public isNotLoading = (): Condition<boolean> => {
+        return new Condition(`for ${this.accordionSectionName} to be loaded`, async () => {
+            const sec = await this.get();
+            const loading = await sec.findElements(locator.section.loadingBar);
+            const activityBar = new ActivityBar();
+            const icon = await activityBar.getViewControl(constants.extensionName);
+            const progressBadge = await icon.findElements(locator.shellForVscode.loadingIcon);
+
+            return (loading.length === 0) && (progressBadge.length === 0);
+        });
+    };
+
+    /**
+     * Removes all existing database connections from the DATABASE CONNECTIONS section
+     * @returns A promise resolving when all connections are deleted
+     */
+    public removeAllDatabaseConnections = async (): Promise<void> => {
+        const dbConnections = await this.getDatabaseConnections();
+        await Workbench.closeAllEditors();
+        for (const dbConnection of dbConnections) {
+            await this.tree.deleteDatabaseConnection(dbConnection.name, dbConnection.isMySQL, false);
+        }
     };
 
 }

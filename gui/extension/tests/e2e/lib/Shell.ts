@@ -24,7 +24,7 @@
  */
 
 import { Condition } from "vscode-extension-tester";
-import { driver, Misc } from "./misc";
+import { driver, Misc } from "./Misc";
 import * as locator from "./locators";
 
 export class Shell {

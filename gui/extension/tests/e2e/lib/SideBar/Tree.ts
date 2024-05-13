@@ -32,24 +32,21 @@ import * as waitUntil from "../until";
 import * as locator from "../locators";
 import * as interfaces from "../interfaces";
 import * as errors from "../errors";
-import { Misc, driver } from "../misc";
-import { Workbench } from "../workbench";
-import { Section } from "./section";
-import { Os } from "../os";
+import { Misc, driver } from "../Misc";
+import { Workbench } from "../Workbench";
+import { AccordionSection } from "./AccordionSection";
+import { Os } from "../Os";
 import { hostname } from "os";
 
-export class Tree {
+export class Tree extends AccordionSection {
 
     /**
      * Gets an element from the tree
-     * @param section The section
      * @param element The element
      * @returns A promise resolving with the element
      */
-    public static getElement = async (
-        section: string,
-        element: string | RegExp,
-    ): Promise<TreeItem> => {
+    public getElement = async (element: string | RegExp): Promise<TreeItem> => {
+
         let el: TreeItem;
         let reloadLabel: string;
 
@@ -57,26 +54,28 @@ export class Tree {
             await Misc.switchBackToTopFrame();
         }
 
-        if (section === constants.dbTreeSection) {
+        if (this.accordionSectionName === constants.dbTreeSection) {
             reloadLabel = constants.reloadConnections;
-        } else if (section === constants.ociTreeSection) {
+        } else if (this.accordionSectionName === constants.ociTreeSection) {
             reloadLabel = constants.reloadOci;
         }
 
-        const sectionTree = await Section.getSection(section);
-        await driver.wait(waitUntil.sectionIsNotLoading(section), constants.wait20seconds);
+        const thisTreeSection = new AccordionSection(this.accordionSectionName);
+        const thisTreeSectionElement = await thisTreeSection.get();
+        await driver.wait(thisTreeSection.isNotLoading(), constants.wait20seconds);
         let reload = false;
 
         await driver.wait(async () => {
             try {
                 if (reload) {
-                    if (section === constants.dbTreeSection || section === constants.ociTreeSection) {
-                        await Section.clickToolbarButton(sectionTree, reloadLabel);
-                        await driver.wait(waitUntil.sectionIsNotLoading(section), constants.wait20seconds);
+                    if (this.accordionSectionName === constants.dbTreeSection ||
+                        this.accordionSectionName === constants.ociTreeSection) {
+                        await thisTreeSection.clickToolbarButton(reloadLabel);
+                        await driver.wait(thisTreeSection.isNotLoading(), constants.wait20seconds);
                     }
                 }
                 if (element instanceof RegExp) {
-                    const treeItems = await sectionTree.getVisibleItems();
+                    const treeItems = await thisTreeSectionElement.getVisibleItems();
                     for (const item of treeItems) {
                         if ((await item.getLabel()).match(element) !== null) {
                             el = item;
@@ -84,7 +83,7 @@ export class Tree {
                         }
                     }
                 } else {
-                    el = await sectionTree.findItem(element, 5);
+                    el = await thisTreeSectionElement.findItem(element, 5);
                 }
 
                 if (el === undefined) {
@@ -97,25 +96,25 @@ export class Tree {
                     throw e;
                 }
             }
-        }, constants.wait10seconds, `${element.toString()} on section ${section} was not found`);
+        }, constants.wait10seconds, `${element.toString()} on section ${this.accordionSectionName} was not found`);
 
         return el;
     };
 
     /**
      * Gets an element from the tree by its oci type
-     * @param section The section
      * @param type The type (ociDbSystem, ociBastion)
      * @returns A promise resolving with the element
      */
-    public static getOciElementByType = async (section: string, type: string): Promise<TreeItem> => {
+    public getOciElementByType = async (type: string): Promise<TreeItem> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
 
         if (type.match(/(ociDbSystem|ociBastion|ociCompute)/) !== null) {
-            const sectionTree = await Section.getSection(section);
-            const treeItems = await sectionTree.getVisibleItems();
+            const thisTreeSection = new AccordionSection(this.accordionSectionName);
+            const thisTreeSectionElement = await thisTreeSection.get();
+            const treeItems = await thisTreeSectionElement.getVisibleItems();
             for (const treeItem of treeItems) {
                 const el = await treeItem.findElement(locator.section.itemIcon);
                 const backImage = await el.getCssValue("background-image");
@@ -123,7 +122,7 @@ export class Tree {
                     return treeItem;
                 }
             }
-            throw new Error(`Could not find the item type ${type} on section ${section}`);
+            throw new Error(`Could not find the item type ${type} on section ${this.accordionSectionName}`);
         } else {
             throw new Error(`Unknown type: ${type}`);
         }
@@ -131,11 +130,10 @@ export class Tree {
 
     /**
      * Verifies if an element exists on the tree
-     * @param section The section
      * @param element The element
      * @returns A promise resolving with true if the element exists, false otherwise
      */
-    public static existsElement = async (section: string, element: string | RegExp): Promise<boolean> => {
+    public existsElement = async (element: string | RegExp): Promise<boolean> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
@@ -144,16 +142,17 @@ export class Tree {
         let exists: boolean;
         await driver.wait(async () => {
             try {
-                const sectionTree = await Section.getSection(section);
-                await driver.wait(waitUntil.sectionIsNotLoading(section), constants.wait20seconds);
-                if (section === constants.dbTreeSection || section === constants.ociTreeSection) {
-                    if (section === constants.dbTreeSection) {
+                const sectionTree = await this.get();
+                await driver.wait(this.isNotLoading(), constants.wait20seconds);
+                if (this.accordionSectionName === constants.dbTreeSection ||
+                    this.accordionSectionName === constants.ociTreeSection) {
+                    if (this.accordionSectionName === constants.dbTreeSection) {
                         reloadLabel = "Reload the connection list";
-                    } else if (section === constants.ociTreeSection) {
+                    } else if (this.accordionSectionName === constants.ociTreeSection) {
                         reloadLabel = "Reload the OCI Profile list";
                     }
-                    await Section.clickToolbarButton(sectionTree, reloadLabel);
-                    await driver.wait(waitUntil.sectionIsNotLoading(section), constants.wait20seconds);
+                    await this.clickToolbarButton(reloadLabel);
+                    await driver.wait(this.isNotLoading(), constants.wait20seconds);
                 }
 
                 if (element instanceof RegExp) {
@@ -185,13 +184,11 @@ export class Tree {
 
     /**
      * Verifies if an element is marked as default of the tree (icon is in bold)
-     * @param section The section
      * @param element The element
      * @param type The type (ociProfileCurrent, folderCurrent, ociBastionCurrent, mrsServiceDefault, schemaMySQLCurrent)
      * @returns A promise resolving with true if the element is marked as default, false otherwise
      */
-    public static isElementDefault = async (
-        section: string,
+    public isElementDefault = async (
         element: string,
         type: string,
     ): Promise<boolean | undefined> => {
@@ -200,7 +197,7 @@ export class Tree {
             await Misc.switchBackToTopFrame();
         }
 
-        const treeItem = await Tree.getElement(section, element);
+        const treeItem = await this.getElement(element);
         const el = await treeItem.findElement(locator.section.itemIcon);
         const backImage = await el.getCssValue("background-image");
 
@@ -232,7 +229,7 @@ export class Tree {
      * @param password The connection password
      * @returns A promise resolving when the database connection is expanded
      */
-    public static expandDatabaseConnection = async (conn: TreeItem, password: string): Promise<void> => {
+    public expandDatabaseConnection = async (conn: TreeItem, password: string): Promise<void> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
@@ -265,7 +262,7 @@ export class Tree {
      * @param dbSystem The db system
      * @returns A promise resolving with true if the DB System is stopped, false otherwise
      */
-    public static isDBSystemStopped = async (dbSystem: TreeItem): Promise<boolean> => {
+    public isDBSystemStopped = async (dbSystem: TreeItem): Promise<boolean> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
@@ -281,7 +278,7 @@ export class Tree {
      * @param mrsTreeItem The MRS
      * @returns A promise resolving with true if the MRS is disabled, false otherwise
      */
-    public static isMRSDisabled = async (mrsTreeItem: TreeItem): Promise<boolean> => {
+    public isMRSDisabled = async (mrsTreeItem: TreeItem): Promise<boolean> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
@@ -297,7 +294,7 @@ export class Tree {
      * @param actionButton The action button d
      * @returns A promise resolving with the button
      */
-    public static getActionButton = async (treeItem: TreeItem, actionButton: string): Promise<WebElement> => {
+    public getActionButton = async (treeItem: TreeItem, actionButton: string): Promise<WebElement> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
@@ -327,11 +324,11 @@ export class Tree {
      * Verifies if the router element on the tree is marked as active (yellow dot on the icon)
      * @returns A promise resolving with true if the router is active, false otherwise
      */
-    public static isRouterActive = async (): Promise<boolean> => {
+    public isRouterActive = async (): Promise<boolean> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
-        const routerItem = await Tree.getElement(constants.dbTreeSection, new RegExp(hostname()));
+        const routerItem = await this.getElement(new RegExp(hostname()));
         const icon = await routerItem.findElement(locator.section.itemIcon);
 
         return (await icon.getCssValue("background-image")).match(/router.svg/) !== null;
@@ -342,7 +339,7 @@ export class Tree {
      * @param treeItem The router item
      * @returns A promise resolving with true if the router has errors, false otherwise
      */
-    public static routerHasError = async (treeItem: TreeItem): Promise<boolean> => {
+    public routerHasError = async (treeItem: TreeItem): Promise<boolean> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
@@ -358,14 +355,14 @@ export class Tree {
      * @param type The script type
      * @returns A promise resolving with the script
      */
-    public static getScript = async (name: RegExp, type: string): Promise<TreeItem> => {
+    public getScript = async (name: RegExp, type: string): Promise<TreeItem> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
 
         return driver.wait(new Condition("", async () => {
             try {
-                const section = await Section.getSection(constants.openEditorsTreeSection);
+                const section = await this.get();
                 const treeVisibleItems = await section.getVisibleItems();
                 for (const item of treeVisibleItems) {
                     if ((await item.getLabel()).match(name) !== null) {
@@ -385,56 +382,23 @@ export class Tree {
     };
 
     /**
-     * Gets the database connections from the DATABASE CONNECTIONS section
-     * @returns A promise resolving with the database connections
-     */
-    public static getDatabaseConnections = async (): Promise<interfaces.ITreeDBConnection[]> => {
-        if ((await Misc.insideIframe())) {
-            await Misc.switchBackToTopFrame();
-        }
-        const dbConnections: interfaces.ITreeDBConnection[] = [];
-        await Misc.switchBackToTopFrame();
-        await Section.focus(constants.dbTreeSection);
-        await Section.clickToolbarButton(await Section.getSection(constants.dbTreeSection),
-            constants.collapseAll);
-        const treeItems = await driver.findElements(locator.section.item);
-        for (const item of treeItems) {
-            const icon = await item.findElement(locator.section.itemIcon);
-            const backgroundImage = await icon.getCssValue("background-image");
-            if (backgroundImage.match(/connection/) !== null || backgroundImage.match(/ociDbSystem/) !== null) {
-                const itemName = await (await item.findElement(locator.section.itemName)).getText();
-                let mysql = false;
-                if (backgroundImage.match(/Sqlite/) === null) {
-                    mysql = true;
-                }
-                dbConnections.push({
-                    name: itemName,
-                    isMySQL: mysql,
-                });
-            }
-        }
-
-        return dbConnections;
-    };
-
-    /**
      * Deletes a database connection
      * @param name The database name
      * @param isMySQL If the database if mysql
      * @param verifyDelete True is the removal should be verified
      * @returns A promise resolving when the database is deleted
      */
-    public static deleteDatabaseConnection = async (name: string, isMySQL = true,
+    public deleteDatabaseConnection = async (name: string, isMySQL = true,
         verifyDelete = true): Promise<void> => {
 
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
-        const treeItem = await Tree.getElement(constants.dbTreeSection, name);
+        const treeItem = await this.getElement(name);
         if (isMySQL === true) {
-            await Tree.openContextMenuAndSelect(treeItem, constants.deleteDBConnection, constants.dbConnectionCtxMenu);
+            await this.openContextMenuAndSelect(treeItem, constants.deleteDBConnection, constants.dbConnectionCtxMenu);
         } else {
-            await Tree.openContextMenuAndSelect(treeItem, constants.deleteDBConnection,
+            await this.openContextMenuAndSelect(treeItem, constants.deleteDBConnection,
                 constants.dbConnectionSqliteCtxMenu);
         }
 
@@ -454,7 +418,7 @@ export class Tree {
         if (verifyDelete === true) {
             await driver.wait(async () => {
                 try {
-                    return !(await Tree.existsElement(constants.dbTreeSection, name));
+                    return !(await this.existsElement(name));
                 } catch (e) {
                     if (!(errors.isStaleError(e as Error))) {
                         throw e;
@@ -466,26 +430,25 @@ export class Tree {
 
     /**
      * Expands an element on the tree
-     * @param section The section
      * @param elements The elements
      * @param loadingTimeout The timeout to load the expand
      * @returns A promise resolving when the elements are expanded
      */
-    public static expandElement = async (section: string, elements: Array<string | RegExp>,
+    public expandElement = async (elements: Array<string | RegExp>,
         loadingTimeout = constants.wait10seconds): Promise<void> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
-        const sec = await Section.getSection(section);
-        if (!(await sec.isExpanded())) {
-            await sec.expand();
+        const treeSection = await this.get();
+        if (!(await treeSection.isExpanded())) {
+            await treeSection.expand();
         }
 
         for (const item of elements) {
-            const treeItem = await Tree.getElement(section, item);
+            const treeItem = await this.getElement(item);
             if (!(await treeItem.isExpanded())) {
                 await treeItem.expand();
-                await driver.wait(waitUntil.sectionIsNotLoading(section), loadingTimeout);
+                await driver.wait(this.isNotLoading(), loadingTimeout);
             }
         }
     };
@@ -497,7 +460,7 @@ export class Tree {
      * @param itemMap The map of the item. On macOS, the item map is required
      * @returns A promise resolving when the elements are expanded
      */
-    public static openContextMenuAndSelect = async (
+    public openContextMenuAndSelect = async (
         element: TreeItem,
         ctxMenuItem: string | string[],
         itemMap?: Map<string, number>,
@@ -508,8 +471,9 @@ export class Tree {
         }
 
         if (ctxMenuItem !== constants.openNotebookWithConn) {
-            await driver.wait(waitUntil.sectionIsNotLoading(constants.dbTreeSection), constants.wait10seconds);
-            await driver.wait(waitUntil.sectionIsNotLoading(constants.ociTreeSection), constants.wait10seconds);
+            await driver.wait(this.isNotLoading(), constants.wait10seconds);
+            const ociSection = new AccordionSection(constants.ociTreeSection);
+            await driver.wait(ociSection.isNotLoading(), constants.wait10seconds);
         }
 
         if (element) {
@@ -562,11 +526,11 @@ export class Tree {
      * @param dbConnection The database connection
      * @returns A promise resolving when the rest service is configured
      */
-    public static configureMySQLRestService = async (dbConnection: interfaces.IDBConnection): Promise<void> => {
+    public configureMySQLRestService = async (dbConnection: interfaces.IDBConnection): Promise<void> => {
         await driver.wait(async () => {
             try {
-                const treeElement = await this.getElement(constants.dbTreeSection, dbConnection.caption);
-                await Tree.openContextMenuAndSelect(treeElement, constants.configureREST);
+                const treeElement = await this.getElement(dbConnection.caption);
+                await this.openContextMenuAndSelect(treeElement, constants.configureREST);
                 const ntf = await Workbench.getNotification(
                     `Do you want to configure this instance for MySQL REST Service Support?`, false);
                 await Workbench.clickOnNotificationButton(ntf, "Yes");
@@ -601,5 +565,46 @@ export class Tree {
                 }
             }
         }, constants.wait1minute, `There was a problem configuring the MySQL REST Service`);
+    };
+
+    /**
+     * Waits until the tree item is marked as default
+     * @param treeItemName The item name on the tree
+     * @param itemType The item type
+     * @returns A promise resolving when the item is marked as default
+     */
+    public isDefaultItem = (treeItemName: string, itemType: string): Condition<boolean> => {
+        return new Condition(`for ${treeItemName} to be marked as default`, async () => {
+            await driver.wait(this.isNotLoading(), constants.wait25seconds,
+                `${this.accordionSectionName} is still loading`);
+
+            return this.isElementDefault(treeItemName, itemType);
+        });
+    };
+
+    /**
+     * Waits until router tree element is active
+     * @returns A promise resolving when router icon is active
+     */
+    public routerIconIsActive = (): Condition<boolean> => {
+        return new Condition(`for router icon to be active`, async () => {
+            await this.clickToolbarButton(constants.reloadConnections);
+            await driver.wait(this.isNotLoading(), constants.wait5seconds);
+
+            return this.isRouterActive();
+        });
+    };
+
+    /**
+     * Waits until router tree element is inactive
+     * @returns A promise resolving when router icon is inactive
+     */
+    public routerIconIsInactive = (): Condition<boolean> => {
+        return new Condition(`for router icon to be inactive`, async () => {
+            await this.clickToolbarButton(constants.reloadConnections);
+            await driver.wait(this.isNotLoading(), constants.wait5seconds);
+
+            return !(await this.isRouterActive());
+        });
     };
 }

@@ -22,7 +22,7 @@
  */
 import { WebElement, until, Key } from "vscode-extension-tester";
 import { basename } from "path";
-import { driver, Misc } from "../misc";
+import { driver, Misc } from "../Misc";
 import * as constants from "../constants";
 import * as locator from "../locators";
 import * as errors from "../errors";

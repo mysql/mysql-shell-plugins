@@ -31,7 +31,7 @@ import fs from "fs/promises";
 import { platform } from "os";
 import { join } from "path";
 import * as constants from "./constants";
-import { driver, Misc } from "./misc";
+import { driver, Misc } from "./Misc";
 
 /**
  * This class aggregates the functions that perform operating system related operations
