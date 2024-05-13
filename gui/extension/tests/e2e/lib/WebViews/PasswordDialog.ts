@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { until } from "vscode-extension-tester";
-import { driver, Misc } from "../misc";
+import { driver, Misc } from "../Misc";
 import * as waitUntil from "../until";
 import * as constants from "../constants";
 import * as interfaces from "../interfaces";

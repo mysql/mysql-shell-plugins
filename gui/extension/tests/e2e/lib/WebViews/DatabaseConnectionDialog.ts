@@ -23,11 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { WebElement, By, until, Key, Condition, error } from "vscode-extension-tester";
-import { driver, Misc } from "../misc";
+import { driver, Misc } from "../Misc";
 import * as constants from "../constants";
 import * as interfaces from "../interfaces";
 import * as locator from "../locators";
-import { DialogHelper } from "./dialogHelper";
+import { DialogHelper } from "./DialogHelper";
 
 /**
  * This class aggregates the functions that perform database related operations

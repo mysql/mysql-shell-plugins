@@ -23,8 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { By, WebElement, Locator, Key, until } from "vscode-extension-tester";
-import { driver, Misc } from "../misc";
-import { Os } from "../os";
+import { driver, Misc } from "../Misc";
+import { Os } from "../Os";
 import * as locator from "../locators";
 import * as constants from "../constants";
 

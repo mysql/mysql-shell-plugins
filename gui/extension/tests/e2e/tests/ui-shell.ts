@@ -24,12 +24,12 @@
  */
 import { until, WebElement } from "vscode-extension-tester";
 import { expect } from "chai";
-import { driver, Misc } from "../lib/misc";
-import { Shell } from "../lib/shell";
-import { CommandExecutor } from "../lib/cmdExecutor";
-import { Tree } from "../lib/treeViews/tree";
-import { Os } from "../lib/os";
-import { Workbench } from "../lib/workbench";
+import { driver, Misc } from "../lib/Misc";
+import { Shell } from "../lib/Shell";
+import { CommandExecutor } from "../lib/CommandExecutor";
+import { AccordionSection } from "../lib/SideBar/AccordionSection";
+import { Os } from "../lib/Os";
+import { Workbench } from "../lib/Workbench";
 import * as constants from "../lib/constants";
 import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
@@ -56,6 +56,7 @@ describe("MYSQL SHELL CONSOLES", () => {
     const hostname = String((globalConn.basic as interfaces.IConnBasicMySQL).hostname);
     const port = String((globalConn.basic as interfaces.IConnBasicMySQL).port);
     const schema = String((globalConn.basic as interfaces.IConnBasicMySQL).schema);
+    const openEditorsTreeSection = new AccordionSection(constants.openEditorsTreeSection);
 
     before(async function () {
 
@@ -110,11 +111,11 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Open multiple sessions", async () => {
 
             for (let i = 1; i <= 3; i++) {
-                const treeDBConnections = await Tree.getElement(constants.openEditorsTreeSection,
-                    constants.dbConnectionsLabel);
-                await Tree.openContextMenuAndSelect(treeDBConnections, constants.openNewShellConsole);
+                const treeDBConnections = await openEditorsTreeSection.tree.getElement(constants.dbConnectionsLabel);
+                await openEditorsTreeSection.tree.openContextMenuAndSelect(treeDBConnections,
+                    constants.openNewShellConsole);
                 await driver.wait(Shell.isShellLoaded(), constants.wait15seconds, "Shell Console was not loaded");
-                expect(await Tree.existsElement(constants.openEditorsTreeSection, `Session ${i}`),
+                expect(await openEditorsTreeSection.tree.existsElement(`Session ${i}`),
                     errors.doesNotExistOnTree(`Session ${i}`)).to.be.true;
             }
 
@@ -133,9 +134,8 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         before(async function () {
             try {
-                const treeDBConnections = await Tree.getElement(constants.openEditorsTreeSection,
-                    constants.dbConnectionsLabel);
-                await Tree.openContextMenuAndSelect(treeDBConnections,
+                const treeDBConnections = await openEditorsTreeSection.tree.getElement(constants.dbConnectionsLabel);
+                await openEditorsTreeSection.tree.openContextMenuAndSelect(treeDBConnections,
                     constants.openNewShellConsole);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -267,9 +267,9 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         before(async function () {
             try {
-                const treeDBConnections = await Tree.getElement(constants.openEditorsTreeSection,
-                    constants.dbConnectionsLabel);
-                await Tree.openContextMenuAndSelect(treeDBConnections, constants.openNewShellConsole);
+                const treeDBConnections = await openEditorsTreeSection.tree.getElement(constants.dbConnectionsLabel);
+                await openEditorsTreeSection.tree.openContextMenuAndSelect(treeDBConnections,
+                    constants.openNewShellConsole);
                 await driver.wait(Shell.isShellLoaded(), constants.wait15seconds, "Shell Console was not loaded");
                 const editor = await driver.wait(until.elementLocated(locator.shellConsole.editor),
                     constants.wait10seconds, "Console was not loaded");

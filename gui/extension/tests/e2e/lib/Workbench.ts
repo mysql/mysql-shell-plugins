@@ -33,9 +33,9 @@ import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 import * as waitUntil from "./until";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
-import { Tree } from "./treeViews/tree";
-import { Os } from "./os";
-import { Misc, driver } from "./misc";
+import { AccordionSection } from "./SideBar/AccordionSection";
+import { Os } from "./Os";
+import { Misc, driver } from "./Misc";
 import * as errors from "../lib/errors";
 
 /**
@@ -472,9 +472,10 @@ export class Workbench {
         await Misc.switchBackToTopFrame();
 
         await Workbench.dismissNotifications();
-        const dbTreeConnection = await Tree.getElement(constants.dbTreeSection, dbConnection.caption);
+        const treeSection = new AccordionSection(constants.dbTreeSection);
+        const dbTreeConnection = await treeSection.tree.getElement(dbConnection.caption);
         await Os.deleteCredentials();
-        await Tree.expandDatabaseConnection(dbTreeConnection,
+        await treeSection.tree.expandDatabaseConnection(dbTreeConnection,
             (dbConnection.basic as interfaces.IConnBasicMySQL).password);
         if ((await Workbench.existsNotifications(constants.wait2seconds)) === true) {
             return (await Workbench
@@ -526,17 +527,5 @@ export class Workbench {
     public static openMySQLShellForVSCode = async (): Promise<void> => {
         await Misc.switchBackToTopFrame();
         await (await new ActivityBar().getViewControl(constants.extensionName))?.openView();
-    };
-
-    /**
-     * Removes all existing database connections from the DATABASE CONNECTIONS section
-     * @returns A promise resolving when all connections are deleted
-     */
-    public static removeAllDatabaseConnections = async (): Promise<void> => {
-        const dbConnections = await Tree.getDatabaseConnections();
-        await Workbench.closeAllEditors();
-        for (const dbConnection of dbConnections) {
-            await Tree.deleteDatabaseConnection(dbConnection.name, dbConnection.isMySQL, false);
-        }
     };
 }

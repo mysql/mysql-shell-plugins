@@ -28,7 +28,7 @@ import addContext from "mochawesome/addContext";
 import { join } from "path";
 import { ITimeouts, until, VSBrowser, WebDriver, WebElement } from "vscode-extension-tester";
 import { existsSync } from "fs";
-import { Workbench } from "./workbench";
+import { Workbench } from "./Workbench";
 import * as constants from "./constants";
 import * as waitUntil from "./until";
 import * as locator from "./locators";
