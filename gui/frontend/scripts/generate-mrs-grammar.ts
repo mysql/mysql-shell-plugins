@@ -63,7 +63,7 @@ const processLexer = () => {
     mysqlLexerContent = mysqlLexerContent.replace(/MySQLLexer/g, "MySQLMRSLexer");
 
     // Remove a token, which has to be defined after the new MRS keywords in the combined lexer.
-    mysqlLexerContent = mysqlLexerContent.replace("AT_TEXT_SUFFIX: '@' SIMPLE_IDENTIFIER;\n", "");
+    mysqlLexerContent = mysqlLexerContent.replace("AT_TEXT_SUFFIX: '@' SIMPLE_IDENTIFIER;", "");
 
     let insertionMarkerPosition = mysqlLexerContent.indexOf(keywordInsertionMarker);
 

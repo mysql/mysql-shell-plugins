@@ -249,6 +249,15 @@ export class DBEditorCommandHandler {
                 }
             }));
 
+        context.subscriptions.push(commands.registerCommand("msg.showLakehouseNavigator",
+            (provider: IWebviewProvider | undefined, caption: string, connectionId: number, itemId: string) => {
+                provider ??= this.#host.currentProvider;
+                if (provider instanceof DBConnectionViewProvider) {
+                    provider.caption = caption;
+                    void provider.showPageSection(String(connectionId), EntityType.LakehouseNavigator, itemId);
+                }
+            }));
+
         context.subscriptions.push(commands.registerCommand("msg.insertScript", (item?: ScriptTreeItem) => {
             if (item) {
                 const provider = this.#host.currentProvider;

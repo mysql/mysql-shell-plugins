@@ -104,7 +104,7 @@ def sizeof_fmt(size):
     return "%.1f%s%s" % (size, 'Y', 'B')
 
 
-def format_bucket_objects_listing(bucket_objects):
+def format_bucket_objects_listing(bucket_list_objects):
     """Returns a formatted list of buckets.
 
     Args:
@@ -118,7 +118,16 @@ def format_bucket_objects_listing(bucket_objects):
 
     out = ""
     i = 1
-    for o in bucket_objects:
+    for p in bucket_list_objects.prefixes:
+        # Shorten to 24 chars max, remove linebreaks
+        name = re.sub(r'[\n\r]', ' ',
+                      p[:63] + '..'
+                      if len(p) > 65
+                      else p)
+        out += (f"{i:>4} {name:65} (Prefix)\n")
+        i += 1
+
+    for o in bucket_list_objects.objects:
         # Shorten to 24 chars max, remove linebreaks
         name = re.sub(r'[\n\r]', ' ',
                       o.name[:63] + '..'
@@ -134,28 +143,42 @@ def format_bucket_objects_listing(bucket_objects):
     return out
 
 
-@plugin_function('mds.list.buckets')
-def list_buckets(compartment_id=None, config=None, raise_exceptions=False,
-                 interactive=True, return_formatted=True):
+@plugin_function('mds.list.buckets', shell=True, cli=True, web=True)
+def list_buckets(**kwargs):
     """Lists object store buckets
 
     This function will list all buckets of the compartment with the
     given compartment_id.
 
     Args:
+        **kwargs: Optional parameters
+
+    Keyword Args:
         compartment_id (str): OCID of the parent compartment.
         config (object): An OCI config object or None.
+        config_profile (str): The name of an OCI config profile
         raise_exceptions (bool): If set to True exceptions are raised
         interactive (bool): Whether output is more descriptive
         return_formatted (bool): If set to true, a list object is returned.
 
     Returns:
-        A list of dicts representing the compartments
+        A list of dicts representing the buckets
     """
+
+    compartment_id = kwargs.get("compartment_id")
+
+    config = kwargs.get("config")
+    config_profile = kwargs.get("config_profile")
+
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
+    return_formatted = kwargs.get("return_formatted", interactive)
 
     # Get the active config and compartment
     try:
-        config = configuration.get_current_config(config=config)
+        config = configuration.get_current_config(
+            config=config, config_profile=config_profile,
+            interactive=interactive)
         compartment_id = configuration.get_current_compartment_id(
             compartment_id=compartment_id, config=config)
         bucket_name = configuration.get_current_bucket_name(
@@ -450,7 +473,7 @@ def delete_file_from_list_from_bucket(index, os_client, objects,
                 object_name=o.name)
 
 
-@plugin_function('mds.delete.bucketObject')
+@plugin_function('mds.delete.bucketObject', shell=True, cli=True, web=True)
 def delete_bucket_object(name=None, **kwargs):
     """Deletes an object store bucket objects
 
@@ -463,19 +486,27 @@ def delete_bucket_object(name=None, **kwargs):
         bucket_name (str): The name of the bucket.
         compartment_id (str): OCID of the parent compartment.
         config (object): An OCI config object or None.
+        config_profile (str): The name of an OCI config profile
         interactive (bool): If set to false, function returns true on success
     Returns:
-         None or True
+         None
     """
 
-    bucket_name = kwargs.get('bucket_name')
-    compartment_id = kwargs.get('compartment_id')
-    config = kwargs.get('config')
-    interactive = kwargs.get('interactive', True)
+    compartment_id = kwargs.get("compartment_id")
+    config = kwargs.get("config")
+    config_profile = kwargs.get("config_profile")
+
+    bucket_name = kwargs.get("bucket_name")
+
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
 
     # Get the active config and compartment
     try:
-        config = configuration.get_current_config(config=config)
+        # Get the active config and compartment
+        config = configuration.get_current_config(
+            config=config, config_profile=config_profile,
+            interactive=interactive)
         compartment_id = configuration.get_current_compartment_id(
             compartment_id=compartment_id, config=config)
         bucket_name = configuration.get_current_bucket_name(
@@ -522,8 +553,11 @@ def delete_bucket_object(name=None, **kwargs):
             # Get object count
             obj_count = len(objects)
             if obj_count == 0:
-                print("No objects to delete in this bucket.")
-                return
+                if interactive:
+                    print("No matching objects found for deletion.")
+                    return
+                else:
+                    raise ValueError("No matching objects found for deletion.")
 
             # Prompt the user for confirmation
             if interactive:
@@ -536,9 +570,9 @@ def delete_bucket_object(name=None, **kwargs):
                     print("Deletion aborted.\n")
                     return
 
-            # Delete all objects
-            print(f"Deleting {obj_count} "
-                  f"object{'s' if obj_count > 1 else ''}.")
+                # Delete all objects
+                print(f"Deleting {obj_count} "
+                    f"object{'s' if obj_count > 1 else ''}.")
 
             import threading
 
@@ -563,7 +597,8 @@ def delete_bucket_object(name=None, **kwargs):
                 namespace_name=namespace_name, bucket_name=bucket.name,
                 object_name=name)
 
-            print(f"Bucket object '{name}' deleted successfully.")
+            if interactive:
+                print(f"Bucket object '{name}' deleted successfully.")
         elif interactive:
             # Get object list
             bucket_objects = oci.pagination.list_call_get_all_results(
@@ -589,17 +624,20 @@ def delete_bucket_object(name=None, **kwargs):
 
             print(f"Bucket object '{name}' deleted successfully.")
         else:
-            print('No Object name given.')
-
-        if not interactive:
-            return True
+            if interactive:
+                print('No object name given.')
+                return
+            raise ValueError("No object name given.")
 
     except oci.exceptions.ServiceError as e:
+        if raise_exceptions:
+            raise
         print(f'ERROR: {e.message}. (Code: {e.code}; Status: {e.status})')
-        return
     except Exception as e:
-        print(f'ERROR: {e}')
-        return
+        if raise_exceptions:
+            raise
+        print(f'Could not create the bucket objects.\n'
+              f'ERROR: {str(e)}')
 
 
 def bucket_object_upload_progress_callback(bytes_uploaded):
@@ -615,7 +653,7 @@ def create_bucket_object(file_name=None, name=None,
 
     Args:
         file_name (str): The name of the file to upload
-        name (str): The name of the object bucket to create
+        name (str): The name of the file object to create
         bucket_name (str): The name of the new bucket.
         file_content (str): The contents of the file
         compartment_id (str): OCID of the parent compartment.
@@ -711,7 +749,150 @@ def create_bucket_object(file_name=None, name=None,
         return True
 
 
-@plugin_function('mds.list.bucketObjects')
+def bucket_objects_upload_progress_callback(file_path, bytes_uploaded, total_file_size, send_gui_message):
+    if send_gui_message is not None:
+        send_gui_message("data", {
+            "file_path": file_path,
+            "bytes_uploaded": bytes_uploaded,
+            "total_file_size": total_file_size})
+    else:
+        print(f'File: {file_path} {bytes_uploaded=} {total_file_size=}')
+
+
+@plugin_function('mds.create.bucketObjects', shell=True, cli=True, web=True)
+def create_bucket_objects(file_paths, prefix, **kwargs):
+    """Creates a new object store bucket object
+
+    Args:
+        file_paths (list): The name of the file to upload
+        prefix (str): The name of the file object to create
+        **kwargs: Additional options
+
+    Keyword Args:
+        bucket_name (str): The name of the new bucket.
+        compartment_id (str): OCID of the parent compartment.
+        config (object): An OCI config object or None.
+        config_profile (str): The name of an OCI config profile
+        interactive (bool): Whether exceptions should be raised
+        raise_exceptions (bool): If true exceptions are raised
+        send_gui_message (object): The function to send a message to he GUI.
+
+    Returns:
+        None
+    """
+    import oci.object_storage
+    import os.path
+    import traceback
+    from mds_plugin.object_store_uploader import parallel_bucket_upload
+
+    compartment_id = kwargs.get("compartment_id")
+    config = kwargs.get("config")
+    config_profile = kwargs.get("config_profile")
+
+    bucket_name = kwargs.get("bucket_name")
+
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
+
+    send_gui_message = kwargs.get("send_gui_message")
+
+    # Get the active config and compartment
+    try:
+        # Get the active config and compartment
+        config = configuration.get_current_config(
+            config=config, config_profile=config_profile,
+            interactive=interactive)
+        compartment_id = configuration.get_current_compartment_id(
+            compartment_id=compartment_id, config=config)
+        bucket_name = configuration.get_current_bucket_name(
+            bucket_name=bucket_name, config=config)
+
+        if file_paths is None or len(file_paths) == 0:
+            raise Exception("No files given.")
+
+
+
+        if bucket_name is None or bucket_name == "":
+            bucket = get_bucket(
+                compartment_id=compartment_id, config=config, ignore_current=True, interactive=interactive)
+            if bucket is None:
+                return
+            bucket_name = bucket.name
+
+        if interactive:
+            print("Creating a new bucket objects ...\n")
+
+        # Initialize the Object Store client
+        os_client = core.get_oci_object_storage_client(config=config)
+
+        # Get Object Store namespace
+        namespace_name = get_object_store_namespace(config)
+
+        # upload manager will automatically use single part uploads if the
+        # part size (in bytes) is less than the file size
+        # part_size = oci.object_storage.transfer.constants.DEFAULT_PART_SIZE
+        part_size = 262144
+
+        def report_error(e, file_path):
+            if isinstance(e, oci.exceptions.ServiceError):
+                    if send_gui_message is not None:
+                        send_gui_message(
+                            "data", {
+                                "filePath": file_path,
+                                "error": f'ERROR: {e.message}. (Code: {e.code}; Status: {e.status})'})
+                    elif interactive:
+                        print(
+                            f'{file_path} - ERROR: {e.message}. (Code: {e.code}; Status: {e.status})')
+            elif isinstance(e, oci.exceptions.ServiceError):
+                if send_gui_message is not None:
+                    send_gui_message(
+                        "data", {
+                            "filePath": file_path,
+                            "error": f'File {file_path} cannot be found. ERROR {e}'})
+                elif interactive:
+                    print(f'{file_path} - ERROR: {e}')
+            else:
+                if send_gui_message is not None:
+                    send_gui_message("data", {
+                        "filePath": file_path,
+                        "error": f'ERROR: {e}'})
+                elif interactive:
+                    print(f'{file_path} - ERROR: {e}')
+
+        def progress_callback(data):
+            if data["status"] == "ERROR":
+                report_error(data["error"], data["file_path"])
+            elif data["status"] == "PROGRESS":
+                bucket_objects_upload_progress_callback(data["file_path"], data["bytes_uploaded"], data["file_size"], send_gui_message)
+
+        try:
+            parallel_bucket_upload(
+                files=[
+                    {
+                        "object_name": prefix + os.path.basename(f),
+                        "file_path": os.path.expanduser(f),
+                    }
+                    for f in file_paths
+                ],
+                status_fn=progress_callback,
+                os_client=os_client,
+                namespace=namespace_name,
+                bucket_name=bucket_name,
+                processes_per_file=5,
+                part_size=part_size,
+                num_workers=8,
+            )
+        except Exception as e:
+            report_error(e, None)
+
+    except Exception as e:
+        if raise_exceptions:
+            raise
+        print(f'Could not create the bucket objects.\n'
+              f'ERROR: {str(e)}')
+
+
+@plugin_function('mds.list.bucketObjects', shell=True, cli=True, web=True)
 def list_bucket_objects(**kwargs):
     """Lists bucket object
 
@@ -725,8 +906,15 @@ def list_bucket_objects(**kwargs):
         bucket_name (str): The name of the bucket
         name (str): Then name of the bucket object, can include *
             to match multiple objects
+        prefix (str): The string to use for matching against the start of object names in a list query
+        delimiter (str): When this parameter is set, only objects whose names do not contain the delimiter character
+            (after an optionally specified prefix) are returned in the objects key of the response body.
+            Scanned objects whose names contain the delimiter have the part of their name up to the first occurrence
+            of the delimiter (including the optional prefix) returned as a set of prefixes. Note that only "/" is a
+            supported delimiter character at this time.
         compartment_id (str): OCID of the parent compartment.
         config (object): An OCI config object or None.
+        config_profile (str): The name of an OCI config profile
         interactive (bool): If set to false exceptions are raised
         return_formatted (bool): If set to true, a list object is returned.
 
@@ -736,18 +924,29 @@ def list_bucket_objects(**kwargs):
 
     bucket_name = kwargs.get('bucket_name')
     name = kwargs.get('name')
+
+    prefix = kwargs.get('prefix')
+    delimiter = kwargs.get('delimiter')
+
     compartment_id = kwargs.get('compartment_id')
-    config = kwargs.get('config')
-    interactive = kwargs.get('interactive', True)
-    return_formatted = kwargs.get('return_formatted', True)
+
+    config = kwargs.get("config")
+    config_profile = kwargs.get("config_profile")
+
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
+    return_formatted = kwargs.get("return_formatted", interactive)
 
     # Get the active config and compartment
     try:
-        config = configuration.get_current_config(config=config)
+        config = configuration.get_current_config(
+            config=config, config_profile=config_profile,
+            interactive=interactive)
         compartment_id = configuration.get_current_compartment_id(
             compartment_id=compartment_id, config=config)
-        bucket_name = configuration.get_current_bucket_name(
-            bucket_name=bucket_name, config=config)
+        if bucket_name is None:
+            bucket_name = configuration.get_current_bucket_name(
+                config=config)
 
         import oci.object_storage
         import oci.util
@@ -772,25 +971,27 @@ def list_bucket_objects(**kwargs):
         #     bucket_name=bucket.name,
         #     fields="name,size,timeModified").data.objects
 
-        bucket_objects = oci.pagination.list_call_get_all_results(
+        bucket_list_objects = oci.pagination.list_call_get_all_results(
             os_client.list_objects,
             namespace_name=namespace_name,
             bucket_name=bucket.name,
+            prefix=prefix,
+            delimiter=delimiter,
             fields="name,size,timeModified",
-            limit=1000).data.objects
+            limit=1000).data
         # Filter list if PARs
         if name and name != '*':
             name = name.lower()
             # Filter list if PARs
             if '*' in name:
                 name_pattern = '^' + name.replace('*', '.+')
-                bucket_objects = [obj for obj in bucket_objects
-                                  if re.search(name_pattern, obj.name.lower())]
+                bucket_list_objects.objects = [obj for obj in bucket_list_objects.objects
+                                               if re.search(name_pattern, obj.name.lower())]
             else:
-                bucket_objects = [obj for obj in bucket_objects
-                                  if name == obj.name.lower()]
+                bucket_list_objects.objects = [obj for obj in bucket_list_objects.objects
+                                               if name == obj.name.lower()]
 
-        if len(bucket_objects) < 1:
+        if len(bucket_list_objects.prefixes) + len(bucket_list_objects.objects) < 1 and interactive:
             if name:
                 print(f"The bucket {bucket.name} contains no objects matching "
                       f"the object name {name}.")
@@ -799,20 +1000,19 @@ def list_bucket_objects(**kwargs):
             return
 
         if return_formatted:
-            return format_bucket_objects_listing(bucket_objects=bucket_objects)
+            return format_bucket_objects_listing(bucket_list_objects=bucket_list_objects)
         else:
             # return compartments in JSON text output
-            return oci.util.to_dict(bucket_objects)
+            return oci.util.to_dict(bucket_list_objects)
     except oci.exceptions.ServiceError as e:
-        if not interactive:
+        if raise_exceptions:
             raise
         print(f'ERROR: {e.message}. (Code: {e.code}; Status: {e.status})')
         return
-    except Exception as e:
-        if not interactive:
+    except (ValueError, oci.exceptions.ClientError) as e:
+        if raise_exceptions:
             raise
         print(f'ERROR: {e}')
-        return
 
 
 @plugin_function('mds.get.bucketObject')

@@ -40,7 +40,7 @@ import { ScriptEditor } from "./ScriptEditor.js";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
 import {
     IEditorExtendedExecutionOptions,
-    IMrsDbObjectEditRequest, IMrsSchemaEditRequest, appParameters,
+    IMrsDbObjectEditRequest, IMrsSchemaEditRequest, IOpenFileDialogResult, appParameters,
     requisitions,
     type IColumnDetails,
 } from "../../supplement/Requisitions.js";
@@ -75,6 +75,9 @@ import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.
 import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses.js";
 import { IMrsAuthRequestPayload } from "../mrs/types.js";
 import { getRouterPortForConnection } from "../../modules/mrs/mrs-helpers.js";
+import { LakehouseNavigator, ILakehouseNavigatorState, ILakehouseNavigatorSavedState } from "./LakehouseNavigator.js";
+import { IMdsChatData } from "../../communication/ProtocolMds.js";
+import { ChatOptionAction, ChatOptions, IChatOptionsState } from "../../components/Chat/ChatOptions.js";
 
 const errorRexExp = new RegExp(`(You have an error in your SQL syntax; check the manual that corresponds to your ` +
     `MySQL server version for the right syntax to use near '(.*)' at line )(\\d+)`);
@@ -105,6 +108,10 @@ export interface IOpenEditorState extends IEntityBase {
     currentVersion: number;
 }
 
+export interface IAdminPageStates {
+    lakehouseNavigatorState: ILakehouseNavigatorState;
+}
+
 export interface IDBConnectionTabPersistentState extends ISavedEditorState {
     backend: ShellInterfaceSqlEditor;
 
@@ -118,6 +125,7 @@ export interface IDBConnectionTabPersistentState extends ISavedEditorState {
     scripts: IDBDataEntry[];
     schemaTree: ISchemaTreeEntry[];
     explorerState: Map<string, IExplorerSectionState>;
+    adminPageStates: IAdminPageStates;
 
     currentSchema: string;
 
@@ -126,6 +134,8 @@ export interface IDBConnectionTabPersistentState extends ISavedEditorState {
 
     /** Cached data/settings for the performance dashboard. */
     graphData: ISavedGraphData;
+
+    chatOptionsState: IChatOptionsState;
 }
 
 /** Selecting an item requires different data, depending on the type of the item. */
@@ -187,11 +197,14 @@ interface IDBConnectionTabProperties extends IComponentProperties {
 
     onSaveSchemaTree?: (id: string, schemaTree: ISchemaTreeEntry[]) => void;
     onSaveExplorerState?: (id: string, state: Map<string, IExplorerSectionState>) => void;
+    onSaveAdminLakehouseNavigatorState?: (id: string, data: Partial<ILakehouseNavigatorSavedState>) => void;
 
     onGraphDataChange?: (id: string, data: ISavedGraphData) => void;
 
     onExplorerResize?: (id: string, size: number) => void;
     onExplorerMenuAction?: (id: string, itemId: string, params: unknown) => void;
+
+    onChatOptionsChange?: (id: string, data: Partial<IChatOptionsState>) => void;
 }
 
 interface IDBConnectionTabState extends IComponentState {
@@ -319,6 +332,9 @@ Execute \\help or \\? for help;`;
         requisitions.register("refreshMrsServiceSdk", this.updateMrsServiceSdkCache);
         requisitions.register("editorSaveNotebook", this.editorSaveNotebook);
         requisitions.register("editorLoadNotebook", this.editorLoadNotebook);
+        requisitions.register("showLakehouseNavigator", this.showLakehouseNavigator);
+        requisitions.register("showChatOptions", this.showChatOptions);
+        requisitions.register("selectFile", this.selectFile);
 
         const { id, connectionId, savedState } = this.props;
         requisitions.executeRemote("sqlSetCurrentSchema",
@@ -356,6 +372,9 @@ Execute \\help or \\? for help;`;
         requisitions.unregister("refreshMrsServiceSdk", this.updateMrsServiceSdkCache);
         requisitions.unregister("editorSaveNotebook", this.editorSaveNotebook);
         requisitions.unregister("editorLoadNotebook", this.editorLoadNotebook);
+        requisitions.unregister("showLakehouseNavigator", this.showLakehouseNavigator);
+        requisitions.unregister("showChatOptions", this.showChatOptions);
+        requisitions.unregister("selectFile", this.selectFile);
     }
 
     public componentDidUpdate(prevProps: IDBConnectionTabProperties): void {
@@ -397,6 +416,38 @@ Execute \\help or \\? for help;`;
                         fontSize={appParameters.editorFontSize}
                         onHelpCommand={onHelpCommand}
                         onScriptExecution={this.handleExecution}
+                        onContextLanguageChange={this.handleContextLanguageChange}
+                    />;
+
+                    const chatOptionsExpanded = savedState.chatOptionsState.chatOptionsExpanded;
+
+                    document = <SplitContainer
+                        className={className}
+                        panes={
+                            [
+                                {
+                                    id: "notebook",
+                                    minSize: 350,
+                                    snap: false,
+                                    stretch: true,
+                                    resizable: chatOptionsExpanded,
+                                    content: document,
+                                },
+                                {
+                                    id: "chatOptions",
+                                    minSize: 340,
+                                    initialSize: savedState.chatOptionsState.chatOptionsWidth > -1
+                                        ? savedState.chatOptionsState.chatOptionsWidth : 340,
+                                    snap: true,
+                                    collapsed: !chatOptionsExpanded,
+                                    content: chatOptionsExpanded ? (
+                                        <ChatOptions savedState={savedState.chatOptionsState}
+                                            onChatOptionsStateChange={this.updateChatOptionsState}
+                                            onAction={this.handleChatAction}
+                                            currentSchema={savedState.currentSchema} />) : undefined,
+                                },
+                            ]}
+                        onPaneResized={this.handlePaneResize}
                     />;
                     break;
                 }
@@ -426,6 +477,14 @@ Execute \\help or \\? for help;`;
 
                 case EntityType.Connections: {
                     document = <ClientConnections backend={savedState.backend} toolbarItems={toolbarItems} />;
+
+                    break;
+                }
+
+                case EntityType.LakehouseNavigator: {
+                    document = <LakehouseNavigator backend={savedState.backend} toolbarItems={toolbarItems}
+                        savedState={savedState.adminPageStates.lakehouseNavigatorState}
+                        onLakehouseNavigatorStateChange={this.handleLakehouseNavigatorStateChange} />;
 
                     break;
                 }
@@ -893,6 +952,24 @@ Execute \\help or \\? for help;`;
             }
         } else {
             await createNotebook(details.content);
+        }
+
+        return Promise.resolve(true);
+    };
+
+    private showLakehouseNavigator = async (_: unknown): Promise<boolean> => {
+        const { connectionId } = this.props;
+
+        this.handleSelectItem(String(connectionId), EntityType.LakehouseNavigator, "Lakehouse Navigator");
+
+        return Promise.resolve(true);
+    };
+
+    private showChatOptions = async (_: unknown): Promise<boolean> => {
+        const { savedState, id, onChatOptionsChange } = this.props;
+
+        if (id && onChatOptionsChange) {
+            onChatOptionsChange(id, { chatOptionsExpanded: !savedState.chatOptionsState.chatOptionsExpanded });
         }
 
         return Promise.resolve(true);
@@ -1373,6 +1450,141 @@ Execute \\help or \\? for help;`;
         }
     };
 
+    private runChatQuery = async (context: SQLExecutionContext, _options: IScriptExecutionOptions): Promise<void> => {
+        const { savedState } = this.props;
+        const { backend } = this.state;
+
+        // If there is no current chat, init the current chat options
+        let currentChatOptions = savedState.chatOptionsState.options ?? {
+            conversationId: uuid(),
+            reportProgress: true,
+        };
+
+        if (backend && backend.moduleSessionId) {
+            const chatQueryId = context.id;
+            currentChatOptions.reRun = false;
+            if (currentChatOptions.chatHistory &&
+                currentChatOptions.chatHistory.find((entry) => {
+                    return entry.chatQueryId === chatQueryId;
+                })) {
+                currentChatOptions.reRun = true;
+            }
+
+            try {
+                let tokens = "";
+
+                // Take the current chat options, but set the chatQueryId
+                const options: IDictionary = {
+                    ...currentChatOptions,
+                    chatQueryId,
+                };
+                void await backend.mds.executeChatRequest(
+                    context.code, backend.moduleSessionId, options, (data) => {
+                        let info;
+                        const chatData = data.result.data;
+                        if (chatData) {
+                            if (chatData.error) {
+                                this.addTimedResult(context, {
+                                    type: "chat",
+                                    error: chatData.error,
+                                    chatQueryId,
+                                }, {
+                                    resultId: chatQueryId,
+                                });
+
+                                return;
+                            }
+
+                            currentChatOptions = {
+                                ...currentChatOptions,
+                                ...chatData,
+                                info: undefined,
+                            };
+
+                            if (chatData.info) {
+                                info = chatData.info;
+                            }
+                            if (chatData.usage) {
+                                info = `Used ${chatData.usage?.usedUnits.inputTokens} input tokens, ` +
+                                    `${chatData.usage?.usedUnits.outputTokens} output tokens.`;
+                            }
+
+                            // If tokens come in, concatenate them
+                            if (chatData.token) {
+                                tokens += chatData.token.replaceAll("\\n", "\n");
+                                currentChatOptions.token = undefined;
+                            } else if (chatData.response) {
+                                tokens = chatData.response;
+                                currentChatOptions.response = undefined;
+                            }
+
+                            /*if (chatData.requestCompleted) {
+                                // Update chat history
+
+                                if (!this.#currentChatOptions.chatHistory) {
+                                    this.#currentChatOptions.chatHistory = [];
+                                }
+                                if (this.#currentChatOptions.reRun) {
+                                    // If this is a reRun, update the chatHistory entries
+                                    this.#currentChatOptions.chatHistory = this.#currentChatOptions.chatHistory.map(
+                                        (entry) => {
+                                            return (entry.chatQueryId === chatQueryId) ?
+                                                { ...entry, userMessage: context.code, chatBotMessage: tokens } : entry;
+                                        });
+                                } else {
+                                    this.#currentChatOptions.chatHistory.push({
+                                        chatQueryId,
+                                        userMessage: context.code,
+                                        chatBotMessage: tokens,
+                                    });
+                                }
+                            }*/
+
+                            void context.addResultData({
+                                type: "chat",
+                                chatQueryId,
+                                info,
+                                answer: tokens,
+                                options: currentChatOptions as IDictionary,
+                                chatOptionsVisible: savedState.chatOptionsState.chatOptionsExpanded,
+                                updateOptions: this.updateChatOptionsState,
+                            }, {
+                                resultId: chatQueryId,
+                            }).then(() => {
+                                // Store chat options and refresh UI
+                                this.updateChatOptionsState({ options: currentChatOptions });
+                            });
+
+                        }
+                    });
+            } catch (reason) {
+                let content: string;
+
+                if (reason instanceof ResponseError) {
+                    content = reason.info.requestState.msg;
+                } else {
+                    content = reason as string;
+                }
+
+                this.addTimedResult(context, {
+                    type: "chat",
+                    chatQueryId,
+                    error: content,
+                }, {
+                    resultId: chatQueryId,
+                });
+            }
+        }
+    };
+
+    private updateChatOptionsState = (data: Partial<IChatOptionsState>): void => {
+        const { id, onChatOptionsChange } = this.props;
+
+        if (id && onChatOptionsChange) {
+            onChatOptionsChange(id, data);
+        }
+    };
+
     private reconnect = async (context: ExecutionContext): Promise<void> => {
         const { backend } = this.state;
 
@@ -1684,9 +1896,9 @@ Execute \\help or \\? for help;`;
      * @returns True if something was actually executed, false otherwise.
      */
     private handleExecution = async (context: ExecutionContext, options: IScriptExecutionOptions): Promise<boolean> => {
-        const { workerPool } = this.props;
+        const { workerPool, savedState } = this.props;
 
-        const command = context.code.trim();
+        const command = context.code?.trim() ?? "";
         if (command.length === 0) {
             return false;
         }
@@ -1698,12 +1910,19 @@ Execute \\help or \\? for help;`;
             const temp = parts[0].toLowerCase();
             switch (temp) {
                 case "\\about": {
-                    const isMac = navigator.userAgent.includes("Macintosh");
-                    const content = DBConnectionTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
-                    await context?.addResultData({
-                        type: "text",
-                        text: [{ type: MessageType.Info, content, language: "ansi" }],
-                    }, { resultId: "" });
+                    if (savedState.heatWaveEnabled) {
+                        await context?.addResultData({
+                            type: "about",
+                            title: "HeatWave Chat",
+                        }, { resultId: "" });
+                    } else {
+                        const isMac = navigator.userAgent.includes("Macintosh");
+                        const content = DBConnectionTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
+                        await context?.addResultData({
+                            type: "text",
+                            text: [{ type: MessageType.Info, content, language: "ansi" }],
+                        }, { resultId: "" });
+                    }
 
                     return true;
                 }
@@ -1778,10 +1997,32 @@ Execute \\help or \\? for help;`;
                 break;
             }
 
+            case "text": {
+                await this.runChatQuery(context as SQLExecutionContext, options);
+                break;
+            }
+
             default:
         }
 
         return true;
+    };
+
+    private handleContextLanguageChange = (context: ExecutionContext, language: EditorLanguage): void => {
+        const { savedState, onChatOptionsChange, id } = this.mergedProps;
+
+        switch (language) {
+            case "text": {
+                if (!savedState.chatOptionsState.chatOptionsExpanded && onChatOptionsChange !== undefined
+                    && id) {
+                    onChatOptionsChange(id, { chatOptionsExpanded: true });
+                }
+
+                break;
+            }
+
+            default:
+        }
     };
 
     /**
@@ -2431,6 +2672,10 @@ Execute \\help or \\? for help;`;
                 const { id = "", onExplorerResize } = this.props;
 
                 onExplorerResize?.(id, value.currentSize);
+            } else if (value.id === "chatOptions") {
+                const { id = "", onChatOptionsChange } = this.props;
+
+                onChatOptionsChange?.(id, { chatOptionsWidth: value.currentSize });
             }
         });
     };
@@ -2439,6 +2684,12 @@ Execute \\help or \\? for help;`;
         const { id, onGraphDataChange } = this.props;
 
         onGraphDataChange?.(id ?? "", data);
+    };
+
+    private handleLakehouseNavigatorStateChange = (data: Partial<ILakehouseNavigatorSavedState>): void => {
+        const { id, onSaveAdminLakehouseNavigatorState } = this.props;
+
+        onSaveAdminLakehouseNavigatorState?.(id ?? "", data);
     };
 
     /**
@@ -2611,5 +2862,96 @@ Execute \\help or \\? for help;`;
         }
 
         return activeEditor;
+    };
+
+    private handleChatAction = (action: ChatOptionAction, _options?: IMdsChatData): void => {
+        const { savedState } = this.props;
+
+        switch (action) {
+            case ChatOptionAction.SaveChatOptions: {
+                if (appParameters.embedded) {
+                    const options = {
+                        id: "saveChatOptions",
+                        title: "Save Chat Profile",
+                        saveLabel: "Save",
+                        filters: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            HeatWaveChatOptions: ["json"],
+                        },
+                    };
+                    requisitions.executeRemote("showSaveDialog", options);
+                }
+
+                break;
+            }
+            case ChatOptionAction.LoadChatOptions: {
+                if (appParameters.embedded) {
+                    const options = {
+                        id: "loadChatOptions",
+                        title: "Load Chat Profile",
+                        saveLabel: "Load",
+                        canSelectFiles: true,
+                        canSelectFolders: false,
+                        canSelectMany: false,
+                        filters: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            HeatWaveChatOptions: ["json"],
+                        },
+                    };
+                    requisitions.executeRemote("showOpenDialog", options);
+                }
+
+                break;
+            }
+            case ChatOptionAction.StartNewChat: {
+                // Start new chat but keep schemaName and modelId
+                this.updateChatOptionsState({
+                    options: {
+                        schemaName: savedState.chatOptionsState.options?.schemaName,
+                        modelOptions: {
+                            modelId: savedState.chatOptionsState.options?.modelOptions?.modelId,
+                        },
+                    },
+                });
+
+                break;
+            }
+
+            default:
+        }
+    };
+
+    private selectFile = async (fileResult: IOpenFileDialogResult): Promise<boolean> => {
+        const { backend } = this.state;
+        const { savedState, id, onChatOptionsChange } = this.props;
+
+        switch (fileResult.resourceId) {
+            case "saveChatOptions": {
+                if (fileResult.path.length === 1) {
+                    // Save Chat Profile options
+                    const options: IDictionary = {
+                        ...savedState.chatOptionsState.options,
+                    };
+                    void backend?.mds.saveMdsChatOptions(fileResult.path[0], options);
+                }
+                break;
+            }
+
+            case "loadChatOptions": {
+                if (fileResult.path.length === 1) {
+                    // Load Chat Profile options
+                    const options = await backend?.mds.loadMdsChatOptions(fileResult.path[0]);
+
+                    if (id && onChatOptionsChange) {
+                        onChatOptionsChange(id, { options });
+                    }
+                }
+                break;
+            }
+
+            default:
+        }
+
+        return Promise.resolve(true);
     };
 }

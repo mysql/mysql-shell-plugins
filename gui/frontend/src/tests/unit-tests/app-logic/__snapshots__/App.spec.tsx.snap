@@ -416,8 +416,8 @@ exports[`Application tests Application readiness 1`] = `
             "visible": false,
           },
           {
-            "id": "details",
-            "rightAlign": true,
+            "id": "message",
+            "rightAlign": false,
             "standout": false,
             "type": 0,
           },

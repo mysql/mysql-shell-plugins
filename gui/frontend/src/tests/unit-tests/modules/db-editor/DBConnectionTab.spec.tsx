@@ -100,6 +100,12 @@ describe("DBConnectionTab tests", (): void => {
             scripts: [],
             schemaTree: [],
             explorerState: new Map([["state1", {}]]),
+            adminPageStates: {
+                lakehouseNavigatorState: {
+                    autoRefreshTablesAndTasks: true,
+                    activeTabId: "overview",
+                },
+            },
             activeEntry: "SQLEditor",
             currentSchema: "myDb",
             explorerWidth: 200,
@@ -110,6 +116,10 @@ describe("DBConnectionTab tests", (): void => {
                 currentValues: new Map(),
                 computedValues: {},
                 series: new Map(),
+            },
+            chatOptionsState: {
+                chatOptionsExpanded: false,
+                chatOptionsWidth: -1,
             },
         };
 

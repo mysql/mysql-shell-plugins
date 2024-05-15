@@ -128,6 +128,7 @@ CLOSE_SQUARE_SYMBOL: ']';
 // For this it handles user variables in 2 different ways and we have to model this to match that behavior.
 AT_SIGN_SYMBOL: '@';
 
+
 AT_AT_SIGN_SYMBOL: '@@';
 
 NULL2_SYMBOL: '\\N';

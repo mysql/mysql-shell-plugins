@@ -70,6 +70,12 @@ export class CommandResult implements interfaces.ICommandResult {
     /** Result tabs*/
     public tabs: interfaces.ICommandResultTab[];
 
+    /** True if it's an about info for HeatWave, false otherwise*/
+    public isHWAboutInfo: boolean;
+
+    /** Chat result for HeatWave queries*/
+    public chat: string;
+
     /** Result context*/
     public context: WebElement;
 
@@ -104,6 +110,8 @@ export class CommandResult implements interfaces.ICommandResult {
 
             case constants.isText: {
                 await this.setText();
+                this.chat = undefined;
+                this.isHWAboutInfo = false;
                 this.toolbar = undefined;
                 this.json = undefined;
                 this.graph = undefined;
@@ -114,6 +122,8 @@ export class CommandResult implements interfaces.ICommandResult {
 
             case constants.isJson: {
                 await this.setJson();
+                this.chat = undefined;
+                this.isHWAboutInfo = false;
                 this.text = undefined;
                 this.graph = undefined;
                 this.preview = undefined;
@@ -123,6 +133,8 @@ export class CommandResult implements interfaces.ICommandResult {
 
             case constants.isGraph: {
                 await this.setGraph();
+                this.chat = undefined;
+                this.isHWAboutInfo = false;
                 this.text = undefined;
                 this.toolbar = undefined;
                 this.json = undefined;
@@ -134,6 +146,8 @@ export class CommandResult implements interfaces.ICommandResult {
             case constants.isGrid: {
                 await this.setGrid();
                 await this.setToolbar();
+                this.chat = undefined;
+                this.isHWAboutInfo = false;
                 this.json = undefined;
                 this.graph = undefined;
                 this.preview = undefined;
@@ -147,6 +161,30 @@ export class CommandResult implements interfaces.ICommandResult {
                 this.graph = undefined;
                 this.grid = undefined;
                 this.text = undefined;
+                this.chat = undefined;
+                this.isHWAboutInfo = false;
+                break;
+            }
+
+            case constants.isHWAboutInfo: {
+                this.preview = undefined;
+                this.json = undefined;
+                this.graph = undefined;
+                this.grid = undefined;
+                this.text = undefined;
+                this.isHWAboutInfo = true;
+                this.chat = undefined;
+                break;
+            }
+
+            case constants.isChat: {
+                await this.setChat();
+                this.preview = undefined;
+                this.json = undefined;
+                this.graph = undefined;
+                this.grid = undefined;
+                this.text = undefined;
+                this.isHWAboutInfo = false;
                 break;
             }
 
@@ -379,6 +417,18 @@ export class CommandResult implements interfaces.ICommandResult {
     };
 
     /**
+     * Waits until the HeatWave heading is displayed on the notebook
+     * @returns A promise resolving when the HeatWave heading is displayed
+     */
+    public heatWaveChatIsDisplayed = (): Condition<boolean> => {
+        return new Condition(` for the HeatWave connection to be loaded`, async () => {
+            await this.loadResult();
+
+            return this.isHWAboutInfo === true;
+        });
+    };
+
+    /**
      * Sets the result grid text, from command "Execute and print result as text"
      * @returns A promise resolving with the result grid text
      */
@@ -425,6 +475,23 @@ export class CommandResult implements interfaces.ICommandResult {
         }
 
         this.text = await text();
+    };
+
+    /**
+     * Sets the result chat text
+     * @returns A promise resolving with the result text
+     */
+    private setChat = async (): Promise<void> => {
+        const resultLocator = locator.notebook.codeEditor.editor.result;
+        const chatResultIsProcessed = (): Condition<boolean> => {
+            return new Condition(` for the chat result to be processed for cmd ${this.command}`, async () => {
+                return (await this.context.findElements(resultLocator.chat.isProcessingResult)).length === 0;
+            });
+        };
+
+        await driver.wait(chatResultIsProcessed(), constants.wait25seconds);
+        const text = await this.context.findElement(resultLocator.chat.resultText);
+        this.chat = await text.getText();
     };
 
     /**
@@ -625,6 +692,18 @@ export class CommandResult implements interfaces.ICommandResult {
             if ((await this.context
                 .findElements(locator.notebook.codeEditor.editor.result.previewChanges.exists)).length > 0) {
                 type = constants.isSqlPreview;
+
+                return true;
+            }
+
+            if ((await this.context.findElements(resultLocator.chat.aboutInfo)).length > 0) {
+                type = constants.isHWAboutInfo;
+
+                return true;
+            }
+
+            if ((await this.context.findElements(resultLocator.chat.isProcessingResult)).length > 0) {
+                type = constants.isChat;
 
                 return true;
             }

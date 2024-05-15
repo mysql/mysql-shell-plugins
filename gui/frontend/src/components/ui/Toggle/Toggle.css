@@ -39,7 +39,8 @@ label.msg.toggle {
     width: max-content;
     position: relative;
 
-    --toggle-color: 217, 65%, 51%;
+    --toggle-color: 217, 0%, 31%;
+    --toggle-handle-color: #fff;
     --toggle-checked-color: 217, 65%, 51%;
 }
 
@@ -108,7 +109,7 @@ label.msg.toggle::after {
     height: 12px;
     left: var(--toggle-border-width);
 
-    background-color: var(--icon-foreground);
+    background-color: var(--toggle-handle-color);
     border-radius: 2px;
     transition: left 0.25s;
 }

@@ -50,13 +50,13 @@ interface INotesPageState {
  * The Notes page Component with a NoteList on the left hand side and the active note content
  */
 export default class Notes extends Component<INotesPageProps, INotesPageState> {
-    private searchTimer: ReturnType<typeof setTimeout> | null;
-    private noteContentChangeTimer: ReturnType<typeof setTimeout> | null;
-    private checkPendingInvitationTimer: ReturnType<typeof setTimeout> | null;
-    private infoMessageResetTimer: ReturnType<typeof setTimeout> | null;
+    private searchTimer: ReturnType<typeof setTimeout> | null = null;
+    private noteContentChangeTimer: ReturnType<typeof setTimeout> | null = null;
+    private checkPendingInvitationTimer: ReturnType<typeof setTimeout> | null = null;
+    private infoMessageResetTimer: ReturnType<typeof setTimeout> | null = null;
     private readonly noteInputRef = createRef();
     private addingNote = false;
-    private addingNoteTextBuffer: string | null;
+    private addingNoteTextBuffer: string | null = null;
 
     public constructor(props: INotesPageProps) {
         super(props);
@@ -66,12 +66,6 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
             pendingInvitation: false,
             forceNoteListDisplay: window.innerWidth < 600 ? true : undefined,
         };
-
-        this.searchTimer = null;
-        this.noteContentChangeTimer = null;
-        this.addingNote = false;
-        this.addingNoteTextBuffer = null;
-        this.infoMessageResetTimer = null;
 
         void this.refreshNotes();
 

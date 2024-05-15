@@ -106,6 +106,7 @@
 .msg.connectionTabHost #dbEditorToolbar,
 .msg.connectionTabHost #serverStatusToolbar,
 .msg.connectionTabHost #clientConnectionToolbar,
+.msg.connectionTabHost #lakehouseNavigatorToolbar,
 .msg.connectionTabHost #dashboardToolbar {
     min-height: 36px;
     flex: 0 0 32px;
@@ -115,6 +116,10 @@
 
 .msg.connectionTabHost #dbEditorToolbar #newScriptMenuButton {
     margin-left: 4px;
+}
+
+.msg.connectionTabHost #dbEditorToolbar #lakehouseNavigatorButton {
+    flex: 0 0 20px;
 }
 
 .msg.connectionBrowser .toolbar > .label,
@@ -176,6 +181,8 @@
 
 .msg.connectionTabHost .resultHost {
     flex: 1;
+    margin-top: 4px;
+    margin-right: 4px;
 }
 
 .msg.connectionTabHost .resultHost .selectorItem .label {

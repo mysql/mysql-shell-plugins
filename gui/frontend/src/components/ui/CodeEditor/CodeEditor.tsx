@@ -168,6 +168,7 @@ interface ICodeEditorProperties extends IComponentProperties {
     onCursorChange?: (position: Position) => void;
     onOptionsChanged?: () => void;
     onModelChange?: () => void;
+    onContextLanguageChange?: (context: ExecutionContext, language: EditorLanguage) => void;
 
     /** The presentation class depends on the place where the editor is used. */
     createResultPresentation?: ResultPresentationFactory;
@@ -198,6 +199,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         ["json", "json"],
         ["python", "python"],
         ["py", "python"],
+        ["text", "text"],
     ]);
 
     private static monacoConfigured = false;
@@ -229,7 +231,8 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             "allowSoftWrap", "typeDefinitions",
             "componentMinWidth", "lineDecorationsWidth", "lineDecorationsWidth", "renderLineHighlight",
             "showIndentGuides", "lineNumbers", "minimap", "suggest", "font", "scrollbar",
-            "onScriptExecution", "onHelpCommand", "onCursorChange", "onOptionsChanged", "createResultPresentation",
+            "onScriptExecution", "onHelpCommand", "onCursorChange", "onOptionsChanged", "onContextLanguageChange",
+            "createResultPresentation",
         );
 
         // istanbul ignore next
@@ -521,7 +524,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         requisitions.unregister("settingsChanged", this.handleSettingsChanged);
         requisitions.unregister("editorExecuteSelectedOrAll", this.executeSelectedOrAll);
-        requisitions.unregister("editorExecuteCurrent", this.executeCurrent);
+        requisitions.unregister("editorExecute", this.executeContext);
         requisitions.unregister("editorFind", this.executeFind);
         requisitions.unregister("editorFormat", this.executeFormat);
         requisitions.unregister("editorSelectStatement", this.handleSelectStatement);
@@ -842,7 +845,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      */
     public executeText(text: string): void {
         this.appendText(text);
-        this.executeCurrentContext({ advance: true });
+        this.doExecuteContext({ advance: true });
     }
 
     private handleSettingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
@@ -916,7 +919,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuOrder: 1,
             precondition,
             run: () => {
-                this.executeCurrentContext({ advance: true });
+                this.doExecuteContext({ advance: true });
             },
         }));
 
@@ -927,7 +930,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuGroupId: "2_execution",
             contextMenuOrder: 2,
             precondition,
-            run: () => { return this.executeCurrentContext({}); },
+            run: () => { return this.doExecuteContext({}); },
         }));
 
         this.disposables.push(editor.addAction({
@@ -937,7 +940,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuGroupId: "2_execution",
             contextMenuOrder: 3,
             precondition,
-            run: () => { return this.executeCurrentContext({ atCaret: true }); },
+            run: () => { return this.doExecuteContext({ atCaret: true }); },
         }));
 
         this.disposables.push(editor.addAction({
@@ -947,7 +950,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             contextMenuGroupId: "2_execution",
             contextMenuOrder: 4,
             precondition,
-            run: () => { return this.executeCurrentContext({ atCaret: true, advance: true, asText: true }); },
+            run: () => { return this.doExecuteContext({ atCaret: true, advance: true, asText: true }); },
         }));
 
         if (appParameters.embedded) {
@@ -961,7 +964,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 run: () => {
                     const options = { atCaret: false, advance: true, asText: false };
                     this.executeCurrentContextOnHost(options);
-                    this.executeCurrentContext(options);
+                    this.doExecuteContext(options);
                 },
             }));
 
@@ -1203,7 +1206,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         requisitions.register("settingsChanged", this.handleSettingsChanged);
         requisitions.register("editorExecuteSelectedOrAll", this.executeSelectedOrAll);
-        requisitions.register("editorExecuteCurrent", this.executeCurrent);
+        requisitions.register("editorExecute", this.executeContext);
         requisitions.register("editorFind", this.executeFind);
         requisitions.register("editorFormat", this.executeFormat);
         requisitions.register("editorSelectStatement", this.handleSelectStatement);
@@ -1496,10 +1499,20 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      *
      * @param options Options to control the execution.
      */
-    private executeCurrentContext(options: IEditorCommonExecutionOptions): void {
+    private doExecuteContext(options: IEditorCommonExecutionOptions): void {
+        const { onScriptExecution } = this.mergedProps;
+
         const editor = this.backend;
         const model = this.model;
         if (editor && model) {
+            if (options.context) {
+                void onScriptExecution?.(options.context as ExecutionContext, options).then(() => {
+                    editor.focus();
+                });
+
+                return;
+            }
+
             const index = this.currentBlockIndex;
             if (index > -1) {
                 const context = model.executionContexts?.contextAt(index);
@@ -1953,24 +1966,28 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 }
 
                 trimmed = trimmed.slice(1);
-                if (!terminalMode && (trimmed === "?" || trimmed === "h" || trimmed === "help")) {
-                    const { onHelpCommand } = this.mergedProps;
-                    const helpText = onHelpCommand?.(trimmed, block.language);
-                    if (helpText) {
-                        void block.addResultData({
-                            type: "text",
-                            text: [{ type: MessageType.Info, content: helpText, language: "markdown" }],
-                        }, { resultId: "0" });
+                if (!terminalMode) {
+                    if (trimmed === "?" || trimmed === "h" || trimmed === "help") {
+                        const { onHelpCommand } = this.mergedProps;
+                        const helpText = onHelpCommand?.(trimmed, block.language);
+                        if (helpText) {
+                            void block.addResultData({
+                                type: "text",
+                                text: [{ type: MessageType.Info, content: helpText, language: "markdown" }],
+                            }, { resultId: "0" });
 
-                        this.prepareNextExecutionBlock(index);
-                    } else {
-                        void block.addResultData({
-                            type: "text",
-                            text: [{ type: MessageType.Error, content: "No help available" }],
-                        }, { resultId: "0" });
+                            this.prepareNextExecutionBlock(index);
+                        } else {
+                            void block.addResultData({
+                                type: "text",
+                                text: [{ type: MessageType.Error, content: "No help available" }],
+                            }, { resultId: "0" });
+                        }
+
+                        return "handled";
+                    } else if (trimmed === "chat") {
+                        trimmed = "text";
                     }
-
-                    return "handled";
                 }
 
                 const language = CodeEditor.languageMap.get(trimmed);
@@ -2030,6 +2047,18 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                         break;
                     }
 
+                    case "text": {
+                        if (terminalMode) {
+                            this.prepareNextExecutionBlock(index, "text");
+                        } else {
+                            this.switchCurrentLanguage("text", true);
+
+                            return "handled";
+                        }
+
+                        break;
+                    }
+
                     default:
                 }
             }
@@ -2046,7 +2075,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         const terminalMode = model?.editorMode === CodeEditorMode.Terminal;
 
         const advance = (language === "msg") && options.advance;
-        this.executeCurrentContext(
+        this.doExecuteContext(
             {
                 advance: advance || terminalMode,
                 forceSecondaryEngine: options.forceSecondaryEngine,
@@ -2057,7 +2086,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         return Promise.resolve(true);
     };
 
-    private executeCurrent = (options: IEditorCommonExecutionOptions): Promise<boolean> => {
+    private executeContext = (options: IEditorCommonExecutionOptions): Promise<boolean> => {
         const { language } = this.mergedProps;
 
         const editor = this.backend;
@@ -2065,12 +2094,11 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         const terminalMode = model?.editorMode === CodeEditorMode.Terminal;
 
         const advance = (language === "msg") && options.advance;
-        this.executeCurrentContext(
+        this.doExecuteContext(
             {
+                ...options,
                 atCaret: true,
                 advance: advance || terminalMode,
-                forceSecondaryEngine: options.forceSecondaryEngine,
-                asText: options.asText,
             });
         editor?.focus();
 
@@ -2115,7 +2143,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      * @param clearInput If true, the input of the current block is cleared.
      */
     private switchCurrentLanguage = (language: EditorLanguage, clearInput = false): void => {
-        const { sqlDialect } = this.mergedProps;
+        const { sqlDialect, onContextLanguageChange } = this.mergedProps;
 
         const editor = this.backend;
         const model = this.model;
@@ -2148,6 +2176,8 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                         forceMoveMarkers: false,
                     },
                 ], false);
+
+                onContextLanguageChange?.(block, language);
             }
         }
     };

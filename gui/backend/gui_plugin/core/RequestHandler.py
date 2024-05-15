@@ -63,6 +63,9 @@ class RequestHandler(Thread):
         self._prompt_reply = None
         self._confirm_complete = True
 
+        if "send_gui_message" in self._kwargs:
+            self._kwargs.update({"send_gui_message": self.handle_gui_message})
+
     def get_context(self):
         return self._thread_context
 
@@ -73,6 +76,15 @@ class RequestHandler(Thread):
     @property
     def web_handler(self):
         return self.get_context().web_handler
+
+    def handle_gui_message(self, type, text):
+        """
+        Callback to pass messages to the GUI from plugin functions
+        through the send_gui_message callback.
+        """
+        self.web_handler.send_response_message("PENDING", "", request_id=self.request_id,
+                                               values={type: text},
+                                               api=True)
 
     def handle_print(self, type, text):
         """

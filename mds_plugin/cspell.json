@@ -2,6 +2,7 @@
     "version": "0.2",
     "language": "en",
     "words": [
+        "lakehouse",
         "struct",
         "symlink",
         "unregister"
@@ -9,12 +10,12 @@
     "flagWords": [
         "hte"
     ],
-    "ignorePaths": [
-    ],
+    "ignorePaths": [],
     "ignoreWords": [
         "mysqlsh",
         "OCID",
         "PYTHONPATH",
-        "mysqlrouter"
+        "mysqlrouter",
+        "genai"
     ]
 }

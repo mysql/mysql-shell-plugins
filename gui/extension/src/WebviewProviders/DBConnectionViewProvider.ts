@@ -29,7 +29,7 @@ import { commands, OpenDialogOptions, SaveDialogOptions, Uri, window } from "vsc
 
 import {
     IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, IOpenDialogOptions, IOpenFileDialogResult,
-    IRequestTypeMap, IRequisitionCallbackValues, requisitions,
+    IRequestTypeMap, IRequisitionCallbackValues, ISaveDialogOptions, requisitions,
 } from "../../../frontend/src/supplement/Requisitions.js";
 
 import { IMySQLDbSystem } from "../../../frontend/src/communication/index.js";
@@ -355,6 +355,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
             this.requisitions.register("editorSaveNotebookInPlace", this.editorSaveNotebookInPlace);
             this.requisitions.register("editorLoadNotebook", this.editorLoadNotebook);
             this.requisitions.register("showOpenDialog", this.showOpenDialog);
+            this.requisitions.register("showSaveDialog", this.showSaveDialog);
             this.requisitions.register("sqlSetCurrentSchema", this.setCurrentSchema);
 
             this.requisitions.register("editorExecuteOnHost", this.executeOnHost);
@@ -543,6 +544,30 @@ export class DBConnectionViewProvider extends WebviewProvider {
                         path: paths.map((path) => {
                             return path.fsPath;
                         }),
+                    };
+                    void this.requisitions?.executeRemote("selectFile", result);
+                }
+
+                resolve(true);
+            });
+        });
+    };
+
+    private showSaveDialog = (options: ISaveDialogOptions): Promise<boolean> => {
+        return new Promise((resolve) => {
+            const dialogOptions = {
+                id: options.id,
+                defaultUri: Uri.file(options.default ?? ""),
+                saveLabel: options.saveLabel,
+                filters: options.filters,
+                title: options.title,
+            };
+
+            void window.showSaveDialog(dialogOptions).then((path?: Uri) => {
+                if (path) {
+                    const result: IOpenFileDialogResult = {
+                        resourceId: dialogOptions.id ?? "",
+                        path: [path.fsPath],
                     };
                     void this.requisitions?.executeRemote("selectFile", result);
                 }

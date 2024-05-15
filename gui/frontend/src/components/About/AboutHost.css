@@ -1,0 +1,73 @@
+/*
+ * Copyright (c) 2024, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.aboutResultPanel {
+    flex: 1 1 auto;
+    margin: 10px;
+    background-color: rgb(20, 72, 80);
+    max-height: 800px;
+    filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.3));
+    border-radius: 5px;
+    color: #fff;
+    padding: 15px 30px 10px 30px;
+    background: linear-gradient(180deg, rgb(20, 72, 80) 30%, rgba(20, 72, 80, 0.8) 100%);
+}
+
+.msg.aboutResultPanel .title {
+    min-height: 48px;
+}
+
+.msg.aboutResultPanel .title .icon {
+    width: 30px;
+    height: 30px;
+    font-size: 30px;
+    margin-right: 10px;
+}
+
+.msg.aboutResultPanel .title .label {
+    font-size: 2.5em;
+    font-weight: 200;
+    white-space: nowrap;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+}
+
+.msg.aboutResultPanel .info {
+    font-size: 0.9em;
+    font-weight: 200;
+    text-align: center;
+    padding-top: 10px;
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+}
+
+.msg.aboutResultPanel .instructions {
+    font-family: monospace;
+    white-space: pre-line;
+    font-size: 1em;
+    text-align: center;
+    padding-top: 15px;
+    padding-bottom: 10px;
+    color: #fff;
+    opacity: 0.7;
+    filter: drop-shadow(0 0 2px rgba(20, 72, 80, 1));
+    line-height: 1.25em;
+}

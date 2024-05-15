@@ -29,8 +29,8 @@ import "./TreeGrid.css";
 import {
     Tabulator, DataTreeModule, SelectRowModule, ReactiveDataModule, MenuModule, ResizeTableModule,
     ResizeColumnsModule, FormatModule, InteractionModule, EditModule, FilterModule, SortModule, ResizeRowsModule,
-    FrozenRowsModule,
-    RowComponent, ColumnComponent, ColumnDefinition, CellComponent, Options,
+    FrozenRowsModule, TooltipModule,
+    RowComponent, ColumnComponent, ColumnDefinition, CellComponent, Options, RowLookup,
 } from "tabulator-tables";
 
 import { ComponentChild, createRef } from "preact";
@@ -112,6 +112,12 @@ export interface ITreeGridOptions {
 
     /** If true then the grid content is scrolled to the first selected item if the selection is modified. */
     autoScrollOnSelect?: boolean;
+
+    /** Enforce the rowHeight to the given number in pixel */
+    rowHeight?: number;
+
+    /** Ensures the first selected row is visible */
+    scrollToFirstSelected?: boolean;
 }
 
 interface ITreeGridProperties extends IComponentProperties {
@@ -211,7 +217,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     static {
         Tabulator.registerModule([DataTreeModule, SelectRowModule, ReactiveDataModule, MenuModule, ResizeTableModule,
             ResizeColumnsModule, FormatModule, InteractionModule, EditModule, FilterModule, SortModule,
-            ResizeRowsModule, FrozenRowsModule]);
+            ResizeRowsModule, FrozenRowsModule, TooltipModule]);
     }
 
     public getSnapshotBeforeUpdate(): IDictionary {
@@ -229,7 +235,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             this.#timeoutId = null;
             this.#tabulator = new Tabulator(this.#hostRef.current, this.tabulatorOptions);
             this.#tabulator.on("tableBuilt", () => {
-                const { topRowIndex, selectedRows } = this.mergedProps;
+                const { topRowIndex, selectedRows, options } = this.mergedProps;
 
                 // The tabulator field must be assigned. We are in one of its events.
                 this.#tabulator!.off("tableBuilt");
@@ -242,9 +248,15 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                                     return this.#tabulator!.getRowFromPosition(rowIndex);
                                 });
                                 this.#tabulator!.selectRow(rows);
+                                if (options?.scrollToFirstSelected) {
+                                    void this.#tabulator!.scrollToRow(rows[0], "top", false);
+                                }
                             }
                         } else {
                             this.#tabulator!.selectRow(selectedRows);
+                            if (options?.scrollToFirstSelected) {
+                                void this.#tabulator!.scrollToRow(selectedRows[0], "top", false);
+                            }
                         }
                     }
 
@@ -458,6 +470,18 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         }
     }
 
+    public selectRow(lookup?: RowLookup[] | true): void {
+        if (this.#tableReady && this.#tabulator) {
+            this.#tabulator.selectRow(lookup);
+        }
+    }
+
+    public deselectRow(lookup?: RowLookup): void {
+        if (this.#tableReady && this.#tabulator) {
+            this.#tabulator.deselectRow(lookup);
+        }
+    }
+
     /**
      * Sets the grid to a special mode where no visual updates are done until `endUpdate()` was called.
      * Calls to `beginUpdate()` and `endUpdate()` must be balanced to avoid a complete redraw block.
@@ -486,11 +510,15 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         }
     }
 
-    public scrollToRow(index: number): Promise<void> {
+    public scrollToRow(item: number | RowLookup): Promise<void> {
         if (this.#tableReady && this.#tabulator) {
-            const row = this.#tabulator.getRowFromPosition(index);
+            if (typeof item === "number") {
+                const row = this.#tabulator.getRowFromPosition(item);
 
-            return this.#tabulator.scrollToRow(row, "top", true);
+                return this.#tabulator.scrollToRow(row, "top", true);
+            } else {
+                return this.#tabulator.scrollToRow(item, "center", true);
+            }
         }
 
         return Promise.resolve();
@@ -582,6 +610,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
             layoutColumnsOnNewData: options?.layoutColumnsOnNewData ?? true,
             resizableRows: options?.resizableRows,
+            rowHeight: options?.rowHeight,
 
             // We have to set a fixed height to enable the virtual DOM in Tabulator. However this is a severe
             // limitation in flex box layouts, which need extra counter measures.

@@ -280,6 +280,13 @@ export class CodeCompletionProvider implements languages.CompletionItemProvider 
                         insertText: "\\reconnect",
                         detail: "Reconnects the current MySQL connection.",
                     },
+                    {
+                        label: "\\chat",
+                        kind: languages.CompletionItemKind.Keyword,
+                        range,
+                        insertText: "\\chat",
+                        detail: "Switches to HeatWave Chat.",
+                    },
                 ];
             }
         }

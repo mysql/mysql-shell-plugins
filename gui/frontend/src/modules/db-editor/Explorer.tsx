@@ -52,6 +52,7 @@ import foreignKeyIcon from "../../assets/images/schemaTableForeignKey.svg";
 import adminPerformanceDashboardIcon from "../../assets/images/adminPerformanceDashboard.svg";
 import adminServerStatusIcon from "../../assets/images/adminServerStatus.svg";
 import clientConnectionsIcon from "../../assets/images/clientConnections.svg";
+import lakehouseNavigatorIcon from "../../assets/images/lakehouseNavigator.svg";
 
 import defaultIcon from "../../assets/images/file-icons/default.svg";
 import javascriptIcon from "../../assets/images/file-icons/scriptJs.svg";
@@ -105,6 +106,7 @@ export const pageTypeToIcon: Map<EntityType, string> = new Map([
     [EntityType.Status, adminServerStatusIcon],
     [EntityType.Connections, clientConnectionsIcon],
     [EntityType.Dashboard, adminPerformanceDashboardIcon],
+    [EntityType.LakehouseNavigator, lakehouseNavigatorIcon],
 ]);
 
 export interface IExplorerSectionState {
@@ -324,6 +326,14 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                                         height="20px"
                                     />}
                                     payload={{ type: EntityType.Dashboard }}
+                                    onClick={this.handleAccordionItemClick}
+                                />,
+                                <Accordion.Item
+                                    key="lakehouseNavigator"
+                                    id={uuid()}
+                                    caption="Lakehouse Navigator"
+                                    picture={<Icon src={lakehouseNavigatorIcon} width="20px" height="20px" />}
+                                    payload={{ type: EntityType.LakehouseNavigator }}
                                     onClick={this.handleAccordionItemClick}
                                 />,
                             ],

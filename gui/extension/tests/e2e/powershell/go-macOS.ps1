@@ -77,19 +77,13 @@ if (Test-Path -Path $shellInstanceHome){
 }
 
 # DEFINE OCI ENV VARS
-if ($env:TEST_SUITE -eq "oci"){
-    if (!$env:MYSQLSH_OCI_CONFIG_FILE) {
-        Throw "Please set the MYSQLSH_OCI_CONFIG_FILE environment variable"
-    }
-    if (!$env:OCI_OBJECTS_PATH) {
-        Throw "Please set the OCI_OBJECTS_PATH environment variable. Ex QA/MySQLShellTesting"
-    }
-    $env:MYSQLSH_OCI_RC_FILE = Join-Path $env:WORKSPACE "oci" "e2e_cli_rc"
+if (!$env:MYSQLSH_OCI_CONFIG_FILE) {
+    Throw "Please set the MYSQLSH_OCI_CONFIG_FILE environment variable"
 }
-else {
-    $env:MYSQLSH_OCI_CONFIG_FILE = Join-Path $env:WORKSPACE "oci_dummy" "config"
-    $env:MYSQLSH_OCI_RC_FILE = Join-Path $env:WORKSPACE "oci_dummy" "e2e_cli_rc"
+if (!$env:OCI_OBJECTS_PATH) {
+    Throw "Please set the OCI_OBJECTS_PATH environment variable. Ex QA/MySQLShellTesting"
 }
+$env:MYSQLSH_OCI_RC_FILE = Join-Path $env:WORKSPACE "oci" "e2e_cli_rc"
 
 New-Item -Path $env:MYSQLSH_OCI_RC_FILE -Force -ItemType "file"
 

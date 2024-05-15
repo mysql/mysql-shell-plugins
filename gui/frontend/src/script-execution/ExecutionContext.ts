@@ -33,11 +33,12 @@ import { ScriptingLanguageServices } from "./ScriptingLanguageServices.js";
 import { IDiagnosticEntry, IStatementSpan, TextSpan } from "../parsing/parser-common.js";
 import { PresentationInterface } from "./PresentationInterface.js";
 import {
-    IExecuteResultReference, IExecutionResult, IGraphResult, IPresentationOptions, IResponseDataOptions, IResultSets,
-    ITextResult, LoadingState, type IResultSet,
+    IExecuteResultReference, IExecutionResult, IExecutionResultData, IPresentationOptions,
+    IResponseDataOptions, IResultSets, LoadingState, type IResultSet,
 } from "./index.js";
 import { EditorLanguage, IExecutionContext, ITextRange } from "../supplement/index.js";
 import { ApplicationDB, type IDbModuleResultData, type StoreType } from "../app-logic/ApplicationDB.js";
+import { uuidBinary16Base64 } from "../utilities/helpers.js";
 
 /**
  * This class is the base building block for code management in a code editor.
@@ -53,7 +54,6 @@ export class ExecutionContext implements IExecutionContext {
 
     #showNextResultMaximized = false;
     #tokenList: Uint32Array | undefined;
-
     #frozen = false;
 
     // Only used when the context is frozen.
@@ -65,7 +65,7 @@ export class ExecutionContext implements IExecutionContext {
 
     public constructor(public presentation: PresentationInterface, private store: StoreType,
         public linkId?: number) {
-        this.internalId = `ec${ExecutionContext.nextId++}`;
+        this.internalId = uuidBinary16Base64(); //`ec${ExecutionContext.nextId++}`;
         presentation.context = this;
     }
 
@@ -411,7 +411,7 @@ export class ExecutionContext implements IExecutionContext {
      * @param data The data to show.
      * @param presentationOptions Options to restore the visual state of the result area.
      */
-    public setResult(data: ITextResult | IResultSets | IGraphResult, presentationOptions: IPresentationOptions): void {
+    public setResult(data: IExecutionResultData, presentationOptions: IPresentationOptions): void {
         if (!this.disposed) {
             this.presentation.setResult(data, presentationOptions);
         }
@@ -430,7 +430,7 @@ export class ExecutionContext implements IExecutionContext {
     public async addResultData(data: IExecutionResult, dataOptions: IResponseDataOptions,
         presentationOptions?: IPresentationOptions): Promise<void> {
         if (!this.disposed) {
-            if (this.#frozen) {
+            if (this.#frozen && data.type === "resultSetRows") {
                 this.#cachedResultIds.add(dataOptions.resultId);
             }
 

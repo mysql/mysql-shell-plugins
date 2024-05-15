@@ -1,11 +1,12 @@
 {
     "version": "0.2",
     "words": [
+        "Lakehouse"
     ],
     "ignoreWords": [
-        "unnest",
-        "mysqlsh"
+        "Genai",
+        "mysqlsh",
+        "unnest"
     ],
-    "ignorePaths": [
-    ]
+    "ignorePaths": []
 }

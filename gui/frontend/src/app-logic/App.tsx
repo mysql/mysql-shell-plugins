@@ -92,9 +92,9 @@ export class App extends Component<{}, IAppState> {
                     commandId: "openPopupMenu",
                 },
                 {
-                    id: "details",
+                    id: "message",
                     type: ControlType.TextType,
-                    rightAlign: true,
+                    rightAlign: false,
                     standout: false,
                 },
                 {

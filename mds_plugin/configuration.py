@@ -1209,15 +1209,16 @@ def get_current_value(
         return passthrough_value
 
     # If no config is given, check the global one
-    if not config:
-        if 'mds_config' in dir(mysqlsh.globals):
-            config = getattr(mysqlsh.globals, 'mds_config')
-        else:
-            config = get_config(profile_name=profile_name)
+    if not profile_name:
+        if not config:
+            if 'mds_config' in dir(mysqlsh.globals):
+                config = getattr(mysqlsh.globals, 'mds_config')
+            else:
+                config = get_config(profile_name=profile_name)
 
-    # Check if current value is already in the config, if so, return that
-    if config and value_name in config:
-        return config[value_name]
+        # Check if current value is already in the config, if so, return that
+        if config and value_name in config:
+            return config[value_name]
 
     # If no cli_rc_file_path is given, first check the MYSQLSH_OCI_RC_FILE env_var and only then fall back to default
     if cli_rc_file_path is None:

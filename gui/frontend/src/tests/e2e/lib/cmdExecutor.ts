@@ -914,45 +914,54 @@ export class CommandExecutor {
     public reduceCellWidth = async (gridRow: number, gridRowColumn: string, reduce = "selenium"): Promise<void> => {
         let counter = 0;
         await driver.wait(async () => {
-            const cell = await this.getCellFromResultGrid(gridRow, gridRowColumn);
-            const cellWidth = await cell.getCssValue("width");
-            if (counter > 0) {
-                reduce = "js";
-            }
-            if (reduce === "selenium") {
-                try {
-                    const rect = await cell.getRect();
-                    await driver.actions().move({
-                        x: Math.round(rect.width / 2),
-                        y: Math.round((rect.height / 2) * -1),
-                        origin: cell,
-                    })
-                        .press(Button.LEFT)
-                        .move({
-                            x: Math.round((rect.width * 0.8) * -1),
-                            origin: Origin.POINTER,
-                        })
-                        .release(Button.LEFT)
-                        .perform();
-                    counter++;
-                } catch (e) {
-                    if (e instanceof error.MoveTargetOutOfBoundsError) {
-                        const cell = await this.getCellFromResultGrid(gridRow, gridRowColumn);
-                        await driver.executeScript(`arguments[0].setAttribute("style", "width: 40px; height: 23px;")`,
-                            cell);
-                    } else {
-                        throw e;
-                    }
+            try {
+                let cell = await this.getCellFromResultGrid(gridRow, gridRowColumn);
+                const cellWidth = await cell.getCssValue("width");
+                if (counter > 0) {
+                    reduce = "js";
                 }
-            } else {
-                await driver.executeScript(`arguments[0].setAttribute("style", "width: 40px; height: 23px;")`,
-                    cell);
+                if (reduce === "selenium") {
+                    try {
+                        const rect = await cell.getRect();
+                        await driver.actions().move({
+                            x: Math.round(rect.width / 2),
+                            y: Math.round((rect.height / 2) * -1),
+                            origin: cell,
+                        })
+                            .press(Button.LEFT)
+                            .move({
+                                x: Math.round((rect.width * 0.8) * -1),
+                                origin: Origin.POINTER,
+                            })
+                            .release(Button.LEFT)
+                            .perform();
+                        counter++;
+                    } catch (e) {
+                        if (e instanceof error.MoveTargetOutOfBoundsError) {
+                            const cell = await this.getCellFromResultGrid(gridRow, gridRowColumn);
+                            await driver
+                                .executeScript(`arguments[0].setAttribute("style", "width: 40px; height: 23px;")`,
+                                    cell);
+                        } else {
+                            throw e;
+                        }
+                    }
+                } else {
+                    await driver.executeScript(`arguments[0].setAttribute("style", "width: 40px; height: 23px;")`,
+                        cell);
+                }
+
+                cell = await this.getCellFromResultGrid(gridRow, gridRowColumn);
+
+                if (await cell.getCssValue("width") !== cellWidth) {
+                    return true;
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
             }
-
-            return (await (await this.getCellFromResultGrid(gridRow, gridRowColumn))
-                .getCssValue("width")) !== cellWidth;
         }, constants.wait5seconds, `The cell width was not reduced on column ${gridRowColumn}`);
-
     };
 
     /**

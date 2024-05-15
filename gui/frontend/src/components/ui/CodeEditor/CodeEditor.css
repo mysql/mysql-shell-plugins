@@ -58,8 +58,6 @@
     overflow: auto;
     display: flex;
     flex-direction: column;
-
-    padding: 4px 4px 0 0;
 }
 
 .msg.codeEditor .zoneHost > .renderTarget > .resultText {
@@ -257,6 +255,59 @@
             transparent 50%,
             var(--editorPrompt-secondary-js) 50%,
             var(--editorPrompt-secondary-js) 57%,
+            transparent 57%);
+    background-size: 6px 6px;
+    background-position: 0;
+    background-attachment: fixed;
+}
+
+.msg.codeEditor .editorPromptFirst.text::before {
+    content: "chat>";
+    display: block;
+    margin-left: -2px;
+    padding-top: 1px;
+    font-size: 0.9rem;
+    color: var(--editorPrompt-primary-text);
+}
+
+.msg.codeEditor.decorationSet-standard .editorPrompt.text::before {
+    content: "";
+    display: block;
+    position: absolute;
+}
+
+.msg.codeEditor.decorationSet-line .editorPrompt.text::before {
+    content: "";
+    display: block;
+    position: absolute;
+
+    width: 7px;
+    right: 10px;
+    top: -8px;
+    height: 52px;
+
+    mask-image: url(../../../assets/images/editor-side-line.svg);
+    background-color: var(--editorPrompt-secondary-text);
+    mask-size: 5px;
+    mask-repeat: no-repeat;
+}
+
+.msg.codeEditor.decorationSet-alternative .editorPrompt.text::before {
+    content: "";
+    display: block;
+    opacity: 0.5;
+    position: absolute;
+
+    width: 10px;
+    height: inherit;
+    right: 12px;
+
+    background-image: repeating-linear-gradient(-45deg,
+            var(--editorPrompt-secondary-text) 7%,
+            transparent 7%,
+            transparent 50%,
+            var(--editorPrompt-secondary-text) 50%,
+            var(--editorPrompt-secondary-text) 57%,
             transparent 57%);
     background-size: 6px 6px;
     background-position: 0;
