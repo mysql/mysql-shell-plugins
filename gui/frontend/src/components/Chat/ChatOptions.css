@@ -1,0 +1,358 @@
+/*
+ * Copyright (c) 2024, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.chatOptionsPanel {
+    flex: 1 1 auto;
+    margin: 10px;
+    background-color: var(--sideBar-background);
+    filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.3));
+    border-radius: 5px;
+}
+
+.msg.chatOptionsPanel .header {
+    flex: 0 1 auto;
+    padding: 10px 0 10px 0;
+    color: #fff;
+    font-size: 0.8em;
+    background: linear-gradient(180deg, rgb(20, 72, 80) 30%, rgba(20, 72, 80, 0.8) 100%);
+    margin-bottom: 5px;
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3));
+}
+
+.msg.chatOptionsPanel .header .title {
+    flex: 1 1 auto;
+    gap: 6px;
+    font-size: 1.4em;
+    font-weight: 200;
+}
+
+.msg.chatOptionsPanel .header .title .icon {
+    width: 16px;
+    height: 16px;
+    background-color: #fff;
+}
+
+.msg.chatOptionsPanel .chatResultAreaContainer {
+    flex: 1 1 auto;
+}
+
+.msg.chatOptionsPanel .chatResultTextContainer {
+    display: block;
+    flex: 1 1 auto;
+    padding: 4px 7px 0 0;
+    color: var(--editorPrompt-primary-text);
+    min-height: 0;
+}
+
+.msg.chatOptionsPanel .chatResultText {
+    font-family: 'SourceCodePro+Powerline+Awesome+MySQL', monospace;
+    font-size: 1.05em;
+}
+
+.msg.chatOptionsPanel .chatResultInfo {
+    font-size: 0.8em;
+    color: var(--resultStatus-foreground);
+}
+
+.msg.chatOptionsPanel .chatResultError {
+    font-size: 0.8em;
+    color: var(--editorError-foreground);
+}
+
+.msg.chatOptionsPanel .chatScopePanel {
+    padding: 4px 7px 4px 0;
+    background-color: color-mix(in srgb, var(--editorPrompt-primary-text) 5%, var(--editorZone-background));
+    min-width: 180px;
+}
+
+.msg.chatOptionsPanel .chatScopePanel.expanded {
+    min-width: 440px;
+    max-width: 550px;
+}
+
+.msg.chatOptionsPanel .scopeToolbar {
+    min-height: 28px;
+    float: right;
+    font-size: 1em;
+}
+
+
+.msg.chatOptionsPanel .chatScopeBtn {
+    min-width: 160px;
+    margin-right: 5px;
+}
+
+.msg.chatOptionsPanel .chatScopeBtn.expanded::after {
+    display: inline-block;
+    content: "";
+    width: 5px;
+    height: 5px;
+    margin-left: 6px;
+
+    position: relative;
+    right: -4px;
+    top: 4px;
+
+    border-right: 2px solid var(--dropdown-foreground);
+    border-bottom: 2px solid var(--dropdown-foreground);
+
+    transform: translateY(-2px) rotate(225deg);
+    pointer-events: none;
+}
+
+.msg.chatOptionsPanel .chatScopeBtn.collapsed::after {
+    display: inline-block;
+    content: "";
+    width: 5px;
+    height: 5px;
+    margin-left: 6px;
+
+    position: relative;
+    right: -4px;
+    top: 1px;
+
+    border-right: 2px solid var(--dropdown-foreground);
+    border-bottom: 2px solid var(--dropdown-foreground);
+
+    transform: translateY(-2px) rotate(45deg);
+    pointer-events: none;
+}
+
+.msg.chatOptionsPanel .msg.accordion {
+    background-color: transparent;
+    flex: 1 1 auto;
+    min-height: 250px;
+}
+
+.msg.chatOptionsPanel .msg.accordion::-webkit-scrollbar {
+    display: none;
+}
+
+.msg.chatOptionsPanel .msg.splitContainer {
+    overflow-y: scroll;
+}
+
+.msg.chatOptionsPanel .msg.accordion .splitHost > .section > .title {
+    flex: 0 0 16px;
+    background-color: transparent;
+}
+
+.msg.chatOptionsPanel .msg.accordion .splitHost > .section > .title .label {
+    font-size: 0.86em;
+    font-weight: 300;
+}
+
+.msg.chatOptionsPanel .msg.accordion .splitHost > .section > .title::before {
+    width: 0.3em;
+    height: 0.3em;
+    margin-top: 0.1em;
+    margin-right: 0.4em;
+}
+
+.msg.chatOptionsPanel .msg.accordion .splitHost > .section.expanded > .title::before {
+    transform: translateY(-2px) translateX(1px) rotate(45deg);
+}
+
+.msg.chatOptionsPanel .msg.accordion .splitHost > .section > .content .label {
+    display: inherit;
+    padding: unset;
+}
+
+.msg.chatOptionsPanel .titleLabel {
+    font-size: 0.7em;
+    margin-bottom: 2px;
+}
+
+.msg.chatOptionsPanel .scopeLabel {
+    margin-top: 6px;
+    font-size: 0.8em;
+    margin-bottom: 2px;
+}
+
+.msg.chatOptionsPanel .scopeSchema {
+    flex: 1 1 auto;
+}
+
+.msg.chatOptionsPanel .treeGrid {
+    flex: 1 1 auto;
+    min-height: 60px;
+    border: 1px solid var(--input-border);
+    background-color: var(--input-background);
+    border-radius: 4px;
+    font-size: 0.8em;
+}
+
+.msg.chatOptionsPanel .tabulator .tabulator-headers {
+    font-size: 0.7em;
+}
+
+.msg.chatOptionsPanel .tabulator .tabulator-tableholder {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.msg.chatOptionsPanel .msg.treeGrid.tabulator .tabulator-row {
+    min-height: 0.8em;
+    border-bottom: 1px solid var(--input-border);
+}
+
+.msg.chatOptionsPanel .tabulator-row .tabulator-cell {
+    padding: 3px 2px 2px 4px;
+}
+
+.msg.chatOptionsPanel .scopeMultiItemColumn {
+    flex: 1 1 auto;
+    padding: 2px 6px 2px 16px;
+    gap: 6px;
+}
+
+.msg.chatOptionsPanel .scopeMultiItemRow {
+    flex: 1 1 auto;
+    padding: 2px 6px 2px 16px;
+    gap: 6px;
+}
+
+.msg.chatOptionsPanel .scopeMultiItemColumn .toggle,
+.msg.chatOptionsPanel .scopeMultiItemRow .toggle {
+    font-size: 0.8em;
+    align-self: flex-end;
+}
+
+.msg.chatOptionsPanel .scopeMultiItemColumn .input {
+    flex: 1 1 auto;
+    text-align: right;
+    font-size: 0.9em;
+}
+
+.msg.chatOptionsPanel #stopSequences {
+    font-size: 0.7em;
+    resize: none;
+    height: 3em;
+    text-align: left;
+}
+
+.msg.chatOptionsPanel .scopeMultiItemColumn .label {
+    flex: 0 0 auto;
+    align-self: center;
+}
+
+.msg.chatOptionsPanel .scopeMultiItemColumn .infoLbl {
+    font-size: 0.8em;
+    padding-right: 4px;
+    width: 50px;
+    color: color-mix(in srgb, var(--input-foreground) 60%, var(--input-background));
+}
+
+.msg.chatOptionsPanel .scopeLabeledItem {
+    gap: 6px;
+    overflow-y: hidden;
+}
+
+.msg.chatOptionsPanel .scopeLabeledItem .dropdown {
+    overflow: hidden;
+}
+
+.msg.chatOptionsPanel .msg.tagInput {
+    flex: 1 1 auto;
+}
+
+.msg.chatOptionsPanel .scopePreamble {
+    flex: 1 1 auto;
+    font-family: var(--monaco-monospace-font);
+    font-size: 0.7em;
+}
+
+.msg.chatOptionsPanel .scopeTables {
+    min-height: 20px;
+    align-items: start;
+    justify-content: flex-start;
+    align-content: flex-start;
+    gap: 3px;
+    overflow-y: scroll;
+}
+
+.msg.chatOptionsPanel .scopeLanguage {
+    flex: 1 1 auto;
+}
+
+.msg.chatOptionsPanel .msg.accordion .splitHost > .section > .content .scopeTables .label {
+    padding-left: 8px;
+    max-height: 18px;
+    min-height: 18px;
+}
+
+.msg.chatOptionsPanel .scopeTables .tag .button {
+    margin: 0 2px 0 2px;
+}
+
+.msg.chatOptionsPanel .scopeTables .button .icon {
+    width: 8px;
+    height: 8px;
+}
+
+.msg.chatOptionsPanel .scopeHistory {
+    flex: 1 1 auto;
+}
+
+.msg.chatOptionsPanel .scopeModel {
+    min-width: 150px;
+    flex: 1 1 auto;
+}
+
+.msg.chatOptionsPanel .scopeControls {
+    flex: 0 1 auto;
+    padding-bottom: 10px;
+    padding-right: 12px;
+}
+
+.msg.chatOptionsPanel .generatedPrompt {
+    font-size: 0.8em;
+}
+
+.msg.chatOptionsPanel .saveChatOptionsBtn,
+.msg.chatOptionsPanel .loadChatOptionsBtn,
+.msg.chatOptionsPanel .startNewChatBtn {
+    flex: 0 0 auto;
+    margin-right: 0;
+    min-width: 60px;
+}
+
+.msg.chatOptionsPanel .tabulator .itemField:hover .iconOnMouseOver {
+    display: block;
+}
+
+.msg.chatOptionsPanel .iconOnMouseOver {
+    display: none;
+    right: 1px;
+    top: 1px;
+    position: absolute;
+    cursor: pointer;
+}
+
+
+.tabulator-tooltip.tabulator-popup-container {
+    color: var(--input-foreground);
+    background-color: var(--input-background);
+    border-color: var(--input-border);
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+}

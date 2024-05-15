@@ -165,12 +165,13 @@ export const formatTime = (time?: number): string => {
  * Converts the given number of bytes to a string expression, in the most compact and readable format.
  *
  * @param value The value in bytes
+ * @param bAsBytes Writes B as bytes
  *
  * @returns The formatted bytes.
  */
-export const formatBytes = (value: number): string => {
+export const formatBytes = (value: number, bAsBytes = false): string => {
     if (value < 1024) {
-        return `${value.toFixed(2)} B`;
+        return `${value.toFixed(0)} ${bAsBytes ? "bytes" : "B"}`;
     }
 
     value /= 1024;
@@ -186,6 +187,33 @@ export const formatBytes = (value: number): string => {
     value /= 1024;
 
     return `${value.toFixed(2)} GB`;
+};
+
+/**
+ * Converts the given number of bytes to a string expression, in the most compact and readable format.
+ *
+ * @param value The value in bytes
+ *
+ * @returns The formatted bytes.
+ */
+export const formatInteger = (value: number): string => {
+    if (value < 1024) {
+        return `${value.toFixed(0)}`;
+    }
+
+    value /= 1024;
+    if (value < 1014) {
+        return `${value.toFixed(1)}k`;
+    }
+
+    value /= 1024;
+    if (value < 1024) {
+        return `${value.toFixed(1)}m`;
+    }
+
+    value /= 1024;
+
+    return `${value.toFixed(1)}g`;
 };
 
 /**
@@ -498,4 +526,31 @@ export const splitTextToLines = (text: string): string[] => {
     }
 
     return lines;
+};
+
+export const escapeSqlString = (str: string): string => {
+    // eslint-disable-next-line no-control-regex
+    return str.replace(/[\0\x08\x09\x1a\n\r"'\\%]/g, (char) => {
+        switch (char) {
+            case "\0":
+                return "\\0";
+            case "\x08":
+                return "\\b";
+            case "\x09":
+                return "\\t";
+            case "\x1a":
+                return "\\z";
+            case "\n":
+                return "\\n";
+            case "\r":
+                return "\\r";
+            case "\"":
+            case "'":
+            case "\\":
+            case "%":
+                return "\\" + char;
+            default:
+                return char;
+        }
+    });
 };

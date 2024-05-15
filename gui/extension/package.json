@@ -831,6 +831,10 @@
                 "title": "Show Performance Dashboard"
             },
             {
+                "command": "msg.showLakehouseNavigator",
+                "title": "Show Lakehouse Navigator"
+            },
+            {
                 "command": "msg.mds.configureOciProfiles",
                 "title": "Configure the OCI Profile list",
                 "icon": {

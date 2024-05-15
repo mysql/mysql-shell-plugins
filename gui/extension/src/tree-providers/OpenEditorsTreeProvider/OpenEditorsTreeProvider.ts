@@ -344,6 +344,12 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
                     break;
                 }
 
+                case EntityType.LakehouseNavigator: {
+                    editorCommand.command = "msg.showLakehouseNavigator";
+
+                    break;
+                }
+
                 default:
             }
 

@@ -142,7 +142,7 @@
     cursor: pointer;
     padding: 2px 4px;
 
-    min-height: 30px;
+    min-height: 20px;
 }
 
 .msg.dropdownList > .dropdownItem[disabled=true] .icon {

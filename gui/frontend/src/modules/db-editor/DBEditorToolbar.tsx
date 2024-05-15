@@ -42,6 +42,8 @@ import stopOnErrorActiveIcon from "../../assets/images/toolbar/toolbar-stop_on_e
 import stopOnErrorInactiveIcon from "../../assets/images/toolbar/toolbar-stop_on_error-inactive.svg";
 import wordWrapActiveIcon from "../../assets/images/toolbar/toolbar-word_wrap-active.svg";
 import wordWrapInactiveIcon from "../../assets/images/toolbar/toolbar-word_wrap-inactive.svg";
+import lakehouseNavigatorIcon from "../../assets/images/lakehouseNavigator.svg";
+import chatOptionsIcon from "../../assets/images/chatOptions.svg";
 
 import { ComponentChild } from "preact";
 
@@ -85,6 +87,7 @@ interface IDBEditorToolbarState extends IComponentState {
     canStop: boolean;
     canExecuteSubparts: boolean;
     autoCommit: boolean;
+    contextLanguage: string;
 }
 
 export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, IDBEditorToolbarState> {
@@ -105,6 +108,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
             canStop: false,
             canExecuteSubparts: false,
             autoCommit: true,
+            contextLanguage: "sql",
         };
 
         this.addHandledProperties("toolbarItems", "activeEditor", "heatWaveEnabled", "editors", "language", "backend");
@@ -160,7 +164,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
 
     public render(): ComponentChild {
         const { toolbarItems, language, heatWaveEnabled } = this.props;
-        const { autoCommit, canExecute, canStop, canExecuteSubparts } = this.state;
+        const { autoCommit, canExecute, canStop, canExecuteSubparts, contextLanguage } = this.state;
 
         const area = language === "msg" ? "block" : "script";
         const selectionText = canExecuteSubparts ? "the selection or " : "";
@@ -220,7 +224,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                     disabled={!canExecute}
                     onClick={
                         () => {
-                            void requisitions.execute("editorExecuteCurrent",
+                            void requisitions.execute("editorExecute",
                                 { advance: false, forceSecondaryEngine: false, asText: false });
                         }
                     }
@@ -269,7 +273,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                         disabled={!canExecute}
                         onClick={
                             () => {
-                                void requisitions.execute("editorExecuteCurrent",
+                                void requisitions.execute("editorExecute",
                                     { advance: false, forceSecondaryEngine: true, asText: false });
                             }
                         }
@@ -379,6 +383,26 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                 <Icon src={wordWrapIcon} data-tooltip="inherit" />
             </Button>,
         );
+        if (heatWaveEnabled /*&& contextLanguage === "text"*/) {
+            editorItems.push(
+                <Divider key="formatDividerChatOptions" vertical={true} thickness={1} />,
+                <Button
+                    key="editorChatOptionsButton"
+                    data-tooltip="Show Chat Options"
+                    imageOnly={true}
+                    requestType="showChatOptions"
+                >
+                    <Icon src={chatOptionsIcon} id="ChatOptionsButton" data-tooltip="inherit" />
+                </Button>,
+                <Button
+                    key="editorLakehouseNavigatorButton"
+                    data-tooltip="Open Lakehouse Navigator"
+                    imageOnly={true}
+                    requestType="showLakehouseNavigator"
+                >
+                    <Icon src={lakehouseNavigatorIcon} id="lakehouseNavigatorButton" data-tooltip="inherit" />
+                </Button>);
+        }
 
         return (
             <Toolbar
@@ -519,6 +543,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                         canExecute: context.loadingState === LoadingState.Idle,
                         canStop: context.loadingState !== LoadingState.Idle,
                         canExecuteSubparts: context.isSQLLike,
+                        contextLanguage: context.language,
                     });
                 }
             }

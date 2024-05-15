@@ -82,6 +82,7 @@ export interface IAccordionProperties extends IComponentProperties {
     caption?: string;
     footer?: string;
     singleExpand?: boolean;
+    sectionClosedSize?: number;
 
     sections: IAccordionSection[];
 
@@ -101,11 +102,11 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
         super(props);
 
         this.addHandledProperties("caption", "footer", "singleExpand", "sections", "onSectionExpand",
-            "onSectionAction", "onSectionResize");
+            "sectionClosedSize", "onSectionAction", "onSectionResize");
     }
 
     public render(): ComponentChild {
-        const { caption, footer, sections } = this.mergedProps;
+        const { caption, footer, sections, sectionClosedSize } = this.mergedProps;
 
         const className = this.getEffectiveClassNames(["accordion"]);
 
@@ -113,7 +114,7 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
             const pane = {
                 id: section.id,
                 initialSize: section.initialSize,
-                minSize: section.minSize ?? 28,
+                minSize: section.minSize ?? sectionClosedSize ?? 28,
                 maxSize: section.maxSize,
                 snap: true,
                 stretch: section.stretch ?? false,
@@ -136,8 +137,8 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
             };
 
             if (!pane.expanded) {
-                pane.minSize = 28;
-                pane.maxSize = 28;
+                pane.minSize = sectionClosedSize ?? 28;
+                pane.maxSize = sectionClosedSize ?? 28;
             }
 
             return pane;

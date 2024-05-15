@@ -461,7 +461,7 @@ export class MySQLShellLauncher {
                     if (!isNaN(customPort)) {
                         port = customPort;
                     } else {
-                        console.log(`MYSQLSH_GUI_CUSTOM_PORT is not a number, using 33336.`);
+                        console.error(`MYSQLSH_GUI_CUSTOM_PORT is not a number, using 33336.`);
                     }
                 }
 

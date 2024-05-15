@@ -84,6 +84,8 @@ interface IStatusbarState extends IComponentState {
  */
 export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarState> {
 
+    #scheduledTimers: Array<{id: string, timer: ReturnType<typeof setTimeout>}> = [];
+
     public constructor(props: IStatusbarProperties) {
         super(props);
 
@@ -112,6 +114,14 @@ export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarSta
 
     public componentWillUnmount(): void {
         requisitions.unregister("updateStatusbar", this.updateStatusbar);
+
+        // Clear the timers before unmounting
+        if (this.#scheduledTimers.length > 0) {
+            this.#scheduledTimers.forEach((timer) => {
+                clearTimeout(timer.timer);
+            });
+            this.#scheduledTimers = [];
+        }
     }
 
     public render(): ComponentChild {
@@ -252,6 +262,24 @@ export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarSta
             const item = itemDetails.get(info.id);
             if (item) {
                 Object.assign(item, info);
+
+                // Check if there already is a timer for this id, if so clear it and remove it from list
+                const timerItem = this.#scheduledTimers.find((timer) => {
+                    return timer.id === info.id;
+                });
+                if (timerItem !== undefined) {
+                    clearTimeout(timerItem?.timer);
+                }
+                this.#scheduledTimers = this.#scheduledTimers.filter((timer) => {
+                    return timer.id === info.id;
+                });
+
+                // If a new hideAfter value has been set, ensure to clean the text after the hideAfter timeout
+                if (info.hideAfter) {
+                    this.#scheduledTimers.push({id: info.id, timer: setTimeout(() => {
+                        this.updateStatusItems([{id: info.id, text: "", visible: true}]);
+                    }, info.hideAfter)});
+                }
             }
         });
 

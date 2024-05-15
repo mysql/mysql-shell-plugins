@@ -27,7 +27,7 @@
 
 import {
     ICompartment, IComputeInstance, IMySQLDbSystemShapeSummary, IMySQLDbSystem, ILoadBalancer, IBastionSummary,
-    IBastionSession, IComputeShape,
+    IBastionSession, IComputeShape, IBucketSummary, IBucketListObjects,
 } from "./Oci.js";
 import { IShellDictionary } from "./Protocol.js";
 
@@ -51,6 +51,8 @@ export enum ShellAPIMds {
     MdsGetAvailabilityDomain = "mds.get.availability_domain",
     /** Lists compartments */
     MdsListCompartments = "mds.list.compartments",
+    /** Gets a compartment by id */
+    MdsGetCompartmentById = "mds.get.compartment_by_id",
     /** Gets a compartment by path */
     MdsGetCompartment = "mds.get.compartment",
     /** Lists instances */
@@ -101,6 +103,14 @@ export enum ShellAPIMds {
     MdsDeleteHeatWaveCluster = "mds.delete.heat_wave_cluster",
     /** Lists load balancers */
     MdsListLoadBalancers = "mds.list.load_balancers",
+    /** Lists object store buckets */
+    MdsListBuckets = "mds.list.buckets",
+    /** Deletes an object store bucket objects */
+    MdsDeleteBucketObject = "mds.delete.bucket_object",
+    /** Creates a new object store bucket object */
+    MdsCreateBucketObjects = "mds.create.bucket_objects",
+    /** Lists bucket object */
+    MdsListBucketObjects = "mds.list.bucket_objects",
     /** Lists bastions */
     MdsListBastions = "mds.list.bastions",
     /** Gets a Bastion with the given id */
@@ -116,7 +126,19 @@ export enum ShellAPIMds {
     /** Creates a Bastion Session for the given bastion_id */
     MdsCreateBastionSession = "mds.create.bastion_session",
     /** Deletes a Bastion Session with the given id */
-    MdsDeleteBastionSession = "mds.delete.bastion_session"
+    MdsDeleteBastionSession = "mds.delete.bastion_session",
+    /** Returns status information about the current GenAI setup */
+    MdsGenaiStatus = "mds.genai.status",
+    /** Configures a local model setup */
+    MdsGenaiConfigure = "mds.genai.configure",
+    /** Processes a chat request and return a generated answer */
+    MdsGenaiChat = "mds.genai.chat",
+    /** Gets lakehouse status information */
+    MdsGenaiLakehouseStatus = "mds.genai.lakehouse_status",
+    /** Saves chat options to a file */
+    MdsGenaiSaveChatOptions = "mds.genai.save_chat_options",
+    /** Loads the chat options from a file */
+    MdsGenaiLoadChatOptions = "mds.genai.load_chat_options"
 }
 
 export interface IShellMdsListConfigProfilesKwargs {
@@ -219,11 +241,22 @@ export interface IShellMdsListCompartmentsKwargs {
     returnFormatted?: boolean;
 }
 
+export interface IShellMdsGetCompartmentByIdKwargs {
+    /** An OCI config object or None. */
+    config?: object;
+    /** The name of an OCI config profile */
+    configProfile?: string;
+    /** Whether exceptions are raised */
+    interactive?: boolean;
+}
+
 export interface IShellMdsGetCompartmentKwargs {
-    /** OCID of the parent compartment. */
+    /** OCID of the parent compartment */
     parentCompartmentId?: string;
     /** An OCI config object or None. */
     config?: object;
+    /** The name of an OCI config profile */
+    configProfile?: string;
     /** Whether exceptions are raised */
     interactive?: boolean;
 }
@@ -788,6 +821,72 @@ export interface IShellMdsListLoadBalancersKwargs {
     raiseExceptions?: boolean;
 }
 
+export interface IShellMdsListBucketsKwargs {
+    /** OCID of the parent compartment. */
+    compartmentId?: string;
+    /** An OCI config object or None. */
+    config?: object;
+    /** The name of an OCI config profile */
+    configProfile?: string;
+    /** If set to True exceptions are raised */
+    raiseExceptions?: boolean;
+    /** Whether output is more descriptive */
+    interactive?: boolean;
+    /** If set to true, a list object is returned. */
+    returnFormatted?: boolean;
+}
+
+export interface IShellMdsDeleteBucketObjectKwargs {
+    /** The name of the bucket. */
+    bucketName?: string;
+    /** OCID of the parent compartment. */
+    compartmentId?: string;
+    /** An OCI config object or None. */
+    config?: object;
+    /** The name of an OCI config profile */
+    configProfile?: string;
+    /** If set to false, function returns true on success */
+    interactive?: boolean;
+}
+
+export interface IShellMdsCreateBucketObjectsKwargs {
+    /** The name of the new bucket. */
+    bucketName?: string;
+    /** OCID of the parent compartment. */
+    compartmentId?: string;
+    /** An OCI config object or None. */
+    config?: object;
+    /** The name of an OCI config profile */
+    configProfile?: string;
+    /** Whether exceptions should be raised */
+    interactive?: boolean;
+    /** If true exceptions are raised */
+    raiseExceptions?: boolean;
+    /** The function to send a message to he GUI. */
+    sendGuiMessage?: object;
+}
+
+export interface IShellMdsListBucketObjectsKwargs {
+    /** The name of the bucket */
+    bucketName?: string;
+    /** Then name of the bucket object, can include * to match multiple objects */
+    name?: string;
+    /** The string to use for matching against the start of object names in a list query */
+    prefix?: string;
+    /** When this parameter is set, only objects whose names do not contain the delimiter character (after an optionally specified prefix) are returned in the objects key of the response body. Scanned objects whose names contain the delimiter have the part of their name up to the first occurrence of the delimiter (including the optional prefix) returned as a set of prefixes. Note that only "/" is a supported delimiter character at this time. */
+    delimiter?: string;
+    /** OCID of the parent compartment. */
+    compartmentId?: string;
+    /** An OCI config object or None. */
+    config?: object;
+    /** The name of an OCI config profile */
+    configProfile?: string;
+    /** If set to false exceptions are raised */
+    interactive?: boolean;
+    /** If set to true, a list object is returned. */
+    returnFormatted?: boolean;
+}
+
 export interface IShellMdsListBastionsKwargs {
     /** OCID of the parent compartment */
     compartmentId?: string;
@@ -988,6 +1087,44 @@ export interface IShellMdsDeleteBastionSessionKwargs {
     raiseExceptions?: boolean;
 }
 
+export interface IShellMdsGenaiConfigureKwargs {
+    /** The options that store information about the request. */
+    options?: IShellDictionary;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+    /** The function to send a message to he GUI. */
+    sendGuiMessage?: object;
+}
+
+export interface IShellMdsGenaiChatKwargs {
+    /** The options that store information about the request. */
+    options?: IShellDictionary;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+    /** The function to send a message to he GUI. */
+    sendGuiMessage?: object;
+}
+
+export interface IShellMdsGenaiLakehouseStatusKwargs {
+    /** The amount of used lakehouse memory */
+    memoryUsed?: number;
+    /** The amount of total lakehouse memory */
+    memoryTotal?: number;
+    /** The database schema name used to lookup the lakehouse tables */
+    schemaName?: string;
+    /** The hash calculated for lakehouse tables of the given schema */
+    lakehouseTablesHash?: string;
+    /** The hash calculated for lakehouse tasks */
+    lakehouseTasksHash?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMdsGenaiSaveChatOptionsKwargs {
+    /** The options that store information about the request. */
+    options?: IShellDictionary;
+}
+
 export interface IProtocolMdsParameters {
     [ShellAPIMds.MdsGetRegions]: {};
     [ShellAPIMds.MdsListConfigProfiles]: { kwargs?: IShellMdsListConfigProfilesKwargs; };
@@ -998,6 +1135,7 @@ export interface IProtocolMdsParameters {
     [ShellAPIMds.MdsSetCurrentBastion]: { kwargs?: IShellMdsSetCurrentBastionKwargs; };
     [ShellAPIMds.MdsGetAvailabilityDomain]: { kwargs?: IShellMdsGetAvailabilityDomainKwargs; };
     [ShellAPIMds.MdsListCompartments]: { kwargs?: IShellMdsListCompartmentsKwargs; };
+    [ShellAPIMds.MdsGetCompartmentById]: { args: { compartmentId: string; }; kwargs?: IShellMdsGetCompartmentByIdKwargs; };
     [ShellAPIMds.MdsGetCompartment]: { args: { compartmentPath?: string; }; kwargs?: IShellMdsGetCompartmentKwargs; };
     [ShellAPIMds.MdsListComputeInstances]: { kwargs?: IShellMdsListComputeInstancesKwargs; };
     [ShellAPIMds.MdsGetComputeInstance]: { kwargs?: IShellMdsGetComputeInstanceKwargs; };
@@ -1023,6 +1161,10 @@ export interface IProtocolMdsParameters {
     [ShellAPIMds.MdsUpdateHeatWaveCluster]: { kwargs?: IShellMdsUpdateHeatWaveClusterKwargs; };
     [ShellAPIMds.MdsDeleteHeatWaveCluster]: { kwargs?: IShellMdsDeleteHeatWaveClusterKwargs; };
     [ShellAPIMds.MdsListLoadBalancers]: { kwargs?: IShellMdsListLoadBalancersKwargs; };
+    [ShellAPIMds.MdsListBuckets]: { kwargs?: IShellMdsListBucketsKwargs; };
+    [ShellAPIMds.MdsDeleteBucketObject]: { args: { name?: string; }; kwargs?: IShellMdsDeleteBucketObjectKwargs; };
+    [ShellAPIMds.MdsCreateBucketObjects]: { args: { filePaths: unknown[]; prefix: string; }; kwargs?: IShellMdsCreateBucketObjectsKwargs; };
+    [ShellAPIMds.MdsListBucketObjects]: { kwargs?: IShellMdsListBucketObjectsKwargs; };
     [ShellAPIMds.MdsListBastions]: { kwargs?: IShellMdsListBastionsKwargs; };
     [ShellAPIMds.MdsGetBastion]: { kwargs?: IShellMdsGetBastionKwargs; };
     [ShellAPIMds.MdsCreateBastion]: { kwargs?: IShellMdsCreateBastionKwargs; };
@@ -1031,6 +1173,12 @@ export interface IProtocolMdsParameters {
     [ShellAPIMds.MdsGetBastionSession]: { kwargs?: IShellMdsGetBastionSessionKwargs; };
     [ShellAPIMds.MdsCreateBastionSession]: { kwargs?: IShellMdsCreateBastionSessionKwargs; };
     [ShellAPIMds.MdsDeleteBastionSession]: { kwargs?: IShellMdsDeleteBastionSessionKwargs; };
+    [ShellAPIMds.MdsGenaiStatus]: { args: { moduleSessionId?: string; }; };
+    [ShellAPIMds.MdsGenaiConfigure]: { args: { cohereApiKey?: string; }; kwargs?: IShellMdsGenaiConfigureKwargs; };
+    [ShellAPIMds.MdsGenaiChat]: { args: { prompt: string; }; kwargs?: IShellMdsGenaiChatKwargs; };
+    [ShellAPIMds.MdsGenaiLakehouseStatus]: { kwargs?: IShellMdsGenaiLakehouseStatusKwargs; };
+    [ShellAPIMds.MdsGenaiSaveChatOptions]: { args: { filePath: string; }; kwargs?: IShellMdsGenaiSaveChatOptionsKwargs; };
+    [ShellAPIMds.MdsGenaiLoadChatOptions]: { args: { filePath: string; }; };
 
 }
 
@@ -1044,17 +1192,276 @@ export interface IMdsProfileData {
     isCurrent: boolean;
 }
 
+export interface IMdsChatStatus {
+    heatwaveSupport: boolean;
+    localModelSupport: boolean;
+}
+
+export interface IMdsChatConfigure {
+    success: boolean;
+    error: string;
+}
+
+export interface IMdsChatResult {
+    data: IMdsChatData;
+}
+
+export interface IMdsChatData {
+    // Input fields, only set by client.
+
+    /** If set, the search for vector tables is limited to this database schema. */
+    schemaName?: string;
+
+    /** If set to true, a stream of tokens is sent. Otherwise the full response is returned at once. */
+    stream?: boolean;
+
+    /** Whether status should be reported during execution. */
+    reportProgress?: boolean;
+
+    /** If set to true, the GenAI component is not called. Used to test the vector store part. */
+    skipGenerate?: boolean;
+
+    /** Return queried context that was passed to the GenAI component. */
+    returnPrompt?: boolean;
+
+    /** Setting the parameter to true indicates that this request ist a re-run of a previous query. */
+    reRun?: boolean;
+
+    /** The preamble to pass to the LLM. */
+    preamble?: string;
+
+    /** Whether the list of tables should remain fixed. */
+    lockTableList?: boolean;
+
+    /** Language options for use prompts and answers. */
+    languageOptions?: IMdsChatLanguageOptions;
+
+    // Input/Output fields, that can be set by both, the client or the server.
+
+    /** A GUID that uniquely identifies the chat conversation. */
+    conversationId?: string;
+
+    /** A GUID that uniquely identifies the specific chat query of the chat conversation. */
+    chatQueryId?: string;
+
+    /** The history of the current chat. */
+    chatHistory?: IMdsChatHistoryEntry[];
+
+    /** The list of database schema tables considered for document lookup. */
+    tables?: IMdsChatTable[];
+
+    /** Used to limit the possible documents in a table based on metadata. */
+    tableMetadata? : IMdsChatTableMetadata[];
+
+    /** The list of documents that were used to compose the response. */
+    documents?: IMdsChatDocument[];
+
+    /** The list of document ids to include in the response. */
+    includeDocumentUris?: string[];
+
+    /** The number of document segments to be used. */
+    retrieveTopK?: number;
+
+    /** the task to be executed. Inferred from the prompt if not given or AUTO. */
+    task?: string;
+
+    /** Model options specific to the LLM. */
+    modelOptions?: IMdsChatModelOptions;
+
+    // Output fields, that can only be set by the server
+
+    /** A token of the stream of tokens */
+    token?: string;
+
+    /** The full response text consisting of all tokens */
+    response?: string;
+
+    /** Additional information text that should be displayed in the status bar to update the user. */
+    info?: string;
+
+    /** The error message, if an error has occurred. */
+    error?: string;
+
+    /** The actual prompt sent to the GenAI component, if returnExecutedPrompt was true. */
+    prompt?: string;
+
+    /** Usage information about used tokens if available from the LLM. */
+    usage?: IMdsChatUsage;
+
+    /** Set to true when this is the last response message to the request. */
+    requestCompleted?: boolean;
+}
+
+export interface IMdsChatLanguageOptions {
+    language?: string;
+    translateUserPrompt?: boolean;
+    translateResponse?: boolean;
+
+    /** the id of the model to be used for GenAI translations. */
+    modelId?: string;
+}
+
+export interface IMdsChatUsageVersion {
+    version: string;
+}
+
+export interface IMdsChatUsageUnits {
+    inputTokens: number;
+    outputTokens: number;
+}
+
+export interface IMdsChatUsage {
+    /** The version of the chat API. */
+    apiVersion: IMdsChatUsageVersion;
+
+    /** The used input- and output tokens. */
+    usedUnits: IMdsChatUsageUnits;
+}
+
+export interface IMdsChatHistoryEntry {
+    /** The id of the chat query that produced this message entry. */
+    chatQueryId: string;
+
+    /** The message the user sent. */
+    userMessage: string;
+
+    /** The message the chatbot replied. */
+    chatBotMessage: string;
+}
+
+export interface IMdsChatDocument {
+    /** The ID of the document, e.g. the full bucket file path. */
+    id: string;
+
+    /** The title of the document. */
+    title: string;
+
+    /** A segment of the document. */
+    segment: string;
+}
+
+export interface IMdsChatModelOptions {
+    /** The context used in the prompt to augment the query and guide the generation of the LLM. */
+    context?: string;
+
+    /** the id of the model to be used for GenAI. */
+    modelId?: string;
+
+    /** A non-negative float that tunes the degree of randomness in generation. */
+    temperature?: number;
+
+    /** Denotes the maximum number of tokens to predict per generation. */
+    maxTokens?: number;
+
+    /** Ensures only the top k most likely tokens are considered for text generation at each step. */
+    topK?: number;
+
+    /** Ensures that only the most likely tokens with the sum p of their probabilities are considered. */
+    topP?: number;
+
+    /** Assigns a penalty when a token appears frequently. */
+    repeatPenalty?: number;
+
+    /** Assigns a penalty to each token when it appears in the output. */
+    tokenLikelihoods?: number;
+
+    /** A list of characters that tells the model when to stop the generated output. */
+    stopSequences?: string[];
+}
+
+export interface IMdsChatTable {
+    /** The name of the database schema. */
+    schemaName: string;
+
+    /** The name of the table. */
+    tableName: string;
+
+    /** True if the table has vector embeddings, false if it is a relational table. */
+    vectorEmbeddings: boolean;
+
+    /** Actual SQL query used for that table. */
+    query: string;
+}
+
+export interface IMdsChatTableMetadata {
+    /* The name of the field as stored in the metadata, e.g. title. */
+    metadataField: string;
+
+    /** The filter to use, e.g. LIKE, <, >, =, etc. */
+    filterOperator: string;
+
+    /** The value used for filtering, e.g. MySQL%, 2024-01-25, etc. */
+    filterValue: string;
+}
+
+export interface IMdsCreateBucketObjectsResult {
+    data: IMdsCreateBucketObjectsData;
+}
+
+export interface IMdsCreateBucketObjectsData {
+    filePath?: string;
+    bytesUploaded?: number;
+    totalFileSize?: number;
+    error?: string;
+}
+
+export interface IMdsLakehouseStatus {
+    memoryStatus?: IMdsLakehouseMemoryStatus;
+    tableStatus?: IMdsLakehouseTablesStatus;
+    taskStatus?: IMdsLakehouseTasksStatus;
+}
+
+export interface IMdsLakehouseTablesStatus {
+    hash: string;
+    tables: IMdsLakehouseTableStatus[];
+}
+
+export interface IMdsLakehouseTableStatus {
+    id: string;
+    schemaName: string;
+    tableName: string;
+    loaded: boolean;
+    progress: number;
+    comment: string;
+    rows: number;
+    dataLength: number;
+    lastChange: string;
+}
+
+export interface IMdsLakehouseTasksStatus {
+    hash: string;
+    tasks: IMdsLakehouseTaskStatus[];
+}
+
+export interface IMdsLakehouseTaskStatus {
+    id: string;
+    title: string;
+    logTime: string;
+    status: string;
+    statusMessage: string;
+    progress: number;
+    startingTime: string;
+    estimatedCompletionTime: string;
+    estimatedRemainingTime: number;
+}
+
+export interface IMdsLakehouseMemoryStatus {
+    memoryUsed: number;
+    memoryTotal: number;
+}
+
 export interface IProtocolMdsResults {
     [ShellAPIMds.MdsGetRegions]: {};
     [ShellAPIMds.MdsListConfigProfiles]: { result: IMdsProfileData[]; };
     [ShellAPIMds.MdsSetDefaultConfigProfile]: {};
     [ShellAPIMds.MdsGetDefaultConfigProfile]: {};
     [ShellAPIMds.MdsSetCurrentCompartment]: {};
-    [ShellAPIMds.MdsGetCurrentCompartmentId]: {};
+    [ShellAPIMds.MdsGetCurrentCompartmentId]: { result: string | undefined};
     [ShellAPIMds.MdsSetCurrentBastion]: {};
     [ShellAPIMds.MdsGetAvailabilityDomain]: {};
     [ShellAPIMds.MdsListCompartments]: { result: ICompartment[]; };
-    [ShellAPIMds.MdsGetCompartment]: {};
+    [ShellAPIMds.MdsGetCompartment]: { result: ICompartment; };
+    [ShellAPIMds.MdsGetCompartmentById]: { result: ICompartment | undefined; };
     [ShellAPIMds.MdsListComputeInstances]: { result: IComputeInstance[]; };
     [ShellAPIMds.MdsGetComputeInstance]: {};
     [ShellAPIMds.MdsListComputeShapes]: { result: IComputeShape[]; };
@@ -1087,4 +1494,14 @@ export interface IProtocolMdsResults {
     [ShellAPIMds.MdsGetBastionSession]: {};
     [ShellAPIMds.MdsCreateBastionSession]: { result: IBastionSession; };
     [ShellAPIMds.MdsDeleteBastionSession]: {};
+    [ShellAPIMds.MdsListBuckets]: { result: IBucketSummary[]; }
+    [ShellAPIMds.MdsListBucketObjects]: { result: IBucketListObjects; }
+    [ShellAPIMds.MdsCreateBucketObjects]: { result: IMdsCreateBucketObjectsResult; };
+    [ShellAPIMds.MdsDeleteBucketObject]: {};
+    [ShellAPIMds.MdsGenaiStatus]: { result: IMdsChatStatus; };
+    [ShellAPIMds.MdsGenaiConfigure]: { result: IMdsChatConfigure; };
+    [ShellAPIMds.MdsGenaiChat]: { result: IMdsChatResult; };
+    [ShellAPIMds.MdsGenaiLakehouseStatus]: { result: IMdsLakehouseStatus; };
+    [ShellAPIMds.MdsGenaiSaveChatOptions]: {};
+    [ShellAPIMds.MdsGenaiLoadChatOptions]: { result: IMdsChatData };
 }

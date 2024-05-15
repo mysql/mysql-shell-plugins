@@ -95,6 +95,8 @@ import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
 
 import scriptingRuntime from "./assets/typings/scripting-runtime.d.ts?raw";
 import type { ISqlUpdateResult } from "../../app-logic/Types.js";
+import { ILakehouseNavigatorSavedState } from "./LakehouseNavigator.js";
+import { IChatOptionsState } from "../../components/Chat/ChatOptions.js";
 
 /**
  * Details generated while adding a new tab. These are used in the render method to fill the tab page details.
@@ -475,9 +477,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 onAddScript={this.handleAddScript}
                 onSaveSchemaTree={this.handleSaveSchemaTree}
                 onSaveExplorerState={this.handleSaveExplorerState}
+                onSaveAdminLakehouseNavigatorState={this.handleAdminLakehouseNavigatorState}
                 onExplorerResize={this.handleExplorerResize}
                 onExplorerMenuAction={this.handleExplorerMenuAction}
                 onGraphDataChange={this.handleGraphDataChange}
+                onChatOptionsChange={this.onChatOptionsChange}
             />);
 
             pages.push({
@@ -677,6 +681,14 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     if (connectionState) {
                         if (connectionState.currentSchema !== data.schema) {
                             void connectionState.backend.setCurrentSchema(data.schema);
+
+                            // Change for chat options
+                            this.onChatOptionsChange(data.id.length > 0 ? data.id : info.tabId, {
+                                options: {
+                                    ...connectionState.chatOptionsState.options,
+                                    schemaName: data.schema,
+                                },
+                            });
 
                             // Change for new editors.
                             connectionState.currentSchema = data.schema;
@@ -1067,8 +1079,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             await backend.openConnection(connection.id, requestId, ((response, requestId) => {
                 if (!ShellPromptHandler.handleShellPrompt(response.result as IShellPasswordFeedbackRequest, requestId,
                     backend, "Provide Password")) {
-                    if (this.isStatusCodeData(response)) {
-                        this.setProgressMessage(response.result);
+                    if (this.isStatusCodeData(response.result)) {
+                        this.setProgressMessage(response.result.result);
                     }
                     connectionData = response.result as IOpenConnectionData;
                 }
@@ -1133,6 +1145,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 dbType: connection.dbType,
                 schemaTree: [],
                 explorerState: new Map(),
+                adminPageStates: {
+                    lakehouseNavigatorState: {
+                        autoRefreshTablesAndTasks: true,
+                        activeTabId: "overview",
+                    },
+                },
                 editors,
                 scripts: this.scriptsTree,
                 backend,
@@ -1150,6 +1168,18 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     currentValues: new Map(),
                     computedValues: {},
                     series: new Map(),
+                },
+
+                // Chat option defaults
+                chatOptionsState: {
+                    chatOptionsExpanded: false,
+                    chatOptionsWidth: -1,
+                    options: {
+                        schemaName: currentSchema !== "" ? currentSchema : undefined,
+                        modelOptions: {
+                            modelId: "mistral-7b-instruct-v1",
+                        },
+                    },
                 },
             };
 
@@ -2026,6 +2056,18 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         this.forceUpdate();
     };
 
+    private onChatOptionsChange = (id: string, data: Partial<IChatOptionsState>): void => {
+        const connectionState = this.connectionState.get(id);
+        if (connectionState) {
+            connectionState.chatOptionsState = {
+                ...connectionState.chatOptionsState,
+                ...data,
+            };
+        }
+
+        this.forceUpdate();
+    };
+
     /**
      * Creates the standard model used by DB code editors. Each editor has an own model, which carries additional
      * information required by the editors.
@@ -2098,6 +2140,17 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             connectionState.explorerState = new Map([...connectionState.explorerState, ...state]);
         }
         this.forceUpdate();
+    };
+
+    private handleAdminLakehouseNavigatorState = (
+        id: string, data: Partial<ILakehouseNavigatorSavedState>): void => {
+        const connectionState = this.connectionState.get(id);
+        if (connectionState) {
+            connectionState.adminPageStates.lakehouseNavigatorState = {
+                ...connectionState.adminPageStates.lakehouseNavigatorState,
+                ...data,
+            };
+        }
     };
 
     private notifyRemoteEditorOpen(connectionId: number, tabId: string, dbType: DBType, language: EditorLanguage,

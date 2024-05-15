@@ -29,6 +29,7 @@ import { models as bastionModels } from "oci-bastion";
 import { models as mySQLModels } from "oci-mysql";
 import { models as identityModels } from "oci-identity";
 import { models as loadBalancerModels } from "oci-loadbalancer";
+import { models as objectstorageModels } from "oci-objectstorage";
 
 export type IAuthenticationDetails = common.AuthenticationDetailsProvider;
 
@@ -36,6 +37,10 @@ export type IComputeInstance = coreModels.Instance;
 export type ICompartment = identityModels.Compartment & {
     isCurrent: boolean;
 };
+
+export type IBucketSummary = objectstorageModels.BucketSummary;
+export type IBucketListObjects = objectstorageModels.ListObjects;
+export type IBucketObjectSummary = objectstorageModels.ObjectSummary;
 
 export type IComputeShape = coreModels.Shape;
 

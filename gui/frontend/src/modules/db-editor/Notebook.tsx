@@ -70,6 +70,7 @@ interface INotebookProperties extends IComponentProperties {
 
     onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
+    onContextLanguageChange?: (context: ExecutionContext, language: EditorLanguage) => void;
 }
 
 export class Notebook extends ComponentBase<INotebookProperties> {
@@ -80,7 +81,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         super(props);
 
         this.addHandledProperties("standaloneMode", "toolbarItemsTemplate", "savedState", "backend", "dbType",
-            "readOnly", "showAbout", "extraLibs", "onScriptExecution", "onHelpCommand");
+            "readOnly", "showAbout", "extraLibs", "onScriptExecution", "onHelpCommand", "onContextLanguageChange");
     }
 
     public componentDidMount(): void {
@@ -185,7 +186,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                     savedState={activeEditor.state}
                     extraLibs={extraLibs}
                     language="msg"
-                    allowedLanguages={["javascript", "typescript", "sql"]}
+                    allowedLanguages={["javascript", "typescript", "sql", "text"]}
                     sqlDialect={dialect}
                     startLanguage={Settings.get("dbEditor.startLanguage", "sql") as EditorLanguage}
                     readonly={readOnly}
@@ -215,6 +216,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                     onHelpCommand={onHelpCommand}
                     onCursorChange={this.handleCursorChange}
                     onOptionsChanged={this.handleOptionsChanged}
+                    onContextLanguageChange={this.handleContextLanguageChange}
                     createResultPresentation={this.createPresentation}
                 />
             </Container>
@@ -365,6 +367,14 @@ export class Notebook extends ComponentBase<INotebookProperties> {
             };
 
             void requisitions.execute("editorInfoUpdated", info);
+        }
+    };
+
+    private handleContextLanguageChange = (context: ExecutionContext, language: EditorLanguage): void => {
+        const { onContextLanguageChange } = this.mergedProps;
+
+        if (onContextLanguageChange) {
+            onContextLanguageChange(context, language);
         }
     };
 

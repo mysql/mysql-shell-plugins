@@ -25,11 +25,14 @@
 
 import {
     IBastionSession, IBastionSummary, ICompartment, IComputeInstance, ILoadBalancer, IMySQLDbSystem,
-    IMySQLDbSystemShapeSummary, IComputeShape,
+    IMySQLDbSystemShapeSummary, IComputeShape, IBucketSummary, IBucketListObjects,
 } from "../../communication/index.js";
 import { MessageScheduler, DataCallback } from "../../communication/MessageScheduler.js";
 import {
     IMdsProfileData, ShellAPIMds, IShellMdsSetCurrentCompartmentKwargs, IShellMdsSetCurrentBastionKwargs,
+    IMdsChatResult,
+    IMdsLakehouseStatus,
+    IMdsChatData,
 } from "../../communication/ProtocolMds.js";
 
 export class ShellInterfaceMds {
@@ -58,6 +61,25 @@ export class ShellInterfaceMds {
 
         return response.result;
     }
+
+    public async getCompartmentById(configProfile: string, compartmentId: string): Promise<ICompartment | undefined> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsGetCompartmentById,
+            parameters: { args: { compartmentId }, kwargs: { configProfile } },
+        });
+
+        return response.result;
+    }
+
+    public async getCurrentCompartmentId(configProfile: string): Promise<string | undefined> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsGetCurrentCompartmentId,
+            parameters: { kwargs: { profileName: configProfile } },
+        });
+
+        return response.result;
+    }
+
 
     public async getMdsMySQLDbSystems(configProfile: string, compartmentId: string): Promise<IMySQLDbSystem[]> {
         const response = await MessageScheduler.get.sendRequest({
@@ -165,6 +187,112 @@ export class ShellInterfaceMds {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMds.MdsListComputeShapes,
             parameters: { kwargs: { configProfile, compartmentId } },
+        });
+
+        return response.result;
+    }
+
+    public async getMdsBuckets(configProfile: string, compartmentId?: string): Promise<IBucketSummary[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsListBuckets,
+            parameters: { kwargs: { configProfile, compartmentId } },
+        });
+
+        return response.result;
+    }
+
+    public async getMdsBucketObjects(configProfile: string, compartmentId?: string, bucketName?: string,
+        name?: string, prefix?: string, delimiter?: string): Promise<IBucketListObjects> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsListBucketObjects,
+            parameters: { kwargs: { configProfile, compartmentId, bucketName, name, prefix, delimiter } },
+        });
+
+        return response.result;
+    }
+
+    public async createMdsBucketObjects(configProfile: string, filePaths: string[], prefix: string,
+        bucketName: string, compartmentId: string,
+        callback?: DataCallback<ShellAPIMds.MdsCreateBucketObjects>): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsCreateBucketObjects,
+            parameters: {
+                args: { filePaths, prefix },
+                kwargs: { configProfile, compartmentId, bucketName },
+            },
+            onData: callback,
+        });
+    }
+
+    public async getMdsDeleteBucketObjects(configProfile: string, compartmentId?: string, bucketName?: string,
+        name?: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsDeleteBucketObject,
+            parameters: {
+                args: { name },
+                kwargs: { configProfile, compartmentId, bucketName },
+            },
+        });
+    }
+
+    public async executeChatRequest(prompt: string, moduleSessionId: string, options?: IDictionary,
+        callback?: DataCallback<ShellAPIMds.MdsGenaiChat>,
+    ): Promise<IMdsChatResult> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsGenaiChat,
+            parameters: {
+                args: {
+                    prompt,
+                },
+                kwargs: {
+                    options,
+                    moduleSessionId,
+                },
+            },
+            onData: callback,
+        });
+
+        return response.result;
+    }
+
+    public async getMdsGetLakehouseStatus(moduleSessionId: string, schemaName?: string,
+        memoryUsed?: number, memoryTotal?: number,
+        lakehouseTablesHash?: string, lakehouseTasksHash?: string): Promise<IMdsLakehouseStatus> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsGenaiLakehouseStatus,
+            parameters: {
+                kwargs: {
+                    schemaName, memoryUsed, memoryTotal, lakehouseTablesHash, lakehouseTasksHash,
+                    moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async saveMdsChatOptions(filePath: string, options: IDictionary): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsGenaiSaveChatOptions,
+            parameters: {
+                args : {
+                    filePath,
+                },
+                kwargs: {
+                    options,
+                },
+            },
+        });
+    }
+
+    public async loadMdsChatOptions(filePath: string): Promise<IMdsChatData> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsGenaiLoadChatOptions,
+            parameters: {
+                args : {
+                    filePath,
+                },
+            },
         });
 
         return response.result;

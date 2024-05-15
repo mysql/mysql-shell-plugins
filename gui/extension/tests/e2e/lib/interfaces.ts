@@ -260,6 +260,9 @@ export interface ICommandResult {
     grid?: CommandResultGrid;
     preview?: ICommandResultPreview;
     toolbar: ICommandResultToolbar;
+    context: WebElement;
+    chat: string;
+    isHWAboutInfo: boolean;
     copyToClipboard(): Promise<void>;
     selectTab(name: string): Promise<void>;
     clickSqlPreviewContent(): Promise<void>;
@@ -271,6 +274,7 @@ export interface ICommandResult {
     untilIsMaximized(): Condition<boolean>;
     closeResultSet(): Promise<void>;
     untilStatusMatches(regex: RegExp): Condition<boolean>;
+    heatWaveChatIsDisplayed(): Condition<boolean>;
 }
 
 export interface ICommandResultToolbar {
@@ -301,6 +305,44 @@ export interface IResultGridCell {
     rowNumber?: number;
     columnName: string;
     value: string | boolean | number;
+}
+
+export interface INewLoadingTask {
+    name?: string;
+    description?: string;
+    targetDatabaseSchema?: string;
+    formats?: string;
+}
+
+export interface ILakeHouseTable {
+    tableName?: string;
+    hasProgressBar?: boolean;
+    loaded?: string;
+    hasLoadingSpinner?: boolean;
+    rows?: string;
+    size?: string;
+    date?: string;
+    comment?: string;
+}
+
+export interface ICurrentTask {
+    name?: string;
+    hasProgressBar?: boolean;
+    id?: string;
+    status?: string;
+    startTime?: string;
+    endTime?: string;
+    message?: string;
+}
+
+export interface IHeatWaveProfileHistory {
+    userMessage?: string;
+    chatBotOptions?: string;
+}
+
+export interface IHeatWaveProfileMatchedDocument {
+    title?: string;
+    segment?: string;
 }
 
 export const isMySQLConnection = (obj: unknown): obj is IConnBasicMySQL => {

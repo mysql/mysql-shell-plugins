@@ -38,6 +38,7 @@ export class EditorTreeItem extends TreeItem {
         [EntityType.Status, "adminServerStatus"],
         [EntityType.Connections, "clientConnections"],
         [EntityType.Dashboard, "adminPerformanceDashboard"],
+        [EntityType.LakehouseNavigator, "lakehouseNavigator"],
     ]);
 
     public contextValue = "editorItem";

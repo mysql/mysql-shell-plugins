@@ -611,7 +611,7 @@ export class E2ECodeEditor {
      * @returns A promise resolving when the command is marked as special or not special
      */
     private isSpecialCmd = (cmd: string): boolean => {
-        return (cmd.match(/(\\js|\\javascript|\\ts|\\typescript|\\sql|\\q|\\d|\\py|\\python)/)) !== null;
+        return (cmd.match(/(\\js|\\javascript|\\ts|\\typescript|\\sql|\\q|\\d|\\py|\\python|\\chat)/)) !== null;
     };
 
     /**

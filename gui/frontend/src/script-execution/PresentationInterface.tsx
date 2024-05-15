@@ -27,8 +27,8 @@ import { ComponentChild, createRef, render } from "preact";
 
 import { ResultTabView } from "../components/ResultView/ResultTabView.js";
 import {
-    IExecutionResult, IGraphResult, IPresentationOptions, IResponseDataOptions, IResultSet, IResultSetRows, IResultSets,
-    ITextResult, LoadingState,
+    IExecutionResult, IExecutionResultData, IPresentationOptions, IResponseDataOptions,
+    IResultSetRows, IResultSets, LoadingState, IResultSet,
 } from "./index.js";
 import { DiagnosticSeverity, IDiagnosticEntry, TextSpan } from "../parsing/parser-common.js";
 import { Monaco } from "../components/ui/CodeEditor/index.js";
@@ -42,6 +42,9 @@ import { MessageType, type ISqlUpdateResult } from "../app-logic/Types.js";
 import { Container, Orientation } from "../components/ui/Container/Container.js";
 import { SQLExecutionContext } from "./SQLExecutionContext.js";
 import { ResultStatus } from "../components/ResultView/ResultStatus.js";
+import { ChatAction, ChatHost } from "../components/Chat/ChatHost.js";
+import { IMdsChatData } from "../communication/ProtocolMds.js";
+import { AboutHost } from "../components/About/AboutHost.js";
 
 /** Base class for handling of UI related elements like editor decorations and result display in execution contexts. */
 export class PresentationInterface {
@@ -60,6 +63,8 @@ export class PresentationInterface {
         text: 352,
         resultSets: 352,
         graphData: 300,
+        chat: 400,
+        about: 200,
     };
 
     /** The size of the result area after adding data or manual resize by the user. */
@@ -71,7 +76,7 @@ export class PresentationInterface {
     /** A flag which indicates if the result pane shall be maximized. */
     public maximizedResult?: boolean;
 
-    public resultData?: ITextResult | IResultSets | IGraphResult;
+    public resultData?: IExecutionResultData;
     public loadingState = LoadingState.Idle;
 
     public context?: ExecutionContext;
@@ -382,8 +387,7 @@ export class PresentationInterface {
      * @param data The data to show.
      * @param presentationOptions Options to restore the visual state of the result area.
      */
-    public setResult(data: ITextResult | IResultSets | IGraphResult,
-        presentationOptions?: IPresentationOptions): void {
+    public setResult(data: IExecutionResultData, presentationOptions?: IPresentationOptions): void {
         if (this.waitTimer) {
             clearTimeout(this.waitTimer);
             this.waitTimer = null;
@@ -440,7 +444,7 @@ export class PresentationInterface {
                     content: data.executionInfo?.text ?? "",
                     subIndex: dataOptions.subIndex,
                 });
-            } else {
+            } else if (this.resultData.type !== "chat" && this.resultData.type !== "about") {
                 if (!this.resultData.output) {
                     this.resultData.output = [];
                 }
@@ -487,6 +491,10 @@ export class PresentationInterface {
                     }
                 } else if (this.resultData.type === "graphData") {
                     // TODO: If graph data is visible, add the text as another entry to the graph page.
+                } else if (this.resultData.type === "chat") {
+                    // TODO: If a chat result is visible, add the text as another entry to the page.
+                } else if (this.resultData.type === "about") {
+                    // TODO: If a about result is visible, add the text as another entry to the page.
                 } else {
                     // Text data to render.
                     if (!this.resultData.text) {
@@ -676,6 +684,22 @@ export class PresentationInterface {
                 // New graph always replaces what was there before.
                 this.resultData = data;
                 this.minHeight = 200;
+
+                break;
+            }
+
+            case "chat": {
+                // Chat results display
+                this.resultData = data;
+                this.minHeight = 200;
+
+                break;
+            }
+
+            case "about": {
+                // About results display
+                this.resultData = data;
+                this.minHeight = 220;
 
                 break;
             }
@@ -980,6 +1004,30 @@ export class PresentationInterface {
                 break;
             }
 
+            case "chat": {
+                element = <ChatHost
+                    info={this.resultData.info}
+                    answer={this.resultData.answer}
+                    error={this.resultData.error}
+                    options={this.resultData.options ?? {}}
+                    onAction={this.handleChatAction}
+                    onUpdateOptions={this.resultData.updateOptions}
+                />;
+                this.minHeight = 40;
+
+                break;
+            }
+
+            case "about": {
+                element = <AboutHost
+                    title={this.resultData.title}
+                    info={this.resultData.info}
+                />;
+                this.minHeight = 200;
+
+                break;
+            }
+
             default:
         }
 
@@ -1090,4 +1138,31 @@ export class PresentationInterface {
 
         return Promise.resolve(false);
     };
+    private handleChatAction = (action: ChatAction, _options?: IMdsChatData): void => {
+        switch (action) {
+            case ChatAction.Execute: {
+                if (this.context) {
+                    void requisitions.execute("editorExecute",
+                        {
+                            advance: false,
+                            forceSecondaryEngine: false,
+                            asText: false,
+                            context: this.context,
+                        });
+                }
+
+                break;
+            }
+
+            case ChatAction.UpdateOptions: {
+                if (this.context) {
+                    //
+                }
+                break;
+            }
+
+            default:
+        }
+    };
+
 }

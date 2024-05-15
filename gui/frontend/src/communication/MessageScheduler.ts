@@ -470,50 +470,59 @@ export class MessageScheduler {
             return undefined;
         }
 
-        const responseObject = JsonParser.parseJson(data) as INativeShellResponse;
-        if (this.traceEnabled) {
-            void requisitions.execute("debugger", { response: responseObject });
-        }
-
-        const response = convertObjectKeysSnakeToCamelCase(responseObject, { ignore: ["rows"] }) as IGenericResponse;
-
-        switch (response.requestState.type) {
-            case "ERROR": {
-                response.eventType = EventType.ErrorResponse;
-                break;
+        try {
+            const responseObject = JsonParser.parseJson(data) as INativeShellResponse;
+            if (this.traceEnabled) {
+                void requisitions.execute("debugger", { response: responseObject });
             }
 
-            case "PENDING": {
-                if (response.requestState.msg === "Execution started...") {
-                    response.eventType = EventType.StartResponse; // Carries no result data.
-                } else {
-                    response.eventType = EventType.DataResponse;
-                }
-                break;
-            }
+            const response = convertObjectKeysSnakeToCamelCase(responseObject,
+                { ignore: ["rows"] }) as IGenericResponse;
 
-            case "OK": {
-                if (response.done) {
-                    response.eventType = EventType.FinalResponse;
-                } else {
-                    response.eventType = EventType.EndResponse;
+            switch (response.requestState.type) {
+                case "ERROR": {
+                    response.eventType = EventType.ErrorResponse;
+                    break;
                 }
 
-                break;
+                case "PENDING": {
+                    if (response.requestState.msg === "Execution started...") {
+                        response.eventType = EventType.StartResponse; // Carries no result data.
+                    } else {
+                        response.eventType = EventType.DataResponse;
+                    }
+                    break;
+                }
+
+                case "OK": {
+                    if (response.done) {
+                        response.eventType = EventType.FinalResponse;
+                    } else {
+                        response.eventType = EventType.EndResponse;
+                    }
+
+                    break;
+                }
+
+                case "CANCELLED": {
+                    response.eventType = EventType.CancelResponse;
+                    break;
+                }
+
+                default: {
+                    response.eventType = EventType.Unknown;
+                    break;
+                }
             }
 
-            case "CANCELLED": {
-                response.eventType = EventType.CancelResponse;
-                break;
-            }
-
-            default: {
-                response.eventType = EventType.Unknown;
-                break;
-            }
+            return response;
+        } catch (error) {
+            void requisitions.execute("showError", [
+                "Communication Error",
+                `Could not parse JSON response from MySQL Shell.`,
+                data,
+            ]);
         }
-
-        return response;
     };
 
     private isWebSessionData(response: unknown): response is IWebSessionData {

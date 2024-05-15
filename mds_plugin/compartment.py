@@ -582,6 +582,55 @@ def list_compartments(**kwargs):
             print(f'ERROR: {e}')
 
 
+@plugin_function('mds.get.compartmentById', shell=True, cli=True, web=True)
+def get_compartment_by_id_func(compartment_id, **kwargs):
+    """Gets a compartment by id
+
+    Args:
+        compartment_id (str): OCID of the compartment
+        **kwargs: Optional parameters
+
+    Keyword Args:
+        config (object): An OCI config object or None.
+        config_profile (str): The name of an OCI config profile
+        interactive (bool): Whether exceptions are raised
+
+    Returns:
+        The compartment object
+    """
+    config = kwargs.get("config")
+    config_profile = kwargs.get("config_profile")
+
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
+    return_formatted = kwargs.get("return_formatted", interactive)
+
+    # Get the active config and compartment
+    try:
+        config = configuration.get_current_config(
+            config=config, config_profile=config_profile,
+            interactive=interactive)
+
+        import oci.util
+
+        compartment = get_compartment_by_id(
+            compartment_id=compartment_id, config=config, interactive=interactive)
+        if return_formatted:
+            return format_compartment_listing(data=[compartment])
+        else:
+            # return compartments in JSON text output
+            return oci.util.to_dict(compartment)
+    except oci.exceptions.ServiceError as e:
+        if raise_exceptions:
+            raise
+        print(f'ERROR: {e.message}. (Code: {e.code}; Status: {e.status})')
+        return
+    except (ValueError, oci.exceptions.ClientError) as e:
+        if raise_exceptions:
+            raise
+        print(f'ERROR: {e}')
+
+
 @plugin_function('mds.get.compartment', shell=True, cli=True, web=True)
 def get_compartment(compartment_path=None, **kwargs):
     """Gets a compartment by path
@@ -594,24 +643,35 @@ def get_compartment(compartment_path=None, **kwargs):
         **kwargs: Optional parameters
 
     Keyword Args:
-        parent_compartment_id (str): OCID of the parent compartment.
+        parent_compartment_id (str): OCID of the parent compartment
         config (object): An OCI config object or None.
+        config_profile (str): The name of an OCI config profile
         interactive (bool): Whether exceptions are raised
 
     Returns:
         The compartment object
     """
 
+    compartment_id = kwargs.get("compartment_id")
     parent_compartment_id = kwargs.get("parent_compartment_id")
+
     config = kwargs.get("config")
-    interactive = kwargs.get("interactive")
+    config_profile = kwargs.get("config_profile")
+
+    interactive = kwargs.get("interactive", core.get_interactive_default())
+    raise_exceptions = kwargs.get("raise_exceptions", not interactive)
+    return_formatted = kwargs.get("return_formatted", interactive)
 
     # Get the active config and compartment
     try:
-        config = configuration.get_current_config(config=config)
+        config = configuration.get_current_config(
+            config=config, config_profile=config_profile,
+            interactive=interactive)
         compartment_id = configuration.get_current_compartment_id(
             compartment_id=parent_compartment_id, config=config)
     except ValueError as e:
+        if raise_exceptions:
+            raise
         print(f"ERROR: {str(e)}")
         return
 

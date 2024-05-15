@@ -1,0 +1,827 @@
+/*
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is also distributed with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with MySQL.
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.lakehouseNavigatorHost {
+    flex: 1 1 auto;
+}
+
+.msg.lakehouseNavigatorHost .toolbar .toolbarButton .icon {
+    width: 20px;
+    height: 20px;
+}
+
+
+.msg.lakehouseNavigatorHost .button .icon {
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+.msg.lakehouseNavigatorHost .overviewTab {
+    flex: 1 1 auto;
+    color: #ffffff;
+}
+
+.msg.lakehouseNavigatorHost .overviewTab .headerTitle {
+    margin: 10px;
+    position: absolute;
+    width: calc(100% - 20px);
+    height: 130px;
+    border-radius: 5px;
+    background: linear-gradient(0deg, #14485000 0%, #144850 50%);
+}
+
+.msg.lakehouseNavigatorHost .overviewTab .headerTitle .label {
+    padding-top: 35px;
+    flex: 1 1 auto;
+    text-align: center;
+    font-size: 40px;
+    font-weight: 200;
+}
+
+.msg.lakehouseNavigatorHost .redwoodLine {
+    padding-top: 10px;
+}
+
+.msg.lakehouseNavigatorHost .overviewDiagram {
+    margin: 10px;
+    background-color: #144850;
+    flex: 1 1 auto;
+    max-height: 800px;
+    filter: drop-shadow(0px 6px 6px rgba(0, 0, 0, 0.3));
+    border-radius: 5px;
+}
+
+.msg.lakehouseNavigatorHost .overviewDiagram .iconLabel {
+    margin-top: 120px;
+    font-size: 1.5em;
+    padding-bottom: 5px;
+    min-height: 30px;
+}
+
+.msg.lakehouseNavigatorHost .overviewDiagram .iconLabel .icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 5px;
+}
+
+.msg.lakehouseNavigatorHost .workflowStep {
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+
+.msg.lakehouseNavigatorHost .workflowStep:not(:last-child) {
+    background-image: url("../../../assets/images/workflowSeparator.svg");
+    background-position: right;
+    background-repeat: no-repeat;
+}
+
+.msg.lakehouseNavigatorHost .onPremise {
+    padding-left: 10px;
+    padding-right: 20px;
+}
+
+.msg.lakehouseNavigatorHost .objectStorage {
+    padding-right: 20px;
+}
+
+.msg.lakehouseNavigatorHost .lakeHouse {
+    padding-right: 5px;
+}
+
+.msg.lakehouseNavigatorHost .labelContainer.title {
+    padding: 30px 10px 8px 10px;
+    font-size: 1.3em;
+    white-space: nowrap;
+}
+
+.msg.lakehouseNavigatorHost .title .icon {
+    height: 1.1em;
+    width: 1.1em;
+}
+
+.msg.lakehouseNavigatorHost .onPremise .labelContainer.title {
+    margin-right: 10px;
+}
+
+.msg.lakehouseNavigatorHost .objectStorage .labelContainer.title {
+    margin-right: 10px;
+}
+
+.msg.lakehouseNavigatorHost .subTitle {
+    padding-bottom: 40px;
+    text-align: center;
+    font-size: 0.9em;
+    font-weight: 300;
+}
+
+.msg.lakehouseNavigatorHost .diagram.onPremiseDiagram {
+    padding: 50px 25px 0 35px;
+}
+
+.msg.lakehouseNavigatorHost .diagram.objectStorageDiagram {
+    padding: 0 10px 0 20px;
+}
+
+.msg.lakehouseNavigatorHost .diagram.lakeHouseDiagram {
+    padding: 20px 30px 0 10px;
+}
+
+.msg.lakehouseNavigatorHost .actionPanel {
+    position: absolute;
+    top: max(min(calc(100% - 200px), 550px), 50px);
+    width: 240px;
+    height: 140px;
+    background-color: rgba(255, 255, 255, 0.85);
+    border-radius: 10px;
+    filter: drop-shadow(4px 4px 12px rgba(0, 0, 0, 0.8));
+    color: #303030;
+    padding: 10px 15px 8px 15px;
+}
+
+.msg.lakehouseNavigatorHost .actionPanel .title {
+    font-size: 1em;
+    padding-bottom: 12px;
+}
+
+.msg.lakehouseNavigatorHost .actionPanel .info {
+    font-size: 0.8em;
+    padding-bottom: 16px;
+}
+
+.msg.lakehouseNavigatorHost .actionPanel .button {
+    background-color: #548A51;
+    color: #ffffff;
+    border: none;
+    font-size: 0.9em;
+    margin: 0px;
+}
+
+.msg.lakehouseNavigatorHost .uploadTab {
+    flex: 1 1 auto;
+}
+
+.msg.lakehouseNavigatorHost .filesForUpload {
+    min-width: 350px;
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskItemStatus {
+    padding-left: 20px;
+    font-size: 0.8em;
+}
+
+.msg.lakehouseNavigatorHost .uploadFilesInfo {
+    flex: 1 0 auto;
+    text-align: center;
+}
+
+.msg.lakehouseNavigatorHost .uploadFilesInfo .label {
+    color: color-mix(in srgb, var(--tab-inactiveForeground) 50%, var(--sideBar-background));
+    padding-top: 15px;
+    font-size: 1.2em;
+    font-weight: 600;
+    max-width: 250px;
+}
+
+.msg.lakehouseNavigatorHost .uploadFilesInfo .addFilesLbl {
+    cursor: pointer;
+}
+
+.msg.lakehouseNavigatorHost .uploadFilesInfo .addFilesLbl:hover {
+    color: var(--icon-foreground);
+}
+
+.msg.lakehouseNavigatorHost .loadTab {
+    flex: 1 1 auto;
+}
+
+.msg.lakehouseNavigatorHost .panelToolbar {
+    min-height: 32px;
+    padding-bottom: 16px;
+    overflow: hidden;
+    gap: 8px;
+    padding: 0px 10px 0 10px;
+    margin: 5px 0 5px 0;
+}
+
+.msg.lakehouseNavigatorHost .panelToolbar .label {
+    white-space: nowrap;
+}
+
+.msg.lakehouseNavigatorHost .panelToolbar .dropdown {
+    flex: 1 1 auto;
+}
+
+.msg.lakehouseNavigatorHost .panelToolbar .input {
+    flex: 1 1 auto;
+    min-width: 40px;
+}
+
+.msg.lakehouseNavigatorHost .panelToolbar .placeHolder {
+    flex: 2 2 auto;
+}
+
+.msg.lakehouseNavigatorHost .panelToolbar .button {
+    margin: 0px;
+}
+
+.msg.lakehouseNavigatorHost .panelToolbar #uploadTargetBucket {
+    width: 130px;
+}
+
+.msg.lakehouseNavigatorHost .panelToolbar #uploadTargetPath {
+    flex: 1 1 auto;
+}
+
+.msg.lakehouseNavigatorHost .mainSplitter {
+    flex: 1 1 auto;
+    margin: 10px;
+}
+
+.msg.lakehouseNavigatorHost .mainContent {
+    flex: 1 1 auto;
+    margin-top: 10px;
+    padding: 0 10px 0 10px;
+}
+
+.msg.lakehouseNavigatorHost .separator {
+    margin: 5px;
+    overflow: hidden;
+}
+
+.msg.lakehouseNavigatorHost .mainPanel {
+    flex: 1 1 auto;
+    background-color: var(--tab-inactiveBackground);
+    border-radius: 5px;
+}
+
+.msg.lakehouseNavigatorHost .titleLbl {
+    padding: 6px 0 6px 0;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 3px solid var(--sideBar-background);
+    color: #fff;
+    background: linear-gradient(180deg, rgb(20, 72, 80) 30%, rgba(20, 72, 80, 0.8) 100%);
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskPreviewIcon {
+    width: 32px;
+    height: 32px;
+}
+
+.msg.lakehouseNavigatorHost .tabulator-col-title {
+    font-weight: 300;
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskPreview {
+    min-width: 350px;
+}
+
+.msg.lakehouseNavigatorHost .taskInputLabelContainer {
+    flex: 1 1 auto;
+    gap: 2px;
+}
+
+.msg.lakehouseNavigatorHost .taskInputLabelContainer .dropdown,
+.msg.lakehouseNavigatorHost .taskInputLabelContainer .input {
+    flex: 1 1 auto;
+}
+
+.msg.lakehouseNavigatorHost .taskInputLabelContainer .taskItemUriLbl {
+    padding-top: 1px;
+    padding-left: 2px;
+}
+
+.msg.lakehouseNavigatorHost .taskPropertyContainer {
+    gap: 10px;
+}
+
+.msg.lakehouseNavigatorHost .taskPropertyContainer .inputContainer {
+    flex: 1 1 auto;
+}
+
+.msg.lakehouseNavigatorHost .taskPropertyContainer .dropdownContainer {
+    flex: 1 1 auto;
+}
+
+.msg.lakehouseNavigatorHost .taskPropertyContainer .loadingTaskPreviewIcon {
+    background-color: var(--sideBar-foreground);
+    margin-top: 4px;
+}
+
+.msg.lakehouseNavigatorHost .taskPropertyContainer .msg.button.imageOnly {
+    margin: 0;
+    padding: 3px 2px 2px 2px;
+}
+
+.msg.lakehouseNavigatorHost .taskProperties {
+    flex: 0 0 auto;
+    padding: 10px 10px 10px 10px;
+    gap: 8px;
+}
+
+.msg.lakehouseNavigatorHost .taskProperties .label {
+    font-size: 0.9em;
+    color: var(--tab-inactiveForeground);
+}
+
+.msg.lakehouseNavigatorHost .taskProperties .input {
+    flex: 1 1 auto;
+}
+
+.msg.lakehouseNavigatorHost .taskProperties .taskDescription {
+    font-family: inherit;
+    font-weight: 400;
+    font-size: 0.8em;
+}
+
+.msg.lakehouseNavigatorHost .iconLabel {
+    gap: 4px;
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskItems {
+    flex: 1 1 auto;
+    padding: 10px;
+    background-color: var(--sideBar-background);
+    overflow-y: scroll;
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskActions {
+    flex: 0 0 auto;
+    padding: 10px;
+    gap: 10px;
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskActionButtons {
+    flex: 1 1 auto;
+    gap: 10px;
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskActions .button {
+    flex: 1 1 auto;
+    margin: 0;
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskActions .label .error {
+    max-width: 330px;
+    word-wrap: break-word;
+    display: inline-block;
+    font-size: 0.77em;
+    padding: 8px;
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskItemInfo {
+    flex: 1 1 auto;
+    text-align: center;
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskItemInfo .label {
+    max-width: 250px;
+    font-size: 1.2em;
+    font-weight: 600;
+    color: color-mix(in srgb, var(--tab-inactiveForeground) 30%, var(--sideBar-background));
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskItem {
+    flex: 0 0 auto;
+    padding: 10px;
+    gap: 5px;
+    background-color: var(--browserTile-background);
+    border: 1px solid var(--browserTile-border);
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskItem .remove {
+    display: block;
+    right: 1px;
+    top: 1px;
+    position: absolute;
+    cursor: pointer;
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskItem .remove:hover {
+    color: var(--tab-activeForeground);
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskItem .inputContainer {
+    font-size: 0.8em;
+    padding-top: 3px;
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskItem .inputContainer .label {
+    width: 60px;
+    text-align: right;
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskItem .inputContainer .input {
+    flex: 1 1 auto;
+    font-size: 1em;
+    text-overflow: ellipsis;
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskItem .error {
+    margin: 2px 0 0 20px;
+    padding: 0;
+    font-size: 0.8em;
+}
+
+.msg.lakehouseNavigatorHost .lakehouseTablesTab {
+    flex: 1 1 auto;
+}
+
+.msg.lakehouseNavigatorHost .lakehouseTablesPanel {
+    flex: 1 1 auto;
+    margin-bottom: 10px;
+}
+
+.msg.lakehouseNavigatorHost .schemaTablesContainer {
+    flex: 1 1 auto;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.msg.lakehouseNavigatorHost .listTitleLbl {
+    font-weight: 300;
+    background-color: var(--list-headerBackground);
+    padding: 5px 10px 5px 10px;
+}
+
+.msg.lakehouseNavigatorHost .schemaList {
+    flex: 0 0 230px;
+}
+
+.msg.lakehouseNavigatorHost .schemaList .treeGrid {
+    background-color: var(--tab-inactiveBackground);
+}
+
+.msg.lakehouseNavigatorHost .tableList {
+    flex: 1 1 auto;
+    background-color: var(--sideBar-background);
+}
+
+.msg.lakehouseNavigatorHost .tableField.schemaNameField {
+    padding-left: 5px;
+}
+
+.msg.lakehouseNavigatorHost .loadingTaskItemInfo .container {
+    display: flex;
+    gap: 5px;
+    overflow: hidden;
+}
+
+.msg.lakehouseNavigatorHost .tableField {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+}
+
+.msg.lakehouseNavigatorHost .tableField .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.msg.msg.lakehouseNavigatorHost .taskListPanel {
+    flex: 1 1 auto;
+}
+
+.msg.lakehouseNavigatorHost .taskListContainer {
+    gap: 4px;
+    flex: 1 1 auto;
+    overflow: hidden;
+    background-color: var(--sideBar-background);
+}
+
+.msg.lakehouseNavigatorHost .taskListItem {
+    flex: 0 0 38px;
+    padding: 10px;
+    background-color: var(--tab-inactiveBackground);
+    border-radius: 4px;
+    gap: 5px;
+}
+
+.msg.lakehouseNavigatorHost .taskListItem.lastScheduledItem {
+    background-color: var(--browserTile-background);
+    border: 1px solid var(--browserTile-border);
+}
+
+.msg.lakehouseNavigatorHost .treeGrid {
+    background-color: var(--sideBar-background);
+}
+
+.msg.lakehouseNavigatorHost .tabulator-table {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+.msg.lakehouseNavigatorHost .tabulator-row {
+    display: flex;
+}
+
+.msg.lakehouseNavigatorHost .tabulator .tabulator-row.tabulator-row-even {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.msg.lakehouseNavigatorHost .tabulator-row.tabulator-row-odd.error {
+    background-color: rgba(255, 0, 0, 0.22);
+}
+
+.msg.lakehouseNavigatorHost .tabulator-row.tabulator-row-even.error {
+    background-color: rgba(255, 0, 0, 0.2);
+}
+
+body[theme=light] .msg.lakehouseNavigatorHost .tabulator-row.tabulator-row-odd.notLoaded {
+    background-color: rgba(0, 0, 0, 0.22);
+}
+
+body[theme=light] .msg.lakehouseNavigatorHost .tabulator-row.tabulator-row-even.notLoaded {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+body[theme=dark] .msg.lakehouseNavigatorHost .tabulator-row.tabulator-row-odd.notLoaded {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: color-mix(in srgb, var(--rowTextColor) 50%, var(--rowBackgroundColor));
+}
+
+body[theme=dark] .msg.lakehouseNavigatorHost .tabulator-row.tabulator-row-even.notLoaded {
+    background-color: rgba(255, 255, 255, 0.06);
+    color: color-mix(in srgb, var(--rowTextColor) 50%, var(--rowBackgroundColor));
+}
+
+.msg.lakehouseNavigatorHost .tabulator-cell {
+    display: flex;
+}
+
+.msg.lakehouseNavigatorHost .tabulator .tabulator-header .tabulator-col.tabulator-sortable .tabulator-col-title {
+    padding-right: 0px;
+}
+
+.msg.lakehouseNavigatorHost .tabulator .itemField {
+    display: flex;
+    flex: auto 1 1;
+    align-items: center;
+    overflow: hidden;
+}
+
+.msg.lakehouseNavigatorHost .tabulator .itemField:hover .iconOnMouseOver {
+    display: block;
+}
+
+.msg.lakehouseNavigatorHost .iconOnMouseOver {
+    display: none;
+    right: 1px;
+    top: 1px;
+    position: absolute;
+    cursor: pointer;
+}
+
+/*.msg.lakehouseNavigatorHost .tabulator .tabulator-cell.folder .treeToggle:before {
+    content: '\ea83';
+    display: block;
+    color: var(--rowTextColor);
+    font-family: "codicon";
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    width: 16px;
+    height: 16px;
+    float: left;
+    margin: 0 4px 0 0;
+    padding-left: 20px;
+}*/
+
+/*.msg.lakehouseNavigatorHost .tabulator .tabulator-cell.folder .treeToggle::after {
+    margin-top: 4px;
+}*/
+
+.msg.lakehouseNavigatorHost .tabulator .schemaNameField:before {
+    content: "";
+    display: block;
+    --svg: url(../../../assets/images/schemaMySQL.svg);
+    mask-image: var(--svg);
+    -webkit-mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    background-color: var(--icon-foreground);
+    width: 16px;
+    height: 16px;
+    float: left;
+    margin: 0 0 0 8px;
+}
+
+.msg.lakehouseNavigatorHost .tabulator .itemField.file {
+    padding-left: 16px;
+}
+
+
+.msg.lakehouseNavigatorHost .tabulator .itemField .label {
+    padding-left: 5px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    user-select: none;
+}
+
+.msg.lakehouseNavigatorHost .tabulator .itemField .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.msg.lakehouseNavigatorHost .tabulator .itemField .icon.error {
+    color: var(--errorForeground);
+}
+
+.msg.lakehouseNavigatorHost .icon.loading {
+    -webkit-animation: spin 1s linear infinite;
+    -moz-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+}
+
+.msg.lakehouseNavigatorHost .icon.running,
+.msg.lakehouseNavigatorHost .icon.itemLoading {
+    color: var(--terminal-ansiBlue);
+}
+
+.msg.lakehouseNavigatorHost .icon.completed,
+.msg.lakehouseNavigatorHost .icon.itemLoaded {
+    color: var(--terminal-ansiGreen);
+}
+
+.msg.lakehouseNavigatorHost .icon.error,
+.msg.lakehouseNavigatorHost .icon.cancelled,
+.msg.lakehouseNavigatorHost .icon.itemNotLoaded {
+    color: var(--terminal-ansiRed);
+}
+
+@-moz-keyframes spin {
+    100% {
+        -moz-transform: rotate(360deg);
+    }
+}
+
+@-webkit-keyframes spin {
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
+.msg.lakehouseNavigatorHost .tabulator .sizeField {
+    display: flex;
+    flex: auto 1 1;
+    align-items: center;
+    justify-content: flex-end;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: none;
+}
+
+.msg.lakehouseNavigatorHost .tabulator .modifiedField {
+    display: flex;
+    flex: auto 1 1;
+    align-items: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.msg.lakehouseNavigatorHost .tabulator .commentField {
+    font-size: 0.7em;
+    height: 90%;
+}
+
+.msg.lakehouseNavigatorHost .tabulator .commentField .label {
+    white-space: break-spaces;
+    line-height: 0.98em;
+    text-overflow: ellipsis;
+}
+
+.msg.lakehouseNavigatorHost .tabulator .dateField {
+    font-size: 0.85em;
+}
+
+.msg.lakehouseNavigatorHost .stripesLoader {
+    margin: 4px;
+    height: 20px;
+    /*should not be larger than 20px*/
+    position: relative;
+    background: linear-gradient(90deg, #eee 50%, transparent 50%);
+    background-color: var(--terminal-ansiBlue);
+    background-size: 200%;
+    background-position: 1%;
+    border-radius: 5px;
+    transform: scale(-1);
+    transition: 0.3s;
+}
+
+.msg.lakehouseNavigatorHost .stripesLoader:before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    background: linear-gradient(-45deg,
+            rgba(238, 238, 238, 0.3) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(238, 238, 238, 0.3) 50%,
+            rgba(238, 238, 238, 0.3) 75%,
+            transparent 75%,
+            transparent);
+    animation: shift 2s linear infinite;
+    background-size: 40px 40px;
+    box-shadow: inset 0 0px 1px rgba(0, 0, 0, 0.1),
+        inset 0 -2px 1px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes shift {
+    from {
+        background-position: -80px 0;
+    }
+
+    to {
+        background-position: 0 0;
+    }
+}
+
+.msg.lakehouseNavigatorHost .progressBar {
+    width: 150px;
+    height: 10px;
+    display: block;
+    position: absolute;
+    right: 0px;
+    top: 3px;
+    opacity: 0.8;
+}
+
+.msg.lakehouseNavigatorHost .progressBar.loadingTaskItem {
+    top: 14px;
+    overflow: hidden;
+    max-height: 10px;
+    padding: 0;
+}
+
+.msg.lakehouseNavigatorHost .heatWaveMemory {
+    width: 150px;
+    height: 20px;
+    border: 1px solid var(--input-border);
+    border-radius: 5px;
+    background-color: var(--input-background);
+}
+
+.msg.lakehouseNavigatorHost .heatWaveMemory .heatWaveMemoryUsage {
+    background-color: var(--terminal-ansiBlue);
+    width: 25%;
+}
+
+.msg.lakehouseNavigatorHost .heatWaveMemory .label {
+    display: block;
+    position: absolute;
+    top: 1px;
+    right: 5px;
+    opacity: 1;
+    color: #ff9;
+    mix-blend-mode: difference;
+}
+
+.msg.lakehouseNavigatorHost .stepSeparator {
+    position: absolute;
+    top: calc(max(min(calc(100% - 200px), 550px), 50px) + 40px);
+    font-size: 3em;
+    letter-spacing: -8px;
+    min-width: 1.4em;
+    filter: drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.3));
+}
+
+.msg.lakehouseNavigatorHost .step1to2 {
+    left: calc(33% - (1.4em / 3));
+}
+
+.msg.lakehouseNavigatorHost .step2to3 {
+    left: calc(66% - (1.4em / 3));
+}

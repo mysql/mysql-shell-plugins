@@ -26,7 +26,7 @@
 import fs from "fs/promises";
 import addContext from "mochawesome/addContext";
 import { join } from "path";
-import { ITimeouts, until, VSBrowser, WebDriver, WebElement } from "vscode-extension-tester";
+import { ITimeouts, until, VSBrowser, WebDriver, WebElement, ActivityBar } from "vscode-extension-tester";
 import { existsSync } from "fs";
 import { Workbench } from "./Workbench";
 import * as constants from "./constants";
@@ -310,4 +310,5 @@ export class Misc {
 
         return `${splitted[0]} ${splitted[1].replace(":00.000Z", "")}`;
     };
+
 }

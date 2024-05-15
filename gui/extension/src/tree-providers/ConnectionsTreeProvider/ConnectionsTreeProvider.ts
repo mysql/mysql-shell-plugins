@@ -233,6 +233,12 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                     arguments: [undefined, "Performance Dashboard", entry.treeItem.connectionId, uuid()],
                 };
 
+                const lakehouseNavigatorCommand = {
+                    title: "Show Lakehouse Navigator",
+                    command: "msg.showLakehouseNavigator",
+                    arguments: [undefined, "Lakehouse Navigator", entry.treeItem.connectionId, uuid()],
+                };
+
                 const item = entry.treeItem;
                 entry.sections = [
                     {
@@ -252,6 +258,12 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                         type: "adminSection",
                         treeItem: new AdminSectionTreeItem("Performance Dashboard", item.backend, item.connectionId,
                             "adminPerformanceDashboard.svg", false, performanceDashboardCommand),
+                    },
+                    {
+                        parent: entry,
+                        type: "adminSection",
+                        treeItem: new AdminSectionTreeItem("Lakehouse Navigator", item.backend, item.connectionId,
+                            "lakehouseNavigator.svg", false, lakehouseNavigatorCommand),
                     },
                 ];
 

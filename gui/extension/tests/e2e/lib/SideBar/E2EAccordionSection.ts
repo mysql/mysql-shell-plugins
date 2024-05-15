@@ -406,10 +406,12 @@ export class E2EAccordionSection {
      * @returns A promise resolving when all database connections are deleted
      */
     public removeAllDatabaseConnections = async (): Promise<void> => {
-        const dbConnections = await this.getDatabaseConnections();
-        await Workbench.closeAllEditors();
-        for (const dbConnection of dbConnections) {
-            await this.tree.deleteDatabaseConnection(dbConnection.name, dbConnection.isMySQL, false);
+        if (!Os.isMacOs()) {
+            const dbConnections = await this.getDatabaseConnections();
+            await Workbench.closeAllEditors();
+            for (const dbConnection of dbConnections) {
+                await this.tree.deleteDatabaseConnection(dbConnection.name, dbConnection.isMySQL, false);
+            }
         }
     };
 

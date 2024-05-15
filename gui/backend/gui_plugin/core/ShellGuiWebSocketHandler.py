@@ -680,6 +680,11 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             if "interactive" in f_args:
                 kwargs.update({"interactive": False})
 
+            # If the function may receive a message handler, adds the kwarg so the
+            # RequestHandler properly sets the callback
+            if "send_gui_message" in f_args:
+                kwargs.update({"send_gui_message": True})
+
             lock_session = False
             if "session" in f_args:
                 # If the called function requires a session parameter,

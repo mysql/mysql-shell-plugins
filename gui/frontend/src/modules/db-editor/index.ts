@@ -37,6 +37,7 @@ export enum EntityType {
     Status,
     Connections,
     Dashboard,
+    LakehouseNavigator,
 }
 
 export enum SchemaTreeType {

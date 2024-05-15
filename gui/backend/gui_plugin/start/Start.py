@@ -76,6 +76,10 @@ def web_server(port=None, secure=None, webrootpath=None,
 
     import mysqlsh.plugin_manager.general
 
+    # TODO: TEMPORARY HACK!!
+    # import gc
+    # gc.disable()
+
     # Read single_instance_token from STDIN if read_token_on_stdin is True
     if read_token_on_stdin:
         single_instance_token = input(

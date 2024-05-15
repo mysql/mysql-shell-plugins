@@ -85,6 +85,8 @@ export const reloadOci = "Reload the OCI Profile list";
 export const createDBConnection = "Create New DB Connection";
 export const configureOci = "Configure the OCI Profile list";
 export const cancel = "Cancel";
+export const openLakeHouseNavigator = "Open Lakehouse Navigator";
+export const showChatOptions = "Show Chat Options";
 
 // TABS
 export const dbDefaultEditor = "MySQL Shell";
@@ -142,6 +144,17 @@ export const isGridText = "gridText";
 export const isJson = "json";
 export const isGraph = "graph";
 export const isSqlPreview = "preview";
+export const isHWAboutInfo = "HeatWave About Info";
+export const isChat = "chat";
+
+// LAKE HOUSE NAVIGATOR
+export const lakeHouseNavigatorEditor = "Lakehouse Navigator";
+export const overviewTab = "Overview";
+export const uploadToObjectStorageTab = "Upload to Object Storage";
+export const loadIntoLakeHouseTab = "Load into Lakehouse";
+export const lakeHouseTablesTab = "Lakehouse Tables";
+export const addFiles = "Add Files";
+export const startFileUpload = "Start File Upload";
 
 // RESULT GRID CONTEXT MENU
 export const resultGridContextMenu = {
@@ -172,6 +185,12 @@ export const resultGridContextMenu = {
     copyFieldUnquoted: "Copy Field Unquoted",
     setFieldToNull: "Set Field to Null",
 };
+
+// HEATWAVE PROFILE EDITOR
+export const modelCohere = "Cohere";
+export const modelCohereLight = "Cohere Light";
+export const modelLlama2 = "Llama2";
+export const modelMistral = "Mistral";
 
 // CELL ICONS
 export const blob = "blob";

@@ -270,6 +270,106 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
             </Icon>
           </div>
         </Button>
+        <Divider
+          key="formatDividerChatOptions"
+          thickness={1}
+          vertical={true}
+        >
+          <div
+            className="msg divider vertical"
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            style={
+              {
+                "--thickness": "1px",
+              }
+            }
+          />
+        </Divider>
+        <Button
+          data-tooltip="Show Chat Options"
+          imageOnly={true}
+          key="editorChatOptionsButton"
+          requestType="showChatOptions"
+        >
+          <div
+            className="msg button imageOnly"
+            data-tooltip="Show Chat Options"
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            role="button"
+            style={
+              {
+                "flexDirection": undefined,
+              }
+            }
+            tabIndex={0}
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              id="ChatOptionsButton"
+              src="chatOptions.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                id="ChatOptionsButton"
+                style={
+                  {
+                    "WebkitMaskImage": "url("chatOptions.svg")",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url("chatOptions.svg")",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+          </div>
+        </Button>
+        <Button
+          data-tooltip="Open Lakehouse Navigator"
+          imageOnly={true}
+          key="editorLakehouseNavigatorButton"
+          requestType="showLakehouseNavigator"
+        >
+          <div
+            className="msg button imageOnly"
+            data-tooltip="Open Lakehouse Navigator"
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            role="button"
+            style={
+              {
+                "flexDirection": undefined,
+              }
+            }
+            tabIndex={0}
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              id="lakehouseNavigatorButton"
+              src="lakehouseNavigator.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                id="lakehouseNavigatorButton"
+                style={
+                  {
+                    "WebkitMaskImage": "url("lakehouseNavigator.svg")",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url("lakehouseNavigator.svg")",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+          </div>
+        </Button>
         <div
           className="expander"
         />

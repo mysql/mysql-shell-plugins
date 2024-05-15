@@ -147,6 +147,42 @@ export interface IOpenDialogOptions {
     title?: string;
 }
 
+/** This is essentially a copy of the VS Code SaveDialogOptions interface. */
+export interface ISaveDialogOptions {
+    /** A unique ID which identifies the request. */
+    id?: string;
+
+    /**
+     * The resource the dialog shows when opened.
+     */
+    default?: string;
+
+    /**
+     * A human-readable string for the save button.
+     */
+    saveLabel?: string;
+
+    /**
+     * A set of file filters that are used by the dialog. Each entry is a human-readable label,
+     * like "TypeScript", and an array of extensions, e.g.
+     * ```ts
+     * {
+     *     'Images': ['png', 'jpg']
+     *     'TypeScript': ['ts', 'tsx']
+     * }
+     * ```
+     */
+    filters?: { [name: string]: string[] };
+
+    /**
+     * Dialog title.
+     *
+     * This parameter might be ignored, as not all operating systems display a title on save dialogs
+     * (for example, macOS).
+     */
+    title?: string;
+}
+
 /** The structure describing the files the user selected when running the open dialog in the application host. */
 export interface IOpenFileDialogResult {
     resourceId: string;
@@ -171,6 +207,9 @@ export interface IEditorCommonExecutionOptions {
 
     /** Any additional named parameters for placeholders in the code. */
     params?: Array<[string, string]>;
+
+    /** The specific context to execute. If omitted, the current context will be used. */
+    context?: IExecutionContext;
 }
 
 /**
@@ -348,6 +387,7 @@ export interface IRequestTypeMap {
         data: { details: IConnectionDetails; force: boolean; initialEditor: InitialEditor; }) => Promise<boolean>;
     "selectFile": (result: IOpenFileDialogResult) => Promise<boolean>;
     "showOpenDialog": (options: IOpenDialogOptions) => Promise<boolean>;
+    "showSaveDialog": (options: ISaveDialogOptions) => Promise<boolean>;
 
     "sqlShowDataAtPage": (data: ISqlPageRequest) => Promise<boolean>;
 
@@ -355,7 +395,7 @@ export interface IRequestTypeMap {
     "sqlUpdateColumnInfo": (data: IColumnDetails) => Promise<boolean>;
 
     "editorExecuteSelectedOrAll": (options: IEditorCommonExecutionOptions) => Promise<boolean>;
-    "editorExecuteCurrent": (options: IEditorCommonExecutionOptions) => Promise<boolean>;
+    "editorExecute": (options: IEditorCommonExecutionOptions) => Promise<boolean>;
     "editorExecuteOnHost": (options: IEditorExtendedExecutionOptions) => Promise<boolean>;
     "editorFind": SimpleCallback;
     "editorFormat": SimpleCallback;
@@ -532,6 +572,9 @@ export interface IRequestTypeMap {
 
     /** A list of requests that must be executed sequentially. */
     "job": (job: Array<IRequestListEntry<keyof IRequestTypeMap>>) => Promise<boolean>;
+
+    "showLakehouseNavigator": SimpleCallback;
+    "showChatOptions": SimpleCallback;
 
     /**
      * A request which is a re-post of another request.

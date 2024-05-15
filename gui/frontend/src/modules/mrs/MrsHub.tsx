@@ -37,7 +37,7 @@ import {
 } from "../../communication/ProtocolMrs.js";
 import { AwaitableValueEditDialog } from "../../components/Dialogs/AwaitableValueEditDialog.js";
 import { ComponentBase } from "../../components/ui/Component/ComponentBase.js";
-import { IMrsDbObjectEditRequest, requisitions } from "../../supplement/Requisitions.js";
+import { appParameters, IMrsDbObjectEditRequest, requisitions } from "../../supplement/Requisitions.js";
 
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { MrsDbObjectDialog } from "./dialogs/MrsDbObjectDialog.js";
@@ -691,10 +691,15 @@ export class MrsHub extends ComponentBase {
                 if (!contentSet) {
                     const sbId = uuid();
                     const updateStatusbar = (text?: string, timeout?: number) => {
-                        // Removes the statusbar item, if the text is undefined.
-                        requisitions.executeRemote("updateStatusbar", [{
-                            id: sbId, text, visible: text !== undefined, hideAfter: timeout,
-                        }]);
+                        if (appParameters.embedded) {
+                            requisitions.executeRemote("updateStatusbar", [{
+                                id: sbId, text, visible: text !== undefined, hideAfter: timeout,
+                            }]);
+                        } else {
+                            void requisitions.execute("updateStatusbar", [{
+                                id: "message", text, visible: text !== undefined, hideAfter: timeout,
+                            }]);
+                        }
                     };
 
                     try {

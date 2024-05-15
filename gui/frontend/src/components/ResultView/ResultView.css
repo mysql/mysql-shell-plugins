@@ -68,6 +68,8 @@
 .msg.codeEditor .zoneHost .renderTarget .outputHost {
     flex: 1;
     background: var(--editorZone-background);
+    margin-top: 4px;
+    margin-right: 4px;
 }
 
 .msg.resultHost .resultTabview .outputHost .commandIndex {

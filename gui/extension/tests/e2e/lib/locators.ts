@@ -248,6 +248,79 @@ export const notebook = {
                 },
                 script: By.className("standaloneScriptHost"),
                 textOutput: By.css(".actionOutput span > span"),
+                cellContextMenu: {
+                    exists: By.css("#cellContextMenu .popup.visible"),
+                    capitalize: By.id("capitalizeMenuItem"),
+                    lowerCase: By.id("lowerCaseMenuItem"),
+                    upperCase: By.id("upperCaseMenuItem"),
+                    toggleForDeletion: By.id("deleteRowMenuItem"),
+                    copySingleRow: {
+                        exists: By.id("copyRowSubmenu"),
+                        subMenu: {
+                            exists: By.css("#copyRowSubmenu .popup.visible"),
+                            copyRow: By.id("copyRowMenuItem1"),
+                            copyRowWithNames: By.id("copyRowMenuItem2"),
+                            copyRowUnquoted: By.id("copyRowMenuItem3"),
+                            copyRowWithNamesUnquoted: By.id("copyRowMenuItem4"),
+                            copyRowWithNamesTabSeparated: By.id("copyRowMenuItem5"),
+                            copyRowTabSeparated: By.id("copyRowMenuItem6"),
+                        },
+                    },
+                    copyAllRows: {
+                        exists: By.id("copyRowsSubmenu"),
+                        subMenu: {
+                            exists: By.css("#copyRowsSubmenu .popup.visible"),
+                            copyAllRows: By.id("copyRowsMenuItem1"),
+                            copyAllRowsWithNames: By.id("copyRowsMenuItem2"),
+                            copyAllRowsUnquoted: By.id("copyRowsMenuItem3"),
+                            copyAllRowsWithNamesUnquoted: By.id("copyRowsMenuItem4"),
+                            copyAllRowsWithNamesTabSeparated: By.id("copyRowsMenuItem5"),
+                            copyAllRowsTabSeparated: By.id("copyRowsMenuItem6"),
+                        },
+                    },
+                    setFieldToNull: By.id("setNullMenuItem"),
+                    copyField: By.id("copyFieldMenuItem"),
+                    copyFieldUnquoted: By.id("copyFieldUnquotedMenuItem"),
+                },
+                chat: {
+                    aboutInfo: By.className("aboutResultPanel"),
+                    isProcessingResult: By.className("chatResultInfo"),
+                    resultText: By.className("chatResultText"),
+                    resultContent: By.className("chatResultPanel"),
+                },
+                chatOptions: {
+                    button: By.id("ChatOptionsIcon"),
+                    panel: By.className("chatOptionsPanel"),
+                    history: {
+                        row: By.css("#historySectionHost .scopeMultiItemRow .tabulator-row"),
+                        cell: {
+                            userMessage: By.css("div.tabulator-cell[tabulator-field='userMessage']"),
+                            chatBotMessage: By.css("div.tabulator-cell[tabulator-field='chatBotMessage']"),
+                        },
+                    },
+                    databaseTable: By.css("#tablesSectionHost .scopeTables label"),
+                    matchedDocuments: {
+                        row: By.css("#docsSectionHost .scopeMultiItemRow .tabulator-row"),
+                        cell: {
+                            title: By.css("div.tabulator-cell[tabulator-field='title']"),
+                            segment: By.css("div.tabulator-cell[tabulator-field='segment']"),
+                        },
+                    },
+                    model: {
+                        selectList: By.css("#modelSectionHost .scopeModel"),
+                        list: By.css("#Popup .popup"),
+                        item: {
+                            cohere: By.id("cohere.command"),
+                            cohereLight: By.id("cohere.command-light"),
+                            llama2: By.id("llama2-7b-v1"),
+                            mistral: By.id("mistral-7b-instruct-v1"),
+                        },
+                    },
+                    temp: By.css("#modelSectionHost .scopeTemp"),
+                    runAgain: By.css("#modelSectionHost div[caption='Run Again']"),
+                    startNewChat: By.css("#modelSectionHost div[caption='Start New Chat']"),
+                },
+
             },
         },
         prompt: {
@@ -616,4 +689,120 @@ export const mrsSdkDialog = {
     cancel: By.id("cancel"),
 };
 
+export const lakeHouseNavigator = {
+    exists: By.id("lakehouseNavigatorToolbar"),
+    overview: {
+        tab: By.id("overview"),
+        uploadFiles: By.css("div[caption='Upload Files >>']"),
+        startLoad: By.css("div[caption='Start Load >>']"),
+        manageLakeHouse: By.css("div[caption='Manage Lakehouse']"),
+    },
+    uploadToObjectStorage: {
+        tab: By.id("upload"),
+        objectStorageBrowser: {
+            exists: By.className("objectStorageBrowser"),
+            ociProfile: By.css(".panelToolbar .dropdown"),
+            ociProfileList: {
+                exists: By.id("objBrowserOciProfileDropdownPopup"),
+                item: (id: string): By => {
+                    return By.id(id);
+                },
+            },
+            refresh: By.css(".panelToolbar .refreshBtn"),
+            objectStorageItem: {
+                item: {
+                    exists: By.css(".tabulator-row-odd, .tabulator-row-even"),
+                    existsByLevel: (level: string): By => {
+                        return By.className(`tabulator-tree-level-${level}`);
+                    },
+                    isLoading: By.css(".tabulator-row .codicon-loading"),
+                    treeToggle: By.className("treeToggle"),
+                    caption: By.className("itemCaption"),
+                    checkbox: By.className("checkbox"),
+                },
+            },
+        },
+        filesForUpload: {
+            button: By.css(".loadingTaskActionButtons .button"),
+            file: By.css(".loadingTaskItem .itemCaption"),
+        },
+    },
+    loadIntoLakeHouse: {
+        tab: By.id("load"),
+        newLoadingTask: {
+            exists: By.css(".loadingTaskPreview .mainPanel"),
+            name: By.id("loadTaskTableName"),
+            description: By.id("loadTaskDescription"),
+            targetSchema: {
+                exists: By.id("loadTaskTargetSchemaDropdown"),
+                value: By.css("#loadTaskTargetSchemaDropdown > label"),
+                list: By.id("loadTaskTargetSchemaDropdownPopup"),
+                item: (id: string): By => {
+                    return By.id(id);
+                },
+            },
+            formats: {
+                exists: By.id("loadTaskFormatsDropdown"),
+                value: By.css("#loadTaskFormatsDropdown > label"),
+                list: By.id("loadTaskFormatsDropdownPopup"),
+                item: {
+                    all: By.id("all"),
+                    pdf: By.id("pdf"),
+                    txt: By.id("txt"),
+                    html: By.id("html"),
+                    doc: By.id("doc"),
+                    ppt: By.id("ppt"),
+                },
+            },
+            loadingTaskItem: {
+                caption: By.css(".loadingTaskItem .itemCaption"),
+            },
+            startLoadingTask: By.id("loadStartLoadingTaskBtn"),
+        },
+    },
+    lakeHouseTables: {
+        tab: By.id("manage"),
+        deleteTableBtn: By.id("lakehouseDeleteTablesBtn"),
+        databaseSchemas: {
+            item: By.className("schemaNameField"),
+        },
+        lakeHouseTables: {
+            refresh: By.id("lakehouseRefreshBtn"),
+            row: By.css("#lakehouseTablesTreeGrid .tabulator-row"),
+            cell: {
+                tableName: {
+                    label: By.css('div.tabulator-cell[tabulator-field="tableName"] label'),
+                    progressBar: By.css("div.tabulator-cell[tabulator-field='tableName'] .progressBar"),
+                },
+                loaded: {
+                    loadingSpinner: By.className("codicon-loading"),
+                    label: By.css('div.tabulator-cell[tabulator-field="loaded"]'),
+                },
+                rows: By.css('div.tabulator-cell[tabulator-field="rows"]'),
+                size: By.css('div.tabulator-cell[tabulator-field="dataLength"]'),
+                date: By.css('div.tabulator-cell[tabulator-field="lastChange"]'),
+                comment: By.css('div.tabulator-cell[tabulator-field="comment"]'),
+            },
+        },
+        delete: By.id("lakehouseDeleteTablesBtn"),
+        currentTaskList: {
+            exists: By.className("taskListPanel"),
+            row: By.className("tabulator-row"),
+            cell: {
+                task: {
+                    label: By.css('div.tabulator-cell[tabulator-field="title"] label'),
+                    progressBar: By.css("div.tabulator-cell[tabulator-field='title'] .progressBar"),
+                },
+                id: By.css('div.tabulator-cell[tabulator-field="id"]'),
+                status: By.css('div.tabulator-cell[tabulator-field="status"] label'),
+                startTime: By.css('div.tabulator-cell[tabulator-field="startingTime"] label'),
+                endTime: By.css('div.tabulator-cell[tabulator-field="estimatedCompletionTime"] label'),
+                message: By.css('div.tabulator-cell[tabulator-field="statusMessage"] label'),
+            },
+        },
+    },
+};
+
+export const sideBarItems = By.css(".composite-bar .actions-container > li");
 export const togglePrimarySideBar = By.xpath("//a[contains(@aria-label, 'Toggle Primary Side Bar')]");
+

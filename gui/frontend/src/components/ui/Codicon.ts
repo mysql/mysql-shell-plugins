@@ -453,6 +453,7 @@ export enum Codicon {
     Zap,
     ZoomIn,
     ZoomOut,
+    WorkspaceTrusted,
 }
 
 export const iconNameMap = new Map<Codicon, string>([
@@ -876,6 +877,7 @@ export const iconNameMap = new Map<Codicon, string>([
     [Codicon.WholeWord, "whole-word"],
     [Codicon.Window, "window"],
     [Codicon.WordWrap, "word-wrap"],
+    [Codicon.WorkspaceTrusted, "workspace-trusted"],
     [Codicon.Wrench, "wrench"],
     [Codicon.WrenchSubaction, "wrench-subaction"],
     [Codicon.X, "x"],

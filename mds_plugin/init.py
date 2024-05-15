@@ -51,7 +51,7 @@ class mds():
         # Import all sub-modules to register the decorated functions there
         from mds_plugin import core, general, compartment, compute
         from mds_plugin import configuration, mysql_database_service, network
-        from mds_plugin import object_store, user, bastion, util
+        from mds_plugin import object_store, user, bastion, util, genai
 
     class create():
         """Used to create OCI objects.
@@ -121,4 +121,10 @@ class mds():
         """Various restart functions.
 
         Module to restart various OCI objects.
+        """
+
+    class genai():
+        """Various machine learning functions.
+
+        Module to cover machine learning functionality.
         """
