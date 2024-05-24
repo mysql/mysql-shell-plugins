@@ -23,17 +23,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IResultSets, IResultSet, IContextProvider, IExecutionContextDetails } from "./index.js";
 import { ApplicationDB, IDbModuleResultData, StoreType } from "../app-logic/ApplicationDB.js";
-import { IExecutionContextState, IPosition, Monaco } from "../components/ui/CodeEditor/index.js";
-import { CodeEditor, ResultPresentationFactory } from "../components/ui/CodeEditor/CodeEditor.js";
+import type { ISqlUpdateResult } from "../app-logic/Types.js";
+import type { CodeEditor, ResultPresentationFactory } from "../components/ui/CodeEditor/CodeEditor.js";
+import { IPosition, Monaco } from "../components/ui/CodeEditor/index.js";
 import { IStatementSpan } from "../parsing/parser-common.js";
+import { requisitions, type IColumnDetails } from "../supplement/Requisitions.js";
 import { EditorLanguage, IExecutionContext, ITextRange } from "../supplement/index.js";
 import { ExecutionContext } from "./ExecutionContext.js";
 import { PresentationInterface } from "./PresentationInterface.js";
 import { SQLExecutionContext } from "./SQLExecutionContext.js";
-import { requisitions, type IColumnDetails } from "../supplement/Requisitions.js";
-import type { ISqlUpdateResult } from "../app-logic/Types.js";
+import { IContextProvider, IExecutionContextDetails, IResultSet } from "./index.js";
 
 /**
  * A collection of optional parameters for the execution context list.
@@ -81,9 +81,6 @@ export class ExecutionContexts implements IContextProvider {
         this.defaultSchema = params.currentSchema ?? "";
         this.runUpdates = params.runUpdates;
 
-        // Register the update handler the first time on construction. Usually we do that when restoring
-        // the contexts, but that happens only when results existed before switching pages.
-        // For the first run however we need this registration.
         requisitions.register("sqlUpdateColumnInfo", this.sqlUpdateColumnInfo);
     }
 
@@ -93,6 +90,15 @@ export class ExecutionContexts implements IContextProvider {
 
     public get count(): number {
         return this.content.length;
+    }
+
+    public dispose(): void {
+        requisitions.unregister("sqlUpdateColumnInfo", this.sqlUpdateColumnInfo);
+
+        this.content.forEach((context: ExecutionContext) => {
+            context.dispose();
+        });
+        this.content = [];
     }
 
     /**
@@ -144,41 +150,37 @@ export class ExecutionContexts implements IContextProvider {
     }
 
     /**
-     * Prepares the context list for removal. Each context removes its decorations and
-     * a list of state objects is created to restore the previous state.
-     *
-     * @returns A list of context states that can be used to restore the previous execution context structure.
+     * Prepares the context list for the switch to a different list. Each context removes its decorations and
+     * removes its result data (if any) from memory.
      */
-    public cleanUpAndReturnState(): IExecutionContextState[] {
-        // We are going to be closed so we can unregister the requisition.
-        requisitions.unregister("sqlUpdateColumnInfo", this.sqlUpdateColumnInfo);
-
-        const result: IExecutionContextState[] = [];
-
+    public deactivateContexts(): void {
         this.content.forEach((context: ExecutionContext) => {
-            result.push(context.state);
-            context.dispose();
+            context.deactivate();
         });
-        this.content = [];
-
-        return result;
     }
 
     /**
-     * Restores a previously saved list of execution contexts.
+     * Restores a list of previously deactivated execution contexts and connects them with the given editor.
      *
-     * @param editor The editor in which the context decorations must be set.
-     * @param factory The generator of a presentation object to use for the new contexts.
-     * @param states The list of context states to restore.
+     * @param backend The editor backend to connect the contexts to.
+     */
+    public activateContexts(backend: Monaco.IStandaloneCodeEditor): void {
+        for (const context of this.content) {
+            context.activate(backend);
+        }
+    }
+
+    /**
+     * Creates new contexts from the given states.
+     *
+     * @param editor The code editor to connect the contexts to.
+     * @param factory The factory to create the presentation objects.
+     * @param details The details for the contexts to restore.
      */
     public restoreFromStates(editor: CodeEditor, factory: ResultPresentationFactory,
-        states: IExecutionContextState[]): void {
+        details: IExecutionContextDetails[]): void {
 
-        // The update handler again (first time is in the constructor). Double registration of the same handler
-        // doesn't add it twice, and we need it ready before we even restore the first time.
-        requisitions.register("sqlUpdateColumnInfo", this.sqlUpdateColumnInfo);
-
-        if (states.length === 0) {
+        if (details.length === 0) {
             // Do not touch the current context list if there's nothing to restore.
             return;
         }
@@ -187,76 +189,38 @@ export class ExecutionContexts implements IContextProvider {
             return context.dispose();
         });
 
-        // Do the restoration in two stages. First, create the contexts and apply all editor related actions, like
-        // setting decorations and adding view zones with the final height.
-        // Then, load the result sets and render them.
         this.content = [];
-        const presentations: PresentationInterface[] = [];
-        states.forEach((state: IExecutionContextState) => {
+        details.forEach((detail) => {
             // Setting start and end line of the presentation object renders their gutter decorations.
             // This also creates the view zone for the result pane, if the presentation is embedded.
-            const presentation = factory(editor, state.language);
-            presentation.startLine = state.start;
-            presentation.endLine = state.end;
+            const presentation = factory(editor, detail.state.language);
+            presentation.startLine = detail.state.start;
+            presentation.endLine = detail.state.end;
 
-            const context = this.createContext(presentation, state.statements);
-            this.content.push(context);
-
-            presentations.push(presentation);
-        });
-
-        editor.backend?.changeViewZones((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
-            for (let i = 0; i < presentations.length; ++i) {
-                const presentation = presentations[i];
-                const state = states[i];
-                if (state.result) {
-                    const zone = presentation.viewZone;
-                    if (zone) {
-                        zone.heightInPx = state.currentHeight;
-                        presentation.viewZoneId = changeAccessor.addZone(zone);
-                    }
-                }
-            }
-        });
-
-        for (let i = 0; i < states.length; ++i) {
-            const state = states[i];
-            const context = this.content[i];
-            if (state.result) {
-                switch (state.result.type) {
+            const context = this.createContext(presentation, detail.state.statements);
+            if (detail.state.result) {
+                switch (detail.state.result.type) {
                     case "resultIds": {
-                        // Convert result data references back to result data. Result set data is loaded from
-                        // the application DB, if possible.
-                        const result: IResultSets = {
-                            type: "resultSets",
-                            sets: [],
-                            output: [],
-                        };
-
-                        this.loadResultSets(state.result.list).then((resultSets) => {
-                            result.sets = resultSets;
-
-                            context.setResult(result, {
-                                manualHeight: state.currentHeight,
-                                currentSet: state.currentSet,
-                                maximized: state.maximizeResultPane,
-                            });
-                        }).catch(() => {
-                            // Ignore load errors.
-                        });
-
+                        context.startFrozen(detail.state.result.list, detail.state.currentHeight,
+                            detail.state.currentSet, detail.state.maximizeResultPane);
 
                         break;
                     }
 
                     default: {
-                        context.setResult(state.result, { manualHeight: state.currentHeight });
+                        context.startFrozen([], detail.state.currentHeight,
+                            detail.state.currentSet, detail.state.maximizeResultPane);
+                        context.setResult(detail.state.result, {});
 
                         break;
                     }
                 }
             }
-        }
+
+            this.content.push(context);
+        });
+
+        this.activateContexts(editor.backend);
     }
 
     /**
@@ -421,19 +385,23 @@ export class ExecutionContexts implements IContextProvider {
             return;
         }
 
+        const backend = context.presentation.backend;
         context.dispose();
 
-        const presentation = context.presentation;
-        presentation.language = language;
-        void presentation.removeResult().then(() => {
-            const newContext = this.createContext(presentation);
-            this.content[index] = newContext;
+        if (backend) {
+            const presentation = context.presentation;
+            presentation.language = language;
+            void presentation.removeResult().then(() => {
+                const newContext = this.createContext(presentation);
+                presentation.activate(backend);
+                this.content[index] = newContext;
 
-            if (!presentation.isSQLLike) {
-                // SQL like contexts validate on constructor anyway.
-                newContext.scheduleFullValidation();
-            }
-        });
+                if (!presentation.isSQLLike) {
+                    // SQL like contexts validate on constructor anyway.
+                    newContext.scheduleFullValidation();
+                }
+            });
+        }
     }
 
     /**
@@ -451,73 +419,11 @@ export class ExecutionContexts implements IContextProvider {
         presentation.onRollbackChanges = this.rollbackChanges;
 
         if (presentation.isSQLLike) {
-            return new SQLExecutionContext(presentation, this.dbVersion, this.sqlMode, this.defaultSchema,
+            return new SQLExecutionContext(presentation, this.store, this.dbVersion, this.sqlMode, this.defaultSchema,
                 statementSpans);
         }
 
-        return new ExecutionContext(presentation);
-    }
-
-    /**
-     * Attempts to load all result sets back from the app DB into a result set structure.
-     *
-     * @param resultIds A list of previous response qualifiers used to get the result sets from the backend.
-     *                  This is the ID under which the data was cached before.
-     *
-     * @returns A promise resolving to a list of result sets loaded from the app DB.
-     */
-    private async loadResultSets(resultIds: string[]): Promise<IResultSet[]> {
-        const sets: IResultSet[] = [];
-
-        for await (const id of resultIds) {
-            const values = await ApplicationDB.db.getAllFromIndex(this.store, "resultIndex", id);
-            const set: IResultSet = {
-                type: "resultSet",
-                resultId: id,
-                sql: "",
-                columns: [],
-                data: {
-                    rows: [],
-                    hasMoreRows: false,
-                    currentPage: 0,
-                },
-                updatable: false,
-                fullTableName: "",
-            };
-            sets.push(set);
-
-            if (this.isDbModuleResultData(values)) {
-                for (const value of values) {
-                    set.index = value.index;
-                    if (value.sql) {
-                        set.sql = value.sql;
-                    }
-
-                    // The updatable flag indicates if a query as such is updatable. Only very specific
-                    // queries are updatable, like simple SELECT * FROM table_name.
-                    set.updatable = value.updatable ?? false;
-                    set.fullTableName = value.fullTableName ?? "";
-
-                    if (value.columns) {
-                        // Columns are set only for the first entry of a result.
-                        set.columns.push(...value.columns);
-                    }
-
-                    set.data.rows.push(...value.rows);
-
-                    if (value.executionInfo) {
-                        set.data.executionInfo = value.executionInfo;
-                    }
-
-                    if (value.hasMoreRows) {
-                        set.data.hasMoreRows = true;
-                        set.data.currentPage = value.currentPage;
-                    }
-                }
-            }
-        }
-
-        return sets;
+        return new ExecutionContext(presentation, this.store);
     }
 
     private onResultRemoval = (resultIds: string[]): Promise<void> => {

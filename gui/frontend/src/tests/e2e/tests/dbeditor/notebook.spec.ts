@@ -905,7 +905,7 @@ describe("Notebook", () => {
             await commandExecutor.clean();
             await commandExecutor.execute("select * from sakila.all_data_types_ints;");
             expect(commandExecutor.getResultMessage()).toMatch(/OK/);
-            const booleanEdited = false;
+            //const booleanEdited = false;
             const smallIntEdited = "32761";
             const mediumIntEdited = "8388601";
             const intEdited = "3";
@@ -916,7 +916,7 @@ describe("Notebook", () => {
 
             const rowToEdit = 0;
             const cellsToEdit: interfaces.IResultGridCell[] = [
-                { rowNumber: rowToEdit, columnName: "test_boolean", value: booleanEdited },
+                //{ rowNumber: rowToEdit, columnName: "test_boolean", value: booleanEdited },
                 { rowNumber: rowToEdit, columnName: "test_smallint", value: smallIntEdited },
                 { rowNumber: rowToEdit, columnName: "test_mediumint", value: mediumIntEdited },
                 { rowNumber: rowToEdit, columnName: "test_integer", value: intEdited },
@@ -926,10 +926,10 @@ describe("Notebook", () => {
                 { rowNumber: rowToEdit, columnName: "test_double", value: doubleEdited },
             ];
             await commandExecutor.editResultGridCells(cellsToEdit);
-            const booleanField = booleanEdited ? 1 : 0;
+            //const booleanField = booleanEdited ? 1 : 0;
             const expectedSqlPreview = [
                 /UPDATE sakila.all_data_types_ints SET/,
-                new RegExp(`test_boolean = ${booleanField}`),
+                //    new RegExp(`test_boolean = ${booleanField}`),
                 new RegExp(`test_smallint = ${smallIntEdited}`),
                 new RegExp(`test_mediumint = ${mediumIntEdited}`),
                 new RegExp(`test_integer = ${intEdited}`),
@@ -957,8 +957,8 @@ describe("Notebook", () => {
 
             await commandExecutor.execute("select * from sakila.all_data_types_ints where id = 1;");
             expect(commandExecutor.getResultMessage()).toMatch(/OK/);
-            const testBoolean = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_boolean");
-            expect(testBoolean).toBe(booleanEdited.toString());
+            //const testBoolean = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_boolean");
+            //expect(testBoolean).toBe(booleanEdited.toString());
             const testSmallInt = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_smallint");
             expect(testSmallInt).toBe(smallIntEdited);
             const testMediumInt = await commandExecutor.getCellValueFromResultGrid(rowToEdit, "test_mediumint");

@@ -24,11 +24,12 @@
  */
 
 import { IPosition } from "monaco-editor";
+import { StoreType } from "../../../../../app-logic/ApplicationDB.js";
 import { FormattingProvider } from "../../../../../components/ui/CodeEditor/FormattingProvider.js";
 import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
 import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices.js";
-import { mockTextModel, mockModel } from "../../../__mocks__/CodeEditorMocks.js";
+import { mockModel, mockTextModel } from "../../../__mocks__/CodeEditorMocks.js";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
 
@@ -45,7 +46,7 @@ describe("DocumentHighlightProvider tests", () => {
         const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
         expect(pi).toBeDefined();
 
-        const execContext = new ExecutionContext(pi);
+        const execContext = new ExecutionContext(pi, StoreType.DbEditor);
         execContext.toLocal = jest.fn().mockImplementation((_value: IPosition): IPosition => {
             return { lineNumber: 0, column: 0 };
         });

@@ -36,6 +36,7 @@ exports[`Dropdown render testing Standard Rendering 1`] = `
     }
     onBlur={[Function]}
     onClick={[Function]}
+    onFocus={[Function]}
     onKeyDown={[Function]}
     orientation="row"
     style={
@@ -50,6 +51,7 @@ exports[`Dropdown render testing Standard Rendering 1`] = `
       data-tooltip="inherit"
       onClick={[Function]}
       onKeyDown={[Function]}
+      onfocusin={[Function]}
       onfocusout={[Function]}
       style={
         {

@@ -28,6 +28,7 @@ import { CodeCompletionProvider } from "../../../../../components/ui/CodeEditor/
 import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
 import { mockModel, position } from "../../../__mocks__/CodeEditorMocks.js";
+import { StoreType } from "../../../../../app-logic/ApplicationDB.js";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
 
@@ -45,10 +46,10 @@ describe("CodeCompletionProvider basic test", () => {
         const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
         expect(pi).toBeDefined();
 
-        pi.context = new ExecutionContext(pi);
+        pi.context = new ExecutionContext(pi, StoreType.DbEditor);
         expect(pi.context).toBeDefined();
 
-        const execContext = new ExecutionContext(pi);
+        const execContext = new ExecutionContext(pi, StoreType.DbEditor);
         execContext.toLocal = jest.fn().mockImplementation((_value: IPosition): IPosition => {
             return { lineNumber: 0, column: 0 };
         });

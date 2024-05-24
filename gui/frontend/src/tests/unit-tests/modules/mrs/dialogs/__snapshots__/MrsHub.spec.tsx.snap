@@ -1004,6 +1004,7 @@ exports[`MrsHub Tests MRS Db Object dialog tests Show MRS DB Object Dialog (snap
                           <div
                             class="tabulator-headers"
                             role="row"
+                            style="height: 0px;"
                           >
                             <div
                               aria-sort="none"
@@ -1065,6 +1066,7 @@ exports[`MrsHub Tests MRS Db Object dialog tests Show MRS DB Object Dialog (snap
                               </div>
                             </div>
                           </div>
+                          <br />
                           <div
                             class="tabulator-frozen-rows-holder"
                             style="min-width: 0px;"

@@ -1418,13 +1418,13 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         return (datum as IPieDatum).value !== undefined;
     }
 
-    private handleColorsSelection = (values: Set<string>): void => {
+    private handleColorsSelection = (accept: boolean, values: Set<string>): void => {
         const { onGraphDataChange, graphData } = this.props;
 
         onGraphDataChange?.({ ...graphData, activeColorScheme: [...values][0] as ColorScheme });
     };
 
-    private handleTimeRangeSelection = (selectedIds: Set<string>): void => {
+    private handleTimeRangeSelection = (accept: boolean, selectedIds: Set<string>): void => {
         const { onGraphDataChange, graphData } = this.props;
 
         onGraphDataChange?.({ ...graphData, displayInterval: parseInt([...selectedIds][0], 10) });

@@ -779,7 +779,7 @@ describe("MySQL REST Service", () => {
                 return (await treeAuthApp.isExpanded()) && (await treeAuthApp.getChildren()).length > 0;
             }, constants.wait10seconds,
                 `${restAuthenticationApp.name} (${restAuthenticationApp.vendor}) was not expanded`);
-            expect(dbTreeSection.tree.existsElement(restUser.username),
+            expect(await dbTreeSection.tree.existsElement(restUser.username),
                 errors.doesNotExistOnTree(restUser.username)).to.be.true;
 
         });
@@ -870,7 +870,7 @@ describe("MySQL REST Service", () => {
             await Workbench.clickOnNotificationButton(ntf, "Yes");
             await driver.wait(waitUntil.notificationExists(`The MRS User ${restUser.username} has been deleted`),
                 constants.wait5seconds);
-            expect(dbTreeSection.tree.existsElement(restUser.username),
+            expect(await dbTreeSection.tree.existsElement(restUser.username),
                 errors.existsOnTree(restUser.username)).to.be.false;
         });
 
@@ -886,7 +886,7 @@ describe("MySQL REST Service", () => {
                 await Workbench.clickOnNotificationButton(ntf, "Yes");
                 await driver.wait(waitUntil.notificationExists("The MRS service has been deleted successfully"),
                     constants.wait5seconds);
-                expect(dbTreeSection.tree.existsElement(
+                expect(await dbTreeSection.tree.existsElement(
                     `${service.servicePath} (${service.settings.hostNameFilter})`),
                     errors.existsOnTree(`${service.servicePath} (${service.settings.hostNameFilter})`)).to.be.false;
             }
@@ -964,7 +964,7 @@ describe("MySQL REST Service", () => {
                 const treeService = await dbTreeSection.tree.getElement(
                     `${crudService.servicePath} (${crudService.settings.hostNameFilter})`);
                 await treeService.expand();
-                expect(dbTreeSection.tree.existsElement(
+                expect(await dbTreeSection.tree.existsElement(
                     `${crudSchema.restSchemaPath} (${crudSchema.settings.schemaName})`),
                     errors.doesNotExistOnTree(`${crudSchema.restSchemaPath} (${crudSchema.settings.schemaName})`))
                     .to.be.true;

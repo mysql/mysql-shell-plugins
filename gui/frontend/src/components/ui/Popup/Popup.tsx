@@ -120,8 +120,8 @@ export class Popup extends ComponentBase<IPopupProperties, IPopupStates> {
         });
     }
 
-    public close(): void {
-        this.portalRef.current?.close(false);
+    public close(cancelled: boolean): void {
+        this.portalRef.current?.close(cancelled);
     }
 
     public get clientRect(): DOMRect | undefined {

@@ -175,7 +175,7 @@ describe("OPEN EDITORS", () => {
     it("Collapse All", async () => {
 
         await openEditorsTreeSection.clickToolbarButton(constants.collapseAll);
-        const treeVisibleItems = await (await openEditorsTreeSection.get()).getVisibleItems();
+        const treeVisibleItems = await (await openEditorsTreeSection.getTreeExplorer()).getVisibleItems();
         expect(treeVisibleItems.length, `The tree items were not collapsed`).to.equals(3);
         expect(await treeVisibleItems[0].getLabel(), errors.doesNotExistOnTree(constants.dbConnectionsLabel))
             .to.equals(constants.dbConnectionsLabel);

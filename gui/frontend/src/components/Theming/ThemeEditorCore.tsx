@@ -275,7 +275,7 @@ export class ThemeEditorCore extends ComponentBase<IThemeEditorCoreProperties, I
         Settings.saveSettings();
     };
 
-    private handleThemeSwitch = (ids: Set<string>): void => {
+    private handleThemeSwitch = (accept: boolean, ids: Set<string>): void => {
         const html = document.getElementsByTagName("html");
         html[0].classList.add("themeSwitch");
         setTimeout(() => { html[0].classList.remove("themeSwitch"); }, 500);
@@ -321,7 +321,7 @@ export class ThemeEditorCore extends ComponentBase<IThemeEditorCoreProperties, I
 
     private removeCurrentTheme = (): void => {
         this.themeManager.removeCurrentTheme();
-        this.handleThemeSwitch(new Set(this.themeManager.activeTheme));
+        this.handleThemeSwitch(true, new Set(this.themeManager.activeTheme));
     };
 
     /**
@@ -390,7 +390,7 @@ export class ThemeEditorCore extends ComponentBase<IThemeEditorCoreProperties, I
             this.themeManager.saveTheme();
 
             this.themeManager.duplicateCurrentTheme(newName);
-            this.handleThemeSwitch(new Set(newName));
+            this.handleThemeSwitch(true, new Set(newName));
         }
     };
 

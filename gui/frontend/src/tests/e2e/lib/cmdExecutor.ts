@@ -1502,8 +1502,6 @@ export class CommandExecutor {
                         await tab.click();
 
                         if (tableRows) {
-                            await driver.wait(until.stalenessOf(tableRows), constants.wait2seconds,
-                                "Result table was not updated");
                             await driver.wait(waitUntil.elementLocated(result!,
                                 locator.notebook.codeEditor.editor.result.tableHeaders),
                                 constants.wait2seconds, "Result Table headers were not loaded");
@@ -1794,8 +1792,9 @@ export class CommandExecutor {
         const cell = await this.getCellFromResultGrid(rowNumber, columnName);
         const expectInput = typeof valueToEdit === "string";
         await driver.wait(async () => {
-            await driver
-                .executeScript("arguments[0].dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));", cell);
+            //await driver
+            //    .executeScript("arguments[0].dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));", cell);
+            await driver.actions().doubleClick(cell).perform();
             try {
                 const cell = await this.getCellFromResultGrid(rowNumber, columnName);
                 const isEditable = (await cell.getAttribute("class")).includes("tabulator-editing");

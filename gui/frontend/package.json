@@ -28,7 +28,7 @@
         "monaco-editor": "0.43.0",
         "preact": "10.18.1",
         "set-interval-async": "3.0.3",
-        "tabulator-tables": "5.5.2",
+        "tabulator-tables": "6.2.1",
         "ws": "8.14.2"
     },
     "devDependencies": {
@@ -49,7 +49,7 @@
         "@types/resize-observer-browser": "0.1.9",
         "@types/selenium-webdriver": "4.1.19",
         "@types/set-interval-async": "1.0.2",
-        "@types/tabulator-tables": "5.5.3",
+        "@types/tabulator-tables": "6.2.0",
         "@types/ws": "8.5.4",
         "@typescript-eslint/eslint-plugin": "6.11.0",
         "@typescript-eslint/parser": "6.11.0",

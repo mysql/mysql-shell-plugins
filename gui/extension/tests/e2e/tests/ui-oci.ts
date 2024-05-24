@@ -92,7 +92,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes);
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.removeAllDatabaseConnections();
-            await dbTreeSection.focus();
+            await ociTreeSection.focus();
             await ociTreeSection.clickToolbarButton(constants.configureOci);
             await driver.wait(async () => {
                 return (await new EditorView().getOpenEditorTitles()).includes("config");

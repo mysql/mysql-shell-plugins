@@ -86,7 +86,7 @@ export class Calendar extends ComponentBase<ICalendarProperties, ICalendarState>
     }
 
     public close(): void {
-        this.popupRef?.current?.close();
+        this.popupRef?.current?.close(false);
     }
 
     private handleMonthChange = (inc: boolean): void => {
@@ -98,7 +98,7 @@ export class Calendar extends ComponentBase<ICalendarProperties, ICalendarState>
     };
 
     private handleSelectDate = (date: Date): void => {
-        this.popupRef.current?.close();
+        this.popupRef.current?.close(false);
 
         const { onChange } = this.mergedProps;
         onChange?.(date);

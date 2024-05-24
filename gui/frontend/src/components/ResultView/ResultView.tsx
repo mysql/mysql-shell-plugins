@@ -125,7 +125,7 @@ export interface IResultViewProperties extends IComponentProperties {
     onFieldEditStart?: (row: number, field: string) => void;
 
     /** Triggered when the user has finished editing a field. */
-    onFieldEdited?: (row: number, field: string, value: unknown, previousValue: unknown) => void;
+    onFieldEdited?: (row: number, field: string, value: unknown, previousValue: unknown) => Promise<void>;
 
     /** Triggered when the user cancelled editing a field. */
     onFieldEditCancel?: (row: number, field: string) => void;
@@ -139,7 +139,7 @@ export interface IResultViewProperties extends IComponentProperties {
      */
     onVerticalScroll?: (rowIndex: number) => void;
 
-    onAction?: (action: string) => void;
+    onAction?: (action: string) => Promise<void>;
 }
 
 /** Implements a table for result data. */
@@ -154,23 +154,43 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     private selectedCell?: CellComponent;
     private editingCell?: CellComponent;
 
+    #columnDefinitions: ColumnDefinition[];
+
     #navigating = false;
     #lastInputType: LastInputType = "other";
 
     public constructor(props: IResultViewProperties) {
         super(props);
 
-        this.state = {
-        };
-
         this.addHandledProperties("resultSet", "editable", "editModeActive", "topRowIndex", "rowChanges", "selectRow",
             "onFieldEditStart", "onFieldEdited", "onFieldEditCancel", "onVerticalScroll");
     }
 
     public componentDidMount(): void {
+        const { editable, editModeActive, selectRow, resultSet, topRowIndex } = this.mergedProps;
+
         document.addEventListener("keydown", this.handleKeyDown);
-        document.addEventListener("mousedown", this.handleMouseDown);
+        //document.addEventListener("mousedown", this.handleMouseDown);
         document.addEventListener("mouseup", this.handleMouseUp);
+
+        if (this.gridRef.current) {
+            const canEdit = Settings.get<boolean>("editor.editOnDoubleClick", true) || editModeActive;
+            this.#columnDefinitions = this.generateColumnDefinitions(resultSet.columns, editable && canEdit);
+
+            void this.gridRef.current.setColumns(this.#columnDefinitions).then(() => {
+                void this.addData(resultSet.data as IResultSetRows, true).then(() => {
+                    if (this.gridRef.current) {
+                        if (selectRow !== undefined) {
+                            this.gridRef.current.selectRows([selectRow + 1]);
+                        }
+
+                        if (topRowIndex !== undefined) {
+                            void this.gridRef.current.scrollToRow(topRowIndex);
+                        }
+                    }
+                });
+            });
+        }
     }
 
     public componentWillUnmount(): void {
@@ -179,8 +199,20 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         document.removeEventListener("mouseup", this.handleMouseUp);
     }
 
+    public componentDidUpdate(prevProps: IResultViewProperties): void {
+        const { resultSet } = this.mergedProps;
+
+        if (prevProps.resultSet.columns !== resultSet.columns) {
+            void this.updateColumns(resultSet.columns);
+        }
+
+        if (!this.editingCell) {
+            void this.addData(resultSet.data as IResultSetRows, true);
+        }
+    }
+
     public render(): ComponentChild {
-        const { resultSet, editable, editModeActive, topRowIndex, selectRow } = this.mergedProps;
+        const { resultSet, editable, editModeActive } = this.mergedProps;
 
         const className = this.getEffectiveClassNames(["resultView"]);
 
@@ -196,7 +228,6 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         const executionInfo = resultSet.data.executionInfo;
         const gotError = executionInfo && executionInfo.type === MessageType.Error;
         const gotResponse = executionInfo && executionInfo.type === MessageType.Response;
-
         const canEdit = Settings.get<boolean>("editor.editOnDoubleClick", true) || editModeActive;
 
         return (
@@ -209,10 +240,6 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     !gotError && !gotResponse && <TreeGrid
                         ref={this.gridRef}
                         options={options}
-                        topRowIndex={topRowIndex}
-                        selectedRows={selectRow !== undefined ? [selectRow] : undefined}
-                        columns={this.generateColumnDefinitions(resultSet.columns, editable && canEdit)}
-                        tableData={resultSet.data.rows}
                         onColumnResized={this.handleColumnResized}
                         onCellContext={this.handleCellContext}
                         onVerticalScroll={this.handleVerticalScroll}
@@ -388,11 +415,14 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     }
 
     public updateColumns(columns: IColumnInfo[]): Promise<void> {
-        const { editable } = this.mergedProps;
-
         // istanbul ignore next
         if (this.gridRef.current) {
-            return this.gridRef.current.setColumns(this.generateColumnDefinitions(columns, editable));
+            const { editable, editModeActive } = this.mergedProps;
+
+            const canEdit = Settings.get<boolean>("editor.editOnDoubleClick", true) || editModeActive;
+            this.#columnDefinitions = this.generateColumnDefinitions(columns, editable && canEdit);
+
+            return this.gridRef.current.setColumns(this.#columnDefinitions);
         }
 
         return Promise.resolve();
@@ -417,12 +447,6 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 await this.gridRef.current.setData(newData.rows, SetDataAction.Replace);
             } else {
                 await this.gridRef.current.setData(newData.rows, SetDataAction.Add);
-            }
-
-            if (newData.executionInfo) {
-                this.setState({
-                    dirty: false,
-                });
             }
         }
     }
@@ -557,28 +581,14 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 width,
                 minWidth,
                 resizable: true,
-                editable: (cell: CellComponent) => {
-                    const { rowChanges } = this.mergedProps;
-                    const rowChange = rowChanges?.[cell.getRow().getPosition() as number - 1];
-                    if (rowChange?.added) {
-                        return false;
-                    }
-
-                    // Allow editing only when navigating with the keyboard or when this is a boolean column data type.
-                    if (this.#navigating) {
-                        return true;
+                editable: () => {
+                    if (!this.editingCell) {
+                        if (editable && editor != null && !info?.autoIncrement) {
+                            return true;
+                        }
                     }
 
                     return false;
-                },
-                cellDblClick: (e, cell) => {
-                    if (!this.editingCell) {
-                        const { rowChanges } = this.mergedProps;
-                        const rowChange = rowChanges?.[cell.getRow().getPosition() as number - 1];
-                        if (editable && editor != null && (!info?.autoIncrement || !rowChange?.added)) {
-                            cell.edit(true);
-                        }
-                    }
                 },
                 cellEditing: this.cellEditing,
                 cellEdited: this.cellEdited,
@@ -617,7 +627,9 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         const field = cell.getColumn().getField();
 
         // Rows are one-based? Odd.
-        onFieldEdited?.(rowIndex - 1, field, cell.getValue(), cell.getInitialValue());
+        void onFieldEdited?.(rowIndex - 1, field, cell.getValue(), cell.getInitialValue()).then(() => {
+            this.markIfChanged(cell);
+        });
 
         this.editingCell = undefined;
     };
@@ -845,6 +857,12 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                         row.getElement().classList.remove("deleted");
                     }
                 }
+            } else {
+                // Add and delete actions are removed from the row changes, if no other changes happened for a row.
+                // That's why we need to remove the classes here.
+                const element = row.getElement();
+                element?.classList.remove("added");
+                element?.classList.remove("deleted");
             }
         }
     };
@@ -852,14 +870,12 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     private handleAction = (e: Event, props: IButtonProperties): void => {
         const { onAction } = this.mergedProps;
 
-        onAction?.(props.id!);
-
-        if (props.id === "addNewRow" && this.gridRef.current) {
-            // Add a dummy row, so we have something to scroll to.
-            void this.gridRef.current.addRow({}).then(() => {
-                // Scroll to the bottom of the grid.
+        if (props.id === "addNewRow") {
+            void onAction?.(props.id).then(() => {
                 void this.gridRef.current?.scrollToBottom();
             });
+        } else {
+            void onAction?.(props.id!);
         }
     };
 
@@ -1112,6 +1128,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
                 default:
             }
+
+            this.selectedCell.getElement()?.classList.remove("manualFocus");
             this.selectedCell = undefined;
         }
 
@@ -1404,14 +1422,23 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
             case DBDataType.Boolean: {
                 element = <Dropdown
+                    autoFocus
                     selection={value === 0 ? "false" : "true"}
-                    onSelect={(selection: Set<string>): void => {
-                        success(selection.has("true") ? 1 : 0);
-                        this.handleConfirm(cell);
+                    onSelect={(accept: boolean, selection: Set<string>): void => {
+                        const newValue = selection.has("true") ? 1 : 0;
+                        if (accept) {
+                            if (value !== newValue) {
+                                success(newValue);
+                                this.handleConfirm(cell);
+                            }
+                        } else {
+                            this.renderCustomEditor(cell, host, newValue, success, cancel, editorParams);
+                        }
                     }}
                     onCancel={(): void => {
                         cancel(undefined);
                     }}
+                    onBlur={this.handleBlurEvent.bind(this, cell, success, cancel)}
                 >
                     <Dropdown.Item id="true" caption="true" />
                     <Dropdown.Item id="false" caption="false" />
@@ -1475,10 +1502,10 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     // istanbul ignore next
     private numberFormatter = (cell: CellComponent, formatterParams: IFormatterParams,
         onRendered: EmptyCallback): string | HTMLElement => {
-        const added = this.markIfChanged(cell);
+        this.markIfChanged(cell);
 
         const info = formatterParams.info;
-        if (added && info?.autoIncrement) {
+        if (this.isNewRow(cell) && info?.autoIncrement) {
             return "AI";
         }
 
@@ -1668,12 +1695,30 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     const change = changes.find((change) => {
                         return change.field === field;
                     });
+
                     if (change !== undefined) {
                         const element = cell.getElement();
                         element.classList.add("changed");
                     }
                 }
             }
+
+            return rowChange?.added ?? false;
+        }
+
+        return false;
+    }
+
+    /**
+     * @returns A boolean indicating if the given cell is part of a new row.
+     *
+     * @param cell The cell to check.
+     */
+    private isNewRow(cell: CellComponent): boolean {
+        const { rowChanges } = this.mergedProps;
+        if (rowChanges) {
+            const rowIndex = cell.getRow().getPosition() as number - 1;
+            const rowChange = rowChanges[rowIndex];
 
             return rowChange?.added ?? false;
         }
@@ -1698,6 +1743,12 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             });
 
             onToggleRowDeletionMarks?.(positions);
+
+            setTimeout(() => {
+                rows!.forEach((row) => {
+                    this.handleFormatRow(row);
+                });
+            }, 0);
         }
     }
 
@@ -1728,16 +1779,19 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     private handleBlurEvent = (cell: CellComponent, success: ValueBooleanCallback, cancel: ValueVoidCallback,
         e: FocusEvent): void => {
         const element = e.target as HTMLElement & { value: string | number; };
-        const value = cell.getValue();
-        if (String(element.value) !== String(value)) {
-            // Assume the user wants to take over any change so far.
-            success(element.value);
-            this.markIfChanged(cell);
-        } else {
-            cancel(undefined);
-        }
 
-        cell.checkHeight();
+        const value = cell.getValue();
+        if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
+            if (String(element.value) !== String(value)) {
+                // Assume the user wants to take over any change so far.
+                success(element.value);
+                this.markIfChanged(cell);
+            } else {
+                cancel(undefined);
+            }
+
+            cell.checkHeight();
+        }
 
         if (this.#lastInputType === "tab" || this.#lastInputType === "shiftTab") {
             const target = (e.relatedTarget || document.activeElement) as HTMLElement;

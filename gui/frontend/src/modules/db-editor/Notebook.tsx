@@ -319,10 +319,8 @@ export class Notebook extends ComponentBase<INotebookProperties> {
             // At this point the result view data must be in the application DB.
             const editorState = this.getActiveEditorState();
             if (editorState?.model.executionContexts) {
-                editorState.model.executionContexts.restoreFromStates(this.editorRef.current, this.createPresentation,
-                    content.contexts.map((context) => {
-                        return context.state;
-                    }));
+                void editorState.model.executionContexts.restoreFromStates(this.editorRef.current,
+                    this.createPresentation, content.contexts);
             }
 
             this.editorRef.current.backend?.restoreViewState(content.viewState);

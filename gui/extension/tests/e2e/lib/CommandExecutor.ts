@@ -1396,8 +1396,6 @@ export class CommandExecutor {
                             .catch(() => { return undefined; });
                         await tab.click();
                         if (tableRows) {
-                            await driver.wait(until.stalenessOf(tableRows as WebElement), constants.wait2seconds,
-                                "Result table was not updated");
                             await driver.wait(waitUntil.elementLocated(result,
                                 locator.notebook.codeEditor.editor.result.tableHeaders),
                                 constants.wait2seconds, "Result Table headers were not loaded");

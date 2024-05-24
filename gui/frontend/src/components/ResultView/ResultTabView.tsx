@@ -87,6 +87,9 @@ interface IEditingInfo {
      * Only one index is set in this (sparse) array, which is the index of the statement that caused the error.
      */
     errors?: string[];
+
+    /** Set when the user navigates from the preview pane back to the grid by clicking a change line. */
+    selectedRowIndex?: number;
 }
 
 interface IResultTabViewProperties extends IComponentProperties {
@@ -129,12 +132,6 @@ interface IResultTabViewState extends IComponentState {
     manualTab: boolean;
 
     currentResultSet?: IResultSet;
-
-    /** All value changes per result set. */
-    editingInfo: Map<string, IEditingInfo>;
-
-    /** Set when the user navigates from the preview pane back to the grid by clicking a change line. */
-    selectedRowIndex?: number;
 }
 
 /** Holds a collection of result views and other output in a tabbed interface. */
@@ -151,13 +148,15 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     /** The number of updated rows during the last commit action. */
     #affectedRows?: number;
 
+    /** All value changes per result set. */
+    #editingInfo: Map<string, IEditingInfo> = new Map();
+
     public constructor(props: IResultTabViewProperties) {
         super(props);
 
         this.state = {
             manualTab: false,
             currentResultSet: props.resultSets.sets.length > 0 ? props.resultSets.sets[0] : undefined,
-            editingInfo: new Map(),
         };
 
         this.addHandledProperties("resultSets", "contextId", "currentSet", "showMaximizeButton", "hideTabs",
@@ -214,7 +213,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
     public render(): ComponentChild {
         const { resultSets, contextId, hideTabs, showMaximizeButton, showMaximized } = this.props;
-        const { currentResultSet, editingInfo, selectedRowIndex } = this.state;
+        const { currentResultSet } = this.state;
 
         const className = this.getEffectiveClassNames(["resultHost"]);
 
@@ -245,7 +244,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             <Icon src={showMaximized ? normalizeIcon : maximizeIcon} data-tooltip="inherit" />
         </Button>;
 
-        const currentEditingInfo = editingInfo.get(currentResultSet?.resultId ?? "");
+        const currentEditingInfo = this.#editingInfo.get(currentResultSet?.resultId ?? "");
         const editModeActive = currentEditingInfo !== undefined;
 
         const updatable = currentResultSet?.updatable ?? false;
@@ -254,7 +253,11 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             const ref = createRef<ResultView>();
             this.viewRefs.set(resultSet.resultId, ref);
 
-            const topRowIndex = this.topRowIndexes.get(resultSet.resultId);
+            let topRowIndex = this.topRowIndexes.get(resultSet.resultId);
+            const selectedRowIndex = currentEditingInfo?.selectedRowIndex;
+            if (selectedRowIndex !== undefined) {
+                topRowIndex = selectedRowIndex;
+            }
 
             if (!showMaximized || resultSet === currentResultSet) {
                 let caption;
@@ -480,8 +483,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
      * @returns true if the user can close the tab, false otherwise.
      */
     public async canClose(): Promise<boolean> {
-        const { editingInfo } = this.state;
-        for (const [, info] of editingInfo) {
+        for (const [, info] of this.#editingInfo) {
             const ok = await this.confirmCommitOrRollback(info);
 
             if (!ok) {
@@ -572,9 +574,9 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         switch (props.id ?? "") {
             case "closeMenuItem": {
                 const { onRemoveResult } = this.props;
-                const { currentResultSet, editingInfo } = this.state;
+                const { currentResultSet } = this.state;
 
-                const info = editingInfo.get(currentResultSet?.resultId ?? "");
+                const info = this.#editingInfo.get(currentResultSet?.resultId ?? "");
                 if (info) {
                     void this.confirmCommitOrRollback(info).then((canClose) => {
                         if (canClose) {
@@ -603,7 +605,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     };
 
     private previousPage = (): void => {
-        const { currentResultSet, editingInfo } = this.state;
+        const { currentResultSet } = this.state;
 
         const switchPage = (): void => {
             if (currentResultSet && currentResultSet.data.currentPage > 0) {
@@ -617,7 +619,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         // istanbul ignore else
         if (currentResultSet) {
-            const info = editingInfo.get(currentResultSet.resultId ?? "");
+            const info = this.#editingInfo.get(currentResultSet.resultId ?? "");
             if (info) {
                 // The user is currently editing the result set, so we need to commit or rollback the changes first.
                 void this.confirmCommitOrRollback(info).then((result) => {
@@ -632,7 +634,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     };
 
     private nextPage = (): void => {
-        const { currentResultSet, editingInfo } = this.state;
+        const { currentResultSet } = this.state;
 
         const switchPage = (): void => {
             if (currentResultSet?.data.hasMoreRows) {
@@ -646,7 +648,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         // istanbul ignore else
         if (currentResultSet) {
-            const info = editingInfo.get(currentResultSet.resultId ?? "");
+            const info = this.#editingInfo.get(currentResultSet.resultId ?? "");
             if (info) {
                 // The user is currently editing the result set, so we need to commit or rollback the changes first.
                 void this.confirmCommitOrRollback(info).then((result) => {
@@ -697,12 +699,11 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
             case DialogResponseClosure.Decline: {
                 const { onRollbackChanges } = this.props;
-                const { currentResultSet, editingInfo } = this.state;
+                const { currentResultSet } = this.state;
                 if (currentResultSet) {
                     onRollbackChanges?.(currentResultSet);
 
-                    editingInfo.delete(currentResultSet.resultId);
-                    this.setState({ editingInfo });
+                    this.#editingInfo.delete(currentResultSet.resultId);
                 }
 
                 return true;
@@ -720,10 +721,10 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
      * @returns true if the the data can be rolled back, false otherwise.
      */
     private confirmRollback = async (): Promise<boolean> => {
-        const { currentResultSet, editingInfo } = this.state;
+        const { currentResultSet } = this.state;
 
         if (currentResultSet) {
-            const info = editingInfo.get(currentResultSet.resultId ?? "");
+            const info = this.#editingInfo.get(currentResultSet.resultId ?? "");
             if (info && info.rowChanges.length > 0) {
                 // The user is currently editing the result set, so we need to commit or rollback the changes first.
                 const response = await DialogHost.showDialog({
@@ -792,13 +793,13 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
      * The user started editing a (new) field. Switch to edit mode, if not yet done.
      */
     private onFieldEditStart = (): void => {
-        const { currentResultSet, editingInfo } = this.state;
+        const { currentResultSet } = this.state;
 
         if (!currentResultSet) {
             return;
         }
 
-        const info = editingInfo.get(currentResultSet.resultId);
+        const info = this.#editingInfo.get(currentResultSet.resultId);
         if (!info) {
             this.startEditing();
         }
@@ -811,50 +812,57 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
      * @param field The field name (which determines the column) of the edited cell.
      * @param newValue The new value of the cell.
      * @param previousValue The previous value of the cell.
+     *
+     * @returns A promise that resolves when the operation is complete.
      */
-    private onFieldEdited = (row: number, field: string, newValue: unknown, previousValue: unknown): void => {
-        const { currentResultSet, editingInfo } = this.state;
+    private onFieldEdited = async (row: number, field: string, newValue: unknown,
+        previousValue: unknown): Promise<void> => {
 
-        if (!currentResultSet) {
-            return;
-        }
+        return new Promise((resolve) => {
+            const { currentResultSet } = this.state;
 
-        let info = editingInfo.get(currentResultSet.resultId);
-        if (!info) {
-            // Not yet editing, initialize the editing info.
-            info = this.prepareEditingInfo(currentResultSet);
+            if (!currentResultSet) {
+                return;
+            }
 
-            editingInfo.set(currentResultSet.resultId, info);
-        }
+            let info = this.#editingInfo.get(currentResultSet.resultId);
+            if (!info) {
+                // Not yet editing, initialize the editing info.
+                info = this.prepareEditingInfo(currentResultSet);
 
-        // Update the editing info.
-        let rowChanges = info.rowChanges[row];
-        if (!rowChanges) {
-            // If this is the first change for a row collect the original PK values, which are needed for the
-            // update statement.
-            const pkColumns = currentResultSet.columns.filter((column) => {
-                return column.inPK;
-            });
+                this.#editingInfo.set(currentResultSet.resultId, info);
+            }
 
-            // The current result set data has been updated at his point. That means if a PK column was updated
-            // the new value is already in the data set. We need to use the previous value instead.
-            const entry = currentResultSet.data.rows[row];
-            const pkValues = pkColumns.map((column) => {
-                if (column.field === field) {
-                    return previousValue;
-                }
+            // Update the editing info.
+            let rowChanges = info.rowChanges[row];
+            if (!rowChanges) {
+                // If this is the first change for a row collect the original PK values, which are needed for the
+                // update statement.
+                const pkColumns = currentResultSet.columns.filter((column) => {
+                    return column.inPK;
+                });
 
-                return entry[column.field];
-            });
+                // The current result set data has been updated at his point. That means if a PK column was updated
+                // the new value is already in the data set. We need to use the previous value instead.
+                const entry = currentResultSet.data.rows[row];
+                const pkValues = pkColumns.map((column) => {
+                    if (column.field === field) {
+                        return previousValue;
+                    }
 
-            rowChanges = { changes: [], deleted: false, added: false, pkValues };
-            info.rowChanges[row] = rowChanges;
-        }
+                    return entry[column.field];
+                });
 
-        rowChanges.changes.push({ field, value: newValue });
+                rowChanges = { changes: [], deleted: false, added: false, pkValues };
+                info.rowChanges[row] = rowChanges;
+            }
 
-        this.updateEditingStatus(info);
-        this.setState({ editingInfo, selectedRowIndex: undefined });
+            rowChanges.changes.push({ field, value: newValue });
+
+            this.updateEditingStatus(info);
+            info.selectedRowIndex = undefined;
+            this.forceUpdate(() => { resolve(); });
+        });
     };
 
     /**
@@ -862,21 +870,20 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
      * Otherwise the changes are kept and editing continues.
      */
     private onFieldEditCancel = (): void => {
-        const { currentResultSet, editingInfo } = this.state;
+        const { currentResultSet } = this.state;
 
         if (!currentResultSet) {
             return;
         }
 
-        const info = editingInfo.get(currentResultSet.resultId);
+        const info = this.#editingInfo.get(currentResultSet.resultId);
         if (!info) {
             return;
         }
 
         const { rowChanges } = info;
         if (rowChanges.length === 0) {
-            editingInfo.delete(currentResultSet.resultId);
-            this.setState({ editingInfo });
+            this.#editingInfo.delete(currentResultSet.resultId);
         }
 
     };
@@ -887,10 +894,10 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
      * @param rows The row indexes to toggle.
      */
     private onToggleRowDeletionMarks = (rows: number[]): void => {
-        const { currentResultSet, editingInfo } = this.state;
+        const { currentResultSet } = this.state;
 
         if (currentResultSet) {
-            let info = editingInfo.get(currentResultSet.resultId);
+            let info = this.#editingInfo.get(currentResultSet.resultId);
             if (!info) {
                 // Not yet editing, initialize the editing info.
                 info = {
@@ -903,7 +910,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                     previewActive: false,
                 };
 
-                editingInfo.set(currentResultSet.resultId, info);
+                this.#editingInfo.set(currentResultSet.resultId, info);
             }
 
             // Update the editing info.
@@ -933,7 +940,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             });
 
             this.updateEditingStatus(info);
-            this.setState({ editingInfo, selectedRowIndex: undefined });
+            info.selectedRowIndex = undefined;
         }
     };
 
@@ -942,11 +949,10 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
      * the "Start Editing" button.
      */
     private startEditing = (): void => {
-        const { currentResultSet, editingInfo } = this.state;
+        const { currentResultSet } = this.state;
 
         if (currentResultSet) {
             this.prepareEditingInfo(currentResultSet);
-            this.setState({ editingInfo });
         }
     };
 
@@ -992,67 +998,70 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         }
     };
 
-    private onAction = (action: string): void => {
-        const { editingInfo, currentResultSet } = this.state;
+    private onAction = async (action: string): Promise<void> => {
+        const { currentResultSet } = this.state;
 
-        switch (action) {
-            case "addNewRow": {
-                if (currentResultSet) {
-                    const info = this.prepareEditingInfo(currentResultSet);
+        return new Promise((resolve) => {
+            switch (action) {
+                case "addNewRow": {
+                    if (currentResultSet) {
+                        const info = this.prepareEditingInfo(currentResultSet);
 
-                    // Use default values for the new row.
-                    const row: IDictionary = {};
-                    const changes: IResultCellChange[] = currentResultSet.columns.map((column) => {
-                        let value: unknown = column.default ?? undefined;
-                        if (value === "CURRENT_TIMESTAMP") {
-                            value = new Date();
-                        } else if (value === undefined) {
-                            value = column.nullable ? null : defaultValues[column.dataType.type];
-                        }
-                        row[column.field] = value;
+                        // Use default values for the new row.
+                        const row: IDictionary = {};
+                        const changes: IResultCellChange[] = currentResultSet.columns.map((column) => {
+                            let value: unknown = column.default ?? undefined;
+                            if (value === "CURRENT_TIMESTAMP") {
+                                value = new Date();
+                            } else if (value === undefined) {
+                                value = column.nullable ? null : defaultValues[column.dataType.type];
+                            }
+                            row[column.field] = value;
 
-                        return { field: column.field, value };
-                    });
+                            return { field: column.field, value };
+                        });
 
-                    // Add the row values at the end of the change list.
-                    const count = currentResultSet.data.rows.length;
-                    info.rowChanges[count] = {
-                        changes,
-                        deleted: false,
-                        added: true,
-                        pkValues: [],
-                    };
+                        // Add the row values at the end of the change list.
+                        const count = currentResultSet.data.rows.length;
+                        info.rowChanges[count] = {
+                            changes,
+                            deleted: false,
+                            added: true,
+                            pkValues: [],
+                        };
 
-                    // And add the new row to the result set.
-                    currentResultSet.data.rows.push(row);
+                        // And add the new row to the result set.
+                        currentResultSet.data.rows.push(row);
 
-                    this.updateEditingStatus(info);
-                    this.setState({ editingInfo, selectedRowIndex: undefined });
+                        this.updateEditingStatus(info);
+                        info.selectedRowIndex = undefined;
+                        this.forceUpdate(() => { resolve(); });
+                    }
+
+                    break;
                 }
 
-                break;
+                default:
             }
-
-            default:
-        }
+        });
     };
 
     private previewChanges = (): void => {
-        const { currentResultSet, editingInfo } = this.state;
+        const { currentResultSet } = this.state;
 
-        const info = editingInfo.get(currentResultSet?.resultId ?? "");
+        const info = this.#editingInfo.get(currentResultSet?.resultId ?? "");
         if (info) {
             info.previewActive = !info.previewActive;
-            this.setState({ editingInfo });
+            this.forceUpdate();
         }
     };
 
     private commitChanges = (info?: IEditingInfo): void => {
         const { onCommitChanges, onResultPageChange } = this.props;
-        const { currentResultSet, editingInfo } = this.state;
+        const { currentResultSet } = this.state;
 
         if (!info) {
-            info = editingInfo.get(currentResultSet?.resultId ?? "");
+            info = this.#editingInfo.get(currentResultSet?.resultId ?? "");
         }
 
         if (info) {
@@ -1068,10 +1077,8 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                     // Do not end editing, but show the error in the SQL preview pane.
                     info!.errors = result.errors;
                     info!.previewActive = true;
-                    this.setState({ editingInfo });
                 } else {
-                    editingInfo.delete(info!.resultSet.resultId);
-                    this.setState({ editingInfo });
+                    this.#editingInfo.delete(info!.resultSet.resultId);
 
                     // Use the page switch callback to refresh the result set.
                     onResultPageChange?.(info!.resultSet.resultId, info!.resultSet.data.currentPage,
@@ -1084,15 +1091,14 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
     private cancelEditingAndRollbackChanges = (): void => {
         const { onRollbackChanges } = this.props;
-        const { currentResultSet, editingInfo } = this.state;
+        const { currentResultSet } = this.state;
 
         if (currentResultSet) {
             void this.confirmRollback().then((result) => {
                 if (result) {
                     onRollbackChanges?.(currentResultSet);
 
-                    editingInfo.delete(currentResultSet.resultId);
-                    this.setState({ editingInfo });
+                    this.#editingInfo.delete(currentResultSet.resultId);
                 }
             });
         }
@@ -1178,26 +1184,23 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         return statements;
     };
 
-    private selectViewStyle = (selection: Set<string>): void => {
-        const { currentResultSet, editingInfo } = this.state;
+    private selectViewStyle = (accept: boolean, selection: Set<string>): void => {
+        const { currentResultSet } = this.state;
 
         if (!currentResultSet) {
             return;
         }
 
-        const info = editingInfo.get(currentResultSet.resultId);
+        const info = this.#editingInfo.get(currentResultSet.resultId);
         if (!info) {
             return;
         }
 
         info.previewActive = selection.has("preview");
-        this.setState({ editingInfo });
     };
 
     private prepareEditingInfo = (resultSet: IResultSet): IEditingInfo => {
-        const { editingInfo } = this.state;
-
-        let info = editingInfo.get(resultSet.resultId);
+        let info = this.#editingInfo.get(resultSet.resultId);
         if (!info) {
             this.#affectedRows = undefined;
             info = {
@@ -1210,7 +1213,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                 previewActive: false,
             };
 
-            editingInfo.set(resultSet.resultId, info);
+            this.#editingInfo.set(resultSet.resultId, info);
         }
 
         this.updateEditingStatus(info);
@@ -1225,13 +1228,14 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
      * @param index The index of the statement that was clicked.
      */
     private handleStatementClick = (index: number): void => {
-        const { editingInfo, currentResultSet } = this.state;
+        const { currentResultSet } = this.state;
 
         if (currentResultSet) {
-            const info = editingInfo.get(currentResultSet.resultId);
+            const info = this.#editingInfo.get(currentResultSet.resultId);
             if (info) {
                 info.previewActive = false;
-                this.setState({ editingInfo, selectedRowIndex: index });
+                info.selectedRowIndex = index;
+                this.forceUpdate();
             }
         }
     };

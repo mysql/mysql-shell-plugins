@@ -28,29 +28,25 @@ import "./ThemePreview.css";
 import closeIcon from "../../../assets/images/close.svg";
 import gearIcon from "../../../assets/images/settings.svg";
 import imageImage from "../Preview/assets/image.svg";
-import exampleBlocks from "./assets/code-block-example.json";
 import code from "./assets/code-examples.txt?raw";
 
-import { ComponentChild } from "preact";
 import Color from "color";
+import { ComponentChild } from "preact";
 
 import { TablePreview } from "./TablePreview.js";
 
 import { IDictionary } from "../../../app-logic/Types.js";
 import { MySQLConnectionScheme } from "../../../communication/MySQL.js";
-import { Notebook } from "../../../modules/db-editor/Notebook.js";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
 import { EditorLanguage } from "../../../supplement/index.js";
 import { DBType } from "../../../supplement/ShellInterface/index.js";
 import { ActivityBar } from "../../ui/ActivityBar/ActivityBar.js";
 import { ActivityBarItem } from "../../ui/ActivityBar/ActivityBarItem.js";
-import { CodeEditor, ICodeEditorModel, IEditorPersistentState } from "../../ui/CodeEditor/CodeEditor.js";
+import { CodeEditor, ICodeEditorModel } from "../../ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco } from "../../ui/CodeEditor/index.js";
 import { DialogContent } from "../../ui/Dialog/DialogContent.js";
 import { SymbolGrid } from "./SymbolGrid.js";
 
-import { ISavedEditorState } from "../../../modules/db-editor/DBConnectionTab.js";
-import { EntityType } from "../../../modules/db-editor/index.js";
 import { loremIpsum } from "../../../tests/unit-tests/test-helpers.js";
 import { Accordion } from "../../ui/Accordion/Accordion.js";
 import { Breadcrumb } from "../../ui/Breadcrumb/Breadcrumb.js";
@@ -87,8 +83,6 @@ interface IThemePreviewState extends IComponentState {
 
 /** A component that contains UI elements for preview in the theme editor. */
 export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
-    #savedState: ISavedEditorState;
-
     public constructor(props: {}) {
         super(props);
 
@@ -140,41 +134,6 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
         }
 
         model.setValue(content);
-
-        const editorState: IEditorPersistentState = {
-            model,
-            contextStates: exampleBlocks.map((block) => {
-                return {
-                    start: block.start,
-                    end: block.end,
-                    language: block.language as EditorLanguage,
-                    defaultHeight: block.defaultHeight ?? 0,
-                    statements: [],
-                };
-            }),
-            viewState: null,
-            options: {
-                tabSize: 4,
-                indentSize: 4,
-                insertSpaces: true,
-
-                defaultEOL: "LF",
-                trimAutoWhitespace: true,
-            },
-        };
-
-        this.#savedState = {
-            editors: [{
-                type: EntityType.Notebook,
-                id: "1",
-                caption: "Test",
-                currentVersion: 1,
-                state: editorState,
-            }],
-            activeEntry: "1",
-            heatWaveEnabled: false,
-            connectionId: -1,
-        };
     }
 
     public render(): ComponentChild {
@@ -538,7 +497,7 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
                         <Dropdown
                             id="editorLanguagePicker"
                             selection={editorLanguage}
-                            onSelect={(selectedIds: Set<string>): void => {
+                            onSelect={(accept: boolean, selectedIds: Set<string>): void => {
                                 this.setState({ editorLanguage: [...selectedIds][0] as EditorLanguage });
                             }}
                         >
@@ -576,20 +535,6 @@ export class ThemePreview extends ComponentBase<{}, IThemePreviewState> {
                         showIndentGuides
                     />
 
-                </Container>
-
-                <p>Mixed Language Code Editor with Embedded Results</p>
-                <Container
-                    orientation={Orientation.TopDown}
-                >
-                    <Notebook
-                        savedState={this.#savedState}
-                        dbType={DBType.MySQL}
-                        readOnly={true}
-                        showAbout={true}
-                        standaloneMode={false}
-                        toolbarItemsTemplate={{ navigation: [], execution: [], editor: [], auxillary: [] }}
-                    />
                 </Container>
 
                 <p>Browser Tiles</p>

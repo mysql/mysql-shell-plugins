@@ -1508,7 +1508,8 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         }
     };
 
-    private handleChoiceChange = (sectionId: string, selectedIds: Set<string>, props: IDropdownProperties): void => {
+    private handleChoiceChange = (sectionId: string, accept: boolean, selectedIds: Set<string>,
+        props: IDropdownProperties): void => {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 
@@ -1525,7 +1526,8 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         }
     };
 
-    private handleSetChange = (sectionId: string, selectedIds: Set<string>, props: IDropdownProperties): void => {
+    private handleSetChange = (sectionId: string, accept: boolean, selectedIds: Set<string>,
+        props: IDropdownProperties): void => {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 

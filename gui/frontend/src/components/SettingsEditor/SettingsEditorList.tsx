@@ -403,7 +403,7 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
         this.setState({ settingsList: this.collectSettingsValues() });
     };
 
-    private handleDropDownChange = (selectedIds: Set<string>, props: IDropdownProperties): void => {
+    private handleDropDownChange = (accept: boolean, selectedIds: Set<string>, props: IDropdownProperties): void => {
         // There's always at least one entry.
         Settings.set(props.id!, [...selectedIds][0]);
         this.setState({ settingsList: this.collectSettingsValues() });

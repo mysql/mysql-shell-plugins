@@ -55,7 +55,7 @@ describe("Popup component tests", (): void => {
         // delay the spy check a bit.
         await nextRunLoop();
         expect(spyOnOpen).toHaveBeenCalled();
-        popupRef.current?.close();
+        popupRef.current?.close(false);
         expect(spyOnCancel).toHaveBeenCalled();
 
         popup.unmount();
