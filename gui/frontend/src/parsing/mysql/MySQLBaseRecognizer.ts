@@ -48,9 +48,4 @@ export abstract class MySQLBaseRecognizer extends Parser implements IMySQLRecogn
         return this.sqlModes.has(mode);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public sqlModeFromString(modes: string): void {
-        throw new Error("sqlModeFromString not implemented");
-    }
-
 }

@@ -25,7 +25,7 @@
 
 /* eslint-disable max-classes-per-file */
 
-import { CellComponent, ColumnComponent, ColumnDefinition, PopupPosition } from "tabulator-tables";
+import { CellComponent, ColumnComponent, ColumnDefinition, PopupPosition, type RangeComponent } from "tabulator-tables";
 import { DBDataType, IColumnInfo } from "../../../app-logic/Types.js";
 
 const mockColumnsInfo: IColumnInfo = {
@@ -152,4 +152,6 @@ export class MockCellComponent implements CellComponent {
     public popup = (_contents: string, _position: PopupPosition): void => {
         //
     };
+
+    public getRanges(): RangeComponent[] { return []; }
 }

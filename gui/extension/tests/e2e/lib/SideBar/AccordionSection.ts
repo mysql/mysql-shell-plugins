@@ -48,14 +48,14 @@ export class AccordionSection {
 
     public constructor(sectionName: string) {
         this.accordionSectionName = sectionName;
-        this.tree = new Tree(this.accordionSectionName);
+        this.tree = new Tree(this);
     }
 
     /**
      * Gets a tree explorer
      * @returns A promise resolving with the tree explorer
      */
-    public get = async (): Promise<CustomTreeSection> => {
+    public getTreeExplorer = async (): Promise<CustomTreeSection> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
@@ -69,7 +69,7 @@ export class AccordionSection {
      */
     public exists = (): Condition<boolean> => {
         return new Condition(`for ${this.accordionSectionName} to exist`, async () => {
-            return (await this.get()) !== undefined;
+            return (await this.getTreeExplorer()) !== undefined;
         });
     };
 
@@ -87,7 +87,7 @@ export class AccordionSection {
             `${constants.ociTreeSection} is still loading`);
 
         let sectionActions: WebElement;
-        const thisSection = await this.get();
+        const thisSection = await this.getTreeExplorer();
         await driver.wait(async () => {
             try {
                 await driver.wait(async () => {
@@ -127,7 +127,7 @@ export class AccordionSection {
             await Misc.switchBackToTopFrame();
         }
 
-        const thisSection = await this.get();
+        const thisSection = await this.getTreeExplorer();
 
         const button = await thisSection.getAction("More Actions...");
 
@@ -275,7 +275,7 @@ export class AccordionSection {
             await Misc.switchBackToTopFrame();
         }
 
-        const thisSection = await this.get();
+        const thisSection = await this.getTreeExplorer();
         if (!(await thisSection.isExpanded())) {
             await driver.wait(async () => {
                 await thisSection.expand();
@@ -293,7 +293,7 @@ export class AccordionSection {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
-        const thisSection = await this.get();
+        const thisSection = await this.getTreeExplorer();
         if (await thisSection.isExpanded()) {
             await driver.wait(async () => {
                 await thisSection.collapse();
@@ -388,7 +388,7 @@ export class AccordionSection {
      */
     public isNotLoading = (): Condition<boolean> => {
         return new Condition(`for ${this.accordionSectionName} to be loaded`, async () => {
-            const sec = await this.get();
+            const sec = await this.getTreeExplorer();
             const loading = await sec.findElements(locator.section.loadingBar);
             const activityBar = new ActivityBar();
             const icon = await activityBar.getViewControl(constants.extensionName);

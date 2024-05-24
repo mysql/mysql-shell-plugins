@@ -31,7 +31,7 @@ import { DropdownItem, IDropdownItemProperties } from "./DropdownItem.js";
 import { convertPropValue } from "../../../utilities/string-helpers.js";
 import { collectVNodes } from "../../../utilities/preact-helpers.js";
 import {
-    IComponentProperties, IComponentState, ComponentBase, ComponentPlacement,
+    IComponentProperties, IComponentState, ComponentBase, ComponentPlacement, FocusEventType,
 } from "../Component/ComponentBase.js";
 import { Container, Orientation, ContentAlignment } from "../Container/Container.js";
 import { Divider } from "../Divider/Divider.js";
@@ -78,7 +78,14 @@ export interface IDropdownProperties extends IComponentProperties {
 
     autoFocus?: boolean;
 
-    onSelect?: (selection: Set<string>, props: IDropdownProperties) => void;
+    /**
+     * Called when the user selects an item.
+     *
+     * @param accept Set to true selected an item that caused the drop down to close (e.g. an item click).
+     * @param selection The new selection.
+     * @param props The current properties of the dropdown.
+     */
+    onSelect?: (accept: boolean, selection: Set<string>, props: IDropdownProperties) => void;
     onCancel?: () => void;
 }
 
@@ -113,14 +120,18 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
 
         this.addHandledProperties("selection", "defaultId", "optional", "showDescription", "iconOnly", "multiSelect",
             "withoutArrow", "autoFocus", "onSelect", "onCancel");
+
+        this.connectEvents("onFocus", "onBlur");
     }
 
     public componentDidMount(): void {
         const { autoFocus } = this.mergedProps;
 
         this.currentSelectionIndex = this.indexOfFirstSelectedEntry;
-        if ((this.containerRef.current != null) && autoFocus) {
-            this.containerRef.current.focus();
+        if ((this.containerRef.current) && autoFocus) {
+            setTimeout(() => {
+                this.containerRef.current!.focus();
+            }, 0);
         }
     }
 
@@ -243,7 +254,6 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                     onKeyDown={this.handleKeydown}
                     crossAlignment={ContentAlignment.Center}
                     data-tooltip="inherit"
-                    onBlur={this.handleBlur}
                     {...this.unhandledProperties}
                 >
                     {inputContent}
@@ -257,7 +267,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                     ref={this.popupRef}
                     className="dropdownList"
                     innerRef={this.listRef}
-                    id={`${id || ""}Popup`}
+                    id={`${id ?? ""}Popup`}
                     showArrow={false}
                     placement={ComponentPlacement.BottomRight}
                     onOpen={this.handleOpen}
@@ -273,6 +283,31 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 </Popup>
             </>
         );
+    }
+
+    protected override handleFocusEvent(type: FocusEventType, e: FocusEvent): boolean {
+        if (type === FocusEventType.Focus) {
+            this.containerRef.current?.classList.add("manualFocus");
+        } else {
+            this.containerRef.current?.classList.remove("manualFocus");
+
+            // Shifting focus away usually means the user no longer wants the drop down open.
+            // This is handled as a cancel event, since any selection by click or keyboard is already accepted.
+            // There's one exception, however: If the focus is shifted to the popup itself, the user might want to
+            // select an item from the list.
+            const element = e.relatedTarget as HTMLElement;
+            if (element && !element.classList.contains("dropdownList")) {
+                if (this.popupRef.current?.isOpen) {
+                    this.popupRef.current?.close(true);
+                } else {
+                    // If the dropdown isn't shown currently, the close event isn't called by the popup.
+                    // So do it manually.
+                    this.handleClose(true);
+                }
+            }
+        }
+
+        return true;
     }
 
     private readonly handleClick = (e: MouseEvent | KeyboardEvent): void => {
@@ -291,12 +326,12 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 if (this.popupRef.current?.isOpen) {
                     // The dropdown is already open, which means the user accepts the current selection.
                     this.saveSelection();
-                    this.popupRef.current.close();
+                    this.popupRef.current.close(false);
 
                     const current = childArray[this.currentSelectionIndex];
                     const id = current.props.id;
                     if (id) {
-                        this.toggleSelectedItem(id, false);
+                        this.toggleSelectedItem(id, false, true);
                     }
                 } else {
                     this.popupRef.current?.open(element.getBoundingClientRect(), { backgroundOpacity: 0 });
@@ -321,7 +356,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 const current = childArray[this.currentSelectionIndex];
                 const id = current.props.id;
                 if (id) {
-                    this.toggleSelectedItem(id, true);
+                    this.toggleSelectedItem(id, true, false);
                 }
                 e.stopPropagation();
                 e.preventDefault();
@@ -343,7 +378,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 const current = childArray[this.currentSelectionIndex];
                 const id = current.props.id;
                 if (id) {
-                    this.toggleSelectedItem(id, true);
+                    this.toggleSelectedItem(id, true, false);
                 }
 
                 e.stopPropagation();
@@ -352,9 +387,9 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 break;
             }
 
-            case KeyboardKeys.Tab: {
+            case KeyboardKeys.Tab: { // Focus out for the dropdown list (not the dropdown itself).
                 this.saveSelection();
-                this.popupRef.current?.close();
+                this.popupRef.current?.close(true);
 
                 break;
             }
@@ -363,10 +398,6 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 break;
             }
         }
-    };
-
-    private readonly handleBlur = (): void => {
-        this.containerRef.current?.classList.remove("manualFocus");
     };
 
     private readonly handleItemMouseEnter = (e: MouseEvent, props: IDropdownItemProperties): void => {
@@ -397,15 +428,18 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         element.classList.remove("selected");
     };
 
-    private readonly handleItemClick = (_e: MouseEvent | KeyboardEvent, props: IDropdownItemProperties): void => {
+    private readonly handleItemClick = (e: MouseEvent | KeyboardEvent, props: IDropdownItemProperties): void => {
         const { multiSelect } = this.mergedProps;
 
         if (props.id) {
-            this.toggleSelectedItem(props.id, false);
+            if (this.containerRef.current) {
+                this.containerRef.current.setAttribute("value", props.id);
+            }
+            this.toggleSelectedItem(props.id, false, true);
         }
 
         if (!multiSelect) {
-            this.popupRef.current?.close();
+            this.popupRef.current?.close(false);
         }
     };
 
@@ -415,8 +449,9 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
      *
      * @param id The item to toggle.
      * @param replace If true then the current selection is cleared and the item becomes the only selection entry.
+     * @param accept If true then the selection is accepted and the dropdown is closed.
      */
-    private readonly toggleSelectedItem = (id: string, replace: boolean): void => {
+    private readonly toggleSelectedItem = (id: string, replace: boolean, accept: boolean): void => {
         const { selection, multiSelect, optional, onSelect } = this.mergedProps;
 
         let newSelection: Set<string>;
@@ -431,7 +466,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
             }
         }
 
-        onSelect?.(newSelection, this.props);
+        onSelect?.(accept, newSelection, this.props);
     };
 
     private readonly handleOpen = (): void => {
@@ -476,12 +511,12 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         });
 
         if (id) {
-            this.toggleSelectedItem(id, false);
+            this.toggleSelectedItem(id, false, false);
         }
     };
 
     private readonly handleTagRemove = (id: string): void => {
-        this.toggleSelectedItem(id, false);
+        this.toggleSelectedItem(id, false, false);
     };
 
     private descriptionFromId(id?: string): string {

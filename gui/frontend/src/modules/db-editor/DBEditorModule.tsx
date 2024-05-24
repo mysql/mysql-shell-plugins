@@ -1272,6 +1272,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 // Save pending changes.
                 connectionState.editors.forEach((editor) => {
                     this.saveEditorIfNeeded(editor);
+                    const model = editor.state?.model;
+                    if (model) {
+                        model.executionContexts?.dispose();
+                        model.dispose();
+                    }
                 });
 
                 this.connectionState.delete(tabId);
@@ -1301,7 +1306,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         return Promise.resolve(true);
     }
 
-    private handleSelectTabOrEntry = (ids: Set<string>, props: IDropdownProperties): void => {
+    private handleSelectTabOrEntry = (accept: boolean, ids: Set<string>, props: IDropdownProperties): void => {
         const list = toChildArray(props.children);
         const id = [...ids][0];
         const item = list.find((entry) => {
@@ -1645,7 +1650,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
-    private handleEditorSelectorChange = (selectedIds: Set<string>): void => {
+    private handleEditorSelectorChange = (accept: boolean, selectedIds: Set<string>): void => {
         const { selectedPage } = this.state;
 
         // Find the editor which belongs to the given id.

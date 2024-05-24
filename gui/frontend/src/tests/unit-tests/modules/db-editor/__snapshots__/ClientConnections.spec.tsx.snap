@@ -113,6 +113,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 }
                 onBlur={[Function]}
                 onClick={[Function]}
+                onFocus={[Function]}
                 onKeyDown={[Function]}
                 orientation="row"
                 tabIndex={0}
@@ -123,6 +124,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   id="refreshSelector"
                   onClick={[Function]}
                   onKeyDown={[Function]}
+                  onfocusin={[Function]}
                   onfocusout={[Function]}
                   style={
                     {
@@ -791,6 +793,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 }
                 onBlur={[Function]}
                 onClick={[Function]}
+                onFocus={[Function]}
                 onKeyDown={[Function]}
                 orientation="row"
                 tabIndex={0}
@@ -801,6 +804,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                   id="refreshSelector"
                   onClick={[Function]}
                   onKeyDown={[Function]}
+                  onfocusin={[Function]}
                   onfocusout={[Function]}
                   style={
                     {

@@ -26,18 +26,22 @@ import { ErrorNode, ParserRuleContext, ParseTree, RuleContext, TerminalNode, Tok
 import { MySQLMRSParser, TextLiteralContext } from "./generated/MySQLMRSParser.js";
 import { reservedMySQLKeywords, mysqlKeywords, MySQLVersion } from "./mysql-keywords.js";
 
-// This interface describes functionality found in both, lexer and parser classes.
+/** This interface describes functionality found in both, lexer and parser classes. */
 export interface IMySQLRecognizerCommon {
-    // To parameterize the parsing process.
+    /** The server version to use for lexing/parsing. */
     serverVersion: number;
+
+    /** SQL modes to use for lexing/parsing. */
     sqlModes: Set<SqlMode>;
 
-    // Returns true if the given mode (one of the enums above) is set.
+    /** @returns true if the given mode (one of the enums above) is set. */
     isSqlModeActive(mode: number): boolean;
-    sqlModeFromString(modes: string): void;
+
+    /** Parses the given mode string and keeps all found SQL mode in a private member. Only used for lexers. */
+    sqlModeFromString?: (modes: string) => void;
 }
 
-// SQL modes that control parsing behavior.
+/** SQL modes that control parsing behavior. */
 export enum SqlMode {
     NoMode,
     AnsiQuotes,

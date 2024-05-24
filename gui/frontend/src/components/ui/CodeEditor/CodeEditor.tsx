@@ -26,16 +26,14 @@
 import "./CodeEditor.css";
 
 import { SymbolTable } from "antlr4-c3";
-import { ComponentChild, createRef } from "preact";
 import Color from "color";
+import { ComponentChild, createRef } from "preact";
 
 import "./userWorker.js";
 
 import {
-    ICodeEditorViewState, IDisposable, ICodeEditorOptions, IExecutionContextState, KeyCode, KeyMod,
-    languages, Monaco, Position, Range, IPosition, Selection, IScriptExecutionOptions, CodeEditorMode,
-    IProviderEditorModel,
-    ILanguageDefinition,
+    CodeEditorMode, ICodeEditorOptions, ICodeEditorViewState, IDisposable, ILanguageDefinition, IPosition,
+    IProviderEditorModel, IScriptExecutionOptions, KeyCode, KeyMod, languages, Monaco, Position, Range, Selection,
 } from "./index.js";
 
 import { msg } from "./languages/msg/msg.contribution.js";
@@ -52,19 +50,19 @@ import { editorRangeToTextRange } from "../../../utilities/ts-helpers.js";
 
 import { IThemeChangeData, IThemeObject, ITokenEntry } from "../../Theming/ThemeManager.js";
 
+import { MessageType } from "../../../app-logic/Types.js";
+import { ExecutionContext } from "../../../script-execution/ExecutionContext.js";
+import { splitTextToLines } from "../../../utilities/string-helpers.js";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 import { CodeCompletionProvider } from "./CodeCompletionProvider.js";
 import { DefinitionProvider } from "./DefinitionProvider.js";
 import { DocumentHighlightProvider } from "./DocumentHighlightProvider.js";
 import { FormattingProvider } from "./FormattingProvider.js";
 import { HoverProvider } from "./HoverProvider.js";
+import { MsgSemanticTokensProvider } from "./MsgSemanticTokensProvider.js";
 import { ReferencesProvider } from "./ReferencesProvider.js";
 import { RenameProvider } from "./RenameProvider.js";
 import { SignatureHelpProvider } from "./SignatureHelpProvider.js";
-import { MessageType } from "../../../app-logic/Types.js";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
-import { ExecutionContext } from "../../../script-execution/ExecutionContext.js";
-import { MsgSemanticTokensProvider } from "./MsgSemanticTokensProvider.js";
-import { splitTextToLines } from "../../../utilities/string-helpers.js";
 
 /** Used when splitting pasted text to find the individual language blocks. */
 interface ITextBlockEntry {
@@ -89,6 +87,7 @@ interface IFontSettings {
 }
 
 export interface ICodeEditorModel extends IProviderEditorModel {
+    /** The manager of the execution contexts in a model. Not needed for local models within an execution context. */
     executionContexts?: ExecutionContexts;
 
     /** Contains symbols that can be used in code assistants like code completion. */
@@ -104,7 +103,7 @@ export type ResultPresentationFactory = (editor: CodeEditor, language: EditorLan
 export interface IEditorPersistentState {
     viewState: ICodeEditorViewState | null;
     model: ICodeEditorModel;
-    contextStates?: IExecutionContextState[]; // Serializable execution blocks.
+    //contextStates?: IExecutionContextState[]; // Serializable execution blocks.
     options: ICodeEditorOptions;
 }
 
@@ -359,9 +358,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         }
 
         const {
-            language, initialContent, savedState, autoFocus, createResultPresentation,
-            readonly, minimap, detectLinks, suggest, showIndentGuides, renderLineHighlight, useTabStops,
-            font, scrollbar, lineNumbers, lineDecorationsWidth, allowSoftWrap, extraLibs,
+            language, initialContent, savedState, autoFocus, readonly, minimap, detectLinks, suggest, showIndentGuides,
+            renderLineHighlight, useTabStops, font, scrollbar, lineNumbers, lineDecorationsWidth, allowSoftWrap,
+            extraLibs,
         } = this.mergedProps;
 
         const className = this.getEffectiveClassNames([
@@ -471,9 +470,8 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         this.editor = Monaco.create(this.hostRef.current, options);
 
         if (model) {
-            if (savedState && savedState.contextStates && savedState.contextStates.length > 0
-                && createResultPresentation) {
-                model.executionContexts?.restoreFromStates(this, createResultPresentation, savedState.contextStates);
+            if (model.executionContexts && model.executionContexts.count > 0) {
+                void model.executionContexts.activateContexts(this.backend);
             } else {
                 if (model.getLanguageId() === "msg" && model.getLineCount() > 1) {
                     this.generateExecutionBlocksFromContent();
@@ -533,7 +531,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         // Save the current view state also before the editor is destroyed.
         if (savedState && editor) {
             savedState.viewState = editor.saveViewState();
-            savedState.contextStates = savedState.model.executionContexts?.cleanUpAndReturnState();
+            savedState.model.executionContexts?.deactivateContexts();
             savedState.options = this.options;
         }
 
@@ -546,15 +544,14 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     }
 
     public componentDidUpdate(prevProps: ICodeEditorProperties): void {
-        const { initialContent, language, savedState, autoFocus, createResultPresentation } = this.mergedProps;
+        const { initialContent, language, savedState, autoFocus } = this.mergedProps;
 
         const editor = this.backend;
         if (savedState?.model !== editor?.getModel()) {
             if (prevProps.savedState && editor) {
                 // Save the current state before switching to the new model.
                 prevProps.savedState.viewState = editor.saveViewState();
-                prevProps.savedState.contextStates =
-                    prevProps.savedState.model.executionContexts?.cleanUpAndReturnState();
+                prevProps.savedState.model.executionContexts?.deactivateContexts();
                 prevProps.savedState.options = this.options;
             }
 
@@ -575,10 +572,8 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                     Monaco.setModelLanguage(model, language);
                 }
 
-                if (savedState && savedState.contextStates && savedState.contextStates.length > 0
-                    && createResultPresentation) {
-                    model.executionContexts?.restoreFromStates(this, createResultPresentation,
-                        savedState.contextStates);
+                if (model.executionContexts && model.executionContexts.count > 0) {
+                    void model.executionContexts?.activateContexts(this.backend);
                 } else {
                     if (!savedState) {
                         model.setValue(initialContent ?? "");
@@ -1774,7 +1769,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         const editor = this.backend;
         const model = this.model;
         if (model && editor && model.executionContexts && createResultPresentation) {
-            model.executionContexts.cleanUpAndReturnState();
+            model.executionContexts.deactivateContexts();
 
             const blocks = this.determineTextBlocks(model.getValue());
             blocks.forEach((block): void => {

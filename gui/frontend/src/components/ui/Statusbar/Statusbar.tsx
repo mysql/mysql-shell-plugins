@@ -241,7 +241,7 @@ export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarSta
         });
     };
 
-    private handleItemChange = (selectedIds: Set<string>): void => {
+    private handleItemChange = (accept: boolean, selectedIds: Set<string>): void => {
         void requisitions.execute("changeProfile", [...selectedIds][0]);
     };
 

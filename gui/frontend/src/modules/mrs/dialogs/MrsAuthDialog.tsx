@@ -329,7 +329,7 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
         }
     };
 
-    private selectAuthApp = (ids: Set<string>): void => {
+    private selectAuthApp = (accept: boolean, ids: Set<string>): void => {
         const { request } = this.state;
 
         // Get payload

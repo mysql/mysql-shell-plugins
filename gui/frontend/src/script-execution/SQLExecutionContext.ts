@@ -25,14 +25,15 @@
 
 import { IPosition } from "monaco-editor";
 
+import type { StoreType } from "../app-logic/ApplicationDB.js";
 import { Monaco } from "../components/ui/CodeEditor/index.js";
-import { ScriptingLanguageServices } from "./ScriptingLanguageServices.js";
-import { IStatement, IDiagnosticEntry, IStatementSpan, StatementFinishState } from "../parsing/parser-common.js";
-import { ExecutionContext } from "./ExecutionContext.js";
-import { PresentationInterface } from "./PresentationInterface.js";
-import { binarySearch } from "../utilities/helpers.js";
+import { IDiagnosticEntry, IStatement, IStatementSpan, StatementFinishState } from "../parsing/parser-common.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { Semaphore } from "../supplement/Semaphore.js";
+import { binarySearch } from "../utilities/helpers.js";
+import { ExecutionContext } from "./ExecutionContext.js";
+import { PresentationInterface } from "./PresentationInterface.js";
+import { ScriptingLanguageServices } from "./ScriptingLanguageServices.js";
 
 interface IStatementDetails extends IStatementSpan {
     diagnosticDecorationIDs: string[];
@@ -59,9 +60,12 @@ export class SQLExecutionContext extends ExecutionContext {
     // A signal that is set when the splitter is currently running. Can be awaited to wait for the splitter to finish.
     #splitterSignal?: Semaphore<void>;
 
-    public constructor(presentation: PresentationInterface, public dbVersion: number, public sqlMode: string,
+    #validationTimer?: ReturnType<typeof setTimeout> | null;
+
+    public constructor(presentation: PresentationInterface, store: StoreType, public dbVersion: number,
+        public sqlMode: string,
         public currentSchema: string, statementSpans?: IStatementSpan[]) {
-        super(presentation);
+        super(presentation, store);
 
         if (statementSpans) {
             this.statementDetails = statementSpans.map((span) => {
@@ -73,11 +77,13 @@ export class SQLExecutionContext extends ExecutionContext {
             for (let i = 0; i < this.statementDetails.length; ++i) {
                 this.pendingValidations.add(i);
             }
-            setTimeout(() => {
-                return this.validateNextStatement();
+            this.#validationTimer = setTimeout(() => {
+                this.validateNextStatement();
             }, 0);
         } else {
-            this.scheduleFullValidation();
+            this.#validationTimer = setTimeout(() => {
+                this.scheduleFullValidation();
+            }, 0);
         }
     }
 
@@ -85,6 +91,11 @@ export class SQLExecutionContext extends ExecutionContext {
      * Important: since we have no d-tors in JS/TS it is necessary to call `dispose` to clean up the context.
      */
     public dispose(): void {
+        if (this.#validationTimer) {
+            clearTimeout(this.#validationTimer);
+            this.#validationTimer = null;
+        }
+
         super.dispose();
 
         this.splittingFinished();

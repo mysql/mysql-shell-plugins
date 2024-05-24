@@ -427,6 +427,7 @@ export const section = {
     item: By.className("custom-view-tree-node-item-resourceLabel"),
     itemIcon: By.className("custom-view-tree-node-item-icon"),
     itemName: By.className("monaco-highlighted-label"),
+    actionsBar: By.className("actions"),
     actions: (section: string): By => {
         return By.xpath(`//ul[contains(@aria-label, '${section} actions')]`);
     },

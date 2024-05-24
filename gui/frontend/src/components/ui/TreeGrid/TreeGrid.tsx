@@ -86,7 +86,10 @@ export interface ITreeGridOptions {
     /** Determines how columns are initially layed out (default: none). */
     layout?: "fitData" | "fitDataFill" | "fitDataStretch" | "fitDataTable" | "fitColumns";
 
-    /** If true then columns are laid out again when new data arrives (default: false). */
+    /**
+     * If true then columns are laid out again when new data arrives (default: true).
+     * Especially for cells with auto wrapping content this is essential, to correctly compute the row heights.
+     */
     layoutColumnsOnNewData?: boolean;
 
     /** If false, no header is shown (default: true). */
@@ -131,8 +134,10 @@ interface ITreeGridProperties extends IComponentProperties {
     /**
      * A list of rows that should be selected initially. If a list of strings is given then the strings are
      * interpreted as ids (they use the index field in the data for identification). If a list of numbers is given
-     * then the numbers are interpreted as row indices.
+     * then the numbers are interpreted as row indices. Indices are one-based!
      * Note that the specified selection mode might limit that list (no selection or single selection).
+     *
+     * Important: The selection is only applied if initial data is set.
      */
     selectedRows?: string[] | number[] | RowComponent[];
     options?: ITreeGridOptions;
@@ -182,7 +187,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     #hostRef = createRef<HTMLDivElement>();
     #tabulator?: Tabulator;
     #tableReady = false;
-    #timeoutId: ReturnType<typeof setTimeout> | null;
+    #timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     // Used when we need to wait for a double click, to decide whether to expand or collapse a row.
     #toggleTimeoutId: ReturnType<typeof setTimeout> | null;
@@ -216,25 +221,28 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     }
 
     public componentDidMount(): void {
-        // Defer the creation of the table a bit, because it directly manipulates the DOM and that randomly
-        // fails with preact, if the table is created directly on mount.
-        this.#timeoutId = setTimeout(() => {
-            // istanbul ignore else
-            if (this.#hostRef.current) {
-                // The tabulator options can contain data, passed in as properties.
-                this.#timeoutId = null;
-                this.#tabulator = new Tabulator(this.#hostRef.current, this.tabulatorOptions);
-                this.#tabulator.on("tableBuilt", () => {
-                    const { topRowIndex, selectedRows } = this.mergedProps;
+        const { tableData } = this.mergedProps;
 
-                    // The tabulator field must be assigned. We are in one of its events.
-                    this.#tabulator!.off("tableBuilt");
+        // istanbul ignore else
+        if (this.#hostRef.current) {
+            // The tabulator options can contain data, passed in as properties.
+            this.#timeoutId = null;
+            this.#tabulator = new Tabulator(this.#hostRef.current, this.tabulatorOptions);
+            this.#tabulator.on("tableBuilt", () => {
+                const { topRowIndex, selectedRows } = this.mergedProps;
+
+                // The tabulator field must be assigned. We are in one of its events.
+                this.#tabulator!.off("tableBuilt");
+
+                if (tableData) {
                     if (selectedRows && selectedRows.length > 0) {
                         if (typeof selectedRows[0] === "number") {
-                            const rows = (selectedRows as number[]).map((rowIndex) => {
-                                return this.#tabulator!.getRowFromPosition(rowIndex + 1); // 1-based index.
-                            });
-                            this.#tabulator!.selectRow(rows);
+                            if (this.#tabulator!.getRows().length > 0) { // Can be 0 in tests.
+                                const rows = (selectedRows as number[]).map((rowIndex) => {
+                                    return this.#tabulator!.getRowFromPosition(rowIndex);
+                                });
+                                this.#tabulator!.selectRow(rows);
+                            }
                         } else {
                             this.#tabulator!.selectRow(selectedRows);
                         }
@@ -249,26 +257,25 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                         const topRow = this.#tabulator!.getRowFromPosition(topRowIndex);
                         void this.#tabulator!.scrollToRow(topRow, "top", false);
                     }
+                }
 
-                    this.#tableReady = true;
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                    this.#tabulator!.columnManager.redraw(true);
-                });
-                this.#tabulator.on("dataTreeRowExpanded", this.handleRowExpanded);
-                this.#tabulator.on("dataTreeRowCollapsed", this.handleRowCollapsed);
-                this.#tabulator.on("rowContext", this.handleRowContext);
-                this.#tabulator.on("cellContext", this.handleCellContext);
-                this.#tabulator.on("rowSelected", this.handleRowSelected);
-                this.#tabulator.on("rowClick", this.handleRowClicked);
-                this.#tabulator.on("rowDeselected", this.handleRowDeselected);
-                this.#tabulator.on("columnResized", this.handleColumnResized);
-                this.#tabulator.on("scrollVertical", this.handleVerticalScroll);
-                this.#tabulator.on("scrollHorizontal", this.handleVerticalScroll);
-                this.#tabulator.on("cellEditing", this.handleCellEditing);
-                this.#tabulator.on("cellEdited", this.handleCellEdited);
-                this.#tabulator.on("cellEditCancelled", this.handleCellEditCancelled);
-            }
-        }, 10);
+                this.#tableReady = true;
+            });
+
+            this.#tabulator.on("dataTreeRowExpanded", this.handleRowExpanded);
+            this.#tabulator.on("dataTreeRowCollapsed", this.handleRowCollapsed);
+            this.#tabulator.on("rowContext", this.handleRowContext);
+            this.#tabulator.on("cellContext", this.handleCellContext);
+            this.#tabulator.on("rowSelected", this.handleRowSelected);
+            this.#tabulator.on("rowClick", this.handleRowClicked);
+            this.#tabulator.on("rowDeselected", this.handleRowDeselected);
+            this.#tabulator.on("columnResized", this.handleColumnResized);
+            this.#tabulator.on("scrollVertical", this.handleVerticalScroll);
+            this.#tabulator.on("scrollHorizontal", this.handleVerticalScroll);
+            this.#tabulator.on("cellEditing", this.handleCellEditing);
+            this.#tabulator.on("cellEdited", this.handleCellEdited);
+            this.#tabulator.on("cellEditCancelled", this.handleCellEditCancelled);
+        }
     }
 
     public componentWillUnmount(): void {
@@ -442,6 +449,15 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         return [];
     }
 
+    public selectRows(rowIndices: number[]): void {
+        if (this.#tableReady && this.#tabulator) {
+            const rows = rowIndices.map((rowIndex) => {
+                return this.#tabulator!.getRowFromPosition(rowIndex);
+            });
+            this.#tabulator.selectRow(rows);
+        }
+    }
+
     /**
      * Sets the grid to a special mode where no visual updates are done until `endUpdate()` was called.
      * Calls to `beginUpdate()` and `endUpdate()` must be balanced to avoid a complete redraw block.
@@ -470,11 +486,23 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         }
     }
 
+    public scrollToRow(index: number): Promise<void> {
+        if (this.#tableReady && this.#tabulator) {
+            const row = this.#tabulator.getRowFromPosition(index);
+
+            return this.#tabulator.scrollToRow(row, "top", true);
+        }
+
+        return Promise.resolve();
+    }
+
     public scrollToBottom(): Promise<void> {
         if (this.#tableReady && this.#tabulator) {
             const rows = this.#tabulator.getRows();
 
-            return this.#tabulator.scrollToRow(rows[rows.length - 1], "top", true);
+            if (rows.length > 0) {
+                return this.#tabulator.scrollToRow(rows[rows.length - 1], "top", true);
+            }
         }
 
         return Promise.resolve();
@@ -495,29 +523,29 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
      */
     private get tabulatorOptions(): Options {
         const {
-            height = "100%", columns = [], tableData = [], options, rowContextMenu, frozenRows = 0, isRowExpanded,
+            height = "100%", columns = [], tableData, options, rowContextMenu, frozenRows = 0, isRowExpanded,
             onFormatRow,
         } = this.mergedProps;
 
-        let selectable: number | boolean | "highlight";
+        let selectableRows: number | boolean | "highlight";
         switch (options?.selectionType) {
             case SelectionType.Highlight: {
-                selectable = "highlight";
+                selectableRows = "highlight";
                 break;
             }
 
             case SelectionType.Single: {
-                selectable = 1;
+                selectableRows = 1;
                 break;
             }
 
             case SelectionType.Multi: {
-                selectable = true;
+                selectableRows = true;
                 break;
             }
 
             default: {
-                selectable = false;
+                selectableRows = false;
                 break;
             }
         }
@@ -542,8 +570,9 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             rowFormatter: onFormatRow,
 
             headerVisible: options?.showHeader ?? true,
-            selectable,
-            selectableRangeMode: "click",
+            selectableRows,
+            selectableRowsRangeMode: "click",
+            editTriggerEvent: "dblclick",
             reactiveData: false, // Very slow when enabled.
 
             rowContextMenu,
@@ -551,7 +580,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             autoResize: true,
             renderVertical: "virtual",
 
-            layoutColumnsOnNewData: options?.layoutColumnsOnNewData,
+            layoutColumnsOnNewData: options?.layoutColumnsOnNewData ?? true,
             resizableRows: options?.resizableRows,
 
             // We have to set a fixed height to enable the virtual DOM in Tabulator. However this is a severe

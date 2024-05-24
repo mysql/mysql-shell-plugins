@@ -23,15 +23,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { StoreType } from "../../../../../app-logic/ApplicationDB.js";
 import { DefinitionProvider } from "../../../../../components/ui/CodeEditor/DefinitionProvider.js";
+import { IPosition } from "../../../../../components/ui/CodeEditor/index.js";
 import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
-import { IPosition } from "../../../../../components/ui/CodeEditor/index.js";
 import { ScriptingLanguageServices } from "../../../../../script-execution/ScriptingLanguageServices.js";
 import { mockModel, position } from "../../../__mocks__/CodeEditorMocks.js";
 
 jest.mock("../../../../../script-execution/PresentationInterface");
-
 
 describe("DefinitionProvider tests", () => {
 
@@ -45,7 +45,7 @@ describe("DefinitionProvider tests", () => {
         const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
         expect(pi).toBeDefined();
 
-        const execContext = new ExecutionContext(pi);
+        const execContext = new ExecutionContext(pi, StoreType.DbEditor);
         execContext.toLocal = jest.fn().mockImplementation((_value: IPosition): IPosition => {
             return { lineNumber: 0, column: 0 };
         });

@@ -119,6 +119,11 @@ export enum DragEventType {
     Drop,
 }
 
+export enum FocusEventType {
+    Focus,
+    Blur,
+}
+
 /** Item selection style in lists and similar. */
 export enum SelectionType {
     /** Neither clickable, nor show any highlight on hover. */
@@ -507,6 +512,19 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
     }
 
     /**
+     * A central function for focus events (in and out), which can be overridden by descendants to do custom handling.
+     *
+     * @param type The event type for which this method is called.
+     * @param e The event that caused this call.
+     *
+     * @returns True if the associated callback function should be called.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected handleFocusEvent(type: FocusEventType, e: FocusEvent): boolean {
+        return true;
+    }
+
+    /**
      * A central function for pointer events, which can be overridden by descendants to do custom handling.
      *
      * @param type The event type for which this method is called.
@@ -568,13 +586,17 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
     };
 
     private internalHandleFocus = (e: FocusEvent): void => {
-        const props = this.mergedProps;
-        props.onFocus?.(e, props);
+        if (!this.isDisabled(e) && this.handleFocusEvent(FocusEventType.Focus, e)) {
+            const props = this.mergedProps;
+            props.onFocus?.(e, props);
+        }
     };
 
     private internalHandleBlur = (e: FocusEvent): void => {
-        const props = this.mergedProps;
-        props.onBlur?.(e, props);
+        if (!this.isDisabled(e) && this.handleFocusEvent(FocusEventType.Blur, e)) {
+            const props = this.mergedProps;
+            props.onBlur?.(e, props);
+        }
     };
 
     private internalHandleMouseEnter = (e: MouseEvent): void => {

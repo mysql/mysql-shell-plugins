@@ -23,25 +23,25 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "./SettingsEditor.css";
 import settingsIcon from "../../assets/images/settings.svg";
+import "./SettingsEditor.css";
 
 import { ComponentChild, createRef, render } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
-import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase.js";
-import { appParameters, requisitions } from "../../supplement/Requisitions.js";
-import { ThemeEditor } from "../Theming/ThemeEditor.js";
-import { settingCategories, ISettingCategory } from "../../supplement/Settings/SettingsRegistry.js";
-import { SettingsEditorList } from "./SettingsEditorList.js";
 import { IDictionary } from "../../app-logic/Types.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { ISettingCategory, settingCategories } from "../../supplement/Settings/SettingsRegistry.js";
+import { ThemeEditor } from "../Theming/ThemeEditor.js";
 import { AboutBox } from "../ui/AboutBox/AboutBox.js";
-import { Checkbox, CheckState, ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
-import { Container, Orientation, ContentAlignment } from "../ui/Container/Container.js";
+import { CheckState, Checkbox, ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
+import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase.js";
+import { Container, ContentAlignment, Orientation } from "../ui/Container/Container.js";
 import { Label } from "../ui/Label/Label.js";
-import { ISearchValues, Search, ISearchProperties } from "../ui/Search/Search.js";
+import { ISearchProperties, ISearchValues, Search } from "../ui/Search/Search.js";
 import { ITabviewPage, Tabview } from "../ui/Tabview/Tabview.js";
-import { TreeGrid, ITreeGridOptions } from "../ui/TreeGrid/TreeGrid.js";
+import { ITreeGridOptions, TreeGrid } from "../ui/TreeGrid/TreeGrid.js";
+import { SettingsEditorList } from "./SettingsEditorList.js";
 
 interface ISettingsEditorProperties extends IComponentProperties {
     page: string;
@@ -78,7 +78,7 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
             selectedTab: props.page,
             settingsTree,
             filteredTree,
-            selectedTreeEntry: 0,
+            selectedTreeEntry: 1,
             searchValues: {
                 value: "",
             },

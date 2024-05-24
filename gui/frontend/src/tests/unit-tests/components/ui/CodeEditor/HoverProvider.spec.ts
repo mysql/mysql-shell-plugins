@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { StoreType } from "../../../../../app-logic/ApplicationDB.js";
 import { HoverProvider } from "../../../../../components/ui/CodeEditor/HoverProvider.js";
 import { ExecutionContext } from "../../../../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../../../../script-execution/PresentationInterface.js";
@@ -43,7 +44,7 @@ describe("HoverProvider tests", () => {
         const pi = new (PresentationInterface as unknown as jest.Mock<PresentationInterface>)();
         expect(pi).toBeDefined();
 
-        const execContext = new ExecutionContext(pi);
+        const execContext = new ExecutionContext(pi, StoreType.DbEditor);
         mockModel.executionContexts!.contextFromPosition = jest.fn().mockReturnValue(
             execContext,
         );

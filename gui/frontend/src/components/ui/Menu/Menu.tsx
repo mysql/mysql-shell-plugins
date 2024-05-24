@@ -209,7 +209,7 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
     }
 
     public close(): void {
-        this.popupRef?.current?.close();
+        this.popupRef?.current?.close(false);
     }
 
     public get clientRect(): DOMRect | undefined {

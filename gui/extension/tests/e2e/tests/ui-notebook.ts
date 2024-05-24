@@ -235,8 +235,12 @@ describe("NOTEBOOKS", () => {
             await commandExecutor.executeWithButton("SELECT * FROM sakila.actor;", constants.execAsText);
             expect(commandExecutor.getResultMessage(), errors.queryResultError("(\\d+) record",
                 commandExecutor.getResultMessage())).to.match(/(\d+) record/);
-            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
-                .to.match(/\|.*\|/);
+
+            await driver.wait(async () => {
+                const content = commandExecutor.getResultContent() as WebElement;
+
+                return (await content.getAttribute("innerHTML")).match(/\|.*\|/) != null;
+            }, constants.wait3seconds, "Could not find the grid text on result");
         });
 
         it("Connection toolbar buttons - Execute selection or full block and create a new block", async () => {
@@ -263,9 +267,12 @@ describe("NOTEBOOKS", () => {
                     .to.match(/actor_id/);
                 await driver.sleep(1000);
                 await commandExecutor.findAndExecute(query2, commandExecutor.getResultId());
-                expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"),
-                    errors.queryDataSetError("address_id"))
-                    .to.match(/address_id/);
+
+                await driver.wait(async () => {
+                    const content = await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML");
+
+                    return content.match(/address_id/);
+                }, constants.wait3seconds, "address_id column was not found on result");
             } finally {
                 cleanEditor = true;
             }
@@ -2014,7 +2021,7 @@ describe("NOTEBOOKS", () => {
             await browser.openResources(process.cwd());
             await Workbench.dismissNotifications();
             await driver.wait(e2eTreeSection.exists(), constants.wait5seconds);
-            const file = await (await e2eTreeSection.get()).findItem("test.mysql-notebook", 3);
+            const file = await (await e2eTreeSection.getTreeExplorer()).findItem("test.mysql-notebook", 3);
             await file.click();
             const input = await InputBox.create(constants.wait5seconds * 4);
             await (await input.findQuickPick(globalConn.caption)).select();
@@ -2030,7 +2037,7 @@ describe("NOTEBOOKS", () => {
             await Workbench.closeAllEditors();
             await browser.openResources(process.cwd());
             await driver.wait(e2eTreeSection.exists(), constants.wait5seconds);
-            const file = await (await e2eTreeSection.get()).findItem("test.mysql-notebook", 3);
+            const file = await (await e2eTreeSection.getTreeExplorer()).findItem("test.mysql-notebook", 3);
             await e2eTreeSection.tree.openContextMenuAndSelect(file, constants.openNotebookWithConn);
             const input = await InputBox.create();
             await (await input.findQuickPick(globalConn.caption)).select();
@@ -2043,7 +2050,7 @@ describe("NOTEBOOKS", () => {
         it("Auto close notebook tab when DB connection is deleted", async () => {
 
             await driver.wait(e2eTreeSection.exists(), constants.wait5seconds);
-            const file = await (await e2eTreeSection.get()).findItem("test.mysql-notebook", 3);
+            const file = await (await e2eTreeSection.getTreeExplorer()).findItem("test.mysql-notebook", 3);
             await file.click();
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
             await Workbench.openEditor("test.mysql-notebook");
@@ -2066,7 +2073,7 @@ describe("NOTEBOOKS", () => {
             await (await activityBar.getViewControl("Explorer"))?.openView();
 
             await driver.wait(e2eTreeSection.exists(), constants.wait5seconds);
-            const file = await (await e2eTreeSection.get()).findItem("test.mysql-notebook", 3);
+            const file = await (await e2eTreeSection.getTreeExplorer()).findItem("test.mysql-notebook", 3);
             await file.click();
             await Workbench.openEditor("test.mysql-notebook");
             await Workbench.getNotification("Please create a MySQL Database Connection first.", undefined, true);

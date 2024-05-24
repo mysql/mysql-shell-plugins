@@ -26,7 +26,7 @@
 import { IPosition } from "monaco-editor";
 
 import {
-    IExecutionContextState, IRange, Monaco, Position, tokenModifiers, tokenTypes,
+    IRange, Monaco, Position, tokenModifiers, tokenTypes, type IExecutionContextState,
 } from "../components/ui/CodeEditor/index.js";
 import { isTextSpan } from "../utilities/ts-helpers.js";
 import { ScriptingLanguageServices } from "./ScriptingLanguageServices.js";
@@ -34,9 +34,10 @@ import { IDiagnosticEntry, IStatementSpan, TextSpan } from "../parsing/parser-co
 import { PresentationInterface } from "./PresentationInterface.js";
 import {
     IExecuteResultReference, IExecutionResult, IGraphResult, IPresentationOptions, IResponseDataOptions, IResultSets,
-    ITextResult, LoadingState,
+    ITextResult, LoadingState, type IResultSet,
 } from "./index.js";
 import { EditorLanguage, IExecutionContext, ITextRange } from "../supplement/index.js";
+import { ApplicationDB, type IDbModuleResultData, type StoreType } from "../app-logic/ApplicationDB.js";
 
 /**
  * This class is the base building block for code management in a code editor.
@@ -53,7 +54,17 @@ export class ExecutionContext implements IExecutionContext {
     #showNextResultMaximized = false;
     #tokenList: Uint32Array | undefined;
 
-    public constructor(public presentation: PresentationInterface, public linkId?: number) {
+    #frozen = false;
+
+    // Only used when the context is frozen.
+    #cachedResultIds: Set<string> = new Set();
+
+    #cachedHeight: number | undefined;
+    #cachedSetIndex: number | undefined;
+    #cachedMaximized: boolean | undefined;
+
+    public constructor(public presentation: PresentationInterface, private store: StoreType,
+        public linkId?: number) {
         this.internalId = `ec${ExecutionContext.nextId++}`;
         presentation.context = this;
     }
@@ -182,13 +193,6 @@ export class ExecutionContext implements IExecutionContext {
         return this.presentation.isInternal;
     }
 
-    /**
-     * @returns A list of result ids for the current result view.
-     */
-    public get resultIds(): string[] {
-        return this.presentation.resultIds;
-    }
-
     public get fullRange(): ITextRange | undefined {
         const range = this.model?.getFullModelRange();
 
@@ -202,6 +206,71 @@ export class ExecutionContext implements IExecutionContext {
         }
 
         return undefined;
+    }
+
+    /**
+     * Prepares the context for putting it into a frozen state. This is used when the context is no longer in view
+     * (e.g. when its connection page is unmounted). In this state it does not hold all resource data anymore, but
+     * stores only the necessary information to restore the context when it is needed again.
+     */
+    public deactivate(): void {
+        this.#frozen = true;
+        this.presentation.resultIds.forEach((value) => {
+            this.#cachedResultIds.add(value);
+        });
+        this.#cachedHeight = this.presentation.cachedHeight;
+        this.clearDecorations();
+        this.presentation.freeze();
+    }
+
+    /**
+     * When loading contexts from persistent storage they must act as if they were frozen. Particularly
+     * they must have cached result ids for later activation.
+     *
+     * @param cachedIds The list of result IDs that are cached for later activation.
+     * @param currentHeight The height of the result pane, when the context was exported.
+     * @param currentSet The index of the active result set, when the context was exported.
+     * @param showMaximized A flag indicating if the result pane was maximized, when the context was exported.
+     */
+    public startFrozen(cachedIds: string[], currentHeight: number | undefined, currentSet: number | undefined,
+        showMaximized: boolean | undefined): void {
+        this.#frozen = true;
+        this.#cachedResultIds = new Set(cachedIds);
+        this.#cachedHeight = currentHeight;
+        this.#cachedSetIndex = currentSet;
+        this.#cachedMaximized = showMaximized;
+    }
+
+    /**
+     * Reactivates this previously deactivated context. It restores its editor decorations and loads the result data
+     * from the database.
+     *
+     * @param editor The editor to associate with this context.
+     */
+    public activate(editor: Partial<Monaco.IStandaloneCodeEditor>): void {
+        this.#frozen = false;
+        this.presentation.activate(editor, this.#cachedHeight);
+
+        if (this.#cachedResultIds.size > 0) {
+            // Convert result data references back to result data. Result set data is loaded from
+            // the application DB, if possible.
+            void this.loadResultSets().then((sets) => {
+                const result: IResultSets = {
+                    type: "resultSets",
+                    sets,
+                };
+
+                result.sets = sets;
+                this.#cachedResultIds.clear();
+                this.presentation.setResult(result, {
+                    manualHeight: this.#cachedHeight,
+                    maximized: this.#cachedMaximized,
+                    currentSet: this.#cachedSetIndex,
+                });
+            });
+        } else if (this.presentation.resultData) {
+            this.presentation.setResult(this.presentation.resultData);
+        }
     }
 
     public canClose(): Promise<boolean> {
@@ -349,7 +418,7 @@ export class ExecutionContext implements IExecutionContext {
     }
 
     /**
-     * Adds the given execution result data to this presentation, by mapping the given request ID to one of the
+     * Adds the given execution result data to this context, by mapping the given request ID to one of the
      * already existing result tabs. If no set exists yet for that request, a new one will be created.
      *
      * @param data The data that must be visualized in the result (if not given then remove any existing result).
@@ -361,6 +430,10 @@ export class ExecutionContext implements IExecutionContext {
     public async addResultData(data: IExecutionResult, dataOptions: IResponseDataOptions,
         presentationOptions?: IPresentationOptions): Promise<void> {
         if (!this.disposed) {
+            if (this.#frozen) {
+                this.#cachedResultIds.add(dataOptions.resultId);
+            }
+
             const options = presentationOptions ?? {};
             if (this.#showNextResultMaximized) {
                 options.maximized = true;
@@ -490,6 +563,71 @@ export class ExecutionContext implements IExecutionContext {
      */
     protected get statementSpans(): IStatementSpan[] {
         return [];
+    }
+
+    /**
+     * Attempts to load all result sets back from the app DB into a result set structure.
+     *
+     * @returns A promise resolving to a list of result sets loaded from the app DB.
+     */
+    private async loadResultSets(): Promise<IResultSet[]> {
+        const sets: IResultSet[] = [];
+
+        for await (const id of this.#cachedResultIds) {
+            const values = await ApplicationDB.db.getAllFromIndex(this.store, "resultIndex", id);
+            const set: IResultSet = {
+                type: "resultSet",
+                resultId: id,
+                sql: "",
+                columns: [],
+                data: {
+                    rows: [],
+                    hasMoreRows: false,
+                    currentPage: 0,
+                },
+                updatable: false,
+                fullTableName: "",
+            };
+            sets.push(set);
+
+            if (this.isDbModuleResultData(values)) {
+                for (const value of values) {
+                    set.index = value.index;
+                    if (value.sql) {
+                        set.sql = value.sql;
+                    }
+
+                    // The updatable flag indicates if a query as such is updatable. Only very specific
+                    // queries are updatable, like simple SELECT * FROM table_name.
+                    set.updatable = value.updatable ?? false;
+                    set.fullTableName = value.fullTableName ?? "";
+
+                    if (value.columns) {
+                        // Columns are set only for the first entry of a result.
+                        set.columns.push(...value.columns);
+                    }
+
+                    set.data.rows.push(...value.rows);
+
+                    if (value.executionInfo) {
+                        set.data.executionInfo = value.executionInfo;
+                    }
+
+                    if (value.hasMoreRows) {
+                        set.data.hasMoreRows = true;
+                        set.data.currentPage = value.currentPage;
+                    }
+                }
+            }
+        }
+
+        return sets;
+    }
+
+    private isDbModuleResultData(data: unknown[]): data is IDbModuleResultData[] {
+        const array = data as IDbModuleResultData[];
+
+        return array.length > 0 && array[0].tabId !== undefined;
     }
 
 }

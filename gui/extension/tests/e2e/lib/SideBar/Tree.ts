@@ -38,7 +38,13 @@ import { AccordionSection } from "./AccordionSection";
 import { Os } from "../Os";
 import { hostname } from "os";
 
-export class Tree extends AccordionSection {
+export class Tree {
+
+    private accordionSection: AccordionSection;
+
+    public constructor(sectionElement: AccordionSection) {
+        this.accordionSection = sectionElement;
+    }
 
     /**
      * Gets an element from the tree
@@ -54,22 +60,22 @@ export class Tree extends AccordionSection {
             await Misc.switchBackToTopFrame();
         }
 
-        if (this.accordionSectionName === constants.dbTreeSection) {
+        if (this.accordionSection.accordionSectionName === constants.dbTreeSection) {
             reloadLabel = constants.reloadConnections;
-        } else if (this.accordionSectionName === constants.ociTreeSection) {
+        } else if (this.accordionSection.accordionSectionName === constants.ociTreeSection) {
             reloadLabel = constants.reloadOci;
         }
 
-        const thisTreeSection = new AccordionSection(this.accordionSectionName);
-        const thisTreeSectionElement = await thisTreeSection.get();
+        const thisTreeSection = new AccordionSection(this.accordionSection.accordionSectionName);
+        const thisTreeSectionElement = await thisTreeSection.getTreeExplorer();
         await driver.wait(thisTreeSection.isNotLoading(), constants.wait20seconds);
         let reload = false;
 
         await driver.wait(async () => {
             try {
                 if (reload) {
-                    if (this.accordionSectionName === constants.dbTreeSection ||
-                        this.accordionSectionName === constants.ociTreeSection) {
+                    if (this.accordionSection.accordionSectionName === constants.dbTreeSection ||
+                        this.accordionSection.accordionSectionName === constants.ociTreeSection) {
                         await thisTreeSection.clickToolbarButton(reloadLabel);
                         await driver.wait(thisTreeSection.isNotLoading(), constants.wait20seconds);
                     }
@@ -96,7 +102,8 @@ export class Tree extends AccordionSection {
                     throw e;
                 }
             }
-        }, constants.wait10seconds, `${element.toString()} on section ${this.accordionSectionName} was not found`);
+        }, constants.wait10seconds,
+            `${element.toString()} on section ${this.accordionSection.accordionSectionName} was not found`);
 
         return el;
     };
@@ -112,8 +119,8 @@ export class Tree extends AccordionSection {
         }
 
         if (type.match(/(ociDbSystem|ociBastion|ociCompute)/) !== null) {
-            const thisTreeSection = new AccordionSection(this.accordionSectionName);
-            const thisTreeSectionElement = await thisTreeSection.get();
+            const thisTreeSection = new AccordionSection(this.accordionSection.accordionSectionName);
+            const thisTreeSectionElement = await thisTreeSection.getTreeExplorer();
             const treeItems = await thisTreeSectionElement.getVisibleItems();
             for (const treeItem of treeItems) {
                 const el = await treeItem.findElement(locator.section.itemIcon);
@@ -122,7 +129,7 @@ export class Tree extends AccordionSection {
                     return treeItem;
                 }
             }
-            throw new Error(`Could not find the item type ${type} on section ${this.accordionSectionName}`);
+            throw new Error(`Could not find the item type ${type} on ${this.accordionSection.accordionSectionName}`);
         } else {
             throw new Error(`Unknown type: ${type}`);
         }
@@ -142,21 +149,20 @@ export class Tree extends AccordionSection {
         let exists: boolean;
         await driver.wait(async () => {
             try {
-                const sectionTree = await this.get();
-                await driver.wait(this.isNotLoading(), constants.wait20seconds);
-                if (this.accordionSectionName === constants.dbTreeSection ||
-                    this.accordionSectionName === constants.ociTreeSection) {
-                    if (this.accordionSectionName === constants.dbTreeSection) {
+                await driver.wait(this.accordionSection.isNotLoading(), constants.wait20seconds);
+                if (this.accordionSection.accordionSectionName === constants.dbTreeSection ||
+                    this.accordionSection.accordionSectionName === constants.ociTreeSection) {
+                    if (this.accordionSection.accordionSectionName === constants.dbTreeSection) {
                         reloadLabel = "Reload the connection list";
-                    } else if (this.accordionSectionName === constants.ociTreeSection) {
+                    } else if (this.accordionSection.accordionSectionName === constants.ociTreeSection) {
                         reloadLabel = "Reload the OCI Profile list";
                     }
-                    await this.clickToolbarButton(reloadLabel);
-                    await driver.wait(this.isNotLoading(), constants.wait20seconds);
+                    await this.accordionSection.clickToolbarButton(reloadLabel);
+                    await driver.wait(this.accordionSection.isNotLoading(), constants.wait20seconds);
                 }
 
                 if (element instanceof RegExp) {
-                    const treeItems = await sectionTree.getVisibleItems();
+                    const treeItems = await (await this.accordionSection.getTreeExplorer()).getVisibleItems();
                     for (const item of treeItems) {
                         if ((await item.getLabel()).match(element) !== null) {
                             exists = true;
@@ -168,7 +174,7 @@ export class Tree extends AccordionSection {
 
                     return true;
                 } else {
-                    exists = (await sectionTree.findItem(element, 5)) !== undefined;
+                    exists = (await (await this.accordionSection.getTreeExplorer()).findItem(element, 5)) !== undefined;
 
                     return true;
                 }
@@ -362,7 +368,7 @@ export class Tree extends AccordionSection {
 
         return driver.wait(new Condition("", async () => {
             try {
-                const section = await this.get();
+                const section = await this.accordionSection.getTreeExplorer();
                 const treeVisibleItems = await section.getVisibleItems();
                 for (const item of treeVisibleItems) {
                     if ((await item.getLabel()).match(name) !== null) {
@@ -439,7 +445,7 @@ export class Tree extends AccordionSection {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
-        const treeSection = await this.get();
+        const treeSection = await this.accordionSection.getTreeExplorer();
         if (!(await treeSection.isExpanded())) {
             await treeSection.expand();
         }
@@ -448,7 +454,7 @@ export class Tree extends AccordionSection {
             const treeItem = await this.getElement(item);
             if (!(await treeItem.isExpanded())) {
                 await treeItem.expand();
-                await driver.wait(this.isNotLoading(), loadingTimeout);
+                await driver.wait(this.accordionSection.isNotLoading(), loadingTimeout);
             }
         }
     };
@@ -471,7 +477,7 @@ export class Tree extends AccordionSection {
         }
 
         if (ctxMenuItem !== constants.openNotebookWithConn) {
-            await driver.wait(this.isNotLoading(), constants.wait10seconds);
+            await driver.wait(this.accordionSection.isNotLoading(), constants.wait10seconds);
             const ociSection = new AccordionSection(constants.ociTreeSection);
             await driver.wait(ociSection.isNotLoading(), constants.wait10seconds);
         }
@@ -575,8 +581,8 @@ export class Tree extends AccordionSection {
      */
     public isDefaultItem = (treeItemName: string, itemType: string): Condition<boolean> => {
         return new Condition(`for ${treeItemName} to be marked as default`, async () => {
-            await driver.wait(this.isNotLoading(), constants.wait25seconds,
-                `${this.accordionSectionName} is still loading`);
+            await driver.wait(this.accordionSection.isNotLoading(), constants.wait25seconds,
+                `${this.accordionSection.accordionSectionName} is still loading`);
 
             return this.isElementDefault(treeItemName, itemType);
         });
@@ -588,8 +594,8 @@ export class Tree extends AccordionSection {
      */
     public routerIconIsActive = (): Condition<boolean> => {
         return new Condition(`for router icon to be active`, async () => {
-            await this.clickToolbarButton(constants.reloadConnections);
-            await driver.wait(this.isNotLoading(), constants.wait5seconds);
+            await this.accordionSection.clickToolbarButton(constants.reloadConnections);
+            await driver.wait(this.accordionSection.isNotLoading(), constants.wait5seconds);
 
             return this.isRouterActive();
         });
@@ -601,8 +607,8 @@ export class Tree extends AccordionSection {
      */
     public routerIconIsInactive = (): Condition<boolean> => {
         return new Condition(`for router icon to be inactive`, async () => {
-            await this.clickToolbarButton(constants.reloadConnections);
-            await driver.wait(this.isNotLoading(), constants.wait5seconds);
+            await this.accordionSection.clickToolbarButton(constants.reloadConnections);
+            await driver.wait(this.accordionSection.isNotLoading(), constants.wait5seconds);
 
             return !(await this.isRouterActive());
         });

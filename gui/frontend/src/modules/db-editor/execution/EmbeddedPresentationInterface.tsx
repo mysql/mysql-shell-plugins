@@ -60,7 +60,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     public dispose(): void {
         super.dispose();
 
-        const editorModel = this.backend?.getModel?.();
+        const editorModel = super.model;
         if (editorModel) {
             editorModel.deltaDecorations([this.promptFirstDecorationID], []);
             editorModel.deltaDecorations([this.promptOtherDecorationID], []);
@@ -73,20 +73,34 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         }
     }
 
+    public override activate(editor: Partial<Monaco.IStandaloneCodeEditor>, cachedHeight: number | undefined): void {
+        super.activate(editor, cachedHeight);
+
+        this.updateMarginDecorations();
+        if (cachedHeight) {
+            this.backend?.changeViewZones!((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+                if (this.zoneInfo) {
+                    this.zoneInfo.zone.heightInPx = cachedHeight;
+                    this.zoneInfo.zoneId = changeAccessor.addZone(this.zoneInfo.zone);
+                }
+            });
+        }
+    }
+
     /**
      * @returns A local model which contains only the text of this block.
      */
     public get model(): Monaco.ITextModel {
-        const editorModel = super.model as ICodeEditorModel; // Model for the entire editor content.
+        const editorModel = super.model as ICodeEditorModel | null; // Model for the entire editor content.
 
         if (!this.internalModel || this.internalModel.isDisposed()) {
             const localModel: ICodeEditorModel = Object.assign(Monaco.createModel("", this.language), {
                 // This local model has no execution blocks.
-                symbols: editorModel.symbols,
+                symbols: editorModel?.symbols,
                 editorMode: CodeEditorMode.Standard,
             });
 
-            if ("session" in editorModel) {
+            if (editorModel && "session" in editorModel) {
                 localModel.session = editorModel.session;
             }
 
@@ -147,7 +161,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     }
 
     public get codeOffset(): number {
-        const editorModel = this.backend?.getModel?.();
+        const editorModel = super.model;
         if (editorModel) {
             return editorModel.getOffsetAt({ lineNumber: this.startLineNumber, column: 1 });
         }
@@ -238,7 +252,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
             this.resizeObserver = undefined;
         }
 
-        this.backend?.changeViewZones?.((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
+        this.backend?.changeViewZones!((changeAccessor: Monaco.IViewZoneChangeAccessor) => {
             if (this.zoneInfo) {
                 changeAccessor.removeZone(this.zoneInfo.zoneId);
                 this.zoneInfo = undefined;
@@ -302,7 +316,10 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                     if (renderTarget.clientHeight > maxAutoHeight) {
                         renderTarget.style.height = `${height}px`;
                     }
-                    this.updateRenderTarget(height);
+
+                    if (this.zoneInfo && this.zoneInfo.zone.heightInPx !== height) {
+                        this.updateRenderTarget(height);
+                    }
                 }
             });
             this.resizeObserver.observe(renderTarget);

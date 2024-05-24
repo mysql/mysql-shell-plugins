@@ -146,6 +146,7 @@ exports[`Theme editor core testing Render test 1`] = `
                     }
                     onBlur={[Function]}
                     onClick={[Function]}
+                    onFocus={[Function]}
                     onKeyDown={[Function]}
                     orientation="row"
                     tabIndex={0}
@@ -155,6 +156,7 @@ exports[`Theme editor core testing Render test 1`] = `
                       data-tooltip="inherit"
                       onClick={[Function]}
                       onKeyDown={[Function]}
+                      onfocusin={[Function]}
                       onfocusout={[Function]}
                       style={
                         {

@@ -31,9 +31,7 @@ import { mount } from "enzyme";
 
 import { DBEditorModuleId } from "../../../../modules/ModuleInfo.js";
 import {
-    IDBEditorModuleState,
-    IDBEditorTabInfo,
-    DBEditorModule,
+    IDBEditorModuleState, IDBEditorTabInfo, DBEditorModule,
 } from "../../../../modules/db-editor/DBEditorModule.js";
 import { appParameters, requisitions } from "../../../../supplement/Requisitions.js";
 import { Button } from "../../../../components/ui/Button/Button.js";
@@ -202,7 +200,7 @@ describe("DBEditor module tests", (): void => {
             { tabId: "tab2", caption: "Tab 2", details: connection2, suppressAbout: false },
         ];
 
-        const component = mount<DBEditorModule>(<DBEditorModule/>);
+        const component = mount<DBEditorModule>(<DBEditorModule />);
 
         const instance = component.instance();
         instance.setState({ editorTabs, connections: [connection1, connection2] });
@@ -450,7 +448,7 @@ describe("DBEditor module tests", (): void => {
             page: String(connID),
         });
 
-        const result =  await requisitions.execute("editorRunCommand", {
+        const result = await requisitions.execute("editorRunCommand", {
             command: "sendBlockUpdates",
             context,
         });

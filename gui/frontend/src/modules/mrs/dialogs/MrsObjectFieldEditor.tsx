@@ -444,7 +444,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                             <Dropdown
                                 id={"mrsObjectName"}
                                 selection={mrsObjectSelectionCaption}
-                                onSelect={(sel, _props) => {
+                                onSelect={(accept: boolean, sel) => {
                                     const val = [...sel];
 
                                     if (val.length > 0 && val[0] !== "") {
@@ -552,7 +552,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                                         "names and datatypes"}
                                     selection={sdkLang}
                                     optional={true}
-                                    onSelect={(sel, _props) => {
+                                    onSelect={(accept: boolean, sel) => {
                                         const val = [...sel];
                                         if (val.length > 0 && val[0] !== "") {
                                             const lang: MrsSdkLanguage = MrsSdkLanguage[
@@ -1082,7 +1082,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                                 return item.field.id ===
                                     cellData.field.objectReference?.reduceToValueOfFieldId;
                             })?.field.name}
-                            onSelect={(sel, _props) => {
+                            onSelect={(accept: boolean, sel) => {
                                 // Update data
                                 const treeItem = this.findTreeItemById(cellData.field.id, data.currentTreeItems);
                                 if (treeItem && treeItem.field.objectReference) {

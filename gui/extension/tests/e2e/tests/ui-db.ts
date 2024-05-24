@@ -99,6 +99,11 @@ describe("DATABASE CONNECTIONS", () => {
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.removeAllDatabaseConnections();
             await dbTreeSection.createDatabaseConnection(globalConn);
+            await driver.wait(async () => {
+                await dbTreeSection.clickToolbarButton("Reload the connection list");
+
+                return (await dbTreeSection.tree.existsElement(globalConn.caption)) === true;
+            }, constants.wait5seconds, `${globalConn.caption} does not exist on the tree`);
             await Workbench.closeAllEditors();
             await new BottomBarPanel().toggle(false);
             if (await Workbench.requiresMRSMetadataUpgrade(globalConn)) {
@@ -152,7 +157,7 @@ describe("DATABASE CONNECTIONS", () => {
             await treeGlobalSchemaTables.expand();
             const treeGlobalSchemaViews = await dbTreeSection.tree.getElement("Views");
             await treeGlobalSchemaViews.expand();
-            const treeDBSection = await dbTreeSection.get();
+            const treeDBSection = await dbTreeSection.getTreeExplorer();
             await dbTreeSection.clickToolbarButton(constants.collapseAll);
             let visibleItems: CustomTreeItem[];
             await driver.wait(async () => {
@@ -913,7 +918,7 @@ describe("DATABASE CONNECTIONS", () => {
             const treeOEShellConsoles = await treeOpenEditorsSection.tree.getElement(constants.mysqlShellConsoles);
             expect(await treeOEShellConsoles.findChildItem(`Session to ${String(globalConn.caption)}`),
                 errors.doesNotExistOnTree(`Session to ${String(globalConn.caption)}`)).to.exist;
-            const treeVisibleItems = await (await treeOpenEditorsSection.get()).getVisibleItems();
+            const treeVisibleItems = await (await treeOpenEditorsSection.getTreeExplorer()).getVisibleItems();
             expect(treeVisibleItems.length, "No tree items were found on OPEN EDITORS section").to.be.at.least(1);
             expect(await treeVisibleItems[0].getLabel(), errors.doesNotExistOnTree(constants.dbConnectionsLabel))
                 .to.equals(constants.dbConnectionsLabel);
@@ -1076,6 +1081,7 @@ describe("DATABASE CONNECTIONS", () => {
             await tasksTreeSection.focus();
             expect(await tasksTreeSection.tree.existsElement(`Dump Schema ${schemaForMySQLDbService} to Disk (done)`),
                 errors.doesNotExistOnTree(`Dump Schema ${schemaForMySQLDbService} to Disk (done)`)).to.be.true;
+            await dbTreeSection.focus();
         });
 
         it("Load Data to HeatWave Cluster", async () => {

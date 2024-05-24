@@ -569,7 +569,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         }
     };
 
-    private handleSelectTabFromDropdown = (ids: Set<string>): void => {
+    private handleSelectTabFromDropdown = (accept: boolean, ids: Set<string>): void => {
         this.setState({ selectedTab: [...ids][0] });
     };
 

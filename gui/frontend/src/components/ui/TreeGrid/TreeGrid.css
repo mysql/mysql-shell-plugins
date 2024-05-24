@@ -175,6 +175,7 @@
 .msg.treeGrid.tabulator .tabulator-tableholder .tabulator-table {
     background-color: var(--rowBackgroundColor);
     color: var(--rowTextColor);
+    user-select: none;
 }
 
 .msg.treeGrid.tabulator .tabulator-tableholder .tabulator-table .tabulator-row.tabulator-calcs {
@@ -299,6 +300,15 @@
 
     background-color: var(--rowBackgroundColor);
     border: none;
+}
+
+/** This is a copy of the .manualFocus rule in App.css, because the default tabulator CSS styles disable the outline. */
+.msg.treeGrid.tabulator .tabulator-row .tabulator-cell.manualFocus {
+    outline-width: 1px;
+    outline-style: solid;
+    outline-offset: -1px;
+    outline-color: var(--focusBorder);
+    opacity: 1 !important;
 }
 
 .msg.treeGrid.tabulator.verticalGrid .tabulator-row .tabulator-cell {
