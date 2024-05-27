@@ -86,6 +86,15 @@ export class JsonParser {
         0x2F, // /
     ]);
 
+    /** All token types that represent values. */
+    static readonly #valueSet = new Set<TokenType>([
+        TokenType.Null,
+        TokenType.True,
+        TokenType.False,
+        TokenType.String,
+        TokenType.Number,
+    ]);
+
     #currentPosition = 0;
     #tokenOffset = 0;
     #input: string;
@@ -108,8 +117,12 @@ export class JsonParser {
 
 
         const token = parser.nextNonWhitespaceToken();
+        const result = parser.parseJsonValue(token);
+        if (parser.nextNonWhitespaceToken() !== TokenType.EOF) {
+            throw new Error("Extraneous content.");
+        }
 
-        return parser.parseJsonValue(token);
+        return result;
     }
 
     /** @returns the type of the next token in the input and extracts its text into the tokenText member. */
@@ -153,7 +166,6 @@ export class JsonParser {
         }
 
         switch (code) {
-            case 0x27:   // '
             case 0x22: { // "
                 ++this.#currentPosition;
                 this.tokenText = this.scanString(code);
@@ -165,8 +177,9 @@ export class JsonParser {
             case 0x2D: { // -
                 this.tokenText += "-";
                 ++this.#currentPosition;
-                if (this.#currentPosition === this.#input.length
-                    || !this.isDigit(this.#input.codePointAt(this.#currentPosition)!)) {
+                code = this.#input.codePointAt(this.#currentPosition)!;
+
+                if (this.#currentPosition === this.#input.length || !this.isDigit(code)) {
                     return TokenType.Unknown;
                 }
 
@@ -270,7 +283,7 @@ export class JsonParser {
                     ++this.#currentPosition;
                 }
             } else {
-                return this.#input.substring(start, this.#currentPosition);
+                throw new Error("Invalid number."); // Missing digits after the decimal point.
             }
         }
 
@@ -291,6 +304,8 @@ export class JsonParser {
                     ++this.#currentPosition;
                 }
                 end = this.#currentPosition;
+            } else {
+                throw new Error("Invalid number.");
             }
         }
 
@@ -387,7 +402,12 @@ export class JsonParser {
                     case 0x75: { // u
                         const ch3 = this.scanHexDigits(4);
                         if (ch3 >= 0) {
-                            result += String.fromCharCode(ch3);
+                            // Note: there's no need to check for surrogate pairs. TS will handle it.
+                            if (ch3 < 0x10000) {
+                                result += String.fromCharCode(ch3);
+                            } else {
+                                result += String.fromCodePoint(ch3);
+                            }
                         }
 
                         break;
@@ -415,10 +435,10 @@ export class JsonParser {
     }
 
     private isWhiteSpace(ch: number): boolean {
-        return ch === 0x20 || ch === 0x09 || ch === 0xA0;
+        return ch === 0x20 || ch === 0x09 || ch === 0xA0 || ch === 0x0D;
     }
 
-    private isLineBreak(ch: number): boolean { // TODO: do we need to handle Unicode line breaks?
+    private isLineBreak(ch: number): boolean {
         return ch === 0x0D || ch === 0x0A;
     }
 
@@ -447,11 +467,18 @@ export class JsonParser {
             }
 
             token = this.nextNonWhitespaceToken();
+            if (token === TokenType.CloseBrace) {
+                throw new Error("Missing value.");
+            }
+
             result[key] = this.parseJsonValue(token);
 
             token = this.nextNonWhitespaceToken();
             if (token === TokenType.Comma) {
                 token = this.nextNonWhitespaceToken();
+                if (!JsonParser.#valueSet.has(token)) {
+                    throw new Error("Missing next pair.");
+                }
             } else if (token !== TokenType.CloseBrace) {
                 throw new Error("Expected a comma or closing brace.");
             }
@@ -481,6 +508,11 @@ export class JsonParser {
                 }
 
                 if (Number.isInteger(number) && !Number.isSafeInteger(number)) {
+                    // BigInt cannot be created from a string with a scientific notation.
+                    if (text.includes("e") || text.includes("E")) {
+                        return number;
+                    }
+
                     return BigInt(text);
                 }
 
@@ -528,6 +560,9 @@ export class JsonParser {
             token = this.nextNonWhitespaceToken();
             if (token === TokenType.Comma) {
                 token = this.nextNonWhitespaceToken();
+                if (token === TokenType.CloseBracket) {
+                    throw new Error("Unexpected closing bracket.");
+                }
             } else if (token !== TokenType.CloseBracket) {
                 throw new Error("Expected a comma or closing bracket.");
             }
