@@ -32,8 +32,6 @@ import * as constants from "./constants";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 import * as waitUntil from "./until";
 import * as locator from "./locators";
-import * as interfaces from "./interfaces";
-import { AccordionSection } from "./SideBar/AccordionSection";
 import { Os } from "./Os";
 import { Misc, driver } from "./Misc";
 import * as errors from "../lib/errors";
@@ -459,38 +457,11 @@ export class Workbench {
      */
     public static openEditor = async (editor: string): Promise<void> => {
         await Misc.switchBackToTopFrame();
-        await new EditorView().openEditor(editor);
-    };
-
-    /**
-     * Verifies if a MRS Data upgrade is needed, by expanding a DB connection and checking if a
-     * specific notification is displayed
-     * @param dbConnection The db connection
-     * @returns A promise resolving with true if the upgrade is needed, false otherwise
-     */
-    public static requiresMRSMetadataUpgrade = async (dbConnection: interfaces.IDBConnection): Promise<boolean> => {
-        await Misc.switchBackToTopFrame();
-
-        await Workbench.dismissNotifications();
-        const treeSection = new AccordionSection(constants.dbTreeSection);
-        const dbTreeConnection = await treeSection.tree.getElement(dbConnection.caption);
-        await Os.deleteCredentials();
-        await treeSection.tree.expandDatabaseConnection(dbTreeConnection,
-            (dbConnection.basic as interfaces.IConnBasicMySQL).password);
-        if ((await Workbench.existsNotifications(constants.wait2seconds)) === true) {
-            return (await Workbench
-                .getNotification("This MySQL Shell version requires a new minor version")) !== undefined;
-        }
-    };
-
-    /**
-     * Performs the MRS metadata upgrade by clicking Yes on the specific notification
-     * @returns A promise resolving when the upgrade is done
-     */
-    public static upgradeMRSMetadata = async (): Promise<void> => {
-        const notification = await Workbench.getNotification("This MySQL Shell version requires a new minor version");
-        await Workbench.clickOnNotificationButton(notification, "Yes");
-        await Workbench.getNotification("The MySQL REST Service Metadata Schema has been updated");
+        const openedEditors = await new EditorView().getOpenEditorTitles();
+        const theEditor = openedEditors.filter((item: string) => {
+            return item.match(new RegExp(editor)) !== null;
+        });
+        await new EditorView().openEditor(theEditor[0]);
     };
 
     /**

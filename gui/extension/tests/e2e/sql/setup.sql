@@ -102,7 +102,6 @@ INSERT INTO result_sets VALUES(
   DROP TABLE IF EXISTS `all_data_types_ints`;
   CREATE TABLE `all_data_types_ints` (
     `id` int NOT NULL AUTO_INCREMENT,
-    `test_boolean` tinyint(1) DEFAULT NULL,
     `test_smallint` smallint DEFAULT NULL,
     `test_mediumint` mediumint DEFAULT NULL,
     `test_integer` int DEFAULT NULL,
@@ -110,6 +109,7 @@ INSERT INTO result_sets VALUES(
     `test_decimal` decimal(10,2) DEFAULT NULL,
     `test_float` float DEFAULT NULL,
     `test_double` double(10,2) DEFAULT NULL,
+    `test_boolean` tinyint(1) DEFAULT NULL,
     PRIMARY KEY (`id`)
   ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -127,14 +127,14 @@ INSERT INTO result_sets VALUES(
   DROP TABLE IF EXISTS `all_data_types_chars`;
   CREATE TABLE `all_data_types_chars` (
     `id` int NOT NULL AUTO_INCREMENT,
-    `test_char` char(50) DEFAULT NULL,
-    `test_varchar` varchar(50) DEFAULT NULL,
+    `test_char` char(255) DEFAULT NULL,
+    `test_varchar` varchar(255) DEFAULT NULL,
     `test_tinytext` tinytext,
     `test_text` text,
     `test_mediumtext` mediumtext,
     `test_longtext` longtext,
-    `test_enum` enum('value1','value2','value3','value4') DEFAULT NULL,
-    `test_set` set('value1','value2','value3','value4') DEFAULT NULL,
+    `test_enum` enum('value1_dummy_dummy_dummy','value2_dummy_dummy_dummy','value3_dummy_dummy_dummy','value4_dummy_dummy_dummy') DEFAULT NULL,
+    `test_set` set('value1_dummy_dummy_dummy','value2_dummy_dummy_dummy','value3_dummy_dummy_dummy','value4_dummy_dummy_dummy') DEFAULT NULL,
     `test_json` json DEFAULT NULL,
     PRIMARY KEY (`id`)
   ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -154,6 +154,7 @@ INSERT INTO result_sets VALUES(
   DROP TABLE IF EXISTS `all_data_types_geometries`;
   CREATE TABLE `all_data_types_geometries` (
     `id` int NOT NULL AUTO_INCREMENT,
+    `test_bit` bit(15) DEFAULT NULL,
     `test_point` geometry DEFAULT NULL,
     `test_linestring` linestring DEFAULT NULL,
     `test_polygon` polygon DEFAULT NULL,
@@ -161,20 +162,19 @@ INSERT INTO result_sets VALUES(
     `test_multilinestring` multilinestring DEFAULT NULL,
     `test_multipolygon` multipolygon DEFAULT NULL,
     `test_geometrycollection` geomcollection DEFAULT NULL,
-    `test_bit` bit(15) DEFAULT NULL,
     PRIMARY KEY (`id`)
   ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 INSERT INTO all_data_types_ints VALUES(
 1, -- id
-true, -- test_boolean
 32767, -- test_smallint
 8388607, -- mediumint
-2, -- int 
+2147483647, -- int 
 4294967295, -- big int 
-1.5, -- decimal
-2.543, -- float
-7.56 -- double
+1123.5324324, -- decimal
+2123.543123123, -- float
+7123.561233123, -- double
+true -- test_boolean
 );
 
 INSERT INTO all_data_types_dates VALUES(
@@ -188,14 +188,31 @@ INSERT INTO all_data_types_dates VALUES(
 
 INSERT INTO all_data_types_chars VALUES(
 1, -- id
+"test_char_dummy_dummy", -- char
+"test_varchar_dummy_dummy", -- varchar 
+"test_tiny_dummy_dummy", -- tinytext
+"test_text_dummy_dummy", -- text
+"test_medium_dummy_dummy", -- medium text
+"test_long_dummy_dummy", -- long text
+"value1_dummy_dummy_dummy", -- enum
+"value1_dummy_dummy_dummy", -- set 
+'{"field_1": "1", 
+"field_2": "2", 
+"field_3": "3", 
+"field_4": "4", 
+"field_5": "5"}' -- json
+);
+
+INSERT INTO all_data_types_chars VALUES(
+2, -- id
 "test_char", -- char
 "test_varchar", -- varchar 
 "tiny", -- tinytext
 "test_text", -- text
 "test_medium", -- medium text
 "test_long", -- long text
-"value1", -- enum
-"value1", -- set 
+"value1_dummy_dummy_dummy", -- enum
+"value1_dummy_dummy_dummy", -- set 
 '{"test": "1"}' -- json
 );
 
@@ -211,12 +228,12 @@ INSERT INTO all_data_types_blobs VALUES(
 
 INSERT INTO all_data_types_geometries VALUES(
 1, -- id
+b'11111011111111', -- bit
 ST_GeomFromText('POINT(1 1)'), -- geometry
 ST_LineStringFromText('LINESTRING(0 0,1 1,2 2)'), -- linestring
 ST_GeomFromText('POLYGON((0 0,10 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 7, 5 5))'), -- polygon
 ST_GeomFromText('MULTIPOINT(0 0, 20 20, 60 60)'), -- multipoint
 ST_GeomFromText('MultiLineString((1 1,2 2,3 3),(4 4,5 5))'), -- multilinestring
 ST_GeomFromText('MULTIPOLYGON(((0 0,10 0,10 10,0 10,0 0)),((5 5,7 5,7 7,5 7, 5 5)))'), -- multipolygon
-ST_GeomFromText('GEOMETRYCOLLECTION(POINT(1 1),LINESTRING(0 0,1 1,2 2,3 3,4 4))'), -- geomcollection
-b'11111011111111' -- bit
+ST_GeomFromText('GEOMETRYCOLLECTION(POINT(1 1),LINESTRING(0 0,1 1,2 2,3 3,4 4))') -- geomcollection
 );

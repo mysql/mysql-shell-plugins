@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until, Key, WebElement, error } from "selenium-webdriver";
+import { until, Key, WebElement, error, Button, Origin } from "selenium-webdriver";
 import * as locator from "../lib/locators.js";
 import * as interfaces from "../lib/interfaces.js";
 import * as constants from "../lib/constants.js";
@@ -571,7 +571,7 @@ export class CommandExecutor {
         const performEdit = async (cellRef: interfaces.IResultGridCell): Promise<void> => {
             let isDate: boolean = false;
 
-            await this.startEditCell(cellRef.rowNumber!, cellRef.columnName, cellRef.value);
+            await this.startEditCell(cellRef.rowNumber!, cellRef.columnName);
             const cell = await this.getCellFromResultGrid(cellRef.rowNumber!,
                 cellRef.columnName); // avoid stale
             const expectInput = typeof cellRef.value === "string";
@@ -821,7 +821,7 @@ export class CommandExecutor {
 
             const refCell = await this.getCellFromResultGrid(-1, cell.columnName);
             const expectInput = typeof cell.value === "string";
-            await this.startEditCell(-1, cell.columnName, cell.value);
+            await this.startEditCell(-1, cell.columnName);
 
             if (expectInput) {
                 let input: WebElement;
@@ -908,24 +908,51 @@ export class CommandExecutor {
      * Sets a result grid cell with
      * @param gridRow The row number. If the row number is -1, the function returns the last added row
      * @param gridRowColumn The column
-     * @param width The width of the cell. Defaults to 40px
+     * @param reduce The method to reduce (selenium/js). Js will reduce the cell using js, otherwise selenium
      * @returns A promise resolving when the cell is resized
      */
-    public setResultGridCellWidth = async (gridRow: number, gridRowColumn: string, width = "40"): Promise<void> => {
+    public reduceCellWidth = async (gridRow: number, gridRowColumn: string, reduce = "selenium"): Promise<void> => {
+        let counter = 0;
         await driver.wait(async () => {
-            try {
-                let cell = await this.getCellFromResultGrid(gridRow, gridRowColumn);
-                await driver.executeScript(`arguments[0].setAttribute("style", "width: ${width}px; height: 20px;")`,
-                    cell);
-                cell = await this.getCellFromResultGrid(gridRow, gridRowColumn);
-
-                return (await cell.getCssValue("width")).includes(`${width}px`);
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
-                }
+            const cell = await this.getCellFromResultGrid(gridRow, gridRowColumn);
+            const cellWidth = await cell.getCssValue("width");
+            if (counter > 0) {
+                reduce = "js";
             }
-        }, constants.wait5seconds, `Could not resize result grid cell on column ${gridRowColumn}`);
+            if (reduce === "selenium") {
+                try {
+                    const rect = await cell.getRect();
+                    await driver.actions().move({
+                        x: Math.round(rect.width / 2),
+                        y: Math.round((rect.height / 2) * -1),
+                        origin: cell,
+                    })
+                        .press(Button.LEFT)
+                        .move({
+                            x: Math.round((rect.width * 0.8) * -1),
+                            origin: Origin.POINTER,
+                        })
+                        .release(Button.LEFT)
+                        .perform();
+                    counter++;
+                } catch (e) {
+                    if (e instanceof error.MoveTargetOutOfBoundsError) {
+                        const cell = await this.getCellFromResultGrid(gridRow, gridRowColumn);
+                        await driver.executeScript(`arguments[0].setAttribute("style", "width: 40px; height: 23px;")`,
+                            cell);
+                    } else {
+                        throw e;
+                    }
+                }
+            } else {
+                await driver.executeScript(`arguments[0].setAttribute("style", "width: 40px; height: 23px;")`,
+                    cell);
+            }
+
+            return (await (await this.getCellFromResultGrid(gridRow, gridRowColumn))
+                .getCssValue("width")) !== cellWidth;
+        }, constants.wait5seconds, `The cell width was not reduced on column ${gridRowColumn}`);
+
     };
 
     /**
@@ -1185,7 +1212,7 @@ export class CommandExecutor {
                 return this.getResultMessage().match(/(\d+).*updated/) !== null;
             }, constants.wait5seconds, "'row(s) updated' was not found on result message'");
         } else {
-            await applyButton.click();
+            await driver.executeScript("arguments[0].click()", applyButton);
         }
     };
 
@@ -1784,34 +1811,37 @@ export class CommandExecutor {
      * Starts to edit a cell
      * @param rowNumber The row number
      * @param columnName The column name
-     * @param valueToEdit The value to insert
      * @returns The table name
      */
-    private startEditCell = async (rowNumber: number, columnName: string,
-        valueToEdit: string | number | boolean): Promise<void> => {
-        const cell = await this.getCellFromResultGrid(rowNumber, columnName);
-        const expectInput = typeof valueToEdit === "string";
-        await driver.wait(async () => {
-            //await driver
-            //    .executeScript("arguments[0].dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));", cell);
-            await driver.actions().doubleClick(cell).perform();
-            try {
-                const cell = await this.getCellFromResultGrid(rowNumber, columnName);
-                const isEditable = (await cell.getAttribute("class")).includes("tabulator-editing");
+    private startEditCell = async (rowNumber: number, columnName: string): Promise<void> => {
+        let cell = await this.getCellFromResultGrid(rowNumber, columnName);
 
-                if (expectInput) {
-                    if (isEditable) {
-                        return (await cell.findElements(locator.htmlTag.input)).length > 0 ||
-                            (await cell.findElements(locator.htmlTag.textArea)).length > 0;
-                    }
+        const editingStarted = async (cellRef: WebElement) => {
+            return (await cellRef.getAttribute("class")).includes("tabulator-editing");
+        };
+
+        await driver.wait(async () => {
+            try {
+                if (await editingStarted(cell)) {
+                    return (await cell.findElements(locator.htmlTag.input)).length > 0 ||
+                        (await cell.findElements(locator.htmlTag.textArea)).length > 0 ||
+                        (await cell.findElements(locator.notebook.codeEditor.editor.result
+                            .tableCellSelectList.exists)).length > 0;
                 } else {
-                    return (await cell.getAttribute("class")).includes("changed") || isEditable;
+                    if (Os.isMacOs()) {
+                        await driver
+                            .executeScript("arguments[0].dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));",
+                                cell);
+                    } else {
+                        await driver.actions().doubleClick(cell).perform();
+                    }
                 }
             } catch (e) {
-
                 if (!(e instanceof error.StaleElementReferenceError) &&
                     !(e instanceof error.ElementNotInteractableError)) {
                     throw e;
+                } else {
+                    cell = await this.getCellFromResultGrid(rowNumber, columnName);
                 }
             }
         }, constants.wait5seconds, `Could not start editing cell on column ${columnName}`);

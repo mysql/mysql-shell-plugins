@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -37,25 +37,25 @@ import { DatabaseConnectionDialog } from "../WebViews/DatabaseConnectionDialog";
 import { Misc, driver } from "../Misc";
 import { Os } from "../Os";
 import { Workbench } from "../Workbench";
-import { Tree } from "./Tree";
+import { E2ETree } from "./E2ETree";
 
-export class AccordionSection {
+export class E2EAccordionSection {
 
-    public tree: Tree;
+    public tree: E2ETree;
 
     /** Accordion Section name */
     public accordionSectionName: string;
 
     public constructor(sectionName: string) {
         this.accordionSectionName = sectionName;
-        this.tree = new Tree(this);
+        this.tree = new E2ETree(this);
     }
 
     /**
      * Gets a tree explorer
      * @returns A promise resolving with the tree explorer
      */
-    public getTreeExplorer = async (): Promise<CustomTreeSection> => {
+    public getWebElement = async (): Promise<CustomTreeSection> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
@@ -69,7 +69,7 @@ export class AccordionSection {
      */
     public exists = (): Condition<boolean> => {
         return new Condition(`for ${this.accordionSectionName} to exist`, async () => {
-            return (await this.getTreeExplorer()) !== undefined;
+            return (await this.getWebElement()) !== undefined;
         });
     };
 
@@ -87,7 +87,7 @@ export class AccordionSection {
             `${constants.ociTreeSection} is still loading`);
 
         let sectionActions: WebElement;
-        const thisSection = await this.getTreeExplorer();
+        const thisSection = await this.getWebElement();
         await driver.wait(async () => {
             try {
                 await driver.wait(async () => {
@@ -127,7 +127,7 @@ export class AccordionSection {
             await Misc.switchBackToTopFrame();
         }
 
-        const thisSection = await this.getTreeExplorer();
+        const thisSection = await this.getWebElement();
 
         const button = await thisSection.getAction("More Actions...");
 
@@ -275,7 +275,7 @@ export class AccordionSection {
             await Misc.switchBackToTopFrame();
         }
 
-        const thisSection = await this.getTreeExplorer();
+        const thisSection = await this.getWebElement();
         if (!(await thisSection.isExpanded())) {
             await driver.wait(async () => {
                 await thisSection.expand();
@@ -293,7 +293,7 @@ export class AccordionSection {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
-        const thisSection = await this.getTreeExplorer();
+        const thisSection = await this.getWebElement();
         if (await thisSection.isExpanded()) {
             await driver.wait(async () => {
                 await thisSection.collapse();
@@ -388,7 +388,7 @@ export class AccordionSection {
      */
     public isNotLoading = (): Condition<boolean> => {
         return new Condition(`for ${this.accordionSectionName} to be loaded`, async () => {
-            const sec = await this.getTreeExplorer();
+            const sec = await this.getWebElement();
             const loading = await sec.findElements(locator.section.loadingBar);
             const activityBar = new ActivityBar();
             const icon = await activityBar.getViewControl(constants.extensionName);

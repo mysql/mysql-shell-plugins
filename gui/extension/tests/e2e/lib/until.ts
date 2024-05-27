@@ -35,14 +35,13 @@ import { join } from "path";
 import fs from "fs/promises";
 import * as constants from "./constants";
 import { Misc, driver } from "./Misc";
-import { Notebook } from "./WebViews/Notebook";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
 import { PasswordDialog } from "./WebViews/PasswordDialog";
 import { Os } from "./Os";
 import { Workbench } from "./Workbench";
 import * as errors from "../lib/errors";
-import { CommandExecutor } from "./CommandExecutor";
+import { EditorSelector } from "./WebViews/EditorSelector";
 
 export let credentialHelperOk = true;
 
@@ -123,7 +122,7 @@ export const currentEditorIs = (editor: RegExp): Condition<boolean> => {
         await Misc.switchBackToTopFrame();
         await Misc.switchToFrame();
 
-        return (await Notebook.getCurrentEditorName()).match(editor) !== null;
+        return ((await new EditorSelector().getCurrent()).label).match(editor) !== null;
     });
 };
 
@@ -188,7 +187,7 @@ export const scriptIsOpened = (connection: interfaces.IDBConnection): Condition<
             await driver.wait(dbConnectionIsSuccessful(), constants.wait15seconds);
         }
 
-        return (await Notebook.getCurrentEditorName()).match(/Script/) !== null;
+        return ((await new EditorSelector().getCurrent()).label).match(/Script/) !== null;
     });
 };
 
@@ -251,39 +250,6 @@ export const shellSessionIsOpened = (connection: interfaces.IDBConnection): Cond
 export const elementLocated = (context: WebElement, locator: Locator): Condition<boolean> => {
     return new Condition(`for element ${String(locator)} to be found`, async () => {
         return (await context.findElements(locator)).length > 0;
-    });
-};
-
-/**
- * Waits until the result tab of a query is maximized
- * @returns A promise resolving when the result tab is maximized
- */
-export const resultTabIsMaximized = (): Condition<boolean> => {
-    return new Condition(`for result tab to be maximized`, async () => {
-        return (await driver.findElements(locator.notebook.codeEditor.editor.result.status.normalize)).length > 0;
-    });
-};
-
-/**
- * Waits until the result tab of a query is normalized
- * @returns A promise resolving when the result tab is normalized
- */
-export const resultTabIsNormalized = (): Condition<boolean> => {
-    return new Condition(`for result tab to be maximized`, async () => {
-        return (await driver.findElements(locator.notebook.codeEditor.editor.result.status.normalize)).length === 0;
-    });
-};
-
-/**
- * Waits until the notebook's editor has a new prompt/line
- * @returns A promise resolving when the new prompt exists
- */
-export const editorHasNewPrompt = (): Condition<boolean> => {
-    return new Condition(`for editor to have a new prompt`, async () => {
-        const editorSentences = await driver.findElements(locator.notebook.codeEditor.editor.sentence);
-
-        return (await (editorSentences[editorSentences.length - 1]).getAttribute("innerHTML"))
-            .match(/<span><\/span>/) !== null;
     });
 };
 
@@ -388,110 +354,6 @@ export const extensionIsReady = (): Condition<boolean> => {
 };
 
 /**
- * Waits until the a result grid cell is editable
- * @param commandExecutor The command executor object
- * @param rowNumber The row number
- * @param columnName The column name
- * @param expectInput True if the when the cell is editable, an input box is displayed
- * @returns A promise resolving when the extension is ready
- */
-export const cellIsEditable = (commandExecutor: CommandExecutor, rowNumber: number,
-    columnName: string, expectInput: boolean): Condition<boolean> => {
-    return new Condition(`for row to be editable`, async () => {
-        return driver.wait(async () => {
-            try {
-                const cell = await commandExecutor.getCellFromResultGrid(rowNumber, columnName);
-                const isEditable = (await cell.getAttribute("class")).includes("tabulator-editing");
-                if (expectInput) {
-                    if (isEditable) {
-                        return (await cell.findElements(locator.htmlTag.input)).length > 0;
-                    }
-                } else {
-                    return (await cell.getAttribute("class")).includes("changed") || isEditable;
-                }
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError) ||
-                    !(e instanceof error.ElementNotInteractableError)) {
-                    throw e;
-                }
-            }
-        }, constants.wait5seconds, `The cell (${rowNumber}, ${columnName}) was not editable`);
-    });
-};
-
-/**
- * Waits until the result grid is editable
- * @param resultGrid The result grid
- * @returns A promise resolving when the result grid is editable
- */
-export const resultGridIsEditable = (resultGrid: WebElement): Condition<boolean> => {
-    return new Condition(`for result grid to be editable`, async () => {
-        const edit = await resultGrid.findElement(locator.notebook.codeEditor.editor.result.status.toolbar.editButton);
-
-        return (await edit.getAttribute("class")).includes("disabled") === false;
-    });
-};
-
-/**
- * Waits until the result grid cells were changed
- * @param resultGrid The result grid
- * @param changed The expected number of changed cells
- * @returns A promise resolving when the cells were changed
- */
-export const cellsWereChanged = (resultGrid: WebElement, changed: number): Condition<boolean> => {
-    return new Condition(`for changed ${changed} cells to be marked has changed (yellow background)`, async () => {
-        return (await resultGrid
-            .findElements(locator.notebook.codeEditor.editor.result.changedTableCell)).length === changed;
-    });
-};
-
-/**
- * Waits until a row was added to a result grid
- * @param resultGrid The result grid
- * @returns A promise resolving when the row was added
- */
-export const rowWasAdded = (resultGrid: WebElement): Condition<boolean> => {
-    return new Condition(`for added table row`, async () => {
-        return (await resultGrid.findElements(locator.notebook.codeEditor.editor.result.addedTableRow)).length > 0;
-    });
-};
-
-/**
- * Waits until the rows were updated on a result grid
- * @param commandExecutor The command executor
- * @returns A promise resolving when rows were updated
- */
-export const rowsWereUpdated = (commandExecutor: CommandExecutor): Condition<boolean> => {
-    return new Condition(`for result message to match 'rows updated'`, async () => {
-        await commandExecutor.refreshCommandResult(commandExecutor.getResultId());
-
-        return commandExecutor.getResultMessage().match(/(\d+).*updated/) !== null;
-    });
-};
-
-/**
- * Waits until the message "x number of rows were updated" is displayed on the result grid toolbar
- * @param commandExecutor The command executor
- * @returns A promise resolving when the message is displayed
- */
-export const changedResultGridCellsAreDone = (commandExecutor: CommandExecutor): Condition<boolean> => {
-    return new Condition(`for yellow background on result grid cells to not be displayed`, () => {
-        return commandExecutor.getResultMessage().match(/(\d+).*updated/) !== null;
-    });
-};
-
-/**
- * Waits until the row is marked for deletion (red background)
- * @param row The row
- * @returns A promise resolving when the row is marked for deletion
- */
-export const rowIsMarkedForDeletion = (row: WebElement): Condition<boolean> => {
-    return new Condition(`for row to be marked for deletion`, async () => {
-        return (await row.getAttribute("class")).includes("deleted");
-    });
-};
-
-/**
  * Waits until the confirmation dialog exists
  * @param context The context
  * @returns A promise resolving when the confirmation dialog exists
@@ -528,26 +390,6 @@ export const existsOnDBConnectionOverview = (dbConnection: string): Condition<bo
                 return true;
             }
         }
-    });
-};
-
-/**
- * Waits until the cell tooltip is equal to the expected value
- * @param commandExecutor The command executor
- * @param rowNumber The row number
- * @param rowColumn The column name
- * @param expectedTooltip The expected tooltip
- * @returns A promise resolving when the tooltip is equal to the expected value
- */
-export const cellTooltipIs = (
-    commandExecutor: CommandExecutor,
-    rowNumber: number,
-    rowColumn: string,
-    expectedTooltip: string): Condition<boolean> => {
-    return new Condition(` tooltip to be '${expectedTooltip}'`, async () => {
-        const tooltip = await commandExecutor.getCellTooltip(rowNumber, rowColumn);
-
-        return tooltip.replace(/\s/g, "") === expectedTooltip.replace(/\s/g, "");
     });
 };
 

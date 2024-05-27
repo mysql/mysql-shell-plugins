@@ -21,7 +21,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebElement } from "selenium-webdriver";
+import { WebElement, Condition } from "selenium-webdriver";
+import { CommandResultGrid } from "./WebViews/CommandResultGrid";
 
 export interface IConnBasicMySQL {
     hostname?: string;
@@ -236,21 +237,57 @@ export interface ITreeDBConnection {
     isMySQL: boolean;
 }
 
+export interface ICurrentEditor {
+    label: string;
+    icon: string;
+}
+
+export interface IOciProfileConfig {
+    name: string;
+    user?: string;
+    fingerprint?: string;
+    tenancy?: string;
+    region?: string;
+    keyFile?: string;
+}
+
 export interface ICommandResult {
-    message?: string;
-    content?: WebElement | ICommandTabResult[];
-    toolbar?: WebElement;
-}
-
-export interface ICommandTabResult {
-    tabName: string;
-    content: string;
-}
-
-export interface ICommandResultIdHolder {
     id?: string;
-    suite?: string;
+    text?: string;
+    json?: string;
+    graph?: WebElement;
+    tabs?: ICommandResultTab[];
+    grid?: CommandResultGrid;
+    preview?: ICommandResultPreview;
+    toolbar: ICommandResultToolbar;
+    copyToClipboard(): Promise<void>;
+    selectTab(name: string): Promise<void>;
+    clickSqlPreviewContent(): Promise<void>;
+    maximize(): Promise<void>;
+    normalize(): Promise<void>;
+    selectSqlPreview(): Promise<void>;
+    applyChanges(): Promise<void>;
+    rollbackChanges(): Promise<void>;
+    isMaximized(): Condition<boolean>;
+    closeResultSet(): Promise<void>;
+    statusMatches(regex: RegExp): Condition<boolean>;
 }
+
+export interface ICommandResultToolbar {
+    status: string;
+    element?: WebElement;
+}
+
+export interface ICommandResultPreview {
+    text: string;
+    link: WebElement;
+}
+
+export interface ICommandResultTab {
+    name: string;
+    element: WebElement;
+}
+
 
 export interface IExportMrsSdk {
     directory: string;

@@ -95,7 +95,6 @@ export const dbTables = [
         name: "all_data_types_ints",
         columns: [
             `id`,
-            `test_boolean`,
             `test_smallint`,
             `test_mediumint`,
             `test_integer`,
@@ -103,10 +102,10 @@ export const dbTables = [
             `test_decimal`,
             `test_float`,
             `test_double`,
+            `test_boolean`,
         ],
         columnRegexWithQuotes: [
             /(\d+)/, // id
-            /(\d+)/, // boolean
             /(\d+)/, // smallint
             /(\d+)/, // med int
             /(\d+)/, // int
@@ -114,10 +113,10 @@ export const dbTables = [
             /'(\d+).(\d+)'/, // decimal
             /'(\d+).(\d+)'/, // float
             /'(\d+).(\d+)'/, // double
+            /(\d+)/, // boolean
         ],
         columnRegex: [
             /(\d+)/, // id
-            /(\d+)/, // boolean
             /(\d+)/, // smallint
             /(\d+)/, // med int
             /(\d+)/, // int
@@ -125,6 +124,7 @@ export const dbTables = [
             /(\d+).(\d+)/, // decimal
             /(\d+).(\d+)/, // float
             /(\d+).(\d+)/, // double
+            /(\d+)/, // boolean
         ],
     },
     {
@@ -227,6 +227,7 @@ export const dbTables = [
         name: "all_data_types_geometries",
         columns: [
             `id`,
+            `test_bit`,
             `test_point`,
             `test_linestring`,
             `test_polygon`,
@@ -234,7 +235,6 @@ export const dbTables = [
             `test_multilinestring`,
             `test_multipolygon`,
             `test_geometrycollection`,
-            `test_bit`,
         ],
         columnRegexWithQuotes: [
             /(\d+)/, // id
@@ -250,6 +250,7 @@ export const dbTables = [
         ],
         columnRegex: [
             /(\d+)/, // id
+            /(\d+)/, // bit
             /\s/, // point
             /\s/, // linestring
             /\s/, // polygon
@@ -257,7 +258,6 @@ export const dbTables = [
             /\s/, // multilinestring
             /\s/, // multipolygon
             /\s/, // geo collection
-            /(\d+)/, // bit
         ],
     },
     {

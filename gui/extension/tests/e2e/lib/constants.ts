@@ -124,6 +124,25 @@ export const collapseAll = "Collapse All";
 export const mysqlRestService = "MySQL REST Service";
 export const welcome = "Welcome to MySQL Shell for VS Code.";
 
+// EDITOR ICONS
+export const connOverviewIcon = "overviewPage";
+export const mysqlConnectionIcon = "connectionMysql";
+export const notebookIcon = "notebook";
+export const adminServerStatusIcon = "adminServerStatus";
+export const clientConnectionsIcon = "clientConnections";
+export const adminPerformanceDashboardIcon = "adminPerformanceDashboard";
+export const mysqlScriptIcon = "scriptMysql";
+export const jsScriptIcon = "scriptJs";
+export const tsScriptIcon = "scriptTs";
+
+// COMMAND RESULT TYPES
+export const isText = "text";
+export const isGrid = "grid";
+export const isGridText = "gridText";
+export const isJson = "json";
+export const isGraph = "graph";
+export const isSqlPreview = "preview";
+
 // RESULT GRID CONTEXT MENU
 export const resultGridContextMenu = {
     capitalizeText: "Capitalize Text",
@@ -433,7 +452,6 @@ export const dbTables = [
         name: "all_data_types_ints",
         columns: [
             `id`,
-            `test_boolean`,
             `test_smallint`,
             `test_mediumint`,
             `test_integer`,
@@ -441,10 +459,10 @@ export const dbTables = [
             `test_decimal`,
             `test_float`,
             `test_double`,
+            `test_boolean`,
         ],
         columnRegexWithQuotes: [
             /(\d+)/, // id
-            /(\d+)/, // boolean
             /(\d+)/, // smallint
             /(\d+)/, // med int
             /(\d+)/, // int
@@ -452,10 +470,10 @@ export const dbTables = [
             /'(\d+).(\d+)'/, // decimal
             /'(\d+).(\d+)'/, // float
             /'(\d+).(\d+)'/, // double
+            /(\d+)/, // boolean
         ],
         columnRegex: [
             /(\d+)/, // id
-            /(\d+)/, // boolean
             /(\d+)/, // smallint
             /(\d+)/, // med int
             /(\d+)/, // int
@@ -463,6 +481,7 @@ export const dbTables = [
             /(\d+).(\d+)/, // decimal
             /(\d+).(\d+)/, // float
             /(\d+).(\d+)/, // double
+            /(\d+)/, // boolean
         ],
     },
     {
@@ -565,6 +584,7 @@ export const dbTables = [
         name: "all_data_types_geometries",
         columns: [
             `id`,
+            `test_bit`,
             `test_point`,
             `test_linestring`,
             `test_polygon`,
@@ -572,7 +592,6 @@ export const dbTables = [
             `test_multilinestring`,
             `test_multipolygon`,
             `test_geometrycollection`,
-            `test_bit`,
         ],
         columnRegexWithQuotes: [
             /(\d+)/, // id
@@ -588,6 +607,7 @@ export const dbTables = [
         ],
         columnRegex: [
             /(\d+)/, // id
+            /(\d+)/, // bit
             /\s/, // point
             /\s/, // linestring
             /\s/, // polygon
@@ -595,7 +615,6 @@ export const dbTables = [
             /\s/, // multilinestring
             /\s/, // multipolygon
             /\s/, // geo collection
-            /(\d+)/, // bit
         ],
     },
     {

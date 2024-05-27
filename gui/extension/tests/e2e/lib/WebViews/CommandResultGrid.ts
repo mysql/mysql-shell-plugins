@@ -1,0 +1,830 @@
+/*
+ * Copyright (c) 2024, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+import { WebElement, until, Key, Condition, error, Button, Origin } from "vscode-extension-tester";
+import { driver, Misc } from "../Misc";
+import * as constants from "../constants";
+import * as interfaces from "../interfaces";
+import * as locator from "../locators";
+import * as errors from "../errors";
+import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
+import { Os } from "../Os";
+import { CommandResult } from "./CommandResult";
+
+const gridLocator = locator.notebook.codeEditor.editor.result.grid;
+
+/**
+ * This class aggregates the functions that perform database related operations
+ */
+export class CommandResultGrid {
+
+    /** The grid*/
+    public content: WebElement;
+
+    /** The result which it belongs to*/
+    private result: CommandResult;
+
+    public constructor(commandResult: CommandResult) {
+        this.result = commandResult;
+    }
+
+    /**
+     * Edits a cell of a result grid
+     * @param cells The result grid cells
+     * @returns A promise resolving when the new value is set
+     */
+    public editCells = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
+        await driver.wait(this.result.isEditable(), constants.wait5seconds,
+            `The grid for cmd ${this.result.command} is not editable`);
+
+        const performEdit = async (cellRef: interfaces.IResultGridCell): Promise<void> => {
+            let isDate: boolean;
+
+            await this.startEditCell(cellRef.rowNumber, cellRef.columnName);
+            const cell = await this.getCell(cellRef.rowNumber, cellRef.columnName); // avoid stale
+            const expectInput = typeof cellRef.value === "string";
+
+            if (expectInput) {
+                let input: WebElement;
+                const inputBox = await cell.findElements(locator.htmlTag.input);
+                const textArea = await cell.findElements(locator.htmlTag.textArea);
+
+                if (inputBox.length > 0) {
+                    input = inputBox[0];
+                } else if (textArea.length > 0) {
+                    input = textArea[0];
+                } else {
+                    throw new Error(`Could not find an input nor a textarea when editing cell for ${cellRef
+                        .columnName}`);
+                }
+
+                const isDateTime = (await cell
+                    .findElements(gridLocator.row.cell.dateTimeInput)).length > 0;
+
+                if (!isDateTime) {
+                    isDate = false;
+                    const upDownInput = await cell
+                        .findElement(gridLocator.row.cell.upDownInput).catch(() => {
+                            return undefined;
+                        });
+
+                    if (!upDownInput) {
+                        await this.clearCellInputField(input);
+                        await input.sendKeys(cellRef.value as string);
+                    } else {
+                        await driver.executeScript("arguments[0].value=arguments[1]",
+                            input, cellRef.value as string);
+                    }
+                } else {
+                    isDate = true;
+                    await driver.executeScript("arguments[0].value=arguments[1]", input, cellRef.value as string);
+                }
+            } else {
+                await this.setCellBooleanValue(cellRef.rowNumber, cellRef.columnName,
+                    cellRef.value as boolean);
+            }
+
+            await this.result.toolbar.element.click();
+            await this.result.loadResult();
+
+            if (isDate) {
+                await driver.wait(async () => {
+                    return (await this.getCellValue(cellRef.rowNumber,
+                        cellRef.columnName)) !== "Invalid Date";
+                }, constants.wait2seconds, `Invalid Date was found after inserting value '${cellRef.value}'`);
+            }
+            await driver.wait(async () => {
+                const cell = await this.getCell(cellRef.rowNumber, cellRef.columnName);
+
+                return (await cell.getAttribute("class")).includes("changed");
+            }, constants.wait2seconds,
+                `Yellow background does not exist on cell after inserting value '${cellRef.value}'`);
+
+        };
+
+        for (const cellRef of cells) {
+            await driver.wait(async () => {
+                try {
+                    await performEdit(cellRef);
+
+                    return true;
+                } catch (err) {
+                    if (errors.isStaleError(err as Error)) {
+                        await keyboard.type(nutKey.Escape);
+                    } else {
+                        throw err;
+                    }
+                }
+            }, constants.wait10seconds, `The cell on column ${cellRef.columnName} was always stale`);
+        }
+    };
+
+    /**
+     * Gets the value of a cell out of a result grid
+     * @param gridRow The row number. If the row number is -1, the function returns the last added row
+     * @param gridRowColumn The column
+     * @returns A promise resolving with the cell value.
+     */
+    public getCellValue = async (gridRow: number, gridRowColumn: string): Promise<string> => {
+        let toReturn: string;
+
+        await driver.wait(async () => {
+            try {
+                const cell = await this.getCell(gridRow, gridRowColumn);
+                await driver.executeScript("arguments[0].scrollIntoView()", cell);
+                const isSelectList = (await cell
+                    .findElements(gridLocator.row.cell.selectList.exists))
+                    .length > 0;
+                const isIcon = (await cell.findElements(gridLocator.row.cell.icon))
+                    .length > 0;
+                if (isSelectList) {
+                    const selectList = cell
+                        .findElement(gridLocator.row.cell.selectList.exists);
+                    toReturn = await (await selectList.findElement(locator.htmlTag.label)).getText();
+                } else if (isIcon) {
+                    const img = await cell.findElements(gridLocator.row.cell.icon);
+                    const icon = (await img[0].getAttribute("style")).match(/assets\/data-(.*)-/)[1];
+                    toReturn = icon;
+                } else {
+                    toReturn = await cell.getText();
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, `Cell ${gridRowColumn} was always stale`);
+
+        return toReturn;
+    };
+
+    /**
+     * Adds a row into a result grid
+     * @param cells The cells
+     * @returns A promise resolving when the new value is set
+     */
+    public addRow = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
+        await this.clickAddNewRowButton();
+        await driver.wait(this.newRowExists(), constants.wait5seconds);
+
+        const performAdd = async (cell: interfaces.IResultGridCell): Promise<void> => {
+            let isDate: boolean;
+            const refCell = await this.getCell(-1, cell.columnName);
+            const expectInput = typeof cell.value === "string";
+            await this.startEditCell(-1, cell.columnName);
+
+            if (expectInput) {
+                let input: WebElement;
+                const inputBox = await refCell.findElements(locator.htmlTag.input);
+                const textArea = await refCell.findElements(locator.htmlTag.textArea);
+
+                if (inputBox.length > 0) {
+                    input = inputBox[0];
+                } else if (textArea.length > 0) {
+                    input = textArea[0];
+                } else {
+                    throw new Error(`Could not find an input nor a textarea when editing cell for ${cell
+                        .columnName}`);
+                }
+
+                const isDateTime = (await refCell
+                    .findElements(gridLocator.row.cell.dateTimeInput)).length > 0;
+
+                if (!isDateTime) {
+                    isDate = false;
+                    const upDownInput = await refCell
+                        .findElement(gridLocator.row.cell.upDownInput).catch(() => {
+                            return undefined;
+                        });
+
+                    if (!upDownInput) {
+                        await this.clearCellInputField(input);
+                        await input.sendKeys(cell.value as string);
+                    } else {
+                        await driver.executeScript("arguments[0].value=arguments[1]",
+                            input, cell.value as string);
+                    }
+                } else {
+                    isDate = true;
+                    await driver.executeScript("arguments[0].value=arguments[1]", input, cell.value as string);
+                }
+            } else {
+                await this.setCellBooleanValue(-1, cell.columnName, cell.value as boolean);
+            }
+
+            await this.result.toolbar.element.click();
+
+            if (isDate) {
+                await driver.wait(async () => {
+                    return (await this.getCellValue(-1, cell.columnName)) !== "Invalid Date";
+                }, constants.wait2seconds, `Invalid Date was found after inserting value '${cell.value}'`);
+            }
+        };
+
+        for (const cell of cells) {
+            await driver.wait(async () => {
+                try {
+                    await performAdd(cell);
+
+                    return true;
+                } catch (err) {
+                    if (errors.isStaleError(err as Error)) {
+                        await keyboard.type(nutKey.Escape);
+                    } else {
+                        throw err;
+                    }
+                }
+            }, constants.wait10seconds, `The cell on column ${cell.columnName} was always stale`);
+        }
+
+        await this.result.loadResult();
+    };
+
+    /**
+     * Gets the cell icon type
+     * @param gridRow The row number. If the row number is -1, the function returns the last added row
+     * @param gridRowColumn The column
+     * @returns A promise resolving with the cell icon type
+     */
+    public getCellIconType = async (gridRow: number, gridRowColumn: string): Promise<string | undefined> => {
+        let icon: string;
+        await driver.wait(async () => {
+            try {
+                const cell = await this.getCell(gridRow, gridRowColumn);
+                const img = await cell.findElements(gridLocator.row.cell.icon);
+                icon = (await img[0].getAttribute("style")).match(/assets\/data-(.*)-/)[1];
+
+                return true;
+            } catch (e) {
+                if (!(errors.isStaleError(e as Error))) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, "Unable to get the cell icon type");
+
+        return icon;
+    };
+
+    /**
+     * Sets a result grid cell with
+     * @param gridRow The row number. If the row number is -1, the function returns the last added row
+     * @param gridRowColumn The column
+     * @param reduce The method to reduce (selenium/js). Js will reduce the cell using js, otherwise selenium
+     * @returns A promise resolving when the cell is resized
+     */
+    public reduceCellWidth = async (gridRow: number, gridRowColumn: string, reduce = "selenium"): Promise<void> => {
+        let counter = 0;
+        await driver.wait(async () => {
+            try {
+                const cell = await this.getCell(gridRow, gridRowColumn);
+                const cellWidth = await cell.getCssValue("width");
+                if (counter > 0) {
+                    reduce = "js";
+                }
+                if (reduce === "selenium") {
+                    try {
+                        const rect = await cell.getRect();
+                        await driver.actions().move({
+                            x: Math.round(rect.width / 2),
+                            y: Math.round((rect.height / 2) * -1),
+                            origin: cell,
+                        })
+                            .press(Button.LEFT)
+                            .move({
+                                x: Math.round((rect.width * 0.8) * -1),
+                                origin: Origin.POINTER,
+                            })
+                            .release(Button.LEFT)
+                            .perform();
+                        counter++;
+                    } catch (e) {
+                        if (e instanceof error.MoveTargetOutOfBoundsError) {
+                            const cell = await this.getCell(gridRow, gridRowColumn);
+                            await driver
+                                .executeScript(`arguments[0].setAttribute("style", "width: 40px; height: 23px;")`,
+                                    cell);
+                        } else {
+                            throw e;
+                        }
+                    }
+                } else {
+                    await driver.executeScript(`arguments[0].setAttribute("style", "width: 40px; height: 23px;")`,
+                        cell);
+                }
+
+                return (await (await this.getCell(gridRow, gridRowColumn)).getCssValue("width")) !== cellWidth;
+            } catch (e) {
+                if (!(errors.isStaleError(e as Error))) {
+                    throw e;
+                }
+            }
+
+        }, constants.wait5seconds, `The cell width was not reduced on column ${gridRowColumn}`);
+
+    };
+
+    /**
+     * Gets a cell tooltip
+     * @param gridRow The row number
+     * @param columnName The column name
+     * @returns A promise resolving with the cell tooltip
+     */
+    public getCellTooltip = async (gridRow: number, columnName: string): Promise<string> => {
+        const cell = await this.getCell(gridRow, columnName);
+        await driver.actions().move({
+            origin: cell,
+            x: -5,
+            y: -5,
+        }).perform();
+
+        return driver.wait(async () => {
+            const tooltip = await driver.findElements(locator.notebook.codeEditor.tooltip);
+            if (tooltip.length > 0) {
+                return tooltip[0].getText();
+            }
+        }, constants.wait5seconds, `Could not find tooltip for cell on row '${gridRow}' and column '${columnName}'`);
+    };
+
+    /**
+     * Opens the context menu for a result grid cell and selects a value from the menu
+     * @param gridRow The row number
+     * @param columnName The column name
+     * @param contextMenuItem The menu item to select
+     * @param subContextMenuItem The sub menu item to select
+     * @returns A promise resolving when menu item is clicked
+     */
+    public openCellContextMenuAndSelect = async (gridRow: number, columnName: string,
+        contextMenuItem: string,
+        subContextMenuItem?: string): Promise<void> => {
+
+        const cellContextMenu = locator.notebook.codeEditor.editor.result.grid.row.cell.contextMenu;
+        await driver.wait(async () => {
+            try {
+                await this.result.toolbar.element.click(); // Remove context menu if exists
+                const cell = await this.getCell(gridRow, columnName);
+                await driver
+                    // eslint-disable-next-line max-len
+                    .executeScript("arguments[0].dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, button: 2 }));"
+                        , cell);
+                const contextMenu = await driver.wait(until
+                    .elementLocated(cellContextMenu.exists),
+                    constants.wait5seconds, "Cell context menu was not displayed");
+                let item: WebElement;
+                let reloadResult = false;
+                switch (contextMenuItem) {
+
+                    case constants.resultGridContextMenu.capitalizeText: {
+                        item = await contextMenu.findElement(cellContextMenu.capitalize);
+                        reloadResult = true;
+                        break;
+                    }
+
+                    case constants.resultGridContextMenu.convertTextToLowerCase: {
+                        item = await contextMenu.findElement(cellContextMenu.lowerCase);
+                        reloadResult = true;
+                        break;
+                    }
+
+                    case constants.resultGridContextMenu.convertTextToUpperCase: {
+                        item = await contextMenu.findElement(cellContextMenu.upperCase);
+                        reloadResult = true;
+                        break;
+                    }
+
+                    case constants.resultGridContextMenu.toggleForDeletion: {
+                        item = await contextMenu.findElement(cellContextMenu.toggleForDeletion);
+                        reloadResult = true;
+                        break;
+                    }
+
+                    case constants.resultGridContextMenu.copySingleRow: {
+                        const copySingleRow = await contextMenu
+                            .findElement(cellContextMenu.copySingleRow.exists);
+                        await driver.actions().move({ origin: copySingleRow }).perform();
+                        const subMenu = await driver.wait(until
+                            .elementLocated(cellContextMenu.copySingleRow.subMenu.exists),
+                            constants.wait3seconds, "Sub menu context was not displayed");
+
+                        switch (subContextMenuItem) {
+
+                            case constants.resultGridContextMenu.copySingleRowContextMenu.copyRow: {
+                                item = await subMenu
+                                    .findElement(cellContextMenu.copySingleRow.subMenu.copyRow);
+                                break;
+                            }
+
+                            case constants.resultGridContextMenu.copySingleRowContextMenu.copyRowTabSeparated: {
+                                item = await subMenu
+                                    .findElement(cellContextMenu.copySingleRow.subMenu.copyRowTabSeparated);
+                                break;
+                            }
+
+                            case constants.resultGridContextMenu.copySingleRowContextMenu.copyRowUnquoted: {
+                                item = await subMenu
+                                    .findElement(cellContextMenu.copySingleRow.subMenu.copyRowUnquoted);
+                                break;
+                            }
+
+                            case constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNames: {
+                                item = await subMenu
+                                    .findElement(cellContextMenu.copySingleRow.subMenu.copyRowWithNames);
+                                break;
+                            }
+
+                            case constants.resultGridContextMenu.copySingleRowContextMenu
+                                .copyRowWithNamesTabSeparated: {
+                                    item = await subMenu
+                                        .findElement(cellContextMenu.copySingleRow.subMenu
+                                            .copyRowWithNamesTabSeparated);
+                                    break;
+                                }
+
+                            case constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesUnquoted: {
+                                item = await subMenu
+                                    .findElement(cellContextMenu.copySingleRow.subMenu.copyRowWithNamesUnquoted);
+                                break;
+                            }
+
+                            default: {
+                                break;
+                            }
+                        }
+                        break;
+                    }
+
+                    case constants.resultGridContextMenu.copyMultipleRows: {
+                        const copyAllRows = await contextMenu
+                            .findElement(cellContextMenu.copyAllRows.exists);
+                        await driver.actions().move({ origin: copyAllRows }).perform();
+                        await driver.wait(until
+                            .elementLocated(cellContextMenu.copyAllRows.subMenu.exists),
+                            constants.wait3seconds, "Sub menu context was not displayed");
+                        switch (subContextMenuItem) {
+
+                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRows: {
+                                item = await driver.findElement(cellContextMenu.copyAllRows.subMenu.copyAllRows);
+                                break;
+                            }
+
+                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsTabSeparated: {
+                                item = await driver
+                                    .findElement(cellContextMenu.copyAllRows.subMenu.copyAllRowsTabSeparated);
+                                break;
+                            }
+
+                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsUnquoted: {
+                                item = await driver
+                                    .findElement(cellContextMenu.copyAllRows.subMenu.copyAllRowsUnquoted);
+                                break;
+                            }
+
+                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNames: {
+                                item = await driver
+                                    .findElement(cellContextMenu.copyAllRows.subMenu.copyAllRowsWithNames);
+                                break;
+                            }
+
+                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu
+                                .copyAllRowsWithNamesTabSeparated: {
+                                    item = await driver
+                                        .findElement(cellContextMenu.copyAllRows.subMenu
+                                            .copyAllRowsWithNamesTabSeparated);
+                                    break;
+                                }
+
+                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu
+                                .copyAllRowsWithNamesUnquoted: {
+                                    item = await driver
+                                        .findElement(cellContextMenu.copyAllRows.subMenu
+                                            .copyAllRowsWithNamesUnquoted);
+                                    break;
+                                }
+                            default: {
+                                break;
+                            }
+                        }
+                        break;
+                    }
+
+                    case constants.resultGridContextMenu.copyField: {
+                        item = await driver.findElement(cellContextMenu.copyField);
+                        break;
+                    }
+
+                    case constants.resultGridContextMenu.copyFieldUnquoted: {
+                        item = await driver.findElement(cellContextMenu.copyFieldUnquoted);
+                        break;
+                    }
+
+                    case constants.resultGridContextMenu.setFieldToNull: {
+                        item = await driver.findElement(cellContextMenu.setFieldToNull);
+                        break;
+                    }
+                    default: {
+                        break;
+                    }
+                }
+
+                await item.click();
+
+                return driver.wait(until.stalenessOf(contextMenu), constants.wait150MilliSeconds,
+                    `The context menu should have been closed, after clicking ${contextMenuItem}, 
+                    ${subContextMenuItem}`).then(async () => {
+                        if (reloadResult) {
+                            await this.result.loadResult();
+                        }
+
+                        return true;
+                    }).catch(() => {
+                        return false;
+                    });
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, "The cell or the context menu were always stale");
+    };
+
+    /**
+     * Verifies the row is marked for deletion (red background)
+     * @param gridRow The row number
+     * @returns A condition resolving to true if the row is marked for deletion, false otherwise
+     */
+    public rowIsMarkedForDeletion = (gridRow: number): Condition<boolean> => {
+        return new Condition(`for row to be marked for deletion`, async () => {
+            const row = await this.getRow(gridRow);
+
+            return (await row.getAttribute("class")).includes("deleted");
+        });
+    };
+
+    /**
+     * Verifies if the tooltip is equal to the expected value
+     * @param rowNumber The row number
+     * @param rowColumn The column name
+     * @param expectedTooltip The expected tooltip
+     * @returns A condition resolving to true if the tooltip is equal to the expected value, false otherwise
+     */
+    public cellTooltipIs = (
+        rowNumber: number,
+        rowColumn: string,
+        expectedTooltip: string): Condition<boolean> => {
+        return new Condition(` tooltip to be '${expectedTooltip}'`, async () => {
+            const tooltip = await this.getCellTooltip(rowNumber, rowColumn);
+
+            return tooltip.replace(/\s/g, "") === expectedTooltip.replace(/\s/g, "");
+        });
+    };
+
+    /**
+     *Verifies if the result grid cells were changed
+     * @param changed The expected number of changed cells
+     * @returns A condition resolving to true if the cells were changed, false otherwise
+     */
+    public cellsWereChanged = (changed: number): Condition<boolean> => {
+        return new Condition(`for changed ${changed} cells to be marked has changed (yellow background)`, async () => {
+            return (await this.content
+                .findElements(locator.notebook.codeEditor.editor.result.changedTableCell)).length === changed;
+        });
+    };
+
+    /**
+     * Gets a row of a result grid
+     * @param gridRow The row number or the row as WebElement
+     * @returns A promise resolving with the row
+     */
+    public getRow = async (gridRow: number): Promise<WebElement> => {
+        const rows = await this.content.findElements(gridLocator.row.exists);
+
+        return rows[gridRow];
+    };
+
+    /**
+     * Sets the grid content
+     * @returns A promise resolving when grid content is set
+     */
+    public setContent = async (): Promise<void> => {
+        this.content = await this.result.context.findElement(gridLocator.content);
+    };
+
+    /**
+     * Verifies if a row is highlighted
+     * @param gridRow The row
+     * @returns A condition resolving to true if the row is highlighted, false otherwise
+     */
+    public rowIsHighlighted = (gridRow: number): Condition<boolean> => {
+        return new Condition(`for row ${gridRow} to be highlighted`, async () => {
+            const rows = await this.content.findElements(gridLocator.row.exists);
+
+            return (await rows[gridRow].getAttribute("class")).includes("tabulator-selected");
+        });
+    };
+
+    /**
+     * Gets a cell of a result grid
+     * @param gridRow The row number. If the row number is -1, the function returns the last added row
+     * @param gridColumn The column
+     * @returns A promise resolving with the cell
+     */
+    private getCell = async (gridRow: number, gridColumn: string): Promise<WebElement> => {
+        let cells: WebElement[];
+        let cellToReturn: WebElement;
+        const table = this.getTableFromCommand();
+
+        await driver.wait(async () => {
+            try {
+                await this.result.loadResult();
+                const resultGrid = this.content;
+                if (gridRow === -1) {
+                    const addedTableRows = await resultGrid
+                        .findElements(gridLocator.newAddedRow);
+                    cells = await addedTableRows[addedTableRows.length - 1]
+                        .findElements(gridLocator.row.cell.exists);
+                } else {
+                    const rows = await resultGrid.findElements(gridLocator.row.exists);
+                    cells = await rows[gridRow].findElements(gridLocator.row.cell.exists);
+                }
+                cellToReturn = cells[Misc.getDbTableColumnIndex(table, gridColumn)];
+
+                return true;
+            } catch (e) {
+                if (!(errors.isStaleError(e as Error))) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, `Could not get cell for row: ${gridRow}; column ${gridColumn}`);
+
+        if (!cellToReturn) {
+            throw new Error(`Could not find cell on table '${table}' on row '${gridRow}' and column '${gridColumn}'`);
+        } else {
+            return cellToReturn;
+        }
+    };
+
+    /**
+     * Verifies if a new row exists
+     * @returns A condition resolving to true if a row was added, false otherwise
+     */
+    private newRowExists = (): Condition<boolean> => {
+        return new Condition(`for added table row`, async () => {
+            return (await this.content.findElements(gridLocator.newAddedRow)).length > 0;
+        });
+    };
+
+    /**
+     * Clicks the add new row button in a result grid, by moving the mouse to the table headers to display the button
+     * @returns A promise resolving when the button is clicked
+     */
+    private clickAddNewRowButton = async (): Promise<void> => {
+        const resultLocator = locator.notebook.codeEditor.editor.result;
+        await driver.wait(async () => {
+            const tableHeader = await this.result.context.findElement(gridLocator.headers);
+            await driver.actions().move({ origin: tableHeader }).perform();
+
+            return (await this.result.context
+                .findElements(resultLocator.toolbar.addNewRowButton))
+                .length > 0;
+        }, constants.wait5seconds, "Add new button was not displayed");
+
+        await driver.executeScript("arguments[0].click()",
+            await (this.result.context).findElement(resultLocator.toolbar.addNewRowButton));
+    };
+
+    /**
+     * Sets a boolean value on a cell
+     * @param rowNumber The row number
+     * @param columnName The column name
+     * @param value The value
+     * @returns A promise resolving when the value is set
+     */
+    private setCellBooleanValue = async (rowNumber: number,
+        columnName: string, value: boolean): Promise<void> => {
+        const cell = await this.getCell(rowNumber, columnName);
+        const selectList = cell.findElement(gridLocator.row.cell.selectList.exists);
+        await selectList.click();
+        await driver.wait(async () => {
+            return (await driver
+                .findElements(gridLocator.row.cell.selectList.exists))
+                .length > 0;
+        }, constants.wait2seconds, "List was not displayed");
+        const list = await driver
+            .findElement(gridLocator.row.cell.selectList.list.exists);
+        const items = await list
+            .findElements(gridLocator.row.cell.selectList.list.item);
+
+        let item = await Promise.all(items.map(async (item: WebElement) => {
+            if ((await item.getText()) === value.toString()) {
+                return item;
+            }
+        }));
+
+        item = item.filter((el) => { return el !== undefined; });
+
+        if (item.length > 0) {
+            await item[0].click();
+        } else {
+            throw new Error(`Could not find '${value}' on the select list`);
+        }
+    };
+
+    /**
+     * Clears an input field
+     * @param el The element
+     * @returns A promise resolving when the field is cleared
+     */
+    private clearCellInputField = async (el: WebElement): Promise<void> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
+        await driver.wait(async () => {
+            await driver.executeScript("arguments[0].click()", el);
+            if (Os.isMacOs()) {
+                await el.sendKeys(Key.chord(Key.COMMAND, "a"));
+            } else {
+                await el.sendKeys(Key.chord(Key.CONTROL, "a"));
+            }
+            await el.sendKeys(Key.BACK_SPACE);
+
+            return (await el.getAttribute("value")).length === 0;
+        }, constants.wait5seconds, `${await el.getId()} was not cleaned`);
+    };
+
+    /**
+     * Starts to edit a cell.
+     * @param rowNumber The row number
+     * @param columnName The column name
+     * @returns The table name
+     */
+    private startEditCell = async (rowNumber: number, columnName: string): Promise<void> => {
+        const selectListLocator = locator.notebook.codeEditor.editor.result.grid.row.cell.selectList.exists;
+        let cell = await this.getCell(rowNumber, columnName);
+
+        const editingStarted = async (cellRef: WebElement) => {
+            return (await cellRef.getAttribute("class")).includes("tabulator-editing");
+        };
+
+        await driver.wait(async () => {
+            try {
+                if (await editingStarted(cell)) {
+                    return (await cell.findElements(locator.htmlTag.input)).length > 0 ||
+                        (await cell.findElements(locator.htmlTag.textArea)).length > 0 ||
+                        (await cell.findElements(selectListLocator)).length > 0;
+                } else {
+                    await driver
+                        .executeScript("arguments[0].dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));",
+                            cell);
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError) &&
+                    !(e instanceof error.ElementNotInteractableError)) {
+                    throw e;
+                } else {
+                    cell = await this.getCell(rowNumber, columnName);
+                }
+            }
+        }, constants.wait5seconds, `Could not start editing cell on column ${columnName}`);
+    };
+
+    /**
+     * Gets the table from the last executed query
+     * @returns The table name
+     */
+    private getTableFromCommand = (): string => {
+        const keywords = this.result.command.split(" ");
+        for (let i = 0; i <= keywords.length - 1; i++) {
+            if (keywords[i].match(/(from|FROM)/) !== null) {
+                if (keywords[i + 1].includes(".")) {
+                    return (keywords[i + 1].split("."))[1].replace(";", "");
+                } else {
+                    return keywords[i + 1].replace(";", "");
+                }
+            }
+        }
+        throw new Error(`Could not get the table from command ${this.result.command}`);
+    };
+}
