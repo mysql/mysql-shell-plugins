@@ -103,6 +103,7 @@
         "INOUT",
         "Imds",
         "Kwargs",
+        "Lakehouse",
         "MAAAAAAAAAAAAAAAAAAAAA",
         "MDSforVSCodeExtension",
         "MQAAAAAAAAAAAAAAAAAAAA",
@@ -221,6 +222,7 @@
         "src/components/Theming/assets",
         "src/app-wrapper",
         "src/modules/mrs/sdk",
-        "statements.txt"
+        "statements.txt",
+        "src/tests/unit-tests/data"
     ]
 }

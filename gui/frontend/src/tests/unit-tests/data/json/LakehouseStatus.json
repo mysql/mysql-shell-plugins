@@ -1,0 +1,714 @@
+{
+    "request_state": {
+        "type": "PENDING",
+        "msg": ""
+    },
+    "result": {
+        "memory_status": {
+            "memory_total": 107374182400,
+            "memory_used": 1094139538
+        },
+        "table_status": {
+            "hash": 4764664537187834027,
+            "tables": [
+                {
+                    "data_length": 1163454,
+                    "id": "vector_store.heatwave_aws_guide",
+                    "last_change": "2024-05-23 19:53",
+                    "load_progress": 100.0,
+                    "loaded": 1,
+                    "schema_name": "vector_store",
+                    "table_comment": "Data from Bucket genai-shell-test",
+                    "table_name": "heatwave_aws_guide",
+                    "table_rows": 680
+                },
+                {
+                    "data_length": 0,
+                    "id": "vector_store.test",
+                    "last_change": "2024-05-21 15:27",
+                    "load_progress": null,
+                    "loaded": 0,
+                    "schema_name": "vector_store",
+                    "table_comment": "Data from Bucket genai-shell-test",
+                    "table_name": "test",
+                    "table_rows": 0
+                },
+                {
+                    "data_length": 0,
+                    "id": "vector_store.formula1",
+                    "last_change": "2024-05-17 10:09",
+                    "load_progress": null,
+                    "loaded": 0,
+                    "schema_name": "vector_store",
+                    "table_comment": "Data from Bucket genai-shell-test",
+                    "table_name": "formula1",
+                    "table_rows": 0
+                },
+                {
+                    "data_length": 0,
+                    "id": "vector_store.legal_contracts",
+                    "last_change": "2024-05-17 10:09",
+                    "load_progress": null,
+                    "loaded": 0,
+                    "schema_name": "vector_store",
+                    "table_comment": "Data from Bucket genai-shell-test",
+                    "table_name": "legal_contracts",
+                    "table_rows": 0
+                },
+                {
+                    "data_length": 0,
+                    "id": "vector_store.mrs_docs",
+                    "last_change": "2024-05-17 10:09",
+                    "load_progress": null,
+                    "loaded": 0,
+                    "schema_name": "vector_store",
+                    "table_comment": "Data from Bucket genai-shell-test",
+                    "table_name": "mrs_docs",
+                    "table_rows": 0
+                }
+            ]
+        },
+        "task_status": {
+            "hash": -1266453741946847910,
+            "tasks": [
+                {
+                    "data": {
+                        "created_tables": {
+                            "heatwave_aws_guide": [
+                                "oci://genai-shell-test@lrsrfayerklw/upload/mysql-heatwave-aws-service-guide.pdf"
+                            ]
+                        },
+                        "description": "Data from Bucket genai-shell-test",
+                        "events": [
+                            "`mysql_task_management`.`vector_store_load_progress_20240523195328244`",
+                            "`mysql_task_management`.`vector_store_load_runner_20240523195328244`"
+                        ],
+                        "schema_name": "vector_store",
+                        "table_name": "heatwave_aws_guide",
+                        "task_name": "Loading heatwave_aws_guide",
+                        "uris": [
+                            {
+                                "uri": "oci://genai-shell-test@lrsrfayerklw/upload/mysql-heatwave-aws-service-guide.pdf"
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": "2024-05-23 19:54",
+                    "estimated_remaining_time": 0,
+                    "id": 154,
+                    "log_time": "2024-05-23 19:54",
+                    "message": "Task completed.",
+                    "name": "Loading heatwave_aws_guide",
+                    "progress": 100,
+                    "scheduled_time": "2024-05-23 19:53",
+                    "starting_time": "2024-05-23 19:53",
+                    "status": "COMPLETED"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "test": [
+                                ""
+                            ]
+                        },
+                        "description": "Reload of table test",
+                        "events": [
+                            "`mysql_task_management`.`vector_store_load_progress_20240523111502155`",
+                            "`mysql_task_management`.`vector_store_load_runner_20240523111502155`"
+                        ],
+                        "schema_name": "vector_store",
+                        "task_name": "Reload Lakehouse Table",
+                        "uris": [
+                            {
+                                "table_name": "test"
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": null,
+                    "estimated_remaining_time": null,
+                    "id": 153,
+                    "log_time": "2024-05-23 11:15",
+                    "message": "ERROR encountered during pre-load validation: Error during Lakehouse Schema Inference. No files found corresponding to the following data locations: all locations specified inside engine_attributes.. (Error: 3877 - HY000)",
+                    "name": "Reload Lakehouse Table",
+                    "progress": 0,
+                    "scheduled_time": "2024-05-23 11:15",
+                    "starting_time": "2024-05-23 11:15",
+                    "status": "ERROR"
+                },
+                {
+                    "data": null,
+                    "estimated_completion_time": null,
+                    "estimated_remaining_time": null,
+                    "id": 152,
+                    "log_time": "2024-05-23 11:10",
+                    "message": "Task completed.",
+                    "name": "Unload Lakehouse Table",
+                    "progress": 0,
+                    "scheduled_time": "2024-05-23 11:10",
+                    "starting_time": "2024-05-23 11:10",
+                    "status": "COMPLETED"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "test": [
+                                "oci://genai-shell-test@lrsrfayerklw/upload/24-04-16 Reminder Flohmarkt.pdf"
+                            ]
+                        },
+                        "description": "Data from Bucket genai-shell-test",
+                        "events": [
+                            "`mysql_task_management`.`vector_store_load_progress_20240521152745547`",
+                            "`mysql_task_management`.`vector_store_load_runner_20240521152745547`"
+                        ],
+                        "schema_name": "vector_store",
+                        "table_name": "test",
+                        "task_name": "Loading test",
+                        "uris": [
+                            {
+                                "uri": "oci://genai-shell-test@lrsrfayerklw/upload/24-04-16 Reminder Flohmarkt.pdf"
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": "2024-05-21 15:28",
+                    "estimated_remaining_time": 0,
+                    "id": 151,
+                    "log_time": "2024-05-21 15:28",
+                    "message": "Task completed.",
+                    "name": "Loading test",
+                    "progress": 100,
+                    "scheduled_time": "2024-05-21 15:27",
+                    "starting_time": "2024-05-21 15:27",
+                    "status": "COMPLETED"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "vector_store_data_1_doc": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202?.pdf"
+                            ],
+                            "vector_store_data_1_html": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202?.pdf"
+                            ],
+                            "vector_store_data_1_pdf": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202?.pdf"
+                            ],
+                            "vector_store_data_1_ppt": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202?.pdf"
+                            ],
+                            "vector_store_data_1_txt": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202?.pdf"
+                            ]
+                        },
+                        "events": [
+                            "`mysql_task_management`.`vector_store_load_progress_20240521083018475`",
+                            "`mysql_task_management`.`vector_store_load_runner_20240521083018475`"
+                        ],
+                        "schema_name": "vs",
+                        "uris": [
+                            {
+                                "table_name": "",
+                                "uri": "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202?.pdf"
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": "2024-05-21 08:32",
+                    "estimated_remaining_time": 0,
+                    "id": 150,
+                    "log_time": "2024-05-21 08:32",
+                    "message": "Task completed.",
+                    "name": "Vector Store Loader",
+                    "progress": 100,
+                    "scheduled_time": "2024-05-21 08:30",
+                    "starting_time": "2024-05-21 08:30",
+                    "status": "COMPLETED"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "lakehouse_data_20": [
+                                "oci://Heatwave_QA_Data@mysql2/Vector/pdf/tmp/tmp.log"
+                            ]
+                        },
+                        "events": [
+                            "`mysql_task_management`.`lakehouse_load_progress_20240517113505851`",
+                            "`mysql_task_management`.`lakehouse_load_runner_20240517113505851`"
+                        ],
+                        "schema_name": "vs",
+                        "uris": [
+                            {
+                                "table_name": "",
+                                "uri": "oci://Heatwave_QA_Data@mysql2/Vector/pdf/tmp/tmp.log"
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": null,
+                    "estimated_remaining_time": null,
+                    "id": 149,
+                    "log_time": "2024-05-17 11:35",
+                    "message": "ERROR encountered during pre-load validation: Error during Lakehouse Schema Inference. No files found corresponding to the following data locations: all locations specified inside engine_attributes.. (Error: 3877 - HY000)",
+                    "name": "Data Lake Loader",
+                    "progress": 0,
+                    "scheduled_time": "2024-05-17 11:35",
+                    "starting_time": "2024-05-17 11:35",
+                    "status": "ERROR"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "lakehouse_data_19": [
+                                "oci://Heatwave_QA_Data@mysql2/Vector/pdf/tmp/tmp.log"
+                            ]
+                        },
+                        "events": [
+                            "`mysql_task_management`.`lakehouse_load_progress_20240517113420620`",
+                            "`mysql_task_management`.`lakehouse_load_runner_20240517113420620`"
+                        ],
+                        "schema_name": "vs",
+                        "uris": [
+                            {
+                                "table_name": "",
+                                "uri": "oci://Heatwave_QA_Data@mysql2/Vector/pdf/tmp/tmp.log"
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": null,
+                    "estimated_remaining_time": null,
+                    "id": 148,
+                    "log_time": "2024-05-17 11:34",
+                    "message": "ERROR encountered during pre-load validation: Error during Lakehouse Schema Inference. No files found corresponding to the following data locations: all locations specified inside engine_attributes.. (Error: 3877 - HY000)",
+                    "name": "Data Lake Loader",
+                    "progress": 0,
+                    "scheduled_time": "2024-05-17 11:34",
+                    "starting_time": "2024-05-17 11:34",
+                    "status": "ERROR"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "lakehouse_data_18": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202\\\\\\\\?.pdf"
+                            ]
+                        },
+                        "events": [
+                            "`mysql_task_management`.`lakehouse_load_progress_20240517103915233`",
+                            "`mysql_task_management`.`lakehouse_load_runner_20240517103915233`"
+                        ],
+                        "schema_name": "vs",
+                        "uris": [
+                            {
+                                "uri": "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202\\\\?.pdf"
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": null,
+                    "estimated_remaining_time": null,
+                    "id": 147,
+                    "log_time": "2024-05-17 10:39",
+                    "message": "ERROR encountered during pre-load validation: Error during Lakehouse Schema Inference. No files found corresponding to the following data locations: all locations specified inside engine_attributes.. (Error: 3877 - HY000)",
+                    "name": "Data Lake Loader",
+                    "progress": 0,
+                    "scheduled_time": "2024-05-17 10:39",
+                    "starting_time": "2024-05-17 10:39",
+                    "status": "ERROR"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "lakehouse_data_17_doc": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202?.pdf"
+                            ],
+                            "lakehouse_data_17_html": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202?.pdf"
+                            ],
+                            "lakehouse_data_17_pdf": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202?.pdf"
+                            ],
+                            "lakehouse_data_17_ppt": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202?.pdf"
+                            ],
+                            "lakehouse_data_17_txt": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202?.pdf"
+                            ]
+                        },
+                        "events": [
+                            "`mysql_task_management`.`lakehouse_load_progress_20240517103847237`",
+                            "`mysql_task_management`.`lakehouse_load_runner_20240517103847237`"
+                        ],
+                        "schema_name": "vs",
+                        "uris": [
+                            {
+                                "uri": "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202?.pdf"
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": null,
+                    "estimated_remaining_time": null,
+                    "id": 146,
+                    "log_time": "2024-05-17 10:38",
+                    "message": "ERROR encountered during pre-load validation: Error during Lakehouse Schema Inference. No files found corresponding to the following data locations: all locations specified inside engine_attributes.. (Error: 3877 - HY000)",
+                    "name": "Data Lake Loader",
+                    "progress": 0,
+                    "scheduled_time": "2024-05-17 10:38",
+                    "starting_time": "2024-05-17 10:38",
+                    "status": "ERROR"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "lakehouse_data_16": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202\\\\\\\\?.pdf"
+                            ]
+                        },
+                        "events": [
+                            "`mysql_task_management`.`lakehouse_load_progress_20240517103733907`",
+                            "`mysql_task_management`.`lakehouse_load_runner_20240517103733907`"
+                        ],
+                        "schema_name": "vs",
+                        "uris": [
+                            {
+                                "table_name": "",
+                                "uri": "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey202\\\\?.pdf"
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": null,
+                    "estimated_remaining_time": null,
+                    "id": 145,
+                    "log_time": "2024-05-17 10:37",
+                    "message": "ERROR encountered during pre-load validation: Error during Lakehouse Schema Inference. No files found corresponding to the following data locations: all locations specified inside engine_attributes.. (Error: 3877 - HY000)",
+                    "name": "Data Lake Loader",
+                    "progress": 0,
+                    "scheduled_time": "2024-05-17 10:37",
+                    "starting_time": "2024-05-17 10:37",
+                    "status": "ERROR"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "lakehouse_data_15_doc": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey2023.pd?"
+                            ],
+                            "lakehouse_data_15_html": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey2023.pd?"
+                            ],
+                            "lakehouse_data_15_pdf": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey2023.pd?"
+                            ],
+                            "lakehouse_data_15_ppt": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey2023.pd?"
+                            ],
+                            "lakehouse_data_15_txt": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey2023.pd?"
+                            ]
+                        },
+                        "events": [
+                            "`mysql_task_management`.`lakehouse_load_progress_20240517103644344`",
+                            "`mysql_task_management`.`lakehouse_load_runner_20240517103644344`"
+                        ],
+                        "schema_name": "vs",
+                        "uris": [
+                            {
+                                "table_name": "",
+                                "uri": "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey2023.pd?"
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": null,
+                    "estimated_remaining_time": null,
+                    "id": 144,
+                    "log_time": "2024-05-17 10:36",
+                    "message": "ERROR encountered during pre-load validation: Error during Lakehouse Schema Inference. No files found corresponding to the following data locations: all locations specified inside engine_attributes.. (Error: 3877 - HY000)",
+                    "name": "Data Lake Loader",
+                    "progress": 0,
+                    "scheduled_time": "2024-05-17 10:36",
+                    "starting_time": "2024-05-17 10:36",
+                    "status": "ERROR"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "lakehouse_data_14_doc": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey2023.pd."
+                            ],
+                            "lakehouse_data_14_html": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey2023.pd."
+                            ],
+                            "lakehouse_data_14_pdf": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey2023.pd."
+                            ],
+                            "lakehouse_data_14_ppt": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey2023.pd."
+                            ],
+                            "lakehouse_data_14_txt": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey2023.pd."
+                            ]
+                        },
+                        "events": [
+                            "`mysql_task_management`.`lakehouse_load_progress_20240517103559279`",
+                            "`mysql_task_management`.`lakehouse_load_runner_20240517103559279`"
+                        ],
+                        "schema_name": "vs",
+                        "uris": [
+                            {
+                                "table_name": "",
+                                "uri": "oci://genai-shell-test@lrsrfayerklw/dsm/EconomicSurvey2023.pd."
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": null,
+                    "estimated_remaining_time": null,
+                    "id": 143,
+                    "log_time": "2024-05-17 10:35",
+                    "message": "ERROR encountered during pre-load validation: Error during Lakehouse Schema Inference. No files found corresponding to the following data locations: all locations specified inside engine_attributes.. (Error: 3877 - HY000)",
+                    "name": "Data Lake Loader",
+                    "progress": 0,
+                    "scheduled_time": "2024-05-17 10:35",
+                    "starting_time": "2024-05-17 10:35",
+                    "status": "ERROR"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "lakehouse_data_13_doc": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/dsm/EconomicSurvey2023.pd."
+                            ],
+                            "lakehouse_data_13_html": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/dsm/EconomicSurvey2023.pd."
+                            ],
+                            "lakehouse_data_13_pdf": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/dsm/EconomicSurvey2023.pd."
+                            ],
+                            "lakehouse_data_13_ppt": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/dsm/EconomicSurvey2023.pd."
+                            ],
+                            "lakehouse_data_13_txt": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/dsm/EconomicSurvey2023.pd."
+                            ]
+                        },
+                        "events": [
+                            "`mysql_task_management`.`lakehouse_load_progress_20240517103513988`",
+                            "`mysql_task_management`.`lakehouse_load_runner_20240517103513988`"
+                        ],
+                        "schema_name": "vs",
+                        "uris": [
+                            {
+                                "table_name": "",
+                                "uri": "oci://genai-shell-test@lrsrfayerklw/dsm/dsm/EconomicSurvey2023.pd."
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": null,
+                    "estimated_remaining_time": null,
+                    "id": 142,
+                    "log_time": "2024-05-17 10:35",
+                    "message": "ERROR encountered during pre-load validation: Error during Lakehouse Schema Inference. No files found corresponding to the following data locations: all locations specified inside engine_attributes.. (Error: 3877 - HY000)",
+                    "name": "Data Lake Loader",
+                    "progress": 0,
+                    "scheduled_time": "2024-05-17 10:35",
+                    "starting_time": "2024-05-17 10:35",
+                    "status": "ERROR"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "lakehouse_data_12_doc": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/dsm/EconomicSurvey2023\\\\\\\\\\\\\\\\.pd."
+                            ],
+                            "lakehouse_data_12_html": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/dsm/EconomicSurvey2023\\\\\\\\\\\\\\\\.pd."
+                            ],
+                            "lakehouse_data_12_pdf": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/dsm/EconomicSurvey2023\\\\\\\\\\\\\\\\.pd."
+                            ],
+                            "lakehouse_data_12_ppt": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/dsm/EconomicSurvey2023\\\\\\\\\\\\\\\\.pd."
+                            ],
+                            "lakehouse_data_12_txt": [
+                                "oci://genai-shell-test@lrsrfayerklw/dsm/dsm/EconomicSurvey2023\\\\\\\\\\\\\\\\.pd."
+                            ]
+                        },
+                        "events": [
+                            "`mysql_task_management`.`lakehouse_load_progress_20240517103445406`",
+                            "`mysql_task_management`.`lakehouse_load_runner_20240517103445406`"
+                        ],
+                        "schema_name": "vs",
+                        "uris": [
+                            {
+                                "table_name": "",
+                                "uri": "oci://genai-shell-test@lrsrfayerklw/dsm/dsm/EconomicSurvey2023\\\\\\\\.pd."
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": null,
+                    "estimated_remaining_time": null,
+                    "id": 141,
+                    "log_time": "2024-05-17 10:34",
+                    "message": "ERROR encountered during pre-load validation: Error during Lakehouse Schema Inference. No files found corresponding to the following data locations: all locations specified inside engine_attributes.. (Error: 3877 - HY000)",
+                    "name": "Data Lake Loader",
+                    "progress": 0,
+                    "scheduled_time": "2024-05-17 10:34",
+                    "starting_time": "2024-05-17 10:34",
+                    "status": "ERROR"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "formula1": [
+                                "oci://genai-shell-test@lrsrfayerklw/formula1/"
+                            ]
+                        },
+                        "description": "Data from Bucket genai-shell-test",
+                        "events": [
+                            "`mysql_task_management`.`lakehouse_load_progress_20240516201401365`",
+                            "`mysql_task_management`.`lakehouse_load_runner_20240516201401365`"
+                        ],
+                        "formats": [
+                            "html"
+                        ],
+                        "schema_name": "vector_store",
+                        "table_name": "formula1",
+                        "task_name": "Loading formula1",
+                        "uris": [
+                            {
+                                "uri": "oci://genai-shell-test@lrsrfayerklw/formula1/"
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": "2024-05-16 20:14",
+                    "estimated_remaining_time": 0,
+                    "id": 140,
+                    "log_time": "2024-05-16 20:14",
+                    "message": "Task completed.",
+                    "name": "Loading formula1",
+                    "progress": 100,
+                    "scheduled_time": "2024-05-16 20:14",
+                    "starting_time": "2024-05-16 20:14",
+                    "status": "COMPLETED"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "legal_contracts": [
+                                ""
+                            ]
+                        },
+                        "description": "Reload of table legal_contracts",
+                        "events": [
+                            "`mysql_task_management`.`lakehouse_load_progress_20240516201026232`",
+                            "`mysql_task_management`.`lakehouse_load_runner_20240516201026232`"
+                        ],
+                        "schema_name": "vector_store",
+                        "task_name": "Reload Lakehouse Table",
+                        "uris": [
+                            {
+                                "table_name": "legal_contracts"
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": "2024-05-16 20:11",
+                    "estimated_remaining_time": 0,
+                    "id": 139,
+                    "log_time": "2024-05-16 20:11",
+                    "message": "Task completed.",
+                    "name": "Reload Lakehouse Table",
+                    "progress": 100,
+                    "scheduled_time": "2024-05-16 20:10",
+                    "starting_time": "2024-05-16 20:10",
+                    "status": "COMPLETED"
+                },
+                {
+                    "data": null,
+                    "estimated_completion_time": null,
+                    "estimated_remaining_time": null,
+                    "id": 138,
+                    "log_time": "2024-05-16 20:10",
+                    "message": "Task completed.",
+                    "name": "Unload Lakehouse Table",
+                    "progress": 0,
+                    "scheduled_time": "2024-05-16 20:10",
+                    "starting_time": "2024-05-16 20:10",
+                    "status": "COMPLETED"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "formula1": [
+                                ""
+                            ]
+                        },
+                        "description": "Reload of table formula1",
+                        "events": [
+                            "`mysql_task_management`.`lakehouse_load_progress_20240516200046294`",
+                            "`mysql_task_management`.`lakehouse_load_runner_20240516200046294`"
+                        ],
+                        "schema_name": "vector_store",
+                        "task_name": "Reload Lakehouse Table",
+                        "uris": [
+                            {
+                                "table_name": "formula1"
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": "2024-05-16 20:01",
+                    "estimated_remaining_time": 0,
+                    "id": 137,
+                    "log_time": "2024-05-16 20:01",
+                    "message": "Task completed.",
+                    "name": "Reload Lakehouse Table",
+                    "progress": 100,
+                    "scheduled_time": "2024-05-16 20:00",
+                    "starting_time": "2024-05-16 20:00",
+                    "status": "COMPLETED"
+                },
+                {
+                    "data": null,
+                    "estimated_completion_time": null,
+                    "estimated_remaining_time": null,
+                    "id": 136,
+                    "log_time": "2024-05-16 20:00",
+                    "message": "Task completed.",
+                    "name": "Unload Lakehouse Table",
+                    "progress": 0,
+                    "scheduled_time": "2024-05-16 20:00",
+                    "starting_time": "2024-05-16 20:00",
+                    "status": "COMPLETED"
+                },
+                {
+                    "data": {
+                        "created_tables": {
+                            "formula1": [
+                                "oci://genai-shell-test@lrsrfayerklw/formula1/"
+                            ]
+                        },
+                        "description": "Data from Bucket genai-shell-test",
+                        "events": [
+                            "`mysql_task_management`.`lakehouse_load_progress_20240516194804728`",
+                            "`mysql_task_management`.`lakehouse_load_runner_20240516194804728`"
+                        ],
+                        "formats": [
+                            "html"
+                        ],
+                        "schema_name": "vector_store",
+                        "table_name": "formula1",
+                        "task_name": "Loading formula1",
+                        "uris": [
+                            {
+                                "uri": "oci://genai-shell-test@lrsrfayerklw/formula1/"
+                            }
+                        ]
+                    },
+                    "estimated_completion_time": "2024-05-16 19:48",
+                    "estimated_remaining_time": 0,
+                    "id": 135,
+                    "log_time": "2024-05-16 19:48",
+                    "message": "Task completed.",
+                    "name": "Loading formula1",
+                    "progress": 100,
+                    "scheduled_time": "2024-05-16 19:48",
+                    "starting_time": "2024-05-16 19:48",
+                    "status": "COMPLETED"
+                }
+            ]
+        }
+    },
+    "request_id": "eaa5f43f-44f5-46b1-ac3e-7f74120c0b21"
+}
