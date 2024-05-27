@@ -26,8 +26,7 @@ import { BottomBarPanel, ActivityBar, until } from "vscode-extension-tester";
 import { expect } from "chai";
 import { driver, Misc } from "../lib/Misc";
 import { Shell } from "../lib/Shell";
-import { Notebook } from "../lib/WebViews/Notebook";
-import { AccordionSection } from "../lib/SideBar/AccordionSection";
+import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection";
 import { Os } from "../lib/Os";
 import { Workbench } from "../lib/Workbench";
 import * as constants from "../lib/constants";
@@ -35,6 +34,7 @@ import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import * as errors from "../lib/errors";
+import { EditorSelector } from "../lib/WebViews/EditorSelector";
 
 describe("OPEN EDITORS", () => {
 
@@ -70,8 +70,9 @@ describe("OPEN EDITORS", () => {
         },
     };
 
-    const dbTreeSection = new AccordionSection(constants.dbTreeSection);
-    const openEditorsTreeSection = new AccordionSection(constants.openEditorsTreeSection);
+    const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
+    const openEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
+    const editorSelector = new EditorSelector();
 
     before(async function () {
 
@@ -84,11 +85,9 @@ describe("OPEN EDITORS", () => {
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.removeAllDatabaseConnections();
             await dbTreeSection.createDatabaseConnection(globalConn);
+            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption), constants.wait5seconds);
             await Workbench.closeAllEditors();
             await new BottomBarPanel().toggle(false);
-            if (await Workbench.requiresMRSMetadataUpgrade(globalConn)) {
-                await Workbench.upgradeMRSMetadata();
-            }
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -130,7 +129,8 @@ describe("OPEN EDITORS", () => {
             constants.newMySQLScript);
         await driver.executeScript("arguments[0].click()", newMySQLScript);
         await driver.wait(waitUntil.currentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
-        expect(await Notebook.getCurrentEditorType(), `The current editor type should be 'Mysql'`).to.include("Mysql");
+        expect((await editorSelector.getCurrent()).icon, `The current editor icon should be 'Mysql'`)
+            .to.include(constants.mysqlScriptIcon);
         const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, "Mysql");
         await (await openEditorsTreeSection.tree.getActionButton(treeItem, "Close Editor")).click();
 
@@ -142,7 +142,8 @@ describe("OPEN EDITORS", () => {
         const item = await openEditorsTreeSection.tree.getElement(globalConn.caption);
         await openEditorsTreeSection.tree.openContextMenuAndSelect(item, constants.newMySQLScript);
         await driver.wait(waitUntil.currentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
-        expect(await Notebook.getCurrentEditorType(), `The current editor type should be 'Mysql'`).to.include("Mysql");
+        expect((await editorSelector.getCurrent()).icon, `The current editor icon should be 'Mysql'`)
+            .to.include(constants.mysqlScriptIcon);
         const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, "Mysql");
         await (await openEditorsTreeSection.tree.getActionButton(treeItem, "Close Editor")).click();
 
@@ -153,8 +154,8 @@ describe("OPEN EDITORS", () => {
         const item = await openEditorsTreeSection.tree.getElement(globalConn.caption);
         await openEditorsTreeSection.tree.openContextMenuAndSelect(item, constants.newJS);
         await driver.wait(waitUntil.currentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
-        expect(await Notebook.getCurrentEditorType(), `The current editor type should be 'scriptJs'`)
-            .to.include("scriptJs");
+        expect((await editorSelector.getCurrent()).icon, `The current editor icon should be 'scriptJs'`)
+            .to.include(constants.jsScriptIcon);
         const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, "scriptJs");
         await (await openEditorsTreeSection.tree.getActionButton(treeItem, "Close Editor")).click();
 
@@ -165,8 +166,8 @@ describe("OPEN EDITORS", () => {
         const item = await openEditorsTreeSection.tree.getElement(globalConn.caption);
         await openEditorsTreeSection.tree.openContextMenuAndSelect(item, constants.newTS);
         await driver.wait(waitUntil.currentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
-        expect(await Notebook.getCurrentEditorType(), `The current editor type should be 'scriptTs'`)
-            .to.include("scriptTs");
+        expect((await editorSelector.getCurrent()).icon, `The current editor icon should be 'scriptTs'`)
+            .to.include(constants.tsScriptIcon);
         const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, "scriptTs");
         await (await openEditorsTreeSection.tree.getActionButton(treeItem, "Close Editor")).click();
 
@@ -175,16 +176,14 @@ describe("OPEN EDITORS", () => {
     it("Collapse All", async () => {
 
         await openEditorsTreeSection.clickToolbarButton(constants.collapseAll);
-        const treeVisibleItems = await (await openEditorsTreeSection.getTreeExplorer()).getVisibleItems();
+        const treeVisibleItems = await (await openEditorsTreeSection.getWebElement()).getVisibleItems();
         expect(treeVisibleItems.length, `The tree items were not collapsed`).to.equals(3);
         expect(await treeVisibleItems[0].getLabel(), errors.doesNotExistOnTree(constants.dbConnectionsLabel))
             .to.equals(constants.dbConnectionsLabel);
         expect(await treeVisibleItems[1].getLabel(), errors.doesNotExistOnTree(globalConn.caption))
             .to.equals(globalConn.caption);
-
         expect(await treeVisibleItems[2].getLabel(), errors.doesNotExistOnTree(constants.mysqlShellConsoles))
             .to.equals(constants.mysqlShellConsoles);
-
     });
 
     it("Open DB Connection Overview", async () => {

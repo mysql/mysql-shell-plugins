@@ -29,7 +29,7 @@ import { expect } from "chai";
 import { BottomBarPanel, ModalDialog } from "vscode-extension-tester";
 import clipboard from "clipboardy";
 import { driver, Misc } from "../lib/Misc";
-import { AccordionSection } from "../lib/SideBar/AccordionSection";
+import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection";
 import { RestDialog } from "../lib/WebViews/RestDialog";
 import { Os } from "../lib/Os";
 import { Workbench } from "../lib/Workbench";
@@ -39,7 +39,6 @@ import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
 import * as waitUntil from "../lib/until";
 import * as locator from "../lib/locators";
-import * as errors from "../lib/errors";
 
 describe("MySQL REST Service", () => {
 
@@ -73,7 +72,7 @@ describe("MySQL REST Service", () => {
     const tableToDump = "abc";
     const actorTable = "actor";
     let routerPort: string;
-    const dbTreeSection = new AccordionSection(constants.dbTreeSection);
+    const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
 
     before(async function () {
         await Misc.loadDriver();
@@ -83,19 +82,17 @@ describe("MySQL REST Service", () => {
             await dbTreeSection.focus();
             await dbTreeSection.removeAllDatabaseConnections();
             await dbTreeSection.createDatabaseConnection(globalConn);
+            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption), constants.wait5seconds);
             await (await DatabaseConnectionOverview.getConnection(globalConn.caption)).click();
             await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait10seconds);
-            expect(await dbTreeSection.tree.existsElement(globalConn.caption),
-                errors.doesNotExistOnTree(globalConn.caption)).to.be.true;
+            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption), constants.wait5seconds);
             await Os.deleteCredentials();
-            if (await Workbench.requiresMRSMetadataUpgrade(globalConn)) {
-                await Workbench.upgradeMRSMetadata();
-            }
             await dbTreeSection.tree.configureMySQLRestService(globalConn);
             const treeGlobalConn = await dbTreeSection.tree.getElement(globalConn.caption);
-            await dbTreeSection.tree.openContextMenuAndSelect(treeGlobalConn, constants.showSystemSchemas, undefined);
-            expect(await dbTreeSection.tree.existsElement("mysql_rest_service_metadata"),
-                errors.doesNotExistOnTree("mysql_rest_service_metadata")).to.be.true;
+            await dbTreeSection.tree.expandDatabaseConnection(treeGlobalConn,
+                (globalConn.basic as interfaces.IConnBasicMySQL).password);
+            await dbTreeSection.tree.openContextMenuAndSelect(treeGlobalConn, constants.showSystemSchemas);
+            await driver.wait(dbTreeSection.tree.untilExists("mysql_rest_service_metadata"), constants.wait5seconds);
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -139,8 +136,6 @@ describe("MySQL REST Service", () => {
             const treeMySQLRestService = await dbTreeSection.tree.getElement(constants.mysqlRestService);
             await dbTreeSection.tree.openContextMenuAndSelect(treeMySQLRestService, constants.disableRESTService);
             await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
-                constants.wait5seconds);
             await driver.wait(async () => {
                 await dbTreeSection.clickToolbarButton(constants.reloadConnections);
                 await driver.wait(dbTreeSection.isNotLoading(), constants.wait10seconds,
@@ -155,8 +150,6 @@ describe("MySQL REST Service", () => {
             const treeMySQLRestService = await dbTreeSection.tree.getElement(constants.mysqlRestService);
             await dbTreeSection.tree.openContextMenuAndSelect(treeMySQLRestService, constants.enableRESTService);
             await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await driver.wait(waitUntil.notificationExists("MySQL REST Service configured successfully."),
-                constants.wait5seconds);
             await driver.wait(async () => {
                 await dbTreeSection.clickToolbarButton(constants.reloadConnections);
                 await driver.wait(dbTreeSection.isNotLoading(), constants.wait10seconds,
@@ -180,8 +173,7 @@ describe("MySQL REST Service", () => {
             await Workbench.execOnTerminal("1234", constants.wait10seconds);
             await Workbench.waitForTerminalText("Once the MySQL Router is started", constants.wait10seconds);
             expect(await Workbench.terminalHasErrors(), "Terminal has errors").to.be.false;
-            expect(await dbTreeSection.tree.existsElement(new RegExp(hostname())),
-                errors.doesNotExistOnTree(hostname())).to.be.true;
+            await driver.wait(dbTreeSection.tree.untilExists(new RegExp(hostname())), constants.wait5seconds);
             const router = await dbTreeSection.tree.getElement(new RegExp(hostname()));
             expect(await dbTreeSection.tree.routerHasError(router), "Please update Router").to.be.false;
             await driver.wait(dbTreeSection.tree.routerIconIsInactive(), constants.wait20seconds);
@@ -366,10 +358,10 @@ describe("MySQL REST Service", () => {
                     await RestDialog.setService(service);
                     await driver.wait(waitUntil.notificationExists("The MRS service has been created"),
                         constants.wait5seconds);
-                    expect(await dbTreeSection.tree
-                        .existsElement(`${service.servicePath} (${service.settings.hostNameFilter})`),
-                        errors.doesNotExistOnTree(`${service.servicePath} (${service.settings.hostNameFilter})`))
-                        .to.be.true;
+
+                    await driver.wait(dbTreeSection.tree
+                        .untilExists(`${service.servicePath} (${service.settings.hostNameFilter})`),
+                        constants.wait5seconds);
                 }
                 await dbTreeSection.focus();
             } catch (e) {
@@ -433,6 +425,9 @@ describe("MySQL REST Service", () => {
             await RestDialog.setService(editedService);
             await driver.wait(waitUntil.notificationExists("The MRS service has been successfully updated."),
                 constants.wait5seconds);
+            await driver.wait(dbTreeSection.tree
+                .untilExists(`${editedService.servicePath} (${editedService.settings.hostNameFilter})`),
+                constants.wait5seconds);
             treeRandomService = await dbTreeSection.tree.getElement(
                 `${editedService.servicePath} (${editedService.settings.hostNameFilter})`);
             await dbTreeSection.tree.openContextMenuAndSelect(treeRandomService, constants.editRESTService);
@@ -455,9 +450,9 @@ describe("MySQL REST Service", () => {
                 const treeService = await dbTreeSection.tree.getElement(
                     `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
                 await treeService.expand();
-                expect(await dbTreeSection.tree
-                    .existsElement(`${schema.restSchemaPath} (${schema.settings.schemaName})`),
-                    errors.doesNotExistOnTree(`${schema.restSchemaPath} (${schema.settings.schemaName})`)).to.be.true;
+                await driver.wait(dbTreeSection.tree
+                    .untilExists(`${schema.restSchemaPath} (${schema.settings.schemaName})`),
+                    constants.wait5seconds);
             }
 
         });
@@ -532,8 +527,7 @@ describe("MySQL REST Service", () => {
                     .notificationExists(`The MRS Database Object ${table} was updated successfully`),
                     constants.wait5seconds);
                 await treeRestSakila.expand();
-                expect(await dbTreeSection.tree.existsElement(`/${table} (${table})`),
-                    errors.doesNotExistOnTree(`/${table} (${table})`)).to.be.true;
+                await driver.wait(dbTreeSection.tree.untilExists(`/${table} (${table})`), constants.wait5seconds);
             }
 
         });
@@ -564,6 +558,7 @@ describe("MySQL REST Service", () => {
         });
 
         it("Edit REST Object", async () => {
+
             const treeTable = await dbTreeSection.tree.getElement(`/${tableToDump} (${tableToDump})`);
             const editedObject: interfaces.IRestObject = {
                 restServicePath: `${globalService.settings.hostNameFilter}${globalService.servicePath}`,
@@ -627,9 +622,11 @@ describe("MySQL REST Service", () => {
             const thisObject = await RestDialog.getObject();
             expect(thisObject).to.deep.equal(editedObject);
             tableToEdit = editedObject;
+
         });
 
         it("Copy REST Object Request Path to Clipboard", async () => {
+
             const actorTree = await dbTreeSection.tree.getElement(`/${actorTable} (${actorTable})`);
             await dbTreeSection.tree.openContextMenuAndSelect(actorTree, constants.copyRESTObjReqPath);
             await driver.wait(waitUntil.notificationExists("The DB Object Path was copied to the system clipboard"),
@@ -640,6 +637,7 @@ describe("MySQL REST Service", () => {
 
                 return clipboard.readSync() === url;
             }, constants.wait5seconds, `${url} was not found on the clipboard`);
+
         });
 
         it("Delete REST Object", async () => {
@@ -651,10 +649,9 @@ describe("MySQL REST Service", () => {
             await new ModalDialog().pushButton(`Delete DB Object`);
             await driver.wait(waitUntil.notificationExists("The REST DB Object abc has been deleted"),
                 constants.wait5seconds);
-            expect(await dbTreeSection.tree.existsElement(
-                `${tableToEdit.restObjectPath} (${tableToEdit.jsonRelDuality.dbObject})`),
-                errors.existsOnTree(`${tableToEdit.restObjectPath} (${tableToEdit.jsonRelDuality.dbObject})`))
-                .to.be.false;
+            await driver.wait(dbTreeSection.tree
+                .untilDoesNotExist(`${tableToEdit.restObjectPath} (${tableToEdit.jsonRelDuality.dbObject})`),
+                constants.wait5seconds);
 
         });
 
@@ -672,7 +669,7 @@ describe("MySQL REST Service", () => {
             let ntf = await Workbench.getNotification(txt, false);
             await Workbench.clickOnNotificationButton(ntf, "No");
             let itemName = `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`;
-            expect(await dbTreeSection.tree.existsElement(itemName), errors.doesNotExistOnTree(itemName)).to.be.true;
+            await driver.wait(dbTreeSection.tree.untilExists(itemName), constants.wait5seconds);
 
             // now we try again, but we really want to delete the schema
             await dbTreeSection.tree.openContextMenuAndSelect(treeMySQLRestSchema, constants.deleteRESTSchema);
@@ -681,7 +678,8 @@ describe("MySQL REST Service", () => {
             await driver.wait(waitUntil.notificationExists("The MRS schema has been deleted successfully"),
                 constants.wait5seconds);
             itemName = `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`;
-            expect(await dbTreeSection.tree.existsElement(itemName), errors.existsOnTree(itemName)).to.be.false;
+            await driver.wait(dbTreeSection.tree.untilDoesNotExist(itemName), constants.wait5seconds);
+
         });
 
         it("Load REST Schema from JSON file", async () => {
@@ -693,7 +691,7 @@ describe("MySQL REST Service", () => {
             await driver.wait(waitUntil.notificationExists("The REST Schema has been loaded successfully"),
                 constants.wait5seconds);
             const itemName = `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`;
-            expect(await dbTreeSection.tree.existsElement(itemName), errors.doesNotExistOnTree(itemName)).to.be.true;
+            await driver.wait(dbTreeSection.tree.untilExists(itemName), constants.wait5seconds);
 
         });
 
@@ -710,6 +708,7 @@ describe("MySQL REST Service", () => {
                 constants.wait5seconds);
             const files = await fs.readdir(destDumpSdk);
             expect(files.length, `No exported files found at ${destDumpSdk}`).to.be.greaterThan(0);
+
         });
 
         it("Load REST Object from JSON file", async () => {
@@ -720,9 +719,8 @@ describe("MySQL REST Service", () => {
             await Workbench.setInputPath(`${destDumpTable}.mrs.json`);
             await driver.wait(waitUntil.notificationExists("The REST Database Object has been loaded successfully"),
                 constants.wait5seconds);
-            expect(await dbTreeSection.tree.existsElement(
-                `/${tableToDump} (${tableToDump})`), errors.doesNotExistOnTree(`/${tableToDump} (${tableToDump})`))
-                .to.be.true;
+            await driver.wait(dbTreeSection.tree.untilExists(`/${tableToDump} (${tableToDump})`),
+                constants.wait5seconds);
 
         });
 
@@ -740,8 +738,7 @@ describe("MySQL REST Service", () => {
             await driver.wait(waitUntil.notificationExists(notification), constants.wait5seconds);
 
             const itemName = `${globalService.authenticationApps.name} (${globalService.authenticationApps.vendor})`;
-            expect(await dbTreeSection.tree.existsElement(
-                itemName), errors.existsOnTree(itemName)).to.be.false;
+            await driver.wait(dbTreeSection.tree.untilDoesNotExist(itemName), constants.wait5seconds);
 
         });
 
@@ -756,10 +753,9 @@ describe("MySQL REST Service", () => {
             treeRandomService = await dbTreeSection.tree.getElement(
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
             await treeRandomService.expand();
-            expect(await dbTreeSection.tree.existsElement(
-                `${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`),
-                errors.doesNotExistOnTree(`${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`))
-                .to.be.true;
+            await driver.wait(dbTreeSection.tree
+                .untilExists(`${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`),
+                constants.wait5seconds);
 
         });
 
@@ -779,8 +775,7 @@ describe("MySQL REST Service", () => {
                 return (await treeAuthApp.isExpanded()) && (await treeAuthApp.getChildren()).length > 0;
             }, constants.wait10seconds,
                 `${restAuthenticationApp.name} (${restAuthenticationApp.vendor}) was not expanded`);
-            expect(await dbTreeSection.tree.existsElement(restUser.username),
-                errors.doesNotExistOnTree(restUser.username)).to.be.true;
+            await driver.wait(dbTreeSection.tree.untilExists(restUser.username), constants.wait5seconds);
 
         });
 
@@ -870,8 +865,8 @@ describe("MySQL REST Service", () => {
             await Workbench.clickOnNotificationButton(ntf, "Yes");
             await driver.wait(waitUntil.notificationExists(`The MRS User ${restUser.username} has been deleted`),
                 constants.wait5seconds);
-            expect(await dbTreeSection.tree.existsElement(restUser.username),
-                errors.existsOnTree(restUser.username)).to.be.false;
+            await driver.wait(dbTreeSection.tree.untilDoesNotExist(restUser.username), constants.wait5seconds);
+
         });
 
         it("Delete REST Services", async () => {
@@ -886,9 +881,9 @@ describe("MySQL REST Service", () => {
                 await Workbench.clickOnNotificationButton(ntf, "Yes");
                 await driver.wait(waitUntil.notificationExists("The MRS service has been deleted successfully"),
                     constants.wait5seconds);
-                expect(await dbTreeSection.tree.existsElement(
-                    `${service.servicePath} (${service.settings.hostNameFilter})`),
-                    errors.existsOnTree(`${service.servicePath} (${service.settings.hostNameFilter})`)).to.be.false;
+                await driver.wait(dbTreeSection.tree
+                    .untilDoesNotExist(`${service.servicePath} (${service.settings.hostNameFilter})`),
+                    constants.wait5seconds);
             }
 
         });
@@ -964,10 +959,9 @@ describe("MySQL REST Service", () => {
                 const treeService = await dbTreeSection.tree.getElement(
                     `${crudService.servicePath} (${crudService.settings.hostNameFilter})`);
                 await treeService.expand();
-                expect(await dbTreeSection.tree.existsElement(
-                    `${crudSchema.restSchemaPath} (${crudSchema.settings.schemaName})`),
-                    errors.doesNotExistOnTree(`${crudSchema.restSchemaPath} (${crudSchema.settings.schemaName})`))
-                    .to.be.true;
+                await driver.wait(dbTreeSection.tree
+                    .untilExists(`${crudSchema.restSchemaPath} (${crudSchema.settings.schemaName})`),
+                    constants.wait5seconds);
                 await (await dbTreeSection.tree.getElement("Tables")).expand();
                 const treeTable = await dbTreeSection.tree.getElement(
                     crudObject.restObjectPath.replace("/", ""));

@@ -32,6 +32,7 @@ import { Workbench } from "./Workbench";
 import * as constants from "./constants";
 import * as waitUntil from "./until";
 import * as locator from "./locators";
+import * as interfaces from "./interfaces";
 export let driver: WebDriver;
 export let browser: VSBrowser;
 
@@ -197,20 +198,25 @@ export class Misc {
      * into a key=value pair object
      *  @returns A promise resolving with the configuration object
      */
-    public static mapOciConfig = async (): Promise<{ [key: string]: string; }> => {
+    public static mapOciConfig = async (): Promise<interfaces.IOciProfileConfig[]> => {
         const config = await fs.readFile(process.env.MYSQLSH_OCI_CONFIG_FILE, "utf-8");
         const configLines = config.split("\n");
-        const ociConfig = { name: "" };
+        const ociConfig: interfaces.IOciProfileConfig[] = [];
         for (let line of configLines) {
             line = line.trim();
             if (line.length > 0) {
-                if (line.startsWith("[")) {
-                    ociConfig.name = line.match(/\[(.*)\]/)[1];
-                } else if (!line.startsWith("#")) {
+                if (line.match(/\[.*\]/) !== null) {
+                    ociConfig.push({
+                        name: line.match(/\[(.*)\]/)[1],
+                    });
+                } else {
                     let [key, val] = line.split("=");
                     key = key.trim();
                     val = val.trim();
-                    ociConfig[key] = val;
+                    if (key === "key_file") {
+                        key = "keyFile";
+                    }
+                    ociConfig[ociConfig.length - 1][key] = val;
                 }
             }
         }

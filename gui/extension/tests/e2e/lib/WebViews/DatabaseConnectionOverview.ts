@@ -22,15 +22,19 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { WebElement, until, error } from "vscode-extension-tester";
+import { WebElement, until } from "vscode-extension-tester";
 import { driver, Misc } from "../Misc";
 import * as constants from "../constants";
 import * as locator from "../locators";
+import { EditorSelector } from "./EditorSelector";
+import * as errors from "../errors";
 
 /**
  * This class aggregates the functions that perform database related operations
  */
 export class DatabaseConnectionOverview {
+
+    public editorSelector = new EditorSelector();
 
     /**
      * Gets a Database connection from the DB Connection Overview
@@ -126,7 +130,7 @@ export class DatabaseConnectionOverview {
 
                 return true;
             } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
+                if (!(errors.isStaleError(e as Error))) {
                     throw e;
                 }
             }

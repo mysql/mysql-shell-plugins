@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -34,15 +34,15 @@ import * as interfaces from "../interfaces";
 import * as errors from "../errors";
 import { Misc, driver } from "../Misc";
 import { Workbench } from "../Workbench";
-import { AccordionSection } from "./AccordionSection";
+import { E2EAccordionSection } from "./E2EAccordionSection";
 import { Os } from "../Os";
 import { hostname } from "os";
 
-export class Tree {
+export class E2ETree {
 
-    private accordionSection: AccordionSection;
+    private accordionSection: E2EAccordionSection;
 
-    public constructor(sectionElement: AccordionSection) {
+    public constructor(sectionElement: E2EAccordionSection) {
         this.accordionSection = sectionElement;
     }
 
@@ -54,34 +54,15 @@ export class Tree {
     public getElement = async (element: string | RegExp): Promise<TreeItem> => {
 
         let el: TreeItem;
-        let reloadLabel: string;
 
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
 
-        if (this.accordionSection.accordionSectionName === constants.dbTreeSection) {
-            reloadLabel = constants.reloadConnections;
-        } else if (this.accordionSection.accordionSectionName === constants.ociTreeSection) {
-            reloadLabel = constants.reloadOci;
-        }
-
-        const thisTreeSection = new AccordionSection(this.accordionSection.accordionSectionName);
-        const thisTreeSectionElement = await thisTreeSection.getTreeExplorer();
-        await driver.wait(thisTreeSection.isNotLoading(), constants.wait20seconds);
-        let reload = false;
-
         await driver.wait(async () => {
             try {
-                if (reload) {
-                    if (this.accordionSection.accordionSectionName === constants.dbTreeSection ||
-                        this.accordionSection.accordionSectionName === constants.ociTreeSection) {
-                        await thisTreeSection.clickToolbarButton(reloadLabel);
-                        await driver.wait(thisTreeSection.isNotLoading(), constants.wait20seconds);
-                    }
-                }
                 if (element instanceof RegExp) {
-                    const treeItems = await thisTreeSectionElement.getVisibleItems();
+                    const treeItems = await (await this.accordionSection.getWebElement()).getVisibleItems();
                     for (const item of treeItems) {
                         if ((await item.getLabel()).match(element) !== null) {
                             el = item;
@@ -89,14 +70,10 @@ export class Tree {
                         }
                     }
                 } else {
-                    el = await thisTreeSectionElement.findItem(element, 5);
+                    el = await (await this.accordionSection.getWebElement()).findItem(element, 5);
                 }
 
-                if (el === undefined) {
-                    reload = true;
-                } else {
-                    return true;
-                }
+                return el !== undefined;
             } catch (e) {
                 if (!(errors.isStaleError(e as Error))) {
                     throw e;
@@ -119,8 +96,7 @@ export class Tree {
         }
 
         if (type.match(/(ociDbSystem|ociBastion|ociCompute)/) !== null) {
-            const thisTreeSection = new AccordionSection(this.accordionSection.accordionSectionName);
-            const thisTreeSectionElement = await thisTreeSection.getTreeExplorer();
+            const thisTreeSectionElement = await this.accordionSection.getWebElement();
             const treeItems = await thisTreeSectionElement.getVisibleItems();
             for (const treeItem of treeItems) {
                 const el = await treeItem.findElement(locator.section.itemIcon);
@@ -129,7 +105,8 @@ export class Tree {
                     return treeItem;
                 }
             }
-            throw new Error(`Could not find the item type ${type} on ${this.accordionSection.accordionSectionName}`);
+            throw new Error(`Could not find the item type ${type} on section ${this
+                .accordionSection.accordionSectionName}`);
         } else {
             throw new Error(`Unknown type: ${type}`);
         }
@@ -138,54 +115,49 @@ export class Tree {
     /**
      * Verifies if an element exists on the tree
      * @param element The element
-     * @returns A promise resolving with true if the element exists, false otherwise
+     * @returns A condition resolving to true if the element exists, false otherwise
      */
-    public existsElement = async (element: string | RegExp): Promise<boolean> => {
-        if ((await Misc.insideIframe())) {
-            await Misc.switchBackToTopFrame();
-        }
-
-        let reloadLabel: string;
-        let exists: boolean;
-        await driver.wait(async () => {
-            try {
+    public untilExists = (element: string | RegExp): Condition<boolean> => {
+        return new Condition(`for ${element} to exist`, async () => {
+            let reloadLabel: string;
+            await driver.wait(this.accordionSection.isNotLoading(), constants.wait20seconds);
+            if (this.accordionSection.accordionSectionName === constants.dbTreeSection ||
+                this.accordionSection.accordionSectionName === constants.ociTreeSection) {
+                if (this.accordionSection.accordionSectionName === constants.dbTreeSection) {
+                    reloadLabel = constants.reloadConnections;
+                } else if (this.accordionSection.accordionSectionName === constants.ociTreeSection) {
+                    reloadLabel = constants.reloadOci;
+                }
+                await this.accordionSection.clickToolbarButton(reloadLabel);
                 await driver.wait(this.accordionSection.isNotLoading(), constants.wait20seconds);
-                if (this.accordionSection.accordionSectionName === constants.dbTreeSection ||
-                    this.accordionSection.accordionSectionName === constants.ociTreeSection) {
-                    if (this.accordionSection.accordionSectionName === constants.dbTreeSection) {
-                        reloadLabel = "Reload the connection list";
-                    } else if (this.accordionSection.accordionSectionName === constants.ociTreeSection) {
-                        reloadLabel = "Reload the OCI Profile list";
-                    }
-                    await this.accordionSection.clickToolbarButton(reloadLabel);
-                    await driver.wait(this.accordionSection.isNotLoading(), constants.wait20seconds);
-                }
-
-                if (element instanceof RegExp) {
-                    const treeItems = await (await this.accordionSection.getTreeExplorer()).getVisibleItems();
-                    for (const item of treeItems) {
-                        if ((await item.getLabel()).match(element) !== null) {
-                            exists = true;
-
-                            return true;
-                        }
-                    }
-                    exists = false;
-
-                    return true;
-                } else {
-                    exists = (await (await this.accordionSection.getTreeExplorer()).findItem(element, 5)) !== undefined;
-
-                    return true;
-                }
-            } catch (e) {
-                if (!(errors.isStaleError(e as Error))) {
-                    throw e;
-                }
             }
-        }, constants.wait5seconds, `Could not determine if ${element} exists`);
 
-        return exists;
+            return this.existsElement(element);
+        });
+    };
+
+    /**
+     * Verifies if an element exists does not exist the tree
+     * @param element The element
+     * @returns A condition resolving to true if the element does not exist, false otherwise
+     */
+    public untilDoesNotExist = (element: string | RegExp): Condition<boolean> => {
+        return new Condition(`for ${element} to not exist`, async () => {
+            let reloadLabel: string;
+            await driver.wait(this.accordionSection.isNotLoading(), constants.wait20seconds);
+            if (this.accordionSection.accordionSectionName === constants.dbTreeSection ||
+                this.accordionSection.accordionSectionName === constants.ociTreeSection) {
+                if (this.accordionSection.accordionSectionName === constants.dbTreeSection) {
+                    reloadLabel = constants.reloadConnections;
+                } else if (this.accordionSection.accordionSectionName === constants.ociTreeSection) {
+                    reloadLabel = constants.reloadOci;
+                }
+                await this.accordionSection.clickToolbarButton(reloadLabel);
+                await driver.wait(this.accordionSection.isNotLoading(), constants.wait20seconds);
+            }
+
+            return !(await this.existsElement(element));
+        });
     };
 
     /**
@@ -368,7 +340,7 @@ export class Tree {
 
         return driver.wait(new Condition("", async () => {
             try {
-                const section = await this.accordionSection.getTreeExplorer();
+                const section = await this.accordionSection.getWebElement();
                 const treeVisibleItems = await section.getVisibleItems();
                 for (const item of treeVisibleItems) {
                     if ((await item.getLabel()).match(name) !== null) {
@@ -422,15 +394,7 @@ export class Tree {
         await dialog.findElement(locator.confirmDialog.accept).click();
         await Misc.switchBackToTopFrame();
         if (verifyDelete === true) {
-            await driver.wait(async () => {
-                try {
-                    return !(await this.existsElement(name));
-                } catch (e) {
-                    if (!(errors.isStaleError(e as Error))) {
-                        throw e;
-                    }
-                }
-            }, constants.wait5seconds, `${name} was not deleted`);
+            await driver.wait(this.existsElement(name), constants.wait5seconds);
         }
     };
 
@@ -445,7 +409,7 @@ export class Tree {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
-        const treeSection = await this.accordionSection.getTreeExplorer();
+        const treeSection = await this.accordionSection.getWebElement();
         if (!(await treeSection.isExpanded())) {
             await treeSection.expand();
         }
@@ -478,7 +442,7 @@ export class Tree {
 
         if (ctxMenuItem !== constants.openNotebookWithConn) {
             await driver.wait(this.accordionSection.isNotLoading(), constants.wait10seconds);
-            const ociSection = new AccordionSection(constants.ociTreeSection);
+            const ociSection = new E2EAccordionSection(constants.ociTreeSection);
             await driver.wait(ociSection.isNotLoading(), constants.wait10seconds);
         }
 
@@ -612,5 +576,46 @@ export class Tree {
 
             return !(await this.isRouterActive());
         });
+    };
+
+    /**
+     * Verifies if an element exists on the tree
+     * @param element The element
+     * @returns A promise resolving with true if the element exists, false otherwise
+     */
+    private existsElement = async (element: string | RegExp): Promise<boolean> => {
+        if ((await Misc.insideIframe())) {
+            await Misc.switchBackToTopFrame();
+        }
+
+        let exists: boolean;
+        await driver.wait(async () => {
+            try {
+                if (element instanceof RegExp) {
+                    const treeItems = await (await this.accordionSection.getWebElement()).getVisibleItems();
+                    for (const item of treeItems) {
+                        if ((await item.getLabel()).match(element) !== null) {
+                            exists = true;
+
+                            return true;
+                        }
+                    }
+                    exists = false;
+
+                    return true;
+                } else {
+                    exists = (await (await this.accordionSection.getWebElement())
+                        .findItem(element, 5)) !== undefined;
+
+                    return true;
+                }
+            } catch (e) {
+                if (!(errors.isStaleError(e as Error))) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, `Could not determine if ${element} exists`);
+
+        return exists;
     };
 }

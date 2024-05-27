@@ -20,88 +20,22 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { WebElement, until, Key } from "vscode-extension-tester";
-import { basename } from "path";
+import { WebElement, until } from "vscode-extension-tester";
 import { driver, Misc } from "../Misc";
 import * as constants from "../constants";
 import * as locator from "../locators";
 import * as errors from "../errors";
+import { CodeEditor } from "./CodeEditor";
+import { EditorSelector } from "./EditorSelector";
 
 /**
  * This class aggregates the functions that perform operations inside notebooks
  */
 export class Notebook {
 
-    /**
-     * Gets the last text on the last prompt/editor line
-     * @returns A promise resolving with the text
-     */
-    public static getPromptLastTextLine = async (): Promise<String> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
+    public editorSelector = new EditorSelector();
 
-        const context = await driver.findElement(locator.notebook.codeEditor.editor.exists);
-        let sentence = "";
-        await driver.wait(async () => {
-            try {
-                const codeLineWords = await context.findElements(locator.notebook.codeEditor.editor.wordInSentence);
-                if (codeLineWords.length > 0) {
-                    for (const word of codeLineWords) {
-                        sentence += (await word.getText()).replace("&nbsp;", " ");
-                    }
-
-                    return true;
-                }
-            } catch (e) {
-                if (!(errors.isStaleError(e as Error))) {
-                    throw e;
-                }
-            }
-        }, constants.wait5seconds, "Could not get the text from last prompt line");
-
-        return sentence;
-    };
-
-    /**
-     * Clicks on a context menu item
-     * @param item The item
-     * @returns A promise resolving when the click is performed
-     */
-    public static clickContextItem = async (item: string): Promise<void> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
-        const isCtxMenuDisplayed = async (): Promise<boolean> => {
-            const el = await driver.executeScript(`return document.querySelector(".shadow-root-host").
-                shadowRoot.querySelector("span[aria-label='${item}']")`);
-
-            return el !== null;
-        };
-
-        await driver.wait(async () => {
-            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-            await driver.actions().contextClick(textArea).perform();
-
-            return isCtxMenuDisplayed();
-
-        }, constants.wait5seconds, `Expected context menu for "${item}" was not displayed`);
-
-        await driver.wait(async () => {
-            try {
-                const el: WebElement = await driver.executeScript(`return document.querySelector(".shadow-root-host").
-                shadowRoot.querySelector("span[aria-label='${item}']")`);
-                await el.click();
-
-                return !(await isCtxMenuDisplayed());
-            } catch (e) {
-                if (e instanceof TypeError) {
-                    return true;
-                }
-            }
-        }, constants.wait5seconds, `Unexpected context menu continues displayed after selecting "${item}"`);
-    };
+    public codeEditor = new CodeEditor();
 
     /**
      * Verifies if a toolbar button exists
@@ -126,29 +60,6 @@ export class Notebook {
     };
 
     /**
-     * Gets the line number where a word is found
-     * @param wordRef The word
-     * @returns A promise resolving with the line number
-     */
-    public static getLineFromWord = async (wordRef: string): Promise<number> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
-        const lines = await driver.findElements(locator.notebook.codeEditor.editor.promptLine);
-        for (let i = 0; i <= lines.length - 1; i++) {
-            const match = (await lines[i].getAttribute("innerHTML")).match(/(?<=">)(.*?)(?=<\/span>)/gm);
-            if (match !== null) {
-                const cmdFromEditor = match.join("").replace(/&nbsp;/g, " ");
-                if (cmdFromEditor === wordRef) {
-                    return i;
-                }
-            }
-        }
-        throw new Error(`Could not find '${wordRef}' in the code editor`);
-    };
-
-    /**
      * Gets a toolbar button
      * @param button The button name
      * @returns A promise resolving with the button
@@ -168,289 +79,6 @@ export class Notebook {
         }
 
         throw new Error(`Could not find '${button}' button`);
-    };
-
-    /**
-     * Sets a new line on the notebook editor
-     * @returns A promise resolving when the new line is set
-     */
-    public static setNewLineOnEditor = async (): Promise<void> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
-        const getLastLineNumber = async (): Promise<number> => {
-            const lineNumbers = await driver.findElements(locator.notebook.codeEditor.editor.lineNumber);
-            if (lineNumbers.length === 0) {
-                return 0;
-            } else {
-                return parseInt((await lineNumbers[lineNumbers.length - 1].getText()), 10);
-            }
-        };
-
-        await driver.wait(async () => {
-            try {
-                const lastLineNumber = await getLastLineNumber();
-                const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-                await textArea.sendKeys(Key.RETURN);
-
-                return driver.wait(async () => {
-                    return (await getLastLineNumber()) > lastLineNumber;
-                }, constants.wait150MilliSeconds)
-                    .catch(() => {
-                        return false;
-                    });
-            } catch (e) {
-                if (!(errors.isStaleError(e as Error))) {
-                    throw e;
-                }
-            }
-        }, constants.wait5seconds, "Could not set a new line on the editor");
-    };
-
-    /**
-     * Toggles the find in selection on the find widget
-     * @param flag True to enable, false otherwise
-     * @returns A promise resolving when button is clicked
-     */
-    public static widgetFindInSelection = async (flag: boolean): Promise<void> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
-        const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds);
-        const actions = await findWidget.findElements(locator.findWidget.actions);
-        for (const action of actions) {
-            if ((await action.getAttribute("title")).includes("Find in selection")) {
-                const checked = await action.getAttribute("aria-checked");
-                if (checked === "true") {
-                    if (!flag) {
-                        await action.click();
-                    }
-                } else {
-                    if (flag) {
-                        await action.click();
-                    }
-                }
-
-                return;
-            }
-        }
-    };
-
-    /**
-     * Expands or collapses the find and replace on the find widget
-     * @param expand True to expand, false to collapse
-     * @returns A promise resolving when replacer is expanded or collapsed
-     */
-    public static widgetExpandFinderReplace = async (expand: boolean): Promise<void> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
-        const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds);
-        const toggleReplace = await findWidget.findElement(locator.findWidget.toggleReplace);
-        const isExpanded = (await findWidget.findElements(locator.findWidget.toggleReplaceExpanded)).length > 0;
-        if (expand) {
-            if (!isExpanded) {
-                await driver.executeScript("arguments[0].click()", toggleReplace);
-            }
-        } else {
-            if (isExpanded) {
-                await driver.executeScript("arguments[0].click()", toggleReplace);
-            }
-        }
-    };
-
-    /**
-     * Gets the replacer buttons by their name (Replace, Replace All)
-     * @param button The button name
-     * @returns A promise resolving when button is returned
-     */
-    public static widgetGetReplacerButton = async (button: string): Promise<WebElement | undefined> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
-        const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds);
-        const replaceActions = await findWidget.findElements(locator.findWidget.replaceActions);
-        for (const action of replaceActions) {
-            if ((await action.getAttribute("aria-label")).indexOf(button) !== -1) {
-                return action;
-            }
-        }
-    };
-
-    /**
-     * Closes the widget finder
-     * @returns A promise resolving when finder is closed
-     */
-    public static widgetCloseFinder = async (): Promise<void> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
-        await driver.wait(async () => {
-            const findWidget = await driver.findElements(locator.findWidget.exists);
-            if (findWidget.length > 0) {
-                const closeButton = await findWidget[0].findElement(locator.findWidget.close);
-                await driver.executeScript("arguments[0].click()", closeButton);
-
-                return (await driver.findElements(locator.findWidget.exists)).length === 0;
-            } else {
-                return true;
-            }
-        }, constants.wait5seconds, "The finder widget was not closed");
-    };
-
-    /**
-     * Gets the type of the current editor
-     * @returns A promise resolving with the editor type
-     */
-    public static getCurrentEditorType = async (): Promise<string> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
-        const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
-        const img = await selector.findElements(locator.htmlTag.img);
-        if (img.length > 0) {
-            const imgSrc = await img[0].getAttribute("src");
-            const srcPath = basename(imgSrc);
-
-            return srcPath.split(".")[0];
-        } else {
-            const span = await selector.findElement(locator.notebook.toolbar.editorSelector.itemIcon);
-
-            return span.getAttribute("style");
-        }
-    };
-
-    /**
-     * Gets the name of the current editor
-     * @returns A promise resolving with the editor name
-     */
-    public static getCurrentEditorName = async (): Promise<string> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
-        const getData = async (): Promise<string> => {
-            const selector = await driver.wait(until.elementLocated(locator.notebook.toolbar.editorSelector.exists),
-                constants.wait5seconds, "Unable to get the current editor: not found");
-            const label = await selector.findElement(locator.htmlTag.label);
-
-            return label.getText();
-        };
-
-        let result: string;
-        try {
-            result = await getData();
-        } catch (e) {
-            if (errors.isStaleError(e as Error)) {
-                result = await getData();
-            } else {
-                throw e;
-            }
-        }
-
-        return result;
-    };
-
-    /**
-     * Gets the auto complete menu items
-     * @returns A promise resolving with the menu items
-     */
-    public static getAutoCompleteMenuItems = async (): Promise<string[]> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
-        const els = [];
-        let items = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.autoCompleteListItem),
-            constants.wait5seconds, "Auto complete items were not displayed");
-
-        for (const item of items) {
-            els.push(await item.getText());
-        }
-
-        await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.ARROW_UP);
-
-        items = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.autoCompleteListItem),
-            constants.wait5seconds, "Auto complete items were not displayed");
-
-        for (const item of items) {
-            els.push(await item.getText());
-        }
-
-        return [...new Set(els)] as string[];
-    };
-
-    /**
-     * Verifies if a query result is maximized
-     * @returns A promise resolving with true if the query is maximized, false otherwise
-     */
-    public static isResultMaximized = async (): Promise<boolean> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
-        const editor = await driver.findElement(locator.notebook.codeEditor.editor.host);
-        const style = await editor.getCssValue("height");
-        const height = parseInt(style.trim().replace("px", ""), 10);
-
-        return height > 0;
-    };
-
-    /**
-     * Selects the current editor
-     * @param editorName The editor name
-     * @param editorType The editor type
-     * @param occurrenceNumber The occurrence number. Default is 1,
-     * which means that it will return the first element found. If 2, it will return the second.
-     * @returns A promise resolving when the editor is selected
-     */
-    public static selectCurrentEditor = async (editorName: RegExp, editorType: string,
-        occurrenceNumber = 1): Promise<void> => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-
-        const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
-        await driver.executeScript("arguments[0].click()", selector);
-
-        await driver.wait(async () => {
-            return (await driver.findElements(locator.notebook.toolbar.editorSelector.item)).length >= 1;
-        }, constants.wait2seconds, "No elements located on editors dropdown list");
-        const dropDownItems = await driver.findElements(locator.notebook.toolbar.editorSelector.item);
-
-        let occurrences = 0;
-        let item2click = -1;
-        for (let i = 0; i <= dropDownItems.length - 1; i++) {
-            const name = await dropDownItems[i].findElement(locator.htmlTag.label).getText();
-            const el = await dropDownItems[i].findElements(locator.htmlTag.img);
-            let type = "";
-            if (el.length > 0) {
-                type = await el[0].getAttribute("src");
-            } else {
-                type = await dropDownItems[i].findElement(locator.notebook.toolbar.editorSelector.itemIcon)
-                    .getAttribute("style");
-            }
-
-            if (name.match(editorName) !== null) {
-                if (type.indexOf(editorType) !== -1) {
-                    occurrences++;
-                    if (occurrences === occurrenceNumber) {
-                        item2click = i;
-
-                        break;
-                    }
-                }
-            }
-        }
-        if (item2click === -1) {
-            throw new Error(`Could not find ${editorName}, type ${editorType} on the select list`);
-        }
-        await (await driver.findElements(locator.notebook.toolbar.editorSelector.item))[item2click].click();
     };
 
     /**
@@ -493,7 +121,7 @@ export class Notebook {
         }
 
         let foundResult = false;
-        const results = await driver.findElements(locator.notebook.codeEditor.editor.result.status.exists);
+        const results = await driver.findElements(locator.notebook.codeEditor.editor.result.toolbar.status.exists);
         for (const result of results) {
             const text = await result.getText();
             if (text.includes(resultStatus)) {
@@ -552,7 +180,11 @@ export class Notebook {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
-        await driver.executeScript("arguments[0].scrollBy(0, 1500)",
-            await driver.findElement(locator.notebook.codeEditor.editor.scrollBar));
+
+        const scroll = await driver.findElements(locator.notebook.codeEditor.editor.scrollBar);
+        if (scroll.length > 0) {
+            await driver.executeScript("arguments[0].scrollBy(0, 1500)", scroll[0]);
+        }
     };
+
 }
