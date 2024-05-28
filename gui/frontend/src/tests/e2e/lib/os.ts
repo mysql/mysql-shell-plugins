@@ -21,12 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import fs from "fs/promises";
 import { existsSync } from "fs";
+import { appendFile, readFile, writeFile } from "fs/promises";
+import { platform } from "os";
 import { join } from "path";
 import { Logs, logging } from "selenium-webdriver";
+
 import { driver } from "../lib/driver.js";
-import { platform } from "os";
 
 export const feLog = "fe.log";
 export const shellServers = new Map([
@@ -52,9 +53,9 @@ export class Os {
     public static writeFELogs = async (testName: string, content: Logs): Promise<void> => {
 
         if (existsSync(join(process.cwd(), feLog))) {
-            await fs.appendFile(feLog, `\n---- ${testName} ------`);
+            await appendFile(feLog, `\n---- ${testName} ------`);
         } else {
-            await fs.writeFile(feLog, `---- ${testName} -----\n`);
+            await writeFile(feLog, `---- ${testName} -----\n`);
         }
 
         const logTypes = [
@@ -73,7 +74,7 @@ export class Os {
                 let time = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()} `;
                 time += `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
                 line += `\n${time} [${String(log.level)}] ${log.message}`;
-                await fs.appendFile(feLog, line);
+                await appendFile(feLog, line);
             }
         }
     };
@@ -101,7 +102,7 @@ export class Os {
      */
     public static existsCredentialHelper = async (): Promise<boolean> => {
         const mysqlSh = join(process.cwd(), "src", "tests", "e2e", "port_8000", "mysqlsh.log");
-        const fileContent = await fs.readFile(mysqlSh);
+        const fileContent = await readFile(mysqlSh);
 
         return fileContent.toString().match(/Error: Failed to initialize the default helper/) === null;
     };

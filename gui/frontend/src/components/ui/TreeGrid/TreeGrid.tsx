@@ -190,7 +190,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     #timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     // Used when we need to wait for a double click, to decide whether to expand or collapse a row.
-    #toggleTimeoutId: ReturnType<typeof setTimeout> | null;
+    #toggleTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
     // A counter to manage redraw blocks.
     #updateLockCount = 0;

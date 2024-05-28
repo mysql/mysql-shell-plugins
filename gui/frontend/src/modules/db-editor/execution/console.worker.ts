@@ -47,6 +47,7 @@ worker.postContextMessage = (taskId: number, data: IConsoleWorkerResultData): vo
         data,
     });
 };
+worker.pendingRequests = new Map<string, (res: unknown) => void>();
 
 // Handling for source maps.
 

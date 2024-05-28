@@ -23,15 +23,13 @@
 
 /* eslint-disable no-underscore-dangle */
 
-import { Lexer, Token } from "antlr4ng";
+import { Lexer } from "antlr4ng";
 
 import { SQLiteLexer } from "./generated/SQLiteLexer.js";
 import { isReservedKeyword, SQLiteVersion } from "./SQLiteRecognizerCommon.js";
 
-// The base lexer class provides a number of functions needed in actions in the lexer (grammar).
+/** The base lexer class provides a number of functions needed in actions in the lexer (grammar). */
 export abstract class SQLiteBaseLexer extends Lexer {
-
-    private pendingTokens: Token[] = [];
 
     /**
      * Determines if the given type is a relational operator.
@@ -171,59 +169,5 @@ export abstract class SQLiteBaseLexer extends Lexer {
         }
 
         return false;
-    }
-
-    /**
-     * Implements the multi token feature required in our lexer.
-     * A lexer rule can emit more than a single token, if needed.
-     *
-     * @returns The next token in the token stream.
-     */
-    public nextToken(): Token {
-        // First respond with pending tokens to the next token request, if there are any.
-        let pending = this.pendingTokens.shift();
-        if (pending) {
-            return pending;
-        }
-
-        // Let the main lexer class run the next token recognition.
-        // This might create additional tokens again.
-        const next = super.nextToken();
-        pending = this.pendingTokens.shift();
-        if (pending) {
-            this.pendingTokens.push(next);
-
-            return pending;
-        }
-
-        return next;
-    }
-
-    /**
-     * Creates a DOT token in the token stream.
-     */
-    protected emitDot(): void {
-        this.pendingTokens.push(this._factory.create([this, this.inputStream], SQLiteLexer.DOT,
-            this.text, this._channel, this._tokenStartCharIndex, this._tokenStartCharIndex, this._tokenStartLine,
-            this.column,
-        ));
-
-        ++this._tokenStartCharIndex;
-    }
-
-    // eslint-disable-next-line jsdoc/require-returns-check
-    /**
-     * Returns the next token in the token stream that is on the default channel (not a hidden or other one).
-     *
-     * @returns The next token. Can be EOF to denote the end of input.
-     */
-    private nextDefaultChannelToken(): Token {
-        do {
-            const token = this.nextToken();
-            if (token.channel === Token.DEFAULT_CHANNEL) {
-                return token;
-            }
-
-        } while (true);
     }
 }

@@ -77,12 +77,6 @@ export default defineConfig({
     server: {
         host: "127.0.0.1",
         port: 3001,
-        /*https: {
-            key: fs.readFileSync(
-                "<repo>/shell-plugins/gui/backend/gui_plugin/internal/certificates/server.key"),
-            cert: fs.readFileSync(
-                "<repo>/shell-plugins/gui/backend/gui_plugin/internal/certificates/server.crt"),
-        },*/
     },
     define: {
         "process.env": process.env ?? {},
@@ -106,6 +100,7 @@ export default defineConfig({
     optimizeDeps: {
         esbuildOptions: {
             plugins: [
+                // @ts-ignore, because of incorrect type definitions.
                 NodeModulesPolyfillPlugin(),
             ],
             // Node.js global to browser globalThis
@@ -117,6 +112,9 @@ export default defineConfig({
                 "tsconfig.json": "silent",
             },
         },
+        exclude: [
+            "src/tests/*",
+        ],
     },
     build: {
         chunkSizeWarningLimit: 1000,
@@ -137,6 +135,7 @@ export default defineConfig({
             keep_classnames: true,
         },
         sourcemap: Boolean(process.env.SOURCE_MAPS),
+        assetsInlineLimit: 0,
         rollupOptions: {
             plugins: [
                 // @ts-ignore, because of incorrect type definitions.

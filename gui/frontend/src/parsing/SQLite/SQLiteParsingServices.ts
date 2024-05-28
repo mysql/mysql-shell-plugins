@@ -24,7 +24,7 @@
 /* eslint-disable no-underscore-dangle, @typescript-eslint/naming-convention */
 
 import {
-    BailErrorStrategy, CharStreams, CommonTokenStream, DefaultErrorStrategy, ParseCancellationException, ParseTree,
+    BailErrorStrategy, CharStream, CommonTokenStream, DefaultErrorStrategy, ParseCancellationException, ParseTree,
     PredictionMode, TokenStreamRewriter, XPath, Token,
 } from "antlr4ng";
 
@@ -48,7 +48,7 @@ export class SQLiteParsingServices {
     private static services?: SQLiteParsingServices;
     private static readonly delimiterKeyword = /delimiter/i;
 
-    private lexer = new SQLiteLexer(CharStreams.fromString(""));
+    private lexer = new SQLiteLexer(CharStream.fromString(""));
     private tokenStream = new CommonTokenStream(this.lexer);
     private parser = new SQLiteParser(this.tokenStream);
     private errors: IParserErrorInfo[] = [];
@@ -140,7 +140,7 @@ export class SQLiteParsingServices {
      */
     public async getQuickInfo(text: string, offset: number): Promise<ISymbolInfo | undefined> {
         this.errors = [];
-        this.lexer.inputStream = CharStreams.fromString(text);
+        this.lexer.inputStream = CharStream.fromString(text);
         this.tokenStream.setTokenSource(this.lexer);
         this.tokenStream.fill();
 
@@ -185,7 +185,7 @@ export class SQLiteParsingServices {
 
         const result: ITokenInfo[] = [];
         for (const statement of statements) {
-            this.lexer.inputStream = CharStreams.fromString(statement.text);
+            this.lexer.inputStream = CharStream.fromString(statement.text);
             this.tokenStream.setTokenSource(this.lexer);
             this.tokenStream.fill();
 
@@ -217,7 +217,7 @@ export class SQLiteParsingServices {
         column: number, defaultSchema: string): ICompletionData {
 
         this.errors = [];
-        this.lexer.inputStream = CharStreams.fromString(text);
+        this.lexer.inputStream = CharStream.fromString(text);
         this.tokenStream.setTokenSource(this.lexer);
         this.tokenStream.fill();
 
@@ -512,7 +512,7 @@ export class SQLiteParsingServices {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public determineQueryType(sql: string, serverVersion: number): QueryType {
         this.errors = [];
-        this.lexer.inputStream = CharStreams.fromString(sql);
+        this.lexer.inputStream = CharStream.fromString(sql);
         this.tokenStream.setTokenSource(this.lexer);
 
         return determineQueryType(this.tokenStream);
@@ -633,7 +633,7 @@ export class SQLiteParsingServices {
      */
     private startParsing(text: string, fast: boolean): ParseTree | undefined {
         this.errors = [];
-        this.lexer.inputStream = CharStreams.fromString(text);
+        this.lexer.inputStream = CharStream.fromString(text);
         this.tokenStream.setTokenSource(this.lexer);
 
         this.parser.reset();
@@ -677,7 +677,7 @@ export class SQLiteParsingServices {
      * @returns The scope name.
      */
     private lexerTypeToScope(token: Token): string {
-        if (isKeyword(token.text.toUpperCase() ?? "", SQLiteVersion.Standard)) {
+        if (isKeyword(token.text?.toUpperCase() ?? "", SQLiteVersion.Standard)) {
             return "keyword";
         }
 

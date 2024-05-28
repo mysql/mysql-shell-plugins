@@ -388,7 +388,7 @@ export const findWidget = {
     findMatch: By.css(".cdr.findMatch"),
     replacePart: By.className("replace-part"),
     actions: By.css(".find-actions div"),
-    close: By.xpath(".//div[contains(@title, 'Close')]"),
+    close: By.xpath(".//div[contains(@aria-label, 'Close')]"),
     replacerActions: By.css(".replace-actions div"),
     toggleReplace: By.css(".button.toggle"),
     toggleReplaceExpanded: By.css(".button.toggle.codicon-find-expanded"),

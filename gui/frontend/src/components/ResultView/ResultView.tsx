@@ -154,7 +154,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     private selectedCell?: CellComponent;
     private editingCell?: CellComponent;
 
-    #columnDefinitions: ColumnDefinition[];
+    #columnDefinitions: ColumnDefinition[] = [];
 
     #navigating = false;
     #lastInputType: LastInputType = "other";
@@ -1745,7 +1745,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             onToggleRowDeletionMarks?.(positions);
 
             setTimeout(() => {
-                rows!.forEach((row) => {
+                rows.forEach((row) => {
                     this.handleFormatRow(row);
                 });
             }, 0);

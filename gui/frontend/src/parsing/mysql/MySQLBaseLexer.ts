@@ -1332,8 +1332,8 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
         if (this.isSqlModeActive(SqlMode.IgnoreSpace)) {
             while (input === " " || input === "\t" || input === "\r" || input === "\n") {
                 this.interpreter.consume(this.inputStream);
-                this._channel = Lexer.HIDDEN;
-                this._type = MySQLMRSLexer.WHITESPACE;
+                this.channel = Lexer.HIDDEN;
+                this.type = MySQLMRSLexer.WHITESPACE;
                 input = String.fromCharCode(this.inputStream.LA(1));
             }
         }
@@ -1439,14 +1439,13 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
      * Creates a DOT token in the token stream.
      */
     protected emitDot(): void {
-        this.pendingTokens.push(this._factory.create([this, this.inputStream], MySQLMRSLexer.DOT_SYMBOL,
-            null, this._channel, this._tokenStartCharIndex, this._tokenStartCharIndex, this._tokenStartLine,
-            this._tokenStartColumn,
+        this.pendingTokens.push(this.tokenFactory.create([this, this.inputStream], MySQLMRSLexer.DOT_SYMBOL,
+            undefined, this.channel, this.tokenStartCharIndex, this.tokenStartCharIndex, this.currentTokenStartLine,
+            this.currentTokenColumn,
         ));
 
-        ++this._tokenStartColumn;
-        ++this._tokenStartCharIndex;
-        ++this.column;
+        ++this.tokenStartCharIndex;
+        ++this.currentTokenColumn;
     }
 
     /**

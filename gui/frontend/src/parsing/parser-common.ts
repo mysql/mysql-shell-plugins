@@ -932,7 +932,7 @@ export class Scanner {
     public get tokenSubText(): string {
         const cs = this.tokens[this.index].tokenSource?.inputStream;
 
-        return cs?.getText(this.tokens[this.index].start, 1e100) ?? "";
+        return cs?.getTextFromRange(this.tokens[this.index].start, 1e100) ?? "";
     }
 
 }

@@ -26,7 +26,7 @@
 /* eslint-disable no-underscore-dangle */
 
 import { CandidatesCollection, CodeCompletionCore } from "antlr4-c3";
-import { BufferedTokenStream, CharStreams, CommonTokenStream } from "antlr4ng";
+import { BufferedTokenStream, CharStream, CommonTokenStream } from "antlr4ng";
 
 import { SQLiteLexer } from "./generated/SQLiteLexer.js";
 import { SQLiteParser } from "./generated/SQLiteParser.js";
@@ -595,7 +595,7 @@ class AutoCompletionContext {
     private parseTableReferences(fromClause: string): void {
         // We use a local parser just for the FROM clause to avoid messing up tokens on the completion
         // parser (which would affect the processing of the found candidates).
-        const input = CharStreams.fromString(fromClause);
+        const input = CharStream.fromString(fromClause);
         const lexer = new SQLiteLexer(input);
         const tokens = new CommonTokenStream(lexer);
         const fromParser = new SQLiteParser(tokens);
@@ -678,7 +678,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
     scanner.advanceToPosition(caretLine, caretOffset);
     scanner.push();
 
-    const lexer = parser.inputStream.getTokenSource() as SQLiteLexer;
+    const lexer = parser.inputStream.tokenSource as SQLiteLexer;
     const context = new AutoCompletionContext(parser, lexer, scanner);
     context.collectCandidates();
 

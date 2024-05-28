@@ -27,9 +27,11 @@ import { CommonWrapper, ReactWrapper } from "enzyme";
 import { ComponentChild } from "preact";
 
 import { range } from "d3";
-import fs from "fs";
-import os from "os";
-import path from "path";
+
+// ATTENTION: keep the namespace imports or vite report weird errors.
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 
 import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
@@ -745,5 +747,3 @@ export class DialogHelper {
         return searchElement({ ...query, parentId: this.id });
     }
 }
-
-

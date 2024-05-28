@@ -30,7 +30,7 @@ import {
     DecorationRangeBehavior, OverviewRulerLane, workspace, TextDocument, TextDocumentChangeEvent, Range,
 } from "vscode";
 
-import { CharStreams, CommonTokenStream } from "antlr4ng";
+import { CharStream, CommonTokenStream } from "antlr4ng";
 
 import { PythonLexer } from "../../frontend/src/parsing/python/generated/PythonLexer.js";
 
@@ -146,7 +146,7 @@ export class CodeBlocks {
         const content = editor.document.getText();
         const { line, character } = editor.selection.active;
 
-        const input = CharStreams.fromString(content);
+        const input = CharStream.fromString(content);
 
         let lexer;
         let stringType;

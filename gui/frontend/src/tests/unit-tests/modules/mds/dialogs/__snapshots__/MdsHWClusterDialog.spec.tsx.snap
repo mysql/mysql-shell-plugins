@@ -29,13 +29,13 @@ exports[`MdsHWClusterDialog tests Test render MdsHWClusterDialog 1`] = `
         }
       }
       caption={
-        <k>
+        <g>
           <Icon
             disabled={false}
             src={389}
           />
           <Label />
-        </k>
+        </g>
       }
       className="msg valueEditDialog"
       container={

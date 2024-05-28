@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ErrorNode, ParserRuleContext, ParseTree, RuleContext, TerminalNode, Token, Vocabulary } from "antlr4ng";
+import { ErrorNode, ParserRuleContext, ParseTree, TerminalNode, Token, Vocabulary } from "antlr4ng";
 
 import { MySQLMRSParser, TextLiteralContext } from "./generated/MySQLMRSParser.js";
 import { reservedMySQLKeywords, mysqlKeywords, MySQLVersion } from "./mysql-keywords.js";
@@ -124,7 +124,7 @@ export const numberToVersion = (version: number): MySQLVersion => {
  *
  * @returns The text for the context.
  */
-export const getText = (context: RuleContext, convertEscapes: boolean): string => {
+export const getText = (context: ParserRuleContext, convertEscapes: boolean): string => {
     if (context instanceof TextLiteralContext) {
         // TODO: take the optional repertoire prefix into account.
         let result = "";
@@ -212,11 +212,11 @@ export const getText = (context: RuleContext, convertEscapes: boolean): string =
  *
  * @returns The dumped context.
  */
-export const dumpTree = (context: RuleContext, vocabulary: Vocabulary, indentation: string): string => {
+export const dumpTree = (context: ParserRuleContext, vocabulary: Vocabulary, indentation: string): string => {
     let result = "";
 
     for (const child of context.children ?? []) {
-        if (child instanceof RuleContext) {
+        if (child instanceof ParserRuleContext) {
             if (child instanceof TextLiteralContext) {
                 const interval = child.getSourceInterval();
                 const childText = getText(child, true);
@@ -271,7 +271,7 @@ export const sourceTextForRange = (start: Token | ParseTree, stop: Token | Parse
 
     const stream = startToken.tokenSource?.inputStream;
     const stopIndex = stop ? stopToken.stop : 1e100;
-    let result = stream?.getText(startToken.start, stopIndex) ?? "";
+    let result = stream?.getTextFromRange(startToken.start, stopIndex) ?? "";
     if (keepQuotes || result.length < 2) {
         return result;
     }
@@ -309,7 +309,7 @@ export const sourceTextForContext = (ctx: ParserRuleContext, keepQuotes: boolean
  *
  * @returns The node preceding the given node in the same parent or undefined if the given node is the first child.
  */
-export const getPreviousSibling = (tree: RuleContext): RuleContext | null => {
+export const getPreviousSibling = (tree: ParserRuleContext): ParserRuleContext | null => {
     const parent = tree.parent;
     if (!parent) {
         return null;
@@ -322,7 +322,7 @@ export const getPreviousSibling = (tree: RuleContext): RuleContext | null => {
         ++index;
     }
 
-    return index > 0 ? parent.getChild(index - 1) as RuleContext : null;
+    return index > 0 ? parent.getChild(index - 1) as ParserRuleContext : null;
 };
 
 /**
@@ -332,8 +332,8 @@ export const getPreviousSibling = (tree: RuleContext): RuleContext | null => {
  *
  * @returns The node that immediately precedes the given node or nothing if there's none anymore.
  */
-export const getPrevious = (tree: RuleContext): RuleContext | null => {
-    let walker: RuleContext | null;
+export const getPrevious = (tree: ParserRuleContext): ParserRuleContext | null => {
+    let walker: ParserRuleContext | null;
 
     do {
         const sibling = getPreviousSibling(tree);
@@ -344,7 +344,7 @@ export const getPrevious = (tree: RuleContext): RuleContext | null => {
 
             walker = sibling;
             while (walker.getChildCount() > 0) { // Walk down to the last child node.
-                walker = walker.getChild(walker.getChildCount() - 1) as RuleContext;
+                walker = walker.getChild(walker.getChildCount() - 1) as ParserRuleContext;
             }
 
             if (walker instanceof TerminalNode) {
@@ -367,7 +367,7 @@ export const getPrevious = (tree: RuleContext): RuleContext | null => {
  *
  * @returns The node following the given node in the same parent or undefined if the given node is the last child.
  */
-export const getNextSibling = (tree: RuleContext): RuleContext | null => {
+export const getNextSibling = (tree: ParserRuleContext): ParserRuleContext | null => {
     const parent = tree.parent;
     if (!parent) {
         return null;
@@ -380,7 +380,7 @@ export const getNextSibling = (tree: RuleContext): RuleContext | null => {
         ++index;
     }
 
-    return index < parent.getChildCount() - 1 ? parent.getChild(index + 1) as RuleContext : null;
+    return index < parent.getChildCount() - 1 ? parent.getChild(index + 1) as ParserRuleContext : null;
 };
 
 /**
@@ -390,18 +390,18 @@ export const getNextSibling = (tree: RuleContext): RuleContext | null => {
  *
  * @returns The next terminal if there's any.
  */
-export const getNext = (tree: RuleContext): RuleContext | null => {
+export const getNext = (tree: ParserRuleContext): ParserRuleContext | null => {
     // If we have children then return the first one.
     if (tree.getChildCount() > 0) {
         do {
-            tree = tree.getChild(0)! as RuleContext;
+            tree = tree.getChild(0)! as ParserRuleContext;
         } while (tree.getChildCount() > 0);
 
         return tree;
     }
 
     // No children, so try our next sibling (or that of our parent(s)).
-    let run: RuleContext | null = tree;
+    let run: ParserRuleContext | null = tree;
     do {
         const sibling = getNextSibling(run);
         if (sibling) {
@@ -429,8 +429,9 @@ export const getNext = (tree: RuleContext): RuleContext | null => {
  *
  * @returns The found terminal node or undefined if nothing could be found.
  */
-export const terminalFromPosition = (root: RuleContext, column: number, line: number): RuleContext | null => {
-    let run: RuleContext | null = root;
+export const terminalFromPosition = (root: ParserRuleContext, column: number,
+    line: number): ParserRuleContext | null => {
+    let run: ParserRuleContext | null = root;
     do {
         run = getNext(run);
         if (run instanceof TerminalNode) {
@@ -487,14 +488,14 @@ const treeContainsPosition = (node: ParseTree, position: number): boolean => {
  *
  * @returns The parse tree if there's one containing the given position or undefined.
  */
-export const contextFromPosition = (root: RuleContext, position: number): RuleContext | null => {
+export const contextFromPosition = (root: ParserRuleContext, position: number): ParserRuleContext | null => {
     if (!treeContainsPosition(root, position)) {
         return null;
     }
 
     if (root.children) {
         for (const child of root.children) {
-            const result = contextFromPosition(child as RuleContext, position);
+            const result = contextFromPosition(child as ParserRuleContext, position);
             if (result) {
                 return result;
             }
