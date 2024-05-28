@@ -328,7 +328,7 @@ export class DBNotebooks {
 
         for (const action of replaceActions) {
 
-            if ((await action.getAttribute("title")).indexOf(button) !== -1) {
+            if ((await action.getAttribute("aria-label")).indexOf(button) !== -1) {
                 return action;
             }
         }

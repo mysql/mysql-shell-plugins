@@ -26,7 +26,7 @@
 // This file contains the main interface to all language services for Python.
 
 import {
-    BailErrorStrategy, CharStreams, CommonTokenStream, DefaultErrorStrategy, ParseCancellationException,
+    BailErrorStrategy, CharStream, CommonTokenStream, DefaultErrorStrategy, ParseCancellationException,
     ParseTree, PredictionMode,
 } from "antlr4ng";
 
@@ -44,7 +44,7 @@ export enum PythonParseUnit {
 export class PythonParsingServices {
     private static services?: PythonParsingServices;
 
-    private lexer = new PythonLexer(CharStreams.fromString(""));
+    private lexer = new PythonLexer(CharStream.fromString(""));
     private tokenStream = new CommonTokenStream(this.lexer);
     private parser = new PythonParser(this.tokenStream);
     private errors: IParserErrorInfo[] = [];
@@ -126,7 +126,7 @@ export class PythonParsingServices {
      * @returns The string, if one was found. Otherwise undefined.
      */
     public stringFromPosition = (text: string, line: number, offset: number): string | undefined => {
-        const input = CharStreams.fromString(text);
+        const input = CharStream.fromString(text);
         const lexer = new PythonLexer(input);
         const tokenStream = new CommonTokenStream(lexer);
 
@@ -175,7 +175,7 @@ export class PythonParsingServices {
      */
     private startParsing(text: string, fast: boolean, unit: PythonParseUnit): ParseTree | undefined {
         this.errors = [];
-        this.lexer.inputStream = CharStreams.fromString(text);
+        this.lexer.inputStream = CharStream.fromString(text);
         this.tokenStream.setTokenSource(this.lexer);
 
         this.parser.reset();

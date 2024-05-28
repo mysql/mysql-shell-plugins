@@ -171,7 +171,7 @@ describe("Application host tests", () => {
         ModuleRegistry.enableModule(ShellModuleId);
         ModuleRegistry.enableModule(DBEditorModuleId);
 
-        const component = shallow<ApplicationHost>(
+        const component = mount<ApplicationHost>(
             <ApplicationHost
                 toggleOptions={toggleOptions}
             />,

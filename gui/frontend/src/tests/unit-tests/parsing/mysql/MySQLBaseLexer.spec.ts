@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { CharStreams } from "antlr4ng";
+import { CharStream } from "antlr4ng";
 
 import { MySQLMRSLexer } from "../../../../parsing/mysql/generated/MySQLMRSLexer.js";
 import { SqlMode } from "../../../../parsing/mysql/MySQLRecognizerCommon.js";
@@ -32,7 +32,7 @@ import { QueryType } from "../../../../parsing/parser-common.js";
 describe("MySQLBaseLexer Tests", (): void => {
     // Note: do not create a base lexer as such (which is abstract) but instead use the MySQLMRSLexer (for which
     // own tests exist) and test only the features implemented in the base lexer.
-    const stream = CharStreams.fromString("select * from sakila.actor");
+    const stream = CharStream.fromString("select * from sakila.actor");
 
     it("Static Methods", () => {
         expect(MySQLMRSLexer.isRelation(MySQLMRSLexer.GREATER_THAN_OPERATOR)).toBeTruthy();
@@ -173,7 +173,7 @@ describe("MySQLBaseLexer Tests", (): void => {
 
     it("Query Type Tests", () => {
         const checkQueryType = (query: string, expected: number): void => {
-            const lexer = new MySQLMRSLexer(CharStreams.fromString(query));
+            const lexer = new MySQLMRSLexer(CharStream.fromString(query));
             lexer.serverVersion = 80020;
             expect(lexer.determineQueryType()).toBe(expected);
         };

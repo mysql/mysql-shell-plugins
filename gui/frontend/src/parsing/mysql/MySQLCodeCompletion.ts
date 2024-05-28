@@ -26,7 +26,7 @@
 // cspell: disable
 
 import { CandidatesCollection, CodeCompletionCore } from "antlr4-c3";
-import { BufferedTokenStream, CharStreams, CommonTokenStream, ParseTreeListener, ParseTreeWalker } from "antlr4ng";
+import { BufferedTokenStream, CharStream, CommonTokenStream, ParseTreeListener, ParseTreeWalker } from "antlr4ng";
 
 import { Stack } from "../../supplement/Stack.js";
 import { ICompletionData, LanguageCompletionKind, QueryType, Scanner } from "../parser-common.js";
@@ -616,7 +616,7 @@ export class AutoCompletionContext {
     private parseTableReferences(fromClause: string): void {
         // We use a local parser just for the FROM clause to avoid messing up tokens on the code completion
         // parser (which would affect the processing of the found candidates).
-        const input = CharStreams.fromString(fromClause);
+        const input = CharStream.fromString(fromClause);
         const lexer = new MySQLMRSLexer(input);
         const tokens = new CommonTokenStream(lexer);
         const fromParser = new MySQLMRSParser(tokens);
@@ -678,7 +678,7 @@ export const getCodeCompletionItems = (caretLine: number, caretOffset: number, d
     scanner.push();
 
     let queryType = QueryType.Unknown;
-    const lexer = parser.inputStream.getTokenSource() as MySQLMRSLexer;
+    const lexer = parser.inputStream.tokenSource as MySQLMRSLexer;
     if (lexer) {
         lexer.reset(); // Set back the input position to the beginning for query type determination.
         queryType = lexer.determineQueryType();

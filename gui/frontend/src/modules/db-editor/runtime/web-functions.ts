@@ -83,7 +83,7 @@ export const mrsExportServiceSdk = (serviceId: string): void => {
 };
 
 export const mrsAddContentSet = (serviceId: string, directory?: string): void => {
-    currentWorker.postMessage({
+    currentWorker.postMessage?.({
         taskId: currentWorker.currentTaskId,
         data: {
             api: ScriptingApi.MrsAddContentSet,

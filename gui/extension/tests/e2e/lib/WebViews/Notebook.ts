@@ -275,7 +275,7 @@ export class Notebook {
         const findWidget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds);
         const replaceActions = await findWidget.findElements(locator.findWidget.replaceActions);
         for (const action of replaceActions) {
-            if ((await action.getAttribute("title")).indexOf(button) !== -1) {
+            if ((await action.getAttribute("aria-label")).indexOf(button) !== -1) {
                 return action;
             }
         }

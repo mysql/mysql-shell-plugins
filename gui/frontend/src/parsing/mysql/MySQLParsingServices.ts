@@ -26,7 +26,7 @@
 /* eslint-disable no-underscore-dangle */
 
 import {
-    BailErrorStrategy, CharStreams, CommonTokenStream, DefaultErrorStrategy, ParseCancellationException,
+    BailErrorStrategy, CharStream, CommonTokenStream, DefaultErrorStrategy, ParseCancellationException,
     ParseTree, PredictionMode, TokenStreamRewriter, XPath, Token,
 } from "antlr4ng";
 
@@ -54,7 +54,7 @@ export class MySQLParsingServices {
     private static services?: MySQLParsingServices;
     private static readonly delimiterKeyword = /delimiter /i;
 
-    private lexer = new MySQLMRSLexer(CharStreams.fromString(""));
+    private lexer = new MySQLMRSLexer(CharStream.fromString(""));
     private tokenStream = new CommonTokenStream(this.lexer);
     private parser = new MySQLMRSParser(this.tokenStream);
     private errors: IParserErrorInfo[] = [];
@@ -181,7 +181,7 @@ export class MySQLParsingServices {
     public async getQuickInfo(text: string, offset: number, serverVersion: number): Promise<ISymbolInfo | undefined> {
         this.lexer.serverVersion = serverVersion;
         this.errors = [];
-        this.lexer.inputStream = CharStreams.fromString(text);
+        this.lexer.inputStream = CharStream.fromString(text);
         this.tokenStream.setTokenSource(this.lexer);
         this.tokenStream.fill();
 
@@ -280,7 +280,7 @@ export class MySQLParsingServices {
 
             this.applyServerDetails(serverVersion, sqlMode);
             this.errors = [];
-            this.lexer.inputStream = CharStreams.fromString(statement.text);
+            this.lexer.inputStream = CharStream.fromString(statement.text);
             this.tokenStream.setTokenSource(this.lexer);
             this.tokenStream.fill();
 
@@ -339,14 +339,14 @@ export class MySQLParsingServices {
         this.parser.serverVersion = serverVersion;
 
         this.errors = [];
-        this.lexer.inputStream = CharStreams.fromString(text);
+        this.lexer.inputStream = CharStream.fromString(text);
         this.tokenStream.setTokenSource(this.lexer);
         this.tokenStream.fill();
 
         let isQuoted = false;
         const token = tokenFromPosition(this.tokenStream, offset);
         if (token) {
-            const tokenText = token.text.trim();
+            const tokenText = (token.text ?? "").trim();
             const unquoted = unquote(tokenText);
             isQuoted = unquoted.length < tokenText.length;
         }
@@ -674,7 +674,7 @@ export class MySQLParsingServices {
     public determineQueryType(sql: string, serverVersion: number): QueryType {
         this.lexer.serverVersion = serverVersion;
         this.errors = [];
-        this.lexer.inputStream = CharStreams.fromString(sql);
+        this.lexer.inputStream = CharStream.fromString(sql);
 
         return this.lexer.determineQueryType();
     }
@@ -875,7 +875,7 @@ export class MySQLParsingServices {
 
         this.applyServerDetails(serverVersion, sqlMode);
         this.errors = [];
-        this.lexer.inputStream = CharStreams.fromString(sql);
+        this.lexer.inputStream = CharStream.fromString(sql);
         this.tokenStream.setTokenSource(this.lexer);
         this.tokenStream.fill();
 
@@ -942,7 +942,7 @@ export class MySQLParsingServices {
      */
     private startParsing(text: string, fast: boolean, unit: MySQLParseUnit): ParseTree | undefined {
         this.errors = [];
-        this.lexer.inputStream = CharStreams.fromString(text);
+        this.lexer.inputStream = CharStream.fromString(text);
         this.tokenStream.setTokenSource(this.lexer);
 
         this.parser.reset();
@@ -1070,7 +1070,7 @@ export class MySQLParsingServices {
                     return "delimiter";
                 }
 
-                const name = token.text;
+                const name = token.text!;
                 if (isKeyword(name, serverVersion)) {
                     if (name.length > 2) {
                         const info = await this.globalSymbols.getSymbolInfo(name.toLowerCase());

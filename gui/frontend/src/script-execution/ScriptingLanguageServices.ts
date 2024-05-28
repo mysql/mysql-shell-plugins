@@ -355,7 +355,11 @@ export class ScriptingLanguageServices {
                         });
 
                         const semanticDiagnostics = await service.getSemanticDiagnostics(model.uri.toString());
-                        semanticDiagnostics.forEach((value) => {
+                        const filteredDiagnostics = semanticDiagnostics.filter((diagnostic) => {
+                            return diagnostic.code !== 1375; // Top level await is only allowed in ES modules.
+                        });
+
+                        filteredDiagnostics.forEach((value) => {
                             result.push({
                                 span: {
                                     start: value.start || 0,

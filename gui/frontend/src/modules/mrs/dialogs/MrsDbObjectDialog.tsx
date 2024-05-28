@@ -38,9 +38,9 @@ import { IMrsObjectFieldEditorData, MrsObjectFieldEditor } from "./MrsObjectFiel
 import { MrsDbObjectType } from "../types.js";
 
 export class MrsDbObjectDialog extends AwaitableValueEditDialog {
-    private requestValue: IMrsDbObjectData;
-    private objectType: MrsDbObjectType;
-    private backend: ShellInterfaceSqlEditor;
+    private requestValue!: IMrsDbObjectData;
+    private objectType!: MrsDbObjectType;
+    private backend!: ShellInterfaceSqlEditor;
     private createDbObject = false;
     private dialogValues?: IDialogValues;
 

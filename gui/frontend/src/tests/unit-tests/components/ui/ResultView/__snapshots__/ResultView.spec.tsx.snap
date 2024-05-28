@@ -561,13 +561,13 @@ exports[`Result View Tests Render with Columns 1`] = `
               }
             }
             caption={
-              <k>
+              <g>
                 <Icon
                   disabled={false}
                   src={389}
                 />
                 <Label />
-              </k>
+              </g>
             }
             className="msg valueEditDialog"
             container={
@@ -834,13 +834,13 @@ exports[`Result View Tests Standard Rendering 1`] = `
               }
             }
             caption={
-              <k>
+              <g>
                 <Icon
                   disabled={false}
                   src={389}
                 />
                 <Label />
-              </k>
+              </g>
             }
             className="msg valueEditDialog"
             container={

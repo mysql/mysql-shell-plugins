@@ -21,11 +21,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import fs from "fs/promises";
+import { mkdir, writeFile } from "fs/promises";
 import { until, WebDriver } from "selenium-webdriver";
-import * as locator from "../lib/locators.js";
+
 import * as constants from "../lib/constants.js";
 import { driver } from "../lib/driver.js";
+import * as locator from "../lib/locators.js";
 
 export const feLog = "fe.log";
 export const shellServers = new Map([
@@ -112,8 +113,8 @@ export class Misc {
             testName = name;
         }
 
-        await fs.mkdir("src/tests/e2e/screenshots", { recursive: true });
-        await fs.writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
+        await mkdir("src/tests/e2e/screenshots", { recursive: true });
+        await writeFile(`src/tests/e2e/screenshots/${testName}_screenshot.png`, img, "base64");
 
         return `screenshots/${testName}_screenshot.png`;
     }

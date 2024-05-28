@@ -1756,7 +1756,7 @@ Execute \\help or \\? for help;`;
                         (usesAwait ? 1 - 2 + 2 : 0),
                     code: ts.transpile((this.cachedMrsServiceSdk.code ?? "") +
                         (usesAwait
-                            ? "(async () => {\n" + context.code.replace("\nexport{}\n", "") + "})()"
+                            ? "(async () => {\n" + context.code + "})()"
                             : context.code), {
                         alwaysStrict: true,
                         target: ScriptTarget.ES2022,

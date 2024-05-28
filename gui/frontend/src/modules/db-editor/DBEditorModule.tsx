@@ -142,7 +142,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
     private scriptsTree: IDBDataEntry[] = [];
 
-    private pendingProgress: ReturnType<typeof setTimeout> | null;
+    private pendingProgress: ReturnType<typeof setTimeout> | null = null;
 
     private actionMenuRef = createRef<Menu>();
     private mrsHubRef = createRef<MrsHub>();

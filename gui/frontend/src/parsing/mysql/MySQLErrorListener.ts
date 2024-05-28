@@ -99,7 +99,7 @@ export class MySQLErrorListener extends BaseErrorListener {
             }
 
             const parser = recognizer as MySQLMRSParser;
-            const lexer = parser.inputStream.getTokenSource() as MySQLBaseLexer;
+            const lexer = parser.inputStream.tokenSource as MySQLBaseLexer;
 
             const isEof = token.type === Token.EOF;
             if (isEof) {
@@ -282,7 +282,7 @@ export class MySQLErrorListener extends BaseErrorListener {
 
                 const lexer = recognizer as MySQLMRSLexer;
                 const input = lexer.inputStream;
-                let text = lexer.getErrorDisplay(input.getText(lexer._tokenStartCharIndex, input.index));
+                let text = lexer.getErrorDisplay(input.getTextFromRange(lexer.tokenStartCharIndex, input.index));
                 if (text === "") {
                     text = " ";  // Should never happen, but we must ensure we have text.
                 }
@@ -314,8 +314,8 @@ export class MySQLErrorListener extends BaseErrorListener {
                         break;
                 }
 
-                this.callback(message, 0, lexer._tokenStartCharIndex, line, charPositionInLine,
-                    input.index - lexer._tokenStartCharIndex);
+                this.callback(message, 0, lexer.tokenStartCharIndex, line, charPositionInLine,
+                    input.index - lexer.tokenStartCharIndex);
 
             }
 

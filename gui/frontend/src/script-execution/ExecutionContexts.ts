@@ -180,7 +180,7 @@ export class ExecutionContexts implements IContextProvider {
     public restoreFromStates(editor: CodeEditor, factory: ResultPresentationFactory,
         details: IExecutionContextDetails[]): void {
 
-        if (details.length === 0) {
+        if (details.length === 0 || !editor.backend) {
             // Do not touch the current context list if there's nothing to restore.
             return;
         }

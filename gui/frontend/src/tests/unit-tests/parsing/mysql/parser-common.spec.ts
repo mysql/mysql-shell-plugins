@@ -23,14 +23,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { CharStreams, CommonTokenStream, Token } from "antlr4ng";
+import { CharStream, CommonTokenStream, Token } from "antlr4ng";
 
 import { MySQLMRSLexer } from "../../../../parsing/mysql/generated/MySQLMRSLexer.js";
 import { Scanner, tokenFromPosition } from "../../../../parsing/parser-common.js";
 
 describe("Parser Common", () => {
     it("Getting token from position", () => {
-        const input = CharStreams.fromString("SELECT * \n  /* comment */ FROM sakila.actor");
+        const input = CharStream.fromString("SELECT * \n  /* comment */ FROM sakila.actor");
         const lexer = new MySQLMRSLexer(input);
         const stream = new CommonTokenStream(lexer);
         stream.fill();
@@ -69,7 +69,7 @@ describe("Parser Common", () => {
     });
 
     it("Getting token from position (empty input)", () => {
-        const input = CharStreams.fromString("");
+        const input = CharStream.fromString("");
         const lexer = new MySQLMRSLexer(input);
         const stream = new CommonTokenStream(lexer);
         stream.fill();
@@ -83,7 +83,7 @@ describe("Parser Common", () => {
     });
 
     it("Scanner functions (normal)", () => {
-        const input = CharStreams.fromString("SELECT * \n  /* comment */ FROM \nsakila\n.actor");
+        const input = CharStream.fromString("SELECT * \n  /* comment */ FROM \nsakila\n.actor");
         const lexer = new MySQLMRSLexer(input);
         const stream = new CommonTokenStream(lexer);
         const scanner = new Scanner(stream);
@@ -146,7 +146,7 @@ describe("Parser Common", () => {
     });
 
     it("Scanner functions (token details)", () => {
-        const input = CharStreams.fromString("create procedure \n\ntest.Test() begin end");
+        const input = CharStream.fromString("create procedure \n\ntest.Test() begin end");
         const lexer = new MySQLMRSLexer(input);
         const stream = new CommonTokenStream(lexer);
         const scanner = new Scanner(stream);
@@ -165,7 +165,7 @@ describe("Parser Common", () => {
     });
 
     it("Scanner functions (edge cases)", () => {
-        let input = CharStreams.fromString("SELECT * \n  /* comment */ FROM \nsakila\n.actor");
+        let input = CharStream.fromString("SELECT * \n  /* comment */ FROM \nsakila\n.actor");
         const lexer = new MySQLMRSLexer(input);
         const stream = new CommonTokenStream(lexer);
         const scanner = new Scanner(stream);
@@ -177,7 +177,7 @@ describe("Parser Common", () => {
         expect(scanner.advanceToPosition(10, -10)).toBe(true);
         expect(scanner.tokenText).toBe("<EOF>");
 
-        input = CharStreams.fromString("");
+        input = CharStream.fromString("");
         lexer.inputStream = input;
         stream.setTokenSource(lexer);
         scanner.reset(true);
@@ -187,7 +187,7 @@ describe("Parser Common", () => {
     });
 
     it("Scanner stack", () => {
-        const input = CharStreams.fromString("SELECT * \n  /* comment */ FROM \nsakila\n.actor");
+        const input = CharStream.fromString("SELECT * \n  /* comment */ FROM \nsakila\n.actor");
         const lexer = new MySQLMRSLexer(input);
         const stream = new CommonTokenStream(lexer);
         const scanner = new Scanner(stream);
@@ -226,7 +226,7 @@ describe("Parser Common", () => {
     });
 
     it("Scanner and MLE", () => {
-        const input = CharStreams.fromString("create procedure Test() as $abc$ something not SQL $abc$");
+        const input = CharStream.fromString("create procedure Test() as $abc$ something not SQL $abc$");
         const lexer = new MySQLMRSLexer(input);
         lexer.supportMle = true;
         const stream = new CommonTokenStream(lexer);

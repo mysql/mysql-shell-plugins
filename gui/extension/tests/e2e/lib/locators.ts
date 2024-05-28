@@ -274,7 +274,7 @@ export const findWidget = {
     matchesCount: By.className("matchesCount"),
     findMatch: By.css(".cdr.findMatch"),
     replacePart: By.className("replace-part"),
-    close: By.xpath(".//div[contains(@title, 'Close')]"),
+    close: By.xpath(".//div[contains(@aria-label, 'Close')]"),
 };
 
 export const mrsServiceDialog = {

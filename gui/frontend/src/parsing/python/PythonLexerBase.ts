@@ -50,11 +50,7 @@ export abstract class PythonLexerBase extends Lexer {
             return super.emit();
         }
 
-        // The _token field is handled by the parent Lexer class, however, the TypeScript compiler now prevents field
-        // assignment using "super", because fields are kept in a flat structure in the prototype chain and there are no
-        // assurances they are not rewritten by the child classes.
-        // Until the Lexer class introduces a setter for this specific field, use we can replace "super" by "this".
-        this._token = token;
+        this.emitToken(token);
         this.buffer.push(token);
         this.lastToken = token;
 
@@ -97,9 +93,9 @@ export abstract class PythonLexerBase extends Lexer {
         channel = channel ?? PythonLexerBase.DEFAULT_TOKEN_CHANNEL;
         text = text ?? "";
 
-        const charIndex = this._tokenStartCharIndex;
-        const token = new CommonToken([this, this.inputStream], tokenOrTokenType, channel, charIndex - text.length,
-            charIndex);
+        const charIndex = this.tokenStartCharIndex;
+        const token = CommonToken.fromSource([this, this.inputStream], tokenOrTokenType, channel,
+            charIndex - text.length, charIndex);
         token.text = text;
         token.line = this.line;
 

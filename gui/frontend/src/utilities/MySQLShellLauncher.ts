@@ -23,11 +23,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+// ATTENTION: keep the namespace imports or vite will report weird errors!
+
 import * as cp from "child_process";
-import fs from "fs";
-import path from "path";
+import * as fs from "fs";
+import * as path from "path";
 import * as net from "net";
-import os from "os";
+import * as os from "os";
 
 import { appParameters, requisitions } from "../supplement/Requisitions.js";
 import { uuid } from "./helpers.js";

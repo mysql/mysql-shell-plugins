@@ -65,7 +65,7 @@ describe("Label component test", (): void => {
         );
 
         const props = component.props();
-        expect(props.className).toEqual("msg resultText");
+        expect(props.className).toEqual("msg label");
     });
 
     it("Label with ansi formatting", () => {

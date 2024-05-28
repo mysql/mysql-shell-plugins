@@ -51,7 +51,7 @@ export class CommandExecutor {
     private toolbar?: WebElement;
 
     /** The last executed command */
-    private command: string;
+    private command = "";
 
     public constructor() {
         this.resultId = "1";
@@ -565,7 +565,7 @@ export class CommandExecutor {
      * @returns A promise resolving when the new value is set
      */
     public editResultGridCells = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
-        await driver.wait(waitUntil.resultGridIsEditable(this.getResultToolbar()),
+        await driver.wait(waitUntil.resultGridIsEditable(this.getResultToolbar()!),
             constants.wait5seconds);
 
         const performEdit = async (cellRef: interfaces.IResultGridCell): Promise<void> => {
@@ -774,10 +774,10 @@ export class CommandExecutor {
     public closeResultSet = async (): Promise<void> => {
         await driver.wait(async () => {
             try {
-                await driver.wait(waitUntil.elementLocated(this.getResultToolbar(),
+                await driver.wait(waitUntil.elementLocated(this.getResultToolbar()!,
                     locator.notebook.codeEditor.editor.result.status.toolbar.showActionMenu.open),
                     constants.wait5seconds, "Could not find Show Actions button");
-                const showActions = await this.getResultToolbar()
+                const showActions = await this.getResultToolbar()!
                     .findElement(locator.notebook.codeEditor.editor.result.status.toolbar.showActionMenu.open);
                 await driver.executeScript("arguments[0].click()", showActions);
 
@@ -957,7 +957,7 @@ export class CommandExecutor {
      */
     public getSqlPreview = async (returnWebEl = false): Promise<string | WebElement> => {
         if (!returnWebEl) {
-            await this.getResultToolbar()
+            await this.getResultToolbar()!
                 .findElement(locator.notebook.codeEditor.editor.result.status.toolbar.previewButton).click();
             await this.refreshCommandResult(this.getResultId());
             const sqlPreview = this.getResultContent() as WebElement;
@@ -1149,7 +1149,7 @@ export class CommandExecutor {
                                 return true;
                             })
                             .catch(async () => {
-                                await this.getResultToolbar().click();
+                                await this.getResultToolbar()?.click();
 
                                 return false;
                             });
@@ -1174,7 +1174,7 @@ export class CommandExecutor {
      * @returns A promise resolving when the button is clicked
      */
     public resultGridApplyChanges = async (verifyUpdate = false): Promise<void> => {
-        const applyButton = await this.getResultToolbar()
+        const applyButton = await this.getResultToolbar()!
             .findElement(locator.notebook.codeEditor.editor.result.status.toolbar.applyButton);
 
         if (verifyUpdate) {
@@ -1194,7 +1194,7 @@ export class CommandExecutor {
      * @returns A promise resolving when the button is clicked
      */
     public resultGridRollbackChanges = async (): Promise<void> => {
-        await this.getResultToolbar()
+        await this.getResultToolbar()!
             .findElement(locator.notebook.codeEditor.editor.result.status.toolbar.rollbackButton).click();
     };
 

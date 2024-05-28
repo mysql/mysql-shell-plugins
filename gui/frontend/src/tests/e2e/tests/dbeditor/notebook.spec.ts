@@ -1257,7 +1257,7 @@ describe("Notebook", () => {
                 "select actor_id from sakila.actor INTERSECT select address_id from sakila.address;",
                 "select first_name from sakila.actor EXCEPT select address from sakila.address;",
                 "SELECT COUNT(*) FROM DUAL;",
-                `select * from sakila.actor where actor_id = 
+                `select * from sakila.actor where actor_id =
             (select address_id from sakila.address where address_id = 1) for update;`,
                 "select (actor_id*2), first_name as calculated from sakila.actor;",
             ];
@@ -1265,7 +1265,7 @@ describe("Notebook", () => {
             for (const query of queries) {
                 await commandExecutor.execute(query);
                 expect(commandExecutor.getResultMessage()).toMatch(/OK/);
-                const editBtn = await commandExecutor.getResultToolbar()
+                const editBtn = await commandExecutor.getResultToolbar()!
                     .findElement(locator.notebook.codeEditor.editor.result.status.toolbar.editButton);
                 expect(await editBtn.getAttribute("data-tooltip")).toBe("Data not editable");
             }

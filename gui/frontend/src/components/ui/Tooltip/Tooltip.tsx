@@ -66,7 +66,7 @@ interface ITooltipProviderState extends IComponentState {
 /** A component to render a tooltip on other components with a "data-tooltip" attribute. */
 export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, ITooltipProviderState> {
 
-    private tooltipTimer: ReturnType<typeof setTimeout>;
+    private tooltipTimer: ReturnType<typeof setTimeout> | null = null;
     private innerRef = createRef<HTMLDivElement>();
 
     public constructor(props: ITooltipProviderProperties) {

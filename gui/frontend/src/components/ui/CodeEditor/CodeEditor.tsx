@@ -332,7 +332,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             languages.typescript.javascriptDefaults.setCompilerOptions(compilerOptions);
             languages.typescript.typescriptDefaults.setCompilerOptions(compilerOptions);
 
-            // Disable the error about "top level await". This is handled manually.
+            // Disable the error about "top level await" for standalone editors.
             languages.typescript.typescriptDefaults.setDiagnosticsOptions({
                 diagnosticCodesToIgnore: [1375],
             });
@@ -445,7 +445,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             "foldingStrategy": "auto",
             "glyphMargin": !combinedLanguage,
             "showFoldingControls": "always",
-            "lightbulb": { enabled: false },
+            "lightbulb": { enabled: Monaco.ShowLightbulbIconMode.Off },
             "renderWhitespace": showHidden ? "all" : "none",
             "renderControlCharacters": showHidden,
             guides,
@@ -471,7 +471,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
         if (model) {
             if (model.executionContexts && model.executionContexts.count > 0) {
-                void model.executionContexts.activateContexts(this.backend);
+                void model.executionContexts.activateContexts(this.editor);
             } else {
                 if (model.getLanguageId() === "msg" && model.getLineCount() > 1) {
                     this.generateExecutionBlocksFromContent();
@@ -547,7 +547,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         const { initialContent, language, savedState, autoFocus } = this.mergedProps;
 
         const editor = this.backend;
-        if (savedState?.model !== editor?.getModel()) {
+        if (editor && savedState?.model !== editor.getModel()) {
             if (prevProps.savedState && editor) {
                 // Save the current state before switching to the new model.
                 prevProps.savedState.viewState = editor.saveViewState();
@@ -573,7 +573,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 }
 
                 if (model.executionContexts && model.executionContexts.count > 0) {
-                    void model.executionContexts?.activateContexts(this.backend);
+                    void model.executionContexts?.activateContexts(editor);
                 } else {
                     if (!savedState) {
                         model.setValue(initialContent ?? "");
@@ -1692,6 +1692,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 const firstIndex = contextsToUpdate[0];
                 const firstContext = model.executionContexts.contextAt(firstIndex)!;
                 const blocks = this.determineTextBlocks(firstContext);
+
                 const offset = firstContext.startLine;
 
                 const first = blocks.shift();

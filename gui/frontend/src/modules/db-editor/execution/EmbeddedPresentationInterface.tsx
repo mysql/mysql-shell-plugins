@@ -124,14 +124,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                     endColumn: editorModel.getLineMaxColumn(this.endLine),
                 }, Monaco.EndOfLinePreference.LF);
 
-            // Detect if the language is TS/JS and if the code include "await " and if so, add "export {}".
-            // This is done to indicate to the language server that this code is to be treated like a module
-            // as soon as an async function is being awaited.
-            // See DBConnectionTab.tsx for details.
-            this.internalModel.setValue(value +
-                (((this.language === "typescript" || this.language === "javascript")) && value.includes("await ")
-                    ? "\nexport{}\n" : ""),
-            );
+            this.internalModel.setValue(value);
         }
 
         return this.internalModel;

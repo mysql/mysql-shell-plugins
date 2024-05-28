@@ -33,19 +33,20 @@ import { MySQLParsingServices } from "../mysql/MySQLParsingServices.js";
 import { SQLiteParsingServices } from "../SQLite/SQLiteParsingServices.js";
 import { PrivateWorker } from "../../modules/db-editor/console.worker-types.js";
 
-const ctx = self as unknown as PrivateWorker;
+const worker = self as unknown as PrivateWorker;
 
 const mySqlServices = MySQLParsingServices.instance;
 const sqliteServices = SQLiteParsingServices.instance;
 
 const postResultMessage = (taskId: number, data: ILanguageWorkerResultData): void => {
-    ctx.postMessage?.({
+    worker.postMessage?.({
         taskId,
         data,
     });
 };
+worker.pendingRequests = new Map<string, (res: unknown) => void>();
 
-ctx.addEventListener?.("message", (event: MessageEvent) => {
+worker.addEventListener?.("message", (event: MessageEvent) => {
     const { taskId, data }: { taskId: number; data: ILanguageWorkerTaskData; } = event.data;
 
     let services;
