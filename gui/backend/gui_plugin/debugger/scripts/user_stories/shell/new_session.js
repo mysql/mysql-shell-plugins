@@ -136,9 +136,7 @@ await ws.sendAndValidate({
                 { 'Database': 'sys' }
             ], 0),
             'executionTime': ws.ignore,
-            'affectedRowCount': 0,
             'affectedItemsCount': 0,
-            'warningCount': 0,
             'warningsCount': 0,
             'warnings': [],
             'info': '',

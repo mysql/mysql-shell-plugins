@@ -357,10 +357,10 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                 `(${result.executionTime})`,
                         };
 
-                        if (result.warningCount > 0) {
+                        if (result.warningsCount > 0) {
                             status.type = MessageType.Warning;
-                            status.text += `, ${result.warningCount} ` +
-                                `${result.warningCount === 1 ? "warning" : "warnings"}`;
+                            status.text += `, ${result.warningsCount} ` +
+                                `${result.warningsCount === 1 ? "warning" : "warnings"}`;
                         }
 
                         const text: ITextResultEntry[] = [{
@@ -410,9 +410,9 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     // If we have column info at this point then we got SQL mode results (show the result grid).
                     // Otherwise display the result as JSON text.
                     if (columns.length === 0) {
-                        const resultText = result.warningCount > 0 ?
-                            `finished with warnings (${result.warningCount})` : "OK";
-                        let info = `Query ${resultText}, ${result.affectedRowCount || result.rows.length} ` +
+                        const resultText = result.warningsCount > 0 ?
+                            `finished with warnings (${result.warningsCount})` : "OK";
+                        let info = `Query ${resultText}, ${result.affectedItemsCount || result.rows.length} ` +
                             `rows affected`;
                         if (result.executionTime) {
                             info += ` (${result.executionTime})`;
@@ -445,10 +445,10 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                             text: `${result.rows.length} ${rowString} in set (${result.executionTime})`,
                         };
 
-                        if (result.warningCount > 0) {
+                        if (result.warningsCount > 0) {
                             status.type = MessageType.Warning;
-                            status.text += `, ${result.warningCount} ` +
-                                `${result.warningCount === 1 ? "warning" : "warnings"}`;
+                            status.text += `, ${result.warningsCount} ` +
+                                `${result.warningsCount === 1 ? "warning" : "warnings"}`;
                         }
 
                         // Flatten nested objects + arrays.

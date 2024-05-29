@@ -73,10 +73,8 @@ export interface IShellDocumentWarning {
 
 export interface IShellResultData extends IShellPromptValues {
     hasData: boolean;
-    affectedRowCount?: number;
     executionTime: string;
     affectedItemsCount: number;
-    warningCount: number;
     warningsCount: number;
     warnings: IShellDocumentWarning[];
     info: string;

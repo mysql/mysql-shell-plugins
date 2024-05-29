@@ -189,9 +189,7 @@ await ws.sendAndValidate({
                 { 'Database': 'sys' }
             ], false),
             'executionTime': ws.ignore,
-            'affectedRowCount': 0,
             'affectedItemsCount': 0,
-            'warningCount': 0,
             'warningsCount': 0,
             'warnings': [],
             'info': '',
@@ -208,3 +206,4 @@ await ws.sendAndValidate({
 await ws.execute("__lib/shell/_close_session.js")
 
 ws.log("-----=== [END] " + ws.tokens["current_test_name"] + " test ===-----")
+
