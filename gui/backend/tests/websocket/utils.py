@@ -121,11 +121,18 @@ def print_user_story_stack_trace(ws, exc):
     logger.debug("User story stack trace")
     logger.debug(
         "----------------------------------------------------------------------------------------------")
+    logger.debug("Exception")
+    logger.debug(str(exc))
+    logger.debug(
+        "----------------------------------------------------------------------------------------------")
+    logger.debug("Stack trace")
+    logger.debug(
+        "----------------------------------------------------------------------------------------------")
     for line in stack:
         if line.find('  File "<string>"') > -1:
-            importanat_parts = line.replace(
+            important_parts = line.replace(
                 '  File "<string>"', f'File: "{ws._story_stack[0]}"').split(", ")
-            logger.debug(f"{importanat_parts[0]}: {importanat_parts[1]}")
+            logger.debug(f"{important_parts[0]}: {important_parts[1]}")
             ws._story_stack = ws._story_stack[1:]
     logger.debug(
         "----------------------------------------------------------------------------------------------")

@@ -193,7 +193,7 @@ class TWebSocket:
 
         # Lets see if we have a credentials manager available
         credential_manager = subprocess.run(
-            [command, "-e", "shell.listCredentials()"])
+            [command, "--js", "-e", "shell.listCredentials()"])
 
         self.tokens = Object({
             "defaults": {

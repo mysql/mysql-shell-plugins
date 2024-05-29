@@ -19,7 +19,8 @@
   },
   "overrides": {
     "@types/node": "20.3.2",
-    "get-func-name": "2.0.0"
+    "get-func-name": "2.0.0",
+    "@types/selenium-webdriver": "4.1.22"
   },
   "scripts": {
     "e2e-tests-get-vscode": "extest get-vscode",

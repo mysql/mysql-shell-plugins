@@ -63,7 +63,7 @@ env = os.environ.copy()
 env['MYSQLSH_USER_CONFIG_HOME'] = dot_mysqlsh.name
 mysqlsh=shutil.which('mysqlsh.exe') if os.name == 'nt' else shutil.which('mysqlsh')
 
-command = f"{mysqlsh} -e \"print('Protocol files have been updated')\""
+command = f"{mysqlsh} --py -e \"print('Protocol files have been updated')\""
 
 print(command)
 
