@@ -215,7 +215,7 @@ export class MySQLErrorListener extends BaseErrorListener {
                     // whenever an identifier is actually required, bloating so the expected set with irrelevant
                     // elements. Hence we check for the identifier entry and assume we *only* want an identifier.
                     // This gives an imprecise result if both certain keywords *and* an identifier are expected.
-                    if (!expected.contains(MySQLMRSLexer.IDENTIFIER)) {
+                    if (expected.contains(MySQLMRSLexer.IDENTIFIER)) {
                         expectedText = "an identifier";
                     } else {
                         expectedText = this.intervalToString(expected, 6, parser.vocabulary);
@@ -230,12 +230,11 @@ export class MySQLErrorListener extends BaseErrorListener {
 
             if (!e) {
                 // Missing or unwanted tokens.
+                const oneOf = expectedText.length > 1 ? "one of " : "";
                 if (msg.includes("missing")) {
-                    if (expected.length === 1) {
-                        message = "Missing " + expectedText;
-                    }
+                    message = `Missing ${oneOf}${expectedText} before ${wrongText}`;
                 } else {
-                    message = `Extraneous input ${wrongText} found, expecting ${expectedText}`;
+                    message = `Extraneous input ${wrongText} found, expecting ${oneOf}${expectedText}`;
                 }
             } else {
                 if (e instanceof InputMismatchException) {
@@ -343,16 +342,36 @@ export class MySQLErrorListener extends BaseErrorListener {
                 result += "EOF";
             } else {
                 let name = vocabulary.getDisplayName(symbol) ?? "";
-                if (name === "BACK_TICK_QUOTED_ID") {
-                    name = "`text`";
-                } else if (name === "DOUBLE_QUOTED_TEXT") {
-                    name = "\"text\"";
-                } else if (name === "SINGLE_QUOTED_TEXT") {
-                    name = "'text'";
-                } else {
-                    name = name.replace("_SYMBOL", "");
-                    name = name.replace("_OPERATOR", "");
-                    name = name.replace("_NUMBER", "");
+                switch (name) {
+                    case "BACK_TICK_QUOTED_ID": {
+                        name = "`text`";
+
+                        break;
+                    }
+
+                    case "DOUBLE_QUOTED_TEXT": {
+                        name = "\"text\"";
+
+                        break;
+                    }
+
+                    case "SINGLE_QUOTED_TEXT": {
+                        name = "'text'";
+
+                        break;
+                    }
+
+                    case "DOLLAR_QUOTED_STRING_TEXT": {
+                        name = "a tagged string";
+
+                        break;
+                    }
+
+                    default: {
+                        name = name.replace("_SYMBOL", "");
+                        name = name.replace("_OPERATOR", "");
+                        name = name.replace("_NUMBER", "");
+                    }
                 }
                 result += name;
             }
@@ -360,6 +379,10 @@ export class MySQLErrorListener extends BaseErrorListener {
 
         if (maxCount < symbols.length) {
             result += ", ...";
+        }
+
+        if (maxCount > 1) {
+            return `{ ${result} }`;
         }
 
         return result;

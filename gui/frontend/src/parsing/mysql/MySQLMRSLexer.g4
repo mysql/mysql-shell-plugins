@@ -1149,6 +1149,10 @@ INVALID_INPUT:
 // with normal identifiers, which also can start with an underscore.
 UNDERSCORE_CHARSET: UNDERLINE_SYMBOL [a-z0-9]+ { this.type = this.checkCharset(this.text); };
 
+// TODO: check in the semantic phase that starting and ending tags are the same.
+DOLLAR_QUOTED_STRING_TEXT:
+    '$' DOLLAR_QUOTE_TAG_CHAR* '$' .*? '$' DOLLAR_QUOTE_TAG_CHAR* '$' {this.serverVersion >= 80034 && this.supportMle}?;
+
 // Identifiers might start with a digit, even though it is discouraged, and may not consist entirely of digits only.
 // All keywords above are automatically excluded.
 IDENTIFIER:
@@ -1176,10 +1180,6 @@ DOUBLE_QUOTED_TEXT: (
 SINGLE_QUOTED_TEXT: (
         SINGLE_QUOTE (({!this.isSqlModeActive(SqlMode.NoBackslashEscapes)}? '\\')? .)*? SINGLE_QUOTE
     )+;
-
-// TODO: check in the semantic phase that starting and ending tags are the same.
-DOLLAR_QUOTED_STRING_TEXT:
-    '$' DOLLAR_QUOTE_TAG_CHAR* '$' .*? '$' DOLLAR_QUOTE_TAG_CHAR* '$' {this.supportMle}?;
 
 // There are 3 types of block comments:
 // /* ... */ - The standard multi line comment.
