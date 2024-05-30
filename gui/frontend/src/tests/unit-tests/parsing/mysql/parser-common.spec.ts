@@ -228,6 +228,7 @@ describe("Parser Common", () => {
     it("Scanner and MLE", () => {
         const input = CharStream.fromString("create procedure Test() as $abc$ something not SQL $abc$");
         const lexer = new MySQLMRSLexer(input);
+        lexer.serverVersion = 80200;
         lexer.supportMle = true;
         const stream = new CommonTokenStream(lexer);
         const scanner = new Scanner(stream);

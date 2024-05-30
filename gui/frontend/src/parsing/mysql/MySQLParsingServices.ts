@@ -792,7 +792,7 @@ export class MySQLParsingServices {
 
             // Optimizer hint.
             if (forceSecondaryEngine) {
-                rewriter.insertAfter(context.SELECT_SYMBOL()!.symbol, " /*+ SET_VAR(use_secondary_engine = FORCED) */");
+                rewriter.insertAfter(context.SELECT_SYMBOL().symbol, " /*+ SET_VAR(use_secondary_engine = FORCED) */");
                 changed = true;
             }
 
@@ -952,11 +952,12 @@ export class MySQLParsingServices {
         this.parser.errorHandler = new BailErrorStrategy();
         this.parser.interpreter.predictionMode = PredictionMode.SLL;
 
-        /*this.tokenStream.fill();
+        /*
+        this.tokenStream.fill();
         const tokens = this.tokenStream.getTokens();
         tokens.forEach((token) => {
             console.log(token.toString());
-        });*/
+        }); // */
 
         try {
             this.tree = this.parseUnit(unit);
