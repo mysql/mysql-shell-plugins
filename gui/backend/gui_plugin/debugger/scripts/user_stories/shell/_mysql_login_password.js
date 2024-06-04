@@ -8,7 +8,7 @@ await ws.sendAndValidate({
     "request_id": originalRequestId,
     "command": "gui.shell.execute",
     "args": {
-        "command": "\\c msandbox@" + options.host + ":" + options.portStr,
+        "command": "\\c user1@" + options.host + ":" + options.portStr,
         "module_session_id": ws.lastModuleSessionId,
     }
 }, [
@@ -20,7 +20,7 @@ await ws.sendAndValidate({
         },
         'request_id': ws.lastGeneratedRequestId,
         'result': {
-            "info": "Creating a session to 'msandbox@" + options.host + ":" + options.portStr + "'\n"
+            "info": "Creating a session to 'user1@" + options.host + ":" + options.portStr + "'\n"
         }
     },
     {
@@ -32,7 +32,7 @@ await ws.sendAndValidate({
         "result":
         {
             'defaultValue': '',
-            'prompt': "Please provide the password for 'msandbox@" + options.host + ":" + options.portStr + "': ",
+            'prompt': "Please provide the password for 'user1@" + options.host + ":" + options.portStr + "': ",
             'type': 'password'
         }
     }
@@ -52,7 +52,7 @@ await ws.sendAndValidate({
         },
         'request_id': originalRequestId,
         'result': {
-            "error":"MySQL Error 1045 (28000): Access denied for user 'msandbox'@'" + options.host + "' (using password: YES)\n"
+            "error": "MySQL Error 1045 (28000): Access denied for user 'user1'@'" + options.host + "' (using password: YES)\n"
         }
     },
     responses.ok.default
