@@ -22,26 +22,27 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { WebElement, until } from "vscode-extension-tester";
+import { WebElement, until, Condition } from "vscode-extension-tester";
 import { driver, Misc } from "../Misc";
 import * as constants from "../constants";
 import * as locator from "../locators";
-import { EditorSelector } from "./EditorSelector";
+import { Toolbar } from "./Toolbar";
 import * as errors from "../errors";
 
 /**
- * This class aggregates the functions that perform database related operations
+ * This class represents the database connection overview page, and all its related functions
  */
 export class DatabaseConnectionOverview {
 
-    public editorSelector = new EditorSelector();
+    /** The toolbar*/
+    public toolbar = new Toolbar();
 
     /**
      * Gets a Database connection from the DB Connection Overview
      * @param name The database connection caption
      * @returns A promise resolving with the connection
      */
-    public static getConnection = async (name: string): Promise<WebElement> => {
+    public getConnection = async (name: string): Promise<WebElement> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
@@ -72,11 +73,11 @@ export class DatabaseConnectionOverview {
      * @param option The option to click
      * @returns A promise resolving with the connection details
      */
-    public static moreActions = async (dbConnection: string, option: string): Promise<void> => {
+    public moreActions = async (dbConnection: string, option: string): Promise<void> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
-        const connection = await DatabaseConnectionOverview.getConnection(dbConnection);
+        const connection = await this.getConnection(dbConnection);
         const moreActions = await connection.findElement(locator.dbConnectionOverview.dbConnection.moreActions);
         await driver.actions().move({ origin: moreActions }).perform();
         await driver.executeScript("arguments[0].click()", moreActions);
@@ -109,7 +110,7 @@ export class DatabaseConnectionOverview {
      * @param dbConnection The database connection caption
      * @returns A promise resolving with the connection
      */
-    public static existsConnection = async (dbConnection: string): Promise<boolean> => {
+    public existsConnection = async (dbConnection: string): Promise<boolean> => {
         let found = false;
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
@@ -137,6 +138,17 @@ export class DatabaseConnectionOverview {
         }, constants.wait5seconds, "The connections were always stale");
 
         return found;
+    };
+
+    /**
+     * Verifies if a Database connection exists on the DB Connection Overview
+     * @param dbConnection The database connection caption
+     * @returns A condition resolving to true if the connection exists, false otherwise
+     */
+    public untilConnectionExists = (dbConnection: string): Condition<boolean> => {
+        return new Condition(`for ${dbConnection} to exist`, async () => {
+            return this.existsConnection(dbConnection);
+        });
     };
 
 }

@@ -30,7 +30,7 @@ import * as locator from "../locators";
 import { DialogHelper } from "./DialogHelper";
 
 /**
- * This class aggregates the functions that perform database related operations
+ * This class represents the database connection dialog, and all its related functions
  */
 export class DatabaseConnectionDialog {
 
@@ -438,9 +438,8 @@ export class DatabaseConnectionDialog {
         excludeList?: string,
     ): Promise<void> => {
 
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
+        await Misc.switchBackToTopFrame();
+        await Misc.switchToFrame();
 
         const dialog = await driver.wait(until.elementLocated(locator.hwDialog.exists),
             constants.wait5seconds, "MDS dialog was not found");

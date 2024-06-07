@@ -29,7 +29,7 @@ import * as locator from "../locators";
 import * as constants from "../constants";
 
 /**
- * This class aggregates the functions that perform operations inside web view dialogs
+ * This class aggregates the function helpers used inside dialogs
  */
 export class DialogHelper {
 
@@ -106,7 +106,7 @@ export class DialogHelper {
         const fieldValue = await field.getAttribute("value");
         if (fieldValue.trim() !== "") {
             if (fieldValue !== text) {
-                await DialogHelper.clearInputField(field);
+                await this.clearInputField(field);
                 await field.sendKeys(text);
             }
         } else {

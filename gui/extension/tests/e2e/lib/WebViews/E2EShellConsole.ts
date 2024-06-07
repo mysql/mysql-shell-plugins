@@ -21,22 +21,44 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until } from "vscode-extension-tester";
+import { until, Condition } from "vscode-extension-tester";
 import * as constants from "../constants";
 import * as locator from "../locators";
 import * as interfaces from "../interfaces";
-import { driver } from "../Misc";
-import { CodeEditor } from "./CodeEditor";
-import { EditorSelector } from "./EditorSelector";
+import { driver, Misc } from "../Misc";
+import { E2ECodeEditor } from "./E2ECodeEditor";
+import { Toolbar } from "./Toolbar";
+import { PasswordDialog } from "./PasswordDialog";
 
 /**
- * This class aggregates the functions that will execute commands on notebooks or shell sessions, as well as its results
+ * This class represents the Shell console
  */
-export class ShellConsole {
+export class E2EShellConsole {
 
-    public editorSelector = new EditorSelector();
+    /** The toolbar*/
+    public toolbar = new Toolbar();
 
-    public codeEditor = new CodeEditor();
+    /** The code editor*/
+    public codeEditor = new E2ECodeEditor(this);
+
+    /**
+     * Waits until the shell session is opened
+     * @param connection The database connection
+     * @returns A promise resolving when the shell session is opened
+     */
+    public untilIsOpened = (connection?: interfaces.IDBConnection): Condition<boolean> => {
+        return new Condition(`for Shell console to be opened`, async () => {
+            await Misc.switchBackToTopFrame();
+            await Misc.switchToFrame();
+
+            const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
+            if (existsPasswordDialog) {
+                await PasswordDialog.setCredentials(connection);
+            }
+
+            return (await driver.findElements(locator.shellConsole.editor)).length > 0;
+        });
+    };
 
     /**
      * Changes the schema using the top tab

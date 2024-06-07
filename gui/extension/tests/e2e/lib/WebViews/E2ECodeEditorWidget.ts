@@ -22,24 +22,32 @@
  */
 
 import { until, WebElement, Condition } from "vscode-extension-tester";
-import { Notebook } from "./Notebook";
+import { E2ENotebook } from "./E2ENotebook";
 import * as constants from "../constants";
 import * as locator from "../locators";
 import { Misc, driver } from "../Misc";
 
 /**
- * This class represents the code editor widget
+ * This class represents the code editor widget and all its related functions
  */
-export class CodeEditorWidget {
+export class E2ECodeEditorWidget {
 
+    /** The notebook which it belongs to*/
+    private notebook: E2ENotebook;
+
+    /** The widget element*/
     private widget: WebElement;
+
+    public constructor(notebook: E2ENotebook) {
+        this.notebook = notebook;
+    }
 
     /**
      * Creates the widget web element
      * @returns A promise resolving when widget is created
      */
-    public open = async (): Promise<CodeEditorWidget> => {
-        const findBtn = await Notebook.getToolbarButton("Find");
+    public open = async (): Promise<E2ECodeEditorWidget> => {
+        const findBtn = await this.notebook.toolbar.getButton("Find");
         await findBtn.click();
         this.widget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds,
             "Could not find the widget");
@@ -104,7 +112,7 @@ export class CodeEditorWidget {
      * @param matcher The matcher
      * @returns A condition resolving to true if there is a match, false otherwise
      */
-    public matchesCount = (matcher: RegExp): Condition<boolean> => {
+    public untilMatchesCount = (matcher: RegExp): Condition<boolean> => {
         return new Condition(`for text to match ${matcher}`, async () => {
             return (await this.widget.findElement(locator.findWidget.matchesCount).getText()).match(matcher) !== null;
         });

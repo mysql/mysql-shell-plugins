@@ -26,7 +26,7 @@
 import clipboard from "clipboardy";
 import {
     EditorView, error, InputBox, Key, until, NotificationType, OutputView, WebElement,
-    Workbench as extWorkbench, Notification, TerminalView, EditorTab, ActivityBar,
+    Workbench as extWorkbench, Notification, TerminalView, EditorTab, ActivityBar, Condition,
 } from "vscode-extension-tester";
 import * as constants from "./constants";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
@@ -498,5 +498,57 @@ export class Workbench {
     public static openMySQLShellForVSCode = async (): Promise<void> => {
         await Misc.switchBackToTopFrame();
         await (await new ActivityBar().getViewControl(constants.extensionName))?.openView();
+    };
+
+    /**
+     * Waits until the notification exists
+     * @param notification The notification
+     * @param dismiss True to close the notification, false otherwise
+     * @param expectFailure True if it expects a notification with failure/error
+     * @returns A promise resolving when the notification exists
+     */
+    public static untilNotificationExists = (notification: string, dismiss = true,
+        expectFailure = false): Condition<boolean> => {
+        return new Condition(`for notification '${notification}' to be displayed`, async () => {
+            try {
+                if (Misc.insideIframe) {
+                    await Misc.switchBackToTopFrame();
+                }
+
+                const escapedText = notification.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+                const ntfs = await new extWorkbench().getNotifications();
+                for (const ntf of ntfs) {
+                    if (expectFailure === false) {
+                        if (await ntf.getType() === NotificationType.Error) {
+                            throw new Error("There is a notification with error");
+                        }
+                    }
+                    if ((await ntf.getMessage()).match(new RegExp(escapedText)) !== null) {
+                        if (dismiss) {
+                            await Workbench.dismissNotifications();
+                        }
+
+                        return true;
+                    } else {
+                        console.warn(`Found notification: ${await ntf.getMessage()}`);
+                    }
+                }
+            } catch (e) {
+                if (!errors.isStaleError(e as Error)) {
+                    throw e;
+                }
+            }
+        });
+    };
+
+    /**
+     * Waits until the tab is opened
+     * @param tabName The tab name
+     * @returns A promise resolving when the tab is opened
+     */
+    public static untilTabIsOpened = (tabName: string): Condition<boolean> => {
+        return new Condition(`for ${tabName} to be opened`, async () => {
+            return (await Workbench.getOpenEditorTitles()).includes(tabName);
+        });
     };
 }

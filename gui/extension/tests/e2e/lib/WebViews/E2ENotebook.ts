@@ -20,65 +20,64 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { WebElement, until } from "vscode-extension-tester";
+import { Condition, until } from "vscode-extension-tester";
 import { driver, Misc } from "../Misc";
 import * as constants from "../constants";
 import * as locator from "../locators";
 import * as errors from "../errors";
-import { CodeEditor } from "./CodeEditor";
-import { EditorSelector } from "./EditorSelector";
+import { E2ECodeEditor } from "./E2ECodeEditor";
+import { Toolbar } from "./Toolbar";
+import * as interfaces from "../interfaces";
+import { PasswordDialog } from "./PasswordDialog";
 
 /**
  * This class aggregates the functions that perform operations inside notebooks
  */
-export class Notebook {
+export class E2ENotebook {
 
-    public editorSelector = new EditorSelector();
+    /** The toolbar*/
+    public toolbar = new Toolbar();
 
-    public codeEditor = new CodeEditor();
-
-    /**
-     * Verifies if a toolbar button exists
-     * @param button The button
-     * @returns A promise resolving with true if the button exists, false otherwise
-     */
-    public static existsToolbarButton = async (button: string): Promise<boolean> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
-        const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
-            constants.wait5seconds, "Toolbar was not found");
-        const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
-        for (const btn of buttons) {
-            if ((await btn.getAttribute("data-tooltip")) === button) {
-                return true;
-            }
-        }
-
-        return false;
-    };
+    /** The code editor*/
+    public codeEditor = new E2ECodeEditor(this);
 
     /**
-     * Gets a toolbar button
-     * @param button The button name
-     * @returns A promise resolving with the button
+     * Waits until the MDS connection is opened
+     * @param connection The database connection
+     * @returns A promise resolving when the MDS connection is opened
      */
-    public static getToolbarButton = async (button: string): Promise<WebElement | undefined> => {
-        if (!(await Misc.insideIframe())) {
+    public untilIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
+        return new Condition(`for connection ${connection.caption} to be opened`, async () => {
+            await Misc.switchBackToTopFrame();
             await Misc.switchToFrame();
-        }
 
-        const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
-            constants.wait5seconds, "Toolbar was not found");
-        const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
-        for (const btn of buttons) {
-            if ((await btn.getAttribute("data-tooltip")) === button) {
-                return btn;
+            const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
+            const existsFingerPrintDialog = (await driver.findElements(locator.confirmDialog.exists)).length > 0;
+
+            if (existsFingerPrintDialog) {
+                await driver.findElement(locator.confirmDialog.accept).click();
             }
-        }
 
-        throw new Error(`Could not find '${button}' button`);
+            if (existsPasswordDialog) {
+                await PasswordDialog.setCredentials(connection);
+                await driver.wait(this.untilDbConnectionIsSuccessful(), constants.wait10seconds).catch(async () => {
+                    const existsErrorDialog = (await driver.findElements(locator.errorDialog.exists)).length > 0;
+                    if (existsErrorDialog) {
+                        const errorDialog = await driver.findElement(locator.errorDialog.exists);
+                        const errorMsg = await errorDialog.findElement(locator.errorDialog.message);
+                        throw new Error(await errorMsg.getText());
+                    } else {
+                        throw new Error("Unknown error");
+                    }
+                });
+            }
+
+            const existsGenericDialog = (await driver.findElements(locator.genericDialog.exists)).length > 0;
+            const existsEditor = (await driver.findElements(locator.notebook.codeEditor.textArea)).length > 0;
+            const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
+
+            return existsNotebook || existsEditor || existsGenericDialog;
+        });
     };
 
     /**
@@ -87,7 +86,7 @@ export class Notebook {
      * @param resultStatus The result status
      * @returns A promise resolving when the notebook is verified
      */
-    public static verifyNotebook = async (sql: string, resultStatus: string): Promise<void> => {
+    public verifyNotebook = async (sql: string, resultStatus: string): Promise<void> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
@@ -141,7 +140,7 @@ export class Notebook {
      * @param word The word
      * @returns A promise resolving with true if the word is found, false otherwise
      */
-    public static existsOnNotebook = async (word: string): Promise<boolean> => {
+    public existsOnNotebook = async (word: string): Promise<boolean> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
@@ -174,17 +173,17 @@ export class Notebook {
     };
 
     /**
-     * Scrolls down the notebook
+     * Waits until the database connection is successful
+     * @returns A promise resolving when the database connection is successful
      */
-    public static scrollDown = async (): Promise<void> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
+    private untilDbConnectionIsSuccessful = (): Condition<boolean> => {
+        return new Condition("for DB Connection is successful", async () => {
+            const editorSelectorExists = (await driver.findElements(locator.notebook.toolbar.editorSelector.exists))
+                .length > 0;
+            const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
 
-        const scroll = await driver.findElements(locator.notebook.codeEditor.editor.scrollBar);
-        if (scroll.length > 0) {
-            await driver.executeScript("arguments[0].scrollBy(0, 1500)", scroll[0]);
-        }
+            return editorSelectorExists || existsNotebook;
+        });
     };
 
 }
