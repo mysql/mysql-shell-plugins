@@ -268,9 +268,9 @@ export interface ICommandResult {
     selectSqlPreview(): Promise<void>;
     applyChanges(): Promise<void>;
     rollbackChanges(): Promise<void>;
-    isMaximized(): Condition<boolean>;
+    untilIsMaximized(): Condition<boolean>;
     closeResultSet(): Promise<void>;
-    statusMatches(regex: RegExp): Condition<boolean>;
+    untilStatusMatches(regex: RegExp): Condition<boolean>;
 }
 
 export interface ICommandResultToolbar {

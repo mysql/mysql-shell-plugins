@@ -29,16 +29,19 @@ import * as constants from "../constants";
 import * as interfaces from "../interfaces";
 import * as locator from "../locators";
 import { CommandResultGrid } from "./CommandResultGrid";
-import { Notebook } from "./Notebook";
 import * as errors from "../errors";
 import * as waitUntil from "../until";
+import { E2ECodeEditor } from "./E2ECodeEditor";
 
 const resultLocator = locator.notebook.codeEditor.editor.result;
 
 /**
- * This class aggregates the functions that perform database related operations
+ * This class represents a command result and all its related functions
  */
 export class CommandResult implements interfaces.ICommandResult {
+
+    /** The code editor it belongs to*/
+    public codeEditor: E2ECodeEditor;
 
     /** The command text*/
     public command: string;
@@ -70,13 +73,14 @@ export class CommandResult implements interfaces.ICommandResult {
     /** Result context*/
     public context: WebElement;
 
-    public constructor(command?: string, id?: string) {
+    public constructor(codeEditor: E2ECodeEditor, command?: string, id?: string) {
+        this.codeEditor = codeEditor;
         this.id = id;
         this.command = command;
     }
 
     /**
-     * Loads this object properties, according to what is found on the DOM
+     * Loads this object properties (a result), according to what is found on the DOM
      * @param fromScript If the result is coming from a script execution
      * @returns A promise resolving when the object is loaded
      */
@@ -153,7 +157,7 @@ export class CommandResult implements interfaces.ICommandResult {
     };
 
     /**
-     * Selects a tab
+     * Selects a tab from the result set
      * @param name the tab name
      * @returns A promise resolving when the tab is selected
      */
@@ -231,7 +235,8 @@ export class CommandResult implements interfaces.ICommandResult {
             return driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.script),
                 constants.wait5seconds, `Could not find any script result, for cmd ${cmd}`);
         }
-        await Notebook.scrollDown();
+
+        await this.codeEditor.scrollDown();
 
         return result;
     };
@@ -250,7 +255,7 @@ export class CommandResult implements interfaces.ICommandResult {
      */
     public maximize = async (): Promise<void> => {
         await this.toolbar.element.findElement(resultLocator.toolbar.maximize).click();
-        await driver.wait(this.isMaximized(), constants.wait5seconds);
+        await driver.wait(this.untilIsMaximized(), constants.wait5seconds);
         this.toolbar.element = await driver.findElement(resultLocator.toolbar.exists);
     };
 
@@ -260,7 +265,7 @@ export class CommandResult implements interfaces.ICommandResult {
      */
     public normalize = async (): Promise<void> => {
         await driver.findElement(resultLocator.toolbar.normalize).click();
-        await driver.wait(this.isNormalized(), constants.wait5seconds);
+        await driver.wait(this.untilIsNormalized(), constants.wait5seconds);
     };
 
     /**
@@ -330,7 +335,7 @@ export class CommandResult implements interfaces.ICommandResult {
      * Verifies if the result is maximized
      * @returns A condition resolving to true if the result is maximized, false otherwise
      */
-    public isMaximized = (): Condition<boolean> => {
+    public untilIsMaximized = (): Condition<boolean> => {
         return new Condition(`for result to be maximized`, async () => {
             const editor = await driver.findElements(locator.notebook.codeEditor.editor.host);
 
@@ -342,7 +347,7 @@ export class CommandResult implements interfaces.ICommandResult {
      * Verifies if the result is maximized
      * @returns A condition resolving to true if the result is maximized, false otherwise
      */
-    public isNormalized = (): Condition<boolean> => {
+    public untilIsNormalized = (): Condition<boolean> => {
         return new Condition(`for result to be normalized`, async () => {
             return (await driver.findElements(resultLocator.toolbar.maximize)).length > 0;
         });
@@ -353,7 +358,7 @@ export class CommandResult implements interfaces.ICommandResult {
      * @param message The message
      * @returns A condition resolving to true if the message matches the status of the grid, false otherwise
      */
-    public statusMatches = (message: RegExp): Condition<boolean> => {
+    public untilStatusMatches = (message: RegExp): Condition<boolean> => {
         return new Condition(`for result message to match '${String(message)}'`, async () => {
             await this.loadResult();
 
@@ -365,7 +370,7 @@ export class CommandResult implements interfaces.ICommandResult {
      * Verifies if the grid is editable
      * @returns A condition resolving to true if the grid is editable
      */
-    public isEditable = (): Condition<boolean> => {
+    public untilIsEditable = (): Condition<boolean> => {
         return new Condition(`for result grid to be editable`, async () => {
             const editButton = await this.context.findElement(resultLocator.toolbar.editButton);
 

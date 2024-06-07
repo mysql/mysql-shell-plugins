@@ -29,7 +29,6 @@ import {
 } from "vscode-extension-tester";
 import * as constants from "../constants";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
-import * as waitUntil from "../until";
 import * as locator from "../locators";
 import * as interfaces from "../interfaces";
 import * as errors from "../errors";
@@ -39,11 +38,15 @@ import { Os } from "../Os";
 import { Workbench } from "../Workbench";
 import { E2ETree } from "./E2ETree";
 
+/**
+ * This class represents the Accordion section element and its related functions
+ */
 export class E2EAccordionSection {
 
+    /** The tree that belongs to the section */
     public tree: E2ETree;
 
-    /** Accordion Section name */
+    /** Accordion section name */
     public accordionSectionName: string;
 
     public constructor(sectionName: string) {
@@ -52,8 +55,8 @@ export class E2EAccordionSection {
     }
 
     /**
-     * Gets a tree explorer
-     * @returns A promise resolving with the tree explorer
+     * Gets the section web element
+     * @returns A promise resolving with the element
      */
     public getWebElement = async (): Promise<CustomTreeSection> => {
         if ((await Misc.insideIframe())) {
@@ -67,7 +70,7 @@ export class E2EAccordionSection {
      * Verifies if a section exists
      * @returns A condition resolving to true if exists, false otherwise
      */
-    public exists = (): Condition<boolean> => {
+    public untilExists = (): Condition<boolean> => {
         return new Condition(`for ${this.accordionSectionName} to exist`, async () => {
             return (await this.getWebElement()) !== undefined;
         });
@@ -83,7 +86,7 @@ export class E2EAccordionSection {
             await Misc.switchBackToTopFrame();
         }
 
-        await driver.wait(this.isNotLoading(), constants.wait20seconds,
+        await driver.wait(this.untilIsNotLoading(), constants.wait20seconds,
             `${constants.ociTreeSection} is still loading`);
 
         let sectionActions: WebElement;
@@ -154,7 +157,7 @@ export class E2EAccordionSection {
     };
 
     /**
-     * Creates a database connection from the DATABASE CONNECTIONS toolbar
+     * Creates a database connection from the DATABASE CONNECTIONS section toolbar
      * @param dbConfig The database configuration data
      * @returns A promise resolving when the connection is created
      */
@@ -164,14 +167,14 @@ export class E2EAccordionSection {
         }
 
         await this.clickToolbarButton(constants.createDBConnection);
-        await driver.wait(waitUntil.tabIsOpened(constants.dbDefaultEditor), constants.wait5seconds);
+        await driver.wait(Workbench.untilTabIsOpened(constants.dbDefaultEditor), constants.wait5seconds);
         await Misc.switchToFrame();
         await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists), constants.wait10seconds);
         await DatabaseConnectionDialog.setConnection(dbConfig);
     };
 
     /**
-     * Focus a tree explorer, by expanding the section and collapsing all the others
+     * Focus the section, by expanding the section and collapsing all the other sections
      * @returns A promise resolving when the section is focused
      */
     public focus = async (): Promise<void> => {
@@ -267,7 +270,7 @@ export class E2EAccordionSection {
     };
 
     /**
-     * Expands a tree explorer
+     * Expands the section
      * @returns A promise resolving when the section is expanded
      */
     public expand = async (): Promise<void> => {
@@ -286,7 +289,7 @@ export class E2EAccordionSection {
     };
 
     /**
-     * Collapse a tree explorer
+     * Collapse the section
      * @returns A promise resolving when the section is collapsed
      */
     public collapse = async (): Promise<void> => {
@@ -304,7 +307,7 @@ export class E2EAccordionSection {
     };
 
     /**
-     * Restarts MySQL Shell from the toolbar context menu
+     * Restarts MySQL Shell from the DATABASE CONNECTIONS section toolbar context menu
      * @returns A promise resolving when MySQL Shell is restarted
      */
     public restartShell = async (): Promise<void> => {
@@ -313,7 +316,7 @@ export class E2EAccordionSection {
         };
 
         const treeDBSection = await new SideBarView().getContent().getSection(this.accordionSectionName);
-        await driver.wait(this.isNotLoading, constants.wait5seconds);
+        await driver.wait(this.untilIsNotLoading, constants.wait5seconds);
         await treeDBSection.click();
         const moreActions = await treeDBSection.findElement(locator.section.moreActions);
         await moreActions.click();
@@ -386,7 +389,7 @@ export class E2EAccordionSection {
      * Verifies if the section is not loading
      * @returns A condition resolving to true if the section is not loading, false otherwise
      */
-    public isNotLoading = (): Condition<boolean> => {
+    public untilIsNotLoading = (): Condition<boolean> => {
         return new Condition(`for ${this.accordionSectionName} to be loaded`, async () => {
             const sec = await this.getWebElement();
             const loading = await sec.findElements(locator.section.loadingBar);
@@ -400,7 +403,7 @@ export class E2EAccordionSection {
 
     /**
      * Removes all existing database connections from the DATABASE CONNECTIONS section
-     * @returns A promise resolving when all connections are deleted
+     * @returns A promise resolving when all database connections are deleted
      */
     public removeAllDatabaseConnections = async (): Promise<void> => {
         const dbConnections = await this.getDatabaseConnections();

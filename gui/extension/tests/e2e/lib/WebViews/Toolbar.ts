@@ -29,15 +29,59 @@ import { Misc, driver } from "../Misc";
 import * as errors from "../errors";
 
 /**
- * This class aggregates the functions regarding the editor selector on shell console or notebooks
+ * This class represents the toolbar
  */
-export class EditorSelector {
+export class Toolbar {
+
+    /**
+     * Verifies if a toolbar button exists
+     * @param button The button
+     * @returns A promise resolving with true if the button exists, false otherwise
+     */
+    public existsButton = async (button: string): Promise<boolean> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
+
+        const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
+            constants.wait5seconds, "Toolbar was not found");
+        const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
+        for (const btn of buttons) {
+            if ((await btn.getAttribute("data-tooltip")) === button) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    /**
+     * Gets a toolbar button
+     * @param button The button name
+     * @returns A promise resolving with the button
+     */
+    public getButton = async (button: string): Promise<WebElement | undefined> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
+
+        const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
+            constants.wait5seconds, "Toolbar was not found");
+        const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
+        for (const btn of buttons) {
+            if ((await btn.getAttribute("data-tooltip")) === button) {
+                return btn;
+            }
+        }
+
+        throw new Error(`Could not find '${button}' button`);
+    };
 
     /**
      * Gets the current editor
      * @returns A promise resolving with the editor
      */
-    public getCurrent = async (): Promise<interfaces.ICurrentEditor> => {
+    public getCurrentEditor = async (): Promise<interfaces.ICurrentEditor> => {
         await Misc.switchBackToTopFrame();
         await Misc.switchToFrame();
 
@@ -78,7 +122,7 @@ export class EditorSelector {
      * @param parentConnection The name of the parent connection
      * @returns A promise resolving when the editor is selected
      */
-    public select = async (editorName: RegExp, parentConnection?: string): Promise<void> => {
+    public selectEditor = async (editorName: RegExp, parentConnection?: string): Promise<void> => {
         await Misc.switchBackToTopFrame();
         await Misc.switchToFrame();
 

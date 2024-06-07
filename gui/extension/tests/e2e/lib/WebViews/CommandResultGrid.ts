@@ -36,7 +36,7 @@ import { CommandResult } from "./CommandResult";
 const gridLocator = locator.notebook.codeEditor.editor.result.grid;
 
 /**
- * This class aggregates the functions that perform database related operations
+ * This class represents a command result grid and all its related functions
  */
 export class CommandResultGrid {
 
@@ -51,12 +51,12 @@ export class CommandResultGrid {
     }
 
     /**
-     * Edits a cell of a result grid
+     * Edits a cell from a result grid
      * @param cells The result grid cells
      * @returns A promise resolving when the new value is set
      */
     public editCells = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
-        await driver.wait(this.result.isEditable(), constants.wait5seconds,
+        await driver.wait(this.result.untilIsEditable(), constants.wait5seconds,
             `The grid for cmd ${this.result.command} is not editable`);
 
         const performEdit = async (cellRef: interfaces.IResultGridCell): Promise<void> => {
@@ -142,7 +142,7 @@ export class CommandResultGrid {
     };
 
     /**
-     * Gets the value of a cell out of a result grid
+     * Gets the value of a cell from a result grid
      * @param gridRow The row number. If the row number is -1, the function returns the last added row
      * @param gridRowColumn The column
      * @returns A promise resolving with the cell value.
@@ -189,7 +189,7 @@ export class CommandResultGrid {
      */
     public addRow = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
         await this.clickAddNewRowButton();
-        await driver.wait(this.newRowExists(), constants.wait5seconds);
+        await driver.wait(this.untilNewRowExists(), constants.wait5seconds);
 
         const performAdd = async (cell: interfaces.IResultGridCell): Promise<void> => {
             let isDate: boolean;
@@ -575,7 +575,7 @@ export class CommandResultGrid {
      * @param gridRow The row number
      * @returns A condition resolving to true if the row is marked for deletion, false otherwise
      */
-    public rowIsMarkedForDeletion = (gridRow: number): Condition<boolean> => {
+    public untilRowIsMarkedForDeletion = (gridRow: number): Condition<boolean> => {
         return new Condition(`for row to be marked for deletion`, async () => {
             const row = await this.getRow(gridRow);
 
@@ -590,7 +590,7 @@ export class CommandResultGrid {
      * @param expectedTooltip The expected tooltip
      * @returns A condition resolving to true if the tooltip is equal to the expected value, false otherwise
      */
-    public cellTooltipIs = (
+    public untilCellTooltipIs = (
         rowNumber: number,
         rowColumn: string,
         expectedTooltip: string): Condition<boolean> => {
@@ -606,7 +606,7 @@ export class CommandResultGrid {
      * @param changed The expected number of changed cells
      * @returns A condition resolving to true if the cells were changed, false otherwise
      */
-    public cellsWereChanged = (changed: number): Condition<boolean> => {
+    public untilCellsWereChanged = (changed: number): Condition<boolean> => {
         return new Condition(`for changed ${changed} cells to be marked has changed (yellow background)`, async () => {
             return (await this.content
                 .findElements(locator.notebook.codeEditor.editor.result.changedTableCell)).length === changed;
@@ -637,7 +637,7 @@ export class CommandResultGrid {
      * @param gridRow The row
      * @returns A condition resolving to true if the row is highlighted, false otherwise
      */
-    public rowIsHighlighted = (gridRow: number): Condition<boolean> => {
+    public untilRowIsHighlighted = (gridRow: number): Condition<boolean> => {
         return new Condition(`for row ${gridRow} to be highlighted`, async () => {
             const rows = await this.content.findElements(gridLocator.row.exists);
 
@@ -690,7 +690,7 @@ export class CommandResultGrid {
      * Verifies if a new row exists
      * @returns A condition resolving to true if a row was added, false otherwise
      */
-    private newRowExists = (): Condition<boolean> => {
+    private untilNewRowExists = (): Condition<boolean> => {
         return new Condition(`for added table row`, async () => {
             return (await this.content.findElements(gridLocator.newAddedRow)).length > 0;
         });

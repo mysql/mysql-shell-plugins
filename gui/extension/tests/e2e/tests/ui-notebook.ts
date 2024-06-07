@@ -28,7 +28,7 @@ import { ActivityBar, Condition, InputBox, Key, TreeItem, until } from "vscode-e
 import { join } from "path";
 import clipboard from "clipboardy";
 import { browser, driver, Misc } from "../lib/Misc";
-import { Notebook } from "../lib/WebViews/Notebook";
+import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
 import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection";
 import { DatabaseConnectionOverview } from "../lib/WebViews/DatabaseConnectionOverview";
 import { Os } from "../lib/Os";
@@ -38,7 +38,8 @@ import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import * as errors from "../lib/errors";
-import { CodeEditorWidget } from "../lib/WebViews/CodeEditorWidget";
+import { E2ECodeEditorWidget } from "../lib/WebViews/E2ECodeEditorWidget";
+import { Script } from "../lib/WebViews/Script";
 
 describe("NOTEBOOKS", () => {
 
@@ -90,6 +91,7 @@ describe("NOTEBOOKS", () => {
     };
 
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
+    const notebook = new E2ENotebook();
 
     before(async function () {
         await Misc.loadDriver();
@@ -101,8 +103,9 @@ describe("NOTEBOOKS", () => {
             await dbTreeSection.createDatabaseConnection(anotherConn);
             await driver.wait(dbTreeSection.tree.untilExists(anotherConn.caption), constants.wait5seconds);
             await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption), constants.wait5seconds);
-            await (await DatabaseConnectionOverview.getConnection(globalConn.caption)).click();
-            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait10seconds);
+            await (await new DatabaseConnectionOverview().getConnection(globalConn.caption)).click();
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
+            await notebook.codeEditor.create();
             await dbTreeSection.focus();
         } catch (e) {
             await Misc.processFailure(this);
@@ -120,9 +123,8 @@ describe("NOTEBOOKS", () => {
         }
     });
 
-    describe("DB Editor", () => {
+    describe("Code Editor", () => {
 
-        const notebook = new Notebook();
         let cleanEditor = false;
 
         afterEach(async function () {
@@ -232,7 +234,7 @@ describe("NOTEBOOKS", () => {
             const result = await notebook.codeEditor.executeWithButton("SELECT * FROM sakila.actor;",
                 constants.execFullBlockSql);
             expect(result.toolbar.status).to.match(/(\d+) record/);
-            await driver.wait(notebook.codeEditor.hasNewPrompt(), constants.wait5seconds);
+            await driver.wait(notebook.codeEditor.untilNewPromptExists(), constants.wait5seconds);
         });
 
         it("Connection toolbar buttons - Execute statement at the caret position", async () => {
@@ -283,14 +285,14 @@ describe("NOTEBOOKS", () => {
 
         it("Connection toolbar buttons - Autocommit DB Changes", async () => {
 
-            const autoCommitBtn = await Notebook.getToolbarButton(constants.autoCommit);
+            const autoCommitBtn = await notebook.toolbar.getButton(constants.autoCommit);
             const style = await autoCommitBtn.findElement(locator.notebook.toolbar.button.icon).getAttribute("style");
             if (style.includes("toolbar-auto_commit-active")) {
                 await autoCommitBtn.click();
             }
             const random = (Math.random() * (10.00 - 1.00 + 1.00) + 1.00).toFixed(5);
-            const commitBtn = await Notebook.getToolbarButton(constants.commit);
-            const rollBackBtn = await Notebook.getToolbarButton(constants.rollback);
+            const commitBtn = await notebook.toolbar.getButton(constants.commit);
+            const rollBackBtn = await notebook.toolbar.getButton(constants.rollback);
 
             await driver.wait(until.elementIsEnabled(commitBtn),
                 constants.wait3seconds, "Commit button should be enabled");
@@ -320,8 +322,8 @@ describe("NOTEBOOKS", () => {
 
             await driver.wait(
                 async () => {
-                    const commitBtn = await Notebook.getToolbarButton(constants.commit);
-                    const rollBackBtn = await Notebook.getToolbarButton(constants.rollback);
+                    const commitBtn = await notebook.toolbar.getButton(constants.commit);
+                    const rollBackBtn = await notebook.toolbar.getButton(constants.rollback);
 
                     return (await commitBtn?.getAttribute("class"))?.includes("disabled") &&
                         (await rollBackBtn?.getAttribute("class"))?.includes("disabled");
@@ -338,11 +340,11 @@ describe("NOTEBOOKS", () => {
         it("Connection toolbar buttons - Find and Replace", async () => {
             try {
                 await notebook.codeEditor.write(`import from xpto xpto xpto`);
-                const widget = await new CodeEditorWidget().open();
+                const widget = await new E2ECodeEditorWidget(notebook).open();
                 await widget.setTextToFind("xpto");
                 await widget.toggleFinderReplace(true);
                 await widget.toggleFindInSelection(false);
-                await driver.wait(widget.matchesCount(/1 of (\d+)/), constants.wait3seconds);
+                await driver.wait(widget.untilMatchesCount(/1 of (\d+)/), constants.wait3seconds);
                 await widget.toggleFinderReplace(true);
                 await widget.setTextToReplace("tester");
                 await driver.wait(async () => {
@@ -411,7 +413,7 @@ describe("NOTEBOOKS", () => {
             const result = await notebook.codeEditor.execute("select * from sakila.actor;");
             expect(result.toolbar.status).to.match(/OK/);
             await result.maximize();
-            expect((await notebook.editorSelector.getCurrent()).label, `The current editor name should be Result #1`)
+            expect((await notebook.toolbar.getCurrentEditor()).label, `The current editor name should be Result #1`)
                 .to.equals("Result #1");
             try {
                 let tabArea = await driver.findElements(locator.notebook.codeEditor.editor.result.tabs.body);
@@ -420,7 +422,7 @@ describe("NOTEBOOKS", () => {
                 tabArea = await driver.findElements(locator.notebook.codeEditor.editor.result.tabs.body);
                 expect(tabArea.length, "Result tab should be visible").to.equals(1);
             } finally {
-                await notebook.editorSelector.select(new RegExp(constants.openEditorsDBNotebook), globalConn.caption);
+                await notebook.toolbar.selectEditor(new RegExp(constants.openEditorsDBNotebook), globalConn.caption);
                 await notebook.codeEditor.loadCommandResults();
             }
         });
@@ -471,7 +473,7 @@ describe("NOTEBOOKS", () => {
             const filename = "users.sql";
             await browser.openResources(join(constants.workspace, "gui", "frontend",
                 "src", "tests", "e2e", "sql", filename));
-            await driver.wait(waitUntil.tabIsOpened(filename), constants.wait5seconds);
+            await driver.wait(Workbench.untilTabIsOpened(filename), constants.wait5seconds);
             let textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await Os.keyboardSelectAll(textArea);
             await Os.keyboardCopy(textArea);
@@ -488,12 +490,12 @@ describe("NOTEBOOKS", () => {
                 "src", "tests", "e2e", "sql", filename));
             const fileLines = sakilaFile.toString().split("\n");
 
-            const widget = await new CodeEditorWidget().open();
+            const widget = await new E2ECodeEditorWidget(notebook).open();
             try {
                 for (const line of fileLines) {
                     if (line.trim() !== "") {
                         await widget.setTextToFind(line.substring(0, 150).replace(/`|;/gm, ""));
-                        await driver.wait(widget.matchesCount(/1 of (\d+)/), constants.wait2seconds);
+                        await driver.wait(widget.untilMatchesCount(/1 of (\d+)/), constants.wait2seconds);
                     }
                 }
             } finally {
@@ -511,13 +513,13 @@ describe("NOTEBOOKS", () => {
             const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await Os.keyboardSelectAll(textArea);
             await Os.keyboardCut(textArea);
-            expect(await Notebook.existsOnNotebook(sentence1), `${sentence1} should not exist on the notebook`)
+            expect(await notebook.existsOnNotebook(sentence1), `${sentence1} should not exist on the notebook`)
                 .to.be.false;
-            expect(await Notebook.existsOnNotebook(sentence2),
+            expect(await notebook.existsOnNotebook(sentence2),
                 `${sentence2} should not exist on the notebook`).to.be.false;
             await Os.keyboardPaste(textArea);
-            expect(await Notebook.existsOnNotebook(sentence1), `${sentence1} should exist on the notebook`).to.be.true;
-            expect(await Notebook.existsOnNotebook(sentence2), `${sentence2} should exist on the notebook`).to.be.true;
+            expect(await notebook.existsOnNotebook(sentence1), `${sentence1} should exist on the notebook`).to.be.true;
+            expect(await notebook.existsOnNotebook(sentence2), `${sentence2} should exist on the notebook`).to.be.true;
         });
 
         it("Copy to clipboard button", async () => {
@@ -528,7 +530,7 @@ describe("NOTEBOOKS", () => {
             const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await Os.keyboardPaste(textArea);
             await driver.wait(async () => {
-                return Notebook.existsOnNotebook("Welcome");
+                return notebook.existsOnNotebook("Welcome");
             }, constants.wait5seconds, "The text was not pasted to the notebook");
         });
 
@@ -645,7 +647,7 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Result grid context menu - Capitalize, Convert to lower, upper case and mark for deletion", async () => {
-            await notebook.editorSelector.select(new RegExp(constants.openEditorsDBNotebook), globalConn.caption);
+            await notebook.toolbar.selectEditor(new RegExp(constants.openEditorsDBNotebook), globalConn.caption);
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_chars;");
             expect(result.toolbar.status).to.match(/OK/);
@@ -655,7 +657,7 @@ describe("NOTEBOOKS", () => {
             const originalCellValue = await result.grid.getCellValue(rowNumber, rowColumn);
             await result.grid.openCellContextMenuAndSelect(0, rowColumn,
                 constants.resultGridContextMenu.capitalizeText);
-            await driver.wait(result.grid.cellsWereChanged(1), constants.wait5seconds);
+            await driver.wait(result.grid.untilCellsWereChanged(1), constants.wait5seconds);
 
             const capitalizedCellValue = await result.grid.getCellValue(rowNumber, rowColumn);
             expect(capitalizedCellValue,
@@ -679,7 +681,7 @@ describe("NOTEBOOKS", () => {
 
             await result.grid.openCellContextMenuAndSelect(0, rowColumn,
                 constants.resultGridContextMenu.toggleForDeletion);
-            await driver.wait(result.grid.rowIsMarkedForDeletion(rowNumber), constants.wait5seconds);
+            await driver.wait(result.grid.untilRowIsMarkedForDeletion(rowNumber), constants.wait5seconds);
             await result.rollbackChanges();
         });
 
@@ -1020,7 +1022,7 @@ describe("NOTEBOOKS", () => {
 
         it("Result grid cell tooltips - integer columns", async () => {
             const rowNumber = 0;
-            await notebook.editorSelector.select(new RegExp(constants.openEditorsDBNotebook), globalConn.caption);
+            await notebook.toolbar.selectEditor(new RegExp(constants.openEditorsDBNotebook), globalConn.caption);
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about");
             const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_ints limit 1;");
@@ -1037,7 +1039,7 @@ describe("NOTEBOOKS", () => {
                     await result.grid.reduceCellWidth(rowNumber, column);
                 }
                 const cellText = await result.grid.getCellValue(rowNumber, column);
-                await driver.wait(result.grid.cellTooltipIs(rowNumber, column, cellText),
+                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, column, cellText),
                     constants.wait3seconds);
             }
         });
@@ -1061,7 +1063,7 @@ describe("NOTEBOOKS", () => {
                 }
 
                 const cellText = await result.grid.getCellValue(rowNumber, column);
-                await driver.wait(result.grid.cellTooltipIs(rowNumber, column, cellText),
+                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, column, cellText),
                     constants.wait3seconds);
             }
         });
@@ -1081,7 +1083,7 @@ describe("NOTEBOOKS", () => {
                 await result.grid.reduceCellWidth(rowNumber, column);
 
                 const cellText = await result.grid.getCellValue(rowNumber, column);
-                await driver.wait(result.grid.cellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
+                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
             }
         });
 
@@ -1099,7 +1101,7 @@ describe("NOTEBOOKS", () => {
                 const column = Misc.getDbTableColumnName("all_data_types_blobs", i);
                 await result.grid.reduceCellWidth(rowNumber, column);
                 const cellText = await result.grid.getCellValue(rowNumber, column);
-                await driver.wait(result.grid.cellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
+                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
             }
         });
 
@@ -1113,7 +1115,7 @@ describe("NOTEBOOKS", () => {
             const column = Misc.getDbTableColumnName("all_data_types_geometries", 1);
             await result.grid.reduceCellWidth(rowNumber, column);
             const cellText = await result.grid.getCellValue(rowNumber, column);
-            await driver.wait(result.grid.cellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
+            await driver.wait(result.grid.untilCellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
         });
 
         it("Edit a result grid, verify query preview and commit - integer columns", async () => {
@@ -1163,10 +1165,10 @@ describe("NOTEBOOKS", () => {
             }
 
             await result.clickSqlPreviewContent();
-            await driver.wait(result.grid.rowIsHighlighted(rowToEdit), constants.wait5seconds);
+            await driver.wait(result.grid.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
 
             await result.applyChanges();
-            await driver.wait(result.statusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor.execute("select * from sakila.all_data_types_ints where id = 1;");
             expect(result1.toolbar.status).to.match(/OK/);
@@ -1228,9 +1230,9 @@ describe("NOTEBOOKS", () => {
             }
 
             await result.clickSqlPreviewContent();
-            await driver.wait(result.grid.rowIsHighlighted(rowToEdit), constants.wait5seconds);
+            await driver.wait(result.grid.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
             await result.applyChanges();
-            await driver.wait(result.statusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_dates where id = 1;");
@@ -1299,9 +1301,9 @@ describe("NOTEBOOKS", () => {
             }
 
             await result.clickSqlPreviewContent();
-            await driver.wait(result.grid.rowIsHighlighted(rowToEdit), constants.wait5seconds);
+            await driver.wait(result.grid.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
             await result.applyChanges();
-            await driver.wait(result.statusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_chars where id = 2;");
@@ -1372,9 +1374,9 @@ describe("NOTEBOOKS", () => {
             }
 
             await result.clickSqlPreviewContent();
-            await driver.wait(result.grid.rowIsHighlighted(rowToEdit), constants.wait5seconds);
+            await driver.wait(result.grid.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
             await result.applyChanges();
-            await driver.wait(result.statusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_geometries where id = 1;");
@@ -1468,7 +1470,7 @@ describe("NOTEBOOKS", () => {
             await result.grid.addRow(rowToAdd);
             await result.applyChanges();
 
-            await driver.wait(result.statusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
             const result1 = await notebook.codeEditor
                 // eslint-disable-next-line max-len
                 .execute("select * from sakila.all_data_types_ints where id = (select max(id) from sakila.all_data_types_ints);");
@@ -1514,7 +1516,7 @@ describe("NOTEBOOKS", () => {
 
             await result.grid.addRow(rowToAdd);
             await result.applyChanges();
-            await driver.wait(result.statusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor
                 // eslint-disable-next-line max-len
@@ -1566,7 +1568,7 @@ describe("NOTEBOOKS", () => {
             await result.grid.addRow(rowToAdd);
             await result.applyChanges();
 
-            await driver.wait(result.statusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
             const result1 = await notebook.codeEditor
                 // eslint-disable-next-line max-len
                 .execute("select * from sakila.all_data_types_chars where id = (select max(id) from sakila.all_data_types_chars);");
@@ -1622,7 +1624,7 @@ describe("NOTEBOOKS", () => {
             await result.grid.addRow(rowToAdd);
             await result.applyChanges();
 
-            await driver.wait(result.statusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
             result = await notebook.codeEditor
                 // eslint-disable-next-line max-len
                 .execute("select * from sakila.all_data_types_geometries where id = (select max(id) from sakila.all_data_types_geometries);");
@@ -1672,13 +1674,14 @@ describe("NOTEBOOKS", () => {
             const anotherConnection = await dbTreeSection.tree
                 .getElement(anotherConn.caption);
             await dbTreeSection.tree.openContextMenuAndSelect(anotherConnection, constants.openNewConnection);
-            await driver.wait(waitUntil.dbConnectionIsOpened(anotherConn), constants.wait5seconds);
+            const anotherConnNotebook = new E2ENotebook();
+            await driver.wait(anotherConnNotebook.untilIsOpened(anotherConn), constants.wait5seconds);
             const treeConn = await dbTreeSection.tree.getElement(globalConn.caption);
             await dbTreeSection.tree.expandDatabaseConnection(treeConn,
                 (globalConn.basic as interfaces.IConnBasicMySQL).password);
             await dbTreeSection.tree.expandElement([new RegExp(constants.mysqlAdmin)]);
-            await notebook.editorSelector.select(new RegExp(constants.openEditorsDBNotebook), globalConn.caption);
-            await driver.wait(waitUntil.dbConnectionIsOpened(anotherConn), constants.wait5seconds);
+            await notebook.toolbar.selectEditor(new RegExp(constants.openEditorsDBNotebook), globalConn.caption);
+            await driver.wait(anotherConnNotebook.untilIsOpened(anotherConn), constants.wait5seconds);
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_ints where id = 1;",
                 undefined,
@@ -1725,7 +1728,7 @@ describe("NOTEBOOKS", () => {
             await driver.wait(waitUntil.currentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
                 constants.wait5seconds);
 
-            await notebook.editorSelector.select(/DB Connection Overview/);
+            await notebook.toolbar.selectEditor(/DB Connection Overview/);
             dialog = await driver.wait(waitUntil
                 .confirmationDialogExists(" after switching to DB Connections Overview page"), constants.wait5seconds);
             expect(await (await dialog.findElement(locator.confirmDialog.msg))
@@ -1734,7 +1737,7 @@ describe("NOTEBOOKS", () => {
             await dialog.findElement(locator.confirmDialog.cancel).click();
             await driver.wait(until.stalenessOf(dialog), constants.wait3seconds, "The dialog was not closed");
 
-            await notebook.editorSelector.select(/Untitled-(\d+)/, globalConn.caption);
+            await notebook.toolbar.selectEditor(/Untitled-(\d+)/, globalConn.caption);
             dialog = await driver.wait(waitUntil.confirmationDialogExists(" after switching to a script page"),
                 constants.wait5seconds);
             expect(await (await dialog.findElement(locator.confirmDialog.msg))
@@ -1750,7 +1753,6 @@ describe("NOTEBOOKS", () => {
 
         let refItem: TreeItem;
         const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
-        const notebook = new Notebook();
 
         before(async function () {
             try {
@@ -1758,7 +1760,7 @@ describe("NOTEBOOKS", () => {
                 await dbTreeSection.focus();
                 const treeGlobalConn = await dbTreeSection.tree.getElement(globalConn.caption);
                 await (await dbTreeSection.tree.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
-                await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
+                await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait15seconds);
                 await openEditorsSection.focus();
             } catch (e) {
                 await Misc.processFailure(this);
@@ -1791,11 +1793,11 @@ describe("NOTEBOOKS", () => {
             const treeGlobalConn = await openEditorsSection.tree.getElement(globalConn.caption);
             await openEditorsSection.tree.openContextMenuAndSelect(treeGlobalConn, constants.newMySQLScript);
             await driver.wait(async () => {
-                return (await notebook.editorSelector.getCurrent()).label.match(/Untitled-(\d+)/);
+                return (await notebook.toolbar.getCurrentEditor()).label.match(/Untitled-(\d+)/);
             }, constants.wait5seconds, "Current editor does not match Untitled-(*)");
-            expect((await notebook.editorSelector.getCurrent()).icon, "The current editor icon should be 'Mysql'")
+            expect((await notebook.toolbar.getCurrentEditor()).icon, "The current editor icon should be 'Mysql'")
                 .to.include(constants.mysqlScriptIcon);
-            const result = await notebook.codeEditor.executeScript("select * from sakila.actor limit 1;");
+            const result = await new Script().executeCode("select * from sakila.actor limit 1;");
             expect(result.toolbar.status).to.match(/OK, (\d+) record/);
             refItem = await openEditorsSection.tree.getScript(/Untitled-/, "Mysql");
         });
@@ -1804,11 +1806,11 @@ describe("NOTEBOOKS", () => {
             const treeGlobalConn = await openEditorsSection.tree.getElement(globalConn.caption);
             await openEditorsSection.tree.openContextMenuAndSelect(treeGlobalConn, constants.newTS);
             await driver.wait(async () => {
-                return ((await notebook.editorSelector.getCurrent()).label).match(/Untitled-(\d+)/);
+                return ((await notebook.toolbar.getCurrentEditor()).label).match(/Untitled-(\d+)/);
             }, constants.wait5seconds, "Current editor is not Untitled-(*)");
-            expect((await notebook.editorSelector.getCurrent()).icon, "The current editor icon should be 'scriptTs'")
+            expect((await notebook.toolbar.getCurrentEditor()).icon, "The current editor icon should be 'scriptTs'")
                 .to.include(constants.tsScriptIcon);
-            const result = await notebook.codeEditor.executeScript("Math.random()");
+            const result = await new Script().executeCode("Math.random()");
             expect(result.text, "Query result is not a number").to.match(/(\d+).(\d+)/);
             refItem = await openEditorsSection.tree.getScript(/Untitled-/, "scriptTs");
         });
@@ -1818,11 +1820,11 @@ describe("NOTEBOOKS", () => {
             const treeGlobalConn = await openEditorsSection.tree.getElement(globalConn.caption);
             await openEditorsSection.tree.openContextMenuAndSelect(treeGlobalConn, constants.newJS);
             await driver.wait(async () => {
-                return ((await notebook.editorSelector.getCurrent()).label).match(/Untitled-(\d+)/);
+                return ((await notebook.toolbar.getCurrentEditor()).label).match(/Untitled-(\d+)/);
             }, constants.wait5seconds, "Current editor does not match Untitled-(*)");
-            expect((await notebook.editorSelector.getCurrent()).icon, "The current editor icon should be 'scriptJs'")
+            expect((await notebook.toolbar.getCurrentEditor()).icon, "The current editor icon should be 'scriptJs'")
                 .to.include(constants.jsScriptIcon);
-            const result = await notebook.codeEditor.executeScript("Math.random()");
+            const result = await new Script().executeCode("Math.random()");
             expect(result.text, "Query result is not a number").to.match(/(\d+).(\d+)/);
             refItem = await openEditorsSection.tree.getScript(/Untitled-/, "scriptJs");
 
@@ -1834,6 +1836,7 @@ describe("NOTEBOOKS", () => {
 
         const destFile = `${process.cwd()}/test`;
         const e2eTreeSection = new E2EAccordionSection("e2e");
+        const notebook = new E2ENotebook();
 
         before(async function () {
             try {
@@ -1847,7 +1850,7 @@ describe("NOTEBOOKS", () => {
                 await dbTreeSection.focus();
                 const treeGlobalConn = await dbTreeSection.tree.getElement(globalConn.caption);
                 await (await dbTreeSection.tree.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
-                await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
+                await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1875,10 +1878,10 @@ describe("NOTEBOOKS", () => {
 
         it("Save Notebook", async () => {
 
-            const notebookEditor = await new Notebook().codeEditor.create();
+            const notebookEditor = await new E2ENotebook().codeEditor.create();
             const result = await notebookEditor.execute("SELECT VERSION();");
             expect(result.toolbar.status).to.match(/1 record retrieved/);
-            await (await Notebook.getToolbarButton(constants.saveNotebook)).click();
+            await (await notebook.toolbar.getButton(constants.saveNotebook)).click();
             await Workbench.setInputPath(destFile);
             console.log(`destFile: ${destFile}`);
             await driver.wait(new Condition("", async () => {
@@ -1895,9 +1898,9 @@ describe("NOTEBOOKS", () => {
 
         it("Replace this Notebook with content from a file", async () => {
 
-            await (await Notebook.getToolbarButton(constants.loadNotebook)).click();
+            await (await notebook.toolbar.getButton(constants.loadNotebook)).click();
             await Workbench.setInputPath(`${destFile}.mysql-notebook`);
-            await Notebook.verifyNotebook("SELECT VERSION();", "1 record retrieved");
+            await notebook.verifyNotebook("SELECT VERSION();", "1 record retrieved");
             await Workbench.closeAllEditors();
 
         });
@@ -1906,14 +1909,14 @@ describe("NOTEBOOKS", () => {
 
             await browser.openResources(process.cwd());
             await Workbench.dismissNotifications();
-            await driver.wait(e2eTreeSection.exists(), constants.wait5seconds);
+            await driver.wait(e2eTreeSection.untilExists(), constants.wait5seconds);
             const file = await (await e2eTreeSection.getWebElement()).findItem("test.mysql-notebook", 3);
             await file.click();
             const input = await InputBox.create(constants.wait5seconds * 4);
             await (await input.findQuickPick(globalConn.caption)).select();
             await Workbench.openEditor("test.mysql-notebook");
-            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-            await Notebook.verifyNotebook("SELECT VERSION();", "1 record retrieved");
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
+            await notebook.verifyNotebook("SELECT VERSION();", "1 record retrieved");
             await Workbench.closeEditor("test.mysql-notebook", true);
 
         });
@@ -1922,23 +1925,23 @@ describe("NOTEBOOKS", () => {
 
             await Workbench.closeAllEditors();
             await browser.openResources(process.cwd());
-            await driver.wait(e2eTreeSection.exists(), constants.wait5seconds);
+            await driver.wait(e2eTreeSection.untilExists(), constants.wait5seconds);
             const file = await (await e2eTreeSection.getWebElement()).findItem("test.mysql-notebook", 3);
             await e2eTreeSection.tree.openContextMenuAndSelect(file, constants.openNotebookWithConn);
             const input = await InputBox.create();
             await (await input.findQuickPick(globalConn.caption)).select();
-            await driver.wait(waitUntil.tabIsOpened("test.mysql-notebook"), constants.wait5seconds);
-            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
-            await Notebook.verifyNotebook("SELECT VERSION();", "1 record retrieved");
+            await driver.wait(Workbench.untilTabIsOpened("test.mysql-notebook"), constants.wait5seconds);
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
+            await notebook.verifyNotebook("SELECT VERSION();", "1 record retrieved");
 
         });
 
         it("Auto close notebook tab when DB connection is deleted", async () => {
 
-            await driver.wait(e2eTreeSection.exists(), constants.wait5seconds);
+            await driver.wait(e2eTreeSection.untilExists(), constants.wait5seconds);
             const file = await (await e2eTreeSection.getWebElement()).findItem("test.mysql-notebook", 3);
             await file.click();
-            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait15seconds);
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
             await Workbench.openEditor("test.mysql-notebook");
             const activityBar = new ActivityBar();
             await (await activityBar.getViewControl(constants.extensionName))?.openView();
@@ -1958,7 +1961,7 @@ describe("NOTEBOOKS", () => {
             const activityBar = new ActivityBar();
             await (await activityBar.getViewControl("Explorer"))?.openView();
 
-            await driver.wait(e2eTreeSection.exists(), constants.wait5seconds);
+            await driver.wait(e2eTreeSection.untilExists(), constants.wait5seconds);
             const file = await (await e2eTreeSection.getWebElement()).findItem("test.mysql-notebook", 3);
             await file.click();
             await Workbench.openEditor("test.mysql-notebook");

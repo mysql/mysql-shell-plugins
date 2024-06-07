@@ -23,7 +23,7 @@
 
 import { error, Key, until, WebElement, Condition } from "vscode-extension-tester";
 import { PasswordDialog } from "./PasswordDialog";
-import { Notebook } from "./Notebook";
+import { E2ENotebook } from "./E2ENotebook";
 import * as constants from "../constants";
 import * as locator from "../locators";
 import * as interfaces from "../interfaces";
@@ -31,20 +31,29 @@ import { Misc, driver } from "../Misc";
 import { Os } from "../Os";
 import * as errors from "../errors";
 import { CommandResult } from "./CommandResult";
+import { Script } from "./Script";
+import { E2EShellConsole } from "./E2EShellConsole";
 
 /**
- * This class aggregates the functions that will execute commands on notebooks or shell sessions, as well as its results
+ * This class represents the code editor that exist on notebooks, scripts or shell consoles
  */
-export class CodeEditor {
+export class E2ECodeEditor {
+
+    /** The page it belongs to (it can be a notebook, script or shell console)*/
+    public parent: E2ENotebook | Script | E2EShellConsole;
 
     /** Collection of command result ids */
     public resultIds: string[] = [];
+
+    public constructor(parent: E2ENotebook | Script | E2EShellConsole) {
+        this.parent = parent;
+    }
 
     /**
      * Loads the code editor command results and returns the code editor object
      * @returns The last result id
      */
-    public create = async (): Promise<CodeEditor> => {
+    public create = async (): Promise<E2ECodeEditor> => {
         await this.loadCommandResults();
 
         return this;
@@ -65,6 +74,20 @@ export class CodeEditor {
     };
 
     /**
+     * Scrolls down the code editor
+     */
+    public scrollDown = async (): Promise<void> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
+
+        const scroll = await driver.findElements(locator.notebook.codeEditor.editor.scrollBar);
+        if (scroll.length > 0) {
+            await driver.executeScript("arguments[0].scrollBy(0, 1500)", scroll[0]);
+        }
+    };
+
+    /**
      * Writes a command on the editor
      *
      * @param cmd The command
@@ -80,7 +103,7 @@ export class CodeEditor {
             try {
                 const textArea = await driver.wait(until.elementLocated(locator.notebook.codeEditor.textArea),
                     constants.wait5seconds, "Could not find the textarea");
-                await Notebook.scrollDown();
+                await this.scrollDown();
                 await driver.executeScript(
                     "arguments[0].click();",
                     await driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.currentLine),
@@ -112,7 +135,7 @@ export class CodeEditor {
                 return this.isTextOnEditor(lines[0]);
             } catch (e) {
                 if (e instanceof error.ElementNotInteractableError) {
-                    await Notebook.scrollDown();
+                    await this.scrollDown();
                     const editorLines = await driver.findElements(locator.notebook.codeEditor.editor.currentLine);
                     await editorLines[editorLines.length - 1].click();
                 } else if (!(errors.isStaleError(e as Error))) {
@@ -165,22 +188,6 @@ export class CodeEditor {
     };
 
     /**
-     * Executes a script on the editor
-     *
-     * @param cmd The command
-     * @param slowWriting True if the command should be written with a delay between each character
-     * @returns A promise resolving with the script result
-     */
-    public executeScript = async (cmd: string, slowWriting = false): Promise<interfaces.ICommandResult> => {
-        await this.write(cmd, slowWriting);
-        await this.exec();
-        const commandResult = new CommandResult(cmd);
-        await commandResult.loadResult(true);
-
-        return commandResult;
-    };
-
-    /**
      * Executes a command on the editor
      *
      * @param cmd The command
@@ -197,7 +204,7 @@ export class CodeEditor {
         await this.write(cmd, slowWriting);
         await this.exec();
         const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
-        const commandResult = new CommandResult(cmd, id);
+        const commandResult = new CommandResult(this, cmd, id);
         await commandResult.loadResult();
         this.resultIds.push(commandResult.id);
 
@@ -225,9 +232,9 @@ export class CodeEditor {
         }
 
         await this.write(cmd, slowWriting);
-        await (await Notebook.getToolbarButton(button)).click();
+        await (await this.parent.toolbar.getButton(button)).click();
         const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
-        const commandResult = new CommandResult(cmd, id);
+        const commandResult = new CommandResult(this, cmd, id);
         await commandResult.loadResult();
         this.resultIds.push(commandResult.id);
 
@@ -253,7 +260,7 @@ export class CodeEditor {
         await this.write(cmd, slowWriting);
         await this.clickContextItem(item);
         const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
-        const commandResult = new CommandResult(cmd, id);
+        const commandResult = new CommandResult(this, cmd, id);
         await commandResult.loadResult();
         this.resultIds.push(commandResult.id);
 
@@ -280,7 +287,7 @@ export class CodeEditor {
         await this.exec();
         await PasswordDialog.setCredentials(dbConnection);
         const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
-        const commandResult = new CommandResult(cmd, id);
+        const commandResult = new CommandResult(this, cmd, id);
         await commandResult.loadResult();
         this.resultIds.push(commandResult.id);
 
@@ -288,9 +295,8 @@ export class CodeEditor {
     };
 
     /**
-     * Searches for a command on the editor, and execute it, using the Exec Caret button on SQL commands,
-     * and Execute block button on scripts
-     *
+     * Searches for a command on the editor, and execute it,
+     * using the Exec Caret button Verify the result on this result id
      * @param cmd The command
      * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
@@ -302,16 +308,16 @@ export class CodeEditor {
 
         await this.setMouseCursorAt(cmd);
 
-        if (await Notebook.existsToolbarButton(constants.execCaret)) {
-            const toolbarButton = await Notebook.getToolbarButton(constants.execCaret);
+        if (await this.parent.toolbar.existsButton(constants.execCaret)) {
+            const toolbarButton = await this.parent.toolbar.getButton(constants.execCaret);
             await driver.executeScript("arguments[0].click()", toolbarButton);
         } else {
-            const button = await Notebook.getToolbarButton(constants.execFullBlockJs);
+            const button = await this.parent.toolbar.getButton(constants.execFullBlockJs);
             await driver.executeScript("arguments[0].click()", button);
         }
 
         const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
-        const commandResult = new CommandResult(cmd, id);
+        const commandResult = new CommandResult(this, cmd, id);
         await commandResult.loadResult();
 
         return commandResult;
@@ -330,10 +336,10 @@ export class CodeEditor {
         }
 
         if (waitForIncomingResult) {
-            commandResult = new CommandResult(undefined,
+            commandResult = new CommandResult(this, undefined,
                 await this.getNextResultId(this.resultIds[this.resultIds.length - 1]));
         } else {
-            commandResult = new CommandResult();
+            commandResult = new CommandResult(this);
         }
 
         await commandResult.loadResult();
@@ -358,9 +364,9 @@ export class CodeEditor {
         await this.write(cmd, slowWriting);
         await this.exec();
 
-        if ((await this.isShellSession()) === true) {
+        if (this.parent instanceof E2EShellConsole) {
             const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
-            const commandResult = new CommandResult(cmd, nextId);
+            const commandResult = new CommandResult(this, cmd, nextId);
             await commandResult.loadResult();
             this.resultIds[this.resultIds.length - 1] = commandResult.id;
 
@@ -391,22 +397,6 @@ export class CodeEditor {
         await textArea.sendKeys(Key.chord(Key.CONTROL, Key.SPACE));
         await driver.wait(until.elementLocated(locator.suggestWidget.exists),
             constants.wait2seconds, "The suggestions menu was not displayed");
-    };
-
-    /**
-     * Returns the last existing script result on the editor
-     *
-     * @returns A promise resolving with the script result
-     */
-    public getLastScriptResult = async (): Promise<interfaces.ICommandResult> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
-        const commandResult = new CommandResult();
-        await commandResult.loadResult(true);
-
-        return commandResult;
     };
 
     /**
@@ -597,7 +587,7 @@ export class CodeEditor {
      * Verifies if the notebook's editor has a new prompt/line
      * @returns A condition resolving to true, if the new prompt exists, false otherwise
      */
-    public hasNewPrompt = (): Condition<boolean> => {
+    public untilNewPromptExists = (): Condition<boolean> => {
         return new Condition(`for editor to have a new prompt`, async () => {
             const editorSentences = await driver.findElements(locator.notebook.codeEditor.editor.sentence);
 
@@ -624,163 +614,6 @@ export class CodeEditor {
         return (cmd.match(/(\\js|\\javascript|\\ts|\\typescript|\\sql|\\q|\\d|\\py|\\python)/)) !== null;
     };
 
-    /*private setResultContent = async (cmd?: string, searchOnExistingId?: string, fromScript = false):
-    Promise<void> => {
-
-        let result: WebElement;
-        let resultContent: WebElement | interfaces.ICommandTabResult[];
-
-        try {
-            await driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.hasContent),
-                constants.wait150MilliSeconds);
-        } catch (e) {
-            return undefined;
-        }
-
-        await driver.wait(async () => {
-            try {
-                result = fromScript ? await this
-                    .getResultScript() : await this.getResult(cmd, searchOnExistingId);
-                if (this.expectResultTabs(cmd)) {
-                    await driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.tabSection.exists),
-                        constants.wait5seconds, `A result tab should exist for cmd ${cmd}`);
-
-                    resultContent = [];
-                    const tabs = await result.findElements(locator.notebook.codeEditor.editor.result.tabSection.tab);
-                    for (const tab of tabs) {
-                        // is data set ?
-                        const tableRows = await result
-                            .findElement(locator.notebook.codeEditor.editor.result.tableRow)
-                            .catch(() => { return undefined; });
-                        // is output text ?
-                        const outputText = await result
-                            .findElement(locator.notebook.codeEditor.editor.result.textOutput)
-                            .catch(() => { return undefined; });
-                        await tab.click();
-                        if (tableRows) {
-                            await driver.wait(until.stalenessOf(tableRows as WebElement), constants.wait2seconds,
-                                "Result table was not updated");
-                            await driver.wait(waitUntil.elementLocated(result,
-                                locator.notebook.codeEditor.editor.result.tableHeaders),
-                                constants.wait2seconds, "Result Table headers were not loaded");
-                            await driver.wait(waitUntil.elementLocated(result,
-                                locator.notebook.codeEditor.editor.result.tableCell),
-                                constants.wait2seconds, "Table cells were not loaded").catch(async () => {
-                                    const result = fromScript ? await this
-                                        .getResultScript() : await this.getResult(cmd, searchOnExistingId);
-                                    await result.findElement(locator.notebook.codeEditor.editor.result.tableColumnTitle)
-                                        .click();
-                                    await driver.wait(waitUntil
-                                        .elementLocated(result, locator.notebook.codeEditor.editor.result.tableCell),
-                                        constants.wait2seconds,
-                                        `Table cell was not set after click on column title (bug)`);
-
-                                    return false;
-                                });
-                            resultContent.push({
-                                tabName: await tab.getText(),
-                                content: await (await result
-                                    .findElement(locator.notebook.codeEditor.editor.result.table))
-                                    .getAttribute("innerHTML"),
-                            });
-                        } else if (outputText) {
-                            resultContent.push({
-                                tabName: await tab.getText(),
-                                content: await (outputText as WebElement).getText(),
-                            });
-                        }
-                    }
-                } else {
-                    const isJsonResult = (await result
-                        .findElements(locator.notebook.codeEditor.editor.result.json.exists))
-                        .length > 0;
-                    const isPrettyJsonResult = (await result
-                        .findElements(locator.notebook.codeEditor.editor.result.json.pretty))
-                        .length > 0;
-                    const isGraphResult = (await result
-                        .findElements(locator.notebook.codeEditor.editor.result.graphHost.exists)).length > 0;
-                    const isText = (await result
-                        .findElements(locator.notebook.codeEditor.editor.result.text)).length > 0;
-                    const isOutput = (await result
-                        .findElements(locator.notebook.codeEditor.editor.result.singleOutput.exists))
-                        .length > 0;
-                    const sqlPreview = (await result
-                        .findElements(locator.notebook.codeEditor.editor.result.previewChanges.exists))
-                        .length > 0;
-                    const isTableResult = (await result
-                        .findElements(locator.notebook.codeEditor.editor.result.tableHeaders))
-                        .length > 0;
-
-                    if (isTableResult) {
-                        await driver.wait(waitUntil.elementLocated(result,
-                            locator.notebook.codeEditor.editor.result.tableCell),
-                            constants.wait2seconds, "Table cells were not loaded").catch(async () => {
-                                const result = await this.getResult(cmd, searchOnExistingId);
-                                await result.findElement(locator.notebook.codeEditor.editor.result.tableColumnTitle)
-                                    .click();
-                                await driver.wait(waitUntil
-                                    .elementLocated(result, locator.notebook.codeEditor.editor.result.tableCell),
-                                    constants.wait2seconds, `Table cell was not set after click on column title (bug)`);
-                            });
-                        resultContent = await result.findElement(locator.notebook.codeEditor.editor.result.table);
-                    } else if (isJsonResult) {
-                        resultContent = await result.findElement(locator.notebook.codeEditor.editor.result.json.exists);
-                    } else if (isPrettyJsonResult) {
-                        resultContent = await result.findElement(locator.notebook.codeEditor.editor.result.json.pretty);
-                    } else if (isGraphResult) {
-                        resultContent = await result
-                            .findElement(locator.notebook.codeEditor.editor.result.graphHost.exists);
-                    } else if (isText) {
-                        resultContent = await result.findElement(locator.notebook.codeEditor.editor.result.text);
-                    } else if (isOutput) {
-                        return true;
-                    }
-                    else if (sqlPreview) {
-                        resultContent = await result
-                            .findElement(locator.notebook.codeEditor.editor.result.previewChanges.exists);
-                    }
-                }
-                if ((resultContent instanceof WebElement && resultContent !== undefined) ||
-                    ((resultContent as interfaces.ICommandTabResult[]).length > 0)) {
-                    return true;
-                }
-            } catch (e) {
-                if (!(errors.isStaleError(e as Error)) &&
-                    !(e instanceof error.ElementNotInteractableError)) {
-                    throw e;
-                }
-            }
-        }, constants.wait5seconds, `Could not return the result content for cmd ${cmd}`);
-
-        this.content = resultContent;
-    };*/
-
-    /*private setResultToolbar = async (cmd?: string, searchOnExistingId?: string, fromScript = false):
-    Promise<void> => {
-        let toolbar: WebElement;
-        if ((await this.isShellSession()) === false) {
-            await driver.wait(async () => {
-                try {
-                    const result = fromScript ? await this
-                        .getResultScript() : await this.getResult(cmd, searchOnExistingId);
-                    const hasTableResult = (await result.findElements(locator.notebook.codeEditor.editor.result.table))
-                        .length > 0;
-                    if (hasTableResult) {
-                        toolbar = result.findElement(locator.notebook.codeEditor.editor.result.status.toolbar.exists);
-                    }
-
-                    return true;
-                } catch (e) {
-                    if (!(errors.isStaleError(e as Error))) {
-                        throw e;
-                    }
-                }
-            }, constants.wait5seconds, `Could not get the result toolbar for cmd ${cmd}`);
-        }
-
-        this.toolbar = toolbar;
-    };*/
-
     /**
      * Calculates and returns the next expected result id
      * If the lastResultId is undefined, it will fetch the last existing result id from the editor,
@@ -805,14 +638,6 @@ export class CodeEditor {
         }
 
         return resultId;
-    };
-
-    /**
-     * Returns true if the context is within a shell session
-     * @returns A promise resolving with the truthiness of the function
-     */
-    private isShellSession = async (): Promise<boolean> => {
-        return (await driver.findElements(locator.shellSession.exists)).length > 0;
     };
 
     /**

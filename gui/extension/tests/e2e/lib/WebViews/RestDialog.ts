@@ -52,7 +52,6 @@ export class RestDialog {
 
         // Main settings
         await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.servicePath, restService.servicePath);
-
         await DialogHelper.setCheckboxValue("makeDefault", restService.default);
         await DialogHelper.setCheckboxValue("enabled", restService.enabled);
 

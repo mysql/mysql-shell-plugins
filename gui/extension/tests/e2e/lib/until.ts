@@ -24,9 +24,6 @@ import {
     Condition,
     logging,
     WebElement,
-    Locator,
-    Workbench as extWorkbench,
-    NotificationType,
     error,
     ModalDialog,
     TextEditor,
@@ -36,12 +33,10 @@ import fs from "fs/promises";
 import * as constants from "./constants";
 import { Misc, driver } from "./Misc";
 import * as locator from "./locators";
-import * as interfaces from "./interfaces";
-import { PasswordDialog } from "./WebViews/PasswordDialog";
 import { Os } from "./Os";
 import { Workbench } from "./Workbench";
 import * as errors from "../lib/errors";
-import { EditorSelector } from "./WebViews/EditorSelector";
+import { Toolbar } from "./WebViews/Toolbar";
 
 export let credentialHelperOk = true;
 
@@ -67,37 +62,12 @@ export const modalDialogIsOpened = (): Condition<boolean> => {
 };
 
 /**
- * Waits until the tab is opened
- * @param tabName The tab name
- * @returns A promise resolving when the tab is opened
- */
-export const tabIsOpened = (tabName: string): Condition<boolean> => {
-    return new Condition(`for ${tabName} to be opened`, async () => {
-        return (await Workbench.getOpenEditorTitles()).includes(tabName);
-    });
-};
-
-/**
  * Waits until the editor selector exists, which means that the front end is loaded
  * @returns A promise resolving when the front end is loaded
  */
 export const isFELoaded = (): Condition<boolean> => {
     return new Condition("for Frontend to be loaded", async () => {
         return (await driver.findElements(locator.notebook.toolbar.editorSelector.exists)).length > 0;
-    });
-};
-
-/**
- * Waits until the database connection is successful
- * @returns A promise resolving when the database connection is successful
- */
-const dbConnectionIsSuccessful = (): Condition<boolean> => {
-    return new Condition("for DB Connection is successful", async () => {
-        const editorSelectorExists = (await driver.findElements(locator.notebook.toolbar.editorSelector.exists))
-            .length > 0;
-        const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
-
-        return editorSelectorExists || existsNotebook;
     });
 };
 
@@ -122,175 +92,7 @@ export const currentEditorIs = (editor: RegExp): Condition<boolean> => {
         await Misc.switchBackToTopFrame();
         await Misc.switchToFrame();
 
-        return ((await new EditorSelector().getCurrent()).label).match(editor) !== null;
-    });
-};
-
-/**
- * Waits until the shell session is successful
- * @returns A promise resolving when the shell session is successful
- */
-const shellSessionIsSuccessful = (): Condition<boolean> => {
-    return new Condition("for Shell connection to be successful", async () => {
-        return (await driver.findElements(locator.shellSession.exists)).length > 0;
-    });
-};
-
-/**
- * Waits until the password dialog exists
- * @returns A promise resolving when the password dialog exists
- */
-export const existsPasswordDialog = (): Condition<boolean> => {
-    return new Condition(`for password dialog to be opened`, async () => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-
-        return (await driver.findElements(locator.passwordDialog.exists)).length > 0;
-    });
-};
-
-/**
- * Waits until the database connection is opened
- * @param connection The database connection
- * @returns A promise resolving when the database connection is opened
- */
-export const dbConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
-    return new Condition(`for DB connection ${connection.caption} to be opened`, async () => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-
-        const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
-        if (existsPasswordDialog) {
-            await PasswordDialog.setCredentials(connection);
-            await driver.wait(dbConnectionIsSuccessful(), constants.wait15seconds);
-        }
-        const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
-        const existsGenericDialog = (await driver.findElements(locator.genericDialog.exists)).length > 0;
-
-        return existsNotebook || existsGenericDialog;
-    });
-};
-
-/**
- * Waits until the script is opened
- * @param connection The database connection
- * @returns A promise resolving when the script is opened
- */
-export const scriptIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
-    return new Condition(`for script to be opened`, async () => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-
-        const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
-        if (existsPasswordDialog) {
-            await PasswordDialog.setCredentials(connection);
-            await driver.wait(dbConnectionIsSuccessful(), constants.wait15seconds);
-        }
-
-        return ((await new EditorSelector().getCurrent()).label).match(/Script/) !== null;
-    });
-};
-
-/**
- * Waits until the MDS connection is opened
- * @param connection The database connection
- * @returns A promise resolving when the MDS connection is opened
- */
-export const mdsConnectionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
-    return new Condition(`for MDS connection ${connection.caption} to be opened`, async () => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-
-        const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
-        const existsFingerPrintDialog = (await driver.findElements(locator.confirmDialog.exists)).length > 0;
-        const existsEditor = (await driver.findElements(locator.notebook.codeEditor.textArea)).length > 0;
-        const existsErrorDialog = (await driver.findElements(locator.errorDialog.exists)).length > 0;
-        if (existsFingerPrintDialog) {
-            await driver.findElement(locator.confirmDialog.accept).click();
-        }
-        if (existsPasswordDialog) {
-            await PasswordDialog.setCredentials(connection);
-        }
-        if (existsErrorDialog) {
-            const errorDialog = await driver.findElement(locator.errorDialog.exists);
-            const errorMsg = await errorDialog.findElement(locator.errorDialog.message);
-            throw new Error(await errorMsg.getText());
-        }
-
-        return existsEditor;
-    });
-};
-
-/**
- * Waits until the shell session is opened
- * @param connection The database connection
- * @returns A promise resolving when the shell session is opened
- */
-export const shellSessionIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
-    return new Condition(`for Shell session ${connection.caption} to be opened`, async () => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-        const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
-        if (existsPasswordDialog) {
-            await PasswordDialog.setCredentials(connection);
-            await driver.wait(shellSessionIsSuccessful(),
-                constants.wait15seconds, "Shell session was not successful");
-        }
-
-        return (await driver.findElements(locator.shellConsole.editor)).length > 0;
-    });
-};
-
-/**
- * Waits until the element is located within a context
- * @param context The context
- * @param locator The locator
- * @returns A promise resolving when the element is located
- */
-export const elementLocated = (context: WebElement, locator: Locator): Condition<boolean> => {
-    return new Condition(`for element ${String(locator)} to be found`, async () => {
-        return (await context.findElements(locator)).length > 0;
-    });
-};
-
-/**
- * Waits until the notification exists
- * @param notification The notification
- * @param dismiss True to close the notification, false otherwise
- * @param expectFailure True if it expects a notification with failure/error
- * @returns A promise resolving when the notification exists
- */
-export const notificationExists = (notification: string, dismiss = true,
-    expectFailure = false): Condition<boolean> => {
-    return new Condition(`for notification '${notification}' to be displayed`, async () => {
-        try {
-            if (Misc.insideIframe) {
-                await Misc.switchBackToTopFrame();
-            }
-
-            const escapedText = notification.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-            const ntfs = await new extWorkbench().getNotifications();
-            for (const ntf of ntfs) {
-                if (expectFailure === false) {
-                    if (await ntf.getType() === NotificationType.Error) {
-                        throw new Error("There is a notification with error");
-                    }
-                }
-                if ((await ntf.getMessage()).match(new RegExp(escapedText)) !== null) {
-                    if (dismiss) {
-                        await Workbench.dismissNotifications();
-                    }
-
-                    return true;
-                } else {
-                    console.warn(`Found notification: ${await ntf.getMessage()}`);
-                }
-            }
-        } catch (e) {
-            if (!errors.isStaleError(e as Error)) {
-                throw e;
-            }
-        }
+        return ((await new Toolbar().getCurrentEditor()).label).match(editor) !== null;
     });
 };
 
@@ -306,9 +108,10 @@ export const extensionIsReady = (): Condition<boolean> => {
 
         const loadTry = async (): Promise<void> => {
             console.log("<<<<Try to load FE>>>>>");
-            await driver.wait(tabIsOpened("Welcome"), constants.wait10seconds, "Welcome tab was not opened");
+            await driver.wait(Workbench.untilTabIsOpened("Welcome"), constants.wait10seconds,
+                "Welcome tab was not opened");
             await Workbench.openMySQLShellForVSCode();
-            await driver.wait(tabIsOpened(constants.dbDefaultEditor), constants.wait25seconds,
+            await driver.wait(Workbench.untilTabIsOpened(constants.dbDefaultEditor), constants.wait25seconds,
                 `${constants.dbDefaultEditor} tab was not opened`);
             await Misc.switchToFrame();
             await driver.wait(isFELoaded(), constants.wait15seconds);
@@ -371,24 +174,6 @@ export const confirmationDialogExists = (context?: string): Condition<WebElement
         const confirmDialog = await driver.findElements(locator.confirmDialog.exists);
         if (confirmDialog) {
             return confirmDialog[0];
-        }
-    });
-};
-
-/**
- * Waits until the database connection exists on the db connection overview page
- * @param dbConnection The database connection
- * @returns A promise resolving when the database connection exists
- */
-export const existsOnDBConnectionOverview = (dbConnection: string): Condition<boolean> => {
-    return new Condition(`${dbConnection} to exist`, async () => {
-        const hosts = await driver.findElements(locator.dbConnectionOverview.dbConnection.tile);
-        for (const host of hosts) {
-            const el = await (await host
-                .findElement(locator.dbConnectionOverview.dbConnection.caption)).getText();
-            if (el === dbConnection) {
-                return true;
-            }
         }
     });
 };

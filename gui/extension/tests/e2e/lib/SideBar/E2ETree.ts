@@ -28,7 +28,6 @@ import {
     TreeItem, EditorView, Button, error,
 } from "vscode-extension-tester";
 import * as constants from "../constants";
-import * as waitUntil from "../until";
 import * as locator from "../locators";
 import * as interfaces from "../interfaces";
 import * as errors from "../errors";
@@ -38,8 +37,12 @@ import { E2EAccordionSection } from "./E2EAccordionSection";
 import { Os } from "../Os";
 import { hostname } from "os";
 
+/**
+ * This class represents the tree within an accordion section and its related functions
+ */
 export class E2ETree {
 
+    /** The accordion section which it belongs to */
     private accordionSection: E2EAccordionSection;
 
     public constructor(sectionElement: E2EAccordionSection) {
@@ -120,7 +123,7 @@ export class E2ETree {
     public untilExists = (element: string | RegExp): Condition<boolean> => {
         return new Condition(`for ${element} to exist`, async () => {
             let reloadLabel: string;
-            await driver.wait(this.accordionSection.isNotLoading(), constants.wait20seconds);
+            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
             if (this.accordionSection.accordionSectionName === constants.dbTreeSection ||
                 this.accordionSection.accordionSectionName === constants.ociTreeSection) {
                 if (this.accordionSection.accordionSectionName === constants.dbTreeSection) {
@@ -129,7 +132,7 @@ export class E2ETree {
                     reloadLabel = constants.reloadOci;
                 }
                 await this.accordionSection.clickToolbarButton(reloadLabel);
-                await driver.wait(this.accordionSection.isNotLoading(), constants.wait20seconds);
+                await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
             }
 
             return this.existsElement(element);
@@ -137,14 +140,14 @@ export class E2ETree {
     };
 
     /**
-     * Verifies if an element exists does not exist the tree
+     * Verifies if an element does not exist the tree
      * @param element The element
      * @returns A condition resolving to true if the element does not exist, false otherwise
      */
     public untilDoesNotExist = (element: string | RegExp): Condition<boolean> => {
         return new Condition(`for ${element} to not exist`, async () => {
             let reloadLabel: string;
-            await driver.wait(this.accordionSection.isNotLoading(), constants.wait20seconds);
+            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
             if (this.accordionSection.accordionSectionName === constants.dbTreeSection ||
                 this.accordionSection.accordionSectionName === constants.ociTreeSection) {
                 if (this.accordionSection.accordionSectionName === constants.dbTreeSection) {
@@ -153,7 +156,7 @@ export class E2ETree {
                     reloadLabel = constants.reloadOci;
                 }
                 await this.accordionSection.clickToolbarButton(reloadLabel);
-                await driver.wait(this.accordionSection.isNotLoading(), constants.wait20seconds);
+                await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
             }
 
             return !(await this.existsElement(element));
@@ -166,10 +169,7 @@ export class E2ETree {
      * @param type The type (ociProfileCurrent, folderCurrent, ociBastionCurrent, mrsServiceDefault, schemaMySQLCurrent)
      * @returns A promise resolving with true if the element is marked as default, false otherwise
      */
-    public isElementDefault = async (
-        element: string,
-        type: string,
-    ): Promise<boolean | undefined> => {
+    public isElementDefault = async (element: string, type: string): Promise<boolean | undefined> => {
 
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
@@ -202,7 +202,7 @@ export class E2ETree {
     };
 
     /**
-     * Expands a database connection on the tree
+     * Expands a database connection
      * @param conn The connection
      * @param password The connection password
      * @returns A promise resolving when the database connection is expanded
@@ -418,7 +418,7 @@ export class E2ETree {
             const treeItem = await this.getElement(item);
             if (!(await treeItem.isExpanded())) {
                 await treeItem.expand();
-                await driver.wait(this.accordionSection.isNotLoading(), loadingTimeout);
+                await driver.wait(this.accordionSection.untilIsNotLoading(), loadingTimeout);
             }
         }
     };
@@ -441,9 +441,9 @@ export class E2ETree {
         }
 
         if (ctxMenuItem !== constants.openNotebookWithConn) {
-            await driver.wait(this.accordionSection.isNotLoading(), constants.wait10seconds);
+            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait10seconds);
             const ociSection = new E2EAccordionSection(constants.ociTreeSection);
-            await driver.wait(ociSection.isNotLoading(), constants.wait10seconds);
+            await driver.wait(ociSection.untilIsNotLoading(), constants.wait10seconds);
         }
 
         if (element) {
@@ -509,8 +509,8 @@ export class E2ETree {
                     if (existsPasswordWidget) {
                         await Workbench.setInputPassword((dbConnection.basic as interfaces.IConnBasicMySQL)
                             .password);
-                        await driver.wait(waitUntil
-                            .notificationExists("MySQL REST Service configured successfully."),
+                        await driver.wait(Workbench
+                            .untilNotificationExists("MySQL REST Service configured successfully."),
                             constants.wait5seconds);
 
                         return true;
@@ -538,14 +538,14 @@ export class E2ETree {
     };
 
     /**
-     * Waits until the tree item is marked as default
+     * Verifies if the tree item is marked as default
      * @param treeItemName The item name on the tree
      * @param itemType The item type
-     * @returns A promise resolving when the item is marked as default
+     * @returns A condition resolving to true when the item is marked as default
      */
-    public isDefaultItem = (treeItemName: string, itemType: string): Condition<boolean> => {
+    public untilIsDefault = (treeItemName: string, itemType: string): Condition<boolean> => {
         return new Condition(`for ${treeItemName} to be marked as default`, async () => {
-            await driver.wait(this.accordionSection.isNotLoading(), constants.wait25seconds,
+            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait25seconds,
                 `${this.accordionSection.accordionSectionName} is still loading`);
 
             return this.isElementDefault(treeItemName, itemType);
@@ -553,26 +553,26 @@ export class E2ETree {
     };
 
     /**
-     * Waits until router tree element is active
-     * @returns A promise resolving when router icon is active
+     * Verifies if the router tree element is marked as active
+     * @returns A condition resolving to true when router icon is active
      */
-    public routerIconIsActive = (): Condition<boolean> => {
+    public untilRouterIsActive = (): Condition<boolean> => {
         return new Condition(`for router icon to be active`, async () => {
             await this.accordionSection.clickToolbarButton(constants.reloadConnections);
-            await driver.wait(this.accordionSection.isNotLoading(), constants.wait5seconds);
+            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait5seconds);
 
             return this.isRouterActive();
         });
     };
 
     /**
-     * Waits until router tree element is inactive
-     * @returns A promise resolving when router icon is inactive
+     * Verifies if the router tree element is marked as inactive
+     * @returns A condition resolving to true when router icon is inactive
      */
-    public routerIconIsInactive = (): Condition<boolean> => {
+    public untilRouterIsInactive = (): Condition<boolean> => {
         return new Condition(`for router icon to be inactive`, async () => {
             await this.accordionSection.clickToolbarButton(constants.reloadConnections);
-            await driver.wait(this.accordionSection.isNotLoading(), constants.wait5seconds);
+            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait5seconds);
 
             return !(await this.isRouterActive());
         });

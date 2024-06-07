@@ -25,7 +25,6 @@
 import { until } from "vscode-extension-tester";
 import { expect } from "chai";
 import { driver, Misc } from "../lib/Misc";
-import { Shell } from "../lib/Shell";
 import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection";
 import { Os } from "../lib/Os";
 import { Workbench } from "../lib/Workbench";
@@ -34,7 +33,7 @@ import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import * as errors from "../lib/errors";
-import { ShellConsole } from "../lib/WebViews/ShellConsole";
+import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
 
 describe("MYSQL SHELL CONSOLES", () => {
 
@@ -57,7 +56,7 @@ describe("MYSQL SHELL CONSOLES", () => {
     const port = String((globalConn.basic as interfaces.IConnBasicMySQL).port);
     const schema = String((globalConn.basic as interfaces.IConnBasicMySQL).schema);
     const openEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
-    const shellConsole = new ShellConsole();
+    const shellConsole = new E2EShellConsole();
 
     before(async function () {
 
@@ -82,7 +81,8 @@ describe("MYSQL SHELL CONSOLES", () => {
             await Misc.switchToFrame();
             await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),
                 constants.wait10seconds).click();
-            await driver.wait(Shell.isShellLoaded(), constants.wait15seconds, "Shell Console was not loaded");
+            await driver.wait(new E2EShellConsole().untilIsOpened(), constants.wait15seconds,
+                "Shell Console was not loaded");
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -125,7 +125,8 @@ describe("MYSQL SHELL CONSOLES", () => {
                 const treeDBConnections = await openEditorsTreeSection.tree.getElement(constants.dbConnectionsLabel);
                 await openEditorsTreeSection.tree.openContextMenuAndSelect(treeDBConnections,
                     constants.openNewShellConsole);
-                await driver.wait(Shell.isShellLoaded(), constants.wait15seconds, "Shell Console was not loaded");
+                await driver.wait(new E2EShellConsole().untilIsOpened(), constants.wait15seconds,
+                    "Shell Console was not loaded");
                 await driver.wait(openEditorsTreeSection.tree.untilExists(`Session ${i}`), constants.wait5seconds);
                 openedSessions.push(i);
             }
@@ -151,7 +152,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Connect to host", async () => {
             await shellConsole.codeEditor.loadCommandResults();
             let connUri = `\\c ${username}:${password}@${hostname}:${port}/${schema}`;
-            await driver.wait(waitUntil.shellSessionIsOpened(shellConn), constants.wait15seconds);
+            await driver.wait(new E2EShellConsole().untilIsOpened(shellConn), constants.wait15seconds);
             const result = await shellConsole.codeEditor.execute(connUri);
             connUri = `Creating a session to '${username}@${hostname}:${port}/${schema}'`;
             expect(result.text).to.match(new RegExp(connUri));
@@ -257,7 +258,8 @@ describe("MYSQL SHELL CONSOLES", () => {
                 const treeDBConnections = await openEditorsTreeSection.tree.getElement(constants.dbConnectionsLabel);
                 await openEditorsTreeSection.tree.openContextMenuAndSelect(treeDBConnections,
                     constants.openNewShellConsole);
-                await driver.wait(Shell.isShellLoaded(), constants.wait15seconds, "Shell Console was not loaded");
+                await driver.wait(new E2EShellConsole().untilIsOpened(), constants.wait15seconds,
+                    "Shell Console was not loaded");
 
                 await shellConsole.codeEditor.loadCommandResults();
                 let uri = `\\c ${username}:${password}@${hostname}:33060/${schema}`;
