@@ -540,17 +540,293 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         this.setState({ connections });
     };
 
+    protected sendSqlUpdatesFromModel = async (backend: ShellInterfaceSqlEditor,
+        updates: string[]): Promise<ISqlUpdateResult> => {
 
-    private async loadConnections(): Promise<void> {
-        await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "").then((connections) => {
-            this.setState({ connections, connectionsLoaded: true });
-        }).catch((reason) => {
-            const message = reason instanceof Error ? reason.message : String(reason);
-            void requisitions.execute("showError", "Cannot load DB connections: " + message);
-        });
-    }
+        let lastIndex = 0;
+        let rowCount = 0;
+        try {
+            await backend.execute("start transaction");
+            for (; lastIndex < updates.length; ++lastIndex) {
+                const update = updates[lastIndex];
+                const result = await backend.execute(update);
+                rowCount += result?.rowsAffected ?? 0;
+            }
+            await backend.execute("commit");
 
-    private handleAddConnection = (details: IConnectionDetails): void => {
+            // Don't wait for the info message.
+            void requisitions.execute("showInfo", "Changes committed successfully.");
+
+            return { affectedRows: rowCount, errors: [] };
+        } /* istanbul ignore next */ catch (reason) {
+            await backend.execute("rollback");
+            if (reason instanceof Error) {
+                const errors: string[] = [];
+                errors[lastIndex] = reason.message; // Set the error for the query that was last executed.
+
+                return { affectedRows: rowCount, errors };
+            }
+
+            throw reason;
+        }
+    };
+
+    protected handleHelpCommand = (command: string, language: EditorLanguage): string | undefined => {
+        switch (language) {
+            case "javascript": {
+                return `The DB Notebook's interactive prompt is currently running in JavaScript mode.
+Execute "\\sql" to switch to SQL mode, "\\ts" to switch to TypeScript mode.
+
+GLOBAL FUNCTIONS
+    - \`print(value: any): void\`
+      Send a value to the output area.
+    - \`runSql(code: string, callback?: (res: IResultSetRow[]) => void), params?: unknown): void\`
+      Run the given query.
+    - \`function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown): void\`
+      Run the given query and process the rows iteratively.
+`;
+            }
+
+            case "typescript": {
+                return `The DB Notebook's interactive prompt is currently running in TypeScript mode.
+Execute "\\sql" to switch to SQL mode, "\\js" to switch to JavaScript mode.
+
+GLOBAL FUNCTIONS
+    - \`print(value: unknown): void\`
+      Send a value to the output area.
+    - \`runSql(code: string, callback?: (res: IResultSetRow[]) => void), params?: unknown[]): void\`
+      Run the given query.
+    - \`function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown[]): void\`
+      Run the given query and process the rows iteratively.
+`;
+            }
+
+            case "mysql": {
+                return `The DB Notebook's interactive prompt is currently running in SQL mode.
+Execute "\\js" to switch to JavaScript mode, "\\ts" to switch to TypeScript mode.
+
+Use ? as placeholders, provide values in comments.
+EXAMPLES
+    SELECT * FROM user
+    WHERE name = ? /*=mike*/`;
+            }
+
+            default:
+        }
+    };
+
+    protected handleAddScript = (id: string, language: EditorLanguage, dialect?: DBType): void => {
+        let editorLanguage = language;
+        if (editorLanguage === "sql") {
+            // Determine the actual language dialect to use here.
+            switch (dialect) {
+                case DBType.MySQL: {
+                    editorLanguage = "mysql";
+                    break;
+                }
+
+                default: {
+                    break;
+                }
+            }
+        }
+
+        const connectionState = this.connectionState.get(id);
+        if (connectionState) {
+            const model = this.createEditorModel(connectionState.backend, "", editorLanguage,
+                connectionState.serverVersion, connectionState.sqlMode, connectionState.currentSchema);
+
+            let caption = "";
+            while (true) {
+                const newCaption = `Script ${++this.editorCounter}`;
+                const existing = connectionState.scripts.findIndex((candidate) => {
+                    return candidate.caption === newCaption;
+                });
+
+                if (existing === -1) {
+                    caption = newCaption;
+                    break;
+                }
+            }
+
+            // Add a data record for the new script.
+            const category = ShellInterface.modules.scriptTypeFromLanguage(editorLanguage);
+            if (category) {
+                ShellInterface.modules.addData(caption, "", category, "scripts", "").then((dbDataId) => {
+                    const scriptId = uuid();
+                    const newState = {
+                        id: scriptId,
+                        caption,
+                        dbDataId,
+                        type: EntityType.Script,
+                        state: {
+                            model,
+                            viewState: null,
+                            options: defaultEditorOptions,
+                        },
+                        currentVersion: model.getVersionId(),
+                    };
+                    connectionState.editors.push(newState);
+
+                    connectionState.scripts.push({
+                        id: scriptId,
+                        type: EntityType.Script,
+                        caption,
+                        language: editorLanguage,
+                        dbDataId,
+                        folderId: 1, // TODO: determine the real folder ID.
+                    } as IDBEditorScriptState);
+
+                    connectionState.activeEntry = scriptId;
+                    this.notifyRemoteEditorOpen(connectionState.connectionId, id, connectionState.dbType,
+                        editorLanguage, newState);
+
+                    this.forceUpdate();
+                }).catch((reason) => {
+                    const message = reason instanceof Error ? reason.message : String(reason);
+                    void requisitions.execute("showError", "Cannot add new user script: " + message);
+                });
+            }
+        }
+    };
+
+    protected handleEditorRename = (id: string, editorId: string, newCaption: string): void => {
+        const connectionState = this.connectionState.get(id);
+        if (newCaption && connectionState) {
+            let needsUpdate = false;
+            const editor = connectionState.editors.find((candidate: IOpenEditorState) => {
+                return candidate.id === editorId;
+            });
+
+            if (editor) {
+                editor.caption = newCaption;
+                needsUpdate = true;
+            }
+
+            const script = connectionState.scripts.find((candidate: IDBDataEntry) => {
+                return candidate.id === editorId;
+            });
+
+            if (script) {
+                script.caption = newCaption;
+                needsUpdate = true;
+            }
+
+            if (needsUpdate) {
+                if (script?.dbDataId) {
+                    void ShellInterface.modules.updateData(script.dbDataId, script.caption);
+                }
+
+                this.forceUpdate();
+            }
+        }
+    };
+
+    /**
+     * Removes a single editor on a connection tab.
+     *
+     * @param id  The id of the tab in which the editor is located.
+     * @param editorId The id of the editor to remove.
+     * @param doUpdate A flag telling if re-rendering is needed.
+     */
+    protected handleRemoveEditor = (id: string, editorId: string, doUpdate = true): void => {
+        const connectionState = this.connectionState.get(id);
+        if (connectionState) {
+            const index = connectionState.editors.findIndex((editor: IOpenEditorState) => {
+                return editor.id === editorId;
+            });
+
+            if (index > -1) {
+                const editor = connectionState.editors[index];
+
+                // Make sure any pending change is sent to the backend, if that editor represents a stored script.
+                this.saveEditorIfNeeded(editor);
+
+                if (connectionState.activeEntry === editorId) {
+                    // Select another editor if we're just removing the selected one.
+                    if (index > 0) {
+                        connectionState.activeEntry = connectionState.editors[index - 1].id;
+                    } else {
+                        if (index < connectionState.editors.length - 1) {
+                            connectionState.activeEntry = connectionState.editors[index + 1].id;
+                        }
+                    }
+                }
+
+                connectionState.editors.splice(index, 1);
+                this.notifyRemoteEditorClose(connectionState.connectionId, editor.id);
+
+                if (connectionState.editors.length === 0) {
+                    // Add the default editor, if the user just removed the last editor.
+                    const useNotebook = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
+                    const language = useNotebook ? "msg" : "mysql";
+                    const model = this.createEditorModel(connectionState.backend, "", language,
+                        connectionState.serverVersion, connectionState.sqlMode, connectionState.currentSchema);
+
+                    const entryId = uuid();
+                    const caption = `DB Notebook ${++this.editorCounter}`;
+                    const newState = {
+                        id: entryId,
+                        caption,
+                        type: useNotebook ? EntityType.Notebook : EntityType.Script,
+                        state: {
+                            model,
+                            viewState: null,
+                            options: defaultEditorOptions,
+                        },
+                        currentVersion: model.getVersionId(),
+                    };
+                    connectionState.editors.push(newState);
+
+                    connectionState.activeEntry = entryId;
+                    this.notifyRemoteEditorOpen(connectionState.connectionId, id, connectionState.dbType, language,
+                        newState);
+                }
+
+                if (doUpdate) {
+                    this.forceUpdate();
+                }
+            }
+        }
+    };
+
+    protected handleExplorerMenuAction = (id: string, actionId: string, params?: unknown): void => {
+        const connectionState = this.connectionState.get(id);
+        if (connectionState) {
+            switch (actionId) {
+                case "deleteScriptMenuItem": {
+                    if (params) {
+                        const data = params as IDBDataEntry;
+                        const scriptIndex = connectionState.scripts.findIndex((state) => {
+                            return state.id === data.id;
+                        });
+
+                        const script = scriptIndex > -1 ? connectionState.scripts[scriptIndex] : undefined;
+                        if (script && script.dbDataId) {
+                            // Found the script. Remove its editor, if there's one.
+                            this.handleRemoveEditor(id, data.id, false);
+
+                            ShellInterface.modules.deleteData(script.dbDataId, data.folderId).then(() => {
+                                connectionState.scripts.splice(scriptIndex, 1);
+                                this.forceUpdate();
+                            }).catch((reason) => {
+                                const message = reason instanceof Error ? reason.message : String(reason);
+                                void requisitions.execute("showError", "Cannot delete user script: " + message);
+                            });
+                        }
+                    }
+
+                    break;
+                }
+
+                default: {
+                    break;
+                }
+            }
+        }
+    };
+
+    protected handleAddConnection = (details: IConnectionDetails): void => {
         ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId, details, "").then((connectionId) => {
             if (connectionId !== undefined) {
                 const { connections } = this.state;
@@ -567,7 +843,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         });
     };
 
-    private handleUpdateConnection = (details: IConnectionDetails): void => {
+    protected handleUpdateConnection = (details: IConnectionDetails): void => {
         ShellInterface.dbConnections.updateDbConnection(webSession.currentProfileId, details).then(() => {
             this.forceUpdate();
             requisitions.executeRemote("connectionUpdated", details);
@@ -577,6 +853,15 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
         });
     };
+
+    private async loadConnections(): Promise<void> {
+        await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "").then((connections) => {
+            this.setState({ connections, connectionsLoaded: true });
+        }).catch((reason) => {
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Cannot load DB connections: " + message);
+        });
+    }
 
     private handleDropConnection = (connectionId: number): void => {
         const { connections } = this.state;
@@ -984,6 +1269,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     const backend = new ShellInterfaceSqlEditor();
 
                     const handleOutcome = (success: boolean) => {
+                        // istanbul ignore next
                         if (!success) {
                             backend.closeSession().then(() => {
                                 resolve(true); // Return true to indicate we handled this requisition.
@@ -1225,7 +1511,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 }
             });
             this.setProgressMessage("Connection opened");
-        } catch (reason) {
+        } /* istanbul ignore next */ catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);
             void requisitions.execute("showError", "Connection Error: " + message);
 
@@ -1602,74 +1888,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
-    /**
-     * Removes a single editor on a connection tab.
-     *
-     * @param id  The id of the tab in which the editor is located.
-     * @param editorId The id of the editor to remove.
-     * @param doUpdate A flag telling if re-rendering is needed.
-     */
-    private handleRemoveEditor = (id: string, editorId: string, doUpdate = true): void => {
-        const connectionState = this.connectionState.get(id);
-        if (connectionState) {
-            const index = connectionState.editors.findIndex((editor: IOpenEditorState) => {
-                return editor.id === editorId;
-            });
-
-            if (index > -1) {
-                const editor = connectionState.editors[index];
-
-                // Make sure any pending change is sent to the backend, if that editor represents a stored script.
-                this.saveEditorIfNeeded(editor);
-
-                if (connectionState.activeEntry === editorId) {
-                    // Select another editor if we're just removing the selected one.
-                    if (index > 0) {
-                        connectionState.activeEntry = connectionState.editors[index - 1].id;
-                    } else {
-                        if (index < connectionState.editors.length - 1) {
-                            connectionState.activeEntry = connectionState.editors[index + 1].id;
-                        }
-                    }
-                }
-
-                connectionState.editors.splice(index, 1);
-                this.notifyRemoteEditorClose(connectionState.connectionId, editor.id);
-
-                if (connectionState.editors.length === 0) {
-                    // Add the default editor, if the user just removed the last editor.
-                    const useNotebook = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
-                    const language = useNotebook ? "msg" : "mysql";
-                    const model = this.createEditorModel(connectionState.backend, "", language,
-                        connectionState.serverVersion, connectionState.sqlMode, connectionState.currentSchema);
-
-                    const entryId = uuid();
-                    const caption = `DB Notebook ${++this.editorCounter}`;
-                    const newState = {
-                        id: entryId,
-                        caption,
-                        type: useNotebook ? EntityType.Notebook : EntityType.Script,
-                        state: {
-                            model,
-                            viewState: null,
-                            options: defaultEditorOptions,
-                        },
-                        currentVersion: model.getVersionId(),
-                    };
-                    connectionState.editors.push(newState);
-
-                    connectionState.activeEntry = entryId;
-                    this.notifyRemoteEditorOpen(connectionState.connectionId, id, connectionState.dbType, language,
-                        newState);
-                }
-
-                if (doUpdate) {
-                    this.forceUpdate();
-                }
-            }
-        }
-    };
-
     private handleLoadEditor = (id: string, editorId: string, content: string): void => {
         const connectionState = this.connectionState.get(id);
         if (connectionState) {
@@ -1893,38 +2111,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     }
 
-    private handleEditorRename = (id: string, editorId: string, newCaption: string): void => {
-        const connectionState = this.connectionState.get(id);
-        if (newCaption && connectionState) {
-            let needsUpdate = false;
-            const editor = connectionState.editors.find((candidate: IOpenEditorState) => {
-                return candidate.id === editorId;
-            });
-
-            if (editor) {
-                editor.caption = newCaption;
-                needsUpdate = true;
-            }
-
-            const script = connectionState.scripts.find((candidate: IDBDataEntry) => {
-                return candidate.id === editorId;
-            });
-
-            if (script) {
-                script.caption = newCaption;
-                needsUpdate = true;
-            }
-
-            if (needsUpdate) {
-                if (script?.dbDataId) {
-                    void ShellInterface.modules.updateData(script.dbDataId, script.caption);
-                }
-
-                this.forceUpdate();
-            }
-        }
-    };
-
     private handleEditorChange = (id: string, editorId: string): void => {
         const { dirtyEditors } = this.state;
 
@@ -1934,121 +2120,10 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
-    private handleAddScript = (id: string, language: EditorLanguage, dialect?: DBType): void => {
-        let editorLanguage = language;
-        if (editorLanguage === "sql") {
-            // Determine the actual language dialect to use here.
-            switch (dialect) {
-                case DBType.MySQL: {
-                    editorLanguage = "mysql";
-                    break;
-                }
-
-                default: {
-                    break;
-                }
-            }
-        }
-
-        const connectionState = this.connectionState.get(id);
-        if (connectionState) {
-            const model = this.createEditorModel(connectionState.backend, "", editorLanguage,
-                connectionState.serverVersion, connectionState.sqlMode, connectionState.currentSchema);
-
-            let caption = "";
-            while (true) {
-                const newCaption = `Script ${++this.editorCounter}`;
-                const existing = connectionState.scripts.findIndex((candidate) => {
-                    return candidate.caption === newCaption;
-                });
-
-                if (existing === -1) {
-                    caption = newCaption;
-                    break;
-                }
-            }
-
-            // Add a data record for the new script.
-            const category = ShellInterface.modules.scriptTypeFromLanguage(editorLanguage);
-            if (category) {
-                ShellInterface.modules.addData(caption, "", category, "scripts", "").then((dbDataId) => {
-                    const scriptId = uuid();
-                    const newState = {
-                        id: scriptId,
-                        caption,
-                        dbDataId,
-                        type: EntityType.Script,
-                        state: {
-                            model,
-                            viewState: null,
-                            options: defaultEditorOptions,
-                        },
-                        currentVersion: model.getVersionId(),
-                    };
-                    connectionState.editors.push(newState);
-
-                    connectionState.scripts.push({
-                        id: scriptId,
-                        type: EntityType.Script,
-                        caption,
-                        language: editorLanguage,
-                        dbDataId,
-                        folderId: 1, // TODO: determine the real folder ID.
-                    } as IDBEditorScriptState);
-
-                    connectionState.activeEntry = scriptId;
-                    this.notifyRemoteEditorOpen(connectionState.connectionId, id, connectionState.dbType,
-                        editorLanguage, newState);
-
-                    this.forceUpdate();
-                }).catch((reason) => {
-                    const message = reason instanceof Error ? reason.message : String(reason);
-                    void requisitions.execute("showError", "Cannot add new user script: " + message);
-                });
-            }
-        }
-    };
-
     private handleExplorerResize = (id: string, size: number): void => {
         const connectionState = this.connectionState.get(id);
         if (connectionState) {
             connectionState.explorerWidth = size;
-        }
-    };
-
-    private handleExplorerMenuAction = (id: string, actionId: string, params?: unknown): void => {
-        const connectionState = this.connectionState.get(id);
-        if (connectionState) {
-            switch (actionId) {
-                case "deleteScriptMenuItem": {
-                    if (params) {
-                        const data = params as IDBDataEntry;
-                        const scriptIndex = connectionState.scripts.findIndex((state) => {
-                            return state.id === data.id;
-                        });
-
-                        const script = scriptIndex > -1 ? connectionState.scripts[scriptIndex] : undefined;
-                        if (script && script.dbDataId) {
-                            // Found the script. Remove its editor, if there's one.
-                            this.handleRemoveEditor(id, data.id, false);
-
-                            ShellInterface.modules.deleteData(script.dbDataId, data.folderId).then(() => {
-                                connectionState.scripts.splice(scriptIndex, 1);
-                                this.forceUpdate();
-                            }).catch((reason) => {
-                                const message = reason instanceof Error ? reason.message : String(reason);
-                                void requisitions.execute("showError", "Cannot delete user script: " + message);
-                            });
-                        }
-                    }
-
-                    break;
-                }
-
-                default: {
-                    break;
-                }
-            }
         }
     };
 
@@ -2190,79 +2265,4 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             editorId,
         });
     }
-
-    private sendSqlUpdatesFromModel = async (backend: ShellInterfaceSqlEditor,
-        updates: string[]): Promise<ISqlUpdateResult> => {
-
-        let lastIndex = 0;
-        let rowCount = 0;
-        try {
-            await backend.execute("start transaction");
-            for (; lastIndex < updates.length; ++lastIndex) {
-                const update = updates[lastIndex];
-                const result = await backend.execute(update);
-                rowCount += result?.rowsAffected ?? 0;
-            }
-            await backend.execute("commit");
-
-            // Don't wait for the info message.
-            void requisitions.execute("showInfo", "Changes committed successfully.");
-
-            return { affectedRows: rowCount, errors: [] };
-        } catch (reason) {
-            await backend.execute("rollback");
-            if (reason instanceof Error) {
-                const errors: string[] = [];
-                errors[lastIndex] = reason.message; // Set the error for the query that was last executed.
-
-                return { affectedRows: rowCount, errors };
-            }
-
-            throw reason;
-        }
-    };
-
-    private handleHelpCommand = (command: string, language: EditorLanguage): string | undefined => {
-        switch (language) {
-            case "javascript": {
-                return `The DB Notebook's interactive prompt is currently running in JavaScript mode.
-Execute "\\sql" to switch to SQL mode, "\\ts" to switch to TypeScript mode.
-
-GLOBAL FUNCTIONS
-    - \`print(value: any): void\`
-      Send a value to the output area.
-    - \`runSql(code: string, callback?: (res: IResultSetRow[]) => void), params?: unknown): void\`
-      Run the given query.
-    - \`function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown): void\`
-      Run the given query and process the rows iteratively.
-`;
-            }
-
-            case "typescript": {
-                return `The DB Notebook's interactive prompt is currently running in TypeScript mode.
-Execute "\\sql" to switch to SQL mode, "\\js" to switch to JavaScript mode.
-
-GLOBAL FUNCTIONS
-    - \`print(value: unknown): void\`
-      Send a value to the output area.
-    - \`runSql(code: string, callback?: (res: IResultSetRow[]) => void), params?: unknown[]): void\`
-      Run the given query.
-    - \`function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown[]): void\`
-      Run the given query and process the rows iteratively.
-`;
-            }
-
-            case "mysql": {
-                return `The DB Notebook's interactive prompt is currently running in SQL mode.
-Execute "\\js" to switch to JavaScript mode, "\\ts" to switch to TypeScript mode.
-
-Use ? as placeholders, provide values in comments.
-EXAMPLES
-    SELECT * FROM user
-    WHERE name = ? /*=mike*/`;
-            }
-
-            default:
-        }
-    };
 }
