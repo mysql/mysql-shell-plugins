@@ -29,7 +29,6 @@ import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection";
 import { Os } from "../lib/Os";
 import { Workbench } from "../lib/Workbench";
 import * as constants from "../lib/constants";
-import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import * as errors from "../lib/errors";
@@ -76,7 +75,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
             await Workbench.toggleBottomBar(false);
             await Misc.switchToFrame();
             await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),

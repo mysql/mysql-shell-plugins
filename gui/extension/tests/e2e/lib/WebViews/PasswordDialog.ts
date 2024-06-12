@@ -24,10 +24,10 @@
  */
 import { until } from "vscode-extension-tester";
 import { driver, Misc } from "../Misc";
-import * as waitUntil from "../until";
 import * as constants from "../constants";
 import * as interfaces from "../interfaces";
 import * as locator from "../locators";
+import { credentialHelperOk } from "../Workbench";
 
 /**
  * This class aggregates the functions that perform password dialog related operations
@@ -43,7 +43,7 @@ export class PasswordDialog {
     public static setCredentials = async (data: interfaces.IDBConnection,
         timeout?: number): Promise<void> => {
         await this.setPassword(data);
-        if (waitUntil.credentialHelperOk) {
+        if (credentialHelperOk) {
             await this.setConfirm("no", timeout);
         }
     };

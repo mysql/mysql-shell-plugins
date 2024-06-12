@@ -30,7 +30,6 @@ import { ITimeouts, until, VSBrowser, WebDriver, WebElement } from "vscode-exten
 import { existsSync } from "fs";
 import { Workbench } from "./Workbench";
 import * as constants from "./constants";
-import * as waitUntil from "./until";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
 export let driver: WebDriver;
@@ -86,7 +85,7 @@ export class Misc {
                     }
                 }, constants.wait5seconds, "Could not find a visible iframe div");
                 const parentIframe = await visibleDiv.findElement(locator.iframe.exists);
-                await driver.wait(waitUntil.webViewIsReady(parentIframe), constants.wait10seconds);
+                await driver.wait(Workbench.untilWebViewIsReady(parentIframe), constants.wait10seconds);
                 await driver.wait(until.ableToSwitchToFrame(parentIframe),
                     constants.wait5seconds, "Could not enter the first iframe");
                 const activeFrame = await driver.wait(until.elementLocated(locator.iframe.exists),

@@ -27,14 +27,19 @@ import clipboard from "clipboardy";
 import {
     EditorView, error, InputBox, Key, until, NotificationType, OutputView, WebElement,
     Workbench as extWorkbench, Notification, TerminalView, EditorTab, ActivityBar, Condition,
+    ModalDialog, logging, TextEditor,
 } from "vscode-extension-tester";
-import * as constants from "./constants";
+import fs from "fs/promises";
+import { join } from "path";
 import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
-import * as waitUntil from "./until";
+import * as constants from "./constants";
 import * as locator from "./locators";
 import { Os } from "./Os";
 import { Misc, driver } from "./Misc";
 import * as errors from "../lib/errors";
+import { Toolbar } from "./WebViews/Toolbar";
+
+export let credentialHelperOk = true;
 
 /**
  * This class aggregates the functions that perform vscode workbench operations
@@ -307,7 +312,7 @@ export class Workbench {
             await inputBox.confirm();
         }
 
-        if (waitUntil.credentialHelperOk) {
+        if (credentialHelperOk) {
             await driver.wait(async () => {
                 inputBox = await InputBox.create();
                 if ((await inputBox.isPassword()) === false) {
@@ -570,5 +575,158 @@ export class Workbench {
                 await primarySidebar.click();
             }
         }
+    };
+
+    /**
+     * Verifies if the Modal dialog is opened
+     * @returns A condition resolving  to true when the model dialog is opened
+     */
+    public static untilModalDialogIsOpened = (): Condition<boolean> => {
+        return new Condition(`for vscode dialog to be opened`, async () => {
+            try {
+                const dialog = new ModalDialog();
+
+                return (await dialog.getMessage()).length > 0;
+            } catch (e) {
+                if (!(e instanceof error.NoSuchElementError) &&
+                    !(errors.isStaleError(e as Error)) &&
+                    !(e instanceof error.ElementNotInteractableError)
+                ) {
+                    throw e;
+                }
+            }
+        });
+    };
+
+    /**
+     * Verifies if the editor selector exists, which means that the front end is loaded
+     * @returns A condition resolving to true when the front end is loaded
+     */
+    public static untilFEisLoaded = (): Condition<boolean> => {
+        return new Condition("for Frontend to be loaded", async () => {
+            return (await driver.findElements(locator.notebook.toolbar.editorSelector.exists)).length > 0;
+        });
+    };
+
+    /**
+     * Verifies if the web view is ready to be used
+     * @param iframe The iframe
+     * @returns A condition resolving to true when the web view is ready
+     */
+    public static untilWebViewIsReady = (iframe: WebElement): Condition<boolean> => {
+        return new Condition("for web view to be ready", async () => {
+            return (await iframe.getAttribute("class")).includes("webview ready");
+        });
+    };
+
+    /**
+     * Verifies if the current editor is the one expected
+     * @param editor The editor name
+     * @returns A condition resolving to true when the editor is the one expected
+     */
+    public static untilCurrentEditorIs = (editor: RegExp): Condition<boolean> => {
+        return new Condition(`current editor to be ${editor.toString()}`, async () => {
+            await Misc.switchBackToTopFrame();
+            await Misc.switchToFrame();
+
+            return ((await new Toolbar().getCurrentEditor()).label).match(editor) !== null;
+        });
+    };
+
+    /**
+     * Verifies if the MySQL Shell for VS Code extension is fully loaded and ready to be tested
+     * @returns A condition resolving to true when the extension is ready
+     */
+    public static untilExtensionIsReady = (): Condition<boolean> => {
+        return new Condition("for the Extension to be ready", async () => {
+            let tryNumber = 1;
+            const feLoadTries = 3;
+            let feWasLoaded = false;
+
+            const loadTry = async (): Promise<void> => {
+                console.log("<<<<Try to load FE>>>>>");
+                await driver.wait(Workbench.untilTabIsOpened("Welcome"), constants.wait10seconds,
+                    "Welcome tab was not opened");
+                await Workbench.openMySQLShellForVSCode();
+                await driver.wait(Workbench.untilTabIsOpened(constants.dbDefaultEditor), constants.wait25seconds,
+                    `${constants.dbDefaultEditor} tab was not opened`);
+                await Misc.switchToFrame();
+                await driver.wait(this.untilFEisLoaded(), constants.wait15seconds);
+                console.log("<<<<FE was loaded successfully>>>>>");
+            };
+
+            while (tryNumber <= feLoadTries) {
+                try {
+                    await loadTry();
+                    feWasLoaded = true;
+                    break;
+                } catch (e) {
+                    tryNumber++;
+                    await Misc.switchBackToTopFrame();
+                    await Workbench.reloadVSCode();
+                }
+            }
+
+            if (feWasLoaded === false) {
+                console.log("<<<<MYSQLSH Logs>>>>");
+                await Os.writeMySQLshLogs();
+                const logs = driver.manage().logs();
+                console.log("<<<<<DEV TOOLS Console log>>>>");
+                console.log(await logs.get(logging.Type.BROWSER));
+
+                const text = `Extension was not loaded successfully after ${feLoadTries} tries. Check the logs.`;
+                // one last try to recover
+                const path = join(await Os.getExtensionOutputLogsFolder(), constants.feLogFile);
+                const output = (await fs.readFile(path)).toString();
+                console.log("-----OUTPUT LOGS------");
+                console.log(output);
+                throw new Error(text);
+            }
+
+            credentialHelperOk = await Os.findOnMySQLShLog(/Failed to initialize the default helper/);
+            credentialHelperOk = !credentialHelperOk;
+            await Workbench.dismissNotifications();
+            await Misc.switchBackToTopFrame();
+
+            return true;
+        });
+
+    };
+
+    /**
+     * Verifies if the confirmation dialog exists
+     * @param context The context
+     * @returns A condition resolving to true when the confirmation dialog exists
+     */
+    public static untilConfirmationDialogExists = (context?: string): Condition<WebElement> => {
+        let msg = "for confirmation dialog to be displayed";
+        if (context) {
+            msg += ` ${context}`;
+        }
+
+        return new Condition(msg, async () => {
+            await Misc.switchBackToTopFrame();
+            await Misc.switchToFrame();
+
+            const confirmDialog = await driver.findElements(locator.confirmDialog.exists);
+            if (confirmDialog) {
+                return confirmDialog[0];
+            }
+        });
+    };
+
+    /**
+     * Verifies if a tab with json content to be opened
+     * @param filename The file name
+     * @returns A condition resolving to true when the tab with json content is opened
+     */
+    public static untilJsonFileIsOpened = (filename: string): Condition<boolean> => {
+        return new Condition(`${filename} to be opened`, async () => {
+            const textEditor = new TextEditor();
+            const json = await textEditor.getText();
+            if (json.includes("{")) {
+                return Misc.isJson(json);
+            }
+        });
     };
 }

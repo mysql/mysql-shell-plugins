@@ -34,7 +34,6 @@ import { DatabaseConnectionOverview } from "../lib/WebViews/DatabaseConnectionOv
 import { Os } from "../lib/Os";
 import { Workbench } from "../lib/Workbench";
 import * as constants from "../lib/constants";
-import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import * as errors from "../lib/errors";
@@ -96,7 +95,7 @@ describe("NOTEBOOKS", () => {
     before(async function () {
         await Misc.loadDriver();
         try {
-            await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.removeAllDatabaseConnections();
             await dbTreeSection.createDatabaseConnection(globalConn);
@@ -1723,40 +1722,43 @@ describe("NOTEBOOKS", () => {
             await result.grid.editCells(cellsToEdit);
 
             await (await dbTreeSection.tree.getElement(constants.serverStatus)).click();
-            let dialog = await driver.wait(waitUntil.confirmationDialogExists(" after switching to Server Status page")
-                , constants.wait5seconds);
+            let dialog = await driver
+                .wait(Workbench.untilConfirmationDialogExists(" after switching to Server Status page")
+                    , constants.wait5seconds);
             expect(await (await dialog.findElement(locator.confirmDialog.msg))
                 .getText())
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
             await dialog.findElement(locator.confirmDialog.cancel).click();
             await driver.wait(until.stalenessOf(dialog), constants.wait3seconds, "The dialog was not closed");
-            await driver.wait(waitUntil.currentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
+            await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
                 constants.wait5seconds);
             await (await dbTreeSection.tree.getElement(constants.clientConns)).click();
-            dialog = await driver.wait(waitUntil
-                .confirmationDialogExists(" after switching to Client Connections page"), constants.wait5seconds);
+            dialog = await driver.wait(Workbench
+                .untilConfirmationDialogExists(" after switching to Client Connections page"), constants.wait5seconds);
             expect(await (await dialog.findElement(locator.confirmDialog.msg))
                 .getText())
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
             await dialog.findElement(locator.confirmDialog.cancel).click();
             await driver.wait(until.stalenessOf(dialog), constants.wait3seconds, "The dialog was not closed");
-            await driver.wait(waitUntil.currentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
+            await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
                 constants.wait5seconds);
 
             await (await dbTreeSection.tree.getElement(constants.perfDash)).click();
-            dialog = await driver.wait(waitUntil
-                .confirmationDialogExists(" after switching to Performance Dashboard page"), constants.wait5seconds);
+            dialog = await driver.wait(Workbench
+                .untilConfirmationDialogExists(" after switching to Performance Dashboard page"),
+                constants.wait5seconds);
             expect(await (await dialog.findElement(locator.confirmDialog.msg))
                 .getText())
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
             await dialog.findElement(locator.confirmDialog.cancel).click();
             await driver.wait(until.stalenessOf(dialog), constants.wait3seconds, "The dialog was not closed");
-            await driver.wait(waitUntil.currentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
+            await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
                 constants.wait5seconds);
 
             await notebook.toolbar.selectEditor(/DB Connection Overview/);
-            dialog = await driver.wait(waitUntil
-                .confirmationDialogExists(" after switching to DB Connections Overview page"), constants.wait5seconds);
+            dialog = await driver.wait(Workbench
+                .untilConfirmationDialogExists(" after switching to DB Connections Overview page"),
+                constants.wait5seconds);
             expect(await (await dialog.findElement(locator.confirmDialog.msg))
                 .getText())
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
@@ -1764,7 +1766,7 @@ describe("NOTEBOOKS", () => {
             await driver.wait(until.stalenessOf(dialog), constants.wait3seconds, "The dialog was not closed");
 
             await notebook.toolbar.selectEditor(/Untitled-(\d+)/, globalConn.caption);
-            dialog = await driver.wait(waitUntil.confirmationDialogExists(" after switching to a script page"),
+            dialog = await driver.wait(Workbench.untilConfirmationDialogExists(" after switching to a script page"),
                 constants.wait5seconds);
             expect(await (await dialog.findElement(locator.confirmDialog.msg))
                 .getText())
