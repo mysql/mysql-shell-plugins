@@ -615,3 +615,5 @@ export const mrsSdkDialog = {
     ok: By.id("ok"),
     cancel: By.id("cancel"),
 };
+
+export const togglePrimarySideBar = By.xpath("//a[contains(@aria-label, 'Toggle Primary Side Bar')]");
