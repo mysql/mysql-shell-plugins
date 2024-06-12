@@ -30,8 +30,8 @@ import * as interfaces from "../interfaces";
 import * as locator from "../locators";
 import { CommandResultGrid } from "./CommandResultGrid";
 import * as errors from "../errors";
-import * as waitUntil from "../until";
 import { E2ECodeEditor } from "./E2ECodeEditor";
+import { Workbench } from "../Workbench";
 
 const resultLocator = locator.notebook.codeEditor.editor.result;
 
@@ -327,7 +327,7 @@ export class CommandResult implements interfaces.ICommandResult {
      */
     public rollbackChanges = async (): Promise<void> => {
         await this.toolbar.element.findElement(resultLocator.toolbar.rollbackButton).click();
-        const confirmDialog = await driver.wait(waitUntil.confirmationDialogExists("for rollback"));
+        const confirmDialog = await driver.wait(Workbench.untilConfirmationDialogExists("for rollback"));
         await confirmDialog.findElement(locator.confirmDialog.accept).click();
     };
 

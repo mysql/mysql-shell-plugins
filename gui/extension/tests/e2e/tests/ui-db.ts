@@ -39,7 +39,6 @@ import { Workbench } from "../lib/Workbench";
 import { DialogHelper } from "../lib/WebViews/DialogHelper";
 import { DatabaseConnectionOverview } from "../lib/WebViews/DatabaseConnectionOverview";
 import * as constants from "../lib/constants";
-import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import * as errors from "../lib/errors";
@@ -93,7 +92,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         await Misc.loadDriver();
         try {
-            await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
             await Workbench.dismissNotifications();

@@ -37,7 +37,6 @@ import { DatabaseConnectionOverview } from "../lib/WebViews/DatabaseConnectionOv
 import { hostname } from "os";
 import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
-import * as waitUntil from "../lib/until";
 import * as locator from "../lib/locators";
 import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
 
@@ -78,7 +77,7 @@ describe("MySQL REST Service", () => {
     before(async function () {
         await Misc.loadDriver();
         try {
-            await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.focus();
             await dbTreeSection.removeAllDatabaseConnections();
@@ -649,7 +648,7 @@ describe("MySQL REST Service", () => {
             const treeTableToDump = await dbTreeSection.tree.getElement(
                 `${tableToEdit.restObjectPath} (${tableToEdit.jsonRelDuality.dbObject})`);
             await dbTreeSection.tree.openContextMenuAndSelect(treeTableToDump, constants.deleteRESTObj);
-            await driver.wait(waitUntil.modalDialogIsOpened(), constants.wait5seconds);
+            await driver.wait(Workbench.untilModalDialogIsOpened(), constants.wait5seconds);
             await new ModalDialog().pushButton(`Delete DB Object`);
             await driver.wait(Workbench.untilNotificationExists("The REST DB Object abc has been deleted"),
                 constants.wait5seconds);

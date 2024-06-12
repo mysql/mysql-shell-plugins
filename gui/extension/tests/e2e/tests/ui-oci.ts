@@ -37,7 +37,6 @@ import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection";
 import { Os } from "../lib/Os";
 import { Workbench } from "../lib/Workbench";
 import * as constants from "../lib/constants";
-import * as waitUntil from "../lib/until";
 import * as interfaces from "../lib/interfaces";
 import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
 import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
@@ -91,7 +90,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(waitUntil.extensionIsReady(), constants.wait2minutes);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.removeAllDatabaseConnections();
             await ociTreeSection.focus();
@@ -184,7 +183,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const treeCompartment = await ociTreeSection.tree.getElement(ociTree[2]);
             await ociTreeSection.tree.openContextMenuAndSelect(treeCompartment, constants.viewCompartmentInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${ociTree[2].source} Info.json`), constants.wait5seconds);
-            await driver.wait(waitUntil.jsonFileIsOpened("QA Info.json"), constants.wait5seconds);
+            await driver.wait(Workbench.untilJsonFileIsOpened("QA Info.json"), constants.wait5seconds);
             const textEditor = new TextEditor();
             const json = await textEditor.getText();
             const parsed = JSON.parse(json);
@@ -244,7 +243,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await ociTreeSection.tree.openContextMenuAndSelect(treeDbSystem, constants.viewDBSystemInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${await treeDbSystem.getLabel()} Info.json`),
                 constants.wait5seconds);
-            await driver.wait(waitUntil.jsonFileIsOpened(`${await treeDbSystem.getLabel()} Info.json`),
+            await driver.wait(Workbench.untilJsonFileIsOpened(`${await treeDbSystem.getLabel()} Info.json`),
                 constants.wait5seconds);
 
         });
@@ -403,7 +402,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const bastionName = await treeBastion.getLabel();
             await ociTreeSection.tree.openContextMenuAndSelect(treeBastion, constants.getBastionInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${bastionName} Info.json`), constants.wait5seconds);
-            await driver.wait(waitUntil.jsonFileIsOpened(`${bastionName} Info.json`),
+            await driver.wait(Workbench.untilJsonFileIsOpened(`${bastionName} Info.json`),
                 constants.wait5seconds);
             const textEditor = new TextEditor();
             const json = await textEditor.getText();
@@ -528,7 +527,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const computeName = await treeComputeInstance.getLabel();
             await ociTreeSection.tree.openContextMenuAndSelect(treeComputeInstance, constants.viewComputeInstanceInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${computeName} Info.json`), constants.wait5seconds);
-            await driver.wait(waitUntil.jsonFileIsOpened(`${computeName} Info.json`), constants.wait5seconds);
+            await driver.wait(Workbench.untilJsonFileIsOpened(`${computeName} Info.json`), constants.wait5seconds);
             await Workbench.closeEditor(`${computeName} Info.json`);
             await Workbench.pushDialogButton("Don't Save");
         });
