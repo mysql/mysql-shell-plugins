@@ -551,4 +551,24 @@ export class Workbench {
             return (await Workbench.getOpenEditorTitles()).includes(tabName);
         });
     };
+
+    /**
+     * Opens or closes the primary side bar
+     * @param open True to open, false to close
+     * @returns A promise resolving when the side bar is opened or closed
+     */
+    public static toggleSideBar = async (open: boolean): Promise<void> => {
+        await Misc.switchBackToTopFrame();
+        const primarySidebar = await driver.findElement(locator.togglePrimarySideBar);
+        const isOpened = (await primarySidebar.getAttribute("aria-checked")).includes("true");
+        if (open === true) {
+            if (!isOpened) {
+                await primarySidebar.click();
+            }
+        } else {
+            if (isOpened) {
+                await primarySidebar.click();
+            }
+        }
+    };
 }

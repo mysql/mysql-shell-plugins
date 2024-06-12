@@ -127,6 +127,15 @@ describe("NOTEBOOKS", () => {
 
         let cleanEditor = false;
 
+        before(async function () {
+            try {
+                await Workbench.toggleSideBar(false);
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
+        });
+
         afterEach(async function () {
             if (this.currentTest.state === "failed") {
                 await Misc.processFailure(this);
@@ -423,6 +432,7 @@ describe("NOTEBOOKS", () => {
                 expect(tabArea.length, "Result tab should be visible").to.equals(1);
             } finally {
                 await notebook.toolbar.selectEditor(new RegExp(constants.openEditorsDBNotebook), globalConn.caption);
+                await Workbench.toggleSideBar(false);
                 await notebook.codeEditor.loadCommandResults();
             }
         });
@@ -468,6 +478,7 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Copy paste into notebook", async () => {
+
             await notebook.codeEditor.clean();
             await Misc.switchBackToTopFrame();
             const filename = "users.sql";
@@ -500,10 +511,12 @@ describe("NOTEBOOKS", () => {
                 }
             } finally {
                 await widget.close();
+                await Workbench.toggleSideBar(false);
             }
         });
 
         it("Cut paste into notebook", async () => {
+
             const sentence1 = "select * from sakila.actor";
             const sentence2 = "select * from sakila.address";
             await notebook.codeEditor.clean();
@@ -520,9 +533,11 @@ describe("NOTEBOOKS", () => {
             await Os.keyboardPaste(textArea);
             expect(await notebook.existsOnNotebook(sentence1), `${sentence1} should exist on the notebook`).to.be.true;
             expect(await notebook.existsOnNotebook(sentence2), `${sentence2} should exist on the notebook`).to.be.true;
+
         });
 
         it("Copy to clipboard button", async () => {
+
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("\\about ");
             await result.copyToClipboard();
@@ -532,9 +547,12 @@ describe("NOTEBOOKS", () => {
             await driver.wait(async () => {
                 return notebook.existsOnNotebook("Welcome");
             }, constants.wait5seconds, "The text was not pasted to the notebook");
+
         });
 
         it("Verify mysql data types - integer columns", async () => {
+
+            await Workbench.toggleSideBar(false);
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_ints;");
             expect(result.toolbar.status).to.match(/OK/);
@@ -556,6 +574,7 @@ describe("NOTEBOOKS", () => {
             expect(floatFIeld, errors.incorrectCellValue("FLOAT")).to.match(/(\d+).(\d+)/);
             expect(doubleField, errors.incorrectCellValue("DOUBLE")).to.match(/(\d+).(\d+)/);
             expect(booleanCell, "The cell should have a select list").to.match(/(true|false)/);
+
         });
 
         it("Verify mysql data types - date columns", async () => {
@@ -647,7 +666,9 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Result grid context menu - Capitalize, Convert to lower, upper case and mark for deletion", async () => {
+
             await notebook.toolbar.selectEditor(new RegExp(constants.openEditorsDBNotebook), globalConn.caption);
+            await Workbench.toggleSideBar(false);
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_chars;");
             expect(result.toolbar.status).to.match(/OK/);
@@ -1021,8 +1042,10 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Result grid cell tooltips - integer columns", async () => {
+
             const rowNumber = 0;
             await notebook.toolbar.selectEditor(new RegExp(constants.openEditorsDBNotebook), globalConn.caption);
+            await Workbench.toggleSideBar(false);
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about");
             const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_ints limit 1;");
@@ -1444,6 +1467,8 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Add new row on result grid - integer columns", async () => {
+
+            await Workbench.toggleSideBar(false);
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_ints;");
             expect(result.toolbar.status).to.match(/OK/);
@@ -1665,6 +1690,7 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Unsaved changes dialog on result grid", async () => {
+
             await Workbench.openMySQLShellForVSCode();
             const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
             await openEditorsSection.expand();
