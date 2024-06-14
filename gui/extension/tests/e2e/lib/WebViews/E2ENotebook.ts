@@ -28,7 +28,7 @@ import * as errors from "../errors";
 import { E2ECodeEditor } from "./E2ECodeEditor";
 import { Toolbar } from "./Toolbar";
 import * as interfaces from "../interfaces";
-import { PasswordDialog } from "./PasswordDialog";
+import { PasswordDialog } from "./Dialogs/PasswordDialog";
 
 /**
  * This class aggregates the functions that perform operations inside notebooks

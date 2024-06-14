@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,10 +23,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { By, WebElement, Locator, Key, until } from "vscode-extension-tester";
-import { driver, Misc } from "../Misc";
-import { Os } from "../Os";
-import * as locator from "../locators";
-import * as constants from "../constants";
+import { driver, Misc } from "../../Misc";
+import { Os } from "../../Os";
+import * as locator from "../../locators";
+import * as constants from "../../constants";
 
 /**
  * This class aggregates the function helpers used inside dialogs

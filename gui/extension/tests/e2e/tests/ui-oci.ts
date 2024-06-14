@@ -32,7 +32,7 @@ import {
 } from "vscode-extension-tester";
 import { driver, Misc } from "../lib/Misc";
 import { DatabaseConnectionOverview } from "../lib/WebViews/DatabaseConnectionOverview";
-import { DatabaseConnectionDialog } from "../lib/WebViews/DatabaseConnectionDialog";
+import { DatabaseConnectionDialog } from "../lib/WebViews/Dialogs/DatabaseConnectionDialog";
 import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection";
 import { Os } from "../lib/Os";
 import { Workbench } from "../lib/Workbench";
