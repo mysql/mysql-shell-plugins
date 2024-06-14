@@ -32,7 +32,7 @@ import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
 import * as locator from "../locators";
 import * as interfaces from "../interfaces";
 import * as errors from "../errors";
-import { DatabaseConnectionDialog } from "../WebViews/DatabaseConnectionDialog";
+import { DatabaseConnectionDialog } from "../WebViews/Dialogs/DatabaseConnectionDialog";
 import { Misc, driver } from "../Misc";
 import { Os } from "../Os";
 import { Workbench } from "../Workbench";

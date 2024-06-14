@@ -28,7 +28,7 @@ import * as interfaces from "../interfaces";
 import { driver, Misc } from "../Misc";
 import { E2ECodeEditor } from "./E2ECodeEditor";
 import { Toolbar } from "./Toolbar";
-import { PasswordDialog } from "./PasswordDialog";
+import { PasswordDialog } from "./Dialogs/PasswordDialog";
 import { CommandResult } from "./CommandResult";
 
 /**

@@ -31,12 +31,12 @@ import {
 import { expect } from "chai";
 import clipboard from "clipboardy";
 import { driver, Misc } from "../lib/Misc";
-import { DatabaseConnectionDialog } from "../lib/WebViews/DatabaseConnectionDialog";
+import { DatabaseConnectionDialog } from "../lib/WebViews/Dialogs/DatabaseConnectionDialog";
 import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
 import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection";
 import { Os } from "../lib/Os";
 import { Workbench } from "../lib/Workbench";
-import { DialogHelper } from "../lib/WebViews/DialogHelper";
+import { DialogHelper } from "../lib/WebViews/Dialogs/DialogHelper";
 import { DatabaseConnectionOverview } from "../lib/WebViews/DatabaseConnectionOverview";
 import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";

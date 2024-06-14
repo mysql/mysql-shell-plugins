@@ -22,7 +22,7 @@
  */
 
 import { error, Key, until, WebElement, Condition } from "vscode-extension-tester";
-import { PasswordDialog } from "./PasswordDialog";
+import { PasswordDialog } from "./Dialogs/PasswordDialog";
 import { E2ENotebook } from "./E2ENotebook";
 import * as constants from "../constants";
 import * as locator from "../locators";

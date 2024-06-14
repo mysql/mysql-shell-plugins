@@ -23,11 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { until } from "vscode-extension-tester";
-import { driver, Misc } from "../Misc";
-import * as constants from "../constants";
-import * as interfaces from "../interfaces";
-import * as locator from "../locators";
-import { credentialHelperOk } from "../Workbench";
+import { driver, Misc } from "../../Misc";
+import * as constants from "../../constants";
+import * as interfaces from "../../interfaces";
+import * as locator from "../../locators";
+import { credentialHelperOk } from "../../Workbench";
 
 /**
  * This class aggregates the functions that perform password dialog related operations
