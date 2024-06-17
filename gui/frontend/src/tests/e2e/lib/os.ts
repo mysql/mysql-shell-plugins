@@ -39,6 +39,7 @@ export const shellServers = new Map([
     ["guiconsole.spec.ts", 0],
     ["sessions.spec.ts", 2],
     ["shell_connections.spec.ts", 2],
+    ["notifications.spec.ts", 3],
 ]);
 
 export class Os {

@@ -22,11 +22,11 @@
  */
 
 import { mkdir, writeFile } from "fs/promises";
-import { until, WebDriver } from "selenium-webdriver";
-
+import { until, WebDriver, error } from "selenium-webdriver";
 import * as constants from "../lib/constants.js";
 import { driver } from "../lib/driver.js";
 import * as locator from "../lib/locators.js";
+import { E2EToastNotification } from "./E2EToastNotification.js";
 
 export const feLog = "fe.log";
 export const shellServers = new Map([
@@ -38,6 +38,7 @@ export const shellServers = new Map([
     ["guiconsole.spec.ts", 0],
     ["sessions.spec.ts", 2],
     ["shell_connections.spec.ts", 2],
+    ["notifications.spec.ts", 2],
 ]);
 
 export class Misc {
@@ -207,5 +208,34 @@ export class Misc {
         } else {
             return name;
         }
+    };
+
+    /**
+     * Gets the toast notification displayed on the page
+     *  @returns A promise resolving with the notifications
+     */
+    public static getToastNotifications = async (): Promise<E2EToastNotification[]> => {
+
+        const toastNotifications: E2EToastNotification[] = [];
+
+        await driver.wait(async () => {
+            try {
+                const notifications = await driver.findElements(locator.toastNotification.exists);
+                for (const notification of notifications) {
+                    const id = await notification.getAttribute("id");
+                    toastNotifications.push(await new E2EToastNotification().create(id));
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    if (e instanceof error.NoSuchElementError && !(String(e.stack).includes("toast-"))) {
+                        throw e;
+                    }
+                }
+            }
+        }, constants.wait10seconds, "Never going to hit here");
+
+        return toastNotifications;
     };
 }

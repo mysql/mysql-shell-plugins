@@ -31,6 +31,7 @@ import * as locator from "../../lib/locators.js";
 import { driver, loadDriver } from "../../lib/driver.js";
 import * as constants from "../../lib/constants.js";
 import { Os } from "../../lib/os.js";
+import { E2EToastNotification } from "../../lib/E2EToastNotification.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -176,7 +177,7 @@ describe("Main pages", () => {
                 await settingsValueList.findElement(locator.settingsPage.settingsList.wordWrap),
             ).toBeDefined();
             expect(
-                await settingsValueList.findElement(locator.settingsPage.settingsList.wordWrapColumn),
+                await settingsValueList.findElement(locator.settingsPage.settingsList.wordWrapColumn.exists),
             ).toBeDefined();
 
             expect(
@@ -338,18 +339,17 @@ describe("Main pages", () => {
         try {
             const url = Misc.getUrl(basename(__filename));
             await driver.get(`${String(url)}xpto`);
-            const errorPanel = await driver.wait(until.elementLocated(locator.errorPanel.exists),
-                constants.wait5seconds, "Error label was not found");
 
-            expect(await (await errorPanel.findElement(locator.errorPanel.title)).getText())
-                .toBe("Communication Error");
+            const notification = await new E2EToastNotification().create();
+            expect(notification.type).toBe("error");
+
             let regex = "Could not establish a connection to the backend.";
             regex += " Make sure you use valid user credentials and the MySQL Shell is running.";
             regex += " Trying to reconnect in (\\d+) seconds.";
 
-            expect(await (await errorPanel.findElement(
-                locator.errorPanel.content)).getText())
-                .toMatch(new RegExp(regex));
+            expect(notification.message).toMatch(new RegExp(regex));
+            await notification.close();
+            await driver.wait(notification.untilIsClosed(), constants.wait5seconds);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -361,18 +361,16 @@ describe("Main pages", () => {
             const url = Misc.getUrl(basename(__filename));
             await driver.get(String(url).replace(String(process.env.TOKEN), ""));
 
-            const errorPanel = await driver.wait(until.elementLocated(locator.errorPanel.exists),
-                constants.wait5seconds, "Error label was not found");
+            const notification = await new E2EToastNotification().create();
+            expect(notification.type).toBe("error");
 
-            expect(await (await errorPanel.findElement(locator.errorPanel.title)).getText())
-                .toBe("Communication Error");
             let regex = "Could not establish a connection to the backend.";
             regex += " Make sure you use valid user credentials and the MySQL Shell is running.";
             regex += " Trying to reconnect in (\\d+) seconds.";
 
-            expect(await (await errorPanel.findElement(
-                locator.errorPanel.content)).getText())
-                .toMatch(new RegExp(regex));
+            expect(notification.message).toMatch(new RegExp(regex));
+            await notification.close();
+            await driver.wait(notification.untilIsClosed(), constants.wait5seconds);
         } catch (e) {
             testFailed = true;
             throw e;

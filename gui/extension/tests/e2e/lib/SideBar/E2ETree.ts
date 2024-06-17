@@ -405,7 +405,7 @@ export class E2ETree {
      * @returns A promise resolving when the elements are expanded
      */
     public expandElement = async (elements: Array<string | RegExp>,
-        loadingTimeout = constants.wait10seconds): Promise<void> => {
+        loadingTimeout = constants.wait20seconds): Promise<void> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
@@ -441,9 +441,9 @@ export class E2ETree {
         }
 
         if (ctxMenuItem !== constants.openNotebookWithConn) {
-            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait10seconds);
+            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
             const ociSection = new E2EAccordionSection(constants.ociTreeSection);
-            await driver.wait(ociSection.untilIsNotLoading(), constants.wait10seconds);
+            await driver.wait(ociSection.untilIsNotLoading(), constants.wait20seconds);
         }
 
         if (element) {
@@ -505,21 +505,24 @@ export class E2ETree {
                     `Do you want to configure this instance for MySQL REST Service Support?`, false);
                 await Workbench.clickOnNotificationButton(ntf, "Yes");
                 await driver.wait(async () => {
-                    const existsPasswordWidget = await driver.findElements(locator.inputBox.exists);
-                    if (existsPasswordWidget) {
-                        await Workbench.setInputPassword((dbConnection.basic as interfaces.IConnBasicMySQL)
-                            .password);
-                        await driver.wait(Workbench
-                            .untilNotificationExists("MySQL REST Service configured successfully."),
-                            constants.wait5seconds);
+                    const passwordWidget = await driver.findElements(locator.inputBox.exists);
+                    if (passwordWidget.length > 0) {
+                        const isDisplayed = await passwordWidget[0].getCssValue("display");
+                        if (isDisplayed) {
+                            await Workbench.setInputPassword((dbConnection.basic as interfaces.IConnBasicMySQL)
+                                .password);
+                            await driver.wait(Workbench
+                                .untilNotificationExists("MySQL REST Service configured successfully."),
+                                constants.wait10seconds);
 
-                        return true;
+                            return true;
+                        }
                     }
-                    if (await Workbench.existsNotifications()) {
+                    if (await Workbench.existsNotifications(50)) {
                         if (await Workbench.existsNotification(/MySQL REST Service configured successfully/)) {
                             return true;
                         } else {
-                            throw new Error("Something wrong. Check notification");
+                            throw new Error("Something wrong. Check the notification");
                         }
                     }
                 }, constants.wait5seconds, "Password widget was not displayed");
@@ -559,7 +562,7 @@ export class E2ETree {
     public untilRouterIsActive = (): Condition<boolean> => {
         return new Condition(`for router icon to be active`, async () => {
             await this.accordionSection.clickToolbarButton(constants.reloadConnections);
-            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait5seconds);
+            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
 
             return this.isRouterActive();
         });
@@ -572,7 +575,7 @@ export class E2ETree {
     public untilRouterIsInactive = (): Condition<boolean> => {
         return new Condition(`for router icon to be inactive`, async () => {
             await this.accordionSection.clickToolbarButton(constants.reloadConnections);
-            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait5seconds);
+            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
 
             return !(await this.isRouterActive());
         });

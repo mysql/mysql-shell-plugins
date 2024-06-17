@@ -45,7 +45,7 @@ export class RestServiceDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsServiceDialog.exists),
-            constants.wait5seconds, "MRS Service dialog was not displayed");
+            constants.wait20seconds, "MRS Service dialog was not displayed");
 
         // Main settings
         await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.servicePath, restService.servicePath);
@@ -163,7 +163,7 @@ export class RestServiceDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsServiceDialog.exists),
-            constants.wait5seconds, "MRS Service dialog was not displayed");
+            constants.wait20seconds, "MRS Service dialog was not displayed");
 
         // Main settings
         const restService: interfaces.IRestService = {

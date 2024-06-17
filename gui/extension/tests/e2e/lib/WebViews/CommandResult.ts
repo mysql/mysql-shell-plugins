@@ -520,7 +520,14 @@ export class CommandResult implements interfaces.ICommandResult {
      * @returns A promise resolving when grid content is set
      */
     private setToolbar = async (): Promise<void> => {
-        const status = await this.context.findElement(resultLocator.toolbar.status.text);
+        let status: WebElement;
+
+        await driver.wait(async () => {
+            status = await this.context.findElement(resultLocator.toolbar.status.text);
+
+            return (await status.getText()) !== "";
+        }, constants.wait5seconds, `The status is empty for cmd ${this.command}`);
+
         this.toolbar = {
             status: await status.getText(),
         };

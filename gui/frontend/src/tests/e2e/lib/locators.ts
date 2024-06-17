@@ -38,6 +38,7 @@ export const dbConnectionDialog = {
     databaseType: By.id("databaseType"),
     caption: By.id("caption"),
     description: By.id("description"),
+    clearPassword: By.id("clearPassword"),
     databaseTypeList: By.id("databaseTypePopup"),
     databaseTypeMysql: By.id("MySQL"),
     databaseTypeSqlite: By.id("Sqlite"),
@@ -486,7 +487,10 @@ export const settingsPage = {
         currentTheme: By.id("theming.currentTheme"),
         openThemeEditorButton: By.xpath("//div[contains(@caption, 'Click to Open the Theme Editor')]"),
         wordWrap: By.id("editor.wordWrap"),
-        wordWrapColumn: By.id("editor.wordWrapColumn"),
+        wordWrapColumn: {
+            exists: By.id("editor.wordWrapColumn"),
+            up: By.css("#editor\\.wordWrapColumn #up"),
+        },
         invisibleCharacters: By.id("editor.showHidden"),
         mysqlDBVersion: By.id("editor.dbVersion"),
         sqlMode: By.id("editor.sqlMode"),
@@ -572,3 +576,40 @@ export const checkBox = {
 export const genericDialog = {
     exists: By.className("valueEditDialog"),
 };
+
+export const bell = {
+    exists: By.className("rightItems"),
+    hasNotNotifications: By.className("codicon-bell"),
+    hasNotifications: By.className("codicon-bell-dot"),
+    silentMode: By.xpath("//div[contains(@class, 'slash')]"),
+};
+
+export const toastNotification = {
+    exists: By.xpath("//div[contains(@id, 'toast-')]"),
+    existsById: (id: string): By => {
+        return By.xpath(`//div[@id='${id}']`);
+    },
+    error: By.className("codicon-error"),
+    info: By.className("codicon-info"),
+    message: By.css("label"),
+    close: By.className("codicon-close"),
+};
+
+export const notificationsCenter = {
+    exists: By.className("notificationCenter"),
+    isOpened: By.css(".notificationCenter > #historyHeader"),
+    title: By.css("#historyHeader > label"),
+    clear: By.className("codicon-clear-all"),
+    silentMode: By.className("codicon-bell-slash"),
+    close: By.className("codicon-chevron-down"),
+    notificationsList: {
+        exists: By.id("historyContainer"),
+        item: {
+            exists: By.className("toast"),
+            type: By.className("icon"),
+            message: By.css("label"),
+            close: By.className("closeButton"),
+        },
+    },
+};
+

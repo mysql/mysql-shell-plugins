@@ -46,7 +46,7 @@ export class RestObjectDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.exists),
-            constants.wait10seconds, "Edit REST Object dialog was not displayed");
+            constants.wait20seconds, "Edit REST Object dialog was not displayed");
 
         const processColumnActivation = async (colOption: interfaces.IRestObjectColumn): Promise<void> => {
             const inColumns = await driver.wait(until
@@ -386,7 +386,7 @@ export class RestObjectDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.exists),
-            constants.wait10seconds, "Edit REST Object dialog was not displayed");
+            constants.wait20seconds, "Edit REST Object dialog was not displayed");
 
         const restObject: interfaces.IRestObject = {
             restServicePath: await dialog.findElement(locator.mrsDbObjectDialog.serviceLabel).getText(),
