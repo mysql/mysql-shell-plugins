@@ -41,6 +41,8 @@ export interface IDictionary {
     [key: string]: unknown;
 }
 
+export type Resolver<T> = (value: T | undefined) => void;
+
 /**
  * Types of columns in a table column definition, which we support in the application.
  * Also used for column affinities in SQLite(instead of column types).

@@ -40,7 +40,7 @@ describe("Message Panel Tests", (): void => {
         component.unmount();
     });
 
-    it("Show Error Panel", async () => {
+    it("Show Fatal Error Panel", async () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
@@ -49,7 +49,7 @@ describe("Message Panel Tests", (): void => {
         );
 
         // No values, no dialog.
-        await requisitions.execute("showError", []);
+        await requisitions.execute("showFatalError", []);
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");
@@ -65,7 +65,7 @@ describe("Message Panel Tests", (): void => {
         }, 1000);
 
         // The first line in the list is used as caption if there is more than one line.
-        await requisitions.execute("showError", ["One line"]);
+        await requisitions.execute("showFatalError", ["One line"]);
 
         setTimeout(() => {
             portals = document.getElementsByClassName("portal");
@@ -78,7 +78,7 @@ describe("Message Panel Tests", (): void => {
             (buttons[1] as HTMLButtonElement).click();
         }, 1000);
 
-        await requisitions.execute("showError", [
+        await requisitions.execute("showFatalError", [
             "Caption",
             "Line 1",
             "Line 2",

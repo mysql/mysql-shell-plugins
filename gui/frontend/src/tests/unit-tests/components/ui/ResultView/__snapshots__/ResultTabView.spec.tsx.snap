@@ -339,7 +339,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                       <Icon
                         data-tooltip="inherit"
                         disabled={false}
-                        src={65}
+                        src={67}
                       >
                         <div
                           className="msg icon codicon codicon-copy"

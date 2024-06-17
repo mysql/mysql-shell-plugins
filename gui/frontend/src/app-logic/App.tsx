@@ -52,6 +52,8 @@ import { ProgressIndicator } from "../components/ui/ProgressIndicator/ProgressIn
 import { IStatusbarItem, ControlType, Statusbar } from "../components/ui/Statusbar/Statusbar.js";
 import { MessagePanel } from "../components/Dialogs/MessagePanel.js";
 import { versionMatchesExpected } from "../utilities/helpers.js";
+import { Codicon } from "../components/ui/Codicon.js";
+import { NotificationCenter } from "../components/ui/NotificationCenter/NotificationCenter.js";
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;
@@ -96,6 +98,15 @@ export class App extends Component<{}, IAppState> {
                     type: ControlType.TextType,
                     rightAlign: false,
                     standout: false,
+                },
+                {
+                    id: "showNotificationHistory",
+                    type: ControlType.ButtonType,
+                    visible: true,
+                    rightAlign: true,
+                    tooltip: "Show Notifications",
+                    commandId: "notifications:showHistory",
+                    icon: Codicon.Bell,
                 },
                 {
                     id: "editorLanguage",
@@ -165,10 +176,8 @@ export class App extends Component<{}, IAppState> {
             // Check if the connected shell has the minimum required version.
             const info = await ShellInterface.core.backendInformation ?? { major: 0, minor: 0, patch: 0 };
             if (!versionMatchesExpected([info.major, info.minor, info.patch], minimumShellVersion)) {
-                void requisitions.execute("showError", [
-                    "Backend Error",
-                    `The connected shell has an unsupported version: ${info.major}.${info.minor}.${info.patch}`,
-                ]);
+                void requisitions.execute("showError", `The connected shell has an unsupported version: ` +
+                    `${info.major}.${info.minor}.${info.patch}`);
 
                 return Promise.resolve(false);
             }
@@ -253,6 +262,7 @@ export class App extends Component<{}, IAppState> {
 
                 <MessagePanel />
                 <TooltipProvider showDelay={200} />
+                <NotificationCenter />
 
                 {!appParameters.embedded && (
                     <>
@@ -324,7 +334,6 @@ export class App extends Component<{}, IAppState> {
         }
 
         return requisitions.execute("updateStatusbar", statusbarArguments);
-
     };
 
     private themeChanged = (values: IThemeChangeData): Promise<boolean> => {
@@ -357,10 +366,8 @@ export class App extends Component<{}, IAppState> {
             // Now we have the login actually finished and can show the main UI.
             this.setState({ loginInProgress: false });
         }).catch( /* istanbul ignore next */(reason) => {
-            void requisitions.execute("showError", [
-                "Backend Error",
-                `Cannot retrieve the module list: \n${String(reason)}`,
-            ]);
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", `Cannot retrieve the module list: ${message}`);
         });
     }
 

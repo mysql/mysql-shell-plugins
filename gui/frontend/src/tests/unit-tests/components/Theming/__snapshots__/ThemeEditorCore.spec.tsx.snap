@@ -395,7 +395,7 @@ exports[`Theme editor core testing Render test 1`] = `
                                 <g>
                                   <Icon
                                     disabled={false}
-                                    src={389}
+                                    src={391}
                                   />
                                   <Label />
                                 </g>

@@ -27,18 +27,17 @@ import "./MessagePanel.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { appParameters, requisitions } from "../../supplement/Requisitions.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { Semaphore } from "../../supplement/Semaphore.js";
+import { Button } from "../ui/Button/Button.js";
 import { Codicon } from "../ui/Codicon.js";
-import { IComponentState, ComponentBase } from "../ui/Component/ComponentBase.js";
+import { ComponentBase, IComponentState } from "../ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../ui/Container/Container.js";
 import { Dialog } from "../ui/Dialog/Dialog.js";
 import { Icon } from "../ui/Icon/Icon.js";
 import { Label } from "../ui/Label/Label.js";
-import { Button } from "../ui/Button/Button.js";
-import { Semaphore } from "../../supplement/Semaphore.js";
 
 interface IMessagePanelState extends IComponentState {
-    isError: boolean;
     caption: string;
     message: string;
 }
@@ -54,22 +53,19 @@ export class MessagePanel extends ComponentBase<{}, IMessagePanelState> {
         this.state = {
             caption: "",
             message: "",
-            isError: false,
         };
     }
 
     public componentDidMount(): void {
-        requisitions.register("showError", this.showError);
-        requisitions.register("showInfo", this.showInfo);
+        requisitions.register("showFatalError", this.showFatalError);
     }
 
     public componentWillUnmount(): void {
-        requisitions.unregister("showError", this.showError);
-        requisitions.unregister("showInfo", this.showInfo);
+        requisitions.unregister("showFatalError", this.showFatalError);
     }
 
     public render(): ComponentChild {
-        const { isError, caption, message } = this.state;
+        const { caption, message } = this.state;
 
         const className = this.getEffectiveClassNames(["errorPanel"]);
 
@@ -79,14 +75,14 @@ export class MessagePanel extends ComponentBase<{}, IMessagePanelState> {
                 className={className}
                 caption={
                     <>
-                        <Icon src={isError ? Codicon.Error : Codicon.Info} />
+                        <Icon src={Codicon.Error} />
                         <Label>{caption}</Label>
                     </>
                 }
                 content={
                     <Container orientation={Orientation.TopDown}>
                         {message && <Label
-                            id={isError ? "errorMessage" : "infoMessage"}
+                            id={"errorMessage"}
                             caption={message}
                             style={{ whiteSpace: "pre-line" }}
                         />}
@@ -107,12 +103,12 @@ export class MessagePanel extends ComponentBase<{}, IMessagePanelState> {
         );
     }
 
-    private showError = (values: string[]): Promise<boolean> => {
+    private showFatalError = (values: string[]): Promise<boolean> => {
         if (this.#signal) {
             throw new Error("Only one message can be shown at a time.");
         }
 
-        this.show(true, values);
+        this.show(values);
         if (!this.#signal) {
             return Promise.resolve(true);
         }
@@ -122,32 +118,11 @@ export class MessagePanel extends ComponentBase<{}, IMessagePanelState> {
         return (this.#signal as Semaphore<boolean>).wait();
     };
 
-    private showInfo = (values: string[]): Promise<boolean> => {
-        if (this.#signal) {
-            throw new Error("Only one message can be shown at a time.");
-        }
-
-        this.show(false, values);
-        if (!this.#signal) {
-            return Promise.resolve(true);
-        }
-
-        return (this.#signal as Semaphore<boolean>).wait();
-    };
-
-    private show = (isError: boolean, values: string[]): void => {
-        // Forward info messages to the hosting application.
-        if (!isError && appParameters.embedded) {
-            const result = requisitions.executeRemote("showInfo", values);
-            if (result) {
-                return;
-            }
-        }
-
+    private show = (values: string[]): void => {
         if (values.length > 0) {
             this.#signal = new Semaphore<boolean>();
 
-            let caption = isError ? "Error" : "Information";
+            let caption = "Fatal Error";
             let message = values[0];
 
             if (values.length > 1) {
@@ -155,7 +130,7 @@ export class MessagePanel extends ComponentBase<{}, IMessagePanelState> {
                 message = values.slice(1).join("\n");
             }
 
-            this.setState({ isError, caption, message }, () => {
+            this.setState({ caption, message }, () => {
                 this.#dialogRef.current?.open();
             });
         }

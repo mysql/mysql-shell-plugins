@@ -162,8 +162,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 }
             })
             .catch((error) => {
-                void requisitions.execute("showError",
-                    ["Loading Error", "Cannot load performance schema:", String(error)]);
+                void requisitions.execute("showError", "Cannot load performance schema: " + String(error));
             });
         this.addHandledProperties("backend", "toolbarItems");
     }
@@ -703,8 +702,8 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
     private handleKillConnection = (): void => {
         if ((this.selectedRow?.TYPE as string) === "BACKGROUND") {
-            void requisitions.execute("showError", ["Error Killing Connection",
-                `Connection ${this.getSelectedRowValue("PROCESSLIST_ID")} cannot be killed`]);
+            void requisitions.execute("showError", `Connection ${this.getSelectedRowValue("PROCESSLIST_ID")} ` +
+                `cannot be killed`);
 
             return;
         }
@@ -713,8 +712,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
     private handleKillQuery = (): void => {
         if ((this.selectedRow?.TYPE as string) === "BACKGROUND") {
-            void requisitions.execute("showError", ["Error Killing Query",
-                `Thread ${this.getSelectedRowValue("THREAD_ID")} cannot be killed`]);
+            void requisitions.execute("showError", `Thread ${this.getSelectedRowValue("THREAD_ID")} cannot be killed`);
 
             return;
         }
@@ -753,8 +751,8 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 await backend.execute(`KILL CONNECTION ${id}`);
                 await this.updateValues();
             } catch (reason) {
-                void requisitions.execute("showError", ["Error Killing Query",
-                    `Error executing KILL CONNECTION on connectionId: ${id}, error: ${String(reason)}`]);
+                void requisitions.execute("showError", `Error executing KILL CONNECTION on connectionId: ${id}, ` +
+                    `error: ${String(reason)}`);
             }
         }
     };
@@ -767,9 +765,8 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 await backend.execute(`KILL QUERY ${id}`);
                 await this.updateValues();
             } catch (reason) {
-                void requisitions.execute("showError", ["Error Killing Query",
-                    `Error executing KILL QUERY on threadId:` +
-                    `${this.selectedRow?.THREAD_ID as string}, error: ${String(reason)}`]);
+                void requisitions.execute("showError", `Error executing KILL QUERY on threadId:` +
+                    `${this.selectedRow?.THREAD_ID as string}, error: ${String(reason)}`);
             }
         }
     };
@@ -904,8 +901,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 this.setState({ waitingText });
             }
         }).catch((reason) => {
-            void requisitions.execute("showError", ["Lookup Metadata Locks",
-                `Error looking up metadata lock information error: ${String(reason)}`]);
+            void requisitions.execute("showError", `Error looking up metadata lock information error: ${reason}`);
         });
     };
 
@@ -937,8 +933,8 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 this.setState({ grantedLocks: resultSet });
             }
         }).catch((error: Error) => {
-            void requisitions.execute("showError", ["Lookup Metadata Locks",
-                `Error looking up metadata lock information error: ${error.message}`]);
+            void requisitions.execute("showError", `Error looking up metadata lock information error: ` +
+                `${error.message}`);
         });
     };
 

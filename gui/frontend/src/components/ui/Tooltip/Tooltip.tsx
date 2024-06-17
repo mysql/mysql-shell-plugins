@@ -189,6 +189,7 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
                 className={className}
                 style={composedStyle}
                 innerRef={this.innerRef}
+                fixedScrollbars={false}
                 {...this.unhandledProperties}
             >
                 {content}

@@ -294,7 +294,8 @@ export class ApplicationDB {
                     resolve();
                 }
             }).catch(/* istanbul ignore next */(reason) => {
-                void requisitions.execute("showError", ["IndexedDB Error", String(reason)]);
+                const message = reason instanceof Error ? reason.message : String(reason);
+                void requisitions.execute("showError", `IndexedDB Error: ${message}`);
                 reject(reason);
             });
         });

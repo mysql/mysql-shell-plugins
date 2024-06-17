@@ -454,7 +454,7 @@ export class CommunicationDebugger
 
                 this.setState({ activeInputTab: name, scriptTabs });
             }).catch((e) => {
-                void requisitions.execute("showError", ["Internal Error", String(e)]);
+                void requisitions.execute("showError", `Internal Error ${e}`);
             });
         } else {
             this.setState({ activeInputTab: name });
@@ -535,7 +535,7 @@ export class CommunicationDebugger
             });
 
         }).catch((event) => {
-            void requisitions.execute("showError", ["Loading Debugger Scripts", String(event.message)]);
+            void requisitions.execute("showError", `Loading Debugger Scripts: , ${event.message}`);
         });
     }
 
@@ -737,7 +737,7 @@ export class CommunicationDebugger
 
         if (data.request) {
             // A request sent to the server.
-            this.printOutput(`ws.send(${JSON.stringify(data.request, undefined, 4)});\n`, OutputType.Command);
+            this.printOutput(`ws.send(${JSON.stringify(data.request, undefined, 4)}); \n`, OutputType.Command);
         }
 
         if (data.response) {
@@ -749,7 +749,7 @@ export class CommunicationDebugger
 
             // Don't print responses while doing a debugger validation run.
             if (!debuggerValidate) {
-                this.printOutput(`ws.lastResponse = ${JSON.stringify(data.response, undefined, 4)};`, outputType);
+                this.printOutput(`ws.lastResponse = ${JSON.stringify(data.response, undefined, 4)}; `, outputType);
             }
 
         }

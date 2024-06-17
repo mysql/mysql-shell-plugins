@@ -437,7 +437,6 @@ export class ExecutionContexts implements IContextProvider {
         }
 
         return result;
-
     };
 
     private rollbackChanges = async (resultSet: IResultSet): Promise<void> => {

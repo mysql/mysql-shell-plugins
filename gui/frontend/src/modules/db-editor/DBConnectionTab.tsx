@@ -588,9 +588,10 @@ Execute \\help or \\? for help;`;
             await backend.execute("commit");
             await requisitions.execute("sqlTransactionChanged", undefined);
 
-            // TODO: give a visual feedback (e.g. message toast) for the execution.
+            void requisitions.execute("showInfo", "Commit successful.");
         } catch (reason) {
-            await requisitions.execute("showError", ["Execution Error", String(reason)]);
+            const message = reason instanceof Error ? reason.message : String(reason);
+            await requisitions.execute("showError", "Error while committing changes: " + message);
         }
 
         return true;
@@ -702,8 +703,8 @@ Execute \\help or \\? for help;`;
                 this.scriptRef.current.insertScriptText(data.language, content);
             }
         } catch (reason) {
-            await requisitions.execute("showError",
-                ["Loading Error", "Cannot load scripts content:", String(reason)]);
+            const message = reason instanceof ResponseError ? reason.message : String(reason);
+            await requisitions.execute("showError", "Cannot load scripts content: " + message);
 
             return false;
         }
@@ -813,7 +814,8 @@ Execute \\help or \\? for help;`;
                 }
             }
         } catch (reason) {
-            void requisitions.execute("showError", ["Accept Password Error", String(reason)]);
+            const message = reason instanceof ResponseError ? reason.message : String(reason);
+            void requisitions.execute("showError", "Accept Password Error: " + message);
         }
 
         return Promise.resolve(false);
@@ -854,14 +856,14 @@ Execute \\help or \\? for help;`;
                 try {
                     content = JSON.parse(text);
                 } catch (reason) {
-                    await requisitions.execute("showError", ["The notebook file is not valid JSON."]);
+                    await requisitions.execute("showError", "The notebook file is not valid JSON.");
 
                     return;
                 }
             }
 
             if (content.type !== "MySQLNotebook") {
-                void requisitions.execute("showError", ["Invalid notebook content"]);
+                void requisitions.execute("showError", "Invalid notebook content");
             } else {
                 try {
                     this.loadingNotebook = true;
@@ -916,9 +918,10 @@ Execute \\help or \\? for help;`;
                     if (appParameters.embedded) {
                         this.setState({ standaloneMode: details?.standalone ?? false });
                     }
-                } catch (e) {
+                } catch (reason) {
                     this.loadingNotebook = false;
-                    void requisitions.execute("showError", ["Error while loading notebook", String(e)]);
+                    const message = reason instanceof ResponseError ? reason.message : String(reason);
+                    void requisitions.execute("showError", "Error while loading notebook: " + message);
                 }
             }
         };
@@ -944,7 +947,7 @@ Execute \\help or \\? for help;`;
                             }
                         }
                     } else {
-                        void requisitions.execute("showError", ["Cannot read notebook file"]);
+                        void requisitions.execute("showError", "Cannot read notebook file.");
                     }
                 };
 

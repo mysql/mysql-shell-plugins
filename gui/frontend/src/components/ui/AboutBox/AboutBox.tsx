@@ -56,7 +56,7 @@ export class AboutBox extends ComponentBase<{}, IAboutBoxState> {
         ShellInterface.core.backendInformation.then((data) => {
             this.setState({ data });
         }).catch((reason) => {
-            void requisitions.execute("showError", ["Backend Error", String(reason)]);
+            void requisitions.execute("showError", "Backend Error: " + String(reason));
         });
     }
 

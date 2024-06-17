@@ -49,7 +49,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
           <g>
             <Icon
               disabled={false}
-              src={389}
+              src={391}
             />
             <Label />
           </g>
@@ -250,7 +250,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
           <g>
             <Icon
               disabled={false}
-              src={276}
+              src={278}
             />
             <Label>
               Confirm

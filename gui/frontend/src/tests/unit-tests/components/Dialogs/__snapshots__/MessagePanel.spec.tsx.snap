@@ -17,7 +17,7 @@ exports[`Message Panel Tests Render Test 1`] = `
       <g>
         <Icon
           disabled={false}
-          src={190}
+          src={126}
         />
         <Label>
           
@@ -52,7 +52,7 @@ exports[`Message Panel Tests Render Test 1`] = `
 </MessagePanel>
 `;
 
-exports[`Message Panel Tests Show Error Panel 1`] = `
+exports[`Message Panel Tests Show Fatal Error Panel 1`] = `
 <div
   class="msg portal"
   style="--background-opacity: 0.5;"
@@ -70,7 +70,7 @@ exports[`Message Panel Tests Show Error Panel 1`] = `
         class="msg label"
         data-tooltip="expand"
       >
-        Error
+        Fatal Error
       </label>
       <div
         class="msg button imageOnly"
@@ -126,7 +126,7 @@ exports[`Message Panel Tests Show Error Panel 1`] = `
 </div>
 `;
 
-exports[`Message Panel Tests Show Error Panel 2`] = `
+exports[`Message Panel Tests Show Fatal Error Panel 2`] = `
 <div
   class="msg portal"
   style="--background-opacity: 0.5;"

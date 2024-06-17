@@ -915,7 +915,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
             // Update the editing info.
             rows.forEach((row) => {
-                const rowChanges = info!.rowChanges[row];
+                const rowChanges = info.rowChanges[row];
                 if (rowChanges) {
                     // There's a row change, toggle the deleted state.
                     // Note: this could be a new row, in which case this row is ignored, unless the deleted state
@@ -924,7 +924,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
                     if (!rowChanges.deleted && rowChanges.changes.length === 0) {
                         // No changes left, remove the row.
-                        delete info!.rowChanges[row];
+                        delete info.rowChanges[row];
                     }
                 } else {
                     // No row change yet, create one and set the deletion mark.
@@ -935,7 +935,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                         return currentResultSet.data.rows[row][column.field];
                     });
 
-                    info!.rowChanges[row] = { changes: [], deleted: true, added: false, pkValues };
+                    info.rowChanges[row] = { changes: [], deleted: true, added: false, pkValues };
                 }
             });
 
@@ -1075,14 +1075,14 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                 if (result.errors.length > 0) {
                     // We got an error (can only be one as execution is stopped on the first error).
                     // Do not end editing, but show the error in the SQL preview pane.
-                    info!.errors = result.errors;
-                    info!.previewActive = true;
+                    info.errors = result.errors;
+                    info.previewActive = true;
                 } else {
-                    this.#editingInfo.delete(info!.resultSet.resultId);
+                    this.#editingInfo.delete(info.resultSet.resultId);
 
                     // Use the page switch callback to refresh the result set.
-                    onResultPageChange?.(info!.resultSet.resultId, info!.resultSet.data.currentPage,
-                        info!.resultSet.sql);
+                    onResultPageChange?.(info.resultSet.resultId, info.resultSet.data.currentPage,
+                        info.resultSet.sql);
 
                 }
             });

@@ -1515,7 +1515,7 @@ exports[`Application host tests Rendering About 1`] = `
               <g>
                 <Icon
                   disabled={false}
-                  src={389}
+                  src={391}
                 />
                 <Label />
               </g>
@@ -1586,7 +1586,7 @@ exports[`Application host tests Rendering About 1`] = `
               <g>
                 <Icon
                   disabled={false}
-                  src={276}
+                  src={278}
                 />
                 <Label>
                   Confirm
@@ -1654,7 +1654,7 @@ exports[`Application host tests Rendering About 1`] = `
                 <g>
                   <Icon
                     disabled={false}
-                    src={389}
+                    src={391}
                   />
                   <Label />
                 </g>
@@ -1743,7 +1743,7 @@ exports[`Application host tests Rendering About 1`] = `
                 <g>
                   <Icon
                     disabled={false}
-                    src={389}
+                    src={391}
                   />
                   <Label />
                 </g>
@@ -1832,7 +1832,7 @@ exports[`Application host tests Rendering About 1`] = `
                 <g>
                   <Icon
                     disabled={false}
-                    src={389}
+                    src={391}
                   />
                   <Label />
                 </g>
@@ -3411,7 +3411,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
               <g>
                 <Icon
                   disabled={false}
-                  src={389}
+                  src={391}
                 />
                 <Label />
               </g>
@@ -3482,7 +3482,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
               <g>
                 <Icon
                   disabled={false}
-                  src={276}
+                  src={278}
                 />
                 <Label>
                   Confirm
@@ -3550,7 +3550,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 <g>
                   <Icon
                     disabled={false}
-                    src={389}
+                    src={391}
                   />
                   <Label />
                 </g>
@@ -3639,7 +3639,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 <g>
                   <Icon
                     disabled={false}
-                    src={389}
+                    src={391}
                   />
                   <Label />
                 </g>
@@ -3728,7 +3728,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 <g>
                   <Icon
                     disabled={false}
-                    src={389}
+                    src={391}
                   />
                   <Label />
                 </g>
@@ -5307,7 +5307,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
               <g>
                 <Icon
                   disabled={false}
-                  src={389}
+                  src={391}
                 />
                 <Label />
               </g>
@@ -5378,7 +5378,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
               <g>
                 <Icon
                   disabled={false}
-                  src={276}
+                  src={278}
                 />
                 <Label>
                   Confirm
@@ -5446,7 +5446,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 <g>
                   <Icon
                     disabled={false}
-                    src={389}
+                    src={391}
                   />
                   <Label />
                 </g>
@@ -5535,7 +5535,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 <g>
                   <Icon
                     disabled={false}
-                    src={389}
+                    src={391}
                   />
                   <Label />
                 </g>
@@ -5624,7 +5624,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 <g>
                   <Icon
                     disabled={false}
-                    src={389}
+                    src={391}
                   />
                   <Label />
                 </g>
@@ -7203,7 +7203,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
               <g>
                 <Icon
                   disabled={false}
-                  src={389}
+                  src={391}
                 />
                 <Label />
               </g>
@@ -7274,7 +7274,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
               <g>
                 <Icon
                   disabled={false}
-                  src={276}
+                  src={278}
                 />
                 <Label>
                   Confirm
@@ -7342,7 +7342,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                 <g>
                   <Icon
                     disabled={false}
-                    src={389}
+                    src={391}
                   />
                   <Label />
                 </g>
@@ -7431,7 +7431,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                 <g>
                   <Icon
                     disabled={false}
-                    src={389}
+                    src={391}
                   />
                   <Label />
                 </g>
@@ -7520,7 +7520,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                 <g>
                   <Icon
                     disabled={false}
-                    src={389}
+                    src={391}
                   />
                   <Label />
                 </g>

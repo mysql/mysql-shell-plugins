@@ -178,8 +178,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         void this.loadConnections();
         ShellInterface.modules.loadScriptsTree().then((tree) => {
             this.scriptsTree = tree;
-        }).catch((error) => {
-            void requisitions.execute("showError", ["Loading Error", "Cannot load user scripts:", String(error)]);
+        }).catch((reason) => {
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Cannot load user scripts: " + message);
         });
     }
 
@@ -541,14 +542,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
 
     private async loadConnections(): Promise<void> {
-        await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "")
-            .then((connections) => {
-                this.setState({ connections, connectionsLoaded: true });
-            })
-            .catch((reason) => {
-                void requisitions.execute("showError", ["Loading Error", "Cannot load DB connections:",
-                    String(reason)]);
-            });
+        await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "").then((connections) => {
+            this.setState({ connections, connectionsLoaded: true });
+        }).catch((reason) => {
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Cannot load DB connections: " + message);
+        });
     }
 
     private handleAddConnection = (details: IConnectionDetails): void => {
@@ -562,10 +561,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 this.setState({ connections });
                 requisitions.executeRemote("connectionAdded", details);
             }
-        }).catch((event) => {
-            void requisitions.execute("showError",
-                ["Add Connection Error", "Cannot add DB connection:", String(event.message)]);
-
+        }).catch((reason) => {
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Cannot add DB connection: " + message);
         });
     };
 
@@ -573,9 +571,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         ShellInterface.dbConnections.updateDbConnection(webSession.currentProfileId, details).then(() => {
             this.forceUpdate();
             requisitions.executeRemote("connectionUpdated", details);
-        }).catch((event) => {
-            void requisitions.execute("showError",
-                ["Update Connection Error", "Cannot update DB connection:", String(event.message)]);
+        }).catch((reason) => {
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Cannot update DB connection: " + message);
 
         });
     };
@@ -1019,8 +1017,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                         resolve(true);
                                     });
                                 }).catch((reason) => {
-                                    void requisitions.execute("showError",
-                                        ["DB Creation Error", String(reason)]);
+                                    const message = reason instanceof Error ? reason.message : String(reason);
+                                    void requisitions.execute("showError", "DB Creation Error: " + message);
                                 });
                             });
                         } else {
@@ -1032,7 +1030,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         }
                     }).catch((reason) => {
                         this.hideProgress(true);
-                        void requisitions.execute("showError", ["Module Session Error", String(reason)]);
+                        const message = reason instanceof Error ? reason.message : String(reason);
+                        void requisitions.execute("showError", "Module Session Error: " + message);
                         reject();
                     });
                 } else {
@@ -1198,7 +1197,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             this.hideProgress(false);
             await this.setStatePromise({ editorTabs, selectedPage: tabId, loading: false });
         } catch (reason) {
-            void requisitions.execute("showError", ["Connection Error", String(reason)]);
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Connection Error: " + message);
 
             const { lastSelectedPage } = this.state;
             await this.setStatePromise({ selectedPage: lastSelectedPage ?? "connections" });
@@ -1226,7 +1226,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             });
             this.setProgressMessage("Connection opened");
         } catch (reason) {
-            void requisitions.execute("showError", ["Connection Error", String(reason)]);
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Connection Error: " + message);
 
             const { lastSelectedPage } = this.state;
             this.setState({ selectedPage: lastSelectedPage ?? "connections" });
@@ -1748,8 +1749,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                 this.forceUpdate();
                             }
                         }).catch((reason) => {
-                            void requisitions.execute("showError",
-                                ["Loading Error", "Cannot load scripts content:", String(reason)]);
+                            const message = reason instanceof Error ? reason.message : String(reason);
+                            void requisitions.execute("showError", "Cannot load scripts content: " + message);
                         });
                     } else {
                         // No script either? Create a new one.
@@ -1996,8 +1997,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                     this.forceUpdate();
                 }).catch((reason) => {
-                    void requisitions.execute("showError",
-                        ["Data Module Error", "Cannot add new user script:", String(reason)]);
+                    const message = reason instanceof Error ? reason.message : String(reason);
+                    void requisitions.execute("showError", "Cannot add new user script: " + message);
                 });
             }
         }
@@ -2026,14 +2027,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                             // Found the script. Remove its editor, if there's one.
                             this.handleRemoveEditor(id, data.id, false);
 
-                            ShellInterface.modules.deleteData(script.dbDataId, data.folderId)
-                                .then(() => {
-                                    connectionState.scripts.splice(scriptIndex, 1);
-                                    this.forceUpdate();
-                                }).catch((event) => {
-                                    void requisitions.execute("showError",
-                                        ["Data Module Error", "Cannot delete user script:", String(event.message)]);
-                                });
+                            ShellInterface.modules.deleteData(script.dbDataId, data.folderId).then(() => {
+                                connectionState.scripts.splice(scriptIndex, 1);
+                                this.forceUpdate();
+                            }).catch((reason) => {
+                                const message = reason instanceof Error ? reason.message : String(reason);
+                                void requisitions.execute("showError", "Cannot delete user script: " + message);
+                            });
                         }
                     }
 
@@ -2199,6 +2199,9 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 rowCount += result?.rowsAffected ?? 0;
             }
             await backend.execute("commit");
+
+            // Don't wait for the info message.
+            void requisitions.execute("showInfo", "Changes committed successfully.");
 
             return { affectedRows: rowCount, errors: [] };
         } catch (reason) {

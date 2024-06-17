@@ -90,16 +90,21 @@
 .msg.label.error {
     padding: 0 4px;
     background-color: hsla(14, 88%, 42%, 0.1);
-    color: hsl(14, 88%, 42%);
+    color: var(--errorForeground);
 }
 
 .msg.resultText.warning,
 .msg.label.warning {
     padding: 0 4px;
     background-color: hsla(54, 88%, 42%, 0.1);
-    color: hsl(54, 88%, 42%);
+    color: var(--editorWarning-foreground);
 }
 
+.msg.resultText.info,
+.msg.label.info {
+    padding: 0 4px;
+    color: var(--foreground);
+}
 
 .msg.resultText.interactive,
 .msg.resultText.interactive {

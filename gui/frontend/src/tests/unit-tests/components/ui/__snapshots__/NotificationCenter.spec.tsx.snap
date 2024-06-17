@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NotificationCenter component tests Standard rendering (snapshot) 1`] = `
+<NotificationCenter>
+  <Container
+    className="msg notificationCenter"
+    innerRef={
+      {
+        "current": <div
+          class="msg container fixedScrollbar notificationCenter"
+          style="flex-direction: column;"
+        />,
+      }
+    }
+    orientation="column"
+  >
+    <div
+      className="msg container fixedScrollbar notificationCenter"
+      style={
+        {
+          "alignItems": undefined,
+          "flexDirection": "column",
+          "flexWrap": undefined,
+          "justifyContent": undefined,
+        }
+      }
+    />
+  </Container>
+</NotificationCenter>
+`;

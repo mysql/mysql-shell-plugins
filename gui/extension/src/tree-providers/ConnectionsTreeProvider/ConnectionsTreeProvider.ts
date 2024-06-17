@@ -721,7 +721,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
         const isMySQL = entry.parent.parent.treeItem.details.dbType === DBType.MySQL;
 
         switch (entry.treeItem.groupType) {
-            case "Routines": {
+            case SchemaItemGroupType.Routines: {
                 const createItems = (type: MrsDbObjectType, list: string[]): void => {
                     for (const objectName of list) {
                         if (isMySQL) {

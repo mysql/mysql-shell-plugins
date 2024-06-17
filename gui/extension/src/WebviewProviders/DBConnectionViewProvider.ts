@@ -407,8 +407,8 @@ export class DBConnectionViewProvider extends WebviewProvider {
         });
     };
 
-    private showInfo = (values: string[]): Promise<boolean> => {
-        showMessageWithTimeout(values.join("\n"), 5000);
+    private showInfo = (values: string): Promise<boolean> => {
+        showMessageWithTimeout(values, 5000);
 
         return Promise.resolve(true);
     };

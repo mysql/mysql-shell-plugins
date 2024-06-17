@@ -12,7 +12,7 @@ exports[`Confirm Dialog Tests Confirm Dialog Render Test 1`] = `
       <g>
         <Icon
           disabled={false}
-          src={276}
+          src={278}
         />
         <Label>
           Confirm

@@ -153,10 +153,13 @@ export class Settings {
         }
     }
 
+    /**
+     * Triggered when a profile is loaded. Merges the profile's settings with the current ones.
+     *
+     * @returns A promise that resolves to the result of the settingsChanged requisition.
+     */
     private static mergeProfileValues = (): Promise<boolean> => {
         this.values = Object.assign(this.values, webSession.profile.options);
-
-        this.restartAutoSaveTimeout();
 
         return requisitions.execute("settingsChanged", undefined);
     };
