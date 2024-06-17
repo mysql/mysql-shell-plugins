@@ -726,8 +726,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                             this.shellSession.mds.getMdsConfigProfiles().then((profiles) => {
                                 this.fillProfileDropdown(profiles);
                             }).catch((reason) => {
-                                void requisitions.execute("showError", ["Error while loading OCI profiles",
-                                    String(reason.message)]);
+                                const message = reason instanceof Error ? reason.message : String(reason);
+                                void requisitions.execute("showError", "Error while loading OCI profiles: " + message);
                             });
                         }
                     },
@@ -1012,8 +1012,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             };
             void requisitions.execute("requestPassword", passwordRequest);
         } else {
-            void requisitions.execute("showError", ["Missing Mandatory Fields",
-                "User, Host and port cannot be empty."]);
+            void requisitions.execute("showError", "User, Host and port cannot be empty.");
         }
     };
 
@@ -1039,7 +1038,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     // TODO: show message for success, once we have message toasts.
                 }
             }).catch((reason) => {
-                void requisitions.execute("showError", ["Clear Password Error", String(reason.message)]);
+                const message = reason instanceof Error ? reason.message : String(reason);
+                void requisitions.execute("showError", "Clear Password Error: " + message);
             });
         }
     };
@@ -1132,9 +1132,9 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     this.updateInputValue(system.displayName, "mysqlDbSystemName");
                 }
             }).catch((reason) => {
-                void requisitions.execute("showError", ["Get Mds Database Error", reason as string]);
-                this.updateInputValue("<error loading mds database info>",
-                    "mysqlDbSystemName");
+                const message = reason instanceof Error ? reason.message : String(reason);
+                void requisitions.execute("showError", "Get MHS Database Error: " + message);
+                this.updateInputValue("<error loading mds database info>", "mysqlDbSystemName");
             });
         }
     };
@@ -1153,7 +1153,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             this.shellSession.mds.getMdsConfigProfiles().then((profiles) => {
                 this.fillProfileDropdown(profiles);
             }).catch((reason) => {
-                void requisitions.execute("showError", ["Error when loading OCI profiles", String(reason)]);
+                const message = reason instanceof Error ? reason.message : String(reason);
+                void requisitions.execute("showError", "Error when loading OCI profiles: " + message);
             });
         }
     };
@@ -1165,7 +1166,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
             return summary;
         } catch (reason) {
-            void requisitions.execute("showError", ["Create Bastion Error", String(reason)]);
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Create Bastion Error: " + message);
             this.updateInputValue("<failed to create default bastion>", "bastionName");
             this.editorRef.current?.updateInputValue("<failed to create default bastion>", "bastionId");
 

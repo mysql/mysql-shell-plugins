@@ -178,9 +178,10 @@ class WebSession {
     public saveProfile(): void {
         // Notify the shell for profile updates
         ShellInterface.users.updateProfile(this.shellProfile).then(() => {
-            // TODO: log success.
+            void requisitions.execute("showInfo", "Profile updated successfully.");
         }).catch((reason) => {
-            void requisitions.execute("showError", ["Profile Update Error", String(reason)]);
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Profile Update Error: " + message);
         });
 
     }

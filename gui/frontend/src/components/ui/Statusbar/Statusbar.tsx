@@ -29,14 +29,14 @@ import { ComponentChild } from "preact";
 
 import * as codicon from "../Codicon.js";
 
+import { IDictionary, IStatusbarInfo } from "../../../app-logic/Types.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
 import { ThemeColor } from "../../Theming/ThemeColor.js";
+import { Button } from "../Button/Button.js";
 import { ComponentBase, IComponentProperties, IComponentState } from "../Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
-import { requisitions } from "../../../supplement/Requisitions.js";
-import { Icon } from "../Icon/Icon.js";
-import { IDictionary, IStatusbarInfo } from "../../../app-logic/Types.js";
 import { Dropdown } from "../Dropdown/Dropdown.js";
-import { Button } from "../Button/Button.js";
+import { Icon } from "../Icon/Icon.js";
 
 export enum ControlType {
     TextType,
@@ -84,7 +84,7 @@ interface IStatusbarState extends IComponentState {
  */
 export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarState> {
 
-    #scheduledTimers: Array<{id: string, timer: ReturnType<typeof setTimeout>}> = [];
+    #scheduledTimers: Array<{ id: string, timer: ReturnType<typeof setTimeout>; }> = [];
 
     public constructor(props: IStatusbarProperties) {
         super(props);
@@ -184,7 +184,7 @@ export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarSta
                     default: {
                         let icon;
                         if (item.icon != null) {
-                            icon = <Icon src={item.icon} />;
+                            icon = <Icon data-tooltip="inherit" src={info.icon} />;
                         }
 
                         control = (
@@ -193,7 +193,7 @@ export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarSta
                                 className={itemClass}
                                 caption={info.text}
                                 data-command={item.commandId}
-                                title={item.tooltip}
+                                title={info.tooltip}
                                 disabled={!item.commandId || item.commandId.length === 0}
                                 imageOnly={info.text?.length === 0}
                                 style={{
@@ -208,6 +208,7 @@ export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarSta
                         break;
                     }
                 }
+
                 if (item.rightAlign) {
                     rightItems.push(control);
                 } else {
@@ -276,9 +277,11 @@ export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarSta
 
                 // If a new hideAfter value has been set, ensure to clean the text after the hideAfter timeout
                 if (info.hideAfter) {
-                    this.#scheduledTimers.push({id: info.id, timer: setTimeout(() => {
-                        this.updateStatusItems([{id: info.id, text: "", visible: true}]);
-                    }, info.hideAfter)});
+                    this.#scheduledTimers.push({
+                        id: info.id, timer: setTimeout(() => {
+                            this.updateStatusItems([{ id: info.id, text: "", visible: true }]);
+                        }, info.hideAfter),
+                    });
                 }
             }
         });

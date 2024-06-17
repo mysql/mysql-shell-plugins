@@ -3266,7 +3266,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                     },
                     {
                       "children": undefined,
-                      "color": "#3D3D3D",
+                      "color": "#2E2E2F",
                       "description": "Notification toast border color",
                       "id": "notificationToast.border",
                       "preview": false,
@@ -3322,7 +3322,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                     },
                     {
                       "children": undefined,
-                      "color": "#75BEFF",
+                      "color": "#3794FF",
                       "description": "Notification info icon color",
                       "id": "notificationsInfoIcon.foreground",
                       "preview": false,
@@ -8604,7 +8604,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                       },
                       {
                         "children": undefined,
-                        "color": "#3D3D3D",
+                        "color": "#2E2E2F",
                         "description": "Notification toast border color",
                         "id": "notificationToast.border",
                         "preview": false,
@@ -8660,7 +8660,7 @@ exports[`Theme editor lists testing Render test 1`] = `
                       },
                       {
                         "children": undefined,
-                        "color": "#75BEFF",
+                        "color": "#3794FF",
                         "description": "Notification info icon color",
                         "id": "notificationsInfoIcon.foreground",
                         "preview": false,

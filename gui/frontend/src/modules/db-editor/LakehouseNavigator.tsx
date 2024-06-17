@@ -2261,8 +2261,9 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 const data = parentRow.getData() as IObjectStorageTreeItem;
                 void this.refreshObjTreeItem(data.id);
             }
-        } catch (error) {
-            void requisitions.execute("showError", [`Failed to delete object: ${String(error)}`]);
+        } catch (reason) {
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", `Failed to delete object: ${message}`);
         }
     };
 
@@ -2937,10 +2938,11 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     );
 
                     if (error === 0) {
-                        void requisitions.execute("showInfo", ["The files have been uploaded successfully."]);
+                        void requisitions.execute("showInfo", "The files have been uploaded successfully.");
                     } else {
-                        void requisitions.execute("showError", [`${String(error)} error${error > 1 ? "s" : ""} ` +
-                            "ocurred during upload. Please check the file list."]);
+                        const message = `${error} error${error > 1 ? "s" : ""} ocurred during upload. ` +
+                            "Please check the file list.";
+                        void requisitions.execute("showError", message);
                     }
                 } finally {
                     this.setState({ uploadRunning: false, uploadComplete: true });
@@ -3146,13 +3148,13 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     `CALL sys.genai_ensure_privileges(?, ?)`,
                     [userName, hostName], undefined, (data) => {
                         if (data.result.rows !== undefined && data.result.rows.length === 0) {
-                            void requisitions.execute("showInfo",
-                                ["The required privileges where assigned to the MySQL user " +
-                                    `${userName}@${hostName}`]);
+                            void requisitions.execute("showInfo", `The required privileges where assigned to the ` +
+                                `MySQL user ${userName}@${hostName}`);
                         }
                     });
-            } catch (error) {
-                void requisitions.execute("showError", [`Failed to assign the required privileges: ${String(error)}`]);
+            } catch (reason) {
+                const message = reason instanceof Error ? reason.message : String(reason);
+                void requisitions.execute("showError", `Failed to assign the required privileges: ${message}`);
             }
         }
     };
@@ -3194,7 +3196,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             }
 
             try {
-                void await backend.execute(`CREATE SCHEMA ${escapeSqlString(val)}`);
+                void await backend.execute(`CREATE SCHEMA ${escapeSqlString(val)} `);
 
                 this.refreshAvailableDatabaseSchemas();
 
@@ -3204,7 +3206,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 if (errStr.includes("run_sql: ")) {
                     errStr = errStr.slice(errStr.indexOf("run_sql: ") + 9);
                 }
-                void requisitions.execute("showError", [`Failed to create the database schema: ${errStr}`]);
+                void requisitions.execute("showError", `Failed to create the database schema: ${errStr}`);
             }
         }
     };

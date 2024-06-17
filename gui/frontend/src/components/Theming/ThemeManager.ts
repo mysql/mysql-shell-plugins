@@ -101,7 +101,7 @@ export class ThemeManager {
 
         if (!appParameters.embedded) {
             this.updating = true;
-            this.activeTheme = "Auto";
+            this.switchTheme("Auto");
             this.updating = false;
         }
 
@@ -163,24 +163,8 @@ export class ThemeManager {
 
     public set activeTheme(theme: string) {
         if (this.currentTheme !== theme) {
-
-            let actualTheme = theme;
-            if (theme === "Auto") { // Auto means: follow the OS, not the host (if we are embedded).
-                if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-                    actualTheme = "Default Light";
-                } else {
-                    actualTheme = "Default Dark";
-                }
-                this.loadTheme(actualTheme);
-
-                // loadTheme changes the current theme name, but in this case we want to keep "Auto".
-                this.storeThemeName("Auto");
-            } else {
-                this.loadTheme(theme);
-            }
-
+            this.switchTheme(theme);
             this.updateSettings();
-            this.sendChangeNotification(actualTheme);
         }
     }
 
@@ -397,7 +381,10 @@ export class ThemeManager {
                     this.loadThemeDetails(definition);
                 });
 
-                this.activeTheme = Settings.get("theming.currentTheme", "Auto");
+                const newTheme = Settings.get("theming.currentTheme", "Auto");
+                if (this.currentTheme !== newTheme) {
+                    this.switchTheme(newTheme);
+                }
             }
 
             return Promise.resolve(true);
@@ -641,6 +628,24 @@ export class ThemeManager {
         this.updating = false;
     }
 
+    private switchTheme(theme: string) {
+        let actualTheme = theme;
+        if (theme === "Auto") { // Auto means: follow the OS, not the host (if we are embedded).
+            if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+                actualTheme = "Default Light";
+            } else {
+                actualTheme = "Default Dark";
+            }
+            this.loadTheme(actualTheme);
+
+            // loadTheme changes the current theme name, but in this case we want to keep "Auto".
+            this.storeThemeName("Auto");
+        } else {
+            this.loadTheme(theme);
+        }
+
+        this.sendChangeNotification(actualTheme);
+    }
 }
 
 // Access the static instance once for the event registration.

@@ -1455,7 +1455,7 @@ describe("NOTEBOOKS", () => {
                 "select actor_id from sakila.actor INTERSECT select address_id from sakila.address;",
                 "select first_name from sakila.actor EXCEPT select address from sakila.address;",
                 "SELECT COUNT(*) FROM DUAL;",
-                `select * from sakila.actor where actor_id = 
+                `select * from sakila.actor where actor_id =
                                 (select address_id from sakila.address where address_id = 1) for update;`,
                 "select (actor_id*2), first_name as calculated from sakila.actor;",
             ];

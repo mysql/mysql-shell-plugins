@@ -39,8 +39,8 @@ export class SchemaGroupTreeItem extends ConnectionsTreeBaseItem {
         super(groupType, schema, backend, connectionId, SchemaGroupTreeItem.getIonName(groupType), true);
     }
 
-    private static getIonName(label: string): string {
-        switch (label) {
+    private static getIonName(groupType: SchemaItemGroupType): string {
+        switch (groupType) {
             case SchemaItemGroupType.Tables: {
                 return "schemaTables.svg";
             }

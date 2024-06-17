@@ -29,9 +29,11 @@ import commitIcon from "../../assets/images/toolbar/toolbar-commit.svg";
 import executeCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret.svg";
 import executePrintTextIcon from "../../assets/images/toolbar/toolbar-execute_print_text.svg";
 //import executeExplainIcon from "../../assets/images/toolbar/execute-explain.svg";
-import executeHeatWaveIcon from "../../assets/images/toolbar/toolbar-execute_heatwave.svg";
-import executeHeatWaveCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret_heatwave.svg";
+import chatOptionsIcon from "../../assets/images/chatOptions.svg";
+import lakehouseNavigatorIcon from "../../assets/images/lakehouseNavigator.svg";
 import executeIcon from "../../assets/images/toolbar/toolbar-execute.svg";
+import executeHeatWaveCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret_heatwave.svg";
+import executeHeatWaveIcon from "../../assets/images/toolbar/toolbar-execute_heatwave.svg";
 import formatIcon from "../../assets/images/toolbar/toolbar-format.svg";
 import rollbackIcon from "../../assets/images/toolbar/toolbar-rollback.svg";
 import searchIcon from "../../assets/images/toolbar/toolbar-search.svg";
@@ -42,23 +44,21 @@ import stopOnErrorActiveIcon from "../../assets/images/toolbar/toolbar-stop_on_e
 import stopOnErrorInactiveIcon from "../../assets/images/toolbar/toolbar-stop_on_error-inactive.svg";
 import wordWrapActiveIcon from "../../assets/images/toolbar/toolbar-word_wrap-active.svg";
 import wordWrapInactiveIcon from "../../assets/images/toolbar/toolbar-word_wrap-inactive.svg";
-import lakehouseNavigatorIcon from "../../assets/images/lakehouseNavigator.svg";
-import chatOptionsIcon from "../../assets/images/chatOptions.svg";
 
 import { ComponentChild } from "preact";
 
-import { Settings } from "../../supplement/Settings/Settings.js";
-import { IOpenEditorState } from "./DBConnectionTab.js";
-import { requisitions } from "../../supplement/Requisitions.js";
-import { LoadingState } from "../../script-execution/index.js";
-import { IToolbarItems } from "./index.js";
-import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
+import { Button } from "../../components/ui/Button/Button.js";
+import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
 import { Divider } from "../../components/ui/Divider/Divider.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { Button } from "../../components/ui/Button/Button.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
+import { LoadingState } from "../../script-execution/index.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { IOpenEditorState } from "./DBConnectionTab.js";
+import { IToolbarItems } from "./index.js";
 
 interface IDBEditorToolbarProperties extends IComponentProperties {
     /**
@@ -164,7 +164,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
 
     public render(): ComponentChild {
         const { toolbarItems, language, heatWaveEnabled } = this.props;
-        const { autoCommit, canExecute, canStop, canExecuteSubparts, contextLanguage } = this.state;
+        const { autoCommit, canExecute, canStop, canExecuteSubparts } = this.state;
 
         const area = language === "msg" ? "block" : "script";
         const selectionText = canExecuteSubparts ? "the selection or " : "";
@@ -514,8 +514,8 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
             await backend?.setAutoCommit(!autoCommit);
             await this.queryAutoCommit();
         } catch (reason) {
-            void requisitions.execute("showError",
-                ["Execution Error", "Cannot Switch Auto Commit Mode.", String(reason)]);
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Cannot Switch Auto Commit Mode." + message);
         }
 
         this.updateState();

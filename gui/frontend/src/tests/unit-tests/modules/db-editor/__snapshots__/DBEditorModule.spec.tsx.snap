@@ -608,7 +608,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             <g>
               <Icon
                 disabled={false}
-                src={389}
+                src={391}
               />
               <Label />
             </g>
@@ -697,7 +697,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             <g>
               <Icon
                 disabled={false}
-                src={389}
+                src={391}
               />
               <Label />
             </g>
@@ -786,7 +786,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             <g>
               <Icon
                 disabled={false}
-                src={389}
+                src={391}
               />
               <Label />
             </g>
@@ -875,7 +875,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             <g>
               <Icon
                 disabled={false}
-                src={389}
+                src={391}
               />
               <Label />
             </g>
@@ -964,7 +964,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             <g>
               <Icon
                 disabled={false}
-                src={389}
+                src={391}
               />
               <Label />
             </g>
@@ -1053,7 +1053,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             <g>
               <Icon
                 disabled={false}
-                src={389}
+                src={391}
               />
               <Label />
             </g>
@@ -1142,7 +1142,7 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
             <g>
               <Icon
                 disabled={false}
-                src={389}
+                src={391}
               />
               <Label />
             </g>

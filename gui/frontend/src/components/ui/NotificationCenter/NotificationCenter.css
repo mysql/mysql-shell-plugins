@@ -1,0 +1,155 @@
+/*
+ * Copyright (c) 2024, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.notificationCenter {
+    width: 500px;
+
+    position: absolute;
+    right: 8px;
+
+    /* Have to take the status bar into account here. */
+    bottom: 32px;
+
+    padding: 0;
+    overflow: hidden;
+
+    z-index: 10;
+}
+
+.msg.notificationCenter.history {
+    max-height: 50%;
+    border-radius: 4px;
+    overflow: auto;
+}
+
+.msg.notificationCenter #historyHeader {
+    flex: 0 0 42px;
+    column-gap: 2px;
+    padding: 0 8px;
+    background-color: var(--notificationCenterHeader-background);
+    color: var(--notificationCenterHeader-foreground);
+}
+
+.msg.notificationCenter #historyHeader .actionIcon {
+    font-size: 145%;
+}
+
+.msg.notificationCenter #historyHeader > .button {
+    border: none;
+}
+
+.msg.notificationCenter #historyHeader > .button:first-of-type {
+    /* To align the buttons right. */
+    margin-left: auto;
+}
+
+.msg.notificationCenter .toast {
+    display: flex;
+    flex-direction: row;
+    flex: 1 0 auto;
+
+    padding: 8px 12px 8px 12px;
+    margin-bottom: 8px;
+    line-height: 1.75em;
+
+    background-color: var(--notifications-background);
+
+    color: var(--notifications-foreground);
+    border-radius: 4px;
+    z-index: 12;
+}
+
+.msg.notificationCenter.history .toast {
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--notificationToast-border);
+    border-radius: 0;
+}
+
+.msg.notificationCenter.history .toast:last-child {
+    border-bottom: none;
+}
+
+.msg.notificationCenter:not(.history) .toast.normal {
+    transition: margin-bottom 0.25s ease-out;
+}
+
+.msg.notificationCenter:not(.history) .toast.removing {
+    /* Lower the z-index to have hidden toasts behind normal ones when sliding. */
+    z-index: 10;
+    animation: fadeOut .25s normal forwards;
+    transition: margin-bottom 0.25s ease-out;
+}
+
+.msg.notificationCenter .toast .itemButton {
+    border: none;
+    min-width: 0;
+}
+
+.msg.notificationCenter .toast .label {
+    flex: 1 1 auto;
+}
+
+.msg.notificationCenter .toast > div > .icon {
+    margin-right: 8px;
+    margin-top: 2px;
+    height: 22px;
+    width: 22px;
+    font-size: 140%;
+}
+
+.msg.notificationCenter .toast.info > div > .icon {
+    color: var(--notificationsInfoIcon-foreground);
+}
+
+.msg.notificationCenter .toast.warning > div > .icon {
+    color: var(--notificationsWarningIcon-foreground);
+}
+
+.msg.notificationCenter .toast.error > div > .icon {
+    color: var(--notificationsErrorIcon-foreground);
+}
+
+.msg.notificationCenter .toast > div > .closeButton {
+    flex: 0;
+    border: none;
+    background: none;
+    align-self: baseline;
+    margin: 0 8px 0 8px;
+
+    /*
+     * Since there's no background we have to switch to a different foreground color, or the button will not be visible.
+    */
+    color: var(--checkbox-foreground);
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}

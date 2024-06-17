@@ -38,7 +38,7 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
       <Icon
         data-tooltip="inherit"
         disabled={false}
-        src={65}
+        src={67}
       >
         <div
           className="msg icon codicon codicon-copy"
@@ -180,7 +180,7 @@ exports[`Action Output Tests Standard Rendering 1`] = `
       <Icon
         data-tooltip="inherit"
         disabled={false}
-        src={65}
+        src={67}
       >
         <div
           className="msg icon codicon codicon-copy"

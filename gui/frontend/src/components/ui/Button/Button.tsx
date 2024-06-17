@@ -41,7 +41,7 @@ export interface IButtonProperties extends IComponentProperties {
     /** When set the button gets no min width or extra padding. */
     imageOnly?: boolean;
 
-    /** If set this button gets the initial focus. */
+    /** If set this button gets a different background. */
     isDefault?: boolean;
 
     /** Buttons can automatically trigger requests, if no parameter is required. */
@@ -74,20 +74,14 @@ export class Button extends ComponentBase<IButtonProperties> {
         this.buttonRef = props.innerRef ?? createRef<HTMLDivElement>();
     }
 
-    public componentDidMount(): void {
-        const { isDefault } = this.props;
-        if (isDefault && this.buttonRef?.current) {
-            this.buttonRef.current.focus();
-        }
-    }
-
     public render(): ComponentChild {
-        const { children, caption, style, orientation, round, imageOnly, disabled } = this.mergedProps;
+        const { children, caption, style, orientation, round, imageOnly, disabled, isDefault } = this.mergedProps;
         const className = this.getEffectiveClassNames([
             "button",
             this.classFromProperty(round, "round"),
             this.classFromProperty(imageOnly, "imageOnly"),
             this.classFromProperty(disabled, "disabled"),
+            this.classFromProperty(isDefault, "default"),
         ]);
 
         const content = children ?? caption;

@@ -25,17 +25,14 @@
 
 import { screen, waitFor } from "@testing-library/preact";
 import { createRef } from "preact";
-
 import { mount } from "enzyme";
+
 import { DataCallback } from "../../../../../communication/MessageScheduler.js";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../../communication/MySQL.js";
 import { IShellDictionary } from "../../../../../communication/Protocol.js";
 import {
-    IMrsAddAuthAppData,
-    IMrsAddContentSetData, IMrsAuthAppData,
-    IMrsServiceData, IMrsUserRoleData,
-    IShellMrsUpdateDbObjectKwargsValue,
-    ShellAPIMrs,
+    IMrsAddAuthAppData, IMrsAddContentSetData, IMrsAuthAppData, IMrsServiceData, IMrsUserRoleData,
+    IShellMrsUpdateDbObjectKwargsValue, ShellAPIMrs,
 } from "../../../../../communication/ProtocolMrs.js";
 import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
 import { MrsDbObjectType } from "../../../../../modules/mrs/types.js";

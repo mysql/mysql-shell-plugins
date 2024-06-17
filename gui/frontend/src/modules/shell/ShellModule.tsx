@@ -468,7 +468,8 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                     requisitions.executeRemote("sessionAdded", session);
                     this.hideProgress(id);
                 } catch (reason) {
-                    void requisitions.execute("showError", ["Shell Session Error", String(reason)]);
+                    const message = reason instanceof Error ? reason.message : String(reason);
+                    void requisitions.execute("showError", "Shell Session Error: " + message);
 
                     this.hideProgress("sessions");
                 }
@@ -513,7 +514,8 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
 
             this.hideProgress(id);
         } catch (reason) {
-            void requisitions.execute("showError", ["Shell Session Error", String(reason)]);
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Shell Session Error: " + message);
 
             this.hideProgress("sessions");
         }

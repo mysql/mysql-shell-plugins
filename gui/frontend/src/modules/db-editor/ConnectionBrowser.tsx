@@ -535,7 +535,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             try {
                 await ShellInterface.users.storePassword(data.request.service, data.password);
             } catch (reason) {
-                void requisitions.execute("showError", ["Accept Password Error", String(reason)]);
+                void requisitions.execute("showFatalError", ["Accept Password Error", String(reason)]);
             }
 
             return true;

@@ -23,24 +23,24 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import settingIcon from "../assets/images/settings.svg";
 import debuggerIcon from "../assets/images/debugger.svg";
+import settingIcon from "../assets/images/settings.svg";
 
 import { ComponentChild, createElement, createRef } from "preact";
 
-import { webSession } from "../supplement/WebSession.js";
 import { appParameters, requisitions } from "../supplement/Requisitions.js";
+import { webSession } from "../supplement/WebSession.js";
 
-import { ModuleRegistry } from "../modules/ModuleRegistry.js";
 import { SettingsEditor } from "../components/SettingsEditor/SettingsEditor.js";
+import { ModuleRegistry } from "../modules/ModuleRegistry.js";
 import { DialogHost } from "./DialogHost.js";
 
 import { CommunicationDebugger } from "../components/CommunicationDebugger/CommunicationDebugger.js";
 import { ActivityBar } from "../components/ui/ActivityBar/ActivityBar.js";
 import { ActivityBarItem, IActivityBarItemProperties } from "../components/ui/ActivityBar/ActivityBarItem.js";
-import { IComponentProperties, ComponentBase } from "../components/ui/Component/ComponentBase.js";
-import { Orientation, Container } from "../components/ui/Container/Container.js";
-import { SplitContainer, ISplitterPaneSizeInfo } from "../components/ui/SplitContainer/SplitContainer.js";
+import { ComponentBase, IComponentProperties } from "../components/ui/Component/ComponentBase.js";
+import { Container, Orientation } from "../components/ui/Container/Container.js";
+import { ISplitterPaneSizeInfo, SplitContainer } from "../components/ui/SplitContainer/SplitContainer.js";
 
 interface IApplicationHostProperties extends IComponentProperties {
     toggleOptions: () => void;

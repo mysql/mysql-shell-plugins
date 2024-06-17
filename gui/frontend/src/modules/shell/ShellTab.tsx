@@ -176,8 +176,9 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     savedState.promptDescriptor = result.promptDescriptor;
                     void requisitions.execute("updateShellPrompt", result);
                 }
-            }).catch((event) => {
-                void requisitions.execute("showError", ["Shell Language Switch Error", String(event.message)]);
+            }).catch((reason) => {
+                const message = reason instanceof Error ? reason.message : String(reason);
+                void requisitions.execute("showError", "Shell Language Switch Error: " + message);
             });
         }
     }
@@ -259,8 +260,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                         resolve(true);
                                     });
                                 }).catch((reason) => {
-                                    void requisitions.execute("showError",
-                                        ["Shell Language Switch Error", String(reason)]);
+                                    const message = reason instanceof Error ? reason.message : String(reason);
+                                    void requisitions.execute("showError", "Shell Language Switch Error" + message);
 
                                     resolve(false);
                                 });
@@ -681,7 +682,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                 }
             }
         } catch (reason) {
-            void requisitions.execute("showError", ["Shell Execution Error", String(reason)]);
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Shell Execution Error: " + message);
 
             throw reason;
         }
@@ -799,7 +801,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                 },
             });
         } catch (reason) {
-            void requisitions.execute("showError", ["Shell DB Session Error", reason as string]);
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Shell DB Session Error: " + message);
         }
     };
 

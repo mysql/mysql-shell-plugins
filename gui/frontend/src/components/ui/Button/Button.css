@@ -37,6 +37,11 @@
     min-width: 80px;
 }
 
+.msg.button.default {
+    background: var(--button-defaultBackground);
+    color: var(--button-defaultForeground);
+}
+
 .msg.button.imageOnly {
     padding: 2px 2px;
     margin: 2px;

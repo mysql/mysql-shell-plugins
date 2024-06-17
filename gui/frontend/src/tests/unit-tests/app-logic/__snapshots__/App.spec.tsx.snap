@@ -362,7 +362,7 @@ exports[`Application tests Application readiness 1`] = `
           <g>
             <Icon
               disabled={false}
-              src={190}
+              src={126}
             />
             <Label>
               
@@ -398,6 +398,32 @@ exports[`Application tests Application readiness 1`] = `
     <TooltipProvider
       showDelay={200}
     />
+    <NotificationCenter>
+      <Container
+        className="msg notificationCenter"
+        innerRef={
+          {
+            "current": <div
+              class="msg container fixedScrollbar notificationCenter"
+              style="flex-direction: column;"
+            />,
+          }
+        }
+        orientation="column"
+      >
+        <div
+          className="msg container fixedScrollbar notificationCenter"
+          style={
+            {
+              "alignItems": undefined,
+              "flexDirection": "column",
+              "flexWrap": undefined,
+              "justifyContent": undefined,
+            }
+          }
+        />
+      </Container>
+    </NotificationCenter>
     <Statusbar
       items={
         [
@@ -420,6 +446,15 @@ exports[`Application tests Application readiness 1`] = `
             "rightAlign": false,
             "standout": false,
             "type": 0,
+          },
+          {
+            "commandId": "notifications:showHistory",
+            "icon": 17,
+            "id": "showNotificationHistory",
+            "rightAlign": true,
+            "tooltip": "Show Notifications",
+            "type": 1,
+            "visible": true,
           },
           {
             "id": "editorLanguage",
@@ -496,7 +531,48 @@ exports[`Application tests Application readiness 1`] = `
                   "justifyContent": undefined,
                 }
               }
-            />
+            >
+              <Button
+                caption=""
+                className="statusbarItem"
+                data-command="notifications:showHistory"
+                disabled={false}
+                imageOnly={true}
+                key="statusbarItem3"
+                onClick={[Function]}
+                style={
+                  {
+                    "color": undefined,
+                  }
+                }
+              >
+                <div
+                  caption=""
+                  className="msg button imageOnly statusbarItem"
+                  data-command="notifications:showHistory"
+                  onClick={[Function]}
+                  onMouseDown={[Function]}
+                  role="button"
+                  style={
+                    {
+                      "color": undefined,
+                    }
+                  }
+                  tabIndex={0}
+                >
+                  <Icon
+                    data-tooltip="inherit"
+                    disabled={false}
+                    src={17}
+                  >
+                    <div
+                      className="msg icon codicon codicon-bell"
+                      data-tooltip="inherit"
+                    />
+                  </Icon>
+                </div>
+              </Button>
+            </div>
           </Container>
         </div>
       </Container>
@@ -530,7 +606,7 @@ exports[`Application tests Application readiness 1`] = `
             <g>
               <Icon
                 disabled={false}
-                src={389}
+                src={391}
               />
               <Label />
             </g>
@@ -601,7 +677,7 @@ exports[`Application tests Application readiness 1`] = `
             <g>
               <Icon
                 disabled={false}
-                src={276}
+                src={278}
               />
               <Label>
                 Confirm

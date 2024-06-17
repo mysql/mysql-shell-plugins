@@ -30,7 +30,7 @@ exports[`Awaitable Value Edit Dialog Tests Render Test 1`] = `
         <g>
           <Icon
             disabled={false}
-            src={389}
+            src={391}
           />
           <Label />
         </g>

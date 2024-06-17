@@ -749,7 +749,8 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
 
             this.setState({ schemaList });
         }).catch((reason): void => {
-            void requisitions.execute("showError", ["Backend Error", String(reason)]);
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Backend Error: " + message);
         });
     };
 
@@ -1357,9 +1358,9 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
 
                 row.addTreeChild(newChild);
             }
-        } catch (error) {
-            void requisitions.execute("showError", ["Backend Error", "Could not get column information.",
-                error as string]);
+        } catch (reason) {
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Could not get column information." + message);
         }
 
         row.treeExpand();
@@ -1393,9 +1394,9 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
 
                 row.addTreeChild(newChild);
             });
-        } catch (error) {
-            void requisitions.execute("showError",
-                ["Backend Error", "Could not get column information.", error as string]);
+        } catch (reason) {
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Could not get column information: " + message);
         }
 
         row.treeExpand();
@@ -1419,9 +1420,9 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
                 const names = await backend.getSchemaObjects(schema, type, undefined, filter);
                 this.addTreeChildren(row, names, schema, this.groupNodeToSchemaTreeTypeName(entry.id));
             }
-        } catch (error) {
-            void requisitions.execute("showError",
-                ["Backend Error", "Retrieving schema objects failed:", error as string]);
+        } catch (reason) {
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Retrieving schema objects failed: " + message);
         }
 
         tree?.restoreRedraw();

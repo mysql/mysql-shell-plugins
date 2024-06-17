@@ -386,7 +386,7 @@
         "statusBar.noFolderBorder": "#3D3D42",
         "statusBar.noFolderForeground": "#FFFFFF",
         "statusBarItem.activeBackground": "#FFFFFF",
-        "statusBarItem.hoverBackground": "#FFFFFF",
+        "statusBarItem.hoverBackground": "#0093f5",
         "statusBarItem.prominentBackground": "#0088E3",
         "statusBarItem.prominentForeground": "#FFFFFF",
         "statusBarItem.prominentHoverBackground": "#0088E3",
