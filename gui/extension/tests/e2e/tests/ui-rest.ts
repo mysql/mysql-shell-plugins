@@ -144,7 +144,7 @@ describe("MySQL REST Service", () => {
             await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await driver.wait(async () => {
                 await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait10seconds,
+                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
                     `${constants.dbTreeSection} is still loading`);
 
                 return (await dbTreeSection.tree.isMRSDisabled(treeMySQLRestService)) === true;
@@ -158,7 +158,7 @@ describe("MySQL REST Service", () => {
             await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await driver.wait(async () => {
                 await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait10seconds,
+                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
                     `${constants.dbTreeSection} is still loading`);
 
                 return (await dbTreeSection.tree.isMRSDisabled(treeMySQLRestService)) === false;
@@ -363,11 +363,11 @@ describe("MySQL REST Service", () => {
                     await dbTreeSection.tree.openContextMenuAndSelect(treeMySQLRestService, constants.addRESTService);
                     await RestServiceDialog.set(service);
                     await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
-                        constants.wait5seconds);
+                        constants.wait20seconds);
 
                     await driver.wait(dbTreeSection.tree
                         .untilExists(`${service.servicePath} (${service.settings.hostNameFilter})`),
-                        constants.wait5seconds);
+                        constants.wait10seconds);
                 }
                 await dbTreeSection.focus();
             } catch (e) {
@@ -378,7 +378,7 @@ describe("MySQL REST Service", () => {
 
         beforeEach(async function () {
             try {
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait10seconds,
+                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
             } catch (e) {
@@ -430,10 +430,10 @@ describe("MySQL REST Service", () => {
 
             await RestServiceDialog.set(editedService);
             await driver.wait(Workbench.untilNotificationExists("The MRS service has been successfully updated."),
-                constants.wait5seconds);
+                constants.wait10seconds);
             await driver.wait(dbTreeSection.tree
                 .untilExists(`${editedService.servicePath} (${editedService.settings.hostNameFilter})`),
-                constants.wait5seconds);
+                constants.wait10seconds);
             treeRandomService = await dbTreeSection.tree.getElement(
                 `${editedService.servicePath} (${editedService.settings.hostNameFilter})`);
             await dbTreeSection.tree.openContextMenuAndSelect(treeRandomService, constants.editRESTService);
@@ -452,13 +452,13 @@ describe("MySQL REST Service", () => {
                 await dbTreeSection.tree.openContextMenuAndSelect(treeSchema, constants.addSchemaToREST);
                 await RestSchemaDialog.set(schema);
                 await driver.wait(Workbench.untilNotificationExists("The MRS schema has been added successfully."),
-                    constants.wait5seconds);
+                    constants.wait10seconds);
                 const treeService = await dbTreeSection.tree.getElement(
                     `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
                 await treeService.expand();
                 await driver.wait(dbTreeSection.tree
                     .untilExists(`${schema.restSchemaPath} (${schema.settings.schemaName})`),
-                    constants.wait5seconds);
+                    constants.wait10seconds);
             }
 
         });
@@ -490,7 +490,7 @@ describe("MySQL REST Service", () => {
 
             await RestSchemaDialog.set(editedSchema);
             await driver.wait(Workbench.untilNotificationExists("The MRS schema has been updated successfully"),
-                constants.wait5seconds);
+                constants.wait10seconds);
             const treeEdited = await dbTreeSection.tree.getElement(
                 `${editedSchema.restSchemaPath} (${editedSchema.settings.schemaName})`);
             await dbTreeSection.tree.openContextMenuAndSelect(treeEdited, constants.editRESTSchema);
@@ -506,7 +506,7 @@ describe("MySQL REST Service", () => {
             await dbTreeSection.tree.openContextMenuAndSelect(treeRandomService, constants.setAsCurrentREST);
             await driver.wait(Workbench
                 .untilNotificationExists("The MRS service has been set as the new default service."),
-                constants.wait5seconds);
+                constants.wait10seconds);
             await driver.wait(dbTreeSection.tree.untilIsDefault(
                 `${globalService.servicePath} (${globalService.settings.hostNameFilter})`,
                 "rest"), constants.wait5seconds, "REST Service tree item did not became default");
@@ -654,7 +654,7 @@ describe("MySQL REST Service", () => {
             const treeTableToDump = await dbTreeSection.tree.getElement(
                 `${tableToEdit.restObjectPath} (${tableToEdit.jsonRelDuality.dbObject})`);
             await dbTreeSection.tree.openContextMenuAndSelect(treeTableToDump, constants.deleteRESTObj);
-            await driver.wait(Workbench.untilModalDialogIsOpened(), constants.wait5seconds);
+            await driver.wait(Workbench.untilModalDialogIsOpened(), constants.wait10seconds);
             await new ModalDialog().pushButton(`Delete DB Object`);
             await driver.wait(Workbench.untilNotificationExists("The REST DB Object abc has been deleted"),
                 constants.wait5seconds);

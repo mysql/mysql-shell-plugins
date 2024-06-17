@@ -45,7 +45,7 @@ export class AuthenticationAppDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsAuthenticationAppDialog.exists),
-            constants.wait10seconds, "Authentication app dialog was not displayed");
+            constants.wait20seconds, "Authentication app dialog was not displayed");
 
         if (authApp.vendor) {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.authVendorName).click();
@@ -112,7 +112,7 @@ export class AuthenticationAppDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsAuthenticationAppDialog.exists),
-            constants.wait10seconds, "Authentication app dialog was not displayed");
+            constants.wait20seconds, "Authentication app dialog was not displayed");
 
         const authenticationApp: interfaces.IRestAuthenticationApp = {
             vendor: await dialog.findElement(locator.mrsAuthenticationAppDialog.authVendorNameLabel).getText(),

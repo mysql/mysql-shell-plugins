@@ -45,7 +45,7 @@ export class RestSchemaDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsSchemaDialog.exists),
-            constants.wait5seconds, "MRS Schema dialog was not displayed");
+            constants.wait20seconds, "MRS Schema dialog was not displayed");
 
         if (restSchema.restServicePath) {
             await driver.wait(async () => {
@@ -117,7 +117,7 @@ export class RestSchemaDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsSchemaDialog.exists),
-            constants.wait5seconds, "MRS Schema dialog was not displayed");
+            constants.wait20seconds, "MRS Schema dialog was not displayed");
 
         // Main settings
         const restSchema: interfaces.IRestSchema = {

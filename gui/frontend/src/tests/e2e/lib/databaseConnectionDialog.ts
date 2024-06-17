@@ -30,6 +30,7 @@ import { driver } from "./driver.js";
 import * as interfaces from "./interfaces.js";
 import { DialogHelper } from "./dialogHelper.js";
 import { DatabaseConnectionOverview } from "./databaseConnectionOverview.js";
+import { Misc } from "./misc.js";
 
 export class DatabaseConnectionDialog {
 
@@ -162,7 +163,7 @@ export class DatabaseConnectionDialog {
                                 const modes = Object.keys(dbConfig.advanced.mode);
                                 for (const mode of modes) {
                                     await DialogHelper.setCheckboxValue(await getModeItem(mode) as WebElement,
-                                        dbConfig.advanced.mode[mode as keyof typeof dbConfig.advanced.mode] as boolean);
+                                        dbConfig.advanced.mode[mode as keyof typeof dbConfig.advanced.mode]);
                                 }
                             }
 
@@ -298,7 +299,6 @@ export class DatabaseConnectionDialog {
 
         await dialog.findElement(locator.dbConnectionDialog.ok).click();
     };
-
 
     /**
      * Gets a Database connection details by opening the connection dialog
@@ -471,6 +471,41 @@ export class DatabaseConnectionDialog {
         await dialog.findElement(locator.dbConnectionDialog.ok).click();
 
         return dbConnection;
+    };
+
+    /**
+     * Clicks the Clear Password button. It waits for the confirm dialog and click the OK button,
+     * or wait for a notification error, dismissing it
+     * @returns A promise resolving when the button is clicked and the dialog or notification is dismissed
+     */
+    public static clearPassword = async (): Promise<void> => {
+        const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
+            constants.wait5seconds, "Connection dialog was not displayed");
+
+        await dialog.findElement(locator.dbConnectionDialog.clearPassword).click();
+
+        await driver.wait(async () => {
+            const dialog = await driver.findElements(locator.confirmDialog.exists);
+            const notifications = await Misc.getToastNotifications();
+
+            if (dialog.length > 0) {
+                await dialog[0].findElement(locator.confirmDialog.accept).click();
+
+                return true;
+            }
+
+            if (notifications.length > 0) {
+                for (const notification of notifications) {
+                    await notification.close();
+                    await driver.wait(notification.untilIsClosed(), constants.wait5seconds,
+                        "The notification was not closed");
+                }
+
+                return true;
+            }
+        }, constants.wait5seconds, "No confirm dialog nor notifications were triggered");
+
+        await dialog.findElement(locator.dbConnectionDialog.ok).click();
     };
 
 }

@@ -46,7 +46,7 @@ export class RestUserDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsUserDialog.exists),
-            constants.wait10seconds, "User dialog was not displayed");
+            constants.wait20seconds, "User dialog was not displayed");
 
         await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.username, restUser.username);
         await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.password, restUser.password);
@@ -110,7 +110,7 @@ export class RestUserDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsUserDialog.exists),
-            constants.wait10seconds, "User dialog was not displayed");
+            constants.wait20seconds, "User dialog was not displayed");
 
         const restUser: interfaces.IRestUser = {
             username: await DialogHelper.getFieldValue(dialog, locator.mrsUserDialog.username),

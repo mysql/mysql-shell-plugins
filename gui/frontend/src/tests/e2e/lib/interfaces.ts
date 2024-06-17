@@ -130,6 +130,13 @@ export interface IResultGridCell {
     value: string | boolean | number;
 }
 
+export interface INotification {
+    id: string;
+    type: string;
+    message: string;
+    webElement?: WebElement;
+}
+
 export const isMySQLConnection = (obj: unknown): obj is IConnBasicMySQL => {
     return (obj as IConnBasicMySQL).hostname !== undefined;
 };
