@@ -2167,7 +2167,7 @@ describe("NOTEBOOKS", () => {
 
             await lakeHouseNavigator.toolbar
                 .selectEditor(new RegExp(constants.openEditorsDBNotebook), heatWaveConn.caption);
-            await driver.wait(waitUntil.currentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
+            await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
                 constants.wait3seconds);
             const query = "How do I cook some waffles?";
             await Workbench.toggleSideBar(false);
