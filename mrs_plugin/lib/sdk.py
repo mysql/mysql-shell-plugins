@@ -714,8 +714,9 @@ def generate_field_enum(name, fields=None, sdk_language="TypeScript"):
             return generate_type_declaration_placeholder(f"{name}Field", sdk_language)
 
         stringified_fields = [f'{" " * 4}"{lib.core.convert_to_snake_case(field)}"' for field in fields]
+        s = ',\n'.join(stringified_fields)
         return (f"I{name}Field: TypeAlias = Literal[\n" +
-                f"{',\n'.join(stringified_fields)},\n" +
+                f"{s},\n" +
                 "]\n\n\n")
 
 
@@ -732,8 +733,9 @@ def generate_literal_type(values, sdk_language):
         return f"{' | '.join(items)}"
     if sdk_language == "Python":
         items = [f'{" " * 4}"{value}"' for value in values]
+        s = ',\n'.join(items)
         return (f"Literal[\n" +
-            f"{',\n'.join(items)},\n" +
+            f"{s},\n" +
             "]")
 
 
