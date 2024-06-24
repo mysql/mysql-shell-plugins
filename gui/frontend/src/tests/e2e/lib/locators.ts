@@ -577,13 +577,6 @@ export const genericDialog = {
     exists: By.className("valueEditDialog"),
 };
 
-export const bell = {
-    exists: By.className("rightItems"),
-    hasNotNotifications: By.className("codicon-bell"),
-    hasNotifications: By.className("codicon-bell-dot"),
-    silentMode: By.xpath("//div[contains(@class, 'slash')]"),
-};
-
 export const toastNotification = {
     exists: By.xpath("//div[contains(@id, 'toast-')]"),
     existsById: (id: string): By => {
@@ -593,6 +586,19 @@ export const toastNotification = {
     info: By.className("codicon-info"),
     message: By.css("label"),
     close: By.className("codicon-close"),
+};
+
+export const statusBar = {
+    bell: {
+        exists: By.id("showNotificationHistory"),
+        bellIcon: By.className("codicon-bell"),
+        bellIconWithDot: By.className("codicon-bell-dot"),
+        silentMode: By.xpath("//div[contains(@class, 'slash')]"),
+    },
+    editorPosition: By.id("editorPosition"),
+    editorIndent: By.id("editorIndent"),
+    editorEOL: By.id("editorEOL"),
+    editorLanguage: By.id("editorLanguage"),
 };
 
 export const notificationsCenter = {
@@ -612,4 +618,3 @@ export const notificationsCenter = {
         },
     },
 };
-

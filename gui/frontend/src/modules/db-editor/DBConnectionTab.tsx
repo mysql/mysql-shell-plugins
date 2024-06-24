@@ -26,58 +26,57 @@
 import "./assets/DBEditor.css";
 
 import { ComponentChild, createRef } from "preact";
+import { SetIntervalAsyncTimer, clearIntervalAsync, setIntervalAsync } from "set-interval-async/dynamic";
 import ts, { ScriptTarget } from "typescript";
-import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from "set-interval-async/dynamic";
 
-import { Explorer, IExplorerSectionState } from "./Explorer.js";
-import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
-import { formatBase64ToHex, formatTime, formatWithNumber, unquote } from "../../utilities/string-helpers.js";
-import { Notebook } from "./Notebook.js";
-import {
-    IEntityBase, EntityType, ISchemaTreeEntry, IDBDataEntry, SchemaTreeType, IToolbarItems, ISavedGraphData,
-} from "./index.js";
-import { ScriptEditor } from "./ScriptEditor.js";
-import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
-import {
-    IEditorExtendedExecutionOptions,
-    IMrsDbObjectEditRequest, IMrsSchemaEditRequest, IOpenFileDialogResult, appParameters,
-    requisitions,
-    type IColumnDetails,
-} from "../../supplement/Requisitions.js";
-import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types.js";
-import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
-import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices.js";
-import { QueryType } from "../../parsing/parser-common.js";
-import {
-    DBDataType, IColumnInfo, IDictionary, IStatusInfo, IServicePasswordRequest, MessageType,
-} from "../../app-logic/Types.js";
-import { Settings } from "../../supplement/Settings/Settings.js";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
 import {
-    convertRows, EditorLanguage, generateColumnInfo, ISqlPageRequest, IScriptRequest,
-} from "../../supplement/index.js";
-import { ServerStatus } from "./ServerStatus.js";
-import { ClientConnections } from "./ClientConnections.js";
-import { PerformanceDashboard } from "./PerformanceDashboard.js";
-import { saveTextAsFile, selectFile, uuid } from "../../utilities/helpers.js";
+    DBDataType, IColumnInfo, IDictionary, IServicePasswordRequest, IStatusInfo, MessageType,
+} from "../../app-logic/Types.js";
 import { IDbEditorResultSetData } from "../../communication/ProtocolGui.js";
+import { IMdsChatData } from "../../communication/ProtocolMds.js";
 import { ResponseError } from "../../communication/ResponseError.js";
-import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
-import { SplitContainer, ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer.js";
-import { DBType } from "../../supplement/ShellInterface/index.js";
-import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import {
-    currentNotebookVersion, IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry,
-} from "../../script-execution/index.js";
+import { ChatOptionAction, ChatOptions, IChatOptionsState } from "../../components/Chat/ChatOptions.js";
+import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
+import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
+import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
+import { ISplitterPaneSizeInfo, SplitContainer } from "../../components/ui/SplitContainer/SplitContainer.js";
+import { StatusBar } from "../../components/ui/Statusbar/Statusbar.js";
+import { getRouterPortForConnection } from "../../modules/mrs/mrs-helpers.js";
+import { QueryType } from "../../parsing/parser-common.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
+import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices.js";
+import {
+    IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry, currentNotebookVersion,
+} from "../../script-execution/index.js";
+import {
+    IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, IMrsSchemaEditRequest, IOpenFileDialogResult,
+    appParameters, requisitions, type IColumnDetails,
+} from "../../supplement/Requisitions.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { DBType } from "../../supplement/ShellInterface/index.js";
+import {
+    EditorLanguage, IScriptRequest, ISqlPageRequest, convertRows, generateColumnInfo,
+} from "../../supplement/index.js";
+import { saveTextAsFile, selectFile, uuid } from "../../utilities/helpers.js";
+import { formatBase64ToHex, formatTime, formatWithNumber, unquote } from "../../utilities/string-helpers.js";
 import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses.js";
 import { IMrsAuthRequestPayload } from "../mrs/types.js";
-import { getRouterPortForConnection } from "../../modules/mrs/mrs-helpers.js";
-import { LakehouseNavigator, ILakehouseNavigatorState, ILakehouseNavigatorSavedState } from "./LakehouseNavigator.js";
-import { IMdsChatData } from "../../communication/ProtocolMds.js";
-import { ChatOptionAction, ChatOptions, IChatOptionsState } from "../../components/Chat/ChatOptions.js";
+import { ClientConnections } from "./ClientConnections.js";
+import { Explorer, IExplorerSectionState } from "./Explorer.js";
+import { ILakehouseNavigatorSavedState, ILakehouseNavigatorState, LakehouseNavigator } from "./LakehouseNavigator.js";
+import { Notebook } from "./Notebook.js";
+import { PerformanceDashboard } from "./PerformanceDashboard.js";
+import { ScriptEditor } from "./ScriptEditor.js";
+import { ServerStatus } from "./ServerStatus.js";
+import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types.js";
+import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
+import {
+    EntityType, IDBDataEntry, IEntityBase, ISavedGraphData, ISchemaTreeEntry, IToolbarItems, SchemaTreeType,
+} from "./index.js";
 
 const errorRexExp = new RegExp(`(You have an error in your SQL syntax; check the manual that corresponds to your ` +
     `MySQL server version for the right syntax to use near '(.*)' at line )(\\d+)`);
@@ -1251,9 +1250,12 @@ Execute \\help or \\? for help;`;
                     if (options.updatable && options.fullTableName) {
                         if (options.pkColumns && options.pkColumns.length > 0) {
                             for (const pkColumn of options.pkColumns) {
-                                if (!columns.find((c) => { return c.title === pkColumn; })) {
+                                const column = columns.find((c) => { return c.title === pkColumn; });
+                                if (!column) {
                                     options.updatable = false;
                                     break;
+                                } else {
+                                    column.inPK = true;
                                 }
                             }
                         } else {
@@ -1753,8 +1755,15 @@ Execute \\help or \\? for help;`;
         await requisitions.execute("sqlUpdateColumnInfo", details);
     }
 
-    private getPrimaryKeyColumns = async (backend: ShellInterfaceSqlEditor,
-        fullTableName: string): Promise<string[]> => {
+    /**
+     * Retrieves all columns that are part of the primary key for the given table.
+     *
+     * @param backend The backend to use for the query.
+     * @param fullTableName The full name of the table to get the primary key columns for.
+     *
+     * @returns A promise that resolves to an array of column names that are part of the primary key.
+     */
+    private async getPrimaryKeyColumns(backend: ShellInterfaceSqlEditor, fullTableName: string): Promise<string[]> {
         const parts = fullTableName.split(".");
         const table = unquote(parts.pop()!);
         let schema = "";
@@ -1767,7 +1776,7 @@ Execute \\help or \\? for help;`;
         }
 
         return backend?.getTableObjectNames(schema, table, "Primary Key");
-    };
+    }
 
 
     private updateMrsServiceSdkCache = async (): Promise<boolean> => {
@@ -1775,24 +1784,10 @@ Execute \\help or \\? for help;`;
         const { backend } = this.state;
 
         if (backend !== undefined) {
-            const sbId = uuid();
-            const updateStatusbar = async (text?: string, timeout?: number) => {
-                // Removes the statusbar item, if the text is undefined.
-                if (appParameters.embedded) {
-                    requisitions.executeRemote("updateStatusbar", [{
-                        id: sbId, text, visible: text !== undefined, hideAfter: timeout,
-                    }]);
-                } else {
-                    await requisitions.execute("updateStatusbar", [{
-                        id: sbId, text, visible: text !== undefined, hideAfter: timeout,
-                    }]);
-                }
-            };
-
             // Check if there is an current MRS Service set and if so, get the corresponding MRSruntime SDK
             // for that MRS Service
             try {
-                void updateStatusbar("$(loading~spin) Checking MRS status ...");
+                const firstItem = StatusBar.setStatusBarMessage("$(loading~spin) Checking MRS status ...");
                 const serviceMetadata = await backend.mrs.getCurrentServiceMetadata();
 
                 // Check if there is a current MRS service set and if the cached
@@ -1814,15 +1809,16 @@ Execute \\help or \\? for help;`;
 
                         // Fetch SDK BaseClasses only once
                         if (this.cachedMrsServiceSdk.baseClasses === undefined) {
-                            void updateStatusbar("$(loading~spin) Loading MRS SDK Base Classes ...");
+                            StatusBar.setStatusBarMessage("$(loading~spin) Loading MRS SDK Base Classes ...");
                             this.cachedMrsServiceSdk.baseClasses =
                                 await backend.mrs.getSdkBaseClasses("TypeScript", true);
                             firstLoad = true;
                         }
 
                         // Fetch new SDK Service Classes and build full code
-                        void updateStatusbar(`$(loading~spin) ${firstLoad ? "Loading" : "Refreshing"} MRS SDK for ` +
-                            `${serviceMetadata.hostCtx}...`);
+                        StatusBar.setStatusBarMessage(`$(loading~spin) ${firstLoad
+                            ? "Loading"
+                            : "Refreshing"} MRS SDK for ${serviceMetadata.hostCtx}...`);
                         if (this.cachedMrsServiceSdk.serviceUrl === undefined) {
                             if (!serviceMetadata.hostCtx.toLowerCase().startsWith("http")) {
                                 const service = await backend.mrs.getService(
@@ -1835,6 +1831,7 @@ Execute \\help or \\? for help;`;
                                 this.cachedMrsServiceSdk.serviceUrl = serviceMetadata.hostCtx;
                             }
                         }
+
                         code += this.cachedMrsServiceSdk.baseClasses + "\n" +
                             await backend.mrs.getSdkServiceClasses(
                                 serviceMetadata.id, "TypeScript", true, this.cachedMrsServiceSdk.serviceUrl);
@@ -1852,17 +1849,17 @@ Execute \\help or \\? for help;`;
 
                         const action = firstLoad ? "loaded" : ("refreshed (v" + String(libVersionNotebook) + ")");
                         const authInfo = authenticated ? " User authenticated." : "";
-                        void updateStatusbar(
+                        StatusBar.setStatusBarMessage(
                             `MRS SDK for ${serviceMetadata.hostCtx} has been ${action}.${authInfo}`, 5000);
                     } else {
-                        void updateStatusbar();
+                        firstItem.dispose();
                     }
                 } else if (serviceMetadata.metadataVersion !== undefined) {
                     // If no current MRS service set, clean the cachedMrsServiceSdk and just load the MRS runtime
                     // management code
                     this.cachedMrsServiceSdk = {};
 
-                    void updateStatusbar("$(loading~spin) Loading MRS Management Classes ...");
+                    StatusBar.setStatusBarMessage("$(loading~spin) Loading MRS Management Classes ...");
 
                     const code = await backend.mrs.getRuntimeManagementCode();
                     this.cachedMrsServiceSdk.codeLineCount = (code.match(/\n/gm) ?? []).length + 1;
@@ -1872,16 +1869,16 @@ Execute \\help or \\? for help;`;
                     this.notebookRef.current?.addOrUpdateExtraLib(code, `mrsServiceSdk.d.ts`);
                     this.scriptRef.current?.addOrUpdateExtraLib(code, `mrsServiceSdk.d.ts`);
 
-                    void updateStatusbar(`MRS MRS Management Classes have been loaded.`, 5000);
+                    StatusBar.setStatusBarMessage(`MRS MRS Management Classes have been loaded.`, 5000);
                 } else {
                     // If MRS is not enabled, just clear the statusbar
-                    void updateStatusbar();
+                    firstItem.dispose();
                 }
 
                 return true;
             } catch (e) {
                 // Ignore exception when MRS is not configured
-                void updateStatusbar(`MRS SDK Error: ${String(e)}`);
+                StatusBar.setStatusBarMessage(`MRS SDK Error: ${String(e)}`);
 
                 return false;
             }

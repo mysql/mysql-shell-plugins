@@ -29,10 +29,11 @@ import { commands, ConfigurationTarget, Uri, ViewColumn, WebviewPanel, window, w
 
 import {
     IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider, RequisitionHub, requisitions, SimpleCallback,
+    type IUpdateStatusBarItem,
 } from "../../../frontend/src/supplement/Requisitions.js";
 
+import { IDialogResponse } from "../../../frontend/src/app-logic/Types.js";
 import { IEmbeddedMessage } from "../../../frontend/src/communication/index.js";
-import { IDialogResponse, IStatusbarInfo } from "../../../frontend/src/app-logic/Types.js";
 
 import { printChannelOutput } from "../extension.js";
 import { prepareWebviewContent } from "./webview-helpers.js";
@@ -191,7 +192,7 @@ export class WebviewProvider implements IWebviewProvider {
             this.requisitions.register("settingsChanged", this.updateVscodeSettings);
             this.requisitions.register("selectConnectionTab", this.selectConnectionTab);
             this.requisitions.register("dialogResponse", this.dialogResponse);
-            this.requisitions.register("updateStatusbar", this.updateStatusbar);
+            this.requisitions.register("updateStatusBarItem", this.updateStatusBarItem);
 
             this.requisitions.register("closeInstance",
                 this.forwardSimple.bind(this, "closeInstance") as SimpleCallback);
@@ -218,11 +219,11 @@ export class WebviewProvider implements IWebviewProvider {
         });
     };
 
-    private updateStatusbar = (items: IStatusbarInfo[]): Promise<boolean> => {
+    private updateStatusBarItem = (item: IUpdateStatusBarItem): Promise<boolean> => {
         // Proxy the notification over the global requisitions.
         return requisitions.execute("proxyRequest", {
             provider: this,
-            original: { requestType: "updateStatusbar", parameter: items },
+            original: { requestType: "updateStatusBarItem", parameter: item },
         });
     };
 

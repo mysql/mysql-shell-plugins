@@ -26,29 +26,30 @@
 import { ComponentChild, createRef } from "preact";
 import { Children } from "preact/compat";
 
-import editIcon from "../assets/images/edit.svg";
-import deleteIcon from "../assets/images/close2.svg";
 import addIcon from "../assets/images/add.svg";
 import defaultIcon from "../assets/images/chevron-right.svg";
+import deleteIcon from "../assets/images/close2.svg";
+import editIcon from "../assets/images/edit.svg";
 import currentIcon from "../assets/images/overviewPage.svg";
 
-import { webSession } from "../supplement/WebSession.js";
-import { requisitions } from "../supplement/Requisitions.js";
-import { DialogResponseClosure } from "./Types.js";
 import { IShellProfile } from "../communication/ProtocolGui.js";
-import { ICheckboxProperties, CheckState } from "../components/ui/Checkbox/Checkbox.js";
-import { IComponentState, ComponentBase, ComponentPlacement } from "../components/ui/Component/ComponentBase.js";
-import { Container, Orientation } from "../components/ui/Container/Container.js";
-import { Label, ILabelProperties } from "../components/ui/Label/Label.js";
-import { List } from "../components/ui/List/List.js";
-import { Menu } from "../components/ui/Menu/Menu.js";
-import { MenuItem, IMenuItemProperties } from "../components/ui/Menu/MenuItem.js";
-import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
+import { ConfirmDialog } from "../components/Dialogs/ConfirmDialog.js";
 import {
     CommonDialogValueOption, ICheckListDialogValue, IDialogSection, IDialogValidations, IDialogValues,
     ValueEditDialog,
 } from "../components/Dialogs/ValueEditDialog.js";
-import { ConfirmDialog } from "../components/Dialogs/ConfirmDialog.js";
+import { CheckState, ICheckboxProperties } from "../components/ui/Checkbox/Checkbox.js";
+import { ComponentBase, ComponentPlacement, IComponentState } from "../components/ui/Component/ComponentBase.js";
+import { Container, Orientation } from "../components/ui/Container/Container.js";
+import { ILabelProperties, Label } from "../components/ui/Label/Label.js";
+import { List } from "../components/ui/List/List.js";
+import { Menu } from "../components/ui/Menu/Menu.js";
+import { IMenuItemProperties, MenuItem } from "../components/ui/Menu/MenuItem.js";
+import type { IStatusBarItem } from "../components/ui/Statusbar/StatusBarItem.js";
+import { requisitions } from "../supplement/Requisitions.js";
+import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
+import { webSession } from "../supplement/WebSession.js";
+import { DialogResponseClosure } from "./Types.js";
 
 interface IProfileSelectorState extends IComponentState {
     menuItems: ComponentChild[];
@@ -66,6 +67,8 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
     private activeProfiles: IShellProfile[] = [];
     private defaultProfile?: IShellProfile;
 
+    #profileSbEntry?: IStatusBarItem;
+
     public constructor(props: {}) {
         super(props);
 
@@ -75,6 +78,15 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
     public componentDidMount(): void {
         requisitions.register("profileLoaded", this.profileLoaded);
 
+        /*this.#profileSbEntry = StatusBar.createStatusBarItem({
+            id: "profileItem",
+            text: "Profile:",
+            priority: 999, // Most left item.
+        });*/
+    }
+
+    public componentWillMount(): void {
+        this.#profileSbEntry?.dispose();
     }
 
     public open(currentTarget: DOMRect): void {
@@ -623,38 +635,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
             return;
         }
 
-        let currentProfileName = "";
-        if (webSession.currentProfileId < 0) {
-            // No session loaded yet. Use the default instead.
-            currentProfileName = this.activeProfiles[0].name;
-        } else {
-            currentProfileName =
-                this.activeProfiles.find(
-                    (p) => { return p.id === webSession.currentProfileId; },
-                )?.name ?? this.activeProfiles[0].name;
-        }
-
-        void requisitions.execute("updateStatusbar", [
-            {
-                id: "profileTitle",
-                visible: true,
-            },
-            {
-                id: "profileChoice",
-                visible: true,
-                text: currentProfileName,
-                choices: this.activeProfiles.map((profile) => {
-                    return {
-                        label: profile.name,
-                        data: { ...profile },
-                    };
-                }),
-            },
-            {
-                id: "profileManage",
-                visible: true,
-            },
-        ]);
+        // TODO: update statusbar entry.
     };
 
     private handleMenuItemClick = (e: MouseEvent, props: IMenuItemProperties): boolean => {

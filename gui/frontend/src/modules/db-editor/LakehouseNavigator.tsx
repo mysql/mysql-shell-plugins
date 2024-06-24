@@ -21,51 +21,51 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "./assets/LakehouseNavigator.css";
-import onPremiseDiagram from "../../assets/images/lakehouseNavigatorOnPremise.svg";
-import objectStorageDiagram from "../../assets/images/lakehouseNavigatorObjectStorage.svg";
-import lakeHouseDiagram from "../../assets/images/lakehouseNavigatorLakeHouse.svg";
+import dataLakeIcon from "../../assets/images/dataLake.svg";
+import ensurePrivilegesIcon from "../../assets/images/ensurePrivileges.svg";
 import onPremiseIcon from "../../assets/images/folder.svg";
+import currentFolderIcon from "../../assets/images/folderCurrent.svg";
 import lakehouseIcon from "../../assets/images/lakehouseHouse.svg";
 import lakehouseNavigatorIcon from "../../assets/images/lakehouseNavigator.svg";
-import dataLakeIcon from "../../assets/images/dataLake.svg";
-import currentFolderIcon from "../../assets/images/folderCurrent.svg";
+import lakeHouseDiagram from "../../assets/images/lakehouseNavigatorLakeHouse.svg";
+import objectStorageDiagram from "../../assets/images/lakehouseNavigatorObjectStorage.svg";
+import onPremiseDiagram from "../../assets/images/lakehouseNavigatorOnPremise.svg";
 import schemaTableIcon from "../../assets/images/schemaTable.svg";
 import shellTaskIcon from "../../assets/images/shellTask.svg";
-import ensurePrivilegesIcon from "../../assets/images/ensurePrivileges.svg";
+import "./assets/LakehouseNavigator.css";
 
 import { ComponentChild, createRef, render } from "preact";
 
-import { IToolbarItems } from "./index.js";
-import {
-    IComponentProperties, IComponentState, ComponentBase,
-    SelectionType,
-} from "../../components/ui/Component/ComponentBase.js";
-import { Container, Orientation, ContentAlignment } from "../../components/ui/Container/Container.js";
-import { Image } from "../../components/ui/Image/Image.js";
-import { Label } from "../../components/ui/Label/Label.js";
-import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { Tabview } from "../../components/ui/Tabview/Tabview.js";
+import { CellComponent, EmptyCallback, RowComponent } from "tabulator-tables";
+import { DialogHost } from "../../app-logic/DialogHost.js";
+import { DialogResponseClosure, DialogType } from "../../app-logic/Types.js";
+import { IBucketObjectSummary, IBucketSummary, ICompartment } from "../../communication/Oci.js";
+import { IMdsProfileData } from "../../communication/ProtocolMds.js";
 import { Button } from "../../components/ui/Button/Button.js";
-import { SetDataAction, TreeGrid } from "../../components/ui/TreeGrid/TreeGrid.js";
+import { CheckState, Checkbox } from "../../components/ui/Checkbox/Checkbox.js";
+import { Codicon } from "../../components/ui/Codicon.js";
+import {
+    ComponentBase, IComponentProperties, IComponentState, SelectionType,
+} from "../../components/ui/Component/ComponentBase.js";
+import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
+import { Divider } from "../../components/ui/Divider/Divider.js";
 import { Dropdown, IDropdownProperties } from "../../components/ui/Dropdown/Dropdown.js";
 import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem.js";
-import { IMdsProfileData } from "../../communication/ProtocolMds.js";
-import { IBucketObjectSummary, IBucketSummary, ICompartment } from "../../communication/Oci.js";
-import { Input } from "../../components/ui/Input/Input.js";
-import { CellComponent, EmptyCallback, RowComponent } from "tabulator-tables";
 import { Icon } from "../../components/ui/Icon/Icon.js";
-import { Codicon } from "../../components/ui/Codicon.js";
-import { formatBytes, formatInteger, escapeSqlString } from "../../utilities/string-helpers.js";
-import { CheckState, Checkbox } from "../../components/ui/Checkbox/Checkbox.js";
-import { selectFile, uuid, uuidBinary16Base64 } from "../../utilities/helpers.js";
-import { Toggle } from "../../components/ui/Toggle/Toggle.js";
-import { IOpenFileDialogResult, appParameters, requisitions } from "../../supplement/Requisitions.js";
+import { Image } from "../../components/ui/Image/Image.js";
+import { Input } from "../../components/ui/Input/Input.js";
+import { Label } from "../../components/ui/Label/Label.js";
 import { ISplitterPaneSizeInfo, SplitContainer } from "../../components/ui/SplitContainer/SplitContainer.js";
-import { Divider } from "../../components/ui/Divider/Divider.js";
-import { DialogResponseClosure, DialogType } from "../../app-logic/Types.js";
-import { DialogHost } from "../../app-logic/DialogHost.js";
+import { StatusBar } from "../../components/ui/Statusbar/Statusbar.js";
+import { Tabview } from "../../components/ui/Tabview/Tabview.js";
+import { Toggle } from "../../components/ui/Toggle/Toggle.js";
+import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
+import { SetDataAction, TreeGrid } from "../../components/ui/TreeGrid/TreeGrid.js";
+import { IOpenFileDialogResult, appParameters, requisitions } from "../../supplement/Requisitions.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { selectFile, uuidBinary16Base64 } from "../../utilities/helpers.js";
+import { escapeSqlString, formatBytes, formatInteger } from "../../utilities/string-helpers.js";
+import { IToolbarItems } from "./index.js";
 
 export enum LakehouseNavigatorTabs {
     Overview = "overview",
@@ -1371,8 +1371,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             }
         }
 
-        // TODO:
-        // Lookup the tenancy and the region of the current MDS connection and filter the list of profiles accordingly
+        // TODO: Lookup the tenancy and region of the current MDS conn. and filter the list of profiles accordingly.
 
         if (profiles === undefined) {
             const profiles = await backend.mds.getMdsConfigProfiles();
@@ -1380,24 +1379,6 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 profiles,
                 activeProfile: profiles.find((item) => { return item.isCurrent; }),
             });
-        }
-    };
-
-    private updateStatusbar = (text?: string, timeout?: number, id?: string) => {
-        // Automatically hide the item if no id is specified
-        if (timeout === undefined && id === undefined) {
-            timeout = 5000;
-        }
-
-        if (appParameters.embedded) {
-            // Removes the statusbar item, if the text is undefined.
-            requisitions.executeRemote("updateStatusbar", [{
-                id: id ?? uuid(), text, visible: text !== undefined, hideAfter: timeout,
-            }]);
-        } else {
-            void requisitions.execute("updateStatusbar", [{
-                id: "message", text, visible: text !== undefined, hideAfter: timeout,
-            }]);
         }
     };
 
@@ -2405,7 +2386,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                         }
                     });
 
-                this.updateStatusbar(`Task scheduled successfully. Task Id: ${taskId}`);
+                StatusBar.setStatusBarMessage(`Task scheduled successfully. Task Id: ${taskId}`);
 
                 await this.autoRefreshTrees();
 
@@ -2605,7 +2586,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                         `CALL mysql_task_management.add_task_log(?, ?, NULL, ?, ?)`,
                         [taskId, "Task starting.", "0", "RUNNING"]);
 
-                    this.updateStatusbar(
+                    StatusBar.setStatusBarMessage(
                         `${tables.length} Table${tables.length > 1 ? "s are" : " is"} being unloaded. ` +
                         `Task Id: ${taskId}`);
 
@@ -2634,12 +2615,12 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     throw new Error("Failed to create MySQL task.");
                 }
             } catch (e) {
-                this.updateStatusbar(
+                StatusBar.setStatusBarMessage(
                     `Error while unloading tables: ${String(e)}`);
             }
 
         } else {
-            this.updateStatusbar("Please select tables that have already been loaded.");
+            StatusBar.setStatusBarMessage("Please select tables that have already been loaded.");
         }
 
         void this.autoRefreshTrees();
@@ -2681,7 +2662,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                             taskId = String((data.result.rows[0] as string[])[0]);
                         }
                     });
-                this.updateStatusbar(
+                StatusBar.setStatusBarMessage(
                     `${tables.length} Table${tables.length > 1 ? "s are" : " is"} being reloaded. ` +
                     `Task Id: ${taskId}`);
 
@@ -2693,10 +2674,10 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 // Select the newly created task
                 this.#tasksTreeRef.current?.selectRow([taskId]);
             } catch (e) {
-                this.updateStatusbar(`Error: ${String(e)}`);
+                StatusBar.setStatusBarMessage(`Error: ${String(e)}`);
             }
         } else {
-            this.updateStatusbar("Please select tables that are currently not loaded.");
+            StatusBar.setStatusBarMessage("Please select tables that are currently not loaded.");
         }
     };
 
@@ -2729,7 +2710,8 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
             await this.autoRefreshTrees();
         } catch (e) {
-            this.updateStatusbar(`Error: ${String(e)}`);
+            const message = e instanceof Error ? e.message : String(e);
+            void requisitions.execute("showError", `Error: ${message}`);
         }
     };
 
@@ -2760,11 +2742,11 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         });
 
         if (count > 0) {
-            this.updateStatusbar(`${count} Task${count > 1 ? "s are" : " is"} being cancelled.`);
+            StatusBar.setStatusBarMessage(`${count} Task${count > 1 ? "s are" : " is"} being cancelled.`);
 
             await this.autoRefreshTrees();
         } else {
-            this.updateStatusbar("Please select tasks with the status RUNNING.");
+            StatusBar.setStatusBarMessage("Please select tasks with the status RUNNING.");
         }
     };
 

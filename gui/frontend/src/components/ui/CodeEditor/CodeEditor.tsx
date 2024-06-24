@@ -33,7 +33,8 @@ import "./userWorker.js";
 
 import {
     CodeEditorMode, ICodeEditorOptions, ICodeEditorViewState, IDisposable, ILanguageDefinition, IPosition,
-    IProviderEditorModel, IScriptExecutionOptions, KeyCode, KeyMod, languages, Monaco, Position, Range, Selection,
+    IProviderEditorModel, IScriptExecutionOptions, KeyCode, KeyMod, languages, Monaco,
+    Range, Selection,
 } from "./index.js";
 
 import { msg } from "./languages/msg/msg.contribution.js";
@@ -165,7 +166,6 @@ interface ICodeEditorProperties extends IComponentProperties {
 
     onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
-    onCursorChange?: (position: Position) => void;
     onOptionsChanged?: () => void;
     onModelChange?: () => void;
     onContextLanguageChange?: (context: ExecutionContext, language: EditorLanguage) => void;
@@ -231,7 +231,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             "allowSoftWrap", "typeDefinitions",
             "componentMinWidth", "lineDecorationsWidth", "lineDecorationsWidth", "renderLineHighlight",
             "showIndentGuides", "lineNumbers", "minimap", "suggest", "font", "scrollbar",
-            "onScriptExecution", "onHelpCommand", "onCursorChange", "onOptionsChanged", "onContextLanguageChange",
+            "onScriptExecution", "onHelpCommand", "onOptionsChanged", "onContextLanguageChange",
             "createResultPresentation",
         );
 
@@ -1160,8 +1160,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 }
             }
 
-            const { onCursorChange } = this.mergedProps;
-            onCursorChange?.(e.position);
+            void requisitions.execute("editorCaretMoved", e.position);
         }));
 
         this.disposables.push(editor.onDidChangeModelContent(this.handleModelChange));

@@ -26,28 +26,30 @@
 import loadNotebookIcon from "../../assets/images/toolbar/toolbar-load-editor.svg";
 import saveNotebookIcon from "../../assets/images/toolbar/toolbar-save-editor.svg";
 
-import { Position } from "monaco-editor";
+import { type IPosition } from "monaco-editor";
 import { ComponentChild, createRef } from "preact";
 
-import { IEditorStatusInfo, ISchemaTreeEntry, IToolbarItems } from "./index.js";
 import { Button } from "../../components/ui/Button/Button.js";
-import { ICodeEditorViewState, IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
 import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
+import { ICodeEditorViewState, IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
 import { ComponentBase, IComponentProperties } from "../../components/ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
-import { INotebookFileFormat } from "../../script-execution/index.js";
+import { StatusBarAlignment, type IStatusBarItem } from "../../components/ui/Statusbar/StatusBarItem.js";
+import { StatusBar } from "../../components/ui/Statusbar/Statusbar.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../script-execution/PresentationInterface.js";
-import { EditorLanguage } from "../../supplement/index.js";
+import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
+import { INotebookFileFormat } from "../../script-execution/index.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
-import { DBType } from "../../supplement/ShellInterface/index.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { DBType } from "../../supplement/ShellInterface/index.js";
+import { EditorLanguage } from "../../supplement/index.js";
 import { IOpenEditorState, ISavedEditorState } from "./DBConnectionTab.js";
 import { DBEditorToolbar } from "./DBEditorToolbar.js";
 import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface.js";
-import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
+import { ISchemaTreeEntry, IToolbarItems } from "./index.js";
 
 interface INotebookProperties extends IComponentProperties {
     standaloneMode: boolean;
@@ -77,6 +79,11 @@ export class Notebook extends ComponentBase<INotebookProperties> {
 
     private editorRef = createRef<CodeEditor>();
 
+    #editorLanguageSbEntry!: IStatusBarItem;
+    #editorEolSbEntry!: IStatusBarItem;
+    #editorIndentSbEntry!: IStatusBarItem;
+    #editorPositionSbEntry!: IStatusBarItem;
+
     public constructor(props: INotebookProperties) {
         super(props);
 
@@ -86,25 +93,53 @@ export class Notebook extends ComponentBase<INotebookProperties> {
 
     public componentDidMount(): void {
         requisitions.register("explorerDoubleClick", this.explorerDoubleClick);
+        requisitions.register("editorCaretMoved", this.handleCaretMove);
+
+        this.#editorPositionSbEntry = StatusBar.createStatusBarItem({
+            id: "editorPosition",
+            text: "",
+            priority: 990,
+            alignment: StatusBarAlignment.Right,
+        });
+
+        this.#editorIndentSbEntry = StatusBar.createStatusBarItem({
+            id: "editorIndent",
+            text: "",
+            priority: 985,
+            alignment: StatusBarAlignment.Right,
+        });
+
+        this.#editorEolSbEntry = StatusBar.createStatusBarItem({
+            id: "editorEOL",
+            text: "",
+            priority: 980,
+            alignment: StatusBarAlignment.Right,
+        });
+
+        this.#editorLanguageSbEntry = StatusBar.createStatusBarItem({
+            id: "editorLanguage",
+            text: "",
+            priority: 975,
+            alignment: StatusBarAlignment.Right,
+        });
 
         this.initialSetup();
-        this.sendStatusInfo();
+        this.updateStatusItems();
     }
 
     public componentDidUpdate(): void {
         this.initialSetup();
-        this.sendStatusInfo();
+        this.updateStatusItems();
     }
 
     public componentWillUnmount(): void {
-        void requisitions.execute("updateStatusbar", [
-            { id: "editorLanguage", visible: false },
-            { id: "editorIndent", visible: false },
-            { id: "editorPosition", visible: false },
-            { id: "editorEOL", visible: false },
-        ]);
+        this.#editorLanguageSbEntry.dispose();
+        this.#editorIndentSbEntry.dispose();
+        this.#editorPositionSbEntry.dispose();
+        this.#editorEolSbEntry.dispose();
 
         requisitions.unregister("explorerDoubleClick", this.explorerDoubleClick);
+        requisitions.unregister("editorCaretMoved", this.handleCaretMove);
     }
 
     public render(): ComponentChild {
@@ -214,7 +249,6 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                     lineNumbers={this.contextRelativeLineNumbers}
                     onScriptExecution={onScriptExecution}
                     onHelpCommand={onHelpCommand}
-                    onCursorChange={this.handleCursorChange}
                     onOptionsChanged={this.handleOptionsChanged}
                     onContextLanguageChange={this.handleContextLanguageChange}
                     createResultPresentation={this.createPresentation}
@@ -329,25 +363,10 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         }
     }
 
-    private handleCursorChange = (position: Position): void => {
-        const { savedState } = this.props;
+    private handleCaretMove = (position: { lineNumber: number; column: number; }): Promise<boolean> => {
+        this.updateStatusItems(position);
 
-        const activeEditor = savedState.editors.find(
-            (entry: IOpenEditorState): boolean => {
-                return entry.id === savedState.activeEntry;
-            },
-        );
-        if (activeEditor && activeEditor.state) {
-            const contexts = activeEditor.state.model.executionContexts;
-            const context = contexts?.contextFromPosition({ lineNumber: position.lineNumber, column: 1 });
-
-            const info: IEditorStatusInfo = {
-                line: (context !== undefined ? position.lineNumber - (context.startLine - 1) : 1),
-                column: position.column,
-            };
-
-            void requisitions.execute("editorInfoUpdated", info);
-        }
+        return Promise.resolve(true);
     };
 
     private explorerDoubleClick = (entry: ISchemaTreeEntry): Promise<boolean> => {
@@ -358,16 +377,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     };
 
     private handleOptionsChanged = (): void => {
-        if (this.editorRef.current) {
-            const options = this.editorRef.current.options;
-            const info: IEditorStatusInfo = {
-                insertSpaces: options.insertSpaces,
-                indentSize: options.indentSize ?? 4,
-                tabSize: options.tabSize ?? 4,
-            };
-
-            void requisitions.execute("editorInfoUpdated", info);
-        }
+        this.updateStatusItems();
     };
 
     private handleContextLanguageChange = (context: ExecutionContext, language: EditorLanguage): void => {
@@ -376,30 +386,28 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         if (onContextLanguageChange) {
             onContextLanguageChange(context, language);
         }
+
+        this.#editorLanguageSbEntry.text = "mixed/" + language;
     };
 
-    private sendStatusInfo = (): void => {
+    private updateStatusItems = (position?: IPosition): void => {
         if (this.editorRef.current) {
             const { dbType } = this.props;
             const editorState = this.getActiveEditorState();
             if (editorState) {
-                const position = editorState.viewState?.cursorState[0].position;
-                let language = editorState.model.getLanguageId();
-                if (language === "msg") {
-                    language = `mixed/${this.dialectFromDbType(dbType)}`;
+                position ??= editorState.viewState?.cursorState[0].position;
+                const context = editorState.model.executionContexts?.contextFromPosition(position);
+                const language = `mixed/${context?.language ?? this.dialectFromDbType(dbType)}`;
+                this.#editorLanguageSbEntry.text = language;
+                this.#editorEolSbEntry.text = editorState.options.defaultEOL ?? "LF";
+
+                if (editorState.options.insertSpaces) {
+                    this.#editorIndentSbEntry.text = `Spaces: ${editorState.options.indentSize ?? 4}`;
+                } else {
+                    this.#editorIndentSbEntry.text = `Tab Size: ${editorState.options.tabSize ?? 4}`;
                 }
 
-                const info: IEditorStatusInfo = {
-                    insertSpaces: editorState.options.insertSpaces,
-                    indentSize: editorState.options.indentSize ?? 4,
-                    tabSize: editorState.options.tabSize ?? 4,
-                    line: position?.lineNumber ?? 1,
-                    column: position?.column ?? 1,
-                    language,
-                    eol: editorState.options.defaultEOL || "LF",
-                };
-
-                void requisitions.execute("editorInfoUpdated", info);
+                this.#editorPositionSbEntry.text = `Ln ${position?.lineNumber ?? 1}, Col ${position?.column ?? 1}`;
             }
         }
     };

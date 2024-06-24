@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { Key } from "selenium-webdriver";
 import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import { Misc } from "../../lib/misc.js";
 import { basename } from "path";
@@ -33,6 +34,7 @@ import * as interfaces from "../../lib/interfaces.js";
 import * as waitUntil from "../../lib/until.js";
 import * as constants from "../../lib/constants.js";
 import { Os } from "../../lib/os.js";
+import { E2EStatusBar } from "../../lib/E2EStatusBar.js";
 
 const url = Misc.getUrl(basename(basename(__filename)));
 
@@ -125,8 +127,29 @@ describe("Scripts", () => {
                     .getAttribute("src"),
             ).toContain("scriptJs");
 
-            await commandExecutor.executeScript("Math.random()", false);
+            const statusBar = new E2EStatusBar();
+            const editorPosition = await statusBar.getEditorPosition();
+            const regex = new RegExp(/Ln (\d+), Col (\d+)/);
+            expect(editorPosition).toMatch(regex);
+            let groups = editorPosition.match(regex);
+            const line = parseInt(groups![1], 10);
+            const col = parseInt(groups![2], 10);
+            expect(await statusBar.getEditorIdent()).toMatch(/Spaces: (\d+)/);
+            expect(await statusBar.getEditorEOL()).toBe("LF");
+            expect(await statusBar.getEditorLanguage()).toBe("javascript");
+
+            await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys("testing status bar");
+            await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.ENTER);
+
+            const nextEditorPosition = await statusBar.getEditorPosition();
+            groups = nextEditorPosition.match(regex);
+            expect(parseInt(groups![1], 10)).toBeGreaterThan(line);
+            expect(parseInt(groups![1], 10)).toBeGreaterThan(col);
+
+            await commandExecutor.clean();
+            await commandExecutor.executeScript("Math.random()", true);
             expect(commandExecutor.getResultMessage()).toMatch(/(\d+).(\d+)/);
+
         } catch (e) {
             testFailed = true;
             throw e;
@@ -164,6 +187,27 @@ describe("Scripts", () => {
                     .findElement(locator.notebook.toolbar.editorSelector.currentImage)
                     .getAttribute("src"),
             ).toContain("Mysql");
+
+            const statusBar = new E2EStatusBar();
+            const editorPosition = await statusBar.getEditorPosition();
+            const regex = new RegExp(/Ln (\d+), Col (\d+)/);
+            expect(editorPosition).toMatch(regex);
+            let groups = editorPosition.match(regex);
+            const line = parseInt(groups![1], 10);
+            const col = parseInt(groups![2], 10);
+            expect(await statusBar.getEditorIdent()).toMatch(/Spaces: (\d+)/);
+            expect(await statusBar.getEditorEOL()).toBe("LF");
+            expect(await statusBar.getEditorLanguage()).toBe("mysql");
+
+            await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys("testing status bar");
+            await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.ENTER);
+
+            const nextEditorPosition = await statusBar.getEditorPosition();
+            groups = nextEditorPosition.match(regex);
+            expect(parseInt(groups![1], 10)).toBeGreaterThan(line);
+            expect(parseInt(groups![1], 10)).toBeGreaterThan(col);
+
+            await commandExecutor.clean();
             await commandExecutor.executeScript("select * from sakila.actor limit 1;", false);
             expect(commandExecutor.getResultMessage()).toMatch(/OK, (\d+) record/);
         } catch (e) {
@@ -207,8 +251,29 @@ describe("Scripts", () => {
 
             expect(src.indexOf("scriptTs") !== -1).toBe(true);
 
+            const statusBar = new E2EStatusBar();
+            const editorPosition = await statusBar.getEditorPosition();
+            const regex = new RegExp(/Ln (\d+), Col (\d+)/);
+            expect(editorPosition).toMatch(regex);
+            let groups = editorPosition.match(regex);
+            const line = parseInt(groups![1], 10);
+            const col = parseInt(groups![2], 10);
+            expect(await statusBar.getEditorIdent()).toMatch(/Spaces: (\d+)/);
+            expect(await statusBar.getEditorEOL()).toBe("LF");
+            expect(await statusBar.getEditorLanguage()).toBe("typescript");
+
+            await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys("testing status bar ");
+            await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.ENTER);
+
+            const nextEditorPosition = await statusBar.getEditorPosition();
+            groups = nextEditorPosition.match(regex);
+            expect(parseInt(groups![1], 10)).toBeGreaterThan(line);
+            expect(parseInt(groups![1], 10)).toBeGreaterThan(col);
+
+            await commandExecutor.clean();
             await commandExecutor.executeScript("Math.random()", false);
             expect(commandExecutor.getResultMessage()).toMatch(/(\d+).(\d+)/);
+
         } catch (e) {
             testFailed = true;
             throw e;

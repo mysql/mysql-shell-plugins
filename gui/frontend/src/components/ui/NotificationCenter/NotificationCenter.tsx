@@ -36,6 +36,8 @@ import { ComponentBase, type IComponentProperties, type IComponentState } from "
 import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
 import { Icon } from "../Icon/Icon.js";
 import { Label } from "../Label/Label.js";
+import { StatusBarAlignment, type IStatusBarItem } from "../Statusbar/StatusBarItem.js";
+import { StatusBar } from "../Statusbar/Statusbar.js";
 
 export enum NotificationType {
     Information,
@@ -130,6 +132,8 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
     #autoHideTimeout = 15000; // 15 seconds to hide any unhandled message.
     #containerRef = createRef<HTMLDivElement>();
 
+    #statusBarItem!: IStatusBarItem;
+
     public constructor(props: INotificationCenterProps) {
         super(props);
         this.state = {
@@ -147,10 +151,19 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
         requisitions.register("showWarning", this.showWarning);
         requisitions.register("showError", this.showError);
 
+        this.#statusBarItem = StatusBar.createStatusBarItem({
+            id: "showNotificationHistory",
+            command: "notifications:showHistory",
+            tooltip: "Show Notifications",
+            text: "$(bell)",
+            alignment: StatusBarAlignment.Right,
+        });
         this.updateStatusBarItem();
     }
 
     public componentWillUnmount(): void {
+        this.#statusBarItem.dispose();
+
         document.removeEventListener("keydown", this.handleKeyDown);
         requisitions.unregister("statusBarButtonClick", this.statusBarButtonClick);
         requisitions.unregister("showInfo", this.showInfo);
@@ -580,20 +593,20 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
         const { history, silent, showHistory } = this.state;
 
         let tooltip;
-        let icon;
+        let text;
         if (showHistory) {
             tooltip = "Hide Notifications";
             if (silent) {
-                icon = Codicon.BellSlash;
+                text = "$(bell-slash)";
             } else {
-                icon = Codicon.Bell;
+                text = "$(bell)";
             }
         } else {
             const newlyAdded = history.filter((toast) => { return toast.isNew; }).length;
             if (silent) {
-                icon = newlyAdded === 0 ? Codicon.BellSlash : Codicon.BellSlashDot;
+                text = newlyAdded === 0 ? "$(bell-slash)" : "$(bell-slash-dot)";
             } else {
-                icon = newlyAdded === 0 ? Codicon.Bell : Codicon.BellDot;
+                text = newlyAdded === 0 ? "$(bell)" : "$(bell-dot)";
             }
 
             tooltip = newlyAdded === 0 ? "No" : newlyAdded.toString();
@@ -608,11 +621,8 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
             }
         }
 
-        void requisitions.execute("updateStatusbar", [{
-            id: "showNotificationHistory",
-            tooltip,
-            icon,
-        }]);
+        this.#statusBarItem.tooltip = tooltip;
+        this.#statusBarItem.text = text;
     }
 
     private statusBarButtonClick = (values: { type: string; event: MouseEvent | KeyboardEvent; }): Promise<boolean> => {

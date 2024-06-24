@@ -26,6 +26,7 @@ import { driver } from "./driver.js";
 import * as locator from "./locators.js";
 import * as constants from "./constants.js";
 import * as interfaces from "./interfaces.js";
+import { E2EStatusBar } from "./E2EStatusBar.js";
 
 /** This class represents the Notification center and all its related functions */
 export class E2ENotificationsCenter {
@@ -38,7 +39,7 @@ export class E2ENotificationsCenter {
      * @returns A promise resolving with the notifications center
      */
     public open = async (): Promise<E2ENotificationsCenter | undefined> => {
-        await driver.findElement(locator.bell.exists).click();
+        await (await new E2EStatusBar().getNotificationsHistory()).click();
         this.self = await driver.wait(until.elementLocated(locator.notificationsCenter.exists),
             constants.wait5seconds, "Notifications center was not opened");
 

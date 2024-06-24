@@ -37,6 +37,7 @@ import { PasswordDialog } from "../../lib/Dialogs/PasswordDialog.js";
 import { E2ENotificationsCenter } from "../../lib/E2ENotificationsCenter.js";
 import { DatabaseConnectionOverview } from "../../lib/databaseConnectionOverview.js";
 import { DatabaseConnectionDialog } from "../../lib/databaseConnectionDialog.js";
+import { E2EStatusBar } from "../../lib/E2EStatusBar.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -101,10 +102,11 @@ describe("Notifications", () => {
             const notification = await new E2EToastNotification().create();
             expect(notification.type).toBe("info");
             expect(notification.message).toBe("Profile updated successfully.");
-            expect((await driver.findElements(locator.bell.hasNotifications)).length > 0).toBe(true);
+            const statusBar = new E2EStatusBar();
+            expect(await statusBar.hasNotifications()).toBe(true);
             await notification.close();
             await driver.wait(notification.untilIsClosed(), constants.wait5seconds, "The notification was not closed");
-            expect((await driver.findElements(locator.bell.hasNotNotifications)).length > 0).toBe(true);
+            expect(await statusBar.hasNotifications()).toBe(false);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -126,10 +128,11 @@ describe("Notifications", () => {
             const notification = await new E2EToastNotification().create();
             expect(notification.type).toBe("error");
             expect(notification.message).toBe("Connection Error: Shell.open_session: Cancelled");
-            expect((await driver.findElements(locator.bell.hasNotifications)).length > 0).toBe(true);
+            const statusBar = new E2EStatusBar();
+            expect(await statusBar.hasNotifications()).toBe(true);
             await notification.close();
             await driver.wait(notification.untilIsClosed(), constants.wait3seconds, "The notification was not closed");
-            expect((await driver.findElements(locator.bell.hasNotNotifications)).length > 0).toBe(true);
+            expect(await statusBar.hasNotifications()).toBe(false);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -239,7 +242,7 @@ describe("Notifications", () => {
             await driver.findElement(locator.settingsPage.icon).click();
             let notificationsCenter = await new E2ENotificationsCenter().open();
             await notificationsCenter?.toggleSilentMode();
-            expect(await driver.findElement(locator.bell.silentMode)).toBeDefined();
+            expect(await new E2EStatusBar().isOnSilentMode()).toBe(true);
             await notificationsCenter?.hide();
             await driver.wait(async () => {
                 await driver.findElement(locator.settingsPage.icon).click();

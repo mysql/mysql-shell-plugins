@@ -26,14 +26,12 @@
 import { mount } from "enzyme";
 
 import { App } from "../../../app-logic/App.js";
-import { IStatusbarInfo } from "../../../app-logic/Types.js";
 import { MessageScheduler } from "../../../communication/MessageScheduler.js";
-import { IEditorStatusInfo } from "../../../modules/db-editor/index.js";
 import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
-import { waitFor } from "../../../utilities/helpers.js";
 import { MySQLShellLauncher } from "../../../utilities/MySQLShellLauncher.js";
-import { setupShellForTests } from "../test-helpers.js";
+import { waitFor } from "../../../utilities/helpers.js";
 import { mouseEventMock } from "../__mocks__/MockEvents.js";
+import { setupShellForTests } from "../test-helpers.js";
 
 describe("Application tests", () => {
     let app: ReturnType<typeof mount>;
@@ -93,155 +91,6 @@ describe("Application tests", () => {
 
         result = await requisitions.execute("statusBarButtonClick", { type: "openPopupMenu", event: mouseEventMock });
         expect(result).toBe(true);
-    });
-
-    it("Handling status bar update events", async () => {
-        let lastItems: IStatusbarInfo[] = [];
-        const listener = (items: IStatusbarInfo[]): Promise<boolean> => {
-            lastItems = items;
-
-            return Promise.resolve(true);
-        };
-
-        requisitions.register("updateStatusbar", listener);
-
-        const statusInfo: IEditorStatusInfo = {};
-
-        let result = await requisitions.execute("editorInfoUpdated", statusInfo);
-        expect(result).toBe(true);
-        expect(lastItems).toEqual([]);
-
-        statusInfo.indentSize = 4;
-        statusInfo.tabSize = 4;
-        result = await requisitions.execute("editorInfoUpdated", statusInfo);
-        expect(result).toBe(true);
-        expect(lastItems).toEqual([{
-            id: "editorIndent",
-            visible: true,
-            text: "Tab Size: 4",
-        }]);
-
-        statusInfo.insertSpaces = true;
-        result = await requisitions.execute("editorInfoUpdated", statusInfo);
-        expect(result).toBe(true);
-        expect(lastItems).toEqual([{
-            id: "editorIndent",
-            visible: true,
-            text: "Spaces: 4",
-        }]);
-
-        delete statusInfo.indentSize;
-        result = await requisitions.execute("editorInfoUpdated", statusInfo);
-        expect(result).toBe(true);
-        expect(lastItems).toEqual([{
-            id: "editorIndent",
-            visible: true,
-            text: "Spaces: 0",
-        }]);
-
-        statusInfo.indentSize = -1;
-        delete statusInfo.tabSize;
-        statusInfo.insertSpaces = false;
-        result = await requisitions.execute("editorInfoUpdated", statusInfo);
-        expect(result).toBe(true);
-        expect(lastItems).toEqual([{
-            id: "editorIndent",
-            visible: true,
-            text: "Tab Size: 0",
-        }]);
-
-        statusInfo.line = 22;
-        result = await requisitions.execute("editorInfoUpdated", statusInfo);
-        expect(result).toBe(true);
-        expect(lastItems).toEqual([{
-            id: "editorIndent",
-            visible: true,
-            text: "Tab Size: 0",
-        },
-        {
-            id: "editorPosition",
-            visible: true,
-            text: "Ln 22, Col 1",
-        }]);
-
-        delete statusInfo.indentSize;
-        statusInfo.column = 33;
-        result = await requisitions.execute("editorInfoUpdated", statusInfo);
-        expect(result).toBe(true);
-        expect(lastItems).toEqual([{
-            id: "editorPosition",
-            visible: true,
-            text: "Ln 22, Col 33",
-        }]);
-
-        delete statusInfo.line;
-        result = await requisitions.execute("editorInfoUpdated", statusInfo);
-        expect(result).toBe(true);
-        expect(lastItems).toEqual([{
-            id: "editorPosition",
-            visible: true,
-            text: "Ln 1, Col 33",
-        }]);
-
-        statusInfo.language = "JavaScript";
-        result = await requisitions.execute("editorInfoUpdated", statusInfo);
-        expect(result).toBe(true);
-        expect(lastItems).toEqual([{
-            id: "editorPosition",
-            visible: true,
-            text: "Ln 1, Col 33",
-        },
-        {
-            id: "editorLanguage",
-            visible: true,
-            text: "JavaScript",
-        }]);
-
-        statusInfo.eol = "LF";
-        result = await requisitions.execute("editorInfoUpdated", statusInfo);
-        expect(result).toBe(true);
-        expect(lastItems).toEqual([{
-            id: "editorPosition",
-            visible: true,
-            text: "Ln 1, Col 33",
-        },
-        {
-            id: "editorLanguage",
-            visible: true,
-            text: "JavaScript",
-        },
-        {
-            id: "editorEOL",
-            visible: true,
-            text: "LF",
-        }]);
-
-        statusInfo.indentSize = 4;
-        statusInfo.tabSize = 4;
-        result = await requisitions.execute("editorInfoUpdated", statusInfo);
-        expect(result).toBe(true);
-        expect(lastItems).toEqual([{
-            id: "editorIndent",
-            visible: true,
-            text: "Tab Size: 4",
-        },
-        {
-            id: "editorPosition",
-            visible: true,
-            text: "Ln 1, Col 33",
-        },
-        {
-            id: "editorLanguage",
-            visible: true,
-            text: "JavaScript",
-        },
-        {
-            id: "editorEOL",
-            visible: true,
-            text: "LF",
-        }]);
-
-        requisitions.unregister("updateStatusbar", listener);
     });
 
     it("DOM events", () => {

@@ -54,6 +54,7 @@
     min-width: 0;
 
     outline: none;
+    white-space: pre;
 }
 
 .msg.statusbar .statusbarItem.dropdown {
@@ -71,16 +72,7 @@
     flex: 0 0 auto;
 }
 
-.msg.statusbar .statusbarItem.prominent {
-    color: var(--statusBarItem-prominentForeground);
-    background-color: var(--statusBarItem-prominentBackground);
-}
-
-.msg.statusbar .statusbarItem.prominent:hover {
-    background-color: var(--statusBarItem-prominentHoverBackground);
-}
-
-.msg.statusbar .statusbarItem:not(.disabled):hover {
+.msg.statusbar .statusbarItem:not(:disabled):hover {
     background-color: var(--statusBarItem-hoverBackground);
 }
 

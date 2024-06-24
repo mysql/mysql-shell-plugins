@@ -23,31 +23,33 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import loadIcon from "../../assets/images/toolbar/toolbar-load.svg";
 import normalizeIcon from "../../assets/images/toolbar/toolbar-normalize.svg";
 import saveIcon from "../../assets/images/toolbar/toolbar-save.svg";
-import loadIcon from "../../assets/images/toolbar/toolbar-load.svg";
 
+import { type IPosition } from "monaco-editor";
 import { ComponentChild, createRef } from "preact";
-import { Position } from "monaco-editor";
 
-import { IEditorStatusInfo, ISchemaTreeEntry, IToolbarItems } from "./index.js";
-import { StandalonePresentationInterface } from "./execution/StandalonePresentationInterface.js";
-import { requisitions } from "../../supplement/Requisitions.js";
+import { Button } from "../../components/ui/Button/Button.js";
 import { CodeEditor } from "../../components/ui/CodeEditor/CodeEditor.js";
-import { EditorLanguage, IScriptRequest } from "../../supplement/index.js";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
-import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
-import { Orientation, Container, ContentAlignment } from "../../components/ui/Container/Container.js";
-import { SplitContainer, ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer.js";
+import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
+import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
+import { Icon } from "../../components/ui/Icon/Icon.js";
+import { ISplitterPaneSizeInfo, SplitContainer } from "../../components/ui/SplitContainer/SplitContainer.js";
+import { StatusBarAlignment, type IStatusBarItem } from "../../components/ui/Statusbar/StatusBarItem.js";
+import { StatusBar } from "../../components/ui/Statusbar/Statusbar.js";
+import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../script-execution/PresentationInterface.js";
-import { DBEditorToolbar } from "./DBEditorToolbar.js";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { IOpenEditorState, ISavedEditorState } from "./DBConnectionTab.js";
-import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
-import { Button } from "../../components/ui/Button/Button.js";
-import { Icon } from "../../components/ui/Icon/Icon.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { EditorLanguage, IScriptRequest } from "../../supplement/index.js";
+import { IOpenEditorState, ISavedEditorState } from "./DBConnectionTab.js";
+import { DBEditorToolbar } from "./DBEditorToolbar.js";
+import { StandalonePresentationInterface } from "./execution/StandalonePresentationInterface.js";
+import { ISchemaTreeEntry, IToolbarItems } from "./index.js";
 
 interface IScriptEditorProperties extends IComponentProperties {
     /** When true some adjustments are made to the UI to represent the editor in a way needed for pure notebooks. */
@@ -84,6 +86,11 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
 
     private presentationInterface?: PresentationInterface;
 
+    #editorLanguageSbEntry!: IStatusBarItem;
+    #editorEolSbEntry!: IStatusBarItem;
+    #editorIndentSbEntry!: IStatusBarItem;
+    #editorPositionSbEntry!: IStatusBarItem;
+
     public constructor(props: IScriptEditorProperties) {
         super(props);
 
@@ -116,22 +123,50 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
 
     public componentDidMount(): void {
         requisitions.register("explorerDoubleClick", this.handleExplorerDoubleClick);
+        requisitions.register("editorCaretMoved", this.handleCaretMove);
 
-        this.sendStatusInfo();
+        this.#editorPositionSbEntry = StatusBar.createStatusBarItem({
+            id: "editorPosition",
+            text: "",
+            priority: 990,
+            alignment: StatusBarAlignment.Right,
+        });
+
+        this.#editorIndentSbEntry = StatusBar.createStatusBarItem({
+            id: "editorIndent",
+            text: "",
+            priority: 985,
+            alignment: StatusBarAlignment.Right,
+        });
+
+        this.#editorEolSbEntry = StatusBar.createStatusBarItem({
+            id: "editorEOL",
+            text: "",
+            priority: 980,
+            alignment: StatusBarAlignment.Right,
+        });
+
+        this.#editorLanguageSbEntry = StatusBar.createStatusBarItem({
+            id: "editorLanguage",
+            text: "",
+            priority: 975,
+            alignment: StatusBarAlignment.Right,
+        });
+
+        this.updateStatusItems();
     }
 
     public componentDidUpdate(): void {
-        this.sendStatusInfo();
+        this.updateStatusItems();
     }
 
     public componentWillUnmount(): void {
-        void requisitions.execute("updateStatusbar", [
-            { id: "editorLanguage", visible: false },
-            { id: "editorIndent", visible: false },
-            { id: "editorPosition", visible: false },
-            { id: "editorEOL", visible: false },
-        ]);
+        this.#editorLanguageSbEntry.dispose();
+        this.#editorIndentSbEntry.dispose();
+        this.#editorPositionSbEntry.dispose();
+        this.#editorEolSbEntry.dispose();
 
+        requisitions.unregister("editorCaretMoved", this.handleCaretMove);
         requisitions.unregister("explorerDoubleClick", this.handleExplorerDoubleClick);
     }
 
@@ -269,7 +304,6 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                                     verticalScrollbarSize: 16,
                                     horizontalScrollbarSize: 16,
                                 }}
-                                onCursorChange={this.handleCursorChange}
                                 onScriptExecution={onScriptExecution}
                                 onModelChange={this.handleModelChange}
                                 createResultPresentation={this.createPresentation}
@@ -373,14 +407,12 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         }
     }
 
-    private handleCursorChange = (position: Position): void => {
-        void requisitions.execute("updateStatusbar", [
-            {
-                id: "editorPosition",
-                visible: true,
-                text: `Ln ${position.lineNumber || 1}, Col ${position.column || 1}`,
-            },
-        ]);
+    private handleCaretMove = (position: IPosition): Promise<boolean> => {
+        if (this.#editorPositionSbEntry) {
+            this.#editorPositionSbEntry.text = `Ln ${position.lineNumber || 1}, Col ${position.column || 1}`;
+        }
+
+        return Promise.resolve(true);
     };
 
     private handleModelChange = (): void => {
@@ -396,7 +428,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         return Promise.resolve(true);
     };
 
-    private sendStatusInfo = (): void => {
+    private updateStatusItems = (): void => {
         if (this.editorRef.current) {
             const activeEditor = this.getActiveEditorState();
             const editorState = activeEditor.state;
@@ -404,17 +436,16 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                 const position = editorState.viewState?.cursorState[0].position;
                 const language = editorState.model.getLanguageId() as EditorLanguage;
 
-                const info: IEditorStatusInfo = {
-                    insertSpaces: editorState.options.insertSpaces,
-                    indentSize: editorState.options.indentSize ?? 4,
-                    tabSize: editorState.options.tabSize ?? 4,
-                    line: position?.lineNumber ?? 1,
-                    column: position?.column ?? 1,
-                    language,
-                    eol: editorState.options.defaultEOL || "LF",
-                };
+                this.#editorLanguageSbEntry.text = language;
+                this.#editorEolSbEntry.text = editorState.options.defaultEOL || "LF";
 
-                void requisitions.execute("editorInfoUpdated", info);
+                if (editorState.options.insertSpaces) {
+                    this.#editorIndentSbEntry.text = `Spaces: ${editorState.options.indentSize ?? 4}`;
+                } else {
+                    this.#editorIndentSbEntry.text = `Tab Size: ${editorState.options.tabSize ?? 4}`;
+                }
+
+                this.#editorPositionSbEntry.text = `Ln ${position?.lineNumber ?? 1}, Col ${position?.column ?? 1}`;
             }
         }
     };

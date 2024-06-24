@@ -101,16 +101,6 @@ export interface IDBEditorScriptState extends IDBDataEntry {
     language: EditorLanguage;
 }
 
-export interface IEditorStatusInfo {
-    insertSpaces?: boolean;
-    indentSize?: number;
-    tabSize?: number;
-    line?: number;
-    column?: number;
-    language?: string;
-    eol?: string;
-}
-
 /**
  * Lists of items to be added to a toolbar. The receiving page can use this as base to add it's own
  * items, before it actually renders the toolbar.

@@ -28,7 +28,7 @@ import {
 } from "./index.js";
 
 import {
-    IDialogRequest, IDialogResponse, IDictionary, IServicePasswordRequest, IStatusbarInfo,
+    IDialogRequest, IDialogResponse, IDictionary, IServicePasswordRequest,
 } from "../app-logic/Types.js";
 import type { IEmbeddedMessage, IEmbeddedSourceType, IMySQLDbSystem } from "../communication/index.js";
 import { IShellProfile, IShellPromptValues, IWebSessionData } from "../communication/ProtocolGui.js";
@@ -37,9 +37,10 @@ import type {
 } from "../communication/ProtocolMrs.js";
 
 import { IThemeChangeData } from "../components/Theming/ThemeManager.js";
-import { EntityType, IEditorStatusInfo, ISchemaTreeEntry } from "../modules/db-editor/index.js";
+import { EntityType, ISchemaTreeEntry } from "../modules/db-editor/index.js";
 import { RequisitionPipeline } from "./RequisitionPipeline.js";
 import { DBType, IConnectionDetails, IShellSessionDetails } from "./ShellInterface/index.js";
+import type { StatusBarAlignment } from "../components/ui/Statusbar/StatusBarItem.js";
 
 export const appParameters: Map<string, string> & IAppParameters = new Map<string, string>();
 
@@ -108,6 +109,36 @@ const parseAppParameters = (): void => {
 };
 
 export type SimpleCallback = (_: unknown) => Promise<boolean>;
+
+/**
+ * Information to use when frontend components want to update their statusbar items.
+ * Only used in embedded scenarios.
+ */
+export interface IUpdateStatusBarItem {
+    /**
+     * A unique identifier for the item. If `show` is specified as state and no item with the given id is found,
+     * a new item will be created. In all other cases the request is ignored if the id is not valid.
+     */
+    id: string;
+
+    /** What to do with the item? Create and show it, show it, hide it, dispose of it or keep the current state. */
+    state: "show" | "hide" | "dispose" | "keep";
+
+    /**
+     * The text to show. If nothing is given the current text stays.
+     */
+    text?: string;
+
+    alignment?: StatusBarAlignment;
+
+    priority?: number;
+
+    /** The text of the tooltip. If nothing is given the current tooltip is kept as is. */
+    tooltip?: string;
+
+    /** A timeout to auto hide the item, when given. Only considered when a new item is created. */
+    timeout?: number;
+}
 
 export interface IOpenDialogFilters {
     [key: string]: string[];
@@ -297,7 +328,7 @@ export interface IWebviewProvider {
 
 /**
  * The request sent from a webview provider to the app requisition instance, when it received notifications
- * from its local requisition instance.
+ * from its local requisition instance. Only used in embedded scenarios.
  */
 export interface IProxyRequest {
     /** The provider which sent this request. */
@@ -376,12 +407,12 @@ export interface IRequestTypeMap {
     "webSessionStarted": (data: IWebSessionData) => Promise<boolean>;
     "userAuthenticated": (activeProfile: IShellProfile) => Promise<boolean>;
 
-    /** Updates for the web app or the host status bar. */
-    "updateStatusbar": (items: IStatusbarInfo[]) => Promise<boolean>;
     "profileLoaded": SimpleCallback;
     "changeProfile": (id: string | number) => Promise<boolean>;
+
     "statusBarButtonClick": (values: { type: string; event: MouseEvent | KeyboardEvent; }) => Promise<boolean>;
-    "editorInfoUpdated": (info: IEditorStatusInfo) => Promise<boolean>;
+    "updateStatusBarItem": (details: IUpdateStatusBarItem) => Promise<boolean>;
+
     "themeChanged": (data: IThemeChangeData) => Promise<boolean>;
     "openConnectionTab": (
         data: { details: IConnectionDetails; force: boolean; initialEditor: InitialEditor; }) => Promise<boolean>;
@@ -394,6 +425,7 @@ export interface IRequestTypeMap {
     /** Sent when new column details are available for a specific result set. */
     "sqlUpdateColumnInfo": (data: IColumnDetails) => Promise<boolean>;
 
+    "editorCaretMoved": (position: { lineNumber: number; column: number; }) => Promise<boolean>;
     "editorExecuteSelectedOrAll": (options: IEditorCommonExecutionOptions) => Promise<boolean>;
     "editorExecute": (options: IEditorCommonExecutionOptions) => Promise<boolean>;
     "editorExecuteOnHost": (options: IEditorExtendedExecutionOptions) => Promise<boolean>;
@@ -463,7 +495,7 @@ export interface IRequestTypeMap {
     /** Sent by the application when an editor was selected. */
     "editorSelect": (details: { connectionId: number, editorId: string; }) => Promise<boolean>;
 
-    /** Sent to synchronize tell the host that the content of an editor has changed. */
+    /** Sent to tell the host that the content of an editor has changed. */
     "editorChanged": SimpleCallback;
 
     "sqlSetCurrentSchema": (data: { id: string; connectionId: number; schema: string; }) => Promise<boolean>;

@@ -424,66 +424,7 @@ exports[`Application tests Application readiness 1`] = `
         />
       </Container>
     </NotificationCenter>
-    <Statusbar
-      items={
-        [
-          {
-            "id": "profileTitle",
-            "text": "Profile:",
-            "type": 0,
-            "visible": false,
-          },
-          {
-            "choices": [],
-            "commandId": "openPopupMenu",
-            "id": "profileChoice",
-            "tooltip": "Change profile",
-            "type": 1,
-            "visible": false,
-          },
-          {
-            "id": "message",
-            "rightAlign": false,
-            "standout": false,
-            "type": 0,
-          },
-          {
-            "commandId": "notifications:showHistory",
-            "icon": 17,
-            "id": "showNotificationHistory",
-            "rightAlign": true,
-            "tooltip": "Show Notifications",
-            "type": 1,
-            "visible": true,
-          },
-          {
-            "id": "editorLanguage",
-            "rightAlign": true,
-            "type": 0,
-            "visible": false,
-          },
-          {
-            "id": "editorEOL",
-            "rightAlign": true,
-            "type": 0,
-            "visible": false,
-          },
-          {
-            "id": "editorIndent",
-            "rightAlign": true,
-            "type": 0,
-            "visible": false,
-          },
-          {
-            "commandId": "scripting:editor.action.gotoLine",
-            "id": "editorPosition",
-            "rightAlign": true,
-            "type": 1,
-            "visible": false,
-          },
-        ]
-      }
-    >
+    <StatusBar>
       <Container
         className="msg statusbar verticalCenterContent"
         orientation="row"
@@ -502,10 +443,11 @@ exports[`Application tests Application readiness 1`] = `
           <Container
             className="leftItems"
             crossAlignment="stretch"
+            fixedScrollbars={false}
             orientation="row"
           >
             <div
-              className="msg container fixedScrollbar leftItems"
+              className="msg container leftItems"
               style={
                 {
                   "alignItems": "stretch",
@@ -519,64 +461,63 @@ exports[`Application tests Application readiness 1`] = `
           <Container
             className="rightItems"
             crossAlignment="stretch"
-            orientation="row-reverse"
+            fixedScrollbars={false}
+            orientation="row"
           >
             <div
-              className="msg container fixedScrollbar rightItems"
+              className="msg container rightItems"
               style={
                 {
                   "alignItems": "stretch",
-                  "flexDirection": "row-reverse",
+                  "flexDirection": "row",
                   "flexWrap": undefined,
                   "justifyContent": undefined,
                 }
               }
             >
               <Button
-                caption=""
                 className="statusbarItem"
                 data-command="notifications:showHistory"
                 disabled={false}
-                imageOnly={true}
-                key="statusbarItem3"
+                id="showNotificationHistory"
+                imageOnly={false}
+                key="statusbarItem0"
                 onClick={[Function]}
                 style={
                   {
+                    "backgroundColor": undefined,
                     "color": undefined,
                   }
                 }
+                title="No Notifications"
               >
                 <div
-                  caption=""
-                  className="msg button imageOnly statusbarItem"
+                  className="msg button statusbarItem"
                   data-command="notifications:showHistory"
+                  id="showNotificationHistory"
                   onClick={[Function]}
                   onMouseDown={[Function]}
                   role="button"
                   style={
                     {
+                      "backgroundColor": undefined,
                       "color": undefined,
                     }
                   }
                   tabIndex={0}
+                  title="No Notifications"
                 >
-                  <Icon
-                    data-tooltip="inherit"
-                    disabled={false}
-                    src={17}
-                  >
-                    <div
-                      className="msg icon codicon codicon-bell"
-                      data-tooltip="inherit"
-                    />
-                  </Icon>
+                  <span
+                    className="codicon codicon-bell"
+                    key="icon-0-0"
+                  />
                 </div>
               </Button>
             </div>
           </Container>
         </div>
       </Container>
-    </Statusbar>
+    </StatusBar>
     <ProfileSelector>
       <ValueEditDialog
         id="profileCreating"

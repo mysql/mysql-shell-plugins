@@ -31,9 +31,14 @@ import { ThemeManager } from "./ThemeManager.js";
  */
 export class ThemeColor {
 
+    /** The theme color id. */
+    public readonly id: string;
+
+    /** The CSS variable name for the theme color id. */
     public readonly variableName: string;
 
     public constructor(id: string) {
+        this.id = id;
         this.variableName = ThemeManager.get.themeValueNameToCssVariable(id);
     }
 }
