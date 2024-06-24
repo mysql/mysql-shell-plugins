@@ -27,7 +27,6 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import * as codicon from "../components/ui/Codicon.js";
 
 /** This is the preferred MySQL shell version for the app and associated tests. */
 export const preferredShellVersion = [8, 2, 0];
@@ -386,35 +385,6 @@ export interface IDialogResponse extends IDictionary {
     data?: IDictionary;
 }
 
-/** Information about a single statusbar item. */
-export interface IStatusbarInfo {
-    /**
-     * A unique identifier, which allows to update an existing item. If nothing else is given, the item will be removed.
-     */
-    id: string;
-
-    /** The text to show in the item. */
-    text?: string;
-
-    /** A tooltip to show when the user hovers over the item. */
-    tooltip?: string;
-
-    /** An icon to show in the item. Not used when the app is embedded. */
-    icon?: string | codicon.Codicon;
-
-    /** A list of choices which makes the item a selector. Only used in the web app status bar. */
-    choices?: Array<{ label: string; data: IDictionary; }>;
-
-    /** Determines the visibility of the status item. */
-    visible?: boolean;
-
-    /** Gives the item a special background color. */
-    standout?: boolean;
-
-    /** If given automatically removes the item after this period (milliseconds). */
-    hideAfter?: number;
-}
-
 /**
  * Defines the structure for password requests sent by various access methods. Passwords are stored by the backend
  * using native OS methods.
@@ -437,4 +407,18 @@ export interface IServicePasswordRequest {
 
     /** Any other data the caller wants to pass over. */
     payload?: IDictionary;
+}
+
+/** Accessibility information which controls screen reader behavior. */
+export interface IAccessibilityInformation {
+    /** Label to be read out by a screen reader once the item has focus. */
+    readonly label: string;
+
+    /**
+     * Role of the widget which defines how a screen reader interacts with it.
+     * The role should be set in special cases when for example a tree-like element behaves like a checkbox.
+     * If role is not specified the editor will pick the appropriate role automatically.
+     * More about aria roles can be found here https://w3c.github.io/aria/#widget_roles
+     */
+    readonly role?: string;
 }

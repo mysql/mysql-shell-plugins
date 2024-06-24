@@ -24,6 +24,7 @@
  */
 
 import { ComponentChild, createRef, RefObject } from "preact";
+
 import {
     DialogResponseClosure, DialogType, IDialogRequest, IDictionary, MrsDialogType,
 } from "../../app-logic/Types.js";
@@ -31,29 +32,28 @@ import {
 import { IShellDictionary } from "../../communication/Protocol.js";
 
 import {
-    IMrsAddContentSetData,
-    IMrsAuthAppData, IMrsContentSetData, IMrsObject, IMrsSchemaData, IMrsServiceData, IMrsUserData,
-    IMrsUserRoleData,
+    IMrsAddContentSetData, IMrsAuthAppData, IMrsContentSetData, IMrsObject, IMrsSchemaData, IMrsServiceData,
+    IMrsUserData, IMrsUserRoleData,
 } from "../../communication/ProtocolMrs.js";
 import { AwaitableValueEditDialog } from "../../components/Dialogs/AwaitableValueEditDialog.js";
 import { ComponentBase } from "../../components/ui/Component/ComponentBase.js";
-import { appParameters, IMrsDbObjectEditRequest, requisitions } from "../../supplement/Requisitions.js";
+import { IMrsDbObjectEditRequest, requisitions } from "../../supplement/Requisitions.js";
 
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { MrsDbObjectDialog } from "./dialogs/MrsDbObjectDialog.js";
-import { IMrsSchemaDialogData, MrsSchemaDialog } from "./dialogs/MrsSchemaDialog.js";
-import { IMrsContentSetDialogData, MrsContentSetDialog } from "./dialogs/MrsContentSetDialog.js";
-import { IMrsAuthenticationAppDialogData, MrsAuthenticationAppDialog } from "./dialogs/MrsAuthenticationAppDialog.js";
-import { IMrsUserDialogData, MrsUserDialog } from "./dialogs/MrsUserDialog.js";
-import { IMrsServiceDialogData, MrsServiceDialog } from "./dialogs/MrsServiceDialog.js";
-import { uuid } from "../../utilities/helpers.js";
 import { DialogHost } from "../../app-logic/DialogHost.js";
-import { convertSnakeToCamelCase } from "../../utilities/string-helpers.js";
-import { IMrsSdkExportDialogData, MrsSdkExportDialog } from "./dialogs/MrsSdkExportDialog.js";
 import { getMySQLDbConnectionUri } from "../../communication/MySQL.js";
+import { StatusBar } from "../../components/ui/Statusbar/Statusbar.js";
+import { getRouterPortForConnection } from "../../modules/mrs/mrs-helpers.js";
 import { IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
-import { getRouterPortForConnection } from "../../modules/mrs/mrs-helpers.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { convertSnakeToCamelCase } from "../../utilities/string-helpers.js";
+import { IMrsAuthenticationAppDialogData, MrsAuthenticationAppDialog } from "./dialogs/MrsAuthenticationAppDialog.js";
+import { IMrsContentSetDialogData, MrsContentSetDialog } from "./dialogs/MrsContentSetDialog.js";
+import { MrsDbObjectDialog } from "./dialogs/MrsDbObjectDialog.js";
+import { IMrsSchemaDialogData, MrsSchemaDialog } from "./dialogs/MrsSchemaDialog.js";
+import { IMrsSdkExportDialogData, MrsSdkExportDialog } from "./dialogs/MrsSdkExportDialog.js";
+import { IMrsServiceDialogData, MrsServiceDialog } from "./dialogs/MrsServiceDialog.js";
+import { IMrsUserDialogData, MrsUserDialog } from "./dialogs/MrsUserDialog.js";
 import { MrsDbObjectType } from "./types.js";
 
 type DialogConstructor = new (props: {}) => AwaitableValueEditDialog;
@@ -266,10 +266,8 @@ export class MrsHub extends ComponentBase {
 
         if (!service) {
             try {
-                const service = await backend.mrs.addService(urlContextRoot, protocols, hostName ?? "",
-                    comments, enabled,
-                    options,
-                    authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
+                const service = await backend.mrs.addService(urlContextRoot, protocols, hostName ?? "", comments,
+                    enabled, options, authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
                     authApps);
 
                 if (isCurrent) {
@@ -689,34 +687,22 @@ export class MrsHub extends ComponentBase {
 
             if (requestPathValid) {
                 if (!contentSet) {
-                    const sbId = uuid();
-                    const updateStatusbar = (text?: string, timeout?: number) => {
-                        if (appParameters.embedded) {
-                            requisitions.executeRemote("updateStatusbar", [{
-                                id: sbId, text, visible: text !== undefined, hideAfter: timeout,
-                            }]);
-                        } else {
-                            void requisitions.execute("updateStatusbar", [{
-                                id: "message", text, visible: text !== undefined, hideAfter: timeout,
-                            }]);
-                        }
-                    };
+                    const firstItem = StatusBar.setStatusBarMessage("$(loading~spin) Starting to load static " +
+                        "content set ...");
 
                     try {
-                        updateStatusbar(`$(loading~spin) Starting to load static content set ...`);
-
                         let addedContentSet: IMrsAddContentSetData = {};
                         void await backend.mrs.addContentSet(data.directory, requestPath,
                             requiresAuth, options, serviceId, comments, enabled, true, (data) => {
                                 if (data.result.info) {
-                                    updateStatusbar("$(loading~spin) " + data.result.info);
+                                    StatusBar.setStatusBarMessage("$(loading~spin) " + data.result.info);
                                 } else {
                                     addedContentSet = data.result;
                                 }
                             },
                         );
 
-                        updateStatusbar();
+                        firstItem.dispose();
 
                         void requisitions.executeRemote("refreshConnections", undefined);
                         if (addedContentSet.numberOfFilesUploaded !== undefined) {
@@ -728,7 +714,7 @@ export class MrsHub extends ComponentBase {
                         const message = reason instanceof Error ? reason.message : String(reason);
                         void requisitions.execute("showError", "Error while adding MRS content set: " + message);
                     } finally {
-                        updateStatusbar();
+                        firstItem.dispose();
                     }
                 } else {
                     try {

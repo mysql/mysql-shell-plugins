@@ -36,6 +36,7 @@ import * as constants from "../../lib/constants.js";
 import * as waitUntil from "../../lib/until.js";
 import { driver, loadDriver } from "../../lib/driver.js";
 import { Os } from "../../lib/os.js";
+import { E2EStatusBar } from "../../lib/E2EStatusBar.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -160,6 +161,40 @@ describe("Notebook", () => {
         } finally {
             cleanEditor = true;
         }
+    });
+
+    it("Verify status bar", async () => {
+
+        try {
+            const statusBar = new E2EStatusBar();
+            const editorPosition = await statusBar.getEditorPosition();
+            const regex = new RegExp(/Ln (\d+), Col (\d+)/);
+            expect(editorPosition).toMatch(regex);
+            let groups = editorPosition.match(regex);
+            const line = parseInt(groups![1], 10);
+            const col = parseInt(groups![2], 10);
+            expect(await statusBar.getEditorIdent()).toMatch(/Spaces: (\d+)/);
+            expect(await statusBar.getEditorEOL()).toBe("LF");
+            expect(await statusBar.getEditorLanguage()).toBe("mixed/mysql");
+            await DBNotebooks.setNewLineOnEditor();
+            await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(" ");
+            const nextEditorPosition = await statusBar.getEditorPosition();
+            groups = nextEditorPosition.match(regex);
+            expect(groups![1]).toBe(String(line + 1));
+            expect(groups![2]).toBe(String(col + 1));
+
+            await commandExecutor.languageSwitch("\\javascript ");
+            expect(await statusBar.getEditorLanguage()).toBe("mixed/javascript");
+            await commandExecutor.languageSwitch("\\typescript ");
+            expect(await statusBar.getEditorLanguage()).toBe("mixed/typescript");
+            await commandExecutor.languageSwitch("\\sql ");
+            expect(await statusBar.getEditorLanguage()).toBe("mixed/mysql");
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+
+
     });
 
     it("Context Menu - Execute", async () => {

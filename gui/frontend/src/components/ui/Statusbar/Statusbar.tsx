@@ -25,54 +25,21 @@
 
 import "./Statusbar.css";
 
-import { ComponentChild } from "preact";
+import type { IDisposable } from "monaco-editor"; // Only a type import. Does not import the module.
+import { ComponentChild, createRef } from "preact";
 
-import * as codicon from "../Codicon.js";
-
-import { IDictionary, IStatusbarInfo } from "../../../app-logic/Types.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
 import { ThemeColor } from "../../Theming/ThemeColor.js";
 import { Button } from "../Button/Button.js";
 import { ComponentBase, IComponentProperties, IComponentState } from "../Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
-import { Dropdown } from "../Dropdown/Dropdown.js";
-import { Icon } from "../Icon/Icon.js";
+import { ProxyStatusBarItem } from "./ProxyStatusBarItem.js";
+import { StatusBarAlignment, StatusBarItem, type IStatusBarItem, type IStatusBarItemOptions } from "./StatusBarItem.js";
 
-export enum ControlType {
-    TextType,
-    ButtonType,
-    DropdownType,
-}
+const singleton = createRef<StatusBar>();
 
-export interface IStatusbarItem {
-    id: string;
-    type: ControlType;
-    text?: string;
-    icon?: string | codicon.Codicon;
-
-    /** If true the item is right aligned in the status bar. */
-    rightAlign?: boolean;
-    visible?: boolean;
-    tooltip?: string;
-    choices?: Array<{ label: string; data: IDictionary; }>;
-
-    /** Dedicated background color for the item. */
-    color?: string | ThemeColor;
-
-    /** If set the item can be clicked to trigger an action. */
-    commandId?: string;
-
-    /** If true then the item gets a slightly lighter background. */
-    standout?: boolean;
-}
-
-interface IStatusbarProperties extends IComponentProperties {
-    items: IStatusbarItem[];
-}
-
-interface IStatusbarState extends IComponentState {
-    // Item ID => [caption, dropdown entries, visible, standout].
-    itemDetails: Map<string, IStatusbarInfo>;
+interface IStatusBarState extends IComponentState {
+    items: IStatusBarItem[];
 }
 
 /**
@@ -82,39 +49,113 @@ interface IStatusbarState extends IComponentState {
  * This implementation is based on predefined status bar items, which are defined in the properties.
  * Statusbar updates are matched using the item id.
  */
-export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarState> {
+export class StatusBar extends ComponentBase<{}, IStatusBarState> {
 
     #scheduledTimers: Array<{ id: string, timer: ReturnType<typeof setTimeout>; }> = [];
 
-    public constructor(props: IStatusbarProperties) {
-        super(props);
+    public constructor() {
+        super({});
 
-        const itemDetails = new Map<string, IStatusbarInfo>();
         this.state = {
-            itemDetails,
+            items: [],
         };
-
-        props.items.forEach((item: IStatusbarItem) => {
-            itemDetails.set(item.id, {
-                id: item.id,
-                text: item.text || "",
-                icon: item.icon,
-                choices: item.choices ?? [],
-                visible: item.visible ?? false,
-                standout: item.standout ?? false,
-            });
-        });
-
-        this.addHandledProperties("items");
     }
 
-    public componentDidMount(): void {
-        requisitions.register("updateStatusbar", this.updateStatusbar);
+    /**
+     * Creates a status bar {@link StatusBarItem item}.
+     *
+     * Note: this method is here only temporarily, until the UILayer class is available.
+     *
+     * @param options The initial values for the new status bar item.
+     *
+     * @returns A new status bar item.
+     */
+    public static createStatusBarItem(options: IStatusBarItemOptions): IStatusBarItem {
+        if (singleton.current) {
+            const { items } = singleton.current.state;
+
+            items.push(new StatusBarItem(singleton.current.update, options));
+            singleton.current.setState({ items });
+
+            return items[items.length - 1];
+        }
+
+        // If the status bar is not mounted we are in an embedded environment and have to return proxy items.
+        return new ProxyStatusBarItem(options);
+    }
+
+    /**
+     * Set a message to the status bar.
+     *
+     * @param text The message to show, supports icon substitution as in status bar {@link StatusBarItem.text items}.
+     * @param hideAfterTimeout Timeout in milliseconds after which the message will be disposed.
+     *
+     * @returns A disposable which hides the status bar message.
+     */
+    public static setStatusBarMessage(text: string, hideAfterTimeout?: number): IDisposable;
+    /**
+     * Set a message to the status bar.
+     *
+     * @param text The message to show, supports icon substitution as in status bar {@link StatusBarItem.text items}.
+     * @param hideWhenDone Thenable on which completion (resolve or reject) the message will be disposed.
+     *
+     * @returns A disposable which hides the status bar message.
+     */
+    public static setStatusBarMessage(text: string, hideWhenDone: Promise<unknown>): IDisposable;
+    public static setStatusBarMessage(text: string, timeoutOrPromise?: Promise<unknown> | number): IDisposable {
+        const details = {
+            id: "msg.fe.statusBarMessage",
+            text,
+            alignment: StatusBarAlignment.Left,
+            priority: -1000, // Show as last entry.
+        };
+
+        if (singleton.current) {
+            const { items } = singleton.current.state;
+
+            let item = items.find((item) => { return item.id === details.id; });
+            if (!item) {
+                item = new StatusBarItem(singleton.current.update, details);
+                items.push(item);
+            } else {
+                item.text = text;
+            }
+
+            if (timeoutOrPromise === undefined || typeof timeoutOrPromise === "number") {
+                item.timeout = timeoutOrPromise;
+            } else {
+                timeoutOrPromise.then(() => {
+                    item.hide();
+                }).catch(() => {
+                    item.hide();
+                });
+            }
+
+            return {
+                dispose: () => {
+                    // Once created we keep the message item until the app is closed.
+                    item.hide();
+                },
+            };
+        }
+
+        // The embedded scenario: promises are not supported, only timeout values.
+        if (typeof timeoutOrPromise === "number") {
+            const item = new ProxyStatusBarItem(details);
+
+            return {
+                dispose: () => {
+                    item.dispose();
+                },
+            };
+        }
+
+        return {
+            dispose: () => {/* do nothing */ },
+        };
     }
 
     public componentWillUnmount(): void {
-        requisitions.unregister("updateStatusbar", this.updateStatusbar);
-
         // Clear the timers before unmounting
         if (this.#scheduledTimers.length > 0) {
             this.#scheduledTimers.forEach((timer) => {
@@ -125,96 +166,40 @@ export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarSta
     }
 
     public render(): ComponentChild {
-        const { items } = this.mergedProps;
-        const { itemDetails } = this.state;
+        const { items } = this.state;
 
         const className = this.getEffectiveClassNames([
             "statusbar",
             "verticalCenterContent",
         ]);
 
-        const leftItems: ComponentChild[] = [];
-        const rightItems: ComponentChild[] = [];
+        const leftChildren: ComponentChild[] = [];
+        const rightChildren: ComponentChild[] = [];
 
-        items.forEach((item: IStatusbarItem, index: number) => {
-            const info = itemDetails.get(item.id);
+        // Separate the items by their alignment and sort each list by priority.
+        const leftItems = items.filter((item) => {
+            return item.alignment === StatusBarAlignment.Left && item.visible;
+        });
+        const rightItems = items.filter((item) => {
+            return item.alignment === StatusBarAlignment.Right && item.visible;
+        });
 
-            if (info && info.visible) {
-                const color = (item.color instanceof ThemeColor ? "var(" + item.color.variableName + ")" : item.color);
-                let itemClass = "statusbarItem";
-                if (info.standout) {
-                    itemClass += " prominent";
-                }
+        leftItems.sort((a, b) => {
+            return (b.priority ?? -1e6) - (a.priority ?? -1e6);
+        });
 
-                let control = null;
-                switch (item.type) {
-                    case ControlType.DropdownType: {
-                        let selectedItem = "0";
-                        const dropDownItems: ComponentChild[] = [];
-                        info.choices?.forEach((value, i) => {
-                            const dropDownItem = (
-                                <Dropdown.Item
-                                    id={value.data.id as string}
-                                    key={`dropDownItem${i}`}
-                                    caption={value.label}
-                                />
-                            );
-                            dropDownItems.push(dropDownItem);
-                            if (info.text !== "" && info.text === String(value.data.id)) {
-                                selectedItem = value.data.id as string;
-                            }
-                        });
+        rightItems.sort((a, b) => {
+            return (b.priority ?? -1e6) - (a.priority ?? -1e6);
+        });
 
-                        control = (
-                            <Dropdown
-                                key={`statusbarItem${index}`}
-                                className={itemClass}
-                                withoutArrow={true}
-                                selection={selectedItem}
-                                onSelect={this.handleItemChange}
-                                optional={false}
-                                title={item.tooltip}
-                            >
-                                {dropDownItems}
-                            </Dropdown>
-                        );
-                        break;
-                    }
+        leftItems.forEach((item: IStatusBarItem, index: number) => {
+            const control = this.renderItemButton(index, item);
+            leftChildren.push(control);
+        });
 
-                    default: {
-                        let icon;
-                        if (item.icon != null) {
-                            icon = <Icon data-tooltip="inherit" src={info.icon} />;
-                        }
-
-                        control = (
-                            <Button
-                                key={`statusbarItem${index}`}
-                                className={itemClass}
-                                caption={info.text}
-                                data-command={item.commandId}
-                                title={info.tooltip}
-                                disabled={!item.commandId || item.commandId.length === 0}
-                                imageOnly={info.text?.length === 0}
-                                style={{
-                                    color,
-                                }}
-                                onClick={this.handleItemClick}
-                            >
-                                {icon}
-                            </Button>
-                        );
-
-                        break;
-                    }
-                }
-
-                if (item.rightAlign) {
-                    rightItems.push(control);
-                } else {
-                    leftItems.push(control);
-                }
-            }
+        rightItems.forEach((item: IStatusBarItem, index: number) => {
+            const control = this.renderItemButton(index, item);
+            rightChildren.push(control);
         });
 
         return (
@@ -226,25 +211,86 @@ export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarSta
                     className="leftItems"
                     orientation={Orientation.LeftToRight}
                     crossAlignment={ContentAlignment.Stretch}
+                    fixedScrollbars={false}
                 >
-                    {leftItems}
+                    {leftChildren}
                 </Container>
                 <Container
                     className="rightItems"
-                    orientation={Orientation.RightToLeft}
+                    orientation={Orientation.LeftToRight}
                     crossAlignment={ContentAlignment.Stretch}
+                    fixedScrollbars={false}
                 >
-                    {rightItems}
+                    {rightChildren}
                 </Container>
-            </Container>
+            </Container >
         );
     }
 
-    private updateStatusbar = (items: IStatusbarInfo[]): Promise<boolean> => {
-        this.updateStatusItems(items);
+    /**
+     * Creates a component from the given text. Embedded icons are converted to icon components.
+     *
+     * @param index The index of the item used for the preact key.
+     * @param item The status bar item details for rendering.
+     *
+     * @returns A preact component for the status bar item.
+     */
+    private renderItemButton(index: number, item: IStatusBarItem): ComponentChild {
+        // Remove any line break.
+        const text = item.text.replace(/[\n\r]/g, "");
+        const elements: ComponentChild[] = [];
+        let lastIndex = 0;
+        const matches = [...text.matchAll(/\$\([a-z-~]+\)/g)];
 
-        return Promise.resolve(true);
-    };
+        matches.forEach((match, i) => {
+            // Add text before icon.
+            if (match.index > lastIndex) {
+                elements.push(text.substring(lastIndex, match.index));
+            }
+
+            // Convert icon to component. When the icon has the ~spin suffix, add the spin class.
+            let icon = match[0].slice(2, -1);
+            let className = "";
+            if (icon.endsWith("~spin")) {
+                className += "codicon-modifier-spin ";
+                icon = icon.slice(0, -5);
+            }
+            className += `codicon codicon-${icon}`;
+
+            elements.push(<span key={`icon-${index}-${i}`} className={className} />);
+
+            lastIndex = match.index + match[0].length;
+        });
+
+        // Add text after last icon.
+        if (lastIndex < text.length) {
+            elements.push(text.substring(lastIndex));
+        }
+
+        const color = (item.color instanceof ThemeColor ? "var(" + item.color.variableName + ")" : item.color);
+        const backgroundColor = (item.backgroundColor instanceof ThemeColor
+            ? "var(" + item.backgroundColor.variableName + ")"
+            : item.backgroundColor);
+
+        return (
+            <Button
+                key={`statusbarItem${index}`}
+                id={item.id}
+                className="statusbarItem"
+                data-command={item.command}
+                title={item.tooltip}
+                disabled={!item.command}
+                imageOnly={item.text?.length === 0}
+                style={{
+                    color,
+                    backgroundColor,
+                }}
+                onClick={this.handleItemClick}
+            >
+                {elements}
+            </Button>
+        );
+    }
 
     private handleItemClick = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
         void requisitions.execute("statusBarButtonClick", {
@@ -252,41 +298,23 @@ export class Statusbar extends ComponentBase<IStatusbarProperties, IStatusbarSta
         });
     };
 
-    private handleItemChange = (accept: boolean, selectedIds: Set<string>): void => {
-        void requisitions.execute("changeProfile", [...selectedIds][0]);
-    };
+    private update = (removeItem?: StatusBarItem): void => {
+        const { items } = this.state;
 
-    private updateStatusItems = (data: IStatusbarInfo[]): void => {
-        const { itemDetails } = this.state;
+        if (removeItem) {
+            const index = items.findIndex((item) => {
+                return item.id === removeItem.id;
+            });
 
-        data.forEach((info: IStatusbarInfo) => {
-            const item = itemDetails.get(info.id);
-            if (item) {
-                Object.assign(item, info);
-
-                // Check if there already is a timer for this id, if so clear it and remove it from list
-                const timerItem = this.#scheduledTimers.find((timer) => {
-                    return timer.id === info.id;
-                });
-                if (timerItem !== undefined) {
-                    clearTimeout(timerItem?.timer);
-                }
-                this.#scheduledTimers = this.#scheduledTimers.filter((timer) => {
-                    return timer.id === info.id;
-                });
-
-                // If a new hideAfter value has been set, ensure to clean the text after the hideAfter timeout
-                if (info.hideAfter) {
-                    this.#scheduledTimers.push({
-                        id: info.id, timer: setTimeout(() => {
-                            this.updateStatusItems([{ id: info.id, text: "", visible: true }]);
-                        }, info.hideAfter),
-                    });
-                }
+            if (index >= 0) {
+                items.splice(index, 1);
             }
-        });
+        }
 
-        this.setState({ itemDetails });
+        this.setState({ items });
     };
-
 }
+
+export const renderStatusBar = (): ComponentChild => {
+    return <StatusBar ref={singleton} />;
+};

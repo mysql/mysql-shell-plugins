@@ -27,33 +27,31 @@ import "./App.css";
 
 import { Component, createRef, VNode } from "preact";
 
-import { ApplicationHost } from "./ApplicationHost.js";
-import { ModuleRegistry } from "../modules/ModuleRegistry.js";
 import { LoginPage } from "../components/Login/LoginPage.js";
-import { ErrorBoundary } from "./ErrorBoundary.js";
-import { TooltipProvider } from "../components/ui/Tooltip/Tooltip.js";
-import { webSession } from "../supplement/WebSession.js";
-import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
-import { appParameters, requisitions } from "../supplement/Requisitions.js";
 import { IThemeChangeData } from "../components/Theming/ThemeManager.js";
-import { IEditorStatusInfo } from "../modules/db-editor/index.js";
+import { TooltipProvider } from "../components/ui/Tooltip/Tooltip.js";
+import { ModuleRegistry } from "../modules/ModuleRegistry.js";
+import { appParameters, requisitions } from "../supplement/Requisitions.js";
+import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
+import { webSession } from "../supplement/WebSession.js";
+import { ApplicationHost } from "./ApplicationHost.js";
+import { ErrorBoundary } from "./ErrorBoundary.js";
 import { ProfileSelector } from "./ProfileSelector.js";
 
-import { ShellModule } from "../modules/shell/ShellModule.js";
-import { DBEditorModule } from "../modules/db-editor/DBEditorModule.js";
-import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModule.js";
-import { ApplicationDB } from "./ApplicationDB.js";
-import { IDialogResponse, minimumShellVersion } from "./Types.js";
 import { MessageScheduler } from "../communication/MessageScheduler.js";
 import { IShellProfile } from "../communication/ProtocolGui.js";
+import { MessagePanel } from "../components/Dialogs/MessagePanel.js";
 import { ColorPopup } from "../components/ui/ColorPicker/ColorPopup.js";
 import { IComponentState } from "../components/ui/Component/ComponentBase.js";
-import { ProgressIndicator } from "../components/ui/ProgressIndicator/ProgressIndicator.js";
-import { IStatusbarItem, ControlType, Statusbar } from "../components/ui/Statusbar/Statusbar.js";
-import { MessagePanel } from "../components/Dialogs/MessagePanel.js";
-import { versionMatchesExpected } from "../utilities/helpers.js";
-import { Codicon } from "../components/ui/Codicon.js";
 import { NotificationCenter } from "../components/ui/NotificationCenter/NotificationCenter.js";
+import { ProgressIndicator } from "../components/ui/ProgressIndicator/ProgressIndicator.js";
+import { renderStatusBar } from "../components/ui/Statusbar/Statusbar.js";
+import { DBEditorModule } from "../modules/db-editor/DBEditorModule.js";
+import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModule.js";
+import { ShellModule } from "../modules/shell/ShellModule.js";
+import { versionMatchesExpected } from "../utilities/helpers.js";
+import { ApplicationDB } from "./ApplicationDB.js";
+import { IDialogResponse, minimumShellVersion } from "./Types.js";
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;
@@ -61,7 +59,6 @@ interface IAppState extends IComponentState {
     showOptions: boolean;
 
     authenticated: boolean;
-    statusbarEntries: IStatusbarItem[];
 }
 
 export class App extends Component<{}, IAppState> {
@@ -77,64 +74,6 @@ export class App extends Component<{}, IAppState> {
             explorerIsVisible: true,
             loginInProgress: true,
             showOptions: false,
-
-            statusbarEntries: [
-                {
-                    id: "profileTitle",
-                    type: ControlType.TextType,
-                    text: "Profile:",
-                    visible: false,
-                },
-                {
-                    id: "profileChoice",
-                    type: ControlType.ButtonType,
-                    tooltip: "Change profile",
-                    choices: [],
-                    visible: false,
-                    commandId: "openPopupMenu",
-                },
-                {
-                    id: "message",
-                    type: ControlType.TextType,
-                    rightAlign: false,
-                    standout: false,
-                },
-                {
-                    id: "showNotificationHistory",
-                    type: ControlType.ButtonType,
-                    visible: true,
-                    rightAlign: true,
-                    tooltip: "Show Notifications",
-                    commandId: "notifications:showHistory",
-                    icon: Codicon.Bell,
-                },
-                {
-                    id: "editorLanguage",
-                    type: ControlType.TextType,
-                    visible: false,
-                    rightAlign: true,
-                },
-                {
-                    id: "editorEOL",
-                    type: ControlType.TextType,
-                    visible: false,
-                    rightAlign: true,
-                },
-                {
-                    id: "editorIndent",
-                    type: ControlType.TextType,
-                    visible: false,
-                    rightAlign: true,
-                    //commandId: "scripting:editor.action.quickCommand",
-                },
-                {
-                    id: "editorPosition",
-                    type: ControlType.ButtonType,
-                    visible: false,
-                    rightAlign: true,
-                    commandId: "scripting:editor.action.gotoLine",
-                },
-            ],
         };
 
         // Register early to ensure this handler is called last.
@@ -203,7 +142,6 @@ export class App extends Component<{}, IAppState> {
             void ApplicationDB.cleanUp();
 
             requisitions.unregister("statusBarButtonClick", this.statusBarButtonClick);
-            requisitions.unregister("editorInfoUpdated", this.editorInfoUpdated);
             requisitions.unregister("themeChanged", this.themeChanged);
             requisitions.unregister("dialogResponse", this.dialogResponse);
         });
@@ -233,12 +171,11 @@ export class App extends Component<{}, IAppState> {
         document.head.appendChild(style);
 
         requisitions.register("statusBarButtonClick", this.statusBarButtonClick);
-        requisitions.register("editorInfoUpdated", this.editorInfoUpdated);
         requisitions.register("themeChanged", this.themeChanged);
     }
 
     public render(): VNode {
-        const { loginInProgress, statusbarEntries } = this.state;
+        const { loginInProgress } = this.state;
 
         let content;
         if (loginInProgress) {
@@ -266,7 +203,7 @@ export class App extends Component<{}, IAppState> {
 
                 {!appParameters.embedded && (
                     <>
-                        <Statusbar items={statusbarEntries} />
+                        {renderStatusBar()}
                         <ProfileSelector ref={this.actionMenuRef}></ProfileSelector>
                         <ColorPopup />
                     </>
@@ -288,52 +225,6 @@ export class App extends Component<{}, IAppState> {
         }
 
         return Promise.resolve(false);
-    };
-
-    private editorInfoUpdated = (info: IEditorStatusInfo): Promise<boolean> => {
-        let text = "";
-        if (info.indentSize || info.tabSize) {
-            if (info.insertSpaces) {
-                text = `Spaces: ${info.indentSize ?? 0}`;
-            } else {
-                text = `Tab Size: ${info.tabSize ?? 0}`;
-            }
-        }
-
-        const statusbarArguments = [];
-        if (text !== "") {
-            statusbarArguments.push({
-                id: "editorIndent",
-                visible: true,
-                text,
-            });
-        }
-
-        if (info.line || info.column) {
-            statusbarArguments.push({
-                id: "editorPosition",
-                visible: true,
-                text: `Ln ${info.line ?? 1}, Col ${info.column ?? 1}`,
-            });
-        }
-
-        if (info.language) {
-            statusbarArguments.push({
-                id: "editorLanguage",
-                visible: true,
-                text: info.language,
-            });
-        }
-
-        if (info.eol) {
-            statusbarArguments.push({
-                id: "editorEOL",
-                visible: true,
-                text: info.eol,
-            });
-        }
-
-        return requisitions.execute("updateStatusbar", statusbarArguments);
     };
 
     private themeChanged = (values: IThemeChangeData): Promise<boolean> => {

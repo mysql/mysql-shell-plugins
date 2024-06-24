@@ -170,7 +170,6 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         const { editable, editModeActive, selectRow, resultSet, topRowIndex } = this.mergedProps;
 
         document.addEventListener("keydown", this.handleKeyDown);
-        //document.addEventListener("mousedown", this.handleMouseDown);
         document.addEventListener("mouseup", this.handleMouseUp);
 
         if (this.gridRef.current) {
@@ -195,7 +194,6 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
     public componentWillUnmount(): void {
         document.removeEventListener("keydown", this.handleKeyDown);
-        document.removeEventListener("mousedown", this.handleMouseDown);
         document.removeEventListener("mouseup", this.handleMouseUp);
     }
 
@@ -1833,13 +1831,6 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
         return undefined;
     }
-
-    /**
-     * A handler for global mouse down. Used to track mouse clicks for focus-out handling.
-     */
-    private handleMouseDown = (): void => {
-        this.#lastInputType = "mousedown";
-    };
 
     /**
      * A handler for global mouse up. Used to track mouse clicks for focus-out handling.

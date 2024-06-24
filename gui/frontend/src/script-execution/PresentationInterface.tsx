@@ -1138,6 +1138,7 @@ export class PresentationInterface {
 
         return Promise.resolve(false);
     };
+
     private handleChatAction = (action: ChatAction, _options?: IMdsChatData): void => {
         switch (action) {
             case ChatAction.Execute: {

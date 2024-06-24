@@ -23,17 +23,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import chatOptionsIcon from "../../assets/images/chatOptions.svg";
+import lakehouseNavigatorIcon from "../../assets/images/lakehouseNavigator.svg";
 import autoCommitActiveIcon from "../../assets/images/toolbar/toolbar-auto_commit-active.svg";
 import autoCommitInactiveIcon from "../../assets/images/toolbar/toolbar-auto_commit-inactive.svg";
 import commitIcon from "../../assets/images/toolbar/toolbar-commit.svg";
-import executeCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret.svg";
-import executePrintTextIcon from "../../assets/images/toolbar/toolbar-execute_print_text.svg";
-//import executeExplainIcon from "../../assets/images/toolbar/execute-explain.svg";
-import chatOptionsIcon from "../../assets/images/chatOptions.svg";
-import lakehouseNavigatorIcon from "../../assets/images/lakehouseNavigator.svg";
 import executeIcon from "../../assets/images/toolbar/toolbar-execute.svg";
+import executeCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret.svg";
 import executeHeatWaveCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret_heatwave.svg";
 import executeHeatWaveIcon from "../../assets/images/toolbar/toolbar-execute_heatwave.svg";
+import executePrintTextIcon from "../../assets/images/toolbar/toolbar-execute_print_text.svg";
 import formatIcon from "../../assets/images/toolbar/toolbar-format.svg";
 import rollbackIcon from "../../assets/images/toolbar/toolbar-rollback.svg";
 import searchIcon from "../../assets/images/toolbar/toolbar-search.svg";
@@ -48,6 +47,7 @@ import wordWrapInactiveIcon from "../../assets/images/toolbar/toolbar-word_wrap-
 import { ComponentChild } from "preact";
 
 import { Button } from "../../components/ui/Button/Button.js";
+import type { IPosition } from "../../components/ui/CodeEditor/index.js";
 import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
 import { Divider } from "../../components/ui/Divider/Divider.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
@@ -140,7 +140,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
     }
 
     public componentDidMount(): void {
-        requisitions.register("editorInfoUpdated", this.editorInfoUpdated);
+        requisitions.register("editorCaretMoved", this.handleCaretMove);
         requisitions.register("editorContextStateChanged", this.contextStateChanged);
         requisitions.register("editorToggleStopExecutionOnError", this.toggleStopExecutionOnError);
         requisitions.register("editorToggleAutoCommit", this.toggleAutoCommit);
@@ -154,7 +154,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
             this.stateChangeTimer = null;
         }
 
-        requisitions.unregister("editorInfoUpdated", this.editorInfoUpdated);
+        requisitions.unregister("editorCaretMoved", this.handleCaretMove);
         requisitions.unregister("editorContextStateChanged", this.contextStateChanged);
         requisitions.unregister("editorToggleStopExecutionOnError", this.toggleStopExecutionOnError);
         requisitions.unregister("editorToggleAutoCommit", this.toggleAutoCommit);
@@ -420,13 +420,10 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
         );
     }
 
-    private editorInfoUpdated = (): Promise<boolean> => {
-        setTimeout(() => {
-            this.updateState();
-        }, 0);
+    private handleCaretMove = (position: IPosition): Promise<boolean> => {
+        this.updateState(position);
 
-        // Allow other subscribers to get this event too, by returning false.
-        return Promise.resolve(false);
+        return Promise.resolve(true);
     };
 
     private toggleHidden = (): void => {
@@ -530,12 +527,13 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
         return true;
     };
 
-    private updateState(): void {
+    private updateState(position?: IPosition): void {
         const { currentEditor, currentContext } = this.state;
 
         if (currentEditor?.state?.model?.executionContexts) {
+            position ??= currentEditor.state.model.executionContexts.cursorPosition;
             const context = currentEditor.state.model.executionContexts
-                .contextFromPosition(currentEditor.state.model.executionContexts.cursorPosition) as ExecutionContext;
+                .contextFromPosition(position) as ExecutionContext;
             if (context) {
                 if (context !== currentContext) {
                     this.setState({

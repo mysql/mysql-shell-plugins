@@ -25,7 +25,8 @@
 
 import {
     commands, ConfigurationChangeEvent, ConfigurationTarget, ExtensionContext, StatusBarItem, window, workspace,
-    WorkspaceConfiguration,
+    WorkspaceConfiguration, Disposable,
+    type StatusBarAlignment,
 } from "vscode";
 
 import { ShellTask } from "../../frontend/src/shell-tasks/ShellTask.js";
@@ -38,11 +39,11 @@ import { printChannelOutput, taskOutputChannel } from "./extension.js";
 import { ScriptsTreeDataProvider } from "./tree-providers/ScriptsTreeProvider.js";
 import { ShellTasksTreeDataProvider } from "./tree-providers/ShellTreeProvider/ShellTasksTreeProvider.js";
 
-import { IStatusbarInfo } from "../../frontend/src/app-logic/Types.js";
 import { IShellModuleDataCategoriesEntry, IShellProfile } from "../../frontend/src/communication/ProtocolGui.js";
 import {
     IEditorExtendedExecutionOptions,
     IRequestListEntry, IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider, requisitions,
+    type IUpdateStatusBarItem,
 } from "../../frontend/src/supplement/Requisitions.js";
 import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
 import { NodeMessageScheduler } from "./communication/NodeMessageScheduler.js";
@@ -91,7 +92,10 @@ export class ExtensionHost {
     // A mapping from data type captions to data type ids.
     private moduleDataCategories = new Map<string, IShellModuleDataCategoriesEntry>();
 
-    #visibleStatusbarItems = new Map<string, [StatusBarItem, ReturnType<typeof setTimeout>]>();
+    #statusbarItems = new Map<string, [StatusBarItem, ReturnType<typeof setTimeout> | undefined]>();
+
+    // Set when a status message was set, to allow disposing it before its timeout.
+    #statusMessageDisposable?: Disposable;
 
     public constructor(public context: ExtensionContext) {
         this.setupEnvironment();
@@ -632,6 +636,14 @@ export class ExtensionHost {
             this.providers.splice(index, 1);
         }
 
+        // When all providers are closed, remove the status bar items.
+        if (this.providers.length === 0) {
+            this.#statusbarItems.forEach((entry) => {
+                entry[0].dispose();
+            });
+            this.#statusbarItems.clear();
+        }
+
         if (this.lastActiveProvider === provider) {
             this.lastActiveProvider = undefined;
         }
@@ -662,8 +674,8 @@ export class ExtensionHost {
         original: IRequestListEntry<keyof IRequestTypeMap>;
     }): Promise<boolean> => {
         switch (request.original.requestType) {
-            case "updateStatusbar": {
-                this.updateStatusbar(request.original.parameter as IStatusbarInfo[]);
+            case "updateStatusBarItem": {
+                this.updateStatusBarItem(request.original.parameter as IUpdateStatusBarItem);
 
                 return Promise.resolve(true);
             }
@@ -697,38 +709,123 @@ export class ExtensionHost {
     };
 
     /**
-     * Creates or updates the statusbar items from the given info.
+     * Creates, updates or removes a statusbar item.
      *
-     * @param info A list of statusbar info entries to create new statusbar items from or update existing ones.
+     * @param item The item to create or update.
      */
-    private updateStatusbar = (info: IStatusbarInfo[]): void => {
-        info.forEach((i) => {
-            if (i.text) {
-                let entry = this.#visibleStatusbarItems.get(i.id);
-                if (!entry) {
-                    entry = [window.createStatusBarItem(), setTimeout(() => {
-                        entry?.[0].dispose();
-                        this.#visibleStatusbarItems.delete(i.id);
-                    }, i.hideAfter ?? 25000)]; // Auto hide after 25 seconds with no update.
-
-                    this.#visibleStatusbarItems.set(i.id, entry);
-                    entry[0].show();
+    private updateStatusBarItem = (item: IUpdateStatusBarItem): void => {
+        switch (item.state) {
+            case "show": {
+                // Show the item or create it if it does not exist.
+                if (item.id === "msg.fe.statusBarMessage") {
+                    // This special id indicates a status message.
+                    this.#statusMessageDisposable = window.setStatusBarMessage(item.text ?? "<text not set>",
+                        item.timeout ?? 5000);
                 } else {
-                    clearTimeout(entry[1]);
-                    entry[1] = setTimeout(() => {
-                        entry?.[0].dispose();
-                        this.#visibleStatusbarItems.delete(i.id);
-                    }, i.hideAfter ?? 25000);
+                    const entry = this.#statusbarItems.get(item.id);
+                    if (entry) {
+                        if (entry[1]) {
+                            clearTimeout(entry[1]);
+                        }
+
+                        if (item.text) {
+                            entry[0].text = item.text;
+                        }
+
+                        if (item.tooltip) {
+                            entry[0].tooltip = item.tooltip;
+                        }
+
+                        if (item.timeout) {
+                            entry[1] = setTimeout(() => {
+                                entry?.[0].dispose();
+                                this.#statusbarItems.delete(item.id);
+                            }, item.timeout);
+                        }
+
+                        this.#statusbarItems.set(item.id, entry);
+                        entry[0].show();
+                    } else {
+                        // Have to create the item.
+                        const newItem = window.createStatusBarItem(item.alignment as StatusBarAlignment, item.priority);
+                        if (item.text) {
+                            newItem.text = item.text;
+                        }
+
+                        if (item.tooltip) {
+                            newItem.tooltip = item.tooltip;
+                        }
+
+                        let timeout;
+                        if (item.timeout) {
+                            timeout = setTimeout(() => {
+                                newItem.dispose();
+                                this.#statusbarItems.delete(item.id);
+                            }, item.timeout);
+                        }
+                        this.#statusbarItems.set(item.id, [newItem, timeout]);
+                    }
                 }
-                entry[0].text = i.text;
-            } else {
-                const entry = this.#visibleStatusbarItems.get(i.id);
-                if (entry) {
-                    entry[0].dispose();
-                    clearTimeout(entry[1]);
-                    this.#visibleStatusbarItems.delete(i.id);
-                }
+
+                break;
             }
-        });
+
+            case "hide": {
+                if (item.id === "msg.fe.statusBarMessage") {
+                    if (this.#statusMessageDisposable) {
+                        this.#statusMessageDisposable.dispose();
+                        this.#statusMessageDisposable = undefined;
+                    }
+                } else {
+                    const entry = this.#statusbarItems.get(item.id);
+                    if (entry) {
+                        if (entry[1]) {
+                            clearTimeout(entry[1]);
+                            entry[1] = undefined;
+                        }
+                        entry[0].hide();
+                    }
+                }
+
+                break;
+            }
+
+            case "keep": {
+                // Change attributes, but keep the current state.
+                const entry = this.#statusbarItems.get(item.id);
+                if (entry) {
+                    if (item.text) {
+                        entry[0].text = item.text;
+                    }
+
+                    if (item.tooltip) {
+                        entry[0].tooltip = item.tooltip;
+                    }
+                }
+                break;
+            }
+
+            case "dispose": {
+                if (item.id === "msg.fe.statusBarMessage") {
+                    if (this.#statusMessageDisposable) {
+                        this.#statusMessageDisposable.dispose();
+                        this.#statusMessageDisposable = undefined;
+                    }
+                } else {
+                    const entry = this.#statusbarItems.get(item.id);
+                    if (entry) {
+                        if (entry[1]) {
+                            clearTimeout(entry[1]);
+                            entry[1] = undefined;
+                        }
+                        entry[0].dispose();
+                    }
+                }
+
+                break;
+            }
+
+            default:
+        }
     };
 }

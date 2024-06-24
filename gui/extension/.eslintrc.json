@@ -560,7 +560,7 @@
             "error",
             "always"
         ],
-        "@typescript-eslint/unified-signatures": "error",
+        "@typescript-eslint/unified-signatures": "off",
         "@typescript-eslint/prefer-regexp-exec": "off",
         "@typescript-eslint/naming-convention": [
             "error",
