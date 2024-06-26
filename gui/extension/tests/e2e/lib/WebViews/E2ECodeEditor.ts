@@ -67,10 +67,20 @@ export class E2ECodeEditor {
         await Misc.switchBackToTopFrame();
         await Misc.switchToFrame();
 
-        const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
-        this.resultIds = await Promise.all(results.map(async (item: WebElement) => {
-            return (await item.getAttribute("monaco-view-zone")).match(/(\d+)/)[1];
-        }));
+        await driver.wait(async () => {
+            try {
+                const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
+                this.resultIds = await Promise.all(results.map(async (item: WebElement) => {
+                    return (await item.getAttribute("monaco-view-zone")).match(/(\d+)/)[1];
+                }));
+
+                return true;
+            } catch (e) {
+                if (!(errors.isStaleError(e as Error))) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, "Could not load the command results");
     };
 
     /**

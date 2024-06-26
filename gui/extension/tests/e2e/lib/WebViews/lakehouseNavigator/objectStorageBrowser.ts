@@ -205,15 +205,35 @@ export class ObjectStorageBrowser {
                 const objectStorageItem = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
                     .objectStorageItem;
                 const item = await this.getItem(itemName);
-                await (await item.findElement(objectStorageItem.item.checkbox)).click();
+                const checkbox = await item.findElement(objectStorageItem.item.checkbox);
+                await checkbox.click();
 
-                return true;
+                return driver.wait(async () => {
+                    const path = await driver
+                        .findElements(locator.lakeHouseNavigator.uploadToObjectStorage.filesForUpload.path);
+                    if (path.length > 0) {
+                        return (await path[0].getAttribute("value")).includes(itemName);
+                    }
+
+                    const loadingTasks = await driver
+                        .findElements(locator.lakeHouseNavigator.loadIntoLakeHouse.newLoadingTask
+                            .loadingTaskItem.caption);
+                    if (loadingTasks.length > 0) {
+                        return (await loadingTasks[0].getText()).includes(itemName);
+                    }
+                }, constants.wait2seconds, "checkbox was not checked")
+                    .then(() => {
+                        return true;
+                    })
+                    .catch(() => {
+                        return false;
+                    });
             } catch (e) {
                 if (!errors.isStaleError(e as Error)) {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Could not check the item '${itemName}'`);
+        }, constants.wait10seconds, `Could not check the item '${itemName}'`);
     };
 
     /**

@@ -564,17 +564,27 @@ export class Workbench {
      */
     public static toggleSideBar = async (open: boolean): Promise<void> => {
         await Misc.switchBackToTopFrame();
-        const primarySidebar = await driver.findElement(locator.togglePrimarySideBar);
-        const isOpened = (await primarySidebar.getAttribute("aria-checked")).includes("true");
-        if (open === true) {
-            if (!isOpened) {
-                await primarySidebar.click();
+        await driver.wait(async () => {
+            try {
+                const primarySidebar = await driver.findElement(locator.togglePrimarySideBar);
+                const isOpened = (await primarySidebar.getAttribute("aria-checked")).includes("true");
+                if (open === true) {
+                    if (!isOpened) {
+                        await primarySidebar.click();
+                    }
+                } else {
+                    if (isOpened) {
+                        await primarySidebar.click();
+                    }
+                }
+
+                return true;
+            } catch (e) {
+                if (!(errors.isStaleError(e as Error))) {
+                    throw e;
+                }
             }
-        } else {
-            if (isOpened) {
-                await primarySidebar.click();
-            }
-        }
+        }, constants.wait5seconds, "Could not toggle the side bar");
     };
 
     /**
@@ -728,5 +738,27 @@ export class Workbench {
                 return Misc.isJson(json);
             }
         });
+    };
+
+    /**
+     * Gets the text from the opened text editor, waiting until the json parse is successful
+     * @returns A promise resolving with the json as a string
+     */
+    public static getJsonFromTextEditor = async (): Promise<string> => {
+        let jsonFromEditor: string;
+
+        await driver.wait(async () => {
+            try {
+                const textEditor = new TextEditor();
+                jsonFromEditor = await textEditor.getText();
+                JSON.parse(jsonFromEditor);
+
+                return true;
+            } catch (e) {
+                // parsing error due to clipboard content
+            }
+        }, constants.wait5seconds, "Could not parse the JSON");
+
+        return jsonFromEditor;
     };
 }

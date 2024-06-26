@@ -723,6 +723,7 @@ export const lakeHouseNavigator = {
             },
         },
         filesForUpload: {
+            path: By.id("uploadTargetPath"),
             button: By.css(".loadingTaskActionButtons .button"),
             file: By.css(".loadingTaskItem .itemCaption"),
         },
