@@ -184,10 +184,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await ociTreeSection.tree.openContextMenuAndSelect(treeCompartment, constants.viewCompartmentInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${ociTree[2].source} Info.json`), constants.wait5seconds);
             await driver.wait(Workbench.untilJsonFileIsOpened("QA Info.json"), constants.wait5seconds);
-            const textEditor = new TextEditor();
-            const json = await textEditor.getText();
-            const parsed = JSON.parse(json);
-            compartmentId = parsed.id;
+            compartmentId = JSON.parse((await Workbench.getJsonFromTextEditor())).id;
 
         });
 
@@ -404,17 +401,14 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(Workbench.untilTabIsOpened(`${bastionName} Info.json`), constants.wait5seconds);
             await driver.wait(Workbench.untilJsonFileIsOpened(`${bastionName} Info.json`),
                 constants.wait5seconds);
-            const textEditor = new TextEditor();
-            const json = await textEditor.getText();
-            const parsed = JSON.parse(json);
-            bastionId = parsed.id;
-
+            bastionId = JSON.parse((await Workbench.getJsonFromTextEditor())).id;
             await Workbench.closeEditor(`${bastionName} Info.json`);
             await Workbench.pushDialogButton("Don't Save");
 
         });
 
         it("Set as Current Bastion", async () => {
+
             const treeBastion = await ociTreeSection.tree.getOciElementByType(constants.bastionType);
             const bastionName = await treeBastion.getLabel();
             await ociTreeSection.tree.openContextMenuAndSelect(treeBastion, constants.setAsCurrentBastion, undefined);
@@ -429,6 +423,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await shellConsole.codeEditor.create();
             const result = await shellConsole.codeEditor.execute("mds.get.currentBastionId()");
             expect(result.text).to.equal(bastionId);
+
         });
 
         it("Refresh When Bastion Reaches Active State", async () => {
@@ -440,9 +435,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await new OutputView().clearText();
             await driver.wait(tasksTreeSection.tree.untilExists("Refresh Bastion (done)"),
                 constants.wait5seconds);
+
         });
 
         it("Delete Bastion", async () => {
+
             await new OutputView().clearText();
             const treeBastion = await ociTreeSection.tree.getOciElementByType(constants.bastionType);
             await ociTreeSection.tree.openContextMenuAndSelect(treeBastion, constants.deleteBastion);
@@ -523,6 +520,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         });
 
         it("View Compute Instance Information", async () => {
+
             const treeComputeInstance = await ociTreeSection.tree.getOciElementByType(constants.ociComputeType);
             const computeName = await treeComputeInstance.getLabel();
             await ociTreeSection.tree.openContextMenuAndSelect(treeComputeInstance, constants.viewComputeInstanceInfo);
@@ -530,6 +528,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(Workbench.untilJsonFileIsOpened(`${computeName} Info.json`), constants.wait5seconds);
             await Workbench.closeEditor(`${computeName} Info.json`);
             await Workbench.pushDialogButton("Don't Save");
+
         });
 
         it("Delete Compute Instance", async () => {
@@ -550,6 +549,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             } finally {
                 await tasksTreeSection.collapse();
             }
+
         });
     });
 

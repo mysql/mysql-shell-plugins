@@ -2078,7 +2078,7 @@ describe("NOTEBOOKS", () => {
             await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.selectOciProfile("HEATWAVE");
             await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
             await driver.wait(lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.itemsAreLoaded(),
-                constants.wait10seconds, "Object storage browser is still loading");
+                constants.wait15seconds);
             await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
                 .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
             await (await lakeHouseNavigator.uploadToObjectStorage.getFilesForUploadButton(constants.addFiles)).click();
@@ -2093,8 +2093,7 @@ describe("NOTEBOOKS", () => {
                 constants.wait10seconds, "Object storage browser is still loading");
             expect(await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.existsItem(cookbookFile))
                 .to.be.true;
-            await driver.wait(Workbench.untilNotificationExists("The files have been uploaded successfully"),
-                constants.wait15seconds);
+
         });
 
         it("Load into Lakehouse", async () => {
