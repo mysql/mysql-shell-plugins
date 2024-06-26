@@ -37,7 +37,6 @@ import { EntityType, IDBEditorScriptState } from "../../../frontend/src/modules/
 import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo.js";
 import { EditorLanguage, INewEditorRequest, IScriptRequest } from "../../../frontend/src/supplement/index.js";
 import { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface/index.js";
-import { showMessageWithTimeout } from "../utilities.js";
 import { WebviewProvider } from "./WebviewProvider.js";
 
 export class DBConnectionViewProvider extends WebviewProvider {
@@ -350,7 +349,6 @@ export class DBConnectionViewProvider extends WebviewProvider {
 
             this.requisitions.register("newSession", this.createNewSession);
             this.requisitions.register("closeInstance", this.closeInstance);
-            this.requisitions.register("showInfo", this.showInfo);
             this.requisitions.register("editorSaveNotebook", this.editorSaveNotebook);
             this.requisitions.register("editorSaveNotebookInPlace", this.editorSaveNotebookInPlace);
             this.requisitions.register("editorLoadNotebook", this.editorLoadNotebook);
@@ -405,12 +403,6 @@ export class DBConnectionViewProvider extends WebviewProvider {
             provider: this,
             original: { requestType: "editorExecuteOnHost", parameter: data },
         });
-    };
-
-    private showInfo = (values: string): Promise<boolean> => {
-        showMessageWithTimeout(values, 5000);
-
-        return Promise.resolve(true);
     };
 
     /**

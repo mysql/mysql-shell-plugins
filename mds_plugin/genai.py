@@ -199,7 +199,7 @@ def chat(prompt, **kwargs):
 
     status = get_status(session=session)
     if status.get("heatwave_support") is False and status.get("local_model_support") is False:
-        raise Exception("GenAI support is not available.")
+        raise Exception("GenAI support is not available. Please connect to a HeatWave 9.0 instance or higher.")
 
     if status.get("heatwave_support") is True:
         lang_opts = options.pop("language_options", {})
@@ -414,6 +414,7 @@ def save_chat_options(file_path, **kwargs):
     """
 
     options = kwargs.get("options")
+    options["heat_wave_chat_version"] = 1
 
     with open(file_path, 'w') as file:
         file.write(json.dumps(options, indent=4))
@@ -434,5 +435,18 @@ def load_chat_options(file_path):
         raise Exception(f"The file {file_path} does not exist.")
 
     with open(file_path, 'r') as file:
-        options = file.read()
-        return json.loads(options)
+        options_content = file.read()
+
+        try:
+            options = json.loads(options_content)
+        except:
+            raise Exception("Failed to parse the selected file. Please select a JSON file.")
+
+        version = options.pop("heat_wave_chat_version", None)
+        if version is None:
+            raise Exception("The selected file is not a HeatWave Chat options file.")
+
+        if version != 1:
+            raise Exception("The version of the selected HeatWave Chat options file is not supported.")
+
+        return options

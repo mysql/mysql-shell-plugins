@@ -569,9 +569,9 @@ export interface IRequestTypeMap {
     "executeCodeBlock": (options: ICodeBlockExecutionOptions) => Promise<boolean>;
 
     "showFatalError": (values: string[]) => Promise<boolean>;
-    "showError": (values: string) => Promise<boolean>;
+    "showError": (message: string) => Promise<boolean>;
     "showWarning": (message: string) => Promise<boolean>;
-    "showInfo": (values: string) => Promise<boolean>;
+    "showInfo": (message: string) => Promise<boolean>;
 
     "connectedToUrl": (url?: URL) => Promise<boolean>;
     "refreshSessions": (sessions: IShellSessionDetails[]) => Promise<boolean>;

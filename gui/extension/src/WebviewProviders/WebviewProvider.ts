@@ -193,6 +193,9 @@ export class WebviewProvider implements IWebviewProvider {
             this.requisitions.register("selectConnectionTab", this.selectConnectionTab);
             this.requisitions.register("dialogResponse", this.dialogResponse);
             this.requisitions.register("updateStatusBarItem", this.updateStatusBarItem);
+            this.requisitions.register("showError", this.showError);
+            this.requisitions.register("showInfo", this.showInfo);
+            this.requisitions.register("showWarning", this.showWarning);
 
             this.requisitions.register("closeInstance",
                 this.forwardSimple.bind(this, "closeInstance") as SimpleCallback);
@@ -216,6 +219,30 @@ export class WebviewProvider implements IWebviewProvider {
         return requisitions.execute("proxyRequest", {
             provider: this,
             original: { requestType: "dialogResponse", parameter: response },
+        });
+    };
+
+    private showError = (message: string): Promise<boolean> => {
+        // Proxy the notification over the global requisitions.
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "showError", parameter: message },
+        });
+    };
+
+    private showInfo = (message: string): Promise<boolean> => {
+        // Proxy the notification over the global requisitions.
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "showInfo", parameter: message },
+        });
+    };
+
+    private showWarning = (message: string): Promise<boolean> => {
+        // Proxy the notification over the global requisitions.
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "showWarning", parameter: message },
         });
     };
 
