@@ -1793,6 +1793,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                                     break;
                                 }
 
+                                case EntityType.LakehouseNavigator: {
+                                    caption = "Lakehouse Navigator";
+                                    break;
+                                }
+
                                 default:
                             }
                         }

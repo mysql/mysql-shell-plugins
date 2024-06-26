@@ -24,7 +24,9 @@
  */
 
 .msg.statusbar {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto;
+
     flex: 0 0 24px;
     align-items: stretch;
 
@@ -38,7 +40,12 @@
 }
 
 .msg.statusbar > .leftItems {
-    flex-grow: 1
+    min-width: 0;
+}
+
+.msg.statusbar > .rightItems {
+    overflow: hidden;
+    max-width: fit-content;
 }
 
 .msg.statusbar .statusbarItem {
@@ -52,6 +59,10 @@
     margin: 0 4px;
     padding: 0 6px;
     min-width: 0;
+    max-width: 100%;
+    justify-content: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     outline: none;
     white-space: pre;

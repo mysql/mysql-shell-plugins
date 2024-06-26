@@ -680,6 +680,24 @@ export class ExtensionHost {
                 return Promise.resolve(true);
             }
 
+            case "showError": {
+                void window.showErrorMessage(request.original.parameter as string);
+
+                return Promise.resolve(true);
+            }
+
+            case "showWarning": {
+                void window.showWarningMessage(request.original.parameter as string);
+
+                return Promise.resolve(true);
+            }
+
+            case "showInfo": {
+                void window.showInformationMessage(request.original.parameter as string);
+
+                return Promise.resolve(true);
+            }
+
             case "connectionAdded":
             case "connectionUpdated":
             case "connectionRemoved":

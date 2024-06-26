@@ -1523,28 +1523,6 @@ Execute \\help or \\? for help;`;
                                 currentChatOptions.response = undefined;
                             }
 
-                            /*if (chatData.requestCompleted) {
-                                // Update chat history
-
-                                if (!this.#currentChatOptions.chatHistory) {
-                                    this.#currentChatOptions.chatHistory = [];
-                                }
-                                if (this.#currentChatOptions.reRun) {
-                                    // If this is a reRun, update the chatHistory entries
-                                    this.#currentChatOptions.chatHistory = this.#currentChatOptions.chatHistory.map(
-                                        (entry) => {
-                                            return (entry.chatQueryId === chatQueryId) ?
-                                                { ...entry, userMessage: context.code, chatBotMessage: tokens } : entry;
-                                        });
-                                } else {
-                                    this.#currentChatOptions.chatHistory.push({
-                                        chatQueryId,
-                                        userMessage: context.code,
-                                        chatBotMessage: tokens,
-                                    });
-                                }
-                            }*/
-
                             void context.addResultData({
                                 type: "chat",
                                 chatQueryId,
@@ -1569,6 +1547,11 @@ Execute \\help or \\? for help;`;
                     content = reason.info.requestState.msg;
                 } else {
                     content = reason as string;
+                }
+
+                const shellErrorHeader = "ScriptingError: genai.chat: \nException: ";
+                if (content.startsWith(shellErrorHeader)) {
+                    content = "Error: " + content.substring(shellErrorHeader.length);
                 }
 
                 this.addTimedResult(context, {
@@ -2932,18 +2915,60 @@ Execute \\help or \\? for help;`;
                     const options: IDictionary = {
                         ...savedState.chatOptionsState.options,
                     };
-                    void backend?.mds.saveMdsChatOptions(fileResult.path[0], options);
+                    try {
+                        void await backend?.mds.saveMdsChatOptions(fileResult.path[0], options);
+
+                        void requisitions.execute("showInfo",
+                            `The HeatWave options have been saved successfully to ${fileResult.path[0]}`);
+                    } catch (reason) {
+                        let content: string;
+
+                        if (reason instanceof ResponseError) {
+                            content = reason.info.requestState.msg;
+                        } else {
+                            content = reason as string;
+                        }
+
+                        const shellErrorHeader = "ScriptingError: genai.save_chat_options: \nException: ";
+                        if (content.startsWith(shellErrorHeader)) {
+                            content = "Error: " + content.substring(shellErrorHeader.length);
+                        }
+
+                        void requisitions.execute("showError", content);
+                    }
                 }
+
+
                 break;
             }
 
             case "loadChatOptions": {
                 if (fileResult.path.length === 1) {
-                    // Load Chat Profile options
-                    const options = await backend?.mds.loadMdsChatOptions(fileResult.path[0]);
+                    try {
+                        // Load Chat Profile options
+                        const options = await backend?.mds.loadMdsChatOptions(fileResult.path[0]);
 
-                    if (id && onChatOptionsChange) {
-                        onChatOptionsChange(id, { options });
+                        if (id && onChatOptionsChange) {
+                            onChatOptionsChange(id, { options });
+
+                            void requisitions.execute("showInfo",
+                                `The HeatWave options have been loaded successfully from ${fileResult.path[0]}`);
+                        }
+                    } catch (reason) {
+                        let content: string;
+
+                        if (reason instanceof ResponseError) {
+                            content = reason.info.requestState.msg;
+                        } else {
+                            content = reason as string;
+                        }
+
+                        const shellErrorHeader = "ScriptingError: genai.load_chat_options: \nException: ";
+                        if (content.startsWith(shellErrorHeader)) {
+                            content = "Error: " + content.substring(shellErrorHeader.length);
+                        }
+
+                        void requisitions.execute("showError", content);
                     }
                 }
                 break;

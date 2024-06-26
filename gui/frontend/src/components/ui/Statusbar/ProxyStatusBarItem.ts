@@ -88,7 +88,7 @@ export class ProxyStatusBarItem implements IStatusBarItem {
         const details: IUpdateStatusBarItem = {
             id: this.id,
             state: "show",
-            text: this.text,
+            text: this.#text,
             tooltip: this.#tooltip,
             alignment: this.alignment,
             priority: this.priority,
@@ -101,7 +101,7 @@ export class ProxyStatusBarItem implements IStatusBarItem {
         const details: IUpdateStatusBarItem = {
             id: this.id,
             state: "show",
-            text: "xx",
+            text: this.#text,
             tooltip: this.#tooltip,
             timeout: this.timeout,
             alignment: this.alignment,

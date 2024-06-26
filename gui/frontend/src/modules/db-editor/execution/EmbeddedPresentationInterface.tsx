@@ -58,9 +58,11 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     }
 
     public dispose(): void {
+        // Need to get the outer model here, as the super.dispose() call will nullify the backend/model.
+        const editorModel = super.model;
+
         super.dispose();
 
-        const editorModel = super.model;
         if (editorModel) {
             editorModel.deltaDecorations([this.promptFirstDecorationID], []);
             editorModel.deltaDecorations([this.promptOtherDecorationID], []);

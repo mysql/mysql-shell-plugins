@@ -132,7 +132,7 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
     #autoHideTimeout = 15000; // 15 seconds to hide any unhandled message.
     #containerRef = createRef<HTMLDivElement>();
 
-    #statusBarItem!: IStatusBarItem;
+    #statusBarItem?: IStatusBarItem;
 
     public constructor(props: INotificationCenterProps) {
         super(props);
@@ -151,18 +151,20 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
         requisitions.register("showWarning", this.showWarning);
         requisitions.register("showError", this.showError);
 
-        this.#statusBarItem = StatusBar.createStatusBarItem({
-            id: "showNotificationHistory",
-            command: "notifications:showHistory",
-            tooltip: "Show Notifications",
-            text: "$(bell)",
-            alignment: StatusBarAlignment.Right,
-        });
-        this.updateStatusBarItem();
+        if (!appParameters.embedded) {
+            this.#statusBarItem = StatusBar.createStatusBarItem({
+                id: "showNotificationHistory",
+                command: "notifications:showHistory",
+                tooltip: "Show Notifications",
+                text: "$(bell)",
+                alignment: StatusBarAlignment.Right,
+            });
+            this.updateStatusBarItem();
+        }
     }
 
     public componentWillUnmount(): void {
-        this.#statusBarItem.dispose();
+        this.#statusBarItem?.dispose();
 
         document.removeEventListener("keydown", this.handleKeyDown);
         requisitions.unregister("statusBarButtonClick", this.statusBarButtonClick);
@@ -590,39 +592,41 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
     };
 
     private updateStatusBarItem(): void {
-        const { history, silent, showHistory } = this.state;
+        if (this.#statusBarItem) {
+            const { history, silent, showHistory } = this.state;
 
-        let tooltip;
-        let text;
-        if (showHistory) {
-            tooltip = "Hide Notifications";
-            if (silent) {
-                text = "$(bell-slash)";
-            } else {
-                text = "$(bell)";
-            }
-        } else {
-            const newlyAdded = history.filter((toast) => { return toast.isNew; }).length;
-            if (silent) {
-                text = newlyAdded === 0 ? "$(bell-slash)" : "$(bell-slash-dot)";
-            } else {
-                text = newlyAdded === 0 ? "$(bell)" : "$(bell-dot)";
-            }
-
-            tooltip = newlyAdded === 0 ? "No" : newlyAdded.toString();
-            if (newlyAdded === 0) {
-                if (history.length > 0) {
-                    tooltip += " New Notifications";
+            let tooltip;
+            let text;
+            if (showHistory) {
+                tooltip = "Hide Notifications";
+                if (silent) {
+                    text = "$(bell-slash)";
                 } else {
-                    tooltip += " Notifications";
+                    text = "$(bell)";
                 }
             } else {
-                tooltip += " New Notification" + (newlyAdded > 1 ? "s" : "");
-            }
-        }
+                const newlyAdded = history.filter((toast) => { return toast.isNew; }).length;
+                if (silent) {
+                    text = newlyAdded === 0 ? "$(bell-slash)" : "$(bell-slash-dot)";
+                } else {
+                    text = newlyAdded === 0 ? "$(bell)" : "$(bell-dot)";
+                }
 
-        this.#statusBarItem.tooltip = tooltip;
-        this.#statusBarItem.text = text;
+                tooltip = newlyAdded === 0 ? "No" : newlyAdded.toString();
+                if (newlyAdded === 0) {
+                    if (history.length > 0) {
+                        tooltip += " New Notifications";
+                    } else {
+                        tooltip += " Notifications";
+                    }
+                } else {
+                    tooltip += " New Notification" + (newlyAdded > 1 ? "s" : "");
+                }
+            }
+
+            this.#statusBarItem.tooltip = tooltip;
+            this.#statusBarItem.text = text;
+        }
     }
 
     private statusBarButtonClick = (values: { type: string; event: MouseEvent | KeyboardEvent; }): Promise<boolean> => {
