@@ -672,7 +672,9 @@ def generate_type_declaration(name, parents=[], fields={}, sdk_language="TypeScr
             "\n\n")
 
 
-def generate_type_declaration_field(name, value, sdk_language, apply_convention=True, required_fields=False):
+def generate_type_declaration_field(
+    name, value, sdk_language, apply_convention=True, required_fields=False
+):
     indent = " " * 4
 
     if sdk_language == "TypeScript":
@@ -690,16 +692,33 @@ def generate_type_declaration_field(name, value, sdk_language, apply_convention=
 
 def generate_data_class(name, fields, sdk_language):
     if sdk_language == "TypeScript":
-        return generate_type_declaration(name=name, fields=fields, sdk_language=sdk_language)
+        return generate_type_declaration(
+            name=name, fields=fields, sdk_language=sdk_language
+        )
     if sdk_language == "Python":
-        field_type_block = [generate_type_declaration_field(name, value, sdk_language)
-                            for name, value in fields.items()]
-        assignment_block = [f'{" " * 8}self.{lib.core.convert_to_snake_case(field)} = data["{field}"]\n' for field in fields]
+        field_type_block = [
+            (
+                generate_type_declaration_field(name, value, sdk_language).rstrip()
+                + " | UndefinedDataClassField\n"
+            )
+            for name, value in fields.items()
+        ]
+        assignment_block = [
+            f'{" " * 8}self.{lib.core.convert_to_snake_case(field)} = data.get("{lib.core.convert_to_snake_case(field)}", UndefinedField)\n'
+            for field in fields
+        ]
         return (
             "@dataclass(init=False, repr=True)\n"
             f"class I{name}(Record):\n\n"
+            + "    # For data attributes, `None` means 'NULL' and\n"
+            + "    # `UndefinedField` means 'not set or undefined'\n"
             + f'{"".join(field_type_block)}\n'
             + f"    def __init__(self, data: I{name}Data) -> None:\n"
+            + '        """Actor data class."""\n'
+            + f"        self.__load_fields(data)\n"
+            + "\n"
+            + f"    def __load_fields(self, data: I{name}Data) -> None:\n"
+            + '        """Refresh data fields based on the input data."""\n'
             + f'{"".join(assignment_block)}\n'
             + "        for key in Record._reserved_keys:\n"
             "            self.__dict__.update({key:data.get(key)})\n\n\n"
@@ -845,12 +864,58 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language):
                 obj_cursor_fields.update({ field.get("name"): datatype })
 
     if len(interface_fields) > 0:
+        # In Python,`{class_name}Details` is similar to `{class_name}Data`
+        # however the former includes all the data details; fields, hypermedia,
+        # and metadata information since it's for internal use. That's why it
+        # inherits from  IMrsResourceDetails .
+        # The latter one is what it is expected to be provided to the
+        # corresponding data class at construction time, and it does not
+        # include hypermedia and metadata information since it's for external
+        # (public) use. That's why it inherits from  TypedDict.
+
+        # * Currently, the notion of `{class_name}Details` does not exist in TypeScript.
+        # * Currently, the notion of `{class_name}Data` exists in TypeScript but it
+        #   includes hypermedia and metadata information.
+        # TODO: change the TypeScript codegen to follow a construct similar to Python.
+
+        if sdk_language == "Python":
+            # Create the `Details` data type construct
+            obj_interfaces.append(
+                generate_type_declaration(
+                    name=f"{class_name}Details",
+                    parents=["IMrsResourceDetails"],
+                    fields=interface_fields,
+                    sdk_language=sdk_language,
+                    override_parents=True,
+                    apply_convention=True,
+                    required_fields=True
+                )
+            )
+
         # In some languages such as Python, the order in which types are declared is relevant,
         # in those cases, declaring custom types that use other custom types should be deferred.
         # The base type (corresponding to "class_name") should be declared first.
-        obj_interfaces.append(generate_type_declaration(name=f"{class_name}Data", parents=["IMrsResourceData"],
-                                                        fields=interface_fields, sdk_language=sdk_language,
-                                                        override_parents=True, apply_convention=False))
+        construct_override_parents = False
+        construct_parents = []
+        construct_required_fields = True
+        apply_convention = True
+        if sdk_language == "TypeScript":
+            construct_override_parents = True
+            construct_parents.extend(["IMrsResourceData"])
+            construct_required_fields = False
+            apply_convention = False
+
+        obj_interfaces.append(
+            generate_type_declaration(
+                name=f"{class_name}Data",
+                parents=construct_parents,
+                fields=interface_fields,
+                sdk_language=sdk_language,
+                override_parents=construct_override_parents,
+                apply_convention=apply_convention,
+                required_fields=construct_required_fields
+            )
+        )
 
         obj_interfaces.append(generate_data_class(name=class_name, fields=interface_fields,
                                                     sdk_language=sdk_language))
@@ -873,14 +938,31 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language):
         obj_interfaces.append(generate_selectable(class_name, interface_fields, sdk_language))
         obj_interfaces.append(generate_sortable(class_name, interface_fields, sdk_language))
 
-    if len(param_interface_fields) > 0:
-        params = "Params" if obj.get("kind") != "PARAMETERS" else ""
-        obj_interfaces.append(generate_type_declaration(f"{class_name}{params}", ["IMrsFetchData"],
-                                                        param_interface_fields, sdk_language))
-    elif obj.get("kind") == "PARAMETERS":
-        params = "Params" if obj.get("kind") != "PARAMETERS" else ""
-        obj_interfaces.append(generate_type_declaration(name=f"{class_name}{params}", parents=["IMrsFetchData"],
-                                                        sdk_language=sdk_language))
+    if len(param_interface_fields) > 0 or obj.get("kind") == "PARAMETERS":
+        construct_fields = {}
+        construct_name = f"{class_name}"
+        construct_parents = ["IMrsFetchData"]
+        construct_override_parents = False
+
+        if len(param_interface_fields) > 0:
+            construct_fields = param_interface_fields
+
+        if obj.get("kind") != "PARAMETERS":
+            construct_name = f"{class_name}Params"
+            if sdk_language == "Python":
+                construct_name = f"{class_name}Filterable"
+                construct_parents.extend(["Generic[Filterable]", "HighOrderOperator[Filterable]"])
+                construct_override_parents = True
+
+        obj_interfaces.append(
+            generate_type_declaration(
+                name=construct_name,
+                parents=construct_parents,
+                fields=construct_fields,
+                sdk_language=sdk_language,
+                override_parents=construct_override_parents
+            )
+        )
 
     if len(out_params_interface_fields) > 0:
         out_result_fields = { "type": f"I{class_name}Out", "items": [f"I{class_name}Out"] }
@@ -891,8 +973,20 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language):
                                                         sdk_language=sdk_language))
 
     if len(obj_unique_fields) > 0:
-        obj_interfaces.append(generate_type_declaration(name=f"{class_name}UniqueParams", fields=obj_unique_fields,
-                                                        sdk_language=sdk_language))
+        construct_name = f"{class_name}UniqueParams"
+        construct_parents = []
+        if sdk_language == "Python":
+            construct_name = f"{class_name}UniqueFilterable"
+
+        obj_interfaces.append(
+            generate_type_declaration(
+                name=construct_name,
+                fields=obj_unique_fields,
+                sdk_language=sdk_language,
+                parents=construct_parents
+            )
+        )
+
     if len(obj_cursor_fields) > 0:
         obj_interfaces.append(generate_type_declaration(name=f"{class_name}Cursors", fields=obj_cursor_fields,
                                                         sdk_language=sdk_language))

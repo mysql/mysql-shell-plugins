@@ -378,17 +378,28 @@ export interface IFooCursors {
 
     assert got == want
 
-    want = """class IFooData(IMrsResourceData, total=False):
+    want = '''class IFooDetails(IMrsResourceDetails):
+    bar: str
+
+
+class IFooData(TypedDict):
     bar: str
 
 
 @dataclass(init=False, repr=True)
 class IFoo(Record):
 
-    bar: str
+    # For data attributes, `None` means 'NULL' and
+    # `UndefinedField` means 'not set or undefined'
+    bar: str | UndefinedDataClassField
 
     def __init__(self, data: IFooData) -> None:
-        self.bar = data["bar"]
+        """Actor data class."""
+        self.__load_fields(data)
+
+    def __load_fields(self, data: IFooData) -> None:
+        """Refresh data fields based on the input data."""
+        self.bar = data.get("bar", UndefinedField)
 
         for key in Record._reserved_keys:
             self.__dict__.update({key:data.get(key)})
@@ -414,7 +425,7 @@ class IFooCursors(TypedDict, total=False):
     bar: StringField
 
 
-"""
+'''
 
     got, _ = generate_interfaces(db_obj, obj, fields, class_name, "Python")
 
@@ -501,11 +512,17 @@ def test_generate_data_class():
     data_class = generate_data_class("Foobar", {"foo": "baz", "barBaz": "qux"}, "Python")
     assert data_class == ("@dataclass(init=False, repr=True)\n" +
                           "class IFoobar(Record):\n\n" +
-                          "    foo: baz\n" +
-                          "    bar_baz: qux\n\n" +
+                          "    # For data attributes, `None` means 'NULL' and\n" +
+                          "    # `UndefinedField` means 'not set or undefined'\n" +
+                          "    foo: baz | UndefinedDataClassField\n" +
+                          "    bar_baz: qux | UndefinedDataClassField\n\n" +
                           "    def __init__(self, data: IFoobarData) -> None:\n" +
-                          '        self.foo = data["foo"]\n' +
-                          '        self.bar_baz = data["barBaz"]\n\n' +
+                          '        """Actor data class."""\n' +
+                          '        self.__load_fields(data)\n\n' +
+                          "    def __load_fields(self, data: IFoobarData) -> None:\n" +
+                          '        """Refresh data fields based on the input data."""\n' +
+                          '        self.foo = data.get("foo", UndefinedField)\n' +
+                          '        self.bar_baz = data.get("bar_baz", UndefinedField)\n\n' +
                           "        for key in Record._reserved_keys:\n" +
                           "            self.__dict__.update({key:data.get(key)})\n\n\n")
 
