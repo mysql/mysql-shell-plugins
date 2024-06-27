@@ -1,19 +1,44 @@
 # Copyright (c) 2024, Oracle and/or its affiliates.
 
-from typing import Literal, Optional, TypeAlias, TypedDict, cast
 from dataclasses import dataclass
+from typing import (
+    Generic,
+    Literal,
+    Optional,
+    Type,
+    TypeAlias,
+    TypedDict,
+    Unpack,
+    cast,
+)
 # --- importLoopStart
 from .mrs_base_classes import (
     # --- importReadOnlyStart
+    FindAllOptions,
     FindFirstOptions,
+    FindManyOptions,
+    FindUniqueOptions,
     # --- importReadOnlyEnd
-    IMrsResourceData,
+    Data,
+    DataClass,
+    Cursors,
+    DataDetails,
+    DataField,
+    Filterable,
+    Selectable,
+    Sortable,
+    UniqueFilterable,
+    HighOrderOperator,
+    IMrsResourceDetails,
     MrsBaseObjectQuery,
     MrsBaseSchema,
     MrsBaseService,
+    NestedField,
     Order,
     Record,
     RecordNotFoundError,
+    UndefinedDataClassField,
+    UndefinedField,
     # --- importRequiredDatatypesOnlyStart
     # --- importRequiredDatatypesOnlyEnd
 )
@@ -23,71 +48,194 @@ from .mrs_base_classes import (
 # --- schemaLoopStart
 # --- objectLoopStart
 ${obj_interfaces}
-class ${obj_class_name}Request:
-    request_path: str = "${obj_request_path}"
+class DatabaseObject(
+    Generic[
+        DataClass,
+        Data,
+        DataDetails,
+        Selectable,
+        Filterable,
+        UniqueFilterable,
+        Sortable,
+        Cursors,
+        DataField,
+        NestedField,
+    ]
+):
+    """The following CRUD-related commands are implemented as part of this class [^]:
 
-    def __init__(self, request_path: str):
-        self.request_parent_path = request_path
+        * READ:
+            - `find_first`
+            - `find_first_or_throw`
+            - `find_unique`
+            - `find_unique_or_throw`
+            - `find_many`
+            - `find_all`
+
+    This class is parametrized by generic types, making it a generic implementation
+    that can be used as a building block for any database object. At construction
+    time, the relevant database-object-related types should be provided.
+
+    [^] The CRUD permissions configured for a certain table rest object condition the
+    availability of these commands. For instance, with no `READ` permissions, the
+    `find*` methods aren't implemented.
+    """
+
+    def __init__(self, request_path: str, data_cls: Type[DataClass]) -> None:
+        self._request_path: str = request_path
+        self._data_cls: Type[DataClass] = data_cls
+        self._has_more: bool = True
 
     # --- crudReadOnlyStart
     async def find_first(
         self,
-        options: Optional[
+        **options: Unpack[  # type: ignore[misc]
             FindFirstOptions[
-                I${obj_class_name}Params,
-                I${obj_class_name}Selectable,
-                I${obj_class_name}Sortable,
-                I${obj_class_name}Field,
-                I${obj_class_name}NestedField
+                Filterable,
+                Selectable,
+                Sortable,
+                DataField,
+                NestedField,
+                Cursors,
             ]
-        ] = None,
-    ) -> Optional[I${obj_class_name}]:
-        request = MrsBaseObjectQuery[I${obj_class_name}Data](
-            f"{self.request_parent_path}${obj_request_path}", options
+        ],
+    ) -> Optional[DataClass]:
+        request = MrsBaseObjectQuery[Data, DataDetails](
+            self._request_path,
+            options=cast(FindFirstOptions, options),
         )
-        response = await request.fetch_one()
+        record = cast(Data, await request.fetch_one())
 
-        json = cast(I${obj_class_name}Data, response)
-        return I${obj_class_name}(json)
+        if record is not None:
+            return self._data_cls(record)
+
+        return None
 
     async def find_first_or_throw(
         self,
-        options: Optional[
+        **options: Unpack[  # type: ignore[misc]
             FindFirstOptions[
-                I${obj_class_name}Params,
-                I${obj_class_name}Selectable,
-                I${obj_class_name}Sortable,
-                I${obj_class_name}Field,
-                I${obj_class_name}NestedField
+                Filterable,
+                Selectable,
+                Sortable,
+                DataField,
+                NestedField,
+                Cursors,
             ]
-        ] = None,
-    ) -> I${obj_class_name}:
-        item = await self.find_first(options)
+        ],
+    ) -> DataClass:
+        data_obj = await self.find_first(**options)
+        if data_obj is None:
+            raise RecordNotFoundError
+        return data_obj
 
-        if item is None:
-            raise RecordNotFoundError("No record exists matching the query criteria")
-        return item
+    async def find_unique(
+        self,
+        **options: Unpack[  # type: ignore[misc]
+            FindUniqueOptions[
+                UniqueFilterable, Selectable, DataField, NestedField
+            ]
+        ],
+    ) -> Optional[DataClass]:
+        return await self.find_first(**cast(FindFirstOptions, options))
+
+    async def find_unique_or_throw(
+        self,
+        **options: Unpack[  # type: ignore[misc]
+            FindUniqueOptions[
+                UniqueFilterable, Selectable, DataField, NestedField
+            ]
+        ],
+    ) -> DataClass:
+        data_obj = await self.find_unique(**options)
+        if data_obj is None:
+            raise RecordNotFoundError
+        return data_obj
+
+    async def find_many(
+        self,
+        **options: Unpack[  # type: ignore[misc]
+            FindManyOptions[
+                Data,
+                Filterable,
+                Selectable,
+                Sortable,
+                DataField,
+                NestedField,
+                Cursors,
+            ]
+        ],
+    ) -> list[DataClass]:
+        request = MrsBaseObjectQuery[Data, DataDetails](
+            self._request_path, options=cast(FindManyOptions, options)
+        )
+        iterator = options.get("iterator", True)
+
+        if not self._has_more and iterator:
+            self._has_more = True
+            return []
+
+        response = await request.fetch()
+
+        if iterator:
+            self._has_more = response["has_more"]
+
+        return [self._data_cls(cast(Data, item)) for item in response["items"]]
+
+    async def find_all(
+        self,
+        **options: Unpack[  # type: ignore[misc]
+            FindAllOptions[
+                Data,
+                Filterable,
+                Selectable,
+                Sortable,
+                DataField,
+                NestedField,
+                Cursors,
+            ]
+        ],
+    ) -> list[DataClass]:
+        request = MrsBaseObjectQuery[Data, DataDetails](
+            self._request_path, options=cast(FindAllOptions, options)
+        )
+        progress = options.get("progress")
+
+        if progress is None:
+            response = await request.fetch_all()
+        else:
+            response = await request.fetch_all(progress=progress)
+
+        return [self._data_cls(cast(Data, item)) for item in response["items"]]
     # --- crudReadOnlyEnd
 # --- objectLoopEnd
 
 
 class ${schema_class_name}(MrsBaseSchema):
-    request_path = "${schema_request_path}"
 
     def __init__(self, service_url: str) -> None:
+        super().__init__(f"{service_url}${schema_request_path}")
         # --- objectLoopStart
-        self.${obj_name}: ${obj_class_name}Request = ${obj_class_name}Request(
-            f"{service_url}${schema_request_path}"
-        )
+        self.${obj_name} = DatabaseObject[
+            I${obj_class_name},
+            I${obj_class_name}Data,
+            I${obj_class_name}Details,
+            I${obj_class_name}Selectable,
+            I${obj_class_name}Filterable[I${obj_class_name}Filterable],
+            I${obj_class_name}UniqueFilterable,
+            I${obj_class_name}Sortable,
+            I${obj_class_name}Cursors,
+            I${obj_class_name}Field,
+            I${obj_class_name}NestedField,
+        ](f"{self._request_path}/${obj_name}", data_cls=I${obj_class_name})
         # --- objectLoopEnd
 # --- schemaLoopEnd
 
 
 class ${service_class_name}(MrsBaseService):
-    request_path = "${service_url}"
 
     def __init__(self) -> None:
-        super().__init__(${service_class_name}.request_path)
+        super().__init__("${service_url}")
         # --- schemaLoopStart
         self.${schema_name} = ${schema_class_name}(self.service_url)
         # --- schemaLoopEnd
