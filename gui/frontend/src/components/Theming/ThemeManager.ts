@@ -90,6 +90,12 @@ export class ThemeManager {
 
     private updating = false;
 
+    /**
+     * Set when the actual theme is determined by the host (if the app is embedded). Ignore the theme
+     * from the profile in that case.
+     */
+    #useHostTheme = false;
+
     private constructor() {
         this.loadThemeDetails(defaultDark);
         this.loadThemeDetails(defaultLight);
@@ -375,19 +381,21 @@ export class ThemeManager {
     }
 
     private settingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
-        if (!entry || entry.key === "" || entry.key.startsWith("theming.")) {
-            if (!this.updating) {
-                Settings.get("theming.themes", []).forEach((definition: IThemeObject): void => {
-                    this.loadThemeDetails(definition);
-                });
+        if (!this.#useHostTheme) { // Ignore theme changes if the host determines the theme.
+            if (!entry || entry.key === "" || entry.key.startsWith("theming.")) {
+                if (!this.updating) {
+                    Settings.get("theming.themes", []).forEach((definition: IThemeObject): void => {
+                        this.loadThemeDetails(definition);
+                    });
 
-                const newTheme = Settings.get("theming.currentTheme", "Auto");
-                if (this.currentTheme !== newTheme) {
-                    this.switchTheme(newTheme);
+                    const newTheme = Settings.get("theming.currentTheme", "Auto");
+                    if (this.currentTheme !== newTheme) {
+                        this.switchTheme(newTheme);
+                    }
                 }
-            }
 
-            return Promise.resolve(true);
+                return Promise.resolve(true);
+            }
         }
 
         return Promise.resolve(false);
@@ -405,6 +413,9 @@ export class ThemeManager {
     private hostThemeChange = (data: { css: string; themeClass: string; }): Promise<boolean> => {
         // For the time being we load our light or dark default themes for host theme changes.
         // TODO: enable host theme values here.
+
+        // From now on we ignore the theme from the profile.
+        this.#useHostTheme = true;
 
         switch (data.themeClass) {
             case "vscode-dark":
@@ -646,6 +657,7 @@ export class ThemeManager {
 
         this.sendChangeNotification(actualTheme);
     }
+
 }
 
 // Access the static instance once for the event registration.

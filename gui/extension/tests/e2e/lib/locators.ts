@@ -243,7 +243,7 @@ export const notebook = {
                 previewChanges: {
                     exists: By.className("sqlPreviewHost"),
                     title: By.className("sqlPreviewTitle"),
-                    words: By.css(".sqlPreviewHost .Auto span > span"),
+                    words: By.css(".sqlPreviewItem span span"),
                     link: By.css(".sqlPreviewItem > span"),
                 },
                 script: By.className("standaloneScriptHost"),
