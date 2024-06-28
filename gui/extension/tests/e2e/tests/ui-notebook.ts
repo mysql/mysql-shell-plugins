@@ -2093,6 +2093,8 @@ describe("NOTEBOOKS", () => {
                 constants.wait10seconds, "Object storage browser is still loading");
             expect(await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.existsItem(cookbookFile))
                 .to.be.true;
+            await driver.wait(Workbench.untilNotificationExists("The files have been uploaded successfully"),
+                constants.wait10seconds);
 
         });
 
