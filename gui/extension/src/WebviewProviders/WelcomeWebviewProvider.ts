@@ -474,7 +474,7 @@ const checkVcRuntime = (): Promise<boolean> => {
 
                 resolve(cRuntimeInstalled);
             }).catch((reason) => {
-                reject(`C++ Runtime availability could not checked: ${String(reason)}`);
+                reject(`C++ Runtime availability could not be checked: ${String(reason)}`);
             });
         } else {
             resolve(false);
@@ -513,7 +513,7 @@ export const setupInitialWelcomeWebview = (context: ExtensionContext): void => {
                     panel.webview.html = getWelcomeWebviewContent(extensionPath, !result);
                 }).catch((reason) => {
                     printChannelOutput(String(reason), true);
-                    panel.webview.html = getWelcomeWebviewContent(extensionPath, false);
+                    panel.webview.html = getWelcomeWebviewContent(extensionPath, true);
                 });
             } else {
                 panel.webview.html = getWelcomeWebviewContent(extensionPath, false);
