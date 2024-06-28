@@ -363,4 +363,31 @@ export class Os {
         }
     };
 
+    /**
+     * Gets the clipboard content and applies the following rules:
+     * - Removes all line breaks (\n characters)
+     * - Removes hours, minutes and seconds (useful for clipboard content coming from result grids)
+     * @returns A promise resolving with the clipboard content as a string or array of string, if there are line breaks
+     */
+    public static getClipboardContent = (): string | string[] => {
+        const clipboardData = clipboard.readSync().split("\n").filter((item) => { return item; });
+        const replacers = [/\n/, / (\d+):(\d+):(\d+)/];
+
+        if (clipboardData.length > 1) {
+            for (let i = 0; i <= clipboardData.length - 1; i++) {
+                for (const replacer of replacers) {
+                    clipboardData[i] = clipboardData[i].replace(replacer, "").trim();
+                }
+            }
+
+            return clipboardData;
+        } else {
+            for (const replacer of replacers) {
+                clipboardData[0] = clipboardData[0].replace(replacer, "").trim();
+            }
+
+            return clipboardData[0];
+        }
+    };
+
 }

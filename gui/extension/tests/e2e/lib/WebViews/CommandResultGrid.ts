@@ -24,6 +24,7 @@
  */
 
 import { WebElement, until, Key, Condition, error, Button, Origin } from "vscode-extension-tester";
+import clipboard from "clipboardy";
 import { driver, Misc } from "../Misc";
 import * as constants from "../constants";
 import * as interfaces from "../interfaces";
@@ -42,6 +43,8 @@ export class CommandResultGrid {
 
     /** The grid*/
     public content: WebElement;
+
+    public columnsMap: Map<string, string>;
 
     /** The result which it belongs to*/
     private result: CommandResult;
@@ -571,6 +574,558 @@ export class CommandResultGrid {
     };
 
     /**
+     * Right-clicks on a cell and selects the Copy Row item, until the item is copied
+     * @param row The row number
+     * @param column The column name
+     * @returns A promise resolving when menu item is copied
+     */
+    public copyRow = async (row: number, column: string): Promise<string> => {
+
+        const allColumns = [];
+        for (const key of this.columnsMap.keys()) {
+            allColumns.push(key);
+        }
+
+        await driver.wait(async () => {
+            await this.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copySingleRow,
+                constants.resultGridContextMenu.copySingleRowContextMenu.copyRow);
+            const fieldValues = clipboard.readSync().split(",");
+
+            return fieldValues.length === allColumns.length;
+        }, constants.wait5seconds, `Copy row - Copied field values don't match the number of table column`);
+
+        return ((await this.getCellValues(row)).map((item, index) => {
+            if (item.match(/(.*)\/(.*)\/(.*)/)) {
+                const dateItems = item.split("/");
+                if (Os.isLinux()) {
+                    return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
+                } else {
+                    return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
+                }
+            } else {
+                return index !== 0 ? `'${item}'` : item;
+            }
+        })).join(", ");
+
+    };
+
+    /**
+     * Right-clicks on a cell and selects the Copy Row with Names item, until the item is copied
+     * @param row The row number
+     * @param column The column name
+     * @returns A promise resolving when menu item is copied
+     */
+    public copyRowWithNames = async (row: number, column: string): Promise<string[]> => {
+
+        const allColumns = [];
+        for (const key of this.columnsMap.keys()) {
+            allColumns.push(key);
+        }
+
+        await driver.wait(async () => {
+            await this.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copySingleRow,
+                constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNames);
+            const columns = clipboard.readSync().split("\n");
+
+            return columns[0].split(",").length === allColumns.length;
+        }, constants.wait5seconds, `Copy row with names - Copied field values don't match the number of table column`);
+
+        return [
+            `# ${allColumns.join(", ")}`,
+            ((await this.getCellValues(row)).map((item, index) => {
+                if (item.match(/(.*)\/(.*)\/(.*)/)) {
+                    const dateItems = item.split("/");
+                    if (Os.isLinux()) {
+                        return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
+                    } else {
+                        return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
+                    }
+                } else {
+                    return index !== 0 ? `'${item}'` : item;
+                }
+            })).join(", "),
+        ];
+
+    };
+
+    /**
+     * Right-clicks on a cell and selects the Copy Row Unquoted item, until the item is copied
+     * @param row The row number
+     * @param column The column name
+     * @returns A promise resolving when menu item is copied
+     */
+    public copyRowUnquoted = async (row: number, column: string): Promise<string> => {
+
+        const allColumns = [];
+        for (const key of this.columnsMap.keys()) {
+            allColumns.push(key);
+        }
+
+        await driver.wait(async () => {
+            await this.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copySingleRow,
+                constants.resultGridContextMenu.copySingleRowContextMenu.copyRowUnquoted);
+            const fieldValues = clipboard.readSync().split(",");
+
+            return fieldValues.length === allColumns.length;
+        }, constants.wait5seconds, `Copy row unquoted - Copied field values don't match the number of table column`);
+
+        return ((await this.getCellValues(row)).map((item) => {
+            if (item.match(/(.*)\/(.*)\/(.*)/)) {
+                const dateItems = item.split("/");
+                if (Os.isLinux()) {
+                    return `${dateItems[2]}-${dateItems[0]}-${dateItems[1]}`;
+                } else {
+                    return `${dateItems[2]}-${dateItems[1]}-${dateItems[0]}`;
+                }
+            } else {
+                return item;
+            }
+        })).join(", ");
+
+    };
+
+    /**
+     * Right-clicks on a cell and selects the Copy Row With Names, Unquoted item, until the item is copied
+     * @param row The row number
+     * @param column The column name
+     * @returns A promise resolving when menu item is copied
+     */
+    public copyRowWithNamesUnquoted = async (row: number, column: string): Promise<string[]> => {
+
+        const allColumns = [];
+        for (const key of this.columnsMap.keys()) {
+            allColumns.push(key);
+        }
+
+        await driver.wait(async () => {
+            await this.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copySingleRow,
+                constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesUnquoted);
+            const fieldValues = clipboard.readSync().split("\n");
+
+            return fieldValues[0].split(",").length === allColumns.length;
+        }, constants.wait5seconds,
+            `Copy row with names unquoted - Copied field values don't match the number of table column`);
+
+        return [
+            `# ${allColumns.join(", ")}`,
+            ((await this.getCellValues(row)).map((item) => {
+                if (item.match(/(.*)\/(.*)\/(.*)/)) {
+                    const dateItems = item.split("/");
+                    if (Os.isLinux()) {
+                        return `${dateItems[2]}-${dateItems[0]}-${dateItems[1]}`;
+                    } else {
+                        return `${dateItems[2]}-${dateItems[1]}-${dateItems[0]}`;
+                    }
+                } else {
+                    return item;
+                }
+            })).join(", "),
+        ];
+
+    };
+
+    /**
+     * Right-clicks on a cell and selects the Copy Row With Names, tab separated item, until the item is copied
+     * @param row The row number
+     * @param column The column name
+     * @returns A promise resolving when menu item is copied
+     */
+    public copyRowWithNamesTabSeparated = async (row: number, column: string): Promise<string[]> => {
+
+        const allColumns = [];
+        for (const key of this.columnsMap.keys()) {
+            allColumns.push(key);
+        }
+
+        await driver.wait(async () => {
+            await this.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copySingleRow,
+                constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesTabSeparated);
+            const fieldValues = clipboard.readSync().split("\n");
+
+            return fieldValues[0].split("\t").length === allColumns.length;
+        }, constants.wait5seconds,
+            `Copy row with names, tab separated - Copied field values don't match the number of table column`);
+
+        return [
+            `# ${allColumns.join("\t")}`,
+            ((await this.getCellValues(row)).map((item, index) => {
+                if (item.match(/(.*)\/(.*)\/(.*)/)) {
+                    const dateItems = item.split("/");
+                    if (Os.isLinux()) {
+                        return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
+                    } else {
+                        return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
+                    }
+                } else {
+                    return index !== 0 ? `'${item}'` : item;
+                }
+            })).join("\t"),
+        ];
+
+    };
+
+    /**
+     * Right-clicks on a cell and selects the Copy Row, tab separated item, until the item is copied
+     * @param row The row number
+     * @param column The column name
+     * @returns A promise resolving when menu item is copied
+     */
+    public copyRowTabSeparated = async (row: number, column: string): Promise<string> => {
+
+        const allColumns = [];
+        for (const key of this.columnsMap.keys()) {
+            allColumns.push(key);
+        }
+
+        await driver.wait(async () => {
+            await this.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copySingleRow,
+                constants.resultGridContextMenu.copySingleRowContextMenu.copyRowTabSeparated);
+            const fieldValues = clipboard.readSync().split("\t");
+
+            return fieldValues.length === allColumns.length;
+        }, constants.wait5seconds,
+            `Copy row, tab separated - Copied field values don't match the number of table column`);
+
+        return ((await this.getCellValues(row)).map((item, index) => {
+            if (item.match(/(.*)\/(.*)\/(.*)/)) {
+                const dateItems = item.split("/");
+                if (Os.isLinux()) {
+                    return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
+                } else {
+                    return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
+                }
+            } else {
+                return index !== 0 ? `'${item}'` : item;
+            }
+        })).join("\t");
+
+    };
+
+    /**
+     * Right-clicks on a cell and selects the Copy All Rows, until the item is copied
+     * @param row The row number
+     * @param column The column name
+     * @returns A promise resolving when menu item is copied
+     */
+    public copyAllRows = async (row: number, column: string): Promise<string[]> => {
+
+        const allColumns = [];
+        for (const key of this.columnsMap.keys()) {
+            allColumns.push(key);
+        }
+
+        await driver.wait(async () => {
+            await this.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copyMultipleRows,
+                constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRows);
+
+            return Os.getClipboardContent()[0].split(",").length === allColumns.length;
+        }, constants.wait5seconds,
+            `Copy all rows - Copied field values don't match the number of table column`);
+
+        const toReturn: string[] = [];
+        const rows = await this.content.findElements(gridLocator.row.exists);
+
+        for (let i = 0; i <= rows.length - 1; i++) {
+            toReturn.push(((await this.getCellValues(i)).map((item, index) => {
+                if (item.match(/(.*)\/(.*)\/(.*)/)) {
+                    const dateItems = item.split("/");
+                    if (Os.isLinux()) {
+                        return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
+                    } else {
+                        return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
+                    }
+                } else {
+                    return index !== 0 ? `'${item}'` : item;
+                }
+            })).join(","));
+        }
+
+        return toReturn;
+    };
+
+    /**
+     * Right-clicks on a cell and selects the Copy All Rows with Names, until the items are copied
+     * @param row The row number
+     * @param column The column name
+     * @returns A promise resolving when menu item is copied
+     */
+    public copyAllRowsWithNames = async (row: number, column: string): Promise<string[]> => {
+
+        const allColumns = [];
+        for (const key of this.columnsMap.keys()) {
+            allColumns.push(key);
+        }
+
+        await driver.wait(async () => {
+            await this.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copyMultipleRows,
+                constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNames);
+
+            return Os.getClipboardContent()[0].split(",").length === allColumns.length;
+        }, constants.wait5seconds,
+            `Copy all rows with names - Copied field values don't match the number of table column`);
+
+        const toReturn: string[] = [`# ${allColumns.join(",")}`];
+        const rows = await this.content.findElements(gridLocator.row.exists);
+
+        for (let i = 0; i <= rows.length - 1; i++) {
+            toReturn.push(((await this.getCellValues(i)).map((item, index) => {
+                if (item.match(/(.*)\/(.*)\/(.*)/)) {
+                    const dateItems = item.split("/");
+                    if (Os.isLinux()) {
+                        return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
+                    } else {
+                        return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
+                    }
+                } else {
+                    return index !== 0 ? `'${item}'` : item;
+                }
+            })).join(","));
+        }
+
+        return toReturn;
+    };
+
+    /**
+     * Right-clicks on a cell and selects the Copy All Rows Unquoted, until the items are copied
+     * @param row The row number
+     * @param column The column name
+     * @returns A promise resolving when menu item is copied
+     */
+    public copyAllRowsUnquoted = async (row: number, column: string): Promise<string[]> => {
+
+        const allColumns = [];
+        for (const key of this.columnsMap.keys()) {
+            allColumns.push(key);
+        }
+
+        await driver.wait(async () => {
+            await this.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copyMultipleRows,
+                constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsUnquoted);
+
+            return Os.getClipboardContent()[0].split(",").length === allColumns.length;
+        }, constants.wait5seconds,
+            `Copy all rows unquoted - Copied field values don't match the number of table column`);
+
+        const toReturn: string[] = [];
+        const rows = await this.content.findElements(gridLocator.row.exists);
+
+        for (let i = 0; i <= rows.length - 1; i++) {
+            toReturn.push(((await this.getCellValues(i)).map((item) => {
+                if (item.match(/(.*)\/(.*)\/(.*)/)) {
+                    const dateItems = item.split("/");
+                    if (Os.isLinux()) {
+                        return `${dateItems[2]}-${dateItems[0]}-${dateItems[1]}`;
+                    } else {
+                        return `${dateItems[2]}-${dateItems[1]}-${dateItems[0]}`;
+                    }
+                } else {
+                    return item;
+                }
+            })).join(","));
+        }
+
+        return toReturn;
+    };
+
+    /**
+     * Right-clicks on a cell and selects the Copy All Rows With Names Unquoted, until the items are copied
+     * @param row The row number
+     * @param column The column name
+     * @returns A promise resolving when menu item is copied
+     */
+    public copyAllRowsWithNamesUnquoted = async (row: number, column: string): Promise<string[]> => {
+
+        const allColumns = [];
+        for (const key of this.columnsMap.keys()) {
+            allColumns.push(key);
+        }
+
+        await driver.wait(async () => {
+            await this.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copyMultipleRows,
+                constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesUnquoted);
+
+            return Os.getClipboardContent()[0].split(",").length === allColumns.length;
+        }, constants.wait5seconds,
+            `Copy all rows with names unquoted - Copied field values don't match the number of table column`);
+
+        const toReturn: string[] = [`# ${allColumns.join(",")}`];
+        const rows = await this.content.findElements(gridLocator.row.exists);
+
+        for (let i = 0; i <= rows.length - 1; i++) {
+            toReturn.push(((await this.getCellValues(i)).map((item) => {
+                if (item.match(/(.*)\/(.*)\/(.*)/)) {
+                    const dateItems = item.split("/");
+
+                    if (Os.isLinux()) {
+                        return `${dateItems[2]}-${dateItems[0]}-${dateItems[1]}`;
+                    } else {
+                        return `${dateItems[2]}-${dateItems[1]}-${dateItems[0]}`;
+                    }
+                } else {
+                    return item;
+                }
+            })).join(","));
+        }
+
+        return toReturn;
+    };
+
+    /**
+     * Right-clicks on a cell and selects the Copy All Rows With Names Tab Separated, until the items are copied
+     * @param row The row number
+     * @param column The column name
+     * @returns A promise resolving when menu item is copied
+     */
+    public copyAllRowsWithNamesTabSeparated = async (row: number, column: string): Promise<string[]> => {
+
+        const allColumns = [];
+        for (const key of this.columnsMap.keys()) {
+            allColumns.push(key);
+        }
+
+        await driver.wait(async () => {
+            await this.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copyMultipleRows,
+                constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesTabSeparated);
+
+            return Os.getClipboardContent()[0].split("\t").length === allColumns.length;
+        }, constants.wait5seconds,
+            `Copy all rows with names tab separated - Copied field values don't match the number of table column`);
+
+        const toReturn: string[] = [`# ${allColumns.join("\t")}`];
+        const rows = await this.content.findElements(gridLocator.row.exists);
+
+        for (let i = 0; i <= rows.length - 1; i++) {
+            toReturn.push(((await this.getCellValues(i)).map((item, index) => {
+                if (item.match(/(.*)\/(.*)\/(.*)/)) {
+                    const dateItems = item.split("/");
+                    if (Os.isLinux()) {
+                        return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
+                    } else {
+                        return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
+                    }
+                } else {
+                    return index !== 0 ? `'${item}'` : item;
+                }
+            })).join("\t"));
+        }
+
+        return toReturn;
+    };
+
+    /**
+     * Right-clicks on a cell and selects the Copy All Rows Tab Separated, until the items are copied
+     * @param row The row number
+     * @param column The column name
+     * @returns A promise resolving when menu item is copied
+     */
+    public copyAllRowsTabSeparated = async (row: number, column: string): Promise<string[]> => {
+
+        const allColumns = [];
+        for (const key of this.columnsMap.keys()) {
+            allColumns.push(key);
+        }
+
+        await driver.wait(async () => {
+            await this.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copyMultipleRows,
+                constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsTabSeparated);
+
+            return Os.getClipboardContent()[0].split("\t").length === allColumns.length;
+        }, constants.wait5seconds,
+            `Copy all rows tab separated - Copied field values don't match the number of table column`);
+
+        const toReturn: string[] = [];
+        const rows = await this.content.findElements(gridLocator.row.exists);
+
+        for (let i = 0; i <= rows.length - 1; i++) {
+            toReturn.push(((await this.getCellValues(i)).map((item, index) => {
+                if (item.match(/(.*)\/(.*)\/(.*)/)) {
+                    const dateItems = item.split("/");
+                    if (Os.isLinux()) {
+                        return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
+                    } else {
+                        return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
+                    }
+                } else {
+                    return index !== 0 ? `'${item}'` : item;
+                }
+            })).join("\t"));
+        }
+
+        return toReturn;
+    };
+
+    /**
+     * Right-clicks on a cell and selects the Copy Field from the context menu, until the item is copied
+     * @param row The row number
+     * @param column The column name
+     * @returns A promise resolving when menu item is copied
+     */
+    public copyField = async (row: number, column: string): Promise<string> => {
+        await driver.wait(async () => {
+            await this.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copyField);
+
+            return clipboard.readSync().match(/'.*'/) !== null;
+        }, constants.wait5seconds, `The Copy Field did not copied anything to the clipboard for column '${column}'`);
+
+        const cellValue = await this.getCellValue(row, column);
+
+        if (cellValue.match(/(.*)\/(.*)\/(.*)/)) {
+            const dateItems = cellValue.split("/");
+
+            if (Os.isLinux()) {
+                return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
+            } else {
+                return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
+            }
+        } else {
+            return `'${cellValue}'`;
+        }
+    };
+
+    /**
+     * Right-clicks on a cell and selects the Copy Field Unquoted from the context menu, until the item is copied
+     * @param row The row number
+     * @param column The column name
+     * @returns A promise resolving when menu item is copied
+     */
+    public copyFieldUnquoted = async (row: number, column: string): Promise<string> => {
+        await driver.wait(async () => {
+            await this.openCellContextMenuAndSelect(row, column,
+                constants.resultGridContextMenu.copyFieldUnquoted);
+
+            return clipboard.readSync().match(/.*/) !== null;
+        }, constants.wait5seconds,
+            `The Copy Field Unquoted did not copied anything to the clipboard for column '${column}'`);
+
+        const cellValue = await this.getCellValue(row, column);
+
+        if (cellValue.match(/(.*)\/(.*)\/(.*)/)) {
+            const dateItems = cellValue.split("/");
+
+            if (Os.isLinux()) {
+                return `${dateItems[2]}-${dateItems[0]}-${dateItems[1]}`;
+            } else {
+                return `${dateItems[2]}-${dateItems[1]}-${dateItems[0]}`;
+            }
+        } else {
+            return cellValue;
+        }
+    };
+
+    /**
      * Verifies the row is marked for deletion (red background)
      * @param gridRow The row number
      * @returns A condition resolving to true if the row is marked for deletion, false otherwise
@@ -625,6 +1180,52 @@ export class CommandResultGrid {
     };
 
     /**
+     * Gets the row cell values of a result grid
+     * @param rowNumber The row number
+     * @returns A promise resolving with the row values as an array of strings
+     */
+    public getCellValues = async (rowNumber: number): Promise<string[]> => {
+        let values: string[] = [];
+
+        await driver.wait(async () => {
+            try {
+                const rows = await this.content.findElements(gridLocator.row.exists);
+                const cells = await rows[rowNumber].findElements(gridLocator.row.cell.exists);
+
+                for (const cell of cells) {
+                    await driver.executeScript("arguments[0].scrollIntoView()", cell);
+                    const isSelectList = (await cell
+                        .findElements(gridLocator.row.cell.selectList.exists))
+                        .length > 0;
+                    const isIcon = (await cell.findElements(gridLocator.row.cell.icon))
+                        .length > 0;
+                    if (isSelectList) {
+                        const selectList = cell
+                            .findElement(gridLocator.row.cell.selectList.exists);
+                        values.push(await (await selectList.findElement(locator.htmlTag.label)).getText());
+                    } else if (isIcon) {
+                        const img = await cell.findElements(gridLocator.row.cell.icon);
+                        const icon = (await img[0].getAttribute("style")).match(/assets\/data-(.*)-/)[1];
+                        values.push(icon);
+                    } else {
+                        values.push(await cell.getText());
+                    }
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                } else {
+                    values = [];
+                }
+            }
+        }, constants.wait5seconds, `Could not get the row values for row number ${rowNumber}`);
+
+        return values;
+    };
+
+    /**
      * Sets the grid content
      * @returns A promise resolving when grid content is set
      */
@@ -646,6 +1247,31 @@ export class CommandResultGrid {
     };
 
     /**
+     * Maps the result grid columns to the corresponding tabulator field number
+     * @returns A promise resolving when the map is finished
+     */
+    public setColumnsMap = async (): Promise<void> => {
+        await driver.wait(async () => {
+            try {
+                const columns = await this.content.findElements(locator.notebook.codeEditor.editor.result.grid.column);
+                this.columnsMap = new Map();
+
+                for (const column of columns) {
+                    const title = await column.findElement(locator.notebook.codeEditor.editor.result.grid.columnTitle);
+                    this.columnsMap.set(await title.getAttribute("innerHTML"),
+                        await column.getAttribute("tabulator-field"));
+                }
+
+                return true;
+            } catch (e) {
+                if (!(errors.isStaleError(e as Error))) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, `Could not set the columns map for cmd ${this.result.command}`);
+    };
+
+    /**
      * Gets a cell of a result grid
      * @param gridRow The row number. If the row number is -1, the function returns the last added row
      * @param gridColumn The column
@@ -654,12 +1280,12 @@ export class CommandResultGrid {
     private getCell = async (gridRow: number, gridColumn: string): Promise<WebElement> => {
         let cells: WebElement[];
         let cellToReturn: WebElement;
-        const table = this.getTableFromCommand();
 
         await driver.wait(async () => {
             try {
                 await this.result.loadResult();
                 const resultGrid = this.content;
+
                 if (gridRow === -1) {
                     const addedTableRows = await resultGrid
                         .findElements(gridLocator.newAddedRow);
@@ -669,7 +1295,8 @@ export class CommandResultGrid {
                     const rows = await resultGrid.findElements(gridLocator.row.exists);
                     cells = await rows[gridRow].findElements(gridLocator.row.cell.exists);
                 }
-                cellToReturn = cells[Misc.getDbTableColumnIndex(table, gridColumn)];
+
+                cellToReturn = cells[parseInt(this.columnsMap.get(gridColumn), 10)];
 
                 return true;
             } catch (e) {
@@ -680,7 +1307,7 @@ export class CommandResultGrid {
         }, constants.wait5seconds, `Could not get cell for row: ${gridRow}; column ${gridColumn}`);
 
         if (!cellToReturn) {
-            throw new Error(`Could not find cell on table '${table}' on row '${gridRow}' and column '${gridColumn}'`);
+            throw new Error(`Could not find cell on row '${gridRow}' and column '${gridColumn}'`);
         } else {
             return cellToReturn;
         }
@@ -810,21 +1437,4 @@ export class CommandResultGrid {
         }, constants.wait5seconds, `Could not start editing cell on column ${columnName}`);
     };
 
-    /**
-     * Gets the table from the last executed query
-     * @returns The table name
-     */
-    private getTableFromCommand = (): string => {
-        const keywords = this.result.command.split(" ");
-        for (let i = 0; i <= keywords.length - 1; i++) {
-            if (keywords[i].match(/(from|FROM)/) !== null) {
-                if (keywords[i + 1].includes(".")) {
-                    return (keywords[i + 1].split("."))[1].replace(";", "");
-                } else {
-                    return keywords[i + 1].replace(";", "");
-                }
-            }
-        }
-        throw new Error(`Could not get the table from command ${this.result.command}`);
-    };
 }

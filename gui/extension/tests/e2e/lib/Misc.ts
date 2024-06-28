@@ -243,49 +243,6 @@ export class Misc {
     };
 
     /**
-     * Gets the index of a column, from a table
-     * @param tableName The table
-     * @param columnName The column name
-     *  @returns The index of the column
-     */
-    public static getDbTableColumnIndex = (tableName: string, columnName: string): number => {
-        let index: number | undefined;
-        for (const table of constants.dbTables) {
-            if (table.name === tableName) {
-                index = table.columns.indexOf(columnName);
-                break;
-            }
-        }
-
-        if (index === undefined) {
-            throw new Error(`Could not find index on table '${tableName}' and column '${columnName}'`);
-        } else {
-            return index;
-        }
-    };
-
-    /**
-     * Gets the index of a column, from a table
-     * @param tableName The table
-     * @param columnIndex The column index
-     *  @returns The index of the column
-     */
-    public static getDbTableColumnName = (tableName: string, columnIndex: number): string => {
-        let name: string | undefined;
-        for (const table of constants.dbTables) {
-            if (table.name === tableName) {
-                name = table.columns[columnIndex];
-                break;
-            }
-        }
-        if (!name) {
-            throw new Error(`Could not find on table column name '${tableName}' with index column '${columnIndex}'`);
-        } else {
-            return name;
-        }
-    };
-
-    /**
      * Converts a time to a 12h time string (AM/PM)
      * @param time The time
      * @returns The converted time
