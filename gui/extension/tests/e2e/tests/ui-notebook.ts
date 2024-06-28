@@ -1979,7 +1979,7 @@ describe("NOTEBOOKS", () => {
             await (await notebook.toolbar.getButton(constants.showChatOptions)).click();
             const hwProfileEditor = new HeatWaveProfileEditor();
             await driver.wait(hwProfileEditor.untilIsOpened(), constants.wait5seconds);
-            await hwProfileEditor.selectModel(constants.modelCohere);
+            await hwProfileEditor.selectModel(constants.modelLlama2);
             await notebook.codeEditor.languageSwitch("\\chat");
             await notebook.codeEditor.loadCommandResults();
             const result = await notebook.codeEditor.execute(query);

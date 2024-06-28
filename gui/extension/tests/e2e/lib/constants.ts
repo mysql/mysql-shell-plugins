@@ -187,8 +187,6 @@ export const resultGridContextMenu = {
 };
 
 // HEATWAVE PROFILE EDITOR
-export const modelCohere = "Cohere";
-export const modelCohereLight = "Cohere Light";
 export const modelLlama2 = "Llama2";
 export const modelMistral = "Mistral";
 
