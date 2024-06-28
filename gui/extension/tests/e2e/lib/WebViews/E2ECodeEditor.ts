@@ -312,6 +312,7 @@ export class E2ECodeEditor {
      * @returns A promise resolving when the command is executed
      */
     public findAndExecute = async (cmd: string, searchOnExistingId?: string): Promise<interfaces.ICommandResult> => {
+
         if (this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");
         }
@@ -325,7 +326,6 @@ export class E2ECodeEditor {
             const button = await this.parent.toolbar.getButton(constants.execFullBlockJs);
             await driver.executeScript("arguments[0].click()", button);
         }
-
         const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
         const commandResult = new CommandResult(this, cmd, id);
         await commandResult.loadResult();

@@ -625,6 +625,7 @@ export class CommandResult implements interfaces.ICommandResult {
         await this.setToolbar();
         const grid = new CommandResultGrid(this);
         await grid.setContent();
+        await grid.setColumnsMap();
         this.grid = grid;
     };
 

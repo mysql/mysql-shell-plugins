@@ -710,344 +710,110 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Result grid context menu - Copy single row", async () => {
-            const table = 0;
-            const tableColumns = constants.dbTables[table].columns;
-            const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_ints;");
+
+            const result = await notebook.codeEditor.execute("select * from sakila.actor limit 1;");
             expect(result.toolbar.status).to.match(/OK/);
 
-            let fields: string[];
-            let lines: string[];
             const row = 0;
-            const column = "test_boolean";
+            const column = "first_name";
 
             // Copy row.
-            await driver.wait(async () => {
-                await result.grid.openCellContextMenuAndSelect(row, column,
-                    constants.resultGridContextMenu.copySingleRow,
-                    constants.resultGridContextMenu.copySingleRowContextMenu.copyRow);
-                fields = clipboard.readSync().split(",");
-
-                return fields.length === tableColumns.length;
-            }, constants.wait5seconds,
-                "(copy row) The copied row fields do not match the table columns");
-
-            for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i],
-                    `(copy row) Copy error on column ${Misc.getDbTableColumnName(constants.dbTables[table].name, i)}`)
-                    .to.match(constants.dbTables[table].columnRegexWithQuotes[i]);
-            }
+            const copyRow = await result.grid.copyRow(row, column);
+            expect(copyRow).to.equals(Os.getClipboardContent());
 
             // Copy row with names.
-            await driver.wait(async () => {
-                await result.grid.openCellContextMenuAndSelect(row, column,
-                    constants.resultGridContextMenu.copySingleRow,
-                    constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNames);
-                lines = clipboard.readSync().split("\n");
-                fields = lines[1].split(",");
-
-                return fields.length === tableColumns.length;
-            }, constants.wait5seconds,
-                "(copy row with names) The copied row fields do not match the table columns");
-
-            for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i],
-                    `(copy row with names) Copy error on column ${Misc.getDbTableColumnName(constants.dbTables[table]
-                        .name, i)}`).to.match(constants.dbTables[table].columnRegexWithQuotes[i]);
-            }
-            expect(clipboard.readSync().includes(`# ${tableColumns.join(", ")}`)).to.be.true;
+            const copyRowWithNames = await result.grid.copyRowWithNames(row, column);
+            expect(copyRowWithNames).to.deep.equals(Os.getClipboardContent());
 
             // Copy row unquoted.
-            await driver.wait(async () => {
-                await result.grid.openCellContextMenuAndSelect(row, column,
-                    constants.resultGridContextMenu.copySingleRow,
-                    constants.resultGridContextMenu.copySingleRowContextMenu.copyRowUnquoted);
-                fields = clipboard.readSync().split(",");
-
-                return fields.length === tableColumns.length;
-            }, constants.wait5seconds,
-                "(copy row unquoted) The copied row fields do not match the table columns");
-
-            for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i],
-                    `(copy row unquoted) Copy error on column ${Misc.getDbTableColumnName(constants
-                        .dbTables[table].name, i)}`).to.match(constants.dbTables[table].columnRegex[i]);
-
-            }
+            const copyRowUnquoted = await result.grid.copyRowUnquoted(row, column);
+            expect(copyRowUnquoted).to.equals(Os.getClipboardContent());
 
             // Copy row with names, unquoted.
-            await driver.wait(async () => {
-                await result.grid.openCellContextMenuAndSelect(row, column,
-                    constants.resultGridContextMenu.copySingleRow,
-                    constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesUnquoted);
-                lines = clipboard.readSync().split("\n");
-                fields = lines[1].split(",");
-
-                return fields.length === tableColumns.length;
-            }, constants.wait5seconds,
-                "(copy row with names, unquoted) The copied row fields do not match the table columns");
-
-            for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i],
-                    `(copy row with names, unquoted) Copy error on column ${Misc.getDbTableColumnName(constants
-                        .dbTables[table].name,
-                        i)}`).to.match(constants.dbTables[table].columnRegex[i]);
-            }
-            expect(clipboard.readSync().includes(`# ${tableColumns.join(", ")}`)).to.be.true;
+            const copyRowWithNamesUnquoted = await result.grid.copyRowWithNamesUnquoted(row, column);
+            expect(copyRowWithNamesUnquoted).to.deep.equals(Os.getClipboardContent());
 
             // Copy row with names, tab separated.
-            await driver.wait(async () => {
-                await result.grid.openCellContextMenuAndSelect(row, column,
-                    constants.resultGridContextMenu.copySingleRow,
-                    constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesTabSeparated);
-                lines = clipboard.readSync().split("\n");
-                fields = lines[1].split("\t");
-
-                return fields.length === tableColumns.length;
-            }, constants.wait5seconds,
-                "(copy row with names, tab separated) The copied row fields do not match the table columns");
-
-
-            for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i],
-                    `(copy row with names, tab separated) Copy error on column ${Misc.getDbTableColumnName(constants
-                        .dbTables[table].name,
-                        i)}`).to.match(constants.dbTables[table].columnRegexWithQuotes[i]);
-            }
-            expect(clipboard.readSync().includes(`# ${tableColumns.join("\t")}`)).to.be.true;
+            const copyRowWithNamesTabSeparated = await result.grid.copyRowWithNamesTabSeparated(row, column);
+            expect(copyRowWithNamesTabSeparated).to.deep.equals(Os.getClipboardContent());
 
             // Copy row, tab separated.
-            await driver.wait(async () => {
-                await result.grid.openCellContextMenuAndSelect(row, column,
-                    constants.resultGridContextMenu.copySingleRow,
-                    constants.resultGridContextMenu.copySingleRowContextMenu.copyRowTabSeparated);
-                fields = clipboard.readSync().split("\t");
+            const copyRowTabSeparated = await result.grid.copyRowTabSeparated(row, column);
+            expect(copyRowTabSeparated).to.deep.equals(Os.getClipboardContent());
 
-                return fields.length === tableColumns.length;
-            }, constants.wait5seconds,
-                "(copy row, tab separated) The copied row fields do not match the table columns");
-
-            for (let i = 0; i <= fields.length - 1; i++) {
-                expect(fields[i],
-                    `(copy row, tab separated) Copy error on column ${Misc.getDbTableColumnName(constants
-                        .dbTables[table].name, i)}`).to.match(constants.dbTables[table].columnRegexWithQuotes[i]);
-            }
         });
 
         it("Result grid context menu - Copy multiple rows", async () => {
-            const table = 6;
-            const tableColumns = constants.dbTables[table].columns;
-            const result = await notebook.codeEditor.execute("select * from sakila.actor limit 3;");
+
+            const maxRows = 2;
+            const result = await notebook.codeEditor
+                .execute(`select * from sakila.actor limit ${maxRows};`);
             expect(result.toolbar.status).to.match(/OK/);
 
-            let fields: string[];
-            let lines: string[];
             const row = 0;
-            const column = "actor_id";
+            const column = "first_name";
 
             // Copy all rows.
-            await driver.wait(async () => {
-                await result.grid.openCellContextMenuAndSelect(row, column,
-                    constants.resultGridContextMenu.copyMultipleRows,
-                    constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRows);
-                lines = clipboard.readSync().split("\n").filter((el) => {
-                    return el !== "";
-                });
-                fields = lines[0].split(",");
-
-                return fields.length === tableColumns.length;
-            }, constants.wait5seconds,
-                "(copy all rows) The copied row fields do not match the table columns");
-
-            expect(lines.length, "(copy all rows) All result grid rows were not copied").to.equals(3);
-
-            for (let lineIdx = 0; lineIdx <= lines.length - 1; lineIdx++) {
-                fields = lines[lineIdx].split(",");
-                for (let i = 0; i <= fields.length - 1; i++) {
-                    expect(fields[i],
-                        // eslint-disable-next-line max-len
-                        `(copy all rows) Copy error on column ${Misc.getDbTableColumnName(constants.dbTables[table].name, i)} for line ${lineIdx}`)
-                        .to.match(constants.dbTables[table].columnRegexWithQuotes[i]);
-                }
-            }
+            const copyAllRows = await result.grid.copyAllRows(row, column);
+            expect(copyAllRows).to.deep.equals(Os.getClipboardContent());
 
             // Copy all rows with names.
-            await driver.wait(async () => {
-                await result.grid.openCellContextMenuAndSelect(row, column,
-                    constants.resultGridContextMenu.copyMultipleRows,
-                    constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNames);
-                lines = clipboard.readSync().split("\n").filter((el) => {
-                    return el !== "";
-                });
-                fields = lines[1].split(",");
-
-                return fields.length === tableColumns.length;
-            }, constants.wait5seconds,
-                "(copy all rows with names) The copied row fields do not match the table columns");
-
-            expect(lines.length, "(copy all rows with names) All result grid rows were not copied").to.equals(4);
-
-            for (let lineIdx = 1; lineIdx <= lines.length - 1; lineIdx++) {
-                fields = lines[lineIdx].split(",");
-                for (let i = 0; i <= fields.length - 1; i++) {
-                    expect(fields[i],
-                        // eslint-disable-next-line max-len
-                        `(copy all rows with names) Copy error on column ${Misc.getDbTableColumnName(constants.dbTables[table].name, i)} for line ${lineIdx}`)
-                        .to.match(constants.dbTables[table].columnRegexWithQuotes[i]);
-                }
-            }
+            const copyAllRowsWithNames = await result.grid.copyAllRowsWithNames(row, column);
+            expect(copyAllRowsWithNames).to.deep.equals(Os.getClipboardContent());
 
             // Copy all rows unquoted.
-            await driver.wait(async () => {
-                await result.grid.openCellContextMenuAndSelect(row, column,
-                    constants.resultGridContextMenu.copyMultipleRows,
-                    constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsUnquoted);
-                lines = clipboard.readSync().split("\n").filter((el) => {
-                    return el !== "";
-                });
-                fields = lines[0].split(",");
-
-                return fields.length === tableColumns.length;
-            }, constants.wait5seconds,
-                "(copy all rows unquoted) The copied row fields do not match the table columns");
-
-            expect(lines.length, "(copy all rows unquoted) All result grid rows were not copied").to.equals(3);
-
-            for (let lineIdx = 0; lineIdx <= lines.length - 1; lineIdx++) {
-                fields = lines[lineIdx].split(",");
-                for (let i = 0; i <= fields.length - 1; i++) {
-                    expect(fields[i],
-                        // eslint-disable-next-line max-len
-                        `(copy all rows unquoted) Copy error on column ${Misc.getDbTableColumnName(constants.dbTables[table].name, i)} for line ${lineIdx}`)
-                        .to.match(constants.dbTables[table].columnRegex[i]);
-                }
-            }
+            const copyAllRowsUnquoted = await result.grid.copyAllRowsUnquoted(row, column);
+            expect(copyAllRowsUnquoted).to.deep.equals(Os.getClipboardContent());
 
             // Copy all rows with names unquoted.
-            await driver.wait(async () => {
-                await result.grid.openCellContextMenuAndSelect(row, column,
-                    constants.resultGridContextMenu.copyMultipleRows,
-                    constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesUnquoted);
-                lines = clipboard.readSync().split("\n").filter((el) => {
-                    return el !== "";
-                });
-                fields = lines[1].split(",");
-
-                return fields.length === tableColumns.length;
-            }, constants.wait5seconds,
-                "(copy all rows with names unquoted) The copied row fields do not match the table columns");
-
-            expect(lines.length, "(copy all rows with names unquoted) All result grid rows were not copied")
-                .to.equals(4);
-
-            for (let lineIdx = 1; lineIdx <= lines.length - 1; lineIdx++) {
-                fields = lines[lineIdx].split(",");
-                for (let i = 0; i <= fields.length - 1; i++) {
-                    expect(fields[i],
-                        // eslint-disable-next-line max-len
-                        `(copy all rows with names unquoted) Copy error on column ${Misc.getDbTableColumnName(constants.dbTables[table].name, i)} for line ${lineIdx}`)
-                        .to.match(constants.dbTables[table].columnRegex[i]);
-                }
-            }
+            const copyAllRowsWithNamesUnquoted = await result.grid.copyAllRowsWithNamesUnquoted(row, column);
+            expect(copyAllRowsWithNamesUnquoted).to.deep.equals(Os.getClipboardContent());
 
             // Copy all rows with names tab separated.
-            await driver.wait(async () => {
-                await result.grid.openCellContextMenuAndSelect(row, column,
-                    constants.resultGridContextMenu.copyMultipleRows,
-                    constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesTabSeparated);
-                lines = clipboard.readSync().split("\n").filter((el) => {
-                    return el !== "";
-                });
-                fields = lines[1].split("\t");
-
-                return fields.length === tableColumns.length;
-            }, constants.wait5seconds,
-                "(copy all rows with names tab separated) The copied row fields do not match the table columns");
-
-            expect(lines.length, "(copy all rows with names tab separated) All result grid rows were not copied")
-                .to.equals(4);
-
-            for (let lineIdx = 1; lineIdx <= lines.length - 1; lineIdx++) {
-                fields = lines[lineIdx].split("\t");
-                for (let i = 0; i <= fields.length - 1; i++) {
-                    expect(fields[i],
-                        // eslint-disable-next-line max-len
-                        `(copy all rows with names tab separated) Copy error on column ${Misc.getDbTableColumnName(constants.dbTables[2].name, i)} for line ${lineIdx}`)
-                        .to.match(constants.dbTables[2].columnRegexWithQuotes[i]);
-                }
-            }
+            const copyAllRowsWithNamesTabSeparated = await result.grid.copyAllRowsWithNamesTabSeparated(row, column);
+            expect(copyAllRowsWithNamesTabSeparated).to.deep.equals(Os.getClipboardContent());
 
             // Copy all rows tab separated.
-            await driver.wait(async () => {
-                await result.grid.openCellContextMenuAndSelect(row, column,
-                    constants.resultGridContextMenu.copyMultipleRows,
-                    constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsTabSeparated);
-                lines = clipboard.readSync().split("\n").filter((el) => {
-                    return el !== "";
-                });
-                fields = lines[0].split("\t");
+            const copyAllRowsTabSeparated = await result.grid.copyAllRowsTabSeparated(row, column);
+            expect(copyAllRowsTabSeparated).to.deep.equals(Os.getClipboardContent());
 
-                return fields.length === tableColumns.length;
-            }, constants.wait5seconds,
-                "(copy all rows tab separated) The copied row fields do not match the table columns");
-
-            expect(lines.length, "(copy all rows tab separated) All result grid rows were not copied").to.equals(3);
-
-            for (let lineIdx = 0; lineIdx <= lines.length - 1; lineIdx++) {
-                fields = lines[lineIdx].split("\t");
-                for (let i = 0; i <= fields.length - 1; i++) {
-                    expect(fields[i],
-                        // eslint-disable-next-line max-len
-                        `(copy all rows tab separated) Copy error on column ${Misc.getDbTableColumnName(constants.dbTables[table].name, i)} for line ${lineIdx}`)
-                        .to.match(constants.dbTables[table].columnRegexWithQuotes[i]);
-                }
-            }
         });
 
         it("Result grid context menu - Copy field, copy field unquoted, set field to null", async () => {
 
-            const table = 2;
             await notebook.codeEditor.clean();
-            const tableColumns = constants.dbTables[table].columns;
             const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_chars;");
             expect(result.toolbar.status).to.match(/OK/);
 
             const row = 0;
-            let err: string;
-            for (let i = 1; i <= tableColumns.length - 1; i++) {
-                err += `Copy field on column: ${tableColumns[i]} did not match `;
-                err += constants.dbTables[table].columnRegexWithQuotes[i];
-                await driver.wait(async () => {
-                    await result.grid.openCellContextMenuAndSelect(row, tableColumns[i],
-                        constants.resultGridContextMenu.copyField);
+            const allColumns = [];
+            for (const key of result.grid.columnsMap.keys()) {
+                allColumns.push(key);
+            }
 
-                    return clipboard.readSync().match(constants.dbTables[table].columnRegexWithQuotes[i]) !== null;
-                }, constants.wait5seconds, err);
+            for (let i = 1; i <= allColumns.length - 1; i++) {
 
-                err = `Copy field unquoted on column: ${tableColumns[i]} did not match `;
-                err += constants.dbTables[table].columnRegex[i];
+                let field = await result.grid.copyField(row, String(allColumns[i]));
+                expect(field).to.equals(clipboard.readSync());
 
-                await driver.wait(async () => {
-                    await result.grid.openCellContextMenuAndSelect(row, tableColumns[i],
-                        constants.resultGridContextMenu.copyFieldUnquoted);
-                    if (clipboard.readSync() === "") {
-                        clipboard.writeSync(" ");
-                    }
+                field = await result.grid.copyFieldUnquoted(row, String(allColumns[i]));
+                expect(field).to.equals(clipboard.readSync());
 
-                    return clipboard.readSync().match(constants.dbTables[table].columnRegex[i]) !== null;
-                }, constants.wait5seconds, err);
-
-                await result.grid.openCellContextMenuAndSelect(row, tableColumns[i],
+                await result.grid.openCellContextMenuAndSelect(row, String(allColumns[i]),
                     constants.resultGridContextMenu.setFieldToNull);
-                expect(await result.grid.getCellValue(row, tableColumns[i]),
-                    `Set field to null (${tableColumns[i]})`)
+                expect(await result.grid.getCellValue(row, String(allColumns[i])),
+                    `Set field to null (${String(allColumns[i])})`)
                     .to.equals(constants.isNull);
             }
             await result.rollbackChanges();
+
         });
 
         it("Result grid cell tooltips - integer columns", async () => {
 
             const rowNumber = 0;
+            const tableColumns: string[] = [];
+
             await notebook.toolbar.selectEditor(new RegExp(constants.openEditorsDBNotebook), globalConn.caption);
             await Workbench.toggleSideBar(false);
             await notebook.codeEditor.clean();
@@ -1055,97 +821,112 @@ describe("NOTEBOOKS", () => {
             const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_ints limit 1;");
             expect(result.toolbar.status).to.match(/OK/);
 
-            const table = 0;
-            const tableColumns = constants.dbTables[table].columns;
+            for (const key of result.grid.columnsMap.keys()) {
+                tableColumns.push(key);
+            }
 
             for (let i = 1; i <= tableColumns.length - 1; i++) {
-                const column = Misc.getDbTableColumnName("all_data_types_ints", i);
                 if (i === tableColumns.length - 1) {
-                    await result.grid.reduceCellWidth(rowNumber, column, "js");
+                    await result.grid.reduceCellWidth(rowNumber, tableColumns[i], "js");
                 } else {
-                    await result.grid.reduceCellWidth(rowNumber, column);
+                    await result.grid.reduceCellWidth(rowNumber, tableColumns[i]);
                 }
-                const cellText = await result.grid.getCellValue(rowNumber, column);
-                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, column, cellText),
+                const cellText = await result.grid.getCellValue(rowNumber, tableColumns[i]);
+                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
                     constants.wait3seconds);
             }
+
         });
 
         it("Result grid cell tooltips - date columns", async () => {
+
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about");
             const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_dates where id = 1;");
             expect(result.toolbar.status).to.match(/OK/);
 
-            const table = 1;
-            const tableColumns = constants.dbTables[table].columns;
+            const tableColumns: string[] = [];
+            for (const key of result.grid.columnsMap.keys()) {
+                tableColumns.push(key);
+            }
 
             for (let i = 1; i <= tableColumns.length - 1; i++) {
-                const column = Misc.getDbTableColumnName("all_data_types_dates", i);
                 if (i === tableColumns.length - 1) {
-                    await result.grid.reduceCellWidth(rowNumber, column, "js");
+                    await result.grid.reduceCellWidth(rowNumber, tableColumns[i], "js");
                 } else {
-                    await result.grid.reduceCellWidth(rowNumber, column);
+                    await result.grid.reduceCellWidth(rowNumber, tableColumns[i]);
                 }
 
-                const cellText = await result.grid.getCellValue(rowNumber, column);
-                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, column, cellText),
+                const cellText = await result.grid.getCellValue(rowNumber, tableColumns[i]);
+                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
                     constants.wait3seconds);
             }
+
         });
 
         it("Result grid cell tooltips - char columns", async () => {
+
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about");
             const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_chars where id = 1;");
             expect(result.toolbar.status).to.match(/OK/);
 
-            const table = 2;
-            const tableColumns = constants.dbTables[table].columns;
+            const tableColumns: string[] = [];
+            for (const key of result.grid.columnsMap.keys()) {
+                tableColumns.push(key);
+            }
 
             for (let i = 1; i <= tableColumns.length - 1; i++) {
-                const column = Misc.getDbTableColumnName("all_data_types_chars", i);
-                await result.grid.reduceCellWidth(rowNumber, column);
+                await result.grid.reduceCellWidth(rowNumber, tableColumns[i]);
 
-                const cellText = await result.grid.getCellValue(rowNumber, column);
-                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
+                const cellText = await result.grid.getCellValue(rowNumber, tableColumns[i]);
+                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                    constants.wait3seconds);
             }
+
         });
 
         it("Result grid cell tooltips - binary and varbinary columns", async () => {
+
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about");
             const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_blobs limit 1;");
             expect(result.toolbar.status).to.match(/OK/);
 
-            const table = 3;
-            const tableColumns = constants.dbTables[table].columns;
+            const tableColumns: string[] = [];
+            for (const key of result.grid.columnsMap.keys()) {
+                tableColumns.push(key);
+            }
 
             for (let i = 5; i <= tableColumns.length - 1; i++) {
-                const column = Misc.getDbTableColumnName("all_data_types_blobs", i);
-                await result.grid.reduceCellWidth(rowNumber, column);
-                const cellText = await result.grid.getCellValue(rowNumber, column);
-                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
+                await result.grid.reduceCellWidth(rowNumber, tableColumns[i]);
+                const cellText = await result.grid.getCellValue(rowNumber, tableColumns[i]);
+                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                    constants.wait3seconds);
             }
+
         });
 
         it("Result grid cell tooltips - bit column", async () => {
+
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about");
             const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_geometries;");
             expect(result.toolbar.status).to.match(/OK/);
 
-            const column = Misc.getDbTableColumnName("all_data_types_geometries", 1);
+            const column = "test_bit";
             await result.grid.reduceCellWidth(rowNumber, column);
             const cellText = await result.grid.getCellValue(rowNumber, column);
             await driver.wait(result.grid.untilCellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
+
         });
 
         it("Edit a result grid, verify query preview and commit - integer columns", async () => {
+
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_ints;");
             expect(result.toolbar.status).to.match(/OK/);
@@ -1215,9 +996,11 @@ describe("NOTEBOOKS", () => {
             expect(testFloat, errors.incorrectCellValue("FLOAT")).to.equals(floatEdited);
             const testDouble = await result1.grid.getCellValue(rowToEdit, "test_double");
             expect(testDouble, errors.incorrectCellValue("DOUBLE")).to.equals(doubleEdited);
+
         });
 
         it("Edit a result grid, verify query preview and commit - date columns", async () => {
+
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_dates;");
             expect(result.toolbar.status).to.match(/OK/);
@@ -1277,9 +1060,11 @@ describe("NOTEBOOKS", () => {
                 errors.incorrectCellValue("TIME")).to.equals(true);
             const testYear = await result1.grid.getCellValue(rowToEdit, "test_year");
             expect(testYear, errors.incorrectCellValue("YEAR")).to.equals(yearEdited);
+
         });
 
         it("Edit a result grid, verify query preview and commit - char columns", async () => {
+
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_chars where id = 2;");
             expect(result.toolbar.status).to.match(/OK/);
@@ -1353,9 +1138,11 @@ describe("NOTEBOOKS", () => {
             expect(testSet, errors.incorrectCellValue("SET")).to.equals(setEdited);
             const testJson = await result1.grid.getCellValue(rowToEdit, "test_json");
             expect(testJson, errors.incorrectCellValue("JSON")).to.equals(jsonEdited);
+
         });
 
         it("Edit a result grid, verify query preview and commit - geometry columns", async () => {
+
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_geometries;");
             expect(result.toolbar.status).to.match(/OK/);
@@ -1445,9 +1232,11 @@ describe("NOTEBOOKS", () => {
             await result.rollbackChanges();
             expect((await result.grid.content.getAttribute("innerHTML")).match(/rollbackTest/) === null,
                 `${modifiedText} should not exist on the cell`).to.be.true;
+
         });
 
         it("Verify not editable result grids", async () => {
+
             const queries = [
                 "select count(address_id) from sakila.address GROUP by city_id having count(address_id) > 0;",
                 "SELECT actor_id FROM sakila.actor INNER JOIN sakila.address ON actor.actor_id = address.address_id;",
@@ -1468,6 +1257,7 @@ describe("NOTEBOOKS", () => {
                 expect(await editBtn.getAttribute("data-tooltip"),
                     `'${query}' should not be editable`).to.equal("Data not editable");
             }
+
         });
 
         it("Add new row on result grid - integer columns", async () => {
@@ -1523,9 +1313,11 @@ describe("NOTEBOOKS", () => {
             expect(testFloat, errors.incorrectCellValue("FLOAT")).to.equals(floatEdited);
             const testDouble = await result1.grid.getCellValue(row, "test_double");
             expect(testDouble, errors.incorrectCellValue("DOUBLE")).to.equals(doubleEdited);
+
         });
 
         it("Add new row on result grid - date columns", async () => {
+
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_dates;");
             expect(result.toolbar.status).to.match(/OK/);
@@ -1568,6 +1360,7 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Add new row on result grid - char columns", async () => {
+
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_chars;");
             expect(result.toolbar.status).to.match(/OK/);
@@ -1626,6 +1419,7 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Add new row on result grid - geometry columns", async () => {
+
             await notebook.codeEditor.clean();
             let result = await notebook.codeEditor.execute("select * from sakila.all_data_types_geometries;");
             expect(result.toolbar.status).to.match(/OK/);
@@ -1679,6 +1473,7 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Close a result set", async () => {
+
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("select * from sakila.actor limit 1;");
             expect(result.toolbar.status).to.match(/OK/);
@@ -1691,6 +1486,7 @@ describe("NOTEBOOKS", () => {
                     .length === 0;
             }, constants.wait5seconds, `The result set was not closed`);
             await notebook.codeEditor.clean();
+
         });
 
         it("Unsaved changes dialog on result grid", async () => {
@@ -1777,6 +1573,7 @@ describe("NOTEBOOKS", () => {
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
             await dialog.findElement(locator.confirmDialog.refuse).click();
             await driver.wait(until.stalenessOf(dialog), constants.wait3seconds, "The dialog was not closed");
+
         });
 
     });
@@ -1824,6 +1621,7 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Add SQL Script", async () => {
+
             const treeGlobalConn = await openEditorsSection.tree.getElement(globalConn.caption);
             await openEditorsSection.tree.openContextMenuAndSelect(treeGlobalConn, constants.newMySQLScript);
             await driver.wait(async () => {
@@ -1834,9 +1632,11 @@ describe("NOTEBOOKS", () => {
             const result = await new Script().executeCode("select * from sakila.actor limit 1;");
             expect(result.toolbar.status).to.match(/OK, (\d+) record/);
             refItem = await openEditorsSection.tree.getScript(/Untitled-/, "Mysql");
+
         });
 
         it("Add Typescript", async () => {
+
             const treeGlobalConn = await openEditorsSection.tree.getElement(globalConn.caption);
             await openEditorsSection.tree.openContextMenuAndSelect(treeGlobalConn, constants.newTS);
             await driver.wait(async () => {
@@ -1847,6 +1647,7 @@ describe("NOTEBOOKS", () => {
             const result = await new Script().executeCode("Math.random()");
             expect(result.text, "Query result is not a number").to.match(/(\d+).(\d+)/);
             refItem = await openEditorsSection.tree.getScript(/Untitled-/, "scriptTs");
+
         });
 
         it("Add Javascript", async () => {
@@ -1928,6 +1729,7 @@ describe("NOTEBOOKS", () => {
                     return false;
                 }
             }), constants.wait5seconds, `File was not saved to ${process.cwd()}`);
+
         });
 
         it("Replace this Notebook with content from a file", async () => {
@@ -1982,6 +1784,7 @@ describe("NOTEBOOKS", () => {
             await dbTreeSection.tree.deleteDatabaseConnection(globalConn.caption);
             const tabs = await Workbench.getOpenEditorTitles();
             expect(tabs, errors.tabIsNotOpened("test.mysql-notebook")).to.not.include("test.mysql-notebook");
+
         });
 
         it("Open the Notebook from file with no DB connections", async () => {
@@ -2006,6 +1809,7 @@ describe("NOTEBOOKS", () => {
             await Workbench.closeAllEditors();
             await e2eTreeSection.tree.openContextMenuAndSelect(file, constants.openNotebookWithConn);
             await Workbench.getNotification("Please create a MySQL Database Connection first.", undefined, true);
+
         });
 
     });
