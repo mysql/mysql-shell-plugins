@@ -3,14 +3,16 @@
 ## Changes in 1.15.0+8.4.0
 
 ### Additions
+- HeatWave Lakehouse Navigator
+- HeatWave Chat
+- WL#16049 Implement initial editing in result grids
+- Upgraded to MySQL Shell 8.4.0
 
+### Improvements
 - WL#15718 Simplify application-level interfaces in the MRS SDK
 - WL#16158 Improve the MRS SDK API for handling resource collections
 
-- Upgraded to MySQL Shell 8.4.0
-
 ### Fixes
-
 - Fixes regression issue about clipboard operations (copy/paste)
 - BUG#36027690 Connection error when opening REST Object Request Path in Web Browser
 - BUG#36041538 Fix missing status messages during bastion connection

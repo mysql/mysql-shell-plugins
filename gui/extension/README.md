@@ -20,20 +20,20 @@ To file a bug report, select the following menu item or go to [bugs.mysql.com](h
 
 | OS      | Version/Dependency | Architecture |
 |---------|--------------------|--------------|
-| macOS   | 11 and higher      | arm64, x64   |
-| Windows | 10 and higher      | x64          |
-| Linux   | glibc 2.12         | arm64, x64   |
+| macOS   | 14 and higher      | arm64, x64   |
+| Windows | 11 and higher      | x64          |
+| Linux   | glibc 2.28         | arm64, x64   |
 
 ### Tested Linux Distributions
 
 | Linux Distribution  | Releases          |
 |---------------------|-------------------|
-| Debian              | 11                |
-| Ubuntu              | 20.04, 22.04      |
-| Ubuntu-WSL2         | 20.04             |
-| Kubuntu             | 21.10             |
+| Debian              | 12                |
+| Ubuntu              | 22.04, 24.04      |
+| Ubuntu-WSL2         | 22.04             |
+| Kubuntu             | 22.04, 24.04      |
 | Oracle Linux/RedHat | 7, 8, 9           |
-| Fedora              | 35                |
+| Fedora              | 40                |
 | Raspberry Pi OS     | January 28th 2022 |
 
 If you have successfully tested the extension on other Linux distributions, please let us know by filing a [bugs report](https://bugs.mysql.com/report.php?category=Shell%20VSCode%20Extension).
@@ -46,9 +46,11 @@ How to Create a New Database Connection
 
 ## Feature Highlights
 
-### Full OCI MHS Integration
+### Full OCI HeatWave Integration
 
-Browse and manage your MySQL DB Systems on the Oracle Cloud Infrastructure.
+Fully supports HeatWave Chat and Lakehouse Navigator to upload documents to HeatWave Lakehouse and query them using natural language queries.
+
+Browse and manage your HeatWave DB Systems on the Oracle Cloud Infrastructure.
 
 Get immediate and secure access to all your MySQL instances on OCI through tunneled Bastion connections.
 
