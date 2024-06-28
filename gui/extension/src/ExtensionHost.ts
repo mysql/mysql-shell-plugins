@@ -837,6 +837,7 @@ export class ExtensionHost {
                             entry[1] = undefined;
                         }
                         entry[0].dispose();
+                        this.#statusbarItems.delete(item.id);
                     }
                 }
 

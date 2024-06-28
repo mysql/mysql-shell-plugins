@@ -637,7 +637,7 @@ export class CommandResult implements interfaces.ICommandResult {
         const words = await this.context.findElements(resultLocator.previewChanges.words);
         let previewText = "";
         for (const word of words) {
-            previewText += (await word.getText()).replace("&nbsp;", " ");
+            previewText += (await word.getAttribute("innerHTML")).replace("&nbsp;", " ");
         }
 
         this.preview = {
