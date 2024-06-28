@@ -112,16 +112,6 @@ export class HeatWaveProfileEditor {
 
         switch (model) {
 
-            case constants.modelCohere: {
-                await driver.findElement(modelLocator.item.cohere).click();
-                break;
-            }
-
-            case constants.modelCohereLight: {
-                await driver.findElement(modelLocator.item.cohereLight).click();
-                break;
-            }
-
             case constants.modelLlama2: {
                 await driver.findElement(modelLocator.item.llama2).click();
                 break;

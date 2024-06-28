@@ -327,9 +327,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                                         <Dropdown className="scopeModel"
                                             selection={savedState.options?.modelOptions?.modelId ?? "llama2-7b-v1"}
                                             onSelect={this.handleModelIdChange}>
-                                            <DropdownItem id={"cohere.command"} caption={"Cohere"} />
-                                            <DropdownItem id={"cohere.command-light"} caption={"Cohere Light"} />
-                                            <DropdownItem id={"llama2-7b-v1"} caption={"LLama2"} />
+                                            <DropdownItem id={"llama2-7b-v1"} caption={"Llama2"} />
                                             <DropdownItem id={"mistral-7b-instruct-v1"} caption={"Mistral"} />
                                         </Dropdown>
                                     </Container>

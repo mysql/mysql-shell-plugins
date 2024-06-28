@@ -310,8 +310,6 @@ export const notebook = {
                         selectList: By.css("#modelSectionHost .scopeModel"),
                         list: By.css("#Popup .popup"),
                         item: {
-                            cohere: By.id("cohere.command"),
-                            cohereLight: By.id("cohere.command-light"),
                             llama2: By.id("llama2-7b-v1"),
                             mistral: By.id("mistral-7b-instruct-v1"),
                         },
