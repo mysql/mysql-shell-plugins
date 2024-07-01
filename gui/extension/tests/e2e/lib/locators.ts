@@ -345,6 +345,7 @@ export const notebook = {
                 icon: By.className("icon"),
             },
         },
+        closeEditor: By.id("itemCloseButton"),
     },
 };
 

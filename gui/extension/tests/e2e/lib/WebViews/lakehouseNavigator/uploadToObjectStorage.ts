@@ -84,7 +84,7 @@ export class UploadToObjectStorage {
      * @param filename The file name
      * @returns A promise resolving wth true if the file exists, false otherwise
      */
-    public existsFileForUploadFile = (filename: string): Condition<boolean> => {
+    public untilExistsFileForUploadFile = (filename: string): Condition<boolean> => {
         return new Condition(`for file '${filename}' to exist on Files For Upload section`, async () => {
             await Misc.switchBackToTopFrame();
             await Misc.switchToFrame();

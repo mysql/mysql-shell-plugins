@@ -401,18 +401,4 @@ export class E2EAccordionSection {
         });
     };
 
-    /**
-     * Removes all existing database connections from the DATABASE CONNECTIONS section
-     * @returns A promise resolving when all database connections are deleted
-     */
-    public removeAllDatabaseConnections = async (): Promise<void> => {
-        if (!Os.isMacOs()) {
-            const dbConnections = await this.getDatabaseConnections();
-            await Workbench.closeAllEditors();
-            for (const dbConnection of dbConnections) {
-                await this.tree.deleteDatabaseConnection(dbConnection.name, dbConnection.isMySQL, false);
-            }
-        }
-    };
-
 }

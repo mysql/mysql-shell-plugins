@@ -40,6 +40,7 @@ import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
 import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
 import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
+import { TestLocker } from "../lib/TestLocker";
 
 let ociConfig: interfaces.IOciProfileConfig;
 let ociTree: RegExp[];
@@ -69,6 +70,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     const ociTreeSection = new E2EAccordionSection(constants.ociTreeSection);
     const opedEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
     const tasksTreeSection = new E2EAccordionSection(constants.tasksTreeSection);
+    const testLocker = new TestLocker();
 
     before(async function () {
 
@@ -92,7 +94,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         try {
             await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
             await Workbench.toggleBottomBar(false);
-            await dbTreeSection.removeAllDatabaseConnections();
             await ociTreeSection.focus();
             await ociTreeSection.clickToolbarButton(constants.configureOci);
             await driver.wait(Workbench.untilTabIsOpened("config"), constants.wait5seconds,
@@ -108,7 +109,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     after(async function () {
         try {
             await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
-            await dbTreeSection.removeAllDatabaseConnections();
+            Misc.removeDatabaseConnections();
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -122,18 +123,18 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.processFailure(this);
             }
 
+            testLocker.unlockTest(this.currentTest.title, this.currentTest.duration);
+
             await Workbench.closeAllEditors();
         });
 
-        it("View Config Profile Information", async () => {
+        it("View Config Profile Information", async function () {
 
+            await testLocker.lockTest(this.test.title, constants.wait30seconds);
             const treeE2eTests = await ociTreeSection.tree.getElement(`${ociConfig.name} (${ociConfig.region})`);
             await ociTreeSection.tree.openContextMenuAndSelect(treeE2eTests, constants.viewConfigProfileInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${ociConfig.name} Info.json`), constants.wait5seconds);
-            const textEditor = new TextEditor();
-            await driver.wait(async () => {
-                return Misc.isJson(await textEditor.getText());
-            }, constants.wait10seconds, "No text was found on file");
+            expect(Misc.isJson(await new TextEditor().getText())).to.be.true;
 
         });
 
@@ -143,6 +144,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await ociTreeSection.tree.openContextMenuAndSelect(treeE2eTests, constants.setDefaultConfigProfile);
             await driver.wait(ociTreeSection.tree.untilIsDefault(`${ociConfig.name} (${ociConfig.region})`, "profile"),
                 constants.wait5seconds, "E2e tests is not the default item");
+
         });
     });
 
@@ -164,6 +166,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.processFailure(this);
             }
 
+            testLocker.unlockTest(this.currentTest.title, this.currentTest.duration);
+
             await Workbench.closeAllEditors();
         });
 
@@ -178,13 +182,14 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         });
 
-        it("View Compartment Information", async () => {
+        it("View Compartment Information", async function () {
 
+            await testLocker.lockTest(this.test.title, constants.wait30seconds);
             const treeCompartment = await ociTreeSection.tree.getElement(ociTree[2]);
             await ociTreeSection.tree.openContextMenuAndSelect(treeCompartment, constants.viewCompartmentInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${ociTree[2].source} Info.json`), constants.wait5seconds);
             await driver.wait(Workbench.untilJsonFileIsOpened("QA Info.json"), constants.wait5seconds);
-            compartmentId = JSON.parse((await Workbench.getJsonFromTextEditor())).id;
+            compartmentId = JSON.parse(await new TextEditor().getText()).id;
 
         });
 
@@ -266,6 +271,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     mdsConnection.mds = undefined;
                     mdsConnection.ssh = undefined;
                     mdsConnection.ssl = undefined;
+                    mdsConnection.caption = `e2e${mdsConnection.caption}`;
                     await DatabaseConnectionDialog.setConnection(mdsConnection);
                 } else {
                     throw new Error("The MDS connection should be a MySQL type");
@@ -390,18 +396,20 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.processFailure(this);
             }
 
+            testLocker.unlockTest(this.currentTest.title, this.currentTest.duration);
             await tasksTreeSection.collapse();
         });
 
-        it("Get Bastion Information", async () => {
+        it("Get Bastion Information", async function () {
 
+            await testLocker.lockTest(this.test.title, constants.wait30seconds);
             const treeBastion = await ociTreeSection.tree.getOciElementByType(constants.bastionType);
             const bastionName = await treeBastion.getLabel();
             await ociTreeSection.tree.openContextMenuAndSelect(treeBastion, constants.getBastionInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${bastionName} Info.json`), constants.wait5seconds);
             await driver.wait(Workbench.untilJsonFileIsOpened(`${bastionName} Info.json`),
                 constants.wait5seconds);
-            bastionId = JSON.parse((await Workbench.getJsonFromTextEditor())).id;
+            bastionId = JSON.parse(await new TextEditor().getText()).id;
             await Workbench.closeEditor(`${bastionName} Info.json`);
             await Workbench.pushDialogButton("Don't Save");
 
@@ -465,7 +473,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             const localConn: interfaces.IDBConnection = {
                 dbType: "MySQL",
-                caption: "LocalMDSConnection",
+                caption: "e2eLocalMDSConnection",
                 description: "Local connection",
                 basic: {
                     hostname: mdsEndPoint,

@@ -47,16 +47,16 @@ export class ObjectStorageBrowser {
             .elementLocated(objStorageBrowser.ociProfileList.exists),
             constants.wait5seconds, "OCI Profile List was not found");
         await (await list.findElement(objStorageBrowser.ociProfileList.item(ociProfileName))).click();
-        await driver.wait(this.itemsAreLoaded(), constants.wait5seconds,
-            "Object storage browser is still loading");
+        await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
+            "Object Storage Browser items are still loading");
     };
 
     /**
      * Waits until all Object Storage items are loaded
      * @returns A promise resolving when the Object Storage items are loaded
      */
-    public itemsAreLoaded = (): Condition<boolean> => {
-        return new Condition(` for the HeatWave connection to be loaded`, async () => {
+    public untilItemsAreLoaded = (): Condition<boolean> => {
+        return new Condition(`for Object Storage items to be loaded`, async () => {
             await Misc.switchBackToTopFrame();
             await Misc.switchToFrame();
 
@@ -176,7 +176,7 @@ export class ObjectStorageBrowser {
                 try {
                     let item = await this.getItem(path[i], String(i));
                     await item.findElement(objStorageItem.treeToggle).click();
-                    await driver.wait(this.itemsAreLoaded(), constants.wait5seconds,
+                    await driver.wait(this.untilItemsAreLoaded(), constants.wait5seconds,
                         ` ${path[i + 1]} to be loaded`);
                     item = await this.getItem(path[i], String(i));
                     const itemToggle = await item.findElement(objStorageItem.treeToggle);

@@ -224,7 +224,7 @@ export class LakehouseTables {
      * @param tableLabel The table label
      * @returns A promise resolving with true, if the table is loading, false otherwise
      */
-    public existsLakeHouseTable = (tableLabel: string): Condition<boolean> => {
+    public untilExistsLakeHouseTable = (tableLabel: string): Condition<boolean> => {
         return new Condition(` for lakehouse table '${tableLabel}' to be loading`, () => {
             return this.getLakehouseTable(tableLabel) !== undefined;
         });
@@ -235,7 +235,7 @@ export class LakehouseTables {
      * @param tableLabel The table label
      * @returns A promise resolving with true, if the table is loading, false otherwise
      */
-    public lakeHouseTableIsLoading = (tableLabel: string): Condition<boolean> => {
+    public untilLakeHouseTableIsLoading = (tableLabel: string): Condition<boolean> => {
         return new Condition(` for lakehouse table '${tableLabel}' to be loading`, async () => {
             const tableRows = await driver.wait(async () => {
                 const rows = await this.getLakehouseTables();
@@ -255,7 +255,7 @@ export class LakehouseTables {
      * @param tableLabel The table label
      * @returns A promise resolving with true, if the table is loaded, false otherwise
      */
-    public lakeHouseTableIsLoaded = (tableLabel: string): Condition<boolean> => {
+    public untilLakeHouseTableIsLoaded = (tableLabel: string): Condition<boolean> => {
         return new Condition(` for lakehouse table '${tableLabel}' to be loading`, async () => {
             const tableRows = await driver.wait(async () => {
                 const rows = await this.getLakehouseTables();
@@ -275,7 +275,7 @@ export class LakehouseTables {
      * @param taskId The task id
      * @returns A promise resolving with true, if the task is completed, false otherwise
      */
-    public lakeHouseTaskIsCompleted = (taskId: string): Condition<boolean> => {
+    public untilLakeHouseTaskIsCompleted = (taskId: string): Condition<boolean> => {
         return new Condition(` for lakehouse table '${taskId}' to be completed`, async () => {
             const taskRows = await driver.wait(async () => {
                 const rows = await this.getLakeHouseTasks();

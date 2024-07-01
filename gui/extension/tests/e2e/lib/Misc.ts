@@ -24,6 +24,7 @@
  */
 
 import fs from "fs/promises";
+import { Database } from "sqlite3";
 import addContext from "mochawesome/addContext";
 import { join } from "path";
 import { ITimeouts, until, VSBrowser, WebDriver, WebElement } from "vscode-extension-tester";
@@ -266,6 +267,27 @@ export class Misc {
         const splitted = toReturn.split("T");
 
         return `${splitted[0]} ${splitted[1].replace(":00.000Z", "")}`;
+    };
+
+    /**
+     * Removes all database connections on the tree using sqlite3 directly
+     */
+    public static removeDatabaseConnections = (): void => {
+        const sqliteFile = join(process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR, "plugin_data", "gui_plugin",
+            "mysqlsh_gui_backend.sqlite3");
+        const query1 = "DELETE FROM main.profile_has_db_connection";
+        const query2 = "DELETE FROM main.db_connection";
+
+        if (existsSync(sqliteFile)) {
+            console.log(`Deleting e2e connections from: ${sqliteFile}`);
+            const sqlite = new Database(sqliteFile);
+            sqlite.run(query1);
+            sqlite.run(query2);
+            sqlite.close();
+        } else {
+            throw new Error(`Could not find the sqlite file. Expected location: ${sqliteFile}`);
+        }
+
     };
 
 }

@@ -44,6 +44,7 @@ import { RestSchemaDialog } from "../lib/WebViews/Dialogs/RestSchemaDialog";
 import { AuthenticationAppDialog } from "../lib/WebViews/Dialogs/AuthenticationAppDialog";
 import { RestUserDialog } from "../lib/WebViews/Dialogs/RestUserDialog";
 import { ExportSDKDialog } from "../lib/WebViews/Dialogs/ExportSDKDialog";
+import { TestLocker } from "../lib/TestLocker";
 
 
 describe("MySQL REST Service", () => {
@@ -63,7 +64,7 @@ describe("MySQL REST Service", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: "globalConnection",
+        caption: "e2eGlobalConnection",
         description: "Local connection",
         basic: {
             hostname: String(process.env.DBHOSTNAME),
@@ -86,7 +87,6 @@ describe("MySQL REST Service", () => {
             await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.focus();
-            await dbTreeSection.removeAllDatabaseConnections();
             await dbTreeSection.createDatabaseConnection(globalConn);
             await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption), constants.wait5seconds);
             await (await new DatabaseConnectionOverview().getConnection(globalConn.caption)).click();
@@ -108,7 +108,7 @@ describe("MySQL REST Service", () => {
     after(async function () {
         try {
             await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
-            await dbTreeSection.removeAllDatabaseConnections();
+            Misc.removeDatabaseConnections();
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -343,6 +343,7 @@ describe("MySQL REST Service", () => {
         const destDumpSchema = join(constants.workspace, restSchemaToDump.settings.schemaName);
         const destDumpTable = join(constants.workspace, tableToDump);
         const destDumpSdk = join(constants.workspace, "dump.sdk");
+        const testLocker = new TestLocker();
 
         before(async function () {
             try {
@@ -390,6 +391,8 @@ describe("MySQL REST Service", () => {
             if (this.currentTest.state === "failed") {
                 await Misc.processFailure(this);
             }
+
+            testLocker.unlockTest(this.currentTest.title, this.currentTest.duration);
         });
 
         after(async () => {
@@ -633,8 +636,9 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Copy REST Object Request Path to Clipboard", async () => {
+        it("Copy REST Object Request Path to Clipboard", async function () {
 
+            await testLocker.lockTest(this.test.title, constants.wait30seconds);
             const actorTree = await dbTreeSection.tree.getElement(`/${actorTable} (${actorTable})`);
             await dbTreeSection.tree.openContextMenuAndSelect(actorTree, constants.copyRESTObjReqPath);
             await driver.wait(Workbench
