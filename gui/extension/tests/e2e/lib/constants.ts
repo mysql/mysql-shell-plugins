@@ -55,9 +55,10 @@ export const wait2seconds = 2000;
 export const wait3seconds = 3000;
 export const wait5seconds = 5000;
 export const wait10seconds = 10000;
-export const wait15seconds = 15000; //queryWaits
-export const wait20seconds = 20000; //loadingBarWait
-export const wait25seconds = 25000; //ociTasksExplicitWait
+export const wait15seconds = 15000;
+export const wait20seconds = 20000;
+export const wait25seconds = 25000;
+export const wait30seconds = 30000;
 export const wait1minute = 60000;
 export const wait2minutes = 120000; //extensionReadyWait
 export const wait5minutes = 300000;
@@ -303,6 +304,8 @@ export const allowSorting = "Allow sorting operations using this field";
 export const preventFiltering = "Prevent filtering operations on this field";
 export const preventUpdates = "Prevent updates on this field";
 export const excludeETAG = "Exclude this field from ETAG calculations";
+
+export const locked = join(process.cwd(), "locked");
 
 export const dbMainCtxMenu = new Map([
     [restartInternalShell, 1],

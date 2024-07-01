@@ -21,12 +21,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until, WebElement } from "vscode-extension-tester";
+import { until, WebElement, error } from "vscode-extension-tester";
 import * as constants from "../constants";
 import * as locator from "../locators";
 import * as interfaces from "../interfaces";
 import { Misc, driver } from "../Misc";
 import * as errors from "../errors";
+import { Workbench } from "../Workbench";
 
 /**
  * This class represents the toolbar
@@ -184,5 +185,24 @@ export class Toolbar {
         }
     };
 
-
+    /**
+     * Closes the current editor
+     */
+    public closeCurrentEditor = async (): Promise<void> => {
+        try {
+            await driver.findElement(locator.notebook.toolbar.closeEditor).click();
+        } catch (e) {
+            if (e instanceof error.ElementNotInteractableError) {
+                await Workbench.toggleSideBar(false);
+                await Misc.switchToFrame();
+                const closeEditor = await driver.wait(until
+                    .elementLocated(locator.notebook.toolbar.closeEditor), constants.wait5seconds);
+                await driver.wait(until.elementIsVisible(closeEditor), constants.wait5seconds);
+                await closeEditor.click();
+                await Workbench.toggleSideBar(true);
+            } else {
+                throw e;
+            }
+        }
+    };
 }

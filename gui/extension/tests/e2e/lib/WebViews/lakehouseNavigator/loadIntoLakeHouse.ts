@@ -52,7 +52,7 @@ export class LoadIntoLakehouse {
      * @param caption The task caption
      * @returns A promise resolving when the task exists
      */
-    public existsLoadingTask = (caption: string): Condition<boolean> => {
+    public untilExistsLoadingTask = (caption: string): Condition<boolean> => {
         return new Condition(` for loading task '${caption}' to exist`, async () => {
             await Misc.switchBackToTopFrame();
             await Misc.switchToFrame();

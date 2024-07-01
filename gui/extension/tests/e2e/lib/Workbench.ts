@@ -332,6 +332,7 @@ export class Workbench {
     public static expandNotifications = async (): Promise<void> => {
         const notifications = await new extWorkbench().getNotifications();
         for (const notification of notifications) {
+            await driver.actions().move({ origin: notification }).perform();
             await notification.expand();
         }
     };
@@ -738,27 +739,5 @@ export class Workbench {
                 return Misc.isJson(json);
             }
         });
-    };
-
-    /**
-     * Gets the text from the opened text editor, waiting until the json parse is successful
-     * @returns A promise resolving with the json as a string
-     */
-    public static getJsonFromTextEditor = async (): Promise<string> => {
-        let jsonFromEditor: string;
-
-        await driver.wait(async () => {
-            try {
-                const textEditor = new TextEditor();
-                jsonFromEditor = await textEditor.getText();
-                JSON.parse(jsonFromEditor);
-
-                return true;
-            } catch (e) {
-                // parsing error due to clipboard content
-            }
-        }, constants.wait5seconds, "Could not parse the JSON");
-
-        return jsonFromEditor;
     };
 }

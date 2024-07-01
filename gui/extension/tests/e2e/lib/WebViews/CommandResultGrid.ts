@@ -44,6 +44,7 @@ export class CommandResultGrid {
     /** The grid*/
     public content: WebElement;
 
+    /** The columns of the result query, if exists*/
     public columnsMap: Map<string, string>;
 
     /** The result which it belongs to*/
@@ -597,12 +598,7 @@ export class CommandResultGrid {
 
         return ((await this.getCellValues(row)).map((item, index) => {
             if (item.match(/(.*)\/(.*)\/(.*)/)) {
-                const dateItems = item.split("/");
-                if (Os.isLinux()) {
-                    return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
-                } else {
-                    return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
-                }
+                return this.formatCellDate(item, true);
             } else {
                 return index !== 0 ? `'${item}'` : item;
             }
@@ -636,12 +632,7 @@ export class CommandResultGrid {
             `# ${allColumns.join(", ")}`,
             ((await this.getCellValues(row)).map((item, index) => {
                 if (item.match(/(.*)\/(.*)\/(.*)/)) {
-                    const dateItems = item.split("/");
-                    if (Os.isLinux()) {
-                        return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
-                    } else {
-                        return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
-                    }
+                    return this.formatCellDate(item, true);
                 } else {
                     return index !== 0 ? `'${item}'` : item;
                 }
@@ -674,12 +665,7 @@ export class CommandResultGrid {
 
         return ((await this.getCellValues(row)).map((item) => {
             if (item.match(/(.*)\/(.*)\/(.*)/)) {
-                const dateItems = item.split("/");
-                if (Os.isLinux()) {
-                    return `${dateItems[2]}-${dateItems[0]}-${dateItems[1]}`;
-                } else {
-                    return `${dateItems[2]}-${dateItems[1]}-${dateItems[0]}`;
-                }
+                return this.formatCellDate(item, false);
             } else {
                 return item;
             }
@@ -714,12 +700,7 @@ export class CommandResultGrid {
             `# ${allColumns.join(", ")}`,
             ((await this.getCellValues(row)).map((item) => {
                 if (item.match(/(.*)\/(.*)\/(.*)/)) {
-                    const dateItems = item.split("/");
-                    if (Os.isLinux()) {
-                        return `${dateItems[2]}-${dateItems[0]}-${dateItems[1]}`;
-                    } else {
-                        return `${dateItems[2]}-${dateItems[1]}-${dateItems[0]}`;
-                    }
+                    return this.formatCellDate(item, false);
                 } else {
                     return item;
                 }
@@ -755,12 +736,7 @@ export class CommandResultGrid {
             `# ${allColumns.join("\t")}`,
             ((await this.getCellValues(row)).map((item, index) => {
                 if (item.match(/(.*)\/(.*)\/(.*)/)) {
-                    const dateItems = item.split("/");
-                    if (Os.isLinux()) {
-                        return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
-                    } else {
-                        return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
-                    }
+                    return this.formatCellDate(item, true);
                 } else {
                     return index !== 0 ? `'${item}'` : item;
                 }
@@ -794,12 +770,7 @@ export class CommandResultGrid {
 
         return ((await this.getCellValues(row)).map((item, index) => {
             if (item.match(/(.*)\/(.*)\/(.*)/)) {
-                const dateItems = item.split("/");
-                if (Os.isLinux()) {
-                    return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
-                } else {
-                    return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
-                }
+                return this.formatCellDate(item, true);
             } else {
                 return index !== 0 ? `'${item}'` : item;
             }
@@ -835,12 +806,7 @@ export class CommandResultGrid {
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item, index) => {
                 if (item.match(/(.*)\/(.*)\/(.*)/)) {
-                    const dateItems = item.split("/");
-                    if (Os.isLinux()) {
-                        return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
-                    } else {
-                        return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
-                    }
+                    return this.formatCellDate(item, true);
                 } else {
                     return index !== 0 ? `'${item}'` : item;
                 }
@@ -878,12 +844,7 @@ export class CommandResultGrid {
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item, index) => {
                 if (item.match(/(.*)\/(.*)\/(.*)/)) {
-                    const dateItems = item.split("/");
-                    if (Os.isLinux()) {
-                        return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
-                    } else {
-                        return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
-                    }
+                    return this.formatCellDate(item, true);
                 } else {
                     return index !== 0 ? `'${item}'` : item;
                 }
@@ -921,12 +882,7 @@ export class CommandResultGrid {
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item) => {
                 if (item.match(/(.*)\/(.*)\/(.*)/)) {
-                    const dateItems = item.split("/");
-                    if (Os.isLinux()) {
-                        return `${dateItems[2]}-${dateItems[0]}-${dateItems[1]}`;
-                    } else {
-                        return `${dateItems[2]}-${dateItems[1]}-${dateItems[0]}`;
-                    }
+                    return this.formatCellDate(item, false);
                 } else {
                     return item;
                 }
@@ -964,13 +920,7 @@ export class CommandResultGrid {
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item) => {
                 if (item.match(/(.*)\/(.*)\/(.*)/)) {
-                    const dateItems = item.split("/");
-
-                    if (Os.isLinux()) {
-                        return `${dateItems[2]}-${dateItems[0]}-${dateItems[1]}`;
-                    } else {
-                        return `${dateItems[2]}-${dateItems[1]}-${dateItems[0]}`;
-                    }
+                    return this.formatCellDate(item, false);
                 } else {
                     return item;
                 }
@@ -1008,12 +958,7 @@ export class CommandResultGrid {
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item, index) => {
                 if (item.match(/(.*)\/(.*)\/(.*)/)) {
-                    const dateItems = item.split("/");
-                    if (Os.isLinux()) {
-                        return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
-                    } else {
-                        return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
-                    }
+                    return this.formatCellDate(item, true);
                 } else {
                     return index !== 0 ? `'${item}'` : item;
                 }
@@ -1051,12 +996,7 @@ export class CommandResultGrid {
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item, index) => {
                 if (item.match(/(.*)\/(.*)\/(.*)/)) {
-                    const dateItems = item.split("/");
-                    if (Os.isLinux()) {
-                        return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
-                    } else {
-                        return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
-                    }
+                    return this.formatCellDate(item, true);
                 } else {
                     return index !== 0 ? `'${item}'` : item;
                 }
@@ -1085,11 +1025,11 @@ export class CommandResultGrid {
         if (cellValue.match(/(.*)\/(.*)\/(.*)/)) {
             const dateItems = cellValue.split("/");
 
-            if (Os.isLinux()) {
-                return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
-            } else {
+            if (Os.isMacOs()) {
                 return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
             }
+
+            return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
         } else {
             return `'${cellValue}'`;
         }
@@ -1115,11 +1055,11 @@ export class CommandResultGrid {
         if (cellValue.match(/(.*)\/(.*)\/(.*)/)) {
             const dateItems = cellValue.split("/");
 
-            if (Os.isLinux()) {
-                return `${dateItems[2]}-${dateItems[0]}-${dateItems[1]}`;
-            } else {
+            if (Os.isMacOs()) {
                 return `${dateItems[2]}-${dateItems[1]}-${dateItems[0]}`;
             }
+
+            return `${dateItems[2]}-${dateItems[0]}-${dateItems[1]}`;
         } else {
             return cellValue;
         }
@@ -1435,6 +1375,29 @@ export class CommandResultGrid {
                 }
             }
         }, constants.wait5seconds, `Could not start editing cell on column ${columnName}`);
+    };
+
+    /**
+     * Formats a date from a cell
+     * @param value The date
+     * @param quoted True to return the date quoted, false otherwise
+     * @returns The formatted date
+     */
+    private formatCellDate = (value: string, quoted: boolean): string => {
+        const dateItems = value.split("/");
+        if (Os.isMacOs()) {
+            if (quoted) {
+                return `'${dateItems[2]}-${dateItems[1]}-${dateItems[0]}'`;
+            } else {
+                return `${dateItems[2]}-${dateItems[1]}-${dateItems[0]}`;
+            }
+        }
+
+        if (quoted) {
+            return `'${dateItems[2]}-${dateItems[0]}-${dateItems[1]}'`;
+        } else {
+            return `${dateItems[2]}-${dateItems[0]}-${dateItems[1]}`;
+        }
     };
 
 }

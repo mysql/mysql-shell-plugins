@@ -24,7 +24,7 @@
  */
 import fs from "fs/promises";
 import { expect } from "chai";
-import { ActivityBar, Condition, InputBox, Key, TreeItem, until } from "vscode-extension-tester";
+import { ActivityBar, Condition, InputBox, Key, until } from "vscode-extension-tester";
 import { join } from "path";
 import clipboard from "clipboardy";
 import { browser, driver, Misc } from "../lib/Misc";
@@ -41,6 +41,7 @@ import { E2ECodeEditorWidget } from "../lib/WebViews/E2ECodeEditorWidget";
 import { Script } from "../lib/WebViews/Script";
 import { LakeHouseNavigator } from "../lib/WebViews/lakehouseNavigator/lakeHouseNavigator";
 import { HeatWaveProfileEditor } from "../lib/WebViews/lakehouseNavigator/heatWaveProfileEditor";
+import { TestLocker } from "../lib/TestLocker";
 
 describe("NOTEBOOKS", () => {
 
@@ -68,7 +69,7 @@ describe("NOTEBOOKS", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: "globalDBConnection",
+        caption: "e2eGlobalDBConnection",
         description: "Local connection",
         basic: {
             hostname: String(process.env.DBHOSTNAME),
@@ -80,7 +81,7 @@ describe("NOTEBOOKS", () => {
     };
     const anotherConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: "anotherDBConnection",
+        caption: "e2eAnotherDBConnection",
         description: "Local connection",
         basic: {
             hostname: String(process.env.DBHOSTNAME),
@@ -93,13 +94,13 @@ describe("NOTEBOOKS", () => {
 
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
     const notebook = new E2ENotebook();
+    const testLocker = new TestLocker();
 
     before(async function () {
         await Misc.loadDriver();
         try {
             await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
             await Workbench.toggleBottomBar(false);
-            await dbTreeSection.removeAllDatabaseConnections();
             await dbTreeSection.createDatabaseConnection(globalConn);
             await dbTreeSection.createDatabaseConnection(anotherConn);
             await driver.wait(dbTreeSection.tree.untilExists(anotherConn.caption), constants.wait5seconds);
@@ -117,7 +118,7 @@ describe("NOTEBOOKS", () => {
     after(async function () {
         try {
             await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
-            await dbTreeSection.removeAllDatabaseConnections();
+            Misc.removeDatabaseConnections();
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -142,6 +143,8 @@ describe("NOTEBOOKS", () => {
                 await Misc.processFailure(this);
                 await notebook.codeEditor.loadCommandResults();
             }
+
+            testLocker.unlockTest(this.currentTest.title, this.currentTest.duration);
 
             if (cleanEditor) {
                 await notebook.codeEditor.clean();
@@ -480,7 +483,9 @@ describe("NOTEBOOKS", () => {
             await textArea.sendKeys(Key.ESCAPE);
         });
 
-        it("Copy paste into notebook", async () => {
+        it("Copy paste into notebook", async function () {
+
+            await testLocker.lockTest(this.test.title, constants.wait30seconds);
 
             await notebook.codeEditor.clean();
             await Misc.switchBackToTopFrame();
@@ -518,8 +523,9 @@ describe("NOTEBOOKS", () => {
             }
         });
 
-        it("Cut paste into notebook", async () => {
+        it("Cut paste into notebook", async function () {
 
+            await testLocker.lockTest(this.test.title, constants.wait30seconds);
             const sentence1 = "select * from sakila.actor";
             const sentence2 = "select * from sakila.address";
             await notebook.codeEditor.clean();
@@ -539,8 +545,9 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Copy to clipboard button", async () => {
+        it("Copy to clipboard button", async function () {
 
+            await testLocker.lockTest(this.test.title, constants.wait30seconds);
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("\\about ");
             await result.copyToClipboard();
@@ -709,8 +716,9 @@ describe("NOTEBOOKS", () => {
             await result.rollbackChanges();
         });
 
-        it("Result grid context menu - Copy single row", async () => {
+        it("Result grid context menu - Copy single row", async function () {
 
+            await testLocker.lockTest(this.test.title, constants.wait30seconds);
             const result = await notebook.codeEditor.execute("select * from sakila.actor limit 1;");
             expect(result.toolbar.status).to.match(/OK/);
 
@@ -718,32 +726,82 @@ describe("NOTEBOOKS", () => {
             const column = "first_name";
 
             // Copy row.
-            const copyRow = await result.grid.copyRow(row, column);
-            expect(copyRow).to.equals(Os.getClipboardContent());
+            await driver.wait(async () => {
+                const copy = await result.grid.copyRow(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait10seconds, `Copy row failed`);
 
             // Copy row with names.
-            const copyRowWithNames = await result.grid.copyRowWithNames(row, column);
-            expect(copyRowWithNames).to.deep.equals(Os.getClipboardContent());
+            await driver.wait(async () => {
+                const copy = await result.grid.copyRowWithNames(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait10seconds, `Copy row with names failed`);
 
             // Copy row unquoted.
-            const copyRowUnquoted = await result.grid.copyRowUnquoted(row, column);
-            expect(copyRowUnquoted).to.equals(Os.getClipboardContent());
+            await driver.wait(async () => {
+                const copy = await result.grid.copyRowUnquoted(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait10seconds, `Copy row unquoted failed`);
 
             // Copy row with names, unquoted.
-            const copyRowWithNamesUnquoted = await result.grid.copyRowWithNamesUnquoted(row, column);
-            expect(copyRowWithNamesUnquoted).to.deep.equals(Os.getClipboardContent());
+            await driver.wait(async () => {
+                const copy = await result.grid.copyRowWithNamesUnquoted(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait10seconds, `Copy row with names, unquoted failed`);
 
             // Copy row with names, tab separated.
-            const copyRowWithNamesTabSeparated = await result.grid.copyRowWithNamesTabSeparated(row, column);
-            expect(copyRowWithNamesTabSeparated).to.deep.equals(Os.getClipboardContent());
+            await driver.wait(async () => {
+                const copy = await result.grid.copyRowWithNamesTabSeparated(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait10seconds, `Copy row with names, tab separated failed`);
 
             // Copy row, tab separated.
-            const copyRowTabSeparated = await result.grid.copyRowTabSeparated(row, column);
-            expect(copyRowTabSeparated).to.deep.equals(Os.getClipboardContent());
+            await driver.wait(async () => {
+                const copy = await result.grid.copyRowTabSeparated(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait10seconds, `Copy row, tab separated failed`);
 
         });
 
-        it("Result grid context menu - Copy multiple rows", async () => {
+        it("Result grid context menu - Copy multiple rows", async function () {
+
+            await testLocker.lockTest(this.test.title, constants.wait30seconds);
 
             const maxRows = 2;
             const result = await notebook.codeEditor
@@ -754,33 +812,82 @@ describe("NOTEBOOKS", () => {
             const column = "first_name";
 
             // Copy all rows.
-            const copyAllRows = await result.grid.copyAllRows(row, column);
-            expect(copyAllRows).to.deep.equals(Os.getClipboardContent());
+            await driver.wait(async () => {
+                const copy = await result.grid.copyAllRows(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait10seconds, `Copy all rows failed`);
 
             // Copy all rows with names.
-            const copyAllRowsWithNames = await result.grid.copyAllRowsWithNames(row, column);
-            expect(copyAllRowsWithNames).to.deep.equals(Os.getClipboardContent());
+            await driver.wait(async () => {
+                const copy = await result.grid.copyAllRowsWithNames(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait10seconds, `Copy all rows with names failed`);
 
             // Copy all rows unquoted.
-            const copyAllRowsUnquoted = await result.grid.copyAllRowsUnquoted(row, column);
-            expect(copyAllRowsUnquoted).to.deep.equals(Os.getClipboardContent());
+            await driver.wait(async () => {
+                const copy = await result.grid.copyAllRowsUnquoted(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait10seconds, `Copy all rows unquoted failed`);
 
             // Copy all rows with names unquoted.
-            const copyAllRowsWithNamesUnquoted = await result.grid.copyAllRowsWithNamesUnquoted(row, column);
-            expect(copyAllRowsWithNamesUnquoted).to.deep.equals(Os.getClipboardContent());
+            await driver.wait(async () => {
+                const copy = await result.grid.copyAllRowsWithNamesUnquoted(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait10seconds, `Copy all rows with names unquoted failed`);
 
             // Copy all rows with names tab separated.
-            const copyAllRowsWithNamesTabSeparated = await result.grid.copyAllRowsWithNamesTabSeparated(row, column);
-            expect(copyAllRowsWithNamesTabSeparated).to.deep.equals(Os.getClipboardContent());
+            await driver.wait(async () => {
+                const copy = await result.grid.copyAllRowsWithNamesTabSeparated(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait10seconds, `Copy all rows with names tab separated failed`);
 
             // Copy all rows tab separated.
-            const copyAllRowsTabSeparated = await result.grid.copyAllRowsTabSeparated(row, column);
-            expect(copyAllRowsTabSeparated).to.deep.equals(Os.getClipboardContent());
+            await driver.wait(async () => {
+                const copy = await result.grid.copyAllRowsTabSeparated(row, column);
+                const clipboard = Os.getClipboardContent();
+
+                if (copy.toString() === clipboard.toString()) {
+                    return true;
+                } else {
+                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                }
+            }, constants.wait10seconds, `Copy all rows tab separated failed`);
 
         });
 
-        it("Result grid context menu - Copy field, copy field unquoted, set field to null", async () => {
+        it("Result grid context menu - Copy field, copy field unquoted, set field to null", async function () {
 
+            await testLocker.lockTest(this.test.title, constants.wait30seconds);
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_chars;");
             expect(result.toolbar.status).to.match(/OK/);
@@ -793,11 +900,27 @@ describe("NOTEBOOKS", () => {
 
             for (let i = 1; i <= allColumns.length - 1; i++) {
 
-                let field = await result.grid.copyField(row, String(allColumns[i]));
-                expect(field).to.equals(clipboard.readSync());
+                await driver.wait(async () => {
+                    const copy = await result.grid.copyField(row, String(allColumns[i]));
+                    const clip = clipboard.readSync();
 
-                field = await result.grid.copyFieldUnquoted(row, String(allColumns[i]));
-                expect(field).to.equals(clipboard.readSync());
+                    if (copy.toString() === clip.toString()) {
+                        return true;
+                    } else {
+                        console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
+                    }
+                }, constants.wait10seconds, "Copy field failed");
+
+                await driver.wait(async () => {
+                    const copy = await result.grid.copyFieldUnquoted(row, String(allColumns[i]));
+                    const clip = clipboard.readSync();
+
+                    if (copy.toString() === clip.toString()) {
+                        return true;
+                    } else {
+                        console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
+                    }
+                }, constants.wait10seconds, "Copy field unquoted failed");
 
                 await result.grid.openCellContextMenuAndSelect(row, String(allColumns[i]),
                     constants.resultGridContextMenu.setFieldToNull);
@@ -1580,7 +1703,6 @@ describe("NOTEBOOKS", () => {
 
     describe("Scripts", () => {
 
-        let refItem: TreeItem;
         const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
 
         before(async function () {
@@ -1602,8 +1724,6 @@ describe("NOTEBOOKS", () => {
             if (this.currentTest.state === "failed") {
                 await Misc.processFailure(this);
             }
-
-            await (await openEditorsSection.tree.getActionButton(refItem, "Close Editor")).click();
 
         });
 
@@ -1631,7 +1751,7 @@ describe("NOTEBOOKS", () => {
                 .to.include(constants.mysqlScriptIcon);
             const result = await new Script().executeCode("select * from sakila.actor limit 1;");
             expect(result.toolbar.status).to.match(/OK, (\d+) record/);
-            refItem = await openEditorsSection.tree.getScript(/Untitled-/, "Mysql");
+            await notebook.toolbar.closeCurrentEditor();
 
         });
 
@@ -1646,7 +1766,7 @@ describe("NOTEBOOKS", () => {
                 .to.include(constants.tsScriptIcon);
             const result = await new Script().executeCode("Math.random()");
             expect(result.text, "Query result is not a number").to.match(/(\d+).(\d+)/);
-            refItem = await openEditorsSection.tree.getScript(/Untitled-/, "scriptTs");
+            await notebook.toolbar.closeCurrentEditor();
 
         });
 
@@ -1661,7 +1781,7 @@ describe("NOTEBOOKS", () => {
                 .to.include(constants.jsScriptIcon);
             const result = await new Script().executeCode("Math.random()");
             expect(result.text, "Query result is not a number").to.match(/(\d+).(\d+)/);
-            refItem = await openEditorsSection.tree.getScript(/Untitled-/, "scriptJs");
+            await notebook.toolbar.closeCurrentEditor();
 
         });
 
@@ -1818,7 +1938,7 @@ describe("NOTEBOOKS", () => {
 
         const heatWaveConn: interfaces.IDBConnection = {
             dbType: "MySQL",
-            caption: "HeatWave Connection",
+            caption: "e2eHeatWave Connection",
             description: "Local connection",
             basic: {
                 hostname: String(process.env.HWHOSTNAME),
@@ -1881,20 +2001,20 @@ describe("NOTEBOOKS", () => {
             await lakeHouseNavigator.overview.clickUploadFiles();
             await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.selectOciProfile("HEATWAVE");
             await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
-            await driver.wait(lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.itemsAreLoaded(),
+            await driver.wait(lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
                 constants.wait15seconds);
             await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
                 .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
             await (await lakeHouseNavigator.uploadToObjectStorage.getFilesForUploadButton(constants.addFiles)).click();
             await lakeHouseNavigator.uploadToObjectStorage.setFilesForUploadFilePath(join(process.cwd(), cookbookFile));
-            await driver.wait(lakeHouseNavigator.uploadToObjectStorage.existsFileForUploadFile(cookbookFile),
+            await driver.wait(lakeHouseNavigator.uploadToObjectStorage.untilExistsFileForUploadFile(cookbookFile),
                 constants.wait10seconds);
             await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.checkItem("upload");
             await (await lakeHouseNavigator.uploadToObjectStorage.getFilesForUploadButton(constants.startFileUpload))
                 .click();
             await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
-            await driver.wait(lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.itemsAreLoaded(),
-                constants.wait10seconds, "Object storage browser is still loading");
+            await driver.wait(lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
+                constants.wait10seconds);
             expect(await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.existsItem(cookbookFile))
                 .to.be.true;
             await driver.wait(Workbench.untilNotificationExists("The files have been uploaded successfully"),
@@ -1905,12 +2025,12 @@ describe("NOTEBOOKS", () => {
         it("Load into Lakehouse", async () => {
 
             await lakeHouseNavigator.selectTab(constants.loadIntoLakeHouseTab);
-            await driver.wait(lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.itemsAreLoaded(),
-                constants.wait10seconds, "Object storage browser is still loading");
+            await driver.wait(lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.untilItemsAreLoaded(),
+                constants.wait10seconds);
             expect(await lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.existsItem(cookbookFile),
                 `'${cookbookFile}' was not found`).to.be.true;
             await lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.checkItem(cookbookFile);
-            await driver.wait(lakeHouseNavigator.loadIntoLakehouse.existsLoadingTask(cookbookFile),
+            await driver.wait(lakeHouseNavigator.loadIntoLakehouse.untilExistsLoadingTask(cookbookFile),
                 constants.wait5seconds);
             await lakeHouseNavigator.loadIntoLakehouse.setNewLoadingTask(newTask);
             await lakeHouseNavigator.loadIntoLakehouse.startLoadingTask();
@@ -1922,9 +2042,9 @@ describe("NOTEBOOKS", () => {
             await driver.wait(lakeHouseNavigator.lakehouseTables.untilIsOpened(), constants.wait15seconds);
             expect(await lakeHouseNavigator.lakehouseTables.getDatabaseSchemas())
                 .to.contain(newTask.targetDatabaseSchema);
-            await driver.wait(lakeHouseNavigator.lakehouseTables.existsLakeHouseTable(newTask.name),
+            await driver.wait(lakeHouseNavigator.lakehouseTables.untilExistsLakeHouseTable(newTask.name),
                 constants.wait10seconds);
-            await driver.wait(lakeHouseNavigator.lakehouseTables.lakeHouseTableIsLoading(newTask.name),
+            await driver.wait(lakeHouseNavigator.lakehouseTables.untilLakeHouseTableIsLoading(newTask.name),
                 constants.wait25seconds);
 
             let latestTable = await lakeHouseNavigator.lakehouseTables.getLakehouseTable(newTask.name);
@@ -1940,10 +2060,10 @@ describe("NOTEBOOKS", () => {
             expect(latestTask.name).to.equals(`Loading ${newTask.name}`);
             expect(latestTask.status).to.equals("RUNNING");
             expect(latestTask.startTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-            expect(latestTask.endTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+            expect(latestTask.endTime).to.match(/((\d+)-(\d+)-(\d+) (\d+):(\d+)|-)/);
             expect(latestTask.message).to.equals("Loading in progress...");
 
-            await driver.wait(lakeHouseNavigator.lakehouseTables.lakeHouseTableIsLoaded(newTask.name),
+            await driver.wait(lakeHouseNavigator.lakehouseTables.untilLakeHouseTableIsLoaded(newTask.name),
                 constants.wait2minutes);
 
             latestTable = await lakeHouseNavigator.lakehouseTables.getLakehouseTable(newTask.name);
@@ -1955,7 +2075,7 @@ describe("NOTEBOOKS", () => {
             expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
             expect(latestTable.comment).to.equals(newTask.description);
 
-            await driver.wait(lakeHouseNavigator.lakehouseTables.lakeHouseTaskIsCompleted(latestTask.id),
+            await driver.wait(lakeHouseNavigator.lakehouseTables.untilLakeHouseTaskIsCompleted(latestTask.id),
                 constants.wait10seconds);
 
             latestTask = await lakeHouseNavigator.lakehouseTables.getLatestTask();

@@ -38,7 +38,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: "conn",
+        caption: "e2eConn",
         description: "Local connection",
         basic: {
             hostname: String(process.env.DBHOSTNAME),

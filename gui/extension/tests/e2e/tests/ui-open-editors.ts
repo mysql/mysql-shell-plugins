@@ -59,7 +59,7 @@ describe("OPEN EDITORS", () => {
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: `globalDBConnection`,
+        caption: `e2eGlobalDBConnection`,
         description: "Local connection",
         basic: {
             hostname: String(process.env.DBHOSTNAME),
@@ -82,7 +82,6 @@ describe("OPEN EDITORS", () => {
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
             await Workbench.dismissNotifications();
             await Workbench.toggleBottomBar(false);
-            await dbTreeSection.removeAllDatabaseConnections();
             await dbTreeSection.createDatabaseConnection(globalConn);
             await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption), constants.wait5seconds);
             await Workbench.closeAllEditors();
@@ -96,7 +95,7 @@ describe("OPEN EDITORS", () => {
     after(async function () {
         try {
             await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
-            await dbTreeSection.removeAllDatabaseConnections();
+            Misc.removeDatabaseConnections();
         } catch (e) {
             await Misc.processFailure(this);
             throw e;

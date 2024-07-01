@@ -22,6 +22,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 import { join } from "path";
 import fs from "fs/promises";
 import {
@@ -45,6 +46,7 @@ import * as errors from "../lib/errors";
 import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
 import { Script } from "../lib/WebViews/Script";
 import { Toolbar } from "../lib/WebViews/Toolbar";
+import { TestLocker } from "../lib/TestLocker";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -73,9 +75,11 @@ describe("DATABASE CONNECTIONS", () => {
         throw new Error("Please define the environment variable MYSQLSH_OCI_CONFIG_FILE");
     }
 
+    const testLocker = new TestLocker();
+
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
-        caption: `globalDBConnection`,
+        caption: `e2eGlobalDBConnection`,
         description: "Local connection",
         basic: {
             hostname: String(process.env.DBHOSTNAME),
@@ -97,7 +101,6 @@ describe("DATABASE CONNECTIONS", () => {
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
             await Workbench.dismissNotifications();
             await Workbench.toggleBottomBar(false);
-            await dbTreeSection.removeAllDatabaseConnections();
             await dbTreeSection.createDatabaseConnection(globalConn);
             await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption), constants.wait5seconds);
             await Workbench.closeAllEditors();
@@ -115,7 +118,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         try {
             await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
-            await dbTreeSection.removeAllDatabaseConnections();
+            Misc.removeDatabaseConnections();
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -264,6 +267,8 @@ describe("DATABASE CONNECTIONS", () => {
                 await Misc.processFailure(this);
             }
 
+            testLocker.unlockTest(this.currentTest.title, this.currentTest.duration);
+
         });
 
         after(async () => {
@@ -341,7 +346,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             const sqliteConn = Object.assign({}, globalConn);
             sqliteConn.dbType = "Sqlite";
-            sqliteConn.caption = `SqliteConnection`;
+            sqliteConn.caption = `e2eSqliteConnection`;
 
             if (Os.isLinux()) {
                 process.env.USERPROFILE = process.env.HOME;
@@ -398,7 +403,7 @@ describe("DATABASE CONNECTIONS", () => {
         it("Connect to MySQL database using SSL", async () => {
 
             sslConn = Object.assign({}, globalConn);
-            sslConn.caption = `SSLConnection`;
+            sslConn.caption = `e2eSSLConnection`;
 
             sslConn.ssl = {
                 mode: "Require and Verify CA",
@@ -423,8 +428,9 @@ describe("DATABASE CONNECTIONS", () => {
             expect(result.toolbar.status).to.match(/1 record retrieved/);
         });
 
-        it("Copy paste and cut paste into the DB Connection dialog", async () => {
+        it("Copy paste and cut paste into the DB Connection dialog", async function () {
 
+            await testLocker.lockTest(this.test.title, constants.wait30seconds);
             await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
             const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
                 constants.wait5seconds, "Connection dialog was not displayed");
@@ -460,7 +466,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             const editConn: interfaces.IDBConnection = {
                 dbType: "MySQL",
-                caption: `connectionToEdit`,
+                caption: `e2eConnectionToEdit`,
                 description: "Local connection",
                 basic: {
                     hostname: String(process.env.DBHOSTNAME),
@@ -474,7 +480,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
             await DatabaseConnectionDialog.setConnection(editConn);
             await dbConnectionOverview.moreActions(editConn.caption, constants.editConnection);
-            editConn.caption = "edited caption";
+            editConn.caption = "e2eEditedCaption";
             editConn.description = "edited description";
             if (interfaces.isMySQLConnection(editConn.basic)) {
                 editConn.basic.hostname = "hostname edited";
@@ -566,7 +572,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             const editSqliteConn: interfaces.IDBConnection = {
                 dbType: "Sqlite",
-                caption: `sqliteConnectionToEdit`,
+                caption: `e2eSqliteConnectionToEdit`,
                 description: "Local connection",
                 basic: {
                     dbPath: join(process.env.TEST_RESOURCES_PATH,
@@ -583,7 +589,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
             await dbConnectionDialog.setConnection(editSqliteConn);
             await dbConnectionOverview.moreActions(editSqliteConn.caption, constants.editConnection);
-            editSqliteConn.caption = "edited sqlite caption";
+            editSqliteConn.caption = "e2eEditedSqliteCaption";
             editSqliteConn.description = "edited sqlite description";
             if (interfaces.isSQLiteConnection(editSqliteConn.basic)) {
                 editSqliteConn.basic.dbPath = "edited path";
@@ -608,7 +614,7 @@ describe("DATABASE CONNECTIONS", () => {
             await dbConnectionOverview.moreActions(globalConn.caption, constants.dupConnection);
             const duplicate: interfaces.IDBConnection = {
                 dbType: "MySQL",
-                caption: "duplicateFromGlobal",
+                caption: "e2eDuplicateFromGlobal",
                 basic: {
                     hostname: "localhost",
                     username: String(process.env.DBUSERNAME),
@@ -623,7 +629,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             const sqliteConn: interfaces.IDBConnection = {
                 dbType: "Sqlite",
-                caption: `sqliteConnectionToDuplicate`,
+                caption: `e2eSqliteConnectionToDuplicate`,
                 description: "Local connection",
                 basic: {
                     dbPath: join(process.env.TEST_RESOURCES_PATH,
@@ -642,7 +648,7 @@ describe("DATABASE CONNECTIONS", () => {
             await dbConnectionOverview.moreActions(sqliteConn.caption, constants.dupConnection);
             const duplicateSqlite: interfaces.IDBConnection = {
                 dbType: "Sqlite",
-                caption: "duplicateSqliteFromGlobal",
+                caption: "e2eDuplicateSqliteFromGlobal",
             };
             await dbConnectionDialog.setConnection(duplicateSqlite);
             await driver.wait(dbConnectionOverview.untilConnectionExists(duplicateSqlite.caption),
@@ -654,7 +660,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             const connectionToRemove: interfaces.IDBConnection = {
                 dbType: "MySQL",
-                caption: `connectionToRemove`,
+                caption: `e2eConnectionToRemove`,
                 description: "Local connection",
                 basic: {
                     hostname: String(process.env.DBHOSTNAME),
@@ -677,7 +683,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             const sqliteConnToRemove: interfaces.IDBConnection = {
                 dbType: "Sqlite",
-                caption: `sqliteConnectionToEdit`,
+                caption: `e2eSqliteConnectionToEdit`,
                 description: "Local connection",
                 basic: {
                     dbPath: join(process.env.TEST_RESOURCES_PATH,
@@ -715,7 +721,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Create new script", async () => {
 
-            const connection = await dbConnectionOverview.getConnection("duplicateFromGlobal");
+            const connection = await dbConnectionOverview.getConnection("e2eDuplicateFromGlobal");
             const newScript = await connection.findElement(locator.dbConnectionOverview.dbConnection.newScript);
             await driver.actions().move({ origin: newScript }).perform();
             await driver.wait(until.elementIsVisible(newScript), constants.wait5seconds,
@@ -922,6 +928,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await Misc.processFailure(this);
             }
 
+            testLocker.unlockTest(this.currentTest.title, this.currentTest.duration);
         });
 
         after(async () => {
@@ -967,7 +974,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await dbTreeSection.clickToolbarButton(constants.collapseAll);
             const localConn = Object.assign({}, globalConn);
-            localConn.caption = `connectionToEdit`;
+            localConn.caption = `e2eConnectionToEdit`;
             await dbTreeSection.createDatabaseConnection(localConn);
             await new DatabaseConnectionOverview().getConnection(localConn.caption);
             const treeLocalConn = await dbTreeSection.tree.getElement(localConn.caption);
@@ -1152,7 +1159,9 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it("Schema - Copy name and create statement to clipboard", async () => {
+        it("Schema - Copy name and create statement to clipboard", async function () {
+
+            await testLocker.lockTest(this.test.title, constants.wait30seconds);
 
             await driver.wait(new Condition("", async () => {
                 try {
@@ -1205,7 +1214,9 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it("Table - Copy name and create statement to clipboard", async () => {
+        it("Table - Copy name and create statement to clipboard", async function () {
+
+            await testLocker.lockTest(this.test.title, constants.wait30seconds);
 
             await driver.wait(new Condition("", async () => {
                 try {
@@ -1265,7 +1276,9 @@ describe("DATABASE CONNECTIONS", () => {
             expect(result.toolbar.status).to.match(/OK, (\d+) records/);
         });
 
-        it("View - Copy name and create statement to clipboard", async () => {
+        it("View - Copy name and create statement to clipboard", async function () {
+
+            await testLocker.lockTest(this.test.title, constants.wait30seconds);
 
             await driver.wait(new Condition("", async () => {
                 try {
@@ -1281,7 +1294,6 @@ describe("DATABASE CONNECTIONS", () => {
                         throw e;
                     }
                 }
-
             }), constants.wait25seconds, "The view name was not copied to the clipboard");
 
             await driver.wait(new Condition("", async () => {
@@ -1336,8 +1348,9 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(result.untilIsMaximized(), constants.wait5seconds);
         });
 
-        it("Routines - Clipboard", async () => {
+        it("Routines - Clipboard", async function () {
 
+            await testLocker.lockTest(this.test.title, constants.wait30seconds);
             await (await dbTreeSection.tree.getElement("Tables")).collapse();
             const treeRoutines = await dbTreeSection.tree.getElement("Routines");
             await treeRoutines.expand();
