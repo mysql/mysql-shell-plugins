@@ -5,7 +5,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
   activeEditor="DbEditor"
   editors={[]}
   heatWaveEnabled={true}
-  language="en"
+  language="js"
   toolbarItems={
     {
       "auxillary": [],
@@ -384,7 +384,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
   activeEditor="DbEditor"
   editors={[]}
   heatWaveEnabled={false}
-  language="pl"
+  language="ts"
   toolbarItems={
     {
       "auxillary": [],
@@ -427,6 +427,285 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           <div
             className="msg button imageOnly"
             data-tooltip="Execute full script"
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            role="button"
+            style={
+              {
+                "flexDirection": undefined,
+              }
+            }
+            tabIndex={0}
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="toolbar-execute.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  {
+                    "WebkitMaskImage": "url("toolbar-execute.svg")",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url("toolbar-execute.svg")",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+          </div>
+        </Button>
+        <Divider
+          thickness={1}
+          vertical={true}
+        >
+          <div
+            className="msg divider vertical"
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            style={
+              {
+                "--thickness": "1px",
+              }
+            }
+          />
+        </Divider>
+        <Button
+          data-tooltip="Format current block or script"
+          imageOnly={true}
+          key="editorFormatButton"
+          requestType="editorFormat"
+        >
+          <div
+            className="msg button imageOnly"
+            data-tooltip="Format current block or script"
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            role="button"
+            style={
+              {
+                "flexDirection": undefined,
+              }
+            }
+            tabIndex={0}
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="toolbar-format.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  {
+                    "WebkitMaskImage": "url("toolbar-format.svg")",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url("toolbar-format.svg")",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+          </div>
+        </Button>
+        <Divider
+          key="formatDivider"
+          thickness={1}
+          vertical={true}
+        >
+          <div
+            className="msg divider vertical"
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            style={
+              {
+                "--thickness": "1px",
+              }
+            }
+          />
+        </Divider>
+        <Button
+          data-tooltip="Find"
+          imageOnly={true}
+          key="editorFindButton"
+          requestType="editorFind"
+        >
+          <div
+            className="msg button imageOnly"
+            data-tooltip="Find"
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            role="button"
+            style={
+              {
+                "flexDirection": undefined,
+              }
+            }
+            tabIndex={0}
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="toolbar-search.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  {
+                    "WebkitMaskImage": "url("toolbar-search.svg")",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url("toolbar-search.svg")",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+          </div>
+        </Button>
+        <Button
+          data-tooltip="Show hidden characters"
+          imageOnly={true}
+          key="editorShowHiddenButton"
+          onClick={[Function]}
+        >
+          <div
+            className="msg button imageOnly"
+            data-tooltip="Show hidden characters"
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            role="button"
+            style={
+              {
+                "flexDirection": undefined,
+              }
+            }
+            tabIndex={0}
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="toolbar-show_hidden-inactive.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  {
+                    "WebkitMaskImage": "url("toolbar-show_hidden-inactive.svg")",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url("toolbar-show_hidden-inactive.svg")",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+          </div>
+        </Button>
+        <Button
+          data-tooltip="Soft wrap lines"
+          imageOnly={true}
+          key="editorToggleSoftWrapButton"
+          onClick={[Function]}
+        >
+          <div
+            className="msg button imageOnly"
+            data-tooltip="Soft wrap lines"
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            role="button"
+            style={
+              {
+                "flexDirection": undefined,
+              }
+            }
+            tabIndex={0}
+          >
+            <Icon
+              data-tooltip="inherit"
+              disabled={false}
+              src="toolbar-word_wrap-inactive.svg"
+            >
+              <div
+                className="msg icon"
+                data-tooltip="inherit"
+                style={
+                  {
+                    "WebkitMaskImage": "url("toolbar-word_wrap-inactive.svg")",
+                    "backgroundColor": undefined,
+                    "height": undefined,
+                    "maskImage": "url("toolbar-word_wrap-inactive.svg")",
+                    "width": undefined,
+                  }
+                }
+              />
+            </Icon>
+          </div>
+        </Button>
+        <div
+          className="expander"
+        />
+      </div>
+    </Container>
+  </Toolbar>
+</DBEditorToolbar>
+`;
+
+exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation language=msg 1`] = `
+<DBEditorToolbar
+  activeEditor="DbEditor"
+  editors={[]}
+  heatWaveEnabled={false}
+  language="msg"
+  toolbarItems={
+    {
+      "auxillary": [],
+      "editor": [],
+      "execution": [],
+      "navigation": [],
+    }
+  }
+>
+  <Toolbar
+    dropShadow={false}
+    id="dbEditorToolbar"
+    vibrant={false}
+  >
+    <Container
+      className="msg toolbar verticalCenterContent"
+      crossAlignment="center"
+      id="dbEditorToolbar"
+      orientation="row"
+    >
+      <div
+        className="msg container fixedScrollbar toolbar verticalCenterContent"
+        id="dbEditorToolbar"
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "flexWrap": undefined,
+            "justifyContent": undefined,
+          }
+        }
+      >
+        <Button
+          data-tooltip="Execute everything in the current block and create a new block"
+          disabled={false}
+          imageOnly={true}
+          key="executeFullBlock"
+          onClick={[Function]}
+        >
+          <div
+            className="msg button imageOnly"
+            data-tooltip="Execute everything in the current block and create a new block"
             onClick={[Function]}
             onMouseDown={[Function]}
             role="button"
