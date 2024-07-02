@@ -1302,7 +1302,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     initTreeItemsToReduce);
             }
         } catch (reason) {
-            console.log(`Backend Error: ${String(reason)}`);
+            void requisitions.execute("showError", `Backend Error: ${String(reason)}`);
         }
 
         // Add at tree item that represents the closing of the table
@@ -1706,7 +1706,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     }
                 }
             } catch (reason) {
-                console.log(`Backend Error: ${String(reason)}`);
+                void requisitions.execute("showError", `Backend Error: ${String(reason)}`);
             }
 
             await this.fillTreeBasedOnMrsObjectFields();
@@ -1726,7 +1726,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
         // Fill the Tree List
         await this.addFieldsToMrsObjectTreeList(
-            data.dbSchemaName, data.dbObject.name, data.dbObject.objectType,
+            data.dbObject.schemaName!, data.dbObject.name, data.dbObject.objectType,
             undefined,
             initTreeItemsToUnnest, initTreeItemsToReduce);
 
@@ -2224,7 +2224,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             this.performIconClick(treeItem, iconGroup, icon).then(() => {
                 this.updateStateData(data);
             }).catch((e) => {
-                console.log(`An error occurred during execution: ${String(e)}`);
+                void requisitions.execute("showError", `An error occurred during execution: ${String(e)}`);
             });
         }
     };

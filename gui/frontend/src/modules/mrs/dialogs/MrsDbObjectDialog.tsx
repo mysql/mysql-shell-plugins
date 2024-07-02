@@ -49,12 +49,11 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
     }
 
     public override async show(request: IDialogRequest, title?: string): Promise<IDictionary | DialogResponseClosure> {
-        this.requestValue = request.values as IMrsDbObjectData;
-
         const services = request.parameters?.services as IMrsServiceData[];
         const schemas = request.parameters?.schemas as IMrsSchemaData[];
         const rowOwnershipFields = request.parameters?.rowOwnershipFields as string[];
         const payload = request.values?.payload as IDictionary;
+        this.requestValue = payload.dbObject as IMrsDbObjectData;
         this.objectType = request.values?.objectType as MrsDbObjectType;
         this.backend = payload.backend as ShellInterfaceSqlEditor;
         this.createDbObject = payload.createObject as boolean;
