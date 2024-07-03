@@ -321,7 +321,7 @@ def get_config_profile_dict_from_parser(config, profile):
 
     return {
         'profile': profile,
-        'user': config[profile]['user'],
+        'user': config[profile].get('user', None),
         'fingerprint': config[profile]['fingerprint'],
         'key_file': config[profile]['key_file'],
         'tenancy': config[profile]['tenancy'],
@@ -370,7 +370,7 @@ def list_config_profiles(**kwargs):
         # in the config.sections() call
         config_profiles = [
             get_config_profile_dict_from_parser(config, 'DEFAULT')] \
-            if 'user' in config['DEFAULT'] else []
+            if 'tenancy' in config['DEFAULT'] else []
         for section in config.sections():
             try:
                 config_profiles.append(
