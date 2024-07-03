@@ -4,11 +4,11 @@
 
 ### Additions
 
-- 
+-
 
 ### Fixes
 
-- 
+- BUG#36798924 Renamed connection-timeout to connect-timeout to match the standard name
 
 ## Changes in 1.15.0+8.4.0
 
