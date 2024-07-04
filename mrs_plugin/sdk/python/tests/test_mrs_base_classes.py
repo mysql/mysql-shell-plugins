@@ -24,12 +24,12 @@
 import json
 import os
 import ssl
-from typing import Any, Callable, NotRequired, TypedDict
+from typing import Any, Callable, NotRequired, Optional, TypedDict
 from unittest.mock import MagicMock
 
 import pytest
 
-from python.mrs_base_classes import IMrsResourceDetails, MrsBaseObjectQuery, MrsJSONDataDecoder, MrsJSONDataEncoder, MrsQueryEncoder, Record, RecordNotFoundError, UndefinedDataClassField  # type: ignore
+from python.mrs_base_classes import IMrsResourceDetails, MrsBaseObjectCreate, MrsBaseObjectQuery, MrsJSONDataDecoder, MrsJSONDataEncoder, MrsQueryEncoder, Record, RecordNotFoundError, UndefinedDataClassField  # type: ignore
 
 
 ####################################################################################
@@ -244,6 +244,11 @@ def mock_urlopen(mocker) -> MagicMock:
 
 
 @pytest.fixture
+def mock_request_class(mocker) -> MagicMock:
+    return mocker.patch("python.mrs_base_classes.Request")
+
+
+@pytest.fixture
 def urlopen_simulator() -> Callable[[dict], MagicMock]:
     """Construction to mock the method 'urlopen'."""
 
@@ -279,6 +284,57 @@ async def validate_url(
 
     # check urlopen was called once and the url that was built matches the expected
     mock_urlopen.assert_called_once_with(expected_url, context=expected_context)
+
+
+####################################################################################
+#                      Test "submit" Method (create*'s backbone)
+####################################################################################
+@pytest.mark.parametrize(
+    "data, urlopen_read",
+    [
+        (
+            {"first_name": "Shigeru", "last_name": "Miyamoto"},
+            {
+                "actorId": 65,
+                "firstName": "Shigeru",
+                "lastName": "Miyamoto",
+                "lastUpdate": "2006-02-15 04:34:33.000000",
+            },
+        ),
+    ],
+)
+async def test_create_submit(
+    mock_urlopen: MagicMock,
+    mock_request_class: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    service_url: str,
+    data: dict[str, Any],
+    urlopen_read: dict[str, Any],
+):
+    """Check `MrsBaseObjectCreate.submit()`."""
+    request = MrsBaseObjectCreate[ActorData, ActorDetails](f"{service_url}/actor", data)
+
+    mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
+    mock_create_default_context.return_value = ssl.create_default_context()
+
+    response = await request.submit()
+
+    mock_request_class.assert_called_once_with(
+        url=f"{service_url}/actor",
+        data=json.dumps(obj=data, cls=MrsJSONDataEncoder).encode(),
+        method="POST",
+    )
+    mock_urlopen.assert_called_once()
+
+    assert (
+        response["first_name"]
+        == MrsJSONDataDecoder.convert_keys(urlopen_read)["first_name"]
+    )
+    assert (
+        response["last_name"]
+        == MrsJSONDataDecoder.convert_keys(urlopen_read)["last_name"]
+    )
 
 
 ####################################################################################

@@ -383,7 +383,11 @@ export interface IFooCursors {
 
 
 class IFooData(TypedDict):
-    bar: str
+    bar: NotRequired[str]
+
+
+class IFooDataCreate(TypedDict):
+    bar: NotRequired[str]
 
 
 @dataclass(init=False, repr=True)
