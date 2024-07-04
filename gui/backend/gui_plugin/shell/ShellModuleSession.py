@@ -104,6 +104,7 @@ class ShellDbSessionHandler(DbMysqlSession):
         super().__init__(0, False, connection_options, message_callback=message_callback)
 
     def _do_open_database(self, notify_success=True):
+        self._on_connect()
         return False
 
 

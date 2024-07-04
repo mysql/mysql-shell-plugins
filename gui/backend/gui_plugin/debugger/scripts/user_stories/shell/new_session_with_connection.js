@@ -156,6 +156,99 @@ await ws.sendAndValidate({
 ])
 
 
+
+
+
+
+// Test with disable-heat-wave-check connection parameter
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.dbconnections.add_db_connection",
+    "args": {
+        "profile_id": 1,
+        "connection": {
+            "db_type": "MySQL",
+            "caption": "This is a test MySQL database (disable-heat-wave-check)",
+            "description": "This is a test MySQL database description with disable-heat-wave-check parameter",
+            "options": {
+                "scheme": default_mysql_options.scheme,
+                "user": default_mysql_options.user,
+                "password": default_mysql_options.password,
+                "host": default_mysql_options.host,
+                "port": default_mysql_options.port,
+                "disable-heat-wave-check": true,
+            }
+        },
+        "folder_path": ""
+    }
+}, [
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "PENDING",
+            "msg": ws.ignore
+        },
+        "result": ws.matchRegexp("\\d+")
+    }
+])
+
+ws.tokens["db_connection_id"] = ws.lastResponse["result"]
+
+ws.validateLastResponse({
+    "request_id": ws.lastGeneratedRequestId,
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "done": true
+})
+
+
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.shell.start_session",
+    "args": {
+        "db_connection_id": ws.tokens["db_connection_id"]
+    }
+}, [
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": { "type": "PENDING", "msg": "Execution started..." }
+    },
+    {
+        "request_state": { "type": "OK", "msg": ws.ignore },
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": { "msg": "New Shell Interactive session created successfully." },
+        "result": { "prompt_descriptor": { "mode": "Py" }, "module_session_id": ws.lastModuleSessionId, "last_prompt": {} }
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.shell.execute",
+    "args": {
+        "command": "\\sql",
+        "module_session_id": ws.lastModuleSessionId,
+    }
+}, [
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": { "type": "PENDING", "msg": "Execution started..." }
+    },
+    {
+        "result": { "info": "Switching to SQL mode... Commands end with ;\n" }
+    },
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": { "type": "OK", "msg": ws.ignore }
+    }
+])
+
+
 //  Terminate
 await ws.execute("__lib/shell/_close_session.js")
 
