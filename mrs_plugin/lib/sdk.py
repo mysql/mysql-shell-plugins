@@ -21,6 +21,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+from typing import Set
 from mrs_plugin import lib
 from pathlib import Path
 import os
@@ -590,6 +591,24 @@ def field_is_unique(field):
     return False
 
 
+def field_is_required(field):
+    if field.get("lev") != 1:
+        return False
+
+    db_column_info = field.get("db_column")
+
+    if db_column_info is None:
+        return False
+
+    not_null = db_column_info.get("not_null")
+    id_generation = db_column_info.get("id_generation")
+
+    if not_null and id_generation is None:
+        return True
+
+    return False
+
+
 def field_can_be_cursor(field):
     if field.get("lev") != 1:
         return False
@@ -645,8 +664,27 @@ def get_reduced_field_interface_datatype(field, fields, sdk_language, class_name
     return None
 
 
-def generate_type_declaration(name, parents=[], fields={}, sdk_language="TypeScript", override_parents=False, apply_convention=True, required_fields=False):
-    field_block = [generate_type_declaration_field(name, value, sdk_language, apply_convention, required_fields) for name, value in fields.items()]
+def generate_type_declaration(
+    name,
+    parents=[],
+    fields={},
+    sdk_language="TypeScript",
+    override_parents=False,
+    apply_convention=True,
+    required_fields=False,
+    non_mandatory_fields: Set[str] = set(),  # Users may or not specify them
+):
+    field_block = [
+        generate_type_declaration_field(
+            name,
+            value,
+            sdk_language,
+            apply_convention=apply_convention,
+            required_fields=required_fields,
+            non_mandatory=(name in non_mandatory_fields),
+        )
+        for name, value in fields.items()
+    ]
 
     if sdk_language == "TypeScript":
         if override_parents:
@@ -673,7 +711,7 @@ def generate_type_declaration(name, parents=[], fields={}, sdk_language="TypeScr
 
 
 def generate_type_declaration_field(
-    name, value, sdk_language, apply_convention=True, required_fields=False
+    name, value, sdk_language, apply_convention=True, required_fields=False, non_mandatory=False
 ):
     indent = " " * 4
 
@@ -686,8 +724,10 @@ def generate_type_declaration_field(
     if sdk_language == "Python":
         name_in_convention = lib.core.convert_to_snake_case(name) if apply_convention else name
         if isinstance(value, list):
-            return f'{indent}{name_in_convention}: list[{value[0]}]\n'
-        return f'{indent}{name_in_convention}: {value}\n'
+            hint = f"NotRequired[list[{value[0]}]]" if non_mandatory is True else f"list[{value[0]}]"
+        else:
+            hint = f"NotRequired[{value}]" if non_mandatory is True else f"{value}"
+        return f'{indent}{name_in_convention}: {hint}\n'
 
 
 def generate_data_class(name, fields, sdk_language):
@@ -789,6 +829,9 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language):
     obj_unique_fields = {}
     obj_cursor_fields = {}
     has_nested_fields = False
+    obj_non_mandatory_fields = set(
+        [field.get("name") for field in fields if field_is_required(field) is False]
+    )
 
     # The I{class_name}, I{class_name}Params and I{class_name}Out interfaces
     for field in fields:
@@ -913,9 +956,25 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language):
                 sdk_language=sdk_language,
                 override_parents=construct_override_parents,
                 apply_convention=apply_convention,
-                required_fields=construct_required_fields
+                required_fields=construct_required_fields,
+                non_mandatory_fields=obj_non_mandatory_fields
             )
         )
+
+        # Only applies to Python
+        if sdk_language == "Python":
+            obj_interfaces.append(
+                generate_type_declaration(
+                    name=f"{class_name}DataCreate",
+                    parents=construct_parents,
+                    fields=interface_fields,
+                    sdk_language=sdk_language,
+                    override_parents=construct_override_parents,
+                    apply_convention=apply_convention,
+                    required_fields=construct_required_fields,
+                    non_mandatory_fields=obj_non_mandatory_fields
+                )
+            )
 
         obj_interfaces.append(generate_data_class(name=class_name, fields=interface_fields,
                                                     sdk_language=sdk_language))

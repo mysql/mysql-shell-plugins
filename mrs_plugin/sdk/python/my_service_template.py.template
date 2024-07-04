@@ -1,10 +1,13 @@
 # Copyright (c) 2024, Oracle and/or its affiliates.
 
+import asyncio
 from dataclasses import dataclass
 from typing import (
     Generic,
     Literal,
+    NotRequired,
     Optional,
+    Sequence,
     Type,
     TypeAlias,
     TypedDict,
@@ -13,15 +16,20 @@ from typing import (
 )
 # --- importLoopStart
 from .mrs_base_classes import (
+    # --- importCreateOnlyStart
+    MrsBaseObjectCreate,
+    # --- importCreateOnlyEnd
     # --- importReadOnlyStart
     FindAllOptions,
     FindFirstOptions,
     FindManyOptions,
     FindUniqueOptions,
+    MrsBaseObjectQuery,
     # --- importReadOnlyEnd
     Data,
     DataClass,
     Cursors,
+    DataCreate,
     DataDetails,
     DataField,
     Filterable,
@@ -30,7 +38,6 @@ from .mrs_base_classes import (
     UniqueFilterable,
     HighOrderOperator,
     IMrsResourceDetails,
-    MrsBaseObjectQuery,
     MrsBaseSchema,
     MrsBaseService,
     NestedField,
@@ -53,6 +60,7 @@ class DatabaseObject(
         DataClass,
         Data,
         DataDetails,
+        DataCreate,
         Selectable,
         Filterable,
         UniqueFilterable,
@@ -63,6 +71,10 @@ class DatabaseObject(
     ]
 ):
     """The following CRUD-related commands are implemented as part of this class [^]:
+
+        * CREATE:
+            - `create`
+            - `create_many`
 
         * READ:
             - `find_first`
@@ -85,6 +97,19 @@ class DatabaseObject(
         self._request_path: str = request_path
         self._data_cls: Type[DataClass] = data_cls
         self._has_more: bool = True
+
+    # --- crudCreateOnlyStart
+    async def create(self, data: DataCreate) -> DataClass:
+        request = MrsBaseObjectCreate[DataCreate, DataDetails](self._request_path, data)
+        record = await request.submit()
+        return self._data_cls(cast(Data, record))
+
+    async def create_many(self, data: Sequence[DataCreate]) -> list[DataClass]:
+        return [
+            await coro
+            for coro in asyncio.as_completed((self.create(item) for item in data))
+        ]
+    # --- crudCreateOnlyEnd
 
     # --- crudReadOnlyStart
     async def find_first(
@@ -220,6 +245,7 @@ class ${schema_class_name}(MrsBaseSchema):
             I${obj_class_name},
             I${obj_class_name}Data,
             I${obj_class_name}Details,
+            I${obj_class_name}DataCreate,
             I${obj_class_name}Selectable,
             I${obj_class_name}Filterable[I${obj_class_name}Filterable],
             I${obj_class_name}UniqueFilterable,

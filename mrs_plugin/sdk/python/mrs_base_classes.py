@@ -49,7 +49,7 @@ from typing import (
     cast,
 )
 from urllib.parse import urlencode
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 
 
 ####################################################################################
@@ -150,6 +150,7 @@ UndefinedField = UndefinedDataClassField()
 Data = TypeVar("Data", bound=Mapping)
 DataClass = TypeVar("DataClass", bound="Record")
 DataDetails = TypeVar("DataDetails", bound="IMrsResourceDetails")
+DataCreate = TypeVar("DataCreate", bound=Mapping)
 Filterable = TypeVar("Filterable", bound=Optional[Mapping])
 UniqueFilterable = TypeVar("UniqueFilterable", bound=Optional[Mapping])
 Selectable = TypeVar("Selectable", bound=Optional[Mapping | Sequence])
@@ -823,7 +824,7 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
                 _metadata: MrsResourceMetadata
                 links: list[MrsResourceLink]
             ```
-            Additionally, specific fields are included, but this depends on the
+            Additionally, specific fields are included, but these depend on the
             record type itself. E.g., for a fictional `ActorDetails` data type:
             ```
                 actor_id: int
@@ -841,3 +842,46 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
             return None
 
         return cast(DataDetails, response["items"][0])
+
+
+class MrsBaseObjectCreate(Generic[Data, DataDetails]):
+    """Implements the core logic utilized by the `create*` commands."""
+
+    def __init__(self, request_path: str, data: Data) -> None:
+        """Constructor."""
+        self._request_path: str = request_path
+        self._data: Data = data
+
+    async def submit(self) -> DataDetails:
+        """Submit the request to the Router to create a new record
+        as of `data` specified at construction time.
+
+        Reurns:
+            A dictionary representing the newly created resource
+            with hypermedia-related and metadata-related keys:
+            ```
+                _metadata: MrsResourceMetadata
+                links: list[MrsResourceLink]
+            ```
+            Additionally, specific fields are included, but these depend on the
+            record type itself. E.g., for a fictional `ActorDetails` data type:
+            ```
+                actor_id: int
+                first_name: str
+                last_name: str
+                last_update: str
+            ```
+        """
+        context = ssl.create_default_context()
+
+        req = Request(
+            url=self._request_path,
+            data=json.dumps(obj=self._data, cls=MrsJSONDataEncoder).encode(),
+            method="POST",
+        )
+        response = await asyncio.to_thread(urlopen, req, context=context)
+
+        return cast(
+            DataDetails,
+            json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys),
+        )
