@@ -1,10 +1,10 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.15.1+8.4.0
+## Changes in 1.15.1+9.0.0
 
 ### Additions
 
--
+- Updated MySQL Shell to 9.0.0
 
 ### Fixes
 
