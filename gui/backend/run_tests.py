@@ -106,6 +106,11 @@ arg_parser.add_argument('-c', '--color',
                         action="store_true",
                         help='Colors output for tests results')
 
+arg_parser.add_argument('-l', '--logs',
+                        required=False,
+                        action="store_true",
+                        help='Display logs at the end if there were failures')
+
 try:
     args = arg_parser.parse_args()
 except argparse.ArgumentError as e:
@@ -264,15 +269,30 @@ if not shell.returncode == 0:
     print('----------------------------------------')
     print('MYSQLSH log')
     print('----------------------------------------')
-    with open(os.path.join(paths.runtime.root / "mysqlsh.log")) as f:
-        for line in f.readlines():
-            print(line.strip())
+    if args.logs:
+        with open(os.path.join(paths.runtime.root / "mysqlsh.log")) as f:
+            for line in f.readlines():
+                print(line.strip())
+    else:
+        print(os.path.join(paths.runtime.root / "mysqlsh.log"))
 
     print('----------------------------------------')
     print('Backend database log')
     print('----------------------------------------')
+
+    lines = []
     with sqlite3.connect(os.path.join(paths.runtime.plugin_data.gui_plugin, "mysqlsh_gui_backend_log.sqlite3")) as cur:
         for record in cur.execute("SELECT * FROM log").fetchall():
-            print(record)
+            if args.logs:
+                print(str(record))
+            else:
+                lines.append(str(record))
+
+    if not args.logs:
+        log_file = os.path.join(paths.runtime.root / "mysqlsh_gui_backend.log")
+        with open(log_file, "w") as file:
+            file.writelines(lines)
+            file.write("\n")
+        print(log_file)
 
 exit(shell.returncode)

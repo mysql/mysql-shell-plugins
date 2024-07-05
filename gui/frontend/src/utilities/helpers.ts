@@ -47,6 +47,9 @@ export const versionMatchesExpected = (version: string | number[], expected: num
     for (let i = 0; i < Math.min(expected.length, version.length); ++i) {
         if (version[i] < expected[i]) {
             return false;
+        } else if (version[i] > expected[i]) {
+            // Comparison only continues if current token is equal in both cases
+            return true;
         }
     }
 

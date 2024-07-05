@@ -249,7 +249,7 @@ await ws.sendAndValidate({
             "msg": ""
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": ws.matchList(["mysql_native_password"], 0)
+        "result": ws.matchList(["sha256_password"], 0)
     },
     {
         "request_state": {
