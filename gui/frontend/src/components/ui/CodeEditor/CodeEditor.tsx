@@ -1151,6 +1151,22 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             run: () => { this.appendFromTemplate(); },
         }));
 
+        this.disposables.push(editor.addAction({
+            id: "focusExecutionBlockResultAbove",
+            label: "Focus Execution Block Result Above",
+            keybindings: [KeyMod.Alt | KeyCode.UpArrow],
+            run: () => { this.focusExecutionContextResult(true); },
+            precondition,
+        }));
+
+        this.disposables.push(editor.addAction({
+            id: "focusExecutionBlockResultBelow",
+            label: "Focus Execution Block Result Above",
+            keybindings: [KeyMod.Alt | KeyCode.DownArrow],
+            run: () => { this.focusExecutionContextResult(false); },
+            precondition,
+        }));
+
         this.disposables.push(editor);
         this.disposables.push(editor.onDidChangeCursorPosition((e: Monaco.ICursorPositionChangedEvent) => {
             if (language === "msg") {
@@ -1412,6 +1428,35 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                                 column: model.getLineMaxColumn(context.endLine),
                             });
                         }
+                    }
+                }
+            }
+        }
+    };
+
+    private focusExecutionContextResult = (above: boolean): void => {
+        // Focus a either the Execution Context above or below, so editing can be started with the Return/Enter key
+        const editor = this.backend;
+        const model = this.model;
+        if (editor && model) {
+            const position = editor.getPosition();
+            if (position) {
+                const contexts = model.executionContexts;
+                const index = contexts?.contextIndexFromPosition(position);
+                if (index) {
+                    // Find the right context, either above or current
+                    const context = contexts?.contextAt(index + (above ? -1 : 0));
+                    // Find the first tabulator-cell
+                    const zoneEl = context?.presentation.viewZone?.domNode;
+                    const el = zoneEl?.querySelector<HTMLElement>(".tabulator-cell");
+                    if (el) {
+                        // If found, ensure Monaco loses focus
+                        if (document.activeElement instanceof HTMLElement) {
+                            document.activeElement.blur();
+                        }
+
+                        // Set focus on tabulator-cell
+                        el.focus();
                     }
                 }
             }

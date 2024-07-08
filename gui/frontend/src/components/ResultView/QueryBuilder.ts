@@ -45,6 +45,10 @@ export class QueryBuilder {
 
     }
 
+    private static escapeControlChars(value: string): string {
+        return value.replaceAll("\n", "\\n").replaceAll("\r", "\\r").replaceAll("\t", "\\t");
+    }
+
     public get columnNames(): string[] {
         return this.#columns.map((column) => { return column.title; });
     }
@@ -57,7 +61,12 @@ export class QueryBuilder {
         this.#columns.forEach((column, index) => {
             if (!column.autoIncrement) {
                 insertColumns.push(column);
-                insertValues.push(newValues[index]);
+                let value = newValues[index];
+                // Ensure to escape control chars of string values
+                if (typeof(value) === "string") {
+                    value = QueryBuilder.escapeControlChars(value);
+                }
+                insertValues.push(value);
             }
         });
         const columnNames = insertColumns.map((column) => { return column.title; }).join(", ");
@@ -86,7 +95,11 @@ export class QueryBuilder {
 
         for (let i = 0; i < changedColumns.length; ++i) {
             const column = changedColumns[i];
-            const value = mappedValues[i];
+            let value = mappedValues[i];
+            // Ensure to escape control chars of string values
+            if (typeof(value) === "string") {
+                value = QueryBuilder.escapeControlChars(value);
+            }
             changes.push(`${column} = ${value}`);
         }
 

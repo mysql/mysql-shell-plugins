@@ -84,6 +84,9 @@ export class SQLPreview extends ComponentBase<ISQLPreviewProperties> {
         return (
             <Container className="sqlPreviewHost" orientation={Orientation.TopDown} >
                 <Label className="sqlPreviewTitle">SQL Preview</Label>
+                {labels.length === 0 &&
+                    <Label className="error">{"<No Changes>"}</Label>
+                }
                 {labels}
             </Container >
         );

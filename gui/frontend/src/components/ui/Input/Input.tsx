@@ -42,6 +42,7 @@ export interface IInputProperties extends IComponentProperties {
     textAlignment?: TextAlignment;
     multiLine?: boolean;
     multiLineCount?: number;
+    multiLineSwitchEnterKeyBehavior?: boolean;
     autoComplete?: boolean;
     spellCheck?: boolean;
 
@@ -50,6 +51,7 @@ export interface IInputProperties extends IComponentProperties {
     onChange?: (e: InputEvent, props: IInputChangeProperties) => void;
     onConfirm?: (e: KeyboardEvent, props: IInputChangeProperties) => void;
     onCancel?: (e: KeyboardEvent, props: IInputProperties) => void;
+    onCustomKeyDown?: (e: KeyboardEvent, props: IInputChangeProperties) => boolean;
 }
 
 export interface IInputChangeProperties extends IInputProperties {
@@ -139,11 +141,22 @@ export class Input extends ComponentBase<IInputProperties> {
     };
 
     private handleKeyDown = (e: KeyboardEvent): void => {
-        const { multiLine, onConfirm, onCancel } = this.mergedProps;
+        const { multiLine, multiLineSwitchEnterKeyBehavior, onConfirm, onCancel, onCustomKeyDown } = this.mergedProps;
+
+        // If there is a custom onKeyDown method defined in the properties, call it. If the function returns true
+        // it will prevent the internal key handling.
+        if (onCustomKeyDown) {
+            const element = e.target as HTMLInputElement;
+            if (onCustomKeyDown(e, { ...this.mergedProps, value: element.value })) {
+                return;
+            }
+        }
 
         switch (e.key) {
             case KeyboardKeys.Enter: {
-                if (!multiLine) {
+                if (!multiLine
+                    || (multiLineSwitchEnterKeyBehavior && !e.shiftKey)
+                    || (!multiLineSwitchEnterKeyBehavior && e.shiftKey)) {
                     const element = e.target as HTMLInputElement;
                     onConfirm?.(e, { ...this.mergedProps, value: element.value });
                 }

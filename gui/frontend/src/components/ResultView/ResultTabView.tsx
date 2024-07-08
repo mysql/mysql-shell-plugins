@@ -399,7 +399,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                     imageOnly={true}
                                     disabled={!updatable || editModeActive}
                                     data-tooltip={editButtonTooltip}
-                                    onClick={this.startEditing}
+                                    onClick={this.startEditingFirstField}
                                 >
                                     <Icon src={editIcon} data-tooltip="inherit" />
                                 </Button>
@@ -953,6 +953,18 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         if (currentResultSet) {
             this.prepareEditingInfo(currentResultSet);
+            this.forceUpdate();
+        }
+    };
+
+    private startEditingFirstField = (): void => {
+        const { currentResultSet } = this.state;
+
+        this.startEditing();
+
+        if (currentResultSet) {
+            const viewRef = this.viewRefs.get(currentResultSet.resultId);
+            viewRef?.current?.editFirstCell();
         }
     };
 
@@ -1037,6 +1049,18 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                         info.selectedRowIndex = undefined;
                         this.forceUpdate(() => { resolve(); });
                     }
+
+                    break;
+                }
+
+                case "commit": {
+                    this.commitChanges();
+
+                    break;
+                }
+
+                case "rollback": {
+                    this.cancelEditingAndRollbackChanges();
 
                     break;
                 }
@@ -1197,6 +1221,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         }
 
         info.previewActive = selection.has("preview");
+        this.forceUpdate();
     };
 
     private prepareEditingInfo = (resultSet: IResultSet): IEditingInfo => {

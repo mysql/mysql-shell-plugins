@@ -31,6 +31,7 @@ import {
     ResizeColumnsModule, FormatModule, InteractionModule, EditModule, FilterModule, SortModule, ResizeRowsModule,
     FrozenRowsModule, TooltipModule,
     RowComponent, ColumnComponent, ColumnDefinition, CellComponent, Options, RowLookup,
+    RowRangeLookup,
 } from "tabulator-tables";
 
 import { ComponentChild, createRef } from "preact";
@@ -171,6 +172,8 @@ interface ITreeGridProperties extends IComponentProperties {
     /** Ditto for single cells. */
     onCellContext?: (event: Event, cell: CellComponent) => void;
 
+    onCellClick?: (event: Event, cell: CellComponent) => void;
+
     onRowSelected?: (row: RowComponent) => void;
     onRowDeselected?: (row: RowComponent) => void;
 
@@ -277,6 +280,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             this.#tabulator.on("dataTreeRowExpanded", this.handleRowExpanded);
             this.#tabulator.on("dataTreeRowCollapsed", this.handleRowCollapsed);
             this.#tabulator.on("rowContext", this.handleRowContext);
+            this.#tabulator.on("cellClick", this.handleCellClick);
             this.#tabulator.on("cellContext", this.handleCellContext);
             this.#tabulator.on("rowSelected", this.handleRowSelected);
             this.#tabulator.on("rowClick", this.handleRowClicked);
@@ -287,6 +291,10 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             this.#tabulator.on("cellEditing", this.handleCellEditing);
             this.#tabulator.on("cellEdited", this.handleCellEdited);
             this.#tabulator.on("cellEditCancelled", this.handleCellEditCancelled);
+            this.#tabulator.on("rangeAdded", (range) => {
+                //range - range component for the selected range
+                alert("The user has selected a new range containing " + range.getCells().length + " cells");
+            });
         }
     }
 
@@ -411,6 +419,12 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         });
     }
 
+    public getColumns(): ColumnComponent[] | undefined {
+        if (this.#tableReady && this.#tabulator) {
+            return this.#tabulator.getColumns();
+        }
+    }
+
     public async setData(data: unknown[], action: SetDataAction): Promise<void> {
         const table = await this.table;
 
@@ -442,14 +456,21 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     }
 
     /**
+     * @param rangeLookup Limit the rows that are returned based on a RowRangeLookup setting
      * @returns all rows currently in the table.
      */
-    public getRows(): RowComponent[] {
+    public getRows(rangeLookup?: RowRangeLookup): RowComponent[] {
         if (this.#tableReady && this.#tabulator) {
-            return this.#tabulator.getRows();
+            return this.#tabulator.getRows(rangeLookup);
         }
 
         return [];
+    }
+
+    public getRow(row: RowLookup): RowComponent | undefined{
+        if (this.#tableReady && this.#tabulator) {
+            return this.#tabulator.getRow(row);
+        }
     }
 
     /** @returns the currently selected rows in the table. */
@@ -649,6 +670,12 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         const { onRowContext } = this.mergedProps;
 
         onRowContext?.(event, row);
+    };
+
+    private handleCellClick = (event: Event, cell: CellComponent): void => {
+        const { onCellClick } = this.mergedProps;
+
+        onCellClick?.(event, cell);
     };
 
     private handleCellContext = (event: Event, cell: CellComponent): void => {
