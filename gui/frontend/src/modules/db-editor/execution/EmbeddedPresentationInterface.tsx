@@ -30,6 +30,7 @@ import { PresentationInterface } from "../../../script-execution/PresentationInt
 import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor.js";
 import { Divider } from "../../../components/ui/Divider/Divider.js";
 import { EditorLanguage } from "../../../supplement/index.js";
+import { KeyboardKeys } from "../../../utilities/helpers.js";
 
 /** Handling of UI related tasks in a code editor for embedded contexts. */
 export class EmbeddedPresentationInterface extends PresentationInterface {
@@ -52,7 +53,8 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     // Listener for content changes in the render target.
     private resizeObserver?: ResizeObserver;
 
-    public constructor(editor: Partial<Monaco.IStandaloneCodeEditor> | undefined, private isScrolling: () => boolean,
+    public constructor(private editor: Partial<Monaco.IStandaloneCodeEditor> | undefined,
+        private isScrolling: () => boolean,
         language: EditorLanguage) {
         super(editor, language);
     }
@@ -290,6 +292,20 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
                 e.stopPropagation();
             }
         }, { passive: true });
+
+        renderTarget.addEventListener("keydown", (e) => {
+            if (e.altKey && e.key === KeyboardKeys.ArrowUp) {
+                this.editor?.setPosition?.({ lineNumber: this.startLine, column: 1 });
+                this.editor?.focus?.();
+
+                e.stopPropagation();
+            } else if (e.altKey && e.key === KeyboardKeys.ArrowDown) {
+                this.editor?.setPosition?.({ lineNumber: this.endLine + 1, column: 1 });
+                this.editor?.focus?.();
+
+                e.stopPropagation();
+            }
+        });
 
         if (this.zoneInfo?.zoneId === "") {
             this.backend?.changeViewZones?.((changeAccessor: Monaco.IViewZoneChangeAccessor) => {

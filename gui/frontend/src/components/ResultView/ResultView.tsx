@@ -43,7 +43,7 @@ import { DBDataType, DialogType, IColumnInfo, MessageType } from "../../app-logi
 import { IResultSet, IResultSetRows } from "../../script-execution/index.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
-import { saveArrayAsFile, saveTextAsFile, selectFile } from "../../utilities/helpers.js";
+import { KeyboardKeys, saveArrayAsFile, saveTextAsFile, selectFile } from "../../utilities/helpers.js";
 import { convertCamelToTitleCase, formatBase64ToHex } from "../../utilities/string-helpers.js";
 import { Button, IButtonProperties } from "../ui/Button/Button.js";
 import {
@@ -242,6 +242,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                         onCellContext={this.handleCellContext}
                         onVerticalScroll={this.handleVerticalScroll}
                         onFormatRow={this.handleFormatRow}
+                        onCellClick={this.handleCellClick}
                     />
                 }
 
@@ -266,13 +267,18 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     onItemClick={this.handleCellContextMenuItemClick}
                 >
                     <MenuItem
-                        id="openValueMenuItem"
-                        caption="Open Value in Editor"
+                        id="editValueMenuItem"
+                        caption="Edit Value"
                         disabled={this.handleCellMenuItemDisabled}
                     />
                     <MenuItem
                         id="setNullMenuItem"
                         caption="Set Field to Null"
+                        disabled={this.handleCellMenuItemDisabled}
+                    />
+                    <MenuItem
+                        id="openValueMenuItem"
+                        caption="Open Value in Editor"
                         disabled={this.handleCellMenuItemDisabled}
                     />
                     <MenuItem caption="-" disabled />
@@ -458,6 +464,19 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         this.selectedCell = cell;
     }
 
+    public editFirstCell(): void {
+        // istanbul ignore next
+        if (this.gridRef.current) {
+            const visibleRows = this.gridRef.current.getRows("visible");
+            if (visibleRows.length > 0) {
+                const cells = visibleRows[0].getCells();
+                if (cells.length > 0) {
+                    cells[0].edit();
+                }
+            }
+        }
+    }
+
     private generateColumnDefinitions = (columns: IColumnInfo[], editable: boolean): ColumnDefinition[] => {
         // Map column info from the backend to column definitions for
         return columns.map((info): ColumnDefinition => {
@@ -581,7 +600,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 resizable: true,
                 editable: () => {
                     if (!this.editingCell) {
-                        if (editable && editor != null && !info?.autoIncrement) {
+                        if (editable && editor != null) {
                             return true;
                         }
                     }
@@ -641,6 +660,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         if (this.editingCell) {
             onFieldEditCancel?.(this.editingCell.getRow().getPosition() as number - 1,
                 this.editingCell.getColumn().getField());
+            this.editingCell.getElement().focus();
             this.editingCell = undefined;
         }
     };
@@ -697,12 +717,16 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         }
 
         switch (props.id!) {
+            case "editValueMenuItem": {
+                return !editable;
+            }
+
             case "openValueMenuItem": {
                 return true; // !needsValueEditor || selectCount > 1; for now disable the value editor.
             }
 
             case "setNullMenuItem": {
-                return !(info?.nullable ?? false);
+                return !(editable && (info?.nullable ?? false));
             }
 
             case "saveToFileMenuItem": {
@@ -826,6 +850,10 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
         this.cellContextMenuRef.current?.close();
         this.cellContextMenuRef.current?.open(targetRect, false, {});
+    };
+
+    private handleCellClick = (_event: Event, cell: CellComponent): void => {
+        this.selectedCell = cell;
     };
 
     private handleVerticalScroll = (rowIndex: number): void => {
@@ -984,6 +1012,13 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     break;
                 }
 
+                case "editValueMenuItem": {
+                    this.cellContextMenuRef.current?.close();
+
+                    this.selectedCell.edit();
+                    break;
+                }
+
                 case "setNullMenuItem": {
                     this.selectedCell.setValue(null);
                     break;
@@ -1127,8 +1162,10 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 default:
             }
 
-            this.selectedCell.getElement()?.classList.remove("manualFocus");
-            this.selectedCell = undefined;
+            if (this.selectedCell) {
+                this.selectedCell.getElement()?.classList.remove("manualFocus");
+                this.selectedCell = undefined;
+            }
         }
 
         return true;
@@ -1339,6 +1376,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 element = <Input
                     value={value as string ?? ""}
                     multiLine={this.useMultiLineEditor(info.dataType.type)}
+                    multiLineSwitchEnterKeyBehavior={true}
                     onChange={(e: InputEvent, props: IInputChangeProperties): void => {
                         // Auto grow the input field (limited by a max height CSS setting).
                         if (props.multiLine) {
@@ -1789,6 +1827,28 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             }
 
             cell.checkHeight();
+
+            // If the blur event is finishing the edit operation, make sure to re-focus the current cell after
+            // it has been re-rendered it ensure keyboard navigation
+            if (this.editingCell) {
+                // Ensure the editing is finished, otherwise editing will get stuck
+                this.editingCell = undefined;
+
+                // Since the actual rowComponent will be replaced internally by tabulator, store the row position
+                const rowPos = cell.getRow().getPosition();
+                const col = cell.getColumn();
+                if (rowPos) {
+                    // Wait till the table has been updated
+                    setTimeout(() => {
+                        // Lookup the new row
+                        const rows = this.gridRef.current?.getRows();
+                        if (rows && rows.length >= rowPos) {
+                            // Get the correct cell and focus it
+                            rows[rowPos - 1].getCell(col).getElement()?.focus();
+                        }
+                    }, 100);
+                }
+            }
         }
 
         if (this.#lastInputType === "tab" || this.#lastInputType === "shiftTab") {
@@ -1816,9 +1876,6 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         this.markIfChanged(cell);
 
         cell.checkHeight();
-        this.#navigating = true;
-        cell.navigateDown();
-        this.#navigating = false;
     }
 
     private columnInfoFromCell(cell: CellComponent): IColumnInfo | undefined {
@@ -1844,14 +1901,62 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
      * @param e The keyboard event.
      */
     private handleKeyDown = (e: KeyboardEvent): void => {
-        if (e.key === "Tab") {
-            if (e.shiftKey) {
-                this.#lastInputType = "shiftTab";
-            } else {
-                this.#lastInputType = "tab";
+        const { editable, onAction } = this.mergedProps;
+
+        switch (e.key) {
+            // Support to start editing via Return/Enter key
+            case (KeyboardKeys.Enter): {
+                if (e.metaKey && onAction) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+
+                    void onAction("commit");
+                } else if (editable && this.gridRef.current) {
+                    let cell;
+                    // If a cell has the focus, lookup the cell based on the HTMLElement and edit that sell
+                    if (document.activeElement?.parentElement?.classList.contains("tabulator-row")) {
+                        const activeRow = this.gridRef.current.getRow(document.activeElement.parentElement);
+                        cell = activeRow?.getCells().find((cell) => {
+                            return cell.getElement() === document.activeElement;
+                        });
+                    }
+
+                    if (cell) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        cell.edit();
+                        break;
+                    }
+                }
+
+                this.#lastInputType = "other";
+                break;
             }
-        } else {
-            this.#lastInputType = "other";
+
+            case (KeyboardKeys.Escape): {
+                if (e.metaKey && onAction) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+
+                    void onAction("rollback");
+                }
+
+                this.#lastInputType = "other";
+                break;
+            }
+
+            case (KeyboardKeys.Tab): {
+                if (e.shiftKey) {
+                    this.#lastInputType = "shiftTab";
+                } else {
+                    this.#lastInputType = "tab";
+                }
+                break;
+            }
+
+            default:
+                this.#lastInputType = "other";
+                break;
         }
     };
 }
