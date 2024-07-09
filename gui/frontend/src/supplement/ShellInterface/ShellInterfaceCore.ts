@@ -77,7 +77,7 @@ export class ShellInterfaceCore {
      */
     public async getDbTypes(): Promise<string[]> {
         const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIGui.GuiDbconnectionsGetDbTypes,
+            requestType: ShellAPIGui.GuiDbConnectionsGetDbTypes,
             parameters: {},
         });
 

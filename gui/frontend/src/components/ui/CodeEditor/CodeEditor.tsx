@@ -42,7 +42,7 @@ import { mysql } from "./languages/mysql/mysql.contribution.js";
 
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
-import { EditorLanguage, ITextRange } from "../../../supplement/index.js";
+import { EditorLanguage, isEditorLanguage, ITextRange } from "../../../supplement/index.js";
 import {
     appParameters, IEditorCommonExecutionOptions, IEditorExtendedExecutionOptions, requisitions,
 } from "../../../supplement/Requisitions.js";
@@ -800,6 +800,35 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         return block;
     }
 
+    public setExecutionBlockLanguageAndText(context: ExecutionContext, text: string,
+        language: string, placeCursorAtStart=false): void {
+
+        if (isEditorLanguage(language)) {
+            this.switchCurrentLanguage(language, false);
+        }
+
+        const editor = this.backend;
+        const model = this.model;
+        if (editor && model) {
+            const endColumn = this.model.getLineMaxColumn(context.endLine);
+            // Replace the current ExecutionContext text
+            const range = {
+                startLineNumber: context.startLine,
+                startColumn: 1,
+                endLineNumber: context.endLine,
+                endColumn,
+            };
+
+            editor.executeEdits("", [{ range, text }], () => {
+                if (placeCursorAtStart) {
+                    return [new Selection(context.startLine, 1, context.startLine, 1)];
+                } else {
+                    return [new Selection(context.endLine, endColumn, context.endLine, endColumn)];
+                }
+            });
+        }
+    }
+
     /**
      * @returns Returns the last execution context in the editor.
      */
@@ -820,6 +849,16 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         }
 
         return -1;
+    }
+
+    public get currentBlock(): ExecutionContext | undefined {
+        const editor = this.backend;
+        const model = this.model;
+        if (editor && model && model.executionContexts) {
+            return model.executionContexts.contextFromPosition(editor.getPosition());
+        }
+
+        return undefined;
     }
 
     /**

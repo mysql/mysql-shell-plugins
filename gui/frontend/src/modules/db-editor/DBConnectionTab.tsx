@@ -33,7 +33,7 @@ import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
 import {
     DBDataType, IColumnInfo, IDictionary, IServicePasswordRequest, IStatusInfo, MessageType,
 } from "../../app-logic/Types.js";
-import { IDbEditorResultSetData } from "../../communication/ProtocolGui.js";
+import { IDbEditorResultSetData, ISqlEditorHistoryEntry } from "../../communication/ProtocolGui.js";
 import { IMdsChatData, IMdsChatStatus } from "../../communication/ProtocolMds.js";
 import { ResponseError } from "../../communication/ResponseError.js";
 import { ChatOptionAction, ChatOptions, IChatOptionsState } from "../../components/Chat/ChatOptions.js";
@@ -135,6 +135,8 @@ export interface IDBConnectionTabPersistentState extends ISavedEditorState {
     graphData: ISavedGraphData;
 
     chatOptionsState: IChatOptionsState;
+    executionHistory: ISqlEditorHistoryEntry[];
+    currentExecutionHistoryIndex: number;
 }
 
 /** Selecting an item requires different data, depending on the type of the item. */
@@ -421,6 +423,7 @@ Execute \\help or \\? for help;`;
                         onHelpCommand={onHelpCommand}
                         onScriptExecution={this.handleExecution}
                         onContextLanguageChange={this.handleContextLanguageChange}
+                        onNavigateHistory={this.handleNavigateHistory}
                     />;
 
                     const chatOptionsExpanded = savedState.chatOptionsState.chatOptionsExpanded;
@@ -1898,6 +1901,7 @@ Execute \\help or \\? for help;`;
      */
     private handleExecution = async (context: ExecutionContext, options: IScriptExecutionOptions): Promise<boolean> => {
         const { workerPool, savedState } = this.props;
+        const { backend } = this.state;
 
         const command = context.code?.trim() ?? "";
         if (command.length === 0) {
@@ -1947,6 +1951,19 @@ Execute \\help or \\? for help;`;
         }
 
         await context.clearResult();
+
+        // Store this execution in the ExecutionHistory list for the connection in the backend database
+        try {
+            await backend?.addExecutionHistoryEntry(
+                savedState.connectionId, context.code, context.language);
+
+            // Reset the currentExecutionHistoryIndex
+            savedState.currentExecutionHistoryIndex = 0;
+
+            this.forceUpdate();
+        } catch (error) {
+            void requisitions.execute("showError", `Unable to create execution history entry. Error: ${String(error)}`);
+        }
 
         switch (context.language) {
             case "javascript": {
@@ -3006,5 +3023,13 @@ Execute \\help or \\? for help;`;
         }
 
         return Promise.resolve(true);
+    };
+
+    private handleNavigateHistory = (backwards: boolean): void => {
+        const { savedState } = this.props;
+
+        savedState.currentExecutionHistoryIndex += backwards ? +1 : -1;
+
+        this.forceUpdate();
     };
 }

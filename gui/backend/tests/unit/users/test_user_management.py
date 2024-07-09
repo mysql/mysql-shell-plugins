@@ -54,7 +54,7 @@ test_user_privileges_data = [
 test_modules_data = [
     ("pytest_user2", []),
     ("pytest_user3",
-     ['gui.debugger', 'gui.sqleditor', 'gui.shell'])
+     ['gui.debugger', 'gui.sql_editor', 'gui.shell'])
 ]
 
 def name_in_message(name, message):

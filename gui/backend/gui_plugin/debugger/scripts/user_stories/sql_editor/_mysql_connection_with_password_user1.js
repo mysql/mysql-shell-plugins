@@ -4,9 +4,9 @@ var defaults = ws.tokens.defaults
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.open_connection",
+    "command": "gui.sql_editor.open_connection",
     "args": {
-        "db_connection_id": lib.sqleditor.create_test_sessions['connection_id_user1'],
+        "db_connection_id": lib.sql_editor.create_test_sessions['connection_id_user1'],
         "module_session_id": ws.lastModuleSessionId,
         "password": "wrong_password"
     }
@@ -25,9 +25,9 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.open_connection",
+    "command": "gui.sql_editor.open_connection",
     "args": {
-        "db_connection_id": lib.sqleditor.create_test_sessions['connection_id_user1'],
+        "db_connection_id": lib.sql_editor.create_test_sessions['connection_id_user1'],
         "module_session_id": ws.lastModuleSessionId,
     }
 }, [

@@ -69,7 +69,7 @@ def get_user_stories(single_user_mode: bool, authenticated_mode: bool):
     return script_list
 
 
-def get_unit_tests(single_user_mode: bool, authenticated_mode: bool, only_sqleditor: bool):
+def get_unit_tests(single_user_mode: bool, authenticated_mode: bool, only_sql_editor: bool):
     this_file = Path(__file__)
     all_scripts = []
     test_list = []
@@ -82,7 +82,7 @@ def get_unit_tests(single_user_mode: bool, authenticated_mode: bool, only_sqledi
             if not path.as_posix().endswith('.py'):
                 continue
 
-            if only_sqleditor ^ path.parents[0].as_posix().endswith('sqleditor'):
+            if only_sql_editor ^ path.parents[0].as_posix().endswith('sql_editor'):
                 continue
 
             if path.is_file():

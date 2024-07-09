@@ -65,7 +65,9 @@ import {
 
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
 import { IMySQLConnectionOptions } from "../../communication/MySQL.js";
-import { IOpenConnectionData, IShellPasswordFeedbackRequest, IStatusData } from "../../communication/ProtocolGui.js";
+import {
+    IOpenConnectionData, IShellPasswordFeedbackRequest, IStatusData,
+} from "../../communication/ProtocolGui.js";
 import { IMrsServiceData } from "../../communication/ProtocolMrs.js";
 import { ISqliteConnectionOptions } from "../../communication/Sqlite.js";
 import { Button } from "../../components/ui/Button/Button.js";
@@ -546,20 +548,20 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         let lastIndex = 0;
         let rowCount = 0;
         try {
-            await backend.execute("start transaction");
+            await backend.startTransaction();
             for (; lastIndex < updates.length; ++lastIndex) {
                 const update = updates[lastIndex];
                 const result = await backend.execute(update);
                 rowCount += result?.rowsAffected ?? 0;
             }
-            await backend.execute("commit");
+            await backend.commitTransaction();
 
             // Don't wait for the info message.
             void requisitions.execute("showInfo", "Changes committed successfully.");
 
             return { affectedRows: rowCount, errors: [] };
         } /* istanbul ignore next */ catch (reason) {
-            await backend.execute("rollback");
+            await backend.rollbackTransaction();
             if (reason instanceof Error) {
                 const errors: string[] = [];
                 errors[lastIndex] = reason.message; // Set the error for the query that was last executed.
@@ -1394,6 +1396,10 @@ EXAMPLES
             const entryId = uuid();
             const useNotebook = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
 
+            // Get the execution history entries for this connection, but only fetch the first 30 chars of the code
+            // for preview purposes
+            const executionHistory = await backend.getExecutionHistoryEntries(connection.id, 30);
+
             let type: EntityType;
             if (initialEditor === undefined || initialEditor === "default") {
                 type = useNotebook ? EntityType.Notebook : EntityType.Script;
@@ -1466,6 +1472,9 @@ EXAMPLES
                         },
                     },
                 },
+
+                executionHistory,
+                currentExecutionHistoryIndex: 0,
             };
 
             this.connectionState.set(tabId, connectionState);

@@ -308,7 +308,7 @@ export class ShellInterfaceUser {
      */
     public async storePassword(url: string, password: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIGui.GuiDbconnectionsSetCredential,
+            requestType: ShellAPIGui.GuiDbConnectionsSetCredential,
             parameters: { args: { url, password } },
         });
     }
@@ -322,7 +322,7 @@ export class ShellInterfaceUser {
      */
     public async clearPassword(url: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIGui.GuiDbconnectionsDeleteCredential,
+            requestType: ShellAPIGui.GuiDbConnectionsDeleteCredential,
             parameters: { args: { url } },
         });
     }
@@ -334,7 +334,7 @@ export class ShellInterfaceUser {
      */
     public async listCredentials(): Promise<void> {
         await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIGui.GuiDbconnectionsListCredentials,
+            requestType: ShellAPIGui.GuiDbConnectionsListCredentials,
             parameters: {},
         });
     }

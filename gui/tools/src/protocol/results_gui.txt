@@ -285,6 +285,13 @@ export interface ITableObjectInfo {
     autoIncrement?: number,
 }
 
+export interface ISqlEditorHistoryEntry {
+    index: number;
+    code: string;
+    languageId: string;
+    currentTimestamp: string;
+}
+
 export interface IProtocolGuiResults {
     [ShellAPIGui.GuiClusterIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiClusterGetGuiModuleDisplayInfo]: {};
@@ -298,17 +305,17 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiCoreIsShellWebCertificateInstalled]: {};
     [ShellAPIGui.GuiCoreInstallShellWebCertificate]: {};
     [ShellAPIGui.GuiCoreRemoveShellWebCertificate]: {};
-    [ShellAPIGui.GuiDbconnectionsAddDbConnection]: { result: number; };
-    [ShellAPIGui.GuiDbconnectionsUpdateDbConnection]: {};
-    [ShellAPIGui.GuiDbconnectionsRemoveDbConnection]: {};
-    [ShellAPIGui.GuiDbconnectionsListDbConnections]: { result: IConnectionDetails[]; };
-    [ShellAPIGui.GuiDbconnectionsGetDbConnection]: { result: IConnectionDetails; };
-    [ShellAPIGui.GuiDbconnectionsGetDbTypes]: { result: string[]; };
-    [ShellAPIGui.GuiDbconnectionsSetCredential]: {};
-    [ShellAPIGui.GuiDbconnectionsDeleteCredential]: {};
-    [ShellAPIGui.GuiDbconnectionsListCredentials]: {};
-    [ShellAPIGui.GuiDbconnectionsTestConnection]: {};
-    [ShellAPIGui.GuiDbconnectionsMoveConnection]: {};
+    [ShellAPIGui.GuiDbConnectionsAddDbConnection]: { result: number; };
+    [ShellAPIGui.GuiDbConnectionsUpdateDbConnection]: {};
+    [ShellAPIGui.GuiDbConnectionsRemoveDbConnection]: {};
+    [ShellAPIGui.GuiDbConnectionsListDbConnections]: { result: IConnectionDetails[]; };
+    [ShellAPIGui.GuiDbConnectionsGetDbConnection]: { result: IConnectionDetails; };
+    [ShellAPIGui.GuiDbConnectionsGetDbTypes]: { result: string[]; };
+    [ShellAPIGui.GuiDbConnectionsSetCredential]: {};
+    [ShellAPIGui.GuiDbConnectionsDeleteCredential]: {};
+    [ShellAPIGui.GuiDbConnectionsListCredentials]: {};
+    [ShellAPIGui.GuiDbConnectionsTestConnection]: {};
+    [ShellAPIGui.GuiDbConnectionsMoveConnection]: {};
     [ShellAPIGui.GuiMdsIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiMdsGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiModelerIsGuiModuleBackend]: {};
@@ -331,18 +338,25 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbStartSession]: { result: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbCloseSession]: {};
     [ShellAPIGui.GuiDbReconnect]: {};
-    [ShellAPIGui.GuiSqleditorIsGuiModuleBackend]: { result: boolean; };
-    [ShellAPIGui.GuiSqleditorGetGuiModuleDisplayInfo]: {};
-    [ShellAPIGui.GuiSqleditorStartSession]: { result: { moduleSessionId?: string; }; };
-    [ShellAPIGui.GuiSqleditorCloseSession]: {};
-    [ShellAPIGui.GuiSqleditorOpenConnection]: { result: IOpenConnectionData | IShellPasswordFeedbackRequest | IStatusData; requestState: IRequestState};
-    [ShellAPIGui.GuiSqleditorReconnect]: {};
-    [ShellAPIGui.GuiSqleditorExecute]: { result: IDbEditorResultSetData; };
-    [ShellAPIGui.GuiSqleditorKillQuery]: {};
-    [ShellAPIGui.GuiSqleditorGetCurrentSchema]: { result: string; };
-    [ShellAPIGui.GuiSqleditorSetCurrentSchema]: {};
-    [ShellAPIGui.GuiSqleditorGetAutoCommit]: { result: boolean; };
-    [ShellAPIGui.GuiSqleditorSetAutoCommit]: {};
+    [ShellAPIGui.GuiSqlEditorIsGuiModuleBackend]: { result: boolean; };
+    [ShellAPIGui.GuiSqlEditorGetGuiModuleDisplayInfo]: {};
+    [ShellAPIGui.GuiSqlEditorStartSession]: { result: { moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiSqlEditorCloseSession]: {};
+    [ShellAPIGui.GuiSqlEditorOpenConnection]: { result: IOpenConnectionData | IShellPasswordFeedbackRequest | IStatusData; requestState: IRequestState};
+    [ShellAPIGui.GuiSqlEditorReconnect]: {};
+    [ShellAPIGui.GuiSqlEditorExecute]: { result: IDbEditorResultSetData; };
+    [ShellAPIGui.GuiSqlEditorKillQuery]: {};
+    [ShellAPIGui.GuiSqlEditorGetCurrentSchema]: { result: string; };
+    [ShellAPIGui.GuiSqlEditorSetCurrentSchema]: {};
+    [ShellAPIGui.GuiSqlEditorGetAutoCommit]: { result: boolean; };
+    [ShellAPIGui.GuiSqlEditorSetAutoCommit]: {};
+    [ShellAPIGui.GuiSqlEditorAddExecutionHistoryEntry]: { result: number; };
+    [ShellAPIGui.GuiSqlEditorGetExecutionHistoryEntry]: { result: ISqlEditorHistoryEntry; }
+    [ShellAPIGui.GuiSqlEditorGetExecutionHistoryEntries]: { result: ISqlEditorHistoryEntry[]; }
+    [ShellAPIGui.GuiSqlEditorRemoveExecutionHistoryEntry]: {};
+    [ShellAPIGui.GuiSqlEditorStartTransaction]: {};
+    [ShellAPIGui.GuiSqlEditorCommitTransaction]: {};
+    [ShellAPIGui.GuiSqlEditorRollbackTransaction]: {};
     [ShellAPIGui.GuiUsersCreateUser]: {};
     [ShellAPIGui.GuiUsersSetAllowedHosts]: {};
     [ShellAPIGui.GuiUsersDeleteUser]: {};
@@ -400,10 +414,10 @@ export interface IProtocolGuiResults {
 export const multiResultAPIs = [
     ShellAPIGui.GuiCoreListFiles,
     ShellAPIGui.GuiDbGetSchemaObjectNames,
-    ShellAPIGui.GuiDbconnectionsListDbConnections,
+    ShellAPIGui.GuiDbConnectionsListDbConnections,
     ShellAPIGui.GuiModulesGetProfileDataTree,
     ShellAPIGui.GuiShellComplete,
-    ShellAPIGui.GuiSqleditorExecute,
+    ShellAPIGui.GuiSqlEditorExecute,
     ShellAPIGui.GuiDbGetCatalogObjectNames,
     ShellAPIGui.GuiDbGetTableObjectNames,
 ] as const;

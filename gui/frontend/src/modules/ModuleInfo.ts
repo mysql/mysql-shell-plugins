@@ -26,7 +26,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 // IDs used to identify requests for specific modules (like module data).
-export const DBEditorModuleId = "gui.sqleditor";
+export const DBEditorModuleId = "gui.sql_editor";
 export const InnoDBClusterModuleId = "gui.innodb.cluster";
 export const MDSModuleId = "gui.mds";
 export const MRSModuleId = "gui.mrs";

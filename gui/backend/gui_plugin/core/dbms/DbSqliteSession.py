@@ -140,6 +140,10 @@ class DbSqliteSession(DbSession):
         self.open()
 
     @property
+    def database_type(self):
+        return "SQLite"
+
+    @property
     def databases(self):
         return self._databases
 
@@ -439,6 +443,7 @@ class DbSqliteSession(DbSession):
                         AND name = ?
                     ORDER BY name;"""
         elif type == "Column":
+            # cSpell:ignore dflt
             sql = f"""SELECT name, type, "notnull" as 'not_null', dflt_value as 'default',
                         pk as 'is_pk', pk as 'auto_increment'
                     FROM pragma_table_info('{table_name}', '{schema_name}')

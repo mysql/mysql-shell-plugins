@@ -2,7 +2,7 @@ var requests = ws.tokens["requests"]
 var responses = ws.tokens["responses"]
 
 await ws.sendAndValidate(
-    Object.assign(Object(), requests.sqleditor.execute, {
+    Object.assign(Object(), requests.sql_editor.execute, {
         "args": { "sql": "SELECT SCHEMA_NAME FROM information_schema.schemata;" }
     }),
     [
@@ -32,7 +32,7 @@ await ws.sendAndValidate(
 )
 
 await ws.sendAndValidate(
-    Object.assign(Object(), requests.sqleditor.execute, {
+    Object.assign(Object(), requests.sql_editor.execute, {
         "args": { "sql": "SELECT SCHEMA_NAME FROM information_schema.schemata;" }
     }),
     [

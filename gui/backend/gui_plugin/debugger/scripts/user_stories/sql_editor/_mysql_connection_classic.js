@@ -16,7 +16,7 @@ ws.log("Get current schema")
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.get_current_schema",
+    "command": "gui.sql_editor.get_current_schema",
     "args": {
         "module_session_id": ws.lastModuleSessionId
     }
@@ -50,7 +50,7 @@ ws.log("Set current schema")
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.set_current_schema",
+    "command": "gui.sql_editor.set_current_schema",
     "args": {
         "module_session_id": ws.lastModuleSessionId,
         "schema_name": "mysql"
@@ -69,7 +69,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.get_current_schema",
+    "command": "gui.sql_editor.get_current_schema",
     "args": {
         "module_session_id": ws.lastModuleSessionId
     }
@@ -98,7 +98,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.set_current_schema",
+    "command": "gui.sql_editor.set_current_schema",
     "args": {
         "module_session_id": ws.lastModuleSessionId,
         "schema_name": "information_schema"
@@ -117,7 +117,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.get_current_schema",
+    "command": "gui.sql_editor.get_current_schema",
     "args": {
         "module_session_id": ws.lastModuleSessionId
     }
@@ -147,7 +147,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.set_current_schema",
+    "command": "gui.sql_editor.set_current_schema",
     "args": {
         "module_session_id": ws.lastModuleSessionId,
         "schema_name": ws.tokens['initialSchema']
@@ -166,7 +166,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.get_current_schema",
+    "command": "gui.sql_editor.get_current_schema",
     "args": {
         "module_session_id": ws.lastModuleSessionId
     }
@@ -196,7 +196,7 @@ ws.log("Executing query")
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.execute",
+    "command": "gui.sql_editor.execute",
     "args": {
         "sql": "SELECT * FROM information_schema.schemata;",
         "module_session_id": ws.lastModuleSessionId,
@@ -235,7 +235,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.execute",
+    "command": "gui.sql_editor.execute",
     "args": {
         "sql": "SHOW DATABASES LIKE ?;",
         "module_session_id": ws.lastModuleSessionId,
@@ -271,7 +271,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request_id": ws.generateRequestId(),
     "request": "execute",
-    "command": "gui.sqleditor.reconnect",
+    "command": "gui.sql_editor.reconnect",
     "args": {
         "module_session_id": ws.lastModuleSessionId
     }
@@ -305,7 +305,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.execute",
+    "command": "gui.sql_editor.execute",
     "args": {
         "sql": "SHOW DATABASES LIKE ?;",
         "module_session_id": ws.lastModuleSessionId,

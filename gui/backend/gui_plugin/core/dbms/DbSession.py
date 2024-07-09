@@ -151,6 +151,10 @@ class DbSession(threading.Thread):
         self._data[option] = value
 
     @property
+    def database_type(self):
+        raise NotImplementedError()
+
+    @property
     def data(self):
         return self._data
 

@@ -25,6 +25,8 @@
 
 import loadNotebookIcon from "../../assets/images/toolbar/toolbar-load-editor.svg";
 import saveNotebookIcon from "../../assets/images/toolbar/toolbar-save-editor.svg";
+import historyBackIcon from "../../assets/images/toolbar/toolbar-history-back.svg";
+import historyForwardIcon from "../../assets/images/toolbar/toolbar-history-forward.svg";
 
 import { type IPosition } from "monaco-editor";
 import { ComponentChild, createRef } from "preact";
@@ -46,16 +48,17 @@ import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType } from "../../supplement/ShellInterface/index.js";
 import { EditorLanguage } from "../../supplement/index.js";
-import { IOpenEditorState, ISavedEditorState } from "./DBConnectionTab.js";
+import { IOpenEditorState, IDBConnectionTabPersistentState } from "./DBConnectionTab.js";
 import { DBEditorToolbar } from "./DBEditorToolbar.js";
 import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface.js";
 import { ISchemaTreeEntry, IToolbarItems } from "./index.js";
+import { Divider } from "../../components/ui/Divider/Divider.js";
 
 interface INotebookProperties extends IComponentProperties {
     standaloneMode: boolean;
     toolbarItemsTemplate: IToolbarItems;
 
-    savedState: ISavedEditorState;
+    savedState: IDBConnectionTabPersistentState;
     backend?: ShellInterfaceSqlEditor;
 
     dbType: DBType;
@@ -73,6 +76,7 @@ interface INotebookProperties extends IComponentProperties {
     onScriptExecution?: (context: ExecutionContext, options: IScriptExecutionOptions) => Promise<boolean>;
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
     onContextLanguageChange?: (context: ExecutionContext, language: EditorLanguage) => void;
+    onNavigateHistory: (backwards: boolean) => void;
 }
 
 export class Notebook extends ComponentBase<INotebookProperties> {
@@ -197,6 +201,32 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         if (standaloneMode) {
             toolbarItems.auxillary = [];
         }
+
+        const canGoBackInHistory =
+            savedState.currentExecutionHistoryIndex < savedState.executionHistory.length;
+        const canGoForwardInHistory = savedState.currentExecutionHistoryIndex > 1;
+
+        toolbarItems.navigation.push(
+            <Divider key="historyDivider" vertical={true} thickness={1} />,
+            <Button
+                key="editorNotebookHistoryBackButton"
+                data-tooltip="Recall the previous command"
+                imageOnly={true}
+                onClick={() => { void this.navigateHistory(); }}
+                disabled={!canGoBackInHistory}
+            >
+                <Icon src={historyBackIcon} data-tooltip="inherit" />
+            </Button>,
+            <Button
+                key="editorNotebookHistoryForwardButton"
+                data-tooltip="Recall the next command"
+                imageOnly={true}
+                onClick={() => { void this.navigateHistory(false); }}
+                disabled={!canGoForwardInHistory}
+            >
+                <Icon src={historyForwardIcon} data-tooltip="inherit" />
+            </Button>,
+        );
 
         return (
             <Container
@@ -496,4 +526,28 @@ export class Notebook extends ComponentBase<INotebookProperties> {
 
         return activeEditor.state;
     }
+
+    private navigateHistory = async (backwards = true): Promise<void> => {
+        const { onNavigateHistory, savedState, backend } = this.props;
+
+        if (backend) {
+            const newIndex = savedState.currentExecutionHistoryIndex + (backwards ? 1 : -1);
+
+            // Get history entry
+            const historyEntry = await backend.getExecutionHistoryEntry(savedState.connectionId, newIndex - 1);
+
+            // Set current execution block text
+            if (this.editorRef.current) {
+                const currentBlock = this.editorRef.current.currentBlock;
+                if (currentBlock) {
+                    this.editorRef.current.setExecutionBlockLanguageAndText(
+                        currentBlock, historyEntry.code, historyEntry.languageId);
+                }
+
+                this.editorRef.current.focus();
+            }
+
+            onNavigateHistory?.(backwards);
+        }
+    };
 }

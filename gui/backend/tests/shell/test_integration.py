@@ -46,9 +46,9 @@ PROPERTIES
             The Core MySQL Shell GUI backend module
 
       db
-            Used to retrive metadata from database
+            Used to retrieve metadata from database
 
-      dbconnections
+      db_connections
             The DB Connections MySQL Shell GUI backend module
 
       debugger
@@ -66,7 +66,7 @@ PROPERTIES
       shell
             The Shell MySQL Shell GUI backend module
 
-      sqleditor
+      sql_editor
             The SQL Editor MySQL Shell GUI backend module
 
       start
@@ -151,12 +151,12 @@ FUNCTIONS
 
 
 @pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
-def test_gui_dbconnections():
+def test_gui_db_connections():
     help_text = '''NAME
-      dbconnections - The DB Connections MySQL Shell GUI backend module
+      db_connections - The DB Connections MySQL Shell GUI backend module
 
 SYNTAX
-      gui.dbconnections
+      gui.db_connections
 
 DESCRIPTION
       This extension object holds the backend implementation of the DB
@@ -167,7 +167,7 @@ FUNCTIONS
             Provides help about this object and it's members'''
 
 
-    assert help_text == mysqlsh.globals.gui.dbconnections.help() # pylint: disable=no-member
+    assert help_text == mysqlsh.globals.gui.db_connections.help() # pylint: disable=no-member
 
 
 @pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
@@ -274,12 +274,12 @@ FUNCTIONS
 
 
 @pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
-def test_gui_sqleditor():
+def test_gui_sql_editor():
     help_text = '''NAME
-      sqleditor - The SQL Editor MySQL Shell GUI backend module
+      sql_editor - The SQL Editor MySQL Shell GUI backend module
 
 SYNTAX
-      gui.sqleditor
+      gui.sql_editor
 
 DESCRIPTION
       This extension object holds the backend implementation of the SQL Editor
@@ -310,8 +310,8 @@ FUNCTIONS
       set_current_schema(session, schema_name)
             Requests to change the current schema for this module.'''
 
-    assert help_text == mysqlsh.globals.gui.sqleditor.help() # pylint: disable=no-member
-    info = mysqlsh.globals.gui.sqleditor.get_gui_module_display_info() # pylint: disable=no-member
+    assert help_text == mysqlsh.globals.gui.sql_editor.help() # pylint: disable=no-member
+    info = mysqlsh.globals.gui.sql_editor.get_gui_module_display_info() # pylint: disable=no-member
     assert info["name"] == "SQL Editor"
     assert info["description"] == "A graphical SQL Editor"
 
@@ -383,6 +383,7 @@ FUNCTIONS
 
     assert help_text == mysqlsh.globals.gui.users.help() # pylint: disable=no-member
 
+# cSpell:ignore webrootpath
 @pytest.mark.skipif(not has_gui_plugin, reason="This test should be run with the gui plugin installed on the real shell.")
 def test_gui_start():
     help_text = '''NAME

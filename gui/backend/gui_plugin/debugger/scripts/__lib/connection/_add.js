@@ -20,7 +20,7 @@ _this = lib.connection.add
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.dbconnections.add_db_connection",
+    "command": "gui.db_connections.add_db_connection",
     "args": {
         "profile_id": _this.params["profile_id"],
         "connection": _this.params["connection"],

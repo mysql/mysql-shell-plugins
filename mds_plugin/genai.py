@@ -27,7 +27,7 @@ from mds_plugin import languages
 import os
 import json
 
-
+# cSpell:ignore mockchat
 def check_dependencies():
     try:
         from . import mockchat
@@ -47,6 +47,12 @@ def get_status(session=None):
     Returns:
         A dict holding the status information
     """
+    if session.database_type != "MySQL":
+        return {
+        "heatwave_support": False,
+        "local_model_support": False,
+        "language_support": False
+    }
 
     heatwave_support = False
     local_model_support = False

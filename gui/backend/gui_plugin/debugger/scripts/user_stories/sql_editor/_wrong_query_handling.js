@@ -3,7 +3,7 @@ ws.log("Executing query")
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.execute",
+    "command": "gui.sql_editor.execute",
     "args": {
         "sql": "select UUID_TO_BIN('1');",
         "module_session_id": ws.lastModuleSessionId,

@@ -36,7 +36,7 @@ import config
 import gui_plugin.core.Logger as logger
 from gui_plugin.core.dbms.DbMySQLSession import DbMysqlSession
 from gui_plugin.core.dbms.DbSqliteSession import DbSqliteSession
-from gui_plugin.dbconnections import DbConnections
+from gui_plugin.db_connections import DbConnections
 from tests.lib.utils import backend_callback, backend_callback_with_pending
 
 

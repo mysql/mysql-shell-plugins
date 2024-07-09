@@ -744,6 +744,9 @@ def get_current_service_metadata(**kwargs):
     Returns:
         {id: string, host_ctx: string, metadata_version: string}
     """
+    session = kwargs.get("session")
+    if session.database_type != "MySQL":
+        return {}
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         status = lib.general.get_status(session)

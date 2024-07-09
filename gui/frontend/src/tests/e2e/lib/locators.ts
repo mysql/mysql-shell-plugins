@@ -578,7 +578,7 @@ export const shellSession = {
 };
 
 export const sqlEditorPage = {
-    icon: By.id("gui.sqleditor"),
+    icon: By.id("gui.sql_editor"),
     tabName: By.css("#connections > .label"),
     title: By.css(".connectionBrowser #title"),
     contentTitle: By.css(".connectionBrowser #contentTitle"),

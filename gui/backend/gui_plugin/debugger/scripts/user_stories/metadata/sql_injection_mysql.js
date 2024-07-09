@@ -418,7 +418,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.dbconnections.remove_db_connection",
+    "command": "gui.db_connections.remove_db_connection",
     "args": {
         "profile_id": 1,
         "connection_id": ws.tokens["connection_id"]

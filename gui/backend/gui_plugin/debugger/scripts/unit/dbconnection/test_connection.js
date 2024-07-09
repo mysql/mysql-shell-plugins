@@ -3,7 +3,7 @@ var default_mysql_options = ws.tokens.defaults.database_connections.mysql[0].opt
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.dbconnections.test_connection",
+    "command": "gui.db_connections.test_connection",
     "args": {
         "connection": {
             "db_type": "MySQL",
@@ -28,7 +28,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.dbconnections.test_connection",
+    "command": "gui.db_connections.test_connection",
     "args": {
         "connection": {
             "db_type": "MySQL",
@@ -54,7 +54,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.dbconnections.test_connection",
+    "command": "gui.db_connections.test_connection",
     "args": {
         "connection": {
             "db_type": "MySQL",
@@ -83,7 +83,7 @@ var originalRequestId = ws.generateRequestId()
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": originalRequestId,
-    "command": "gui.dbconnections.test_connection",
+    "command": "gui.db_connections.test_connection",
     "args": {
         "connection": {
             "db_type": "MySQL",
@@ -205,7 +205,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.dbconnections.test_connection",
+    "command": "gui.db_connections.test_connection",
     "args": {
         "connection": {
             "db_type": "MySQL",

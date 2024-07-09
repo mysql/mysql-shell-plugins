@@ -39,14 +39,16 @@ await ws.sendAndValidate({
             "type": "PENDING",
             "msg": ""
         },
-        "result": [{ 'id': 1, 'name': 'Text', 'parent_category_id': None },
-        { 'id': 2, 'name': 'Script', 'parent_category_id': 1 },
-        { 'id': 3, 'name': 'JSON', 'parent_category_id': 1 },
-        { 'id': 4, 'name': 'MySQL Script', 'parent_category_id': 2 },
-        { 'id': 5, 'name': 'Python Script', 'parent_category_id': 2 },
-        { 'id': 6, 'name': 'JavaScript Script', 'parent_category_id': 2 },
-        { 'id': 7, 'name': 'TypeScript Script', 'parent_category_id': 2 },
-        { 'id': 8, 'name': 'SQLite Script', 'parent_category_id': 2 }]
+        "result":  [
+            { "id": 1, "name": "Text", "parent_category_id": None },
+            { "id": 2, "name": "Script", "parent_category_id": 1 },
+            { "id": 3, "name": "JSON", "parent_category_id": 1 },
+            { "id": 9, "name": "DB Notebook Code History", "parent_category_id": 1 },
+            { "id": 4, "name": "MySQL Script", "parent_category_id": 2 },
+            { "id": 5, "name": "Python Script", "parent_category_id": 2 },
+            { "id": 6, "name": "JavaScript Script", "parent_category_id": 2 },
+            { "id": 7, "name": "TypeScript Script", "parent_category_id": 2 },
+            { "id": 8, "name": "SQLite Script", "parent_category_id": 2 }]
     }, {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
