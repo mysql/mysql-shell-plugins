@@ -29,6 +29,7 @@ import { MessageScheduler, DataCallback } from "../../communication/MessageSched
 import { IPromptReplyBackend, ShellPromptResponseType, Protocol } from "../../communication/Protocol.js";
 import {
     ShellAPIGui, IOpenConnectionData, IDbEditorResultSetData, IShellPasswordFeedbackRequest, IStatusData,
+    ISqlEditorHistoryEntry,
 } from "../../communication/ProtocolGui.js";
 import { ShellInterfaceDb } from "./ShellInterfaceDb.js";
 import { ShellInterfaceMds } from "./ShellInterfaceMds.js";
@@ -59,7 +60,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
 
         if (!this.hasSession) {
             const response = await MessageScheduler.get.sendRequest({
-                requestType: ShellAPIGui.GuiSqleditorStartSession,
+                requestType: ShellAPIGui.GuiSqlEditorStartSession,
                 parameters: { args: {} },
             });
 
@@ -78,7 +79,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
             await MessageScheduler.get.sendRequest({
-                requestType: ShellAPIGui.GuiSqleditorCloseSession,
+                requestType: ShellAPIGui.GuiSqlEditorCloseSession,
                 parameters: { args: { moduleSessionId } },
             });
             webSession.setModuleSessionId(this.moduleSessionLookupId);
@@ -92,7 +93,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
      */
     public async getGuiModuleDisplayInfo(): Promise<void> {
         await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIGui.GuiSqleditorGetGuiModuleDisplayInfo,
+            requestType: ShellAPIGui.GuiSqlEditorGetGuiModuleDisplayInfo,
             parameters: { args: {} },
         });
     }
@@ -104,7 +105,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
      */
     public async isGuiModuleBackend(): Promise<boolean> {
         const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIGui.GuiSqleditorIsGuiModuleBackend,
+            requestType: ShellAPIGui.GuiSqlEditorIsGuiModuleBackend,
             parameters: { args: {} },
         });
 
@@ -123,13 +124,13 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
      *          the callback)
      */
     public async openConnection(dbConnectionId: number, requestId?: string,
-        callback?: DataCallback<ShellAPIGui.GuiSqleditorOpenConnection>):
+        callback?: DataCallback<ShellAPIGui.GuiSqlEditorOpenConnection>):
         Promise<IOpenConnectionData | IShellPasswordFeedbackRequest | IStatusData | undefined> {
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
             const response = await MessageScheduler.get.sendRequest({
                 requestId,
-                requestType: ShellAPIGui.GuiSqleditorOpenConnection,
+                requestType: ShellAPIGui.GuiSqlEditorOpenConnection,
                 parameters: { args: { moduleSessionId, dbConnectionId } },
                 onData: callback,
             });
@@ -151,12 +152,12 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
      * @returns A promise resolving to a list of records or undefined if no session is open.
      */
     public async execute(sql: string, params?: string[], requestId?: string,
-        callback?: DataCallback<ShellAPIGui.GuiSqleditorExecute>,
+        callback?: DataCallback<ShellAPIGui.GuiSqlEditorExecute>,
     ): Promise<IDbEditorResultSetData | undefined> {
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
             const response = await MessageScheduler.get.sendRequest({
-                requestType: ShellAPIGui.GuiSqleditorExecute,
+                requestType: ShellAPIGui.GuiSqlEditorExecute,
                 requestId,
                 parameters: {
                     args: {
@@ -204,6 +205,48 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
     }
 
     /**
+     * Starts a transaction on the database connection.
+     */
+    public async startTransaction(): Promise<void> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiSqlEditorStartTransaction,
+                parameters: { args: { moduleSessionId } },
+            });
+        }
+    }
+
+    /**
+     * Commits a transaction on the database connection.
+     */
+    public async commitTransaction(): Promise<void> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiSqlEditorCommitTransaction,
+                parameters: { args: { moduleSessionId } },
+            });
+        }
+    }
+
+    /**
+     * Commits a transaction on the database connection.
+     */
+    public async rollbackTransaction(): Promise<void> {
+        const moduleSessionId = this.moduleSessionId;
+
+        if (moduleSessionId) {
+            await MessageScheduler.get.sendRequest({
+                requestType: ShellAPIGui.GuiSqlEditorRollbackTransaction,
+                parameters: { args: { moduleSessionId } },
+            });
+        }
+    }
+
+    /**
      * Reconnects the database connection.
      *
      * @returns A promise which resolves when the operation was concluded.
@@ -213,7 +256,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
 
         if (moduleSessionId) {
             await MessageScheduler.get.sendRequest({
-                requestType: ShellAPIGui.GuiSqleditorReconnect,
+                requestType: ShellAPIGui.GuiSqlEditorReconnect,
                 parameters: { args: { moduleSessionId } },
             });
         }
@@ -228,7 +271,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
             await MessageScheduler.get.sendRequest({
-                requestType: ShellAPIGui.GuiSqleditorKillQuery,
+                requestType: ShellAPIGui.GuiSqlEditorKillQuery,
                 parameters: { args: { moduleSessionId } },
             });
         }
@@ -246,7 +289,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
             await MessageScheduler.get.sendRequest({
-                requestType: ShellAPIGui.GuiSqleditorSetAutoCommit,
+                requestType: ShellAPIGui.GuiSqlEditorSetAutoCommit,
                 parameters: { args: { moduleSessionId, state } },
             });
         }
@@ -261,7 +304,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
             const response = await MessageScheduler.get.sendRequest({
-                requestType: ShellAPIGui.GuiSqleditorGetAutoCommit,
+                requestType: ShellAPIGui.GuiSqlEditorGetAutoCommit,
                 parameters: { args: { moduleSessionId } },
             });
 
@@ -278,7 +321,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
             const response = await MessageScheduler.get.sendRequest({
-                requestType: ShellAPIGui.GuiSqleditorGetCurrentSchema,
+                requestType: ShellAPIGui.GuiSqlEditorGetCurrentSchema,
                 parameters: { args: { moduleSessionId } },
             });
 
@@ -297,7 +340,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
             await MessageScheduler.get.sendRequest({
-                requestType: ShellAPIGui.GuiSqleditorSetCurrentSchema,
+                requestType: ShellAPIGui.GuiSqlEditorSetCurrentSchema,
                 parameters: { args: { moduleSessionId, schemaName } },
             });
         }
@@ -322,5 +365,69 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
                 parameters: { moduleSessionId, requestId, type, reply },
             }, false);
         }
+    }
+
+    public async addExecutionHistoryEntry(connectionId: number, code: string, languageId: string,
+        profileId?: number): Promise<number> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiSqlEditorAddExecutionHistoryEntry,
+            parameters: {
+                args: {
+                    connectionId,
+                    code,
+                    languageId,
+                    profileId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getExecutionHistoryEntry(connectionId: number, index: number,
+        profileId?: number): Promise<ISqlEditorHistoryEntry> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiSqlEditorGetExecutionHistoryEntry,
+            parameters: {
+                args: {
+                    connectionId,
+                    index,
+                    profileId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getExecutionHistoryEntries(connectionId: number, truncateCodeLength?: number, languageId?: string,
+        profileId?: number): Promise<ISqlEditorHistoryEntry[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiSqlEditorGetExecutionHistoryEntries,
+            parameters: {
+                args: {
+                    connectionId,
+                    languageId,
+                    truncateCodeLength: truncateCodeLength ?? -1,
+                    profileId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async removeExecutionHistoryEntry(connectionId: number, index: number,
+        profileId?: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiSqlEditorRemoveExecutionHistoryEntry,
+            parameters: {
+                args: {
+                    connectionId,
+                    index,
+                    profileId,
+                },
+            },
+        });
     }
 }

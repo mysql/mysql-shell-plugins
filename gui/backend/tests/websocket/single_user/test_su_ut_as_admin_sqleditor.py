@@ -98,7 +98,7 @@ def add_connection(ws):
     ws.sendAndValidate({
         "request": "execute",
         "request_id": ws.generateRequestId(),
-        "command": "gui.dbconnections.add_db_connection",
+        "command": "gui.db_connections.add_db_connection",
         "args": {
             "profile_id": params["profile_id"],
             "connection": params["connection"],
@@ -125,7 +125,7 @@ def add_connection(ws):
     ws.sendAndValidate({
         "request": "execute",
         "request_id": ws.generateRequestId(),
-        "command": "gui.dbconnections.remove_db_connection",
+        "command": "gui.db_connections.remove_db_connection",
         "args": {
             "profile_id": 1,
             "connection_id": connection_id
@@ -148,7 +148,7 @@ def sqlide_session(ws, add_connection):
     ws.sendAndValidate({
         "request": "execute",
         "request_id": ws.generateRequestId(),
-        "command": "gui.sqleditor.start_session",
+        "command": "gui.sql_editor.start_session",
         "args": {}
     }, [
         {
@@ -171,7 +171,7 @@ def sqlide_session(ws, add_connection):
     ws.sendAndValidate({
         "request": "execute",
         "request_id": ws.generateRequestId(),
-        "command": "gui.sqleditor.open_connection",
+        "command": "gui.sql_editor.open_connection",
         "args": {
             "db_connection_id": connection_id,
             "module_session_id": module_session_id,
@@ -204,7 +204,7 @@ def sqlide_session(ws, add_connection):
     ws.sendAndValidate({
         "request": "execute",
         "request_id": ws.generateRequestId(),
-        "command": "gui.sqleditor.close_session",
+        "command": "gui.sql_editor.close_session",
         "args": {
             "module_session_id": module_session_id
         }

@@ -65,7 +65,7 @@ exports[`Application host tests Rendering About 1`] = `
                   </div>
                   <div
                     class="msg container fixedScrollbar activityBarItem"
-                    id="gui.sqleditor"
+                    id="gui.sql_editor"
                     role="button"
                     style="flex-direction: column; align-items: center;"
                   >
@@ -232,16 +232,16 @@ exports[`Application host tests Rendering About 1`] = `
                 active={false}
                 disabled={false}
                 expand={false}
-                id="gui.sqleditor"
+                id="gui.sql_editor"
                 image="module-sql.svg"
-                key="gui.sqleditor"
+                key="gui.sql_editor"
                 onClick={[Function]}
               >
                 <Container
                   className="msg activityBarItem"
                   crossAlignment="center"
                   disabled={false}
-                  id="gui.sqleditor"
+                  id="gui.sql_editor"
                   onClick={[Function]}
                   orientation="column"
                   role="button"
@@ -249,7 +249,7 @@ exports[`Application host tests Rendering About 1`] = `
                   <div
                     className="msg container fixedScrollbar activityBarItem"
                     disabled={false}
-                    id="gui.sqleditor"
+                    id="gui.sql_editor"
                     onClick={[Function]}
                     role="button"
                     style={
@@ -1961,7 +1961,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                   </div>
                   <div
                     class="msg container fixedScrollbar activityBarItem"
-                    id="gui.sqleditor"
+                    id="gui.sql_editor"
                     role="button"
                     style="flex-direction: column; align-items: center;"
                   >
@@ -2128,16 +2128,16 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                 active={false}
                 disabled={false}
                 expand={false}
-                id="gui.sqleditor"
+                id="gui.sql_editor"
                 image="module-sql.svg"
-                key="gui.sqleditor"
+                key="gui.sql_editor"
                 onClick={[Function]}
               >
                 <Container
                   className="msg activityBarItem"
                   crossAlignment="center"
                   disabled={false}
-                  id="gui.sqleditor"
+                  id="gui.sql_editor"
                   onClick={[Function]}
                   orientation="column"
                   role="button"
@@ -2145,7 +2145,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                   <div
                     className="msg container fixedScrollbar activityBarItem"
                     disabled={false}
-                    id="gui.sqleditor"
+                    id="gui.sql_editor"
                     onClick={[Function]}
                     role="button"
                     style={
@@ -3857,7 +3857,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                   </div>
                   <div
                     class="msg container fixedScrollbar activityBarItem"
-                    id="gui.sqleditor"
+                    id="gui.sql_editor"
                     role="button"
                     style="flex-direction: column; align-items: center;"
                   >
@@ -4024,16 +4024,16 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                 active={false}
                 disabled={false}
                 expand={false}
-                id="gui.sqleditor"
+                id="gui.sql_editor"
                 image="module-sql.svg"
-                key="gui.sqleditor"
+                key="gui.sql_editor"
                 onClick={[Function]}
               >
                 <Container
                   className="msg activityBarItem"
                   crossAlignment="center"
                   disabled={false}
-                  id="gui.sqleditor"
+                  id="gui.sql_editor"
                   onClick={[Function]}
                   orientation="column"
                   role="button"
@@ -4041,7 +4041,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                   <div
                     className="msg container fixedScrollbar activityBarItem"
                     disabled={false}
-                    id="gui.sqleditor"
+                    id="gui.sql_editor"
                     onClick={[Function]}
                     role="button"
                     style={
@@ -5753,7 +5753,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                   </div>
                   <div
                     class="msg container fixedScrollbar activityBarItem"
-                    id="gui.sqleditor"
+                    id="gui.sql_editor"
                     role="button"
                     style="flex-direction: column; align-items: center;"
                   >
@@ -5920,16 +5920,16 @@ exports[`Application host tests Rendering Preferences 1`] = `
                 active={false}
                 disabled={false}
                 expand={false}
-                id="gui.sqleditor"
+                id="gui.sql_editor"
                 image="module-sql.svg"
-                key="gui.sqleditor"
+                key="gui.sql_editor"
                 onClick={[Function]}
               >
                 <Container
                   className="msg activityBarItem"
                   crossAlignment="center"
                   disabled={false}
-                  id="gui.sqleditor"
+                  id="gui.sql_editor"
                   onClick={[Function]}
                   orientation="column"
                   role="button"
@@ -5937,7 +5937,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                   <div
                     className="msg container fixedScrollbar activityBarItem"
                     disabled={false}
-                    id="gui.sqleditor"
+                    id="gui.sql_editor"
                     onClick={[Function]}
                     role="button"
                     style={
@@ -7605,9 +7605,9 @@ exports[`Application host tests Standard Rendering 1`] = `
       active={false}
       disabled={false}
       expand={false}
-      id="gui.sqleditor"
+      id="gui.sql_editor"
       image="module-sql.svg"
-      key="gui.sqleditor"
+      key="gui.sql_editor"
       onClick={[Function]}
     />
     <ActivityBarItem

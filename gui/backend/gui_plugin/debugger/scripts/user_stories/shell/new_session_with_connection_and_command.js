@@ -6,7 +6,7 @@ ws.tokens["current_test_name"] = "new_session"
 ws.log("-----=== [START] " + ws.tokens["current_test_name"] + " test ===-----")
 
 //  Initialize
-await ws.execute(lib.sqleditor.create_test_sessions.file)
+await ws.execute(lib.sql_editor.create_test_sessions.file)
 
 await ws.execute(user_stories.shell.new_session_with_connection_and_command.file)
 

@@ -29,7 +29,7 @@ import type { CodeEditor, ResultPresentationFactory } from "../components/ui/Cod
 import { IPosition, Monaco } from "../components/ui/CodeEditor/index.js";
 import { IStatementSpan } from "../parsing/parser-common.js";
 import { requisitions, type IColumnDetails } from "../supplement/Requisitions.js";
-import { EditorLanguage, IExecutionContext, ITextRange } from "../supplement/index.js";
+import { EditorLanguage, ITextRange } from "../supplement/index.js";
 import { ExecutionContext } from "./ExecutionContext.js";
 import { PresentationInterface } from "./PresentationInterface.js";
 import { SQLExecutionContext } from "./SQLExecutionContext.js";
@@ -247,7 +247,7 @@ export class ExecutionContexts implements IContextProvider {
      *
      * @returns The context that contains the given position or undefined if nothing was found.
      */
-    public contextFromPosition(position: IPosition | undefined | null): IExecutionContext | undefined {
+    public contextFromPosition(position: IPosition | undefined | null): ExecutionContext | undefined {
         const index = this.contextIndexFromPosition(position);
         if (index > -1) {
             return this.content[index];

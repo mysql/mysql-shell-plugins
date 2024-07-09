@@ -6,7 +6,7 @@ responses = ws.tokens["responses"]
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.execute",
+    "command": "gui.sql_editor.execute",
     "args": {
         "sql": "DROP SCHEMA IF EXISTS tests",
         "module_session_id": ws.lastModuleSessionId,
@@ -41,7 +41,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.execute",
+    "command": "gui.sql_editor.execute",
     "args": {
         "sql": "DROP SCHEMA IF EXISTS tests2",
         "module_session_id": ws.lastModuleSessionId,
@@ -77,7 +77,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.execute",
+    "command": "gui.sql_editor.execute",
     "args": {
         "sql": "CREATE SCHEMA IF NOT EXISTS tests",
         "module_session_id": ws.lastModuleSessionId,
@@ -112,7 +112,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.execute",
+    "command": "gui.sql_editor.execute",
     "args": {
         "sql": "CREATE SCHEMA IF NOT EXISTS tests2",
         "module_session_id": ws.lastModuleSessionId,

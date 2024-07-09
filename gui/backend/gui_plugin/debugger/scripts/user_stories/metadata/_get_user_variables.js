@@ -3,7 +3,7 @@ ws.log("Creating test user variable")
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.execute",
+    "command": "gui.sql_editor.execute",
     "args": {
         "sql": "SET @TEST=1;",
         "module_session_id": ws.lastModuleSessionId,

@@ -1,5 +1,5 @@
 //
-//  Start a new sqleditor session
+//  Start a new sql_editor session
 //  return:
 //      session_id: the id of the session that was just opened
 //

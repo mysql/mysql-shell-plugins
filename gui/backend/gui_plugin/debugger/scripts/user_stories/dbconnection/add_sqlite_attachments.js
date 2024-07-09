@@ -8,7 +8,7 @@ ws.tokens["folder_path"] = "tests"
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.start_session",
+    "command": "gui.sql_editor.start_session",
     "args": {}
 }, [
     {
@@ -111,7 +111,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.dbconnections.add_db_connection",
+    "command": "gui.db_connections.add_db_connection",
     "args": {
         "profile_id": ws.tokens["profile_id"],
         "connection": {
@@ -158,7 +158,7 @@ ws.validateLastResponse({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.open_connection",
+    "command": "gui.sql_editor.open_connection",
     "args": {
         "db_connection_id": ws.tokens["connection_id"],
         "module_session_id": ws.lastModuleSessionId,
@@ -189,7 +189,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.get_current_schema",
+    "command": "gui.sql_editor.get_current_schema",
     "args": {
         "module_session_id": ws.lastModuleSessionId,
     }
@@ -214,7 +214,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.execute",
+    "command": "gui.sql_editor.execute",
     "args": {
         "sql": "SELECT * FROM pragma_database_list();",
         "module_session_id": ws.lastModuleSessionId,
@@ -268,7 +268,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.set_current_schema",
+    "command": "gui.sql_editor.set_current_schema",
     "args": {
         "module_session_id": ws.lastModuleSessionId,
         "schema_name": "invalid_name"
@@ -294,7 +294,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.set_current_schema",
+    "command": "gui.sql_editor.set_current_schema",
     "args": {
         "module_session_id": ws.lastModuleSessionId,
         "schema_name": "schema2"
@@ -320,7 +320,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.get_current_schema",
+    "command": "gui.sql_editor.get_current_schema",
     "args": {
         "module_session_id": ws.lastModuleSessionId,
     }
@@ -345,7 +345,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.close_session",
+    "command": "gui.sql_editor.close_session",
     "args": {
         "module_session_id": ws.lastModuleSessionId
     }
@@ -361,7 +361,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.dbconnections.remove_db_connection",
+    "command": "gui.db_connections.remove_db_connection",
     "args": {
         "profile_id": ws.tokens["profile_id"],
         "connection_id": ws.tokens["connection_id"]

@@ -111,6 +111,10 @@ class DbMysqlSession(DbSession):
                 DbPingHandlerTask(self)]
 
     @property
+    def database_type(self):
+        return "MySQL"
+
+    @property
     def connection_id(self):
         if common.MySQLData.CONNECTION_ID in self.data:
             return self.data[common.MySQLData.CONNECTION_ID]
@@ -134,7 +138,7 @@ class DbMysqlSession(DbSession):
                     "key": "reply",
                     "expire": Filtering.FilterExpire.OnUse
                 })
-            # On Bation Sessions, this prompt is produced in 2 known scenarios:
+            # On Bastion Sessions, this prompt is produced in 2 known scenarios:
             # - On a new connection through Bastion Session if the session is
             #   new, sometimes fails with "Access Denied" error and Shell
             #   triggers prompt to retry.
@@ -612,7 +616,7 @@ class DbMysqlSession(DbSession):
                 result = {}
                 resultset = self.execute(sql[0], params).fetch_one()
                 if not resultset:
-                    raise MSGException(Error.DB_OBJECT_DOESNT_EXISTS,
+                    raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
                                        f"The table '{schema_name}.{name}' does not exist.")
                 result["name"] = resultset[0] if resultset else ""
                 resultset = self.execute(sql[1], params).fetch_all()
@@ -644,7 +648,7 @@ class DbMysqlSession(DbSession):
             else:
                 result = self.execute(sql, params).fetch_one()
                 if not result:
-                    raise MSGException(Error.DB_OBJECT_DOESNT_EXISTS,
+                    raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
                                        f"The view '{schema_name}.{name}' does not exist.")
                 return {"name": result[0]}
 
@@ -705,7 +709,7 @@ class DbMysqlSession(DbSession):
         else:
             result = self.execute(sql, params).fetch_one()
             if not result:
-                raise MSGException(Error.DB_OBJECT_DOESNT_EXISTS,
+                raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
                                    f"The {type.lower()} '{schema_name}.{name}' does not exist.")
             return {"name": result[0]}
 
@@ -736,6 +740,6 @@ class DbMysqlSession(DbSession):
             result = self.execute(sql, params).fetch_all()
             if not result:
                 column_names = [name['name'] for name in names]
-                raise MSGException(Error.DB_OBJECT_DOESNT_EXISTS,
+                raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
                                    f"The columns {column_names} do not exist.")
             return {"columns": result}

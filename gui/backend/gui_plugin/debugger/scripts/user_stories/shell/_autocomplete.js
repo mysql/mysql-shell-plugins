@@ -23,14 +23,14 @@ await ws.sendAndValidate({
                 "cluster",
                 "core",
                 "db",
-                "dbconnections",
+                "db_connections",
                 "debugger",
                 "help()",
                 "mds",
                 "modeler",
                 "modules",
                 "shell",
-                "sqleditor",
+                "sql_editor",
                 "start",
                 "users"
                 ], false)

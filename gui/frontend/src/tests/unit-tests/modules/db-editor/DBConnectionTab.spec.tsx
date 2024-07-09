@@ -121,6 +121,8 @@ describe("DBConnectionTab tests", (): void => {
                 chatOptionsExpanded: false,
                 chatOptionsWidth: -1,
             },
+            executionHistory: [],
+            currentExecutionHistoryIndex: 0,
         };
 
         const component = mount<DBConnectionTab>(

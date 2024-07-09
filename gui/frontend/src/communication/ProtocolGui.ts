@@ -55,27 +55,27 @@ export enum ShellAPIGui {
     /** Removes the MySQL Shell GUI webserver certificate */
     GuiCoreRemoveShellWebCertificate = "gui.core.remove_shell_web_certificate",
     /** Add a new db_connection and associate the connection with a profile */
-    GuiDbconnectionsAddDbConnection = "gui.dbconnections.add_db_connection",
+    GuiDbConnectionsAddDbConnection = "gui.dbConnections.add_db_connection",
     /** Update the data for a database connection */
-    GuiDbconnectionsUpdateDbConnection = "gui.dbconnections.update_db_connection",
+    GuiDbConnectionsUpdateDbConnection = "gui.dbConnections.update_db_connection",
     /** Remove a db_connection by disassociating the connection from a profile */
-    GuiDbconnectionsRemoveDbConnection = "gui.dbconnections.remove_db_connection",
+    GuiDbConnectionsRemoveDbConnection = "gui.dbConnections.remove_db_connection",
     /** Lists the db_connections for the given profile */
-    GuiDbconnectionsListDbConnections = "gui.dbconnections.list_db_connections",
+    GuiDbConnectionsListDbConnections = "gui.dbConnections.list_db_connections",
     /** Get the a db_connection */
-    GuiDbconnectionsGetDbConnection = "gui.dbconnections.get_db_connection",
+    GuiDbConnectionsGetDbConnection = "gui.dbConnections.get_db_connection",
     /** Get the list of db_types */
-    GuiDbconnectionsGetDbTypes = "gui.dbconnections.get_db_types",
+    GuiDbConnectionsGetDbTypes = "gui.dbConnections.get_db_types",
     /** Set the password of a db_connection url */
-    GuiDbconnectionsSetCredential = "gui.dbconnections.set_credential",
+    GuiDbConnectionsSetCredential = "gui.dbConnections.set_credential",
     /** Deletes the password of a db_connection url */
-    GuiDbconnectionsDeleteCredential = "gui.dbconnections.delete_credential",
+    GuiDbConnectionsDeleteCredential = "gui.dbConnections.delete_credential",
     /** Lists the db_connection urls that have a password stored */
-    GuiDbconnectionsListCredentials = "gui.dbconnections.list_credentials",
+    GuiDbConnectionsListCredentials = "gui.dbConnections.list_credentials",
     /** Opens test connection */
-    GuiDbconnectionsTestConnection = "gui.dbconnections.test_connection",
+    GuiDbConnectionsTestConnection = "gui.dbConnections.test_connection",
     /** Updates the connections sort order for the given profile */
-    GuiDbconnectionsMoveConnection = "gui.dbconnections.move_connection",
+    GuiDbConnectionsMoveConnection = "gui.dbConnections.move_connection",
     /** Indicates whether this module is a GUI backend module */
     GuiMdsIsGuiModuleBackend = "gui.mds.is_gui_module_backend",
     /** Returns display information about the module */
@@ -120,30 +120,78 @@ export enum ShellAPIGui {
     GuiDbCloseSession = "gui.db.close_session",
     /** Reconnects the DB Session */
     GuiDbReconnect = "gui.db.reconnect",
+    /** Creates a new Module Data record for the given module    and associates it to the active user profile and personal user group. */
+    GuiModulesAddData = "gui.modules.add_data",
+    /** Get list of data */
+    GuiModulesListData = "gui.modules.list_data",
+    /** Gets content of the given module */
+    GuiModulesGetDataContent = "gui.modules.get_data_content",
+    /** Shares data to user group */
+    GuiModulesShareDataToUserGroup = "gui.modules.share_data_to_user_group",
+    /** Shares data to profile */
+    GuiModulesAddDataToProfile = "gui.modules.add_data_to_profile",
+    /** Update data of the given module */
+    GuiModulesUpdateData = "gui.modules.update_data",
+    /** Deletes data */
+    GuiModulesDeleteData = "gui.modules.delete_data",
+    /** Gets the list of available data categories and sub categories    for the given name. */
+    GuiModulesListDataCategories = "gui.modules.list_data_categories",
+    /** Add a new data category to the list of available data categories for this module */
+    GuiModulesAddDataCategory = "gui.modules.add_data_category",
+    /** Remove a data category from the list of available data categories for this module */
+    GuiModulesRemoveDataCategory = "gui.modules.remove_data_category",
+    /** Gets id for given name and module id. */
+    GuiModulesGetDataCategoryId = "gui.modules.get_data_category_id",
+    /** Creates the profile data tree for the given tree identifier and profile id. */
+    GuiModulesCreateProfileDataTree = "gui.modules.create_profile_data_tree",
+    /** Gets the profile data tree for the given tree identifier and profile id. */
+    GuiModulesGetProfileDataTree = "gui.modules.get_profile_data_tree",
+    /** Creates the user group data tree for the given tree identifier and user group id. */
+    GuiModulesCreateUserGroupDataTree = "gui.modules.create_user_group_data_tree",
+    /** Gets the user group data tree for the given tree identifier and user group id. */
+    GuiModulesGetUserGroupDataTree = "gui.modules.get_user_group_data_tree",
+    /** Gets the tree identifiers associated with the given profile. */
+    GuiModulesGetProfileTreeIdentifiers = "gui.modules.get_profile_tree_identifiers",
+    /** Moves data from source path to target path. */
+    GuiModulesMoveData = "gui.modules.move_data",
     /** Indicates whether this module is a GUI backend module */
-    GuiSqleditorIsGuiModuleBackend = "gui.sqleditor.is_gui_module_backend",
+    GuiSqlEditorIsGuiModuleBackend = "gui.sqlEditor.is_gui_module_backend",
     /** Returns display information about the module */
-    GuiSqleditorGetGuiModuleDisplayInfo = "gui.sqleditor.get_gui_module_display_info",
+    GuiSqlEditorGetGuiModuleDisplayInfo = "gui.sqlEditor.get_gui_module_display_info",
     /** Starts a SQL Editor Session */
-    GuiSqleditorStartSession = "gui.sqleditor.start_session",
+    GuiSqlEditorStartSession = "gui.sqlEditor.start_session",
     /** Closes the SQL Editor Session */
-    GuiSqleditorCloseSession = "gui.sqleditor.close_session",
+    GuiSqlEditorCloseSession = "gui.sqlEditor.close_session",
     /** Opens the SQL Editor Session */
-    GuiSqleditorOpenConnection = "gui.sqleditor.open_connection",
+    GuiSqlEditorOpenConnection = "gui.sqlEditor.open_connection",
     /** Reconnects the SQL Editor Session */
-    GuiSqleditorReconnect = "gui.sqleditor.reconnect",
+    GuiSqlEditorReconnect = "gui.sqlEditor.reconnect",
+    /** Starts a new transaction */
+    GuiSqlEditorStartTransaction = "gui.sqlEditor.start_transaction",
+    /** Starts a new transaction */
+    GuiSqlEditorCommitTransaction = "gui.sqlEditor.commit_transaction",
+    /** Starts a new transaction */
+    GuiSqlEditorRollbackTransaction = "gui.sqlEditor.rollback_transaction",
     /** Executes the given SQL. */
-    GuiSqleditorExecute = "gui.sqleditor.execute",
+    GuiSqlEditorExecute = "gui.sqlEditor.execute",
     /** Stops the query that is currently executing. */
-    GuiSqleditorKillQuery = "gui.sqleditor.kill_query",
+    GuiSqlEditorKillQuery = "gui.sqlEditor.kill_query",
     /** Requests the current schema for this module. */
-    GuiSqleditorGetCurrentSchema = "gui.sqleditor.get_current_schema",
+    GuiSqlEditorGetCurrentSchema = "gui.sqlEditor.get_current_schema",
     /** Requests to change the current schema for this module. */
-    GuiSqleditorSetCurrentSchema = "gui.sqleditor.set_current_schema",
+    GuiSqlEditorSetCurrentSchema = "gui.sqlEditor.set_current_schema",
     /** Requests the auto-commit status for this module. */
-    GuiSqleditorGetAutoCommit = "gui.sqleditor.get_auto_commit",
+    GuiSqlEditorGetAutoCommit = "gui.sqlEditor.get_auto_commit",
     /** Requests to change the auto-commit status for this module. */
-    GuiSqleditorSetAutoCommit = "gui.sqleditor.set_auto_commit",
+    GuiSqlEditorSetAutoCommit = "gui.sqlEditor.set_auto_commit",
+    /** Adds a new entry in the execution_history */
+    GuiSqlEditorAddExecutionHistoryEntry = "gui.sqlEditor.add_execution_history_entry",
+    /** Returns an entry of the execution_history */
+    GuiSqlEditorGetExecutionHistoryEntry = "gui.sqlEditor.get_execution_history_entry",
+    /** Returns the full list execution_history but truncates the code to truncate_code_length */
+    GuiSqlEditorGetExecutionHistoryEntries = "gui.sqlEditor.get_execution_history_entries",
+    /** Removes the execution_history entry with the given index */
+    GuiSqlEditorRemoveExecutionHistoryEntry = "gui.sqlEditor.remove_execution_history_entry",
     /** Creates a new user account */
     GuiUsersCreateUser = "gui.users.create_user",
     /** Sets the allowed hosts for the given user. */
@@ -202,40 +250,6 @@ export enum ShellAPIGui {
     GuiDebuggerGetScripts = "gui.debugger.get_scripts",
     /** Returns the content of the given script */
     GuiDebuggerGetScriptContent = "gui.debugger.get_script_content",
-    /** Creates a new Module Data record for the given module    and associates it to the active user profile and personal user group. */
-    GuiModulesAddData = "gui.modules.add_data",
-    /** Get list of data */
-    GuiModulesListData = "gui.modules.list_data",
-    /** Gets content of the given module */
-    GuiModulesGetDataContent = "gui.modules.get_data_content",
-    /** Shares data to user group */
-    GuiModulesShareDataToUserGroup = "gui.modules.share_data_to_user_group",
-    /** Shares data to profile */
-    GuiModulesAddDataToProfile = "gui.modules.add_data_to_profile",
-    /** Update data of the given module */
-    GuiModulesUpdateData = "gui.modules.update_data",
-    /** Deletes data */
-    GuiModulesDeleteData = "gui.modules.delete_data",
-    /** Gets the list of available data categories and sub categories    for the given name. */
-    GuiModulesListDataCategories = "gui.modules.list_data_categories",
-    /** Add a new data category to the list of available data categories for this module */
-    GuiModulesAddDataCategory = "gui.modules.add_data_category",
-    /** Remove a data category from the list of available data categories for this module */
-    GuiModulesRemoveDataCategory = "gui.modules.remove_data_category",
-    /** Gets id for given name and module id. */
-    GuiModulesGetDataCategoryId = "gui.modules.get_data_category_id",
-    /** Creates the profile data tree for the given tree identifier and profile id. */
-    GuiModulesCreateProfileDataTree = "gui.modules.create_profile_data_tree",
-    /** Gets the profile data tree for the given tree identifier and profile id. */
-    GuiModulesGetProfileDataTree = "gui.modules.get_profile_data_tree",
-    /** Creates the user group data tree for the given tree identifier and user group id. */
-    GuiModulesCreateUserGroupDataTree = "gui.modules.create_user_group_data_tree",
-    /** Gets the user group data tree for the given tree identifier and user group id. */
-    GuiModulesGetUserGroupDataTree = "gui.modules.get_user_group_data_tree",
-    /** Gets the tree identifiers associated with the given profile. */
-    GuiModulesGetProfileTreeIdentifiers = "gui.modules.get_profile_tree_identifiers",
-    /** Moves data from source path to target path. */
-    GuiModulesMoveData = "gui.modules.move_data",
     /** Returns basic information about this plugin. */
     GuiInfo = "gui.info",
     /** Returns the version number of the plugin */
@@ -278,17 +292,17 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiCoreIsShellWebCertificateInstalled]: { kwargs?: IShellGuiCoreIsShellWebCertificateInstalledKwargs; };
     [ShellAPIGui.GuiCoreInstallShellWebCertificate]: { kwargs?: IShellGuiCoreInstallShellWebCertificateKwargs; };
     [ShellAPIGui.GuiCoreRemoveShellWebCertificate]: {};
-    [ShellAPIGui.GuiDbconnectionsAddDbConnection]: { args: { profileId: number; connection: IShellDbConnection; folderPath?: string; }; };
-    [ShellAPIGui.GuiDbconnectionsUpdateDbConnection]: { args: { profileId: number; connectionId: number; connection: IShellDbConnection; folderPath?: string; }; };
-    [ShellAPIGui.GuiDbconnectionsRemoveDbConnection]: { args: { profileId: number; connectionId: number; }; };
-    [ShellAPIGui.GuiDbconnectionsListDbConnections]: { args: { profileId: number; folderPath?: string; }; };
-    [ShellAPIGui.GuiDbconnectionsGetDbConnection]: { args: { dbConnectionId: number; }; };
-    [ShellAPIGui.GuiDbconnectionsGetDbTypes]: {};
-    [ShellAPIGui.GuiDbconnectionsSetCredential]: { args: { url: string; password: string; }; };
-    [ShellAPIGui.GuiDbconnectionsDeleteCredential]: { args: { url: string; }; };
-    [ShellAPIGui.GuiDbconnectionsListCredentials]: {};
-    [ShellAPIGui.GuiDbconnectionsTestConnection]: { args: { connection: IShellDbConnection | number; password?: string; }; };
-    [ShellAPIGui.GuiDbconnectionsMoveConnection]: { args: { profileId: number; folderPath: string; connectionIdToMove: number; connectionIdOffset: number; before?: boolean; }; };
+    [ShellAPIGui.GuiDbConnectionsAddDbConnection]: { args: { profileId: number; connection: IShellDbConnection; folderPath?: string; }; };
+    [ShellAPIGui.GuiDbConnectionsUpdateDbConnection]: { args: { profileId: number; connectionId: number; connection: IShellDbConnection; folderPath?: string; }; };
+    [ShellAPIGui.GuiDbConnectionsRemoveDbConnection]: { args: { profileId: number; connectionId: number; }; };
+    [ShellAPIGui.GuiDbConnectionsListDbConnections]: { args: { profileId: number; folderPath?: string; }; };
+    [ShellAPIGui.GuiDbConnectionsGetDbConnection]: { args: { dbConnectionId: number; }; };
+    [ShellAPIGui.GuiDbConnectionsGetDbTypes]: {};
+    [ShellAPIGui.GuiDbConnectionsSetCredential]: { args: { url: string; password: string; }; };
+    [ShellAPIGui.GuiDbConnectionsDeleteCredential]: { args: { url: string; }; };
+    [ShellAPIGui.GuiDbConnectionsListCredentials]: {};
+    [ShellAPIGui.GuiDbConnectionsTestConnection]: { args: { connection: IShellDbConnection | number; password?: string; }; };
+    [ShellAPIGui.GuiDbConnectionsMoveConnection]: { args: { profileId: number; folderPath: string; connectionIdToMove: number; connectionIdOffset: number; before?: boolean; }; };
     [ShellAPIGui.GuiMdsIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiMdsGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiModelerIsGuiModuleBackend]: {};
@@ -311,18 +325,42 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDbStartSession]: { args: { connection: IShellDbConnection | number; password?: string; }; };
     [ShellAPIGui.GuiDbCloseSession]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbReconnect]: { args: { moduleSessionId: string; }; };
-    [ShellAPIGui.GuiSqleditorIsGuiModuleBackend]: {};
-    [ShellAPIGui.GuiSqleditorGetGuiModuleDisplayInfo]: {};
-    [ShellAPIGui.GuiSqleditorStartSession]: {};
-    [ShellAPIGui.GuiSqleditorCloseSession]: { args: { moduleSessionId: string; }; };
-    [ShellAPIGui.GuiSqleditorOpenConnection]: { args: { dbConnectionId: number; moduleSessionId: string; password?: string; }; };
-    [ShellAPIGui.GuiSqleditorReconnect]: { args: { moduleSessionId: string; }; };
-    [ShellAPIGui.GuiSqleditorExecute]: { args: { moduleSessionId: string; sql: string; params?: unknown[]; options: { rowPacketSize: number; }; }; };
-    [ShellAPIGui.GuiSqleditorKillQuery]: { args: { moduleSessionId: string; }; };
-    [ShellAPIGui.GuiSqleditorGetCurrentSchema]: { args: { moduleSessionId: string; }; };
-    [ShellAPIGui.GuiSqleditorSetCurrentSchema]: { args: { moduleSessionId: string; schemaName: string; }; };
-    [ShellAPIGui.GuiSqleditorGetAutoCommit]: { args: { moduleSessionId: string; }; };
-    [ShellAPIGui.GuiSqleditorSetAutoCommit]: { args: { moduleSessionId: string; state: boolean; }; };
+    [ShellAPIGui.GuiModulesAddData]: { args: { caption: string; content: string; dataCategoryId: number; treeIdentifier: string; folderPath?: string; profileId?: number; }; };
+    [ShellAPIGui.GuiModulesListData]: { args: { folderId: number; dataCategoryId?: number; }; };
+    [ShellAPIGui.GuiModulesGetDataContent]: { args: { id: number; }; };
+    [ShellAPIGui.GuiModulesShareDataToUserGroup]: { args: { id: number; userGroupId: number; readOnly: number; treeIdentifier: string; folderPath?: string; }; };
+    [ShellAPIGui.GuiModulesAddDataToProfile]: { args: { id: number; profileId: number; readOnly: number; treeIdentifier: string; folderPath?: string; }; };
+    [ShellAPIGui.GuiModulesUpdateData]: { args: { id: number; caption?: string; content?: string; }; };
+    [ShellAPIGui.GuiModulesDeleteData]: { args: { id: number; folderId: number; }; };
+    [ShellAPIGui.GuiModulesListDataCategories]: { args: { categoryId?: number; }; };
+    [ShellAPIGui.GuiModulesAddDataCategory]: { args: { name: string; parentCategoryId?: number; }; };
+    [ShellAPIGui.GuiModulesRemoveDataCategory]: { args: { categoryId: number; }; };
+    [ShellAPIGui.GuiModulesGetDataCategoryId]: { args: { name: string; }; };
+    [ShellAPIGui.GuiModulesCreateProfileDataTree]: { args: { treeIdentifier: string; profileId?: number; }; };
+    [ShellAPIGui.GuiModulesGetProfileDataTree]: { args: { treeIdentifier: string; profileId?: number; }; };
+    [ShellAPIGui.GuiModulesCreateUserGroupDataTree]: { args: { treeIdentifier: string; userGroupId?: number; }; };
+    [ShellAPIGui.GuiModulesGetUserGroupDataTree]: { args: { treeIdentifier: string; userGroupId?: number; }; };
+    [ShellAPIGui.GuiModulesGetProfileTreeIdentifiers]: { args: { profileId?: number; }; };
+    [ShellAPIGui.GuiModulesMoveData]: { args: { id: number; treeIdentifier: string; linkedTo: string; linkId: number; sourcePath: string; targetPath: string; }; };
+    [ShellAPIGui.GuiSqlEditorIsGuiModuleBackend]: {};
+    [ShellAPIGui.GuiSqlEditorGetGuiModuleDisplayInfo]: {};
+    [ShellAPIGui.GuiSqlEditorStartSession]: {};
+    [ShellAPIGui.GuiSqlEditorCloseSession]: { args: { moduleSessionId: string; }; };
+    [ShellAPIGui.GuiSqlEditorOpenConnection]: { args: { dbConnectionId: number; moduleSessionId: string; password?: string; }; };
+    [ShellAPIGui.GuiSqlEditorReconnect]: { args: { moduleSessionId: string; }; };
+    [ShellAPIGui.GuiSqlEditorStartTransaction]: { args: { moduleSessionId: string; }; };
+    [ShellAPIGui.GuiSqlEditorCommitTransaction]: { args: { moduleSessionId: string; }; };
+    [ShellAPIGui.GuiSqlEditorRollbackTransaction]: { args: { moduleSessionId: string; }; };
+    [ShellAPIGui.GuiSqlEditorExecute]: { args: { moduleSessionId: string; sql: string; params?: unknown[]; options: { rowPacketSize: number; }; }; };
+    [ShellAPIGui.GuiSqlEditorKillQuery]: { args: { moduleSessionId: string; }; };
+    [ShellAPIGui.GuiSqlEditorGetCurrentSchema]: { args: { moduleSessionId: string; }; };
+    [ShellAPIGui.GuiSqlEditorSetCurrentSchema]: { args: { moduleSessionId: string; schemaName: string; }; };
+    [ShellAPIGui.GuiSqlEditorGetAutoCommit]: { args: { moduleSessionId: string; }; };
+    [ShellAPIGui.GuiSqlEditorSetAutoCommit]: { args: { moduleSessionId: string; state: boolean; }; };
+    [ShellAPIGui.GuiSqlEditorAddExecutionHistoryEntry]: { args: { connectionId: number; code: string; languageId: string; profileId?: number; }; };
+    [ShellAPIGui.GuiSqlEditorGetExecutionHistoryEntry]: { args: { connectionId: number; index: number; profileId?: number; }; };
+    [ShellAPIGui.GuiSqlEditorGetExecutionHistoryEntries]: { args: { connectionId: number; languageId?: string; truncateCodeLength?: number; profileId?: number; }; };
+    [ShellAPIGui.GuiSqlEditorRemoveExecutionHistoryEntry]: { args: { connectionId: number; index?: number; profileId?: number; }; };
     [ShellAPIGui.GuiUsersCreateUser]: { args: { username: string; password: string; role?: string; allowedHosts?: string; }; };
     [ShellAPIGui.GuiUsersSetAllowedHosts]: { args: { userId: number; allowedHosts: string; }; };
     [ShellAPIGui.GuiUsersDeleteUser]: { args: { username: string; }; };
@@ -352,23 +390,6 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDebuggerGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiDebuggerGetScripts]: {};
     [ShellAPIGui.GuiDebuggerGetScriptContent]: { args: { path: string; }; };
-    [ShellAPIGui.GuiModulesAddData]: { args: { caption: string; content: string; dataCategoryId: number; treeIdentifier: string; folderPath?: string; profileId?: number; }; };
-    [ShellAPIGui.GuiModulesListData]: { args: { folderId: number; dataCategoryId?: number; }; };
-    [ShellAPIGui.GuiModulesGetDataContent]: { args: { id: number; }; };
-    [ShellAPIGui.GuiModulesShareDataToUserGroup]: { args: { id: number; userGroupId: number; readOnly: number; treeIdentifier: string; folderPath?: string; }; };
-    [ShellAPIGui.GuiModulesAddDataToProfile]: { args: { id: number; profileId: number; readOnly: number; treeIdentifier: string; folderPath?: string; }; };
-    [ShellAPIGui.GuiModulesUpdateData]: { args: { id: number; caption?: string; content?: string; }; };
-    [ShellAPIGui.GuiModulesDeleteData]: { args: { id: number; folderId: number; }; };
-    [ShellAPIGui.GuiModulesListDataCategories]: { args: { categoryId?: number; }; };
-    [ShellAPIGui.GuiModulesAddDataCategory]: { args: { name: string; parentCategoryId?: number; }; };
-    [ShellAPIGui.GuiModulesRemoveDataCategory]: { args: { categoryId: number; }; };
-    [ShellAPIGui.GuiModulesGetDataCategoryId]: { args: { name: string; }; };
-    [ShellAPIGui.GuiModulesCreateProfileDataTree]: { args: { treeIdentifier: string; profileId?: number; }; };
-    [ShellAPIGui.GuiModulesGetProfileDataTree]: { args: { treeIdentifier: string; profileId?: number; }; };
-    [ShellAPIGui.GuiModulesCreateUserGroupDataTree]: { args: { treeIdentifier: string; userGroupId?: number; }; };
-    [ShellAPIGui.GuiModulesGetUserGroupDataTree]: { args: { treeIdentifier: string; userGroupId?: number; }; };
-    [ShellAPIGui.GuiModulesGetProfileTreeIdentifiers]: { args: { profileId?: number; }; };
-    [ShellAPIGui.GuiModulesMoveData]: { args: { id: number; treeIdentifier: string; linkedTo: string; linkId: number; sourcePath: string; targetPath: string; }; };
     [ShellAPIGui.GuiInfo]: {};
     [ShellAPIGui.GuiVersion]: {};
 
@@ -661,6 +682,13 @@ export interface ITableObjectInfo {
     autoIncrement?: number,
 }
 
+export interface ISqlEditorHistoryEntry {
+    index: number;
+    code: string;
+    languageId: string;
+    currentTimestamp: string;
+}
+
 export interface IProtocolGuiResults {
     [ShellAPIGui.GuiClusterIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiClusterGetGuiModuleDisplayInfo]: {};
@@ -674,17 +702,17 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiCoreIsShellWebCertificateInstalled]: {};
     [ShellAPIGui.GuiCoreInstallShellWebCertificate]: {};
     [ShellAPIGui.GuiCoreRemoveShellWebCertificate]: {};
-    [ShellAPIGui.GuiDbconnectionsAddDbConnection]: { result: number; };
-    [ShellAPIGui.GuiDbconnectionsUpdateDbConnection]: {};
-    [ShellAPIGui.GuiDbconnectionsRemoveDbConnection]: {};
-    [ShellAPIGui.GuiDbconnectionsListDbConnections]: { result: IConnectionDetails[]; };
-    [ShellAPIGui.GuiDbconnectionsGetDbConnection]: { result: IConnectionDetails; };
-    [ShellAPIGui.GuiDbconnectionsGetDbTypes]: { result: string[]; };
-    [ShellAPIGui.GuiDbconnectionsSetCredential]: {};
-    [ShellAPIGui.GuiDbconnectionsDeleteCredential]: {};
-    [ShellAPIGui.GuiDbconnectionsListCredentials]: {};
-    [ShellAPIGui.GuiDbconnectionsTestConnection]: {};
-    [ShellAPIGui.GuiDbconnectionsMoveConnection]: {};
+    [ShellAPIGui.GuiDbConnectionsAddDbConnection]: { result: number; };
+    [ShellAPIGui.GuiDbConnectionsUpdateDbConnection]: {};
+    [ShellAPIGui.GuiDbConnectionsRemoveDbConnection]: {};
+    [ShellAPIGui.GuiDbConnectionsListDbConnections]: { result: IConnectionDetails[]; };
+    [ShellAPIGui.GuiDbConnectionsGetDbConnection]: { result: IConnectionDetails; };
+    [ShellAPIGui.GuiDbConnectionsGetDbTypes]: { result: string[]; };
+    [ShellAPIGui.GuiDbConnectionsSetCredential]: {};
+    [ShellAPIGui.GuiDbConnectionsDeleteCredential]: {};
+    [ShellAPIGui.GuiDbConnectionsListCredentials]: {};
+    [ShellAPIGui.GuiDbConnectionsTestConnection]: {};
+    [ShellAPIGui.GuiDbConnectionsMoveConnection]: {};
     [ShellAPIGui.GuiMdsIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiMdsGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiModelerIsGuiModuleBackend]: {};
@@ -707,18 +735,25 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbStartSession]: { result: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbCloseSession]: {};
     [ShellAPIGui.GuiDbReconnect]: {};
-    [ShellAPIGui.GuiSqleditorIsGuiModuleBackend]: { result: boolean; };
-    [ShellAPIGui.GuiSqleditorGetGuiModuleDisplayInfo]: {};
-    [ShellAPIGui.GuiSqleditorStartSession]: { result: { moduleSessionId?: string; }; };
-    [ShellAPIGui.GuiSqleditorCloseSession]: {};
-    [ShellAPIGui.GuiSqleditorOpenConnection]: { result: IOpenConnectionData | IShellPasswordFeedbackRequest | IStatusData; requestState: IRequestState};
-    [ShellAPIGui.GuiSqleditorReconnect]: {};
-    [ShellAPIGui.GuiSqleditorExecute]: { result: IDbEditorResultSetData; };
-    [ShellAPIGui.GuiSqleditorKillQuery]: {};
-    [ShellAPIGui.GuiSqleditorGetCurrentSchema]: { result: string; };
-    [ShellAPIGui.GuiSqleditorSetCurrentSchema]: {};
-    [ShellAPIGui.GuiSqleditorGetAutoCommit]: { result: boolean; };
-    [ShellAPIGui.GuiSqleditorSetAutoCommit]: {};
+    [ShellAPIGui.GuiSqlEditorIsGuiModuleBackend]: { result: boolean; };
+    [ShellAPIGui.GuiSqlEditorGetGuiModuleDisplayInfo]: {};
+    [ShellAPIGui.GuiSqlEditorStartSession]: { result: { moduleSessionId?: string; }; };
+    [ShellAPIGui.GuiSqlEditorCloseSession]: {};
+    [ShellAPIGui.GuiSqlEditorOpenConnection]: { result: IOpenConnectionData | IShellPasswordFeedbackRequest | IStatusData; requestState: IRequestState};
+    [ShellAPIGui.GuiSqlEditorReconnect]: {};
+    [ShellAPIGui.GuiSqlEditorExecute]: { result: IDbEditorResultSetData; };
+    [ShellAPIGui.GuiSqlEditorKillQuery]: {};
+    [ShellAPIGui.GuiSqlEditorGetCurrentSchema]: { result: string; };
+    [ShellAPIGui.GuiSqlEditorSetCurrentSchema]: {};
+    [ShellAPIGui.GuiSqlEditorGetAutoCommit]: { result: boolean; };
+    [ShellAPIGui.GuiSqlEditorSetAutoCommit]: {};
+    [ShellAPIGui.GuiSqlEditorAddExecutionHistoryEntry]: { result: number; };
+    [ShellAPIGui.GuiSqlEditorGetExecutionHistoryEntry]: { result: ISqlEditorHistoryEntry; }
+    [ShellAPIGui.GuiSqlEditorGetExecutionHistoryEntries]: { result: ISqlEditorHistoryEntry[]; }
+    [ShellAPIGui.GuiSqlEditorRemoveExecutionHistoryEntry]: {};
+    [ShellAPIGui.GuiSqlEditorStartTransaction]: {};
+    [ShellAPIGui.GuiSqlEditorCommitTransaction]: {};
+    [ShellAPIGui.GuiSqlEditorRollbackTransaction]: {};
     [ShellAPIGui.GuiUsersCreateUser]: {};
     [ShellAPIGui.GuiUsersSetAllowedHosts]: {};
     [ShellAPIGui.GuiUsersDeleteUser]: {};
@@ -776,10 +811,10 @@ export interface IProtocolGuiResults {
 export const multiResultAPIs = [
     ShellAPIGui.GuiCoreListFiles,
     ShellAPIGui.GuiDbGetSchemaObjectNames,
-    ShellAPIGui.GuiDbconnectionsListDbConnections,
+    ShellAPIGui.GuiDbConnectionsListDbConnections,
     ShellAPIGui.GuiModulesGetProfileDataTree,
     ShellAPIGui.GuiShellComplete,
-    ShellAPIGui.GuiSqleditorExecute,
+    ShellAPIGui.GuiSqlEditorExecute,
     ShellAPIGui.GuiDbGetCatalogObjectNames,
     ShellAPIGui.GuiDbGetTableObjectNames,
 ] as const;

@@ -48,8 +48,8 @@ class gui():
         automatically register all decorated functions in the sub-modules
         """
         # Import all sub-modules to register the decorated functions there
-        from gui_plugin import cluster, core, dbconnections, mds, modeler
-        from gui_plugin import shell, sqleditor, users, debugger, start
+        from gui_plugin import cluster, core, db_connections, mds, modeler
+        from gui_plugin import shell, sql_editor, users, debugger, start
         from gui_plugin import modules, db, general
 
     class cluster():
@@ -66,7 +66,7 @@ class gui():
         Core MySQL Shell GUI module
         """
 
-    class dbconnections():
+    class db_connections():
         """The DB Connections MySQL Shell GUI backend module
 
         This extension object holds the backend implementation of the
@@ -101,7 +101,7 @@ class gui():
         Shell MySQL Shell GUI module
         """
 
-    class sqleditor():
+    class sql_editor():
         """The SQL Editor MySQL Shell GUI backend module
 
         This extension object holds the backend implementation of the
@@ -130,7 +130,7 @@ class gui():
         """
 
     class db():
-        """Used to retrive metadata from database
+        """Used to retrieve metadata from database
 
-        This extension allow user to retrive metadata form databases.
+        This extension allow user to retrieve metadata form databases.
         """

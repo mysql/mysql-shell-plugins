@@ -20,7 +20,7 @@ var regression = ws.tokens.regression = Object({"name": "regression"})
 var user_stories = ws.tokens.user_stories = Object({"name": "user_stories"})
 
 var requests = ws.tokens.requests = Object({
-    "sqleditor": {},
+    "sql_editor": {},
     "shell": {}
 })
 
@@ -106,9 +106,9 @@ ws.execute(lib.init_lib_item.file)
 
 
 //  Lib::SqlEditor
-lib.init_lib_component.params.name = "sqleditor"
+lib.init_lib_component.params.name = "sql_editor"
 ws.execute(lib.init_lib_component.file)
-lib.init_lib_item.params.component = lib.sqleditor
+lib.init_lib_item.params.component = lib.sql_editor
 
 
 lib.init_lib_item.params.name = "open_session"
@@ -190,9 +190,9 @@ lib.init_lib_item.params.name = "data_category_management"
 ws.execute(lib.init_lib_item.file)
 
 //  Unit::SqlEditor
-lib.init_lib_component.params.name = "sqleditor"
+lib.init_lib_component.params.name = "sql_editor"
 ws.execute(lib.init_lib_component.file)
-lib.init_lib_item.params.component = unit.sqleditor
+lib.init_lib_item.params.component = unit.sql_editor
 
 lib.init_lib_item.params.name = "auto_commit_mysql"
 ws.execute(lib.init_lib_item.file)
@@ -219,9 +219,9 @@ ws.execute(lib.init_lib_item.file)
 lib.init_lib_component.params["component"] = regression
 
 //  Regression::SqlEditor
-lib.init_lib_component.params.name = "sqleditor"
+lib.init_lib_component.params.name = "sql_editor"
 ws.execute(lib.init_lib_component.file)
-lib.init_lib_item.params.component = regression.sqleditor
+lib.init_lib_item.params.component = regression.sql_editor
 
 lib.init_lib_item.params.name = "columns_ordered_by_ordinal_position"
 ws.execute(lib.init_lib_item.file)
@@ -266,6 +266,9 @@ lib.init_lib_item.params.name = "mysql_connection_without_password_user2"
 ws.execute(lib.init_lib_item.file)
 
 lib.init_lib_item.params.name = "wrong_query_handling"
+ws.execute(lib.init_lib_item.file)
+
+lib.init_lib_item.params.name = "db_notebook_code_history"
 ws.execute(lib.init_lib_item.file)
 
 
@@ -370,17 +373,17 @@ ws.execute(lib.init_lib_item.file)
 
 //  Stock Requests
 //  --------------------------------------------
-requests.sqleditor.execute = Object({
+requests.sql_editor.execute = Object({
     "request": "execute",
     "request_id": ws.generateRequestId(true),
-    "command": "gui.sqleditor.execute",
+    "command": "gui.sql_editor.execute",
     "args": {
         "sql": "",
         "module_session_id": ws.lastModuleSessionId,
         "params": []
     }
 })
-Object.freeze(requests.sqleditor.execute)
+Object.freeze(requests.sql_editor.execute)
 
 requests.shell.execute = Object({
     "request": "execute",

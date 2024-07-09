@@ -28,7 +28,7 @@ responses = ws.tokens['responses']
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.execute",
+    "command": "gui.sql_editor.execute",
     "args": {
         "sql": "SELECT * FROM `test_table`",
         "module_session_id": ws.lastModuleSessionId,

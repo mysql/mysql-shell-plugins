@@ -10,9 +10,9 @@ request_id = ws.generateRequestId()
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": request_id,
-    "command": "gui.sqleditor.open_connection",
+    "command": "gui.sql_editor.open_connection",
     "args": {
-        "db_connection_id": lib.sqleditor.create_test_sessions['connection_id_user2_nopwd'],
+        "db_connection_id": lib.sql_editor.create_test_sessions['connection_id_user2_nopwd'],
         "module_session_id": ws.lastModuleSessionId,
     }
 }, [

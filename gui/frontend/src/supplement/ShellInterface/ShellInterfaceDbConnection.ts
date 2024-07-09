@@ -46,7 +46,7 @@ export class ShellInterfaceDbConnection {
     public async addDbConnection(profileId: number, connection: IConnectionDetails,
         folderPath = ""): Promise<number | undefined> {
         const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIGui.GuiDbconnectionsAddDbConnection,
+            requestType: ShellAPIGui.GuiDbConnectionsAddDbConnection,
             parameters: {
                 args: {
                     profileId,
@@ -76,7 +76,7 @@ export class ShellInterfaceDbConnection {
     public async updateDbConnection(profileId: number, connection: IConnectionDetails,
         folderPath = ""): Promise<void> {
         await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIGui.GuiDbconnectionsUpdateDbConnection,
+            requestType: ShellAPIGui.GuiDbConnectionsUpdateDbConnection,
             parameters: {
                 args: {
                     profileId,
@@ -103,7 +103,7 @@ export class ShellInterfaceDbConnection {
      */
     public async removeDbConnection(profileId: number, connectionId: number): Promise<void> {
         await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIGui.GuiDbconnectionsRemoveDbConnection,
+            requestType: ShellAPIGui.GuiDbConnectionsRemoveDbConnection,
             parameters: { args: { profileId, connectionId } },
         });
     }
@@ -118,7 +118,7 @@ export class ShellInterfaceDbConnection {
      */
     public async listDbConnections(profileId: number, folderPath = ""): Promise<IConnectionDetails[]> {
         const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIGui.GuiDbconnectionsListDbConnections,
+            requestType: ShellAPIGui.GuiDbConnectionsListDbConnections,
             parameters: { args: { profileId, folderPath } },
         });
 
@@ -138,7 +138,7 @@ export class ShellInterfaceDbConnection {
      */
     public async getDbConnection(connectionId: number): Promise<IConnectionDetails | undefined> {
         const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIGui.GuiDbconnectionsGetDbConnection,
+            requestType: ShellAPIGui.GuiDbConnectionsGetDbConnection,
             parameters: { args: { dbConnectionId: connectionId } },
         });
 

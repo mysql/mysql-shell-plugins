@@ -14,7 +14,6 @@
         "main.py"
     ],
     "ignoreWords": [
-        "dbconnections",
         "errno",
         "InnoDB",
         "mutex",
@@ -34,7 +33,6 @@
         "wfile",
         "rfile",
         "mysqlaas",
-        "sqleditor",
         "asyncio",
         "urandom",
         "OCID",
@@ -58,7 +56,6 @@
         "pydevd",
         "SIGUSR",
         "dbsession",
-        "backenddb",
         "iterdump",
         "webserver",
         "resultset"

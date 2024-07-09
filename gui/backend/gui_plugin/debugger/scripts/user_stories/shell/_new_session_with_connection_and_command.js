@@ -7,7 +7,7 @@ var default_mysql_options = defaults.database_connections.mysql[0].options
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.dbconnections.add_db_connection",
+    "command": "gui.db_connections.add_db_connection",
     "args": {
         "profile_id": 1,
         "connection": {

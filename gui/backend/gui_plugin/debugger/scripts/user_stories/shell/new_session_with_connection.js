@@ -7,14 +7,14 @@ var default_mysql_options = ws.tokens.defaults.database_connections.mysql[0].opt
 
 
 //  Preconditions
-await ws.execute("__lib/sqleditor/_create_test_sessions.js")
+await ws.execute("__lib/sql_editor/_create_test_sessions.js")
 
 
 // Tests
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.dbconnections.add_db_connection",
+    "command": "gui.db_connections.add_db_connection",
     "args": {
         "profile_id": 1,
         "connection": {
@@ -164,7 +164,7 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.dbconnections.add_db_connection",
+    "command": "gui.db_connections.add_db_connection",
     "args": {
         "profile_id": 1,
         "connection": {

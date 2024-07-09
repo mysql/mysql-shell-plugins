@@ -6,9 +6,9 @@ ws.log("Opening connection user2")
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.open_connection",
+    "command": "gui.sql_editor.open_connection",
     "args": {
-        "db_connection_id": lib.sqleditor.create_test_sessions['connection_id_user2'],
+        "db_connection_id": lib.sql_editor.create_test_sessions['connection_id_user2'],
         "module_session_id": ws.lastModuleSessionId,
     }
 }, [
@@ -26,9 +26,9 @@ await ws.sendAndValidate({
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.sqleditor.open_connection",
+    "command": "gui.sql_editor.open_connection",
     "args": {
-        "db_connection_id": lib.sqleditor.create_test_sessions['connection_id_user2'],
+        "db_connection_id": lib.sql_editor.create_test_sessions['connection_id_user2'],
         "module_session_id": ws.lastModuleSessionId,
         "password": "user2password"
     }

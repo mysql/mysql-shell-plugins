@@ -46,7 +46,7 @@ from gui_plugin.core.modules.DbModuleSession import DbModuleSession
 from gui_plugin.core.modules.ModuleSession import ModuleSession
 from gui_plugin.core.Protocols import Response
 from gui_plugin.core.RequestHandler import RequestHandler
-from gui_plugin.sqleditor.SqleditorModuleSession import SqleditorModuleSession
+from gui_plugin.sql_editor.SqlEditorModuleSession import SqlEditorModuleSession
 from gui_plugin.users import backend as user_handler
 from gui_plugin.users.backend import get_id_personal_user_group
 
@@ -615,6 +615,9 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             # Searches the object hierarchy
             for object in objects:
                 try:
+                    # Convert from camelCase to snake_case
+                    object = re.sub(r'(?<!^)(?=[A-Z])', '_', object).lower()
+
                     child = getattr(parent_obj, object)
 
                     # Set the parent_obj for the next object evaluation
@@ -700,11 +703,11 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                         f'The function {cmd} needs a module_session_id '
                         'argument set to a DbModuleSession.')
 
-                user_session_functions = ["gui.sqleditor.execute",
-                                          "gui.sqleditor.default_user_schema", "gui.sqleditor.get_current_schema",
-                                          "gui.sqleditor.set_current_schema", "gui.sqleditor.get_auto_commit",
-                                          "gui.sqleditor.set_auto_commit"]
-                if isinstance(module_session, SqleditorModuleSession) and cmd in user_session_functions:
+                user_session_functions = ["gui.sql_editor.execute",
+                                          "gui.sql_editor.default_user_schema", "gui.sql_editor.get_current_schema",
+                                          "gui.sql_editor.set_current_schema", "gui.sql_editor.get_auto_commit",
+                                          "gui.sql_editor.set_auto_commit"]
+                if isinstance(module_session, SqlEditorModuleSession) and cmd in user_session_functions:
                     db_module_session = module_session._db_user_session
                 else:
                     db_module_session = module_session._db_service_session

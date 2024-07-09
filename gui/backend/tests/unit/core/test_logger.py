@@ -69,7 +69,7 @@ def test_filter_sensitivity_data():
 
     message = {
                     "request": "execute",
-                    "command": "gui.dbconnections.add_db_connection",
+                    "command": "gui.db_connections.add_db_connection",
                     "args": {
                         "profile_id": 1,
                         "connection": {
@@ -92,7 +92,7 @@ def test_filter_sensitivity_data():
 
     expected = {
                     "request": "execute",
-                    "command": "gui.dbconnections.add_db_connection",
+                    "command": "gui.db_connections.add_db_connection",
                     "args": {
                         "profile_id": 1,
                         "connection": {
@@ -121,7 +121,7 @@ def test_filter_sensitivity_data():
 
     message = {
                 "request": "execute",
-                "command": "gui.dbconnections.remove_db_connection",
+                "command": "gui.db_connections.remove_db_connection",
                 "args": {
                     "profile_id": 1,
                     "connection_id": 1

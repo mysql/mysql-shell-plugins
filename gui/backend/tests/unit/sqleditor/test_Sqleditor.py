@@ -29,7 +29,7 @@ import pytest
 
 import config
 import gui_plugin.core.Logger as logger
-from gui_plugin import dbconnections, sqleditor
+from gui_plugin import db_connections, sql_editor
 from gui_plugin.core.Error import MSGException
 from tests.lib.MockWebSession import MockWebSession
 from tests.lib.utils import backend_callback, backend_callback_with_pending
@@ -69,7 +69,7 @@ def params():
     setattr(_context, "request_id", None)
     setattr(_thread, "get_context", lambda: _context)
 
-    result = sqleditor.start_session()
+    result = sql_editor.start_session()
     parameters._module_session_id = result['module_session_id']
     parameters._module_session = parameters._web_session.module_sessions[
         parameters._module_session_id]
@@ -77,7 +77,7 @@ def params():
     ).database_connections[0]['options'].copy()
     del connection_options['portStr']
 
-    result = dbconnections.add_db_connection(1, {
+    result = db_connections.add_db_connection(1, {
         "db_type": "MySQL",
         "caption": "This is a test MySQL database",
         "description": "This is a test MySQL database description",
@@ -86,7 +86,7 @@ def params():
 
     parameters._web_session.request_id = open_connection_cb.request_id
     parameters._db_connection_id = result
-    sqleditor.open_connection(
+    sql_editor.open_connection(
         parameters._db_connection_id, parameters._module_session)
 
     open_connection_cb.join_and_validate()
@@ -96,11 +96,11 @@ def params():
     yield parameters
 
     parameters._web_session.db.close()
-    result = sqleditor.close_session(parameters._module_session)
+    result = sql_editor.close_session(parameters._module_session)
     # del parameters._web_session.module_sessions[parameters._module_session_id]
 
 
-class TestSqleditor:
+class Test_sql_editor:
 
     def test_service_connection(self, params):
         @backend_callback_with_pending()
@@ -117,11 +117,11 @@ class TestSqleditor:
             callback_schemas.request_id, callback_schemas)
 
         params._web_session.request_id = callback_schemas.request_id
-        sqleditor.execute(sql="SELECT SLEEP(3)",
+        sql_editor.execute(sql="SELECT SLEEP(3)",
                           session=params._module_session._db_user_session)
         callback_schemas.join_and_validate()
         params._web_session.request_id = callback_request1.request_id
-        sqleditor.get_current_schema(
+        sql_editor.get_current_schema(
             session=params._module_session._db_user_session)
         callback_request1.join_and_validate()
 
@@ -129,10 +129,10 @@ class TestSqleditor:
 
     def test_close_session(self, params):
         request_id1 = str(uuid.uuid1())
-        sqleditor.close_session(params._module_session)
+        sql_editor.close_session(params._module_session)
 
         with pytest.raises(MSGException) as e:
-            sqleditor.execute(
+            sql_editor.execute(
                 session=params._module_session._db_user_session, sql="SELECT SLEEP(1)")
         assert e.value.args[0] == "Error[MSG-1012]: Session required for this operation."
 
@@ -146,7 +146,7 @@ class TestSqleditor:
             open_connection_cb.request_id, open_connection_cb)
 
         params._web_session.request_id = open_connection_cb.request_id
-        sqleditor.open_connection(
+        sql_editor.open_connection(
             params._db_connection_id, params._module_session)
 
         open_connection_cb.join_and_validate()
@@ -162,7 +162,7 @@ class TestSqleditor:
             callback_execute.request_id, callback_execute)
 
         params._web_session.request_id = callback_execute.request_id
-        result = sqleditor.execute(
+        result = sql_editor.execute(
             session=params._module_session._db_user_session,
             sql="SHOW DATABASES LIKE ?", params=['mysql'])
 
