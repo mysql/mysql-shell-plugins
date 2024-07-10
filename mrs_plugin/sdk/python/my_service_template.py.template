@@ -1,14 +1,13 @@
 # Copyright (c) 2024, Oracle and/or its affiliates.
 
 import asyncio
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import (
     Generic,
     Literal,
     NotRequired,
     Optional,
     Sequence,
-    Type,
     TypeAlias,
     TypedDict,
     Unpack,
@@ -26,21 +25,14 @@ from .mrs_base_classes import (
     FindUniqueOptions,
     MrsBaseObjectQuery,
     # --- importReadOnlyEnd
-    Data,
-    DataClass,
-    Cursors,
-    DataCreate,
-    DataDetails,
-    DataField,
+    # --- importUpdateOnlyStart
+    MrsBaseObjectUpdate,
+    # --- importUpdateOnlyEnd
     Filterable,
-    Selectable,
-    Sortable,
-    UniqueFilterable,
     HighOrderOperator,
     IMrsResourceDetails,
     MrsBaseSchema,
     MrsBaseService,
-    NestedField,
     Order,
     Record,
     RecordNotFoundError,
@@ -55,21 +47,7 @@ from .mrs_base_classes import (
 # --- schemaLoopStart
 # --- objectLoopStart
 ${obj_interfaces}
-class DatabaseObject(
-    Generic[
-        DataClass,
-        Data,
-        DataDetails,
-        DataCreate,
-        Selectable,
-        Filterable,
-        UniqueFilterable,
-        Sortable,
-        Cursors,
-        DataField,
-        NestedField,
-    ]
-):
+class ${obj_class_name}DatabaseObject:
     """The following CRUD-related commands are implemented as part of this class [^]:
 
         * CREATE:
@@ -84,27 +62,26 @@ class DatabaseObject(
             - `find_many`
             - `find_all`
 
-    This class is parametrized by generic types, making it a generic implementation
-    that can be used as a building block for any database object. At construction
-    time, the relevant database-object-related types should be provided.
+        * UPDATE:
+            - `update`
+            - `update_many`
 
     [^] The CRUD permissions configured for a certain table rest object condition the
     availability of these commands. For instance, with no `READ` permissions, the
     `find*` methods aren't implemented.
     """
 
-    def __init__(self, request_path: str, data_cls: Type[DataClass]) -> None:
+    def __init__(self, request_path: str) -> None:
         self._request_path: str = request_path
-        self._data_cls: Type[DataClass] = data_cls
         self._has_more: bool = True
 
     # --- crudCreateOnlyStart
-    async def create(self, data: DataCreate) -> DataClass:
-        request = MrsBaseObjectCreate[DataCreate, DataDetails](self._request_path, data)
+    async def create(self, data: I${obj_class_name}DataCreate) -> I${obj_class_name}:
+        request = MrsBaseObjectCreate[I${obj_class_name}DataCreate, I${obj_class_name}Details](self._request_path, data)
         record = await request.submit()
-        return self._data_cls(cast(Data, record))
+        return I${obj_class_name}(cast(I${obj_class_name}Data, record))
 
-    async def create_many(self, data: Sequence[DataCreate]) -> list[DataClass]:
+    async def create_many(self, data: Sequence[I${obj_class_name}DataCreate]) -> list[I${obj_class_name}]:
         return [
             await coro
             for coro in asyncio.as_completed((self.create(item) for item in data))
@@ -116,23 +93,23 @@ class DatabaseObject(
         self,
         **options: Unpack[  # type: ignore[misc]
             FindFirstOptions[
-                Filterable,
-                Selectable,
-                Sortable,
-                DataField,
-                NestedField,
-                Cursors,
+                I${obj_class_name}Filterable[I${obj_class_name}Filterable],
+                I${obj_class_name}Selectable,
+                I${obj_class_name}Sortable,
+                I${obj_class_name}Field,
+                I${obj_class_name}NestedField,
+                I${obj_class_name}Cursors,
             ]
         ],
-    ) -> Optional[DataClass]:
-        request = MrsBaseObjectQuery[Data, DataDetails](
+    ) -> Optional[I${obj_class_name}]:
+        request = MrsBaseObjectQuery[I${obj_class_name}Data, I${obj_class_name}Details](
             self._request_path,
             options=cast(FindFirstOptions, options),
         )
-        record = cast(Data, await request.fetch_one())
+        record = cast(I${obj_class_name}Data, await request.fetch_one())
 
         if record is not None:
-            return self._data_cls(record)
+            return I${obj_class_name}(record)
 
         return None
 
@@ -140,15 +117,15 @@ class DatabaseObject(
         self,
         **options: Unpack[  # type: ignore[misc]
             FindFirstOptions[
-                Filterable,
-                Selectable,
-                Sortable,
-                DataField,
-                NestedField,
-                Cursors,
+                I${obj_class_name}Filterable[I${obj_class_name}Filterable],
+                I${obj_class_name}Selectable,
+                I${obj_class_name}Sortable,
+                I${obj_class_name}Field,
+                I${obj_class_name}NestedField,
+                I${obj_class_name}Cursors,
             ]
         ],
-    ) -> DataClass:
+    ) -> I${obj_class_name}:
         data_obj = await self.find_first(**options)
         if data_obj is None:
             raise RecordNotFoundError
@@ -158,20 +135,20 @@ class DatabaseObject(
         self,
         **options: Unpack[  # type: ignore[misc]
             FindUniqueOptions[
-                UniqueFilterable, Selectable, DataField, NestedField
+                I${obj_class_name}UniqueFilterable, I${obj_class_name}Selectable, I${obj_class_name}Field, I${obj_class_name}NestedField
             ]
         ],
-    ) -> Optional[DataClass]:
+    ) -> Optional[I${obj_class_name}]:
         return await self.find_first(**cast(FindFirstOptions, options))
 
     async def find_unique_or_throw(
         self,
         **options: Unpack[  # type: ignore[misc]
             FindUniqueOptions[
-                UniqueFilterable, Selectable, DataField, NestedField
+                I${obj_class_name}UniqueFilterable, I${obj_class_name}Selectable, I${obj_class_name}Field, I${obj_class_name}NestedField
             ]
         ],
-    ) -> DataClass:
+    ) -> I${obj_class_name}:
         data_obj = await self.find_unique(**options)
         if data_obj is None:
             raise RecordNotFoundError
@@ -181,17 +158,17 @@ class DatabaseObject(
         self,
         **options: Unpack[  # type: ignore[misc]
             FindManyOptions[
-                Data,
-                Filterable,
-                Selectable,
-                Sortable,
-                DataField,
-                NestedField,
-                Cursors,
+                I${obj_class_name}Data,
+                I${obj_class_name}Filterable[I${obj_class_name}Filterable],
+                I${obj_class_name}Selectable,
+                I${obj_class_name}Sortable,
+                I${obj_class_name}Field,
+                I${obj_class_name}NestedField,
+                I${obj_class_name}Cursors,
             ]
         ],
-    ) -> list[DataClass]:
-        request = MrsBaseObjectQuery[Data, DataDetails](
+    ) -> list[I${obj_class_name}]:
+        request = MrsBaseObjectQuery[I${obj_class_name}Data, I${obj_class_name}Details](
             self._request_path, options=cast(FindManyOptions, options)
         )
         iterator = options.get("iterator", True)
@@ -205,23 +182,23 @@ class DatabaseObject(
         if iterator:
             self._has_more = response["has_more"]
 
-        return [self._data_cls(cast(Data, item)) for item in response["items"]]
+        return [I${obj_class_name}(cast(I${obj_class_name}Data, item)) for item in response["items"]]
 
     async def find_all(
         self,
         **options: Unpack[  # type: ignore[misc]
             FindAllOptions[
-                Data,
-                Filterable,
-                Selectable,
-                Sortable,
-                DataField,
-                NestedField,
-                Cursors,
+                I${obj_class_name}Data,
+                I${obj_class_name}Filterable[I${obj_class_name}Filterable],
+                I${obj_class_name}Selectable,
+                I${obj_class_name}Sortable,
+                I${obj_class_name}Field,
+                I${obj_class_name}NestedField,
+                I${obj_class_name}Cursors,
             ]
         ],
-    ) -> list[DataClass]:
-        request = MrsBaseObjectQuery[Data, DataDetails](
+    ) -> list[I${obj_class_name}]:
+        request = MrsBaseObjectQuery[I${obj_class_name}Data, I${obj_class_name}Details](
             self._request_path, options=cast(FindAllOptions, options)
         )
         progress = options.get("progress")
@@ -231,8 +208,29 @@ class DatabaseObject(
         else:
             response = await request.fetch_all(progress=progress)
 
-        return [self._data_cls(cast(Data, item)) for item in response["items"]]
+        return [I${obj_class_name}(cast(I${obj_class_name}Data, item)) for item in response["items"]]
     # --- crudReadOnlyEnd
+
+    # --- crudUpdateOnlyStart
+    async def update(self, data: I${obj_class_name}DataUpdate) -> I${obj_class_name}:
+        # Primary key name is guaranteed to be a string because when it
+        # isn't, `update` and `update_many` aren't generated by the SDK.
+        prk_name = cast(str, I${obj_class_name}.get_primary_key_name())
+        record_id = data.get(prk_name, -1)
+
+        request = MrsBaseObjectUpdate[I${obj_class_name}, I${obj_class_name}Details](
+            self._request_path + f"/{record_id}", I${obj_class_name}(cast(I${obj_class_name}Data, data))
+        )
+        record = await request.submit()
+
+        return I${obj_class_name}(cast(I${obj_class_name}Data, record))
+
+    async def update_many(self, data: Sequence[I${obj_class_name}DataUpdate]) -> list[I${obj_class_name}]:
+        return [
+            await coro
+            for coro in asyncio.as_completed((self.update(item) for item in data))
+        ]
+    # --- crudUpdateOnlyEnd
 # --- objectLoopEnd
 
 
@@ -241,19 +239,7 @@ class ${schema_class_name}(MrsBaseSchema):
     def __init__(self, service_url: str) -> None:
         super().__init__(f"{service_url}${schema_request_path}")
         # --- objectLoopStart
-        self.${obj_name} = DatabaseObject[
-            I${obj_class_name},
-            I${obj_class_name}Data,
-            I${obj_class_name}Details,
-            I${obj_class_name}DataCreate,
-            I${obj_class_name}Selectable,
-            I${obj_class_name}Filterable[I${obj_class_name}Filterable],
-            I${obj_class_name}UniqueFilterable,
-            I${obj_class_name}Sortable,
-            I${obj_class_name}Cursors,
-            I${obj_class_name}Field,
-            I${obj_class_name}NestedField,
-        ](f"{self._request_path}/${obj_name}", data_cls=I${obj_class_name})
+        self.${obj_name} = ${obj_class_name}DatabaseObject(f"{self._request_path}/${obj_name}")
         # --- objectLoopEnd
 # --- schemaLoopEnd
 

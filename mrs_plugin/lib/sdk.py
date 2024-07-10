@@ -21,13 +21,85 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Set
+from typing import Optional, Set
 from mrs_plugin import lib
 from pathlib import Path
 import os
 import re
 from string import Template
 import json
+
+
+# TODO: this skeleton should be extracted into a template file.
+# |--------------- CREATE'S EXECUTION PATH ---------------|
+# Primary key may or not be `None`, therefore, `record_id`
+# may or not be defined. If `record_id` is defined, then the
+# update's execution path will be added where defined values are handled.
+SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_CREATE = '''
+        if record_id is UndefinedField:
+            request = MrsBaseObjectCreate[I{name}DataCreate, I{name}Details](
+                self._request_path,
+                cast(I{name}DataCreate, asdict(self)),
+            )
+            return self.__load_fields(cast(I{name}Data, await request.submit()))
+'''
+
+# TODO: this skeleton should be extracted into a template file.
+# |--------------- UPDATE'S EXECUTION PATH ---------------|
+# Primary key name isn't `None`, otherwise this
+# execution path wouldn't have been added to `save()`.
+# Therefore, `record_id` is defined.
+SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_UPDATE = '''
+        await MrsBaseObjectUpdate[I{name}, I{name}Details](
+            f"{{self._request_path}}/{{record_id}}", self
+        ).submit()
+'''
+
+# TODO: this skeleton should be extracted into a template file.
+SDK_PYTHON_DATACLASS_TEMPLATE_SAVE = '''
+
+    async def save(self) -> None:
+        """Create or update a new resource represented by the data class instance.
+
+        If the specified primary key already exists an `update`
+        will happen, otherwise a `create`.
+        """
+        prk_name = self.get_primary_key_name()
+        record_id = UndefinedField
+
+        if prk_name is not None and hasattr(self, prk_name):
+            record_id = getattr(self, prk_name){create_snippet}{update_snippet}
+'''
+
+# TODO: this skeleton should be extracted into a template file.
+SDK_PYTHON_DATACLASS_TEMPLATE = '''@dataclass(init=False, repr=True)
+class I{name}(Record):
+
+    # For data attributes, `None` means "NULL" and
+    # `UndefinedField` means "not set or undefined"
+{join_field_block}
+
+    def __init__(self, data: I{name}Data) -> None:
+        """Actor data class."""
+        self._request_path: str = "{obj_endpoint}"
+        self.__load_fields(data)
+
+    def __load_fields(self, data: I{name}Data) -> None:
+        """Refresh data fields based on the input data."""
+{join_assignment_block}
+
+        for key in Record._reserved_keys:
+            self.__dict__.update({{key: data.get(key)}})
+
+    @classmethod
+    def get_primary_key_name(cls) -> Optional[str]:
+        """Get primary key name.
+
+        Returns:
+            `str` when there is a primary key, `None` otherwise.
+        """
+        return {primary_key_name}{save_method}
+'''
 
 
 class LanguageNotSupportedError(Exception):
@@ -165,7 +237,7 @@ def substitute_imports_in_template(template, enabled_crud_ops, required_datatype
 
 def substitute_service_in_template(service, template, sdk_language, session, service_url):
     code = substitute_schemas_in_template(
-        service=service, template=template, sdk_language=sdk_language, session=session)
+        service=service, template=template, sdk_language=sdk_language, session=session, service_url=service_url)
 
     template = code.get("template")
 
@@ -192,7 +264,7 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
     return {"template": template, "enabled_crud_ops": code.get("enabled_crud_ops"), "required_datatypes": code.get("required_datatypes")}
 
 
-def substitute_schemas_in_template(service, template, sdk_language, session):
+def substitute_schemas_in_template(service, template, sdk_language, session, service_url):
     delimiter = language_comment_delimiter(sdk_language)
     schema_loops = re.finditer(
         f"^[^\\S\r\n]*?{delimiter} --- schemaLoopStart\n\\s*(^[\\S\\s]*?)^\\s*?{delimiter} --- schemaLoopEnd\n", template, flags=re.DOTALL | re.MULTILINE)
@@ -214,7 +286,7 @@ def substitute_schemas_in_template(service, template, sdk_language, session):
             if f"{delimiter} --- objectLoopStart" in schema_template:
                 # Fill inner Object loops
                 code = substitute_objects_in_template(
-                    service=service, schema=schema, template=schema_template, sdk_language=sdk_language, session=session
+                    service=service, schema=schema, template=schema_template, sdk_language=sdk_language, session=session, service_url=service_url
                 )
 
                 schema_template_with_obj_filled = code.get("template")
@@ -262,7 +334,7 @@ def language_comment_delimiter(sdk_language):
         return "#"
 
 
-def substitute_objects_in_template(service, schema, template, sdk_language, session):
+def substitute_objects_in_template(service, schema, template, sdk_language, session, service_url):
     delimiter = language_comment_delimiter(sdk_language)
     object_loops = re.finditer(
         f"^[^\\S\r\n]*?{delimiter} --- objectLoopStart\n\\s*(^[\\S\\s]*?)^\\s*?{delimiter} --- objectLoopEnd\n",
@@ -305,6 +377,20 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
             # Get objects
             objects = lib.db_objects.get_objects(
                 session, db_object_id=db_obj.get("id"))
+
+            # Remove unsupported CRUD operations for this DB Object
+            if db_obj.get("object_type") != "PROCEDURE" and db_obj.get("object_type") != "FUNCTION":
+                db_object_crud_ops = db_obj.get("crud_operations", [])
+                # If this DB Object has unique columns (PK or UNIQUE) allow ReadUnique
+                # cSpell:ignore READUNIQUE
+                if len(obj_unique_list) > 0 and not "READUNIQUE" in db_object_crud_ops:
+                    db_object_crud_ops.append("READUNIQUE")
+            elif db_obj.get("object_type") == "PROCEDURE":
+                # For PROCEDUREs, handle custom "UpdateProcedure" operation, delete all other
+                db_object_crud_ops = ["UPDATEPROCEDURE"]
+            elif db_obj.get("object_type") == "FUNCTION":
+                # For FUNCTIONs, handle custom "ReadFunction" operation, delete all other
+                db_object_crud_ops = ["READFUNCTION"]
 
             # Loop over all objects and build interfaces
             for obj in objects:
@@ -353,7 +439,15 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                     "class_name", obj.get("name"))
 
                 obj_interfaces_def, out_params_interface_fields = generate_interfaces(
-                    db_obj, obj, fields, class_name, sdk_language)
+                    db_obj,
+                    obj,
+                    fields,
+                    class_name,
+                    sdk_language,
+                    db_object_crud_ops,
+                    obj_endpoint=f"{service_url}{schema.get("request_path")}/{name}"
+                    )
+
                 # Do not add obj_interfaces for FUNCTION results
                 if obj.get("kind") == "PARAMETERS" or db_obj.get("object_type") != "FUNCTION":
                     obj_interfaces += obj_interfaces_def
@@ -418,20 +512,6 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                 "obj_function_result_datatype": obj_function_result_datatype
             }
 
-            # Remove unsupported CRUD operations for this DB Object
-            if db_obj.get("object_type") != "PROCEDURE" and db_obj.get("object_type") != "FUNCTION":
-                db_object_crud_ops = db_obj.get("crud_operations", [])
-                # If this DB Object has unique columns (PK or UNIQUE) allow ReadUnique
-                # cSpell:ignore READUNIQUE
-                if len(obj_unique_list) > 0 and not "READUNIQUE" in db_object_crud_ops:
-                    db_object_crud_ops.append("READUNIQUE")
-            elif db_obj.get("object_type") == "PROCEDURE":
-                # For PROCEDUREs, handle custom "UpdateProcedure" operation, delete all other
-                db_object_crud_ops = ["UPDATEPROCEDURE"]
-            elif db_obj.get("object_type") == "FUNCTION":
-                # For FUNCTIONs, handle custom "ReadFunction" operation, delete all other
-                db_object_crud_ops = ["READFUNCTION"]
-
             # Loop over all CRUD operations and filter the sections that are not applicable for the specific object
             obj_template = loop.group(1)
             for crud_op in crud_ops:
@@ -443,7 +523,8 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
                 for crud_loop in crud_op_loops:
                     # If the CRUD operation is enabled for this DB Object, keep the identified code block
-                    if crud_op.upper() in db_object_crud_ops:
+                    # if crud_op is "Update" and there is no primary key, update commands should not be available
+                    if crud_op.upper() in db_object_crud_ops and (crud_op != "Update" or len(obj_pk_list) > 0):
                         enabled_crud_ops.append(crud_op)
                         obj_template = obj_template.replace(
                             crud_loop.group(), crud_loop.group(1))
@@ -609,6 +690,14 @@ def field_is_required(field):
     return False
 
 
+def get_primary_key(fields: dict) -> Optional[str]:
+    for field in fields:
+        db_column_info = field.get("db_column")
+        if db_column_info and field_is_pk(field):
+            return db_column_info.get("name")
+    return None
+
+
 def field_can_be_cursor(field):
     if field.get("lev") != 1:
         return False
@@ -697,6 +786,8 @@ def generate_type_declaration(
             "".join(field_block) +
             "}\n\n")
     if sdk_language == "Python":
+        if len(fields) == 0:
+            return f"I{name}: TypeAlias = None\n\n\n"
         ordered_parents = [*parents] if override_parents is True else ["TypedDict", *parents]
         # TODO: remove hack to ignore IMrsMetadata once it is not needed for TypeScript
         parents_without_legacy_class = [parent for parent in ordered_parents if parent != "IMrsFetchData"]
@@ -730,7 +821,14 @@ def generate_type_declaration_field(
         return f'{indent}{name_in_convention}: {hint}\n'
 
 
-def generate_data_class(name, fields, sdk_language):
+def generate_data_class(
+        name,
+        fields,
+        sdk_language,
+        db_object_crud_ops: list[str],
+        obj_endpoint: Optional[str] = None,
+        obj_primary_key: Optional[str] = None
+    ):
     if sdk_language == "TypeScript":
         return generate_type_declaration(
             name=name, fields=fields, sdk_language=sdk_language
@@ -747,22 +845,32 @@ def generate_data_class(name, fields, sdk_language):
             f'{" " * 8}self.{lib.core.convert_to_snake_case(field)} = data.get("{lib.core.convert_to_snake_case(field)}", UndefinedField)\n'
             for field in fields
         ]
-        return (
-            "@dataclass(init=False, repr=True)\n"
-            f"class I{name}(Record):\n\n"
-            + "    # For data attributes, `None` means 'NULL' and\n"
-            + "    # `UndefinedField` means 'not set or undefined'\n"
-            + f'{"".join(field_type_block)}\n'
-            + f"    def __init__(self, data: I{name}Data) -> None:\n"
-            + '        """Actor data class."""\n'
-            + f"        self.__load_fields(data)\n"
-            + "\n"
-            + f"    def __load_fields(self, data: I{name}Data) -> None:\n"
-            + '        """Refresh data fields based on the input data."""\n'
-            + f'{"".join(assignment_block)}\n'
-            + "        for key in Record._reserved_keys:\n"
-            "            self.__dict__.update({key:data.get(key)})\n\n\n"
-        )
+
+        create_snippet = ""
+        update_snippet = ""
+        save_method = ""
+        if "UPDATE" in db_object_crud_ops:
+            update_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_UPDATE.format(
+                name=name
+            )
+        if "CREATE" in db_object_crud_ops:
+            create_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_CREATE.format(
+                name=name
+            )
+        if update_snippet or create_snippet:
+            save_method = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE.format(
+                create_snippet=create_snippet,
+                update_snippet=update_snippet,
+            )
+
+        return SDK_PYTHON_DATACLASS_TEMPLATE.format(
+            name=name,
+            join_field_block="".join(field_type_block).rstrip(),
+            obj_endpoint=obj_endpoint,
+            join_assignment_block="".join(assignment_block).rstrip(),
+            primary_key_name=(None if obj_primary_key is None else f'"{obj_primary_key}"'),
+            save_method=save_method,
+        ) + ("" if save_method else "\n\n")
 
 
 def generate_field_enum(name, fields=None, sdk_language="TypeScript"):
@@ -821,7 +929,15 @@ def generate_union(name, types, sdk_language):
         return f"{name}: TypeAlias = {' | '.join(types)}\n\n\n"
 
 
-def generate_interfaces(db_obj, obj, fields, class_name, sdk_language):
+def generate_interfaces(
+        db_obj,
+        obj,
+        fields,
+        class_name,
+        sdk_language,
+        db_object_crud_ops: list[str],
+        obj_endpoint: Optional[str] = None
+    ):
     obj_interfaces = []
     interface_fields = {}
     param_interface_fields = {}
@@ -832,6 +948,7 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language):
     obj_non_mandatory_fields = set(
         [field.get("name") for field in fields if field_is_required(field) is False]
     )
+    obj_primary_key = get_primary_key(fields)
 
     # The I{class_name}, I{class_name}Params and I{class_name}Out interfaces
     for field in fields:
@@ -976,8 +1093,27 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language):
                 )
             )
 
+            # TODO: No partial update is supported yet, once it is,
+            # `non-mandatory fields` argument should be specified as well.
+            # This way, users can know what fields are required and which ones aren't.
+            obj_interfaces.append(
+                generate_type_declaration(
+                    name=f"{class_name}DataUpdate",
+                    parents=construct_parents,
+                    fields=interface_fields,
+                    sdk_language=sdk_language,
+                    override_parents=construct_override_parents,
+                    apply_convention=apply_convention,
+                    required_fields=construct_required_fields,
+                )
+            )
+
         obj_interfaces.append(generate_data_class(name=class_name, fields=interface_fields,
-                                                    sdk_language=sdk_language))
+                                                    sdk_language=sdk_language,
+                                                    db_object_crud_ops=db_object_crud_ops,
+                                                    obj_endpoint=obj_endpoint,
+                                                    obj_primary_key=obj_primary_key
+                                                    ))
 
         if db_obj.get("object_type") == "PROCEDURE" or db_obj.get("object_type") == "FUNCTION":
             if obj.get("kind") != "PARAMETERS":
@@ -1031,7 +1167,7 @@ def generate_interfaces(db_obj, obj, fields, class_name, sdk_language):
         obj_interfaces.append(generate_type_declaration(name=f"{class_name}Out", fields=out_params_interface_fields,
                                                         sdk_language=sdk_language))
 
-    if len(obj_unique_fields) > 0:
+    if len(obj_unique_fields) > 0 or sdk_language == "Python":
         construct_name = f"{class_name}UniqueParams"
         construct_parents = []
         if sdk_language == "Python":
