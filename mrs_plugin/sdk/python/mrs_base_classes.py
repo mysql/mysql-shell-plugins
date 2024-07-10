@@ -30,7 +30,7 @@ import re
 import ssl
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import (
     TYPE_CHECKING,
@@ -101,6 +101,11 @@ class Record(ABC):
         """Hypermedia-related fields should be hidden."""
         return [key for key in super().__dir__() if key not in Record._reserved_keys]
 
+    @classmethod
+    @abstractmethod
+    def get_primary_key_name(cls) -> Optional[str]:
+        """Get primary key name."""
+
 
 class UndefinedDataClassField:
     """Class representing a special symbol used for undefined or 'never set'
@@ -151,6 +156,7 @@ Data = TypeVar("Data", bound=Mapping)
 DataClass = TypeVar("DataClass", bound="Record")
 DataDetails = TypeVar("DataDetails", bound="IMrsResourceDetails")
 DataCreate = TypeVar("DataCreate", bound=Mapping)
+DataUpdate = TypeVar("DataUpdate", bound=Mapping)
 Filterable = TypeVar("Filterable", bound=Optional[Mapping])
 UniqueFilterable = TypeVar("UniqueFilterable", bound=Optional[Mapping])
 Selectable = TypeVar("Selectable", bound=Optional[Mapping | Sequence])
@@ -848,7 +854,12 @@ class MrsBaseObjectCreate(Generic[Data, DataDetails]):
     """Implements the core logic utilized by the `create*` commands."""
 
     def __init__(self, request_path: str, data: Data) -> None:
-        """Constructor."""
+        """Constructor.
+
+        Args:
+            request_path: the base endpoint to the resource (database table).
+            data: record to be created.
+        """
         self._request_path: str = request_path
         self._data: Data = data
 
@@ -878,6 +889,60 @@ class MrsBaseObjectCreate(Generic[Data, DataDetails]):
             url=self._request_path,
             data=json.dumps(obj=self._data, cls=MrsJSONDataEncoder).encode(),
             method="POST",
+        )
+        response = await asyncio.to_thread(urlopen, req, context=context)
+
+        return cast(
+            DataDetails,
+            json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys),
+        )
+
+
+class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
+    """Implements the core logic utilized by the `update*` commands."""
+
+    def __init__(self, request_path: str, data: DataClass) -> None:
+        """Constructor.
+
+        Args:
+            request_path: the base endpoint to the resource (database table).
+            data: record's information to be updated.
+        """
+        self._request_path: str = request_path
+        self._data: DataClass = data
+
+    async def submit(self) -> DataDetails:
+        """Submit the request to the Router to update a new record
+        as of `data` specified at construction time.
+
+        Reurns:
+            A dictionary representing the updated resource
+            with hypermedia-related and metadata-related keys:
+            ```
+                _metadata: MrsResourceMetadata
+                links: list[MrsResourceLink]
+            ```
+            Additionally, specific fields are included, but these depend on the
+            record type itself. E.g., for a fictional `ActorDetails` data type:
+            ```
+                actor_id: int
+                first_name: str
+                last_name: str
+                last_update: str
+            ```
+        """
+        context = ssl.create_default_context()
+
+        try:
+            etag = self._data.__dict__["_metadata"]["etag"]
+        except TypeError:
+            etag = ""
+
+        req = Request(
+            url=self._request_path,
+            headers={"If-Match": etag},
+            data=json.dumps(obj=asdict(self._data), cls=MrsJSONDataEncoder).encode(),
+            method="PUT",
         )
         response = await asyncio.to_thread(urlopen, req, context=context)
 

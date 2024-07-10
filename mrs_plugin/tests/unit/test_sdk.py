@@ -353,8 +353,9 @@ def test_generate_interfaces():
     obj = {}
     fields = []
     want = "type IFooCursors = never;\n\n"
+    db_object_crud_ops = ["CREATE", "READ", "UPDATE", "DELETE"]
 
-    got, _ = generate_interfaces(db_obj, obj, fields, class_name, "TypeScript")
+    got, _ = generate_interfaces(db_obj, obj, fields, class_name, "TypeScript", db_object_crud_ops)
 
     assert got == want
 
@@ -374,64 +375,84 @@ export interface IFooCursors {
 
 """
 
-    got, _ = generate_interfaces(db_obj, obj, fields, class_name, "TypeScript")
+    got, _ = generate_interfaces(db_obj, obj, fields, class_name, "TypeScript", db_object_crud_ops)
 
     assert got == want
 
-    want = '''class IFooDetails(IMrsResourceDetails):
+    obj_endpoint = "https://localhost:8444/myService/dummy/foo"
+    obj_primary_key = None
+    join_field_block = "    bar: str | UndefinedDataClassField"
+    join_assignment_block = '        self.bar = data.get("bar", UndefinedField)'
+    update_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_UPDATE.format(name=class_name)
+    create_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_CREATE.format(name=class_name)
+    save_method = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE.format(
+        create_snippet=create_snippet,
+        update_snippet=update_snippet,
+    )
+
+    want = '''class I{name}Details(IMrsResourceDetails):
     bar: str
 
 
-class IFooData(TypedDict):
+class I{name}Data(TypedDict):
     bar: NotRequired[str]
 
 
-class IFooDataCreate(TypedDict):
+class I{name}DataCreate(TypedDict):
     bar: NotRequired[str]
 
 
-@dataclass(init=False, repr=True)
-class IFoo(Record):
-
-    # For data attributes, `None` means 'NULL' and
-    # `UndefinedField` means 'not set or undefined'
-    bar: str | UndefinedDataClassField
-
-    def __init__(self, data: IFooData) -> None:
-        """Actor data class."""
-        self.__load_fields(data)
-
-    def __load_fields(self, data: IFooData) -> None:
-        """Refresh data fields based on the input data."""
-        self.bar = data.get("bar", UndefinedField)
-
-        for key in Record._reserved_keys:
-            self.__dict__.update({key:data.get(key)})
+class I{name}DataUpdate(TypedDict):
+    bar: str
 
 
-IFooField: TypeAlias = Literal[
+{sdk_python_dataclass}
+
+
+I{name}Field: TypeAlias = Literal[
     "bar",
 ]
 
 
-IFooNestedField: TypeAlias = None
+I{name}NestedField: TypeAlias = None
 
 
-class IFooSelectable(TypedDict, total=False):
+class I{name}Selectable(TypedDict, total=False):
     bar: bool
 
 
-class IFooSortable(TypedDict, total=False):
+class I{name}Sortable(TypedDict, total=False):
     bar: Order
 
 
-class IFooCursors(TypedDict, total=False):
+I{name}UniqueFilterable: TypeAlias = None
+
+
+class I{name}Cursors(TypedDict, total=False):
     bar: StringField
 
 
-'''
+'''.format(
+    name=class_name,
+    sdk_python_dataclass=SDK_PYTHON_DATACLASS_TEMPLATE.format(
+        name=class_name,
+        join_field_block=join_field_block,
+        obj_endpoint=obj_endpoint,
+        join_assignment_block=join_assignment_block,
+        primary_key_name=obj_primary_key,
+        save_method=save_method,
+    ).rstrip()
+)
 
-    got, _ = generate_interfaces(db_obj, obj, fields, class_name, "Python")
+    got, _ = generate_interfaces(
+        db_obj,
+        obj,
+        fields,
+        class_name,
+        "Python",
+        db_object_crud_ops,
+        obj_endpoint=obj_endpoint
+        )
 
     assert got == want
 
@@ -500,8 +521,7 @@ def test_generate_type_declaration():
                                 "}\n\n")
 
     type_declaration = generate_type_declaration(name="Foo", parents=["Bar", "Baz"], sdk_language="Python")
-    assert type_declaration == ("class IFoo(TypedDict, Bar, Baz, total=False):\n" +
-                                "    pass\n\n\n")
+    assert type_declaration == ("IFoo: TypeAlias = None\n\n\n")
 
     type_declaration = generate_type_declaration("Foo", ["Bar", "Baz"], {"qux":"quux"}, "Python")
     assert type_declaration == ("class IFoo(TypedDict, Bar, Baz, total=False):\n" +
@@ -509,26 +529,71 @@ def test_generate_type_declaration():
 
 
 def test_generate_data_class():
-    data_class = generate_data_class("Foobar", {"foo": "baz", "bar": "qux"}, "TypeScript")
-    assert data_class == generate_type_declaration(name="Foobar", fields={"foo": "baz", "bar": "qux"},
-                                                   sdk_language="TypeScript")
 
-    data_class = generate_data_class("Foobar", {"foo": "baz", "barBaz": "qux"}, "Python")
-    assert data_class == ("@dataclass(init=False, repr=True)\n" +
-                          "class IFoobar(Record):\n\n" +
-                          "    # For data attributes, `None` means 'NULL' and\n" +
-                          "    # `UndefinedField` means 'not set or undefined'\n" +
-                          "    foo: baz | UndefinedDataClassField\n" +
-                          "    bar_baz: qux | UndefinedDataClassField\n\n" +
-                          "    def __init__(self, data: IFoobarData) -> None:\n" +
-                          '        """Actor data class."""\n' +
-                          '        self.__load_fields(data)\n\n' +
-                          "    def __load_fields(self, data: IFoobarData) -> None:\n" +
-                          '        """Refresh data fields based on the input data."""\n' +
-                          '        self.foo = data.get("foo", UndefinedField)\n' +
-                          '        self.bar_baz = data.get("bar_baz", UndefinedField)\n\n' +
-                          "        for key in Record._reserved_keys:\n" +
-                          "            self.__dict__.update({key:data.get(key)})\n\n\n")
+    # TypeScript
+    data_class = generate_data_class(
+        "Foobar", {"foo": "baz", "bar": "qux"}, "TypeScript", ["CREATE", "READ", "UPDATE", "DELETE"]
+    )
+    assert data_class == generate_type_declaration(
+        name="Foobar", fields={"foo": "baz", "bar": "qux"}, sdk_language="TypeScript"
+    )
+
+    # Python
+    obj_endpoint = "https://localhost:8444/myService/dummy/foo"
+    obj_primary_key = None
+    join_field_block = (
+        "    foo: baz | UndefinedDataClassField\n"
+        + "    bar_baz: qux | UndefinedDataClassField"
+    )
+    join_assignment_block = (
+        '        self.foo = data.get("foo", UndefinedField)\n'
+        + '        self.bar_baz = data.get("bar_baz", UndefinedField)'
+    )
+
+    permutations = [
+        ("", "", []),
+        (
+            SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_UPDATE.format(name="Foobar"),
+            "",
+            ["UPDATE"],
+        ),
+        (
+            "",
+            SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_CREATE.format(name="Foobar"),
+            ["CREATE"],
+        ),
+        (
+            SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_UPDATE.format(name="Foobar"),
+            SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_CREATE.format(name="Foobar"),
+            ["UPDATE", "CREATE"],
+        ),
+    ]
+
+    for update_snippet, create_snippet, db_object_crud_ops in permutations:
+        save_method = ""
+        if update_snippet or create_snippet:
+            save_method = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE.format(
+                create_snippet=create_snippet,
+                update_snippet=update_snippet,
+            )
+
+        data_class = generate_data_class(
+            "Foobar",
+            {"foo": "baz", "barBaz": "qux"},
+            "Python",
+            db_object_crud_ops,
+            obj_endpoint=obj_endpoint,
+            obj_primary_key=obj_primary_key,
+        )
+
+        assert data_class == SDK_PYTHON_DATACLASS_TEMPLATE.format(
+            name="Foobar",
+            join_field_block=join_field_block,
+            obj_endpoint=obj_endpoint,
+            join_assignment_block=join_assignment_block,
+            primary_key_name=obj_primary_key,
+            save_method=save_method,
+        ) + ("" if save_method else "\n\n")
 
 
 def test_generate_literal_type():

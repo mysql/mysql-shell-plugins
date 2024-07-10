@@ -21,15 +21,16 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+from dataclasses import asdict, dataclass
 import json
 import os
 import ssl
-from typing import Any, Callable, NotRequired, Optional, TypedDict
+from typing import Any, Callable, NotRequired, Optional, TypedDict, cast
 from unittest.mock import MagicMock
 
 import pytest
 
-from python.mrs_base_classes import IMrsResourceDetails, MrsBaseObjectCreate, MrsBaseObjectQuery, MrsJSONDataDecoder, MrsJSONDataEncoder, MrsQueryEncoder, Record, RecordNotFoundError, UndefinedDataClassField  # type: ignore
+from python.mrs_base_classes import IMrsResourceDetails, MrsBaseObjectCreate, MrsBaseObjectQuery, MrsBaseObjectUpdate, MrsJSONDataDecoder, MrsJSONDataEncoder, MrsQueryEncoder, Record, RecordNotFoundError, UndefinedDataClassField, UndefinedField  # type: ignore
 
 
 ####################################################################################
@@ -194,6 +195,37 @@ class ActorData(TypedDict):
     last_update: NotRequired[str]
 
 
+@dataclass(init=False, repr=True)
+class Actor(Record):
+
+    # For data attributes, `None` means "NULL" and
+    # `UndefinedField` means "not set or undefined"
+    actor_id: int | UndefinedDataClassField
+    first_name: str | UndefinedDataClassField
+    last_name: str | UndefinedDataClassField
+    last_update: str | UndefinedDataClassField
+
+    def __init__(self, data: ActorData) -> None:
+        """Actor data class."""
+        self._request_path: str = "https://localhost:8444/myService/sakila/actor"
+        self.__load_fields(data)
+
+    def __load_fields(self, data: ActorData) -> None:
+        """Refresh data fields based on the input data."""
+        self.actor_id = data.get("actor_id", UndefinedField)
+        self.first_name = data.get("first_name", UndefinedField)
+        self.last_name = data.get("last_name", UndefinedField)
+        self.last_update = data.get("last_update", UndefinedField)
+
+        for key in Record._reserved_keys:
+            self.__dict__.update({key: data.get(key)})
+
+    @classmethod
+    def get_primary_key_name(cls) -> Optional[str]:
+        """Get primary key name (Class Method)."""
+        return "actor_id"
+
+
 class Obj1Details(IMrsResourceDetails):
     an_int: int
     a_str: str
@@ -324,6 +356,79 @@ async def test_create_submit(
         url=f"{service_url}/actor",
         data=json.dumps(obj=data, cls=MrsJSONDataEncoder).encode(),
         method="POST",
+    )
+    mock_urlopen.assert_called_once()
+
+    assert (
+        response["first_name"]
+        == MrsJSONDataDecoder.convert_keys(urlopen_read)["first_name"]
+    )
+    assert (
+        response["last_name"]
+        == MrsJSONDataDecoder.convert_keys(urlopen_read)["last_name"]
+    )
+
+
+####################################################################################
+#                      Test "submit" Method (update*'s backbone)
+####################################################################################
+@pytest.mark.parametrize(
+    "data, urlopen_read",
+    [
+        (
+            Actor(
+                cast(
+                    ActorData,
+                    ActorDetails(
+                        {
+                            "first_name": "Shigeru",
+                            "last_name": "Miyamoto",
+                            "_metadata": {
+                                "etag": "33ED258BECDF269717782F5569C69F88CCCA2DF11936108C68C44100FF063D4D"
+                            },
+                        }
+                    ),
+                )
+            ),
+            {
+                "actorId": 65,
+                "firstName": "Shigeru",
+                "lastName": "Miyamoto",
+                "lastUpdate": "2006-02-15 04:34:33.000000",
+                "_metadata": {
+                    "etag": "33ED258BECDF269717782F5569C69F88CCCA2DF11936108C68C44100FF063D4D"
+                },
+            },
+        ),
+    ],
+)
+async def test_update_submit(
+    mock_urlopen: MagicMock,
+    mock_request_class: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    service_url: str,
+    data: Actor,
+    urlopen_read: dict[str, Any],
+):
+    """Check `MrsBaseObjectUpdate.submit()`."""
+    prk = cast(str, data.get_primary_key_name())
+
+    record_id = getattr(data, prk)
+    request = MrsBaseObjectUpdate[Actor, ActorDetails](
+        f"{service_url}/actor/{record_id}", data
+    )
+
+    mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
+    mock_create_default_context.return_value = ssl.create_default_context()
+
+    response = await request.submit()
+
+    mock_request_class.assert_called_once_with(
+        url=f"{service_url}/actor/{record_id}",
+        headers={"If-Match": data.__dict__["_metadata"]["etag"]},
+        data=json.dumps(obj=asdict(data), cls=MrsJSONDataEncoder).encode(),
+        method="PUT",
     )
     mock_urlopen.assert_called_once()
 
@@ -737,6 +842,10 @@ def test_hypermedia_property_access():
         def __init__(self) -> None:
             self.__dict__.update({"_metadata": "foo", "links": "bar"})
 
+        @classmethod
+        def get_primary_key_name(cls) -> Optional[str]:
+            return "dummy"
+
     sut = SubjectUnderTest()
 
     with pytest.raises(
@@ -756,6 +865,10 @@ def test_hypermedia_property_modifications():
     class SubjectUnderTest(Record):
         def __init__(self) -> None:
             self.__dict__.update({"_metadata": "foo", "links": "bar"})
+
+        @classmethod
+        def get_primary_key_name(cls) -> Optional[str]:
+            return "dummy"
 
     sut = SubjectUnderTest()
 
@@ -779,6 +892,10 @@ def test_hypermedia_property_removal():
         def __init__(self) -> None:
             self.__dict__.update({"_metadata": "foo", "links": "bar"})
 
+        @classmethod
+        def get_primary_key_name(cls) -> Optional[str]:
+            return "dummy"
+
     sut = SubjectUnderTest()
 
     with pytest.raises(
@@ -800,6 +917,10 @@ def test_hypermedia_property_indexing():
     class SubjectUnderTest(Record):
         def __init__(self) -> None:
             self.__dict__.update({"_metadata": "foo", "links": "bar"})
+
+        @classmethod
+        def get_primary_key_name(cls) -> Optional[str]:
+            return "dummy"
 
     sut = SubjectUnderTest()
 
