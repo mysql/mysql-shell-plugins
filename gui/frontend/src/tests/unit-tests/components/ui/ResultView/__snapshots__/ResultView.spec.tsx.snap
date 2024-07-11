@@ -500,6 +500,7 @@ exports[`Result View Tests Render with Columns 1`] = `
       }
     >
       <TreeGrid
+        onCellClick={[Function]}
         onCellContext={[Function]}
         onColumnResized={[Function]}
         onFormatRow={[Function]}
@@ -517,6 +518,7 @@ exports[`Result View Tests Render with Columns 1`] = `
       >
         <div
           className="msg treeGrid horizontalGrid verticalGrid"
+          onCellClick={[Function]}
         />
       </TreeGrid>
       <Container
@@ -773,6 +775,7 @@ exports[`Result View Tests Standard Rendering 1`] = `
       }
     >
       <TreeGrid
+        onCellClick={[Function]}
         onCellContext={[Function]}
         onColumnResized={[Function]}
         onFormatRow={[Function]}
@@ -790,6 +793,7 @@ exports[`Result View Tests Standard Rendering 1`] = `
       >
         <div
           className="msg treeGrid horizontalGrid verticalGrid"
+          onCellClick={[Function]}
         />
       </TreeGrid>
       <Container
