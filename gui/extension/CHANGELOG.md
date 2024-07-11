@@ -5,25 +5,33 @@
 ### Additions
 
 - Updated MySQL Shell to 9.0.0
+- Added new keyboard shortcut: Alt/Option+ArrowUp/Down on DB Notebook moves focus to Result Sets
+- Added new keyboard shortcut: Enter starts/ends editing when a Result Set cell holds the focus
+- Added new keyboard shortcut: Command+Enter commits changes and Command+Esc rolls back changes when a Result Set Cell holds the focus
+- Added new keyboard shortcut: Shift+Enter adds a new line in a text cell
 
 ### Fixes
 
+- Fixed several issues related to Result Set editing
 - BUG#36798924 Renamed connection-timeout to connect-timeout to match the standard name
 - BUG#36798984 Renew the bastion session if expired/deleted
 
 ## Changes in 1.15.0+8.4.0
 
 ### Additions
+
 - HeatWave Lakehouse Navigator
 - HeatWave Chat
 - WL#16049 Implement initial editing in result grids
 - Upgraded to MySQL Shell 8.4.0
 
 ### Improvements
+
 - WL#15718 Simplify application-level interfaces in the MRS SDK
 - WL#16158 Improve the MRS SDK API for handling resource collections
 
 ### Fixes
+
 - Fixes regression issue about clipboard operations (copy/paste)
 - BUG#36027690 Connection error when opening REST Object Request Path in Web Browser
 - BUG#36041538 Fix missing status messages during bastion connection
