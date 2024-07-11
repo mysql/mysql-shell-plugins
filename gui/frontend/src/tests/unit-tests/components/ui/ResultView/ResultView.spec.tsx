@@ -616,7 +616,7 @@ describe("Result View Tests", (): void => {
         expect(portals).toHaveLength(1);
 
         const elements = document.getElementsByClassName("menuItem");
-        expect(elements).toHaveLength(17);
+        expect(elements).toHaveLength(18);
 
         const clipboardSpy = jest.spyOn(requisitions, "writeToClipboard")
             .mockImplementation((_text: string) => {
@@ -908,6 +908,10 @@ describe("Result View Tests", (): void => {
                         element.click();
                         expect(cell.getValue()).toBe("ANIMAL");
 
+                        break;
+                    }
+
+                    case "editValueMenuItem" : {
                         break;
                     }
 
