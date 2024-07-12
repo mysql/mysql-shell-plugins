@@ -22,6 +22,8 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 #>
+
+$ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
 $basePath = Join-Path $PSScriptRoot ".."
 Set-Location $basePath
@@ -73,22 +75,6 @@ if ($arch -eq "arm") {
 }
 
 npm run e2e-tests-get-chromedriver -- -s $testResources -c $vsCodeVersion
-
-# CREATE OCI Directory
-$ociPath = Join-Path $env:WORKSPACE "oci"
-if (!(Test-Path -Path $ociPath)){
-    write-host "Creating $ociPath folder..." "-NoNewLine"
-    New-Item -Path $env:WORKSPACE -Name "oci" -ItemType "directory" -Force
-    write-host "DONE"
-}
-
-# COPY OCI FILES
-$itemsPath = Join-Path $basePath "oci_files"
-Get-ChildItem -Path $itemsPath | % {
-    write-host "Copying $_ file to $ociPath folder..." "-NoNewLine"
-    Copy-Item -Path $_ $ociPath -Force
-    write-host "DONE"
-}
 
 # TSC
 npm run e2e-tests-tsc

@@ -40,7 +40,7 @@ import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
 import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
 import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
-import { TestLocker } from "../lib/TestLocker";
+import { TestQueue } from "../lib/TestQueue";
 
 let ociConfig: interfaces.IOciProfileConfig;
 let ociTree: RegExp[];
@@ -70,7 +70,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     const ociTreeSection = new E2EAccordionSection(constants.ociTreeSection);
     const opedEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
     const tasksTreeSection = new E2EAccordionSection(constants.tasksTreeSection);
-    const testLocker = new TestLocker();
 
     before(async function () {
 
@@ -118,19 +117,28 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
     describe("Profile", () => {
 
+        let existsInQueue = false;
+
         afterEach(async function () {
             if (this.currentTest?.state === "failed") {
                 await Misc.processFailure(this);
             }
 
-            testLocker.unlockTest(this.currentTest.title, this.currentTest.duration);
+            if (existsInQueue) {
+                await TestQueue.pop(this.currentTest.title);
+                existsInQueue = false;
+            }
+
 
             await Workbench.closeAllEditors();
         });
 
         it("View Config Profile Information", async function () {
 
-            await testLocker.lockTest(this.test.title, constants.wait30seconds);
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+
             const treeE2eTests = await ociTreeSection.tree.getElement(`${ociConfig.name} (${ociConfig.region})`);
             await ociTreeSection.tree.openContextMenuAndSelect(treeE2eTests, constants.viewConfigProfileInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${ociConfig.name} Info.json`), constants.wait5seconds);
@@ -151,6 +159,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     describe("Compartment", () => {
 
         let compartmentId = "";
+        let existsInQueue = false;
 
         before(async function () {
             try {
@@ -166,7 +175,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.processFailure(this);
             }
 
-            testLocker.unlockTest(this.currentTest.title, this.currentTest.duration);
+            if (existsInQueue) {
+                await TestQueue.pop(this.currentTest.title);
+                existsInQueue = false;
+            }
 
             await Workbench.closeAllEditors();
         });
@@ -184,7 +196,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         it("View Compartment Information", async function () {
 
-            await testLocker.lockTest(this.test.title, constants.wait30seconds);
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+
             const treeCompartment = await ociTreeSection.tree.getElement(ociTree[2]);
             await ociTreeSection.tree.openContextMenuAndSelect(treeCompartment, constants.viewCompartmentInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${ociTree[2].source} Info.json`), constants.wait5seconds);
@@ -381,6 +396,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
     describe("Bastion", () => {
 
         let bastionId: string;
+        let existsInQueue = false;
 
         before(async function () {
             try {
@@ -396,13 +412,20 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.processFailure(this);
             }
 
-            testLocker.unlockTest(this.currentTest.title, this.currentTest.duration);
+            if (existsInQueue) {
+                await TestQueue.pop(this.currentTest.title);
+                existsInQueue = false;
+            }
+
             await tasksTreeSection.collapse();
         });
 
         it("Get Bastion Information", async function () {
 
-            await testLocker.lockTest(this.test.title, constants.wait30seconds);
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+
             const treeBastion = await ociTreeSection.tree.getOciElementByType(constants.bastionType);
             const bastionName = await treeBastion.getLabel();
             await ociTreeSection.tree.openContextMenuAndSelect(treeBastion, constants.getBastionInfo);

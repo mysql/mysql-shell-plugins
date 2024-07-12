@@ -44,7 +44,7 @@ import { RestSchemaDialog } from "../lib/WebViews/Dialogs/RestSchemaDialog";
 import { AuthenticationAppDialog } from "../lib/WebViews/Dialogs/AuthenticationAppDialog";
 import { RestUserDialog } from "../lib/WebViews/Dialogs/RestUserDialog";
 import { ExportSDKDialog } from "../lib/WebViews/Dialogs/ExportSDKDialog";
-import { TestLocker } from "../lib/TestLocker";
+import { TestQueue } from "../lib/TestQueue";
 
 
 describe("MySQL REST Service", () => {
@@ -343,7 +343,7 @@ describe("MySQL REST Service", () => {
         const destDumpSchema = join(constants.workspace, restSchemaToDump.settings.schemaName);
         const destDumpTable = join(constants.workspace, tableToDump);
         const destDumpSdk = join(constants.workspace, "dump.sdk");
-        const testLocker = new TestLocker();
+        let existsInQueue = false;
 
         before(async function () {
             try {
@@ -392,7 +392,10 @@ describe("MySQL REST Service", () => {
                 await Misc.processFailure(this);
             }
 
-            testLocker.unlockTest(this.currentTest.title, this.currentTest.duration);
+            if (existsInQueue) {
+                await TestQueue.pop(this.currentTest.title);
+                existsInQueue = false;
+            }
         });
 
         after(async () => {
@@ -638,7 +641,10 @@ describe("MySQL REST Service", () => {
 
         it("Copy REST Object Request Path to Clipboard", async function () {
 
-            await testLocker.lockTest(this.test.title, constants.wait30seconds);
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+
             const actorTree = await dbTreeSection.tree.getElement(`/${actorTable} (${actorTable})`);
             await dbTreeSection.tree.openContextMenuAndSelect(actorTree, constants.copyRESTObjReqPath);
             await driver.wait(Workbench

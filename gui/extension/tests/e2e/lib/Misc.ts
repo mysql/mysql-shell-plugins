@@ -27,12 +27,13 @@ import fs from "fs/promises";
 import { Database } from "sqlite3";
 import addContext from "mochawesome/addContext";
 import { join } from "path";
-import { ITimeouts, until, VSBrowser, WebDriver, WebElement } from "vscode-extension-tester";
+import { ITimeouts, until, VSBrowser, WebDriver, WebElement, Condition } from "vscode-extension-tester";
 import { existsSync } from "fs";
 import { Workbench } from "./Workbench";
 import * as constants from "./constants";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
+import { createConnection } from "mysql2/promise";
 export let driver: WebDriver;
 export let browser: VSBrowser;
 
@@ -290,4 +291,32 @@ export class Misc {
 
     };
 
+    /**
+     * Verifies if a schema exists on the current database
+     * @param schema The schema name
+     * @returns True if the schema exists, false otherwise
+     */
+    public static untilSchemaExists = (schema: string): Condition<boolean> => {
+        return new Condition(`for schema '${schema}' to exist`, async () => {
+            try {
+                const mysqlConnection = await createConnection({
+                    host: process.env.DBHOSTNAME,
+                    user: process.env.DBUSERNAME,
+                    password: process.env.DBPASSWORD,
+                    database: schema,
+                });
+
+                await mysqlConnection.connect();
+                mysqlConnection.destroy();
+
+                return true;
+            } catch (e) {
+                if (String(e).includes("Unknown database")) {
+                    return false;
+                } else {
+                    throw e;
+                }
+            }
+        });
+    };
 }

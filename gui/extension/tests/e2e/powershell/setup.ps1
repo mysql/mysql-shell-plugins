@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 #>
 
+$ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
 $basePath = Join-Path $PSScriptRoot ".."
 Set-Location $basePath
@@ -221,26 +222,15 @@ try {
         $dest = $env:VSIX_PATH
     }
 
-    # CREATE .OCI Directory
-    $ociPath = Join-Path $env:WORKSPACE "oci"
-    if (!(Test-Path -Path $ociPath)){
-        writeMsg "Creating $ociPath folder..." "-NoNewLine"
-        New-Item -Path $env:WORKSPACE -Name "oci" -ItemType "directory" -Force
-        writeMsg "DONE"
-    }
-
-    # COPY OCI FILES
-    $itemsPath = Join-Path $basePath "oci_files"
-    Get-ChildItem -Path $itemsPath | % {
-        writeMsg "Copying $_ file to $ociPath folder..." "-NoNewLine"
-        Copy-Item -Path $_ $ociPath -Force
-        writeMsg "DONE"
-    }
-
     # INSTALL VSIX
     $testResources = Join-Path $env:TEST_RESOURCES_PATH "test-resources-$($testSuites[0])"
     $firstExtLocation = Join-Path $env:WORKSPACE "ext-$($testSuites[0])"
     writeMsg "Start installing the extension for first test suite..." "-NoNewLine"
+
+    if (Test-Path $firstExtLocation) {
+        Remove-Item $firstExtLocation -Force -Recurse
+    }
+    
     New-Item -Path $firstExtLocation -ItemType "directory"
     npm run e2e-tests-install-vsix -- -s $testResources -e $firstExtLocation -f $dest
     writeMsg "DONE installing the extension at $firstExtLocation"

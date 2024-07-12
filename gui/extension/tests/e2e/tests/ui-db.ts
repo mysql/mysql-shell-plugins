@@ -46,7 +46,7 @@ import * as errors from "../lib/errors";
 import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
 import { Script } from "../lib/WebViews/Script";
 import { Toolbar } from "../lib/WebViews/Toolbar";
-import { TestLocker } from "../lib/TestLocker";
+import { TestQueue } from "../lib/TestQueue";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -75,8 +75,6 @@ describe("DATABASE CONNECTIONS", () => {
         throw new Error("Please define the environment variable MYSQLSH_OCI_CONFIG_FILE");
     }
 
-    const testLocker = new TestLocker();
-
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
         caption: `e2eGlobalDBConnection`,
@@ -97,6 +95,11 @@ describe("DATABASE CONNECTIONS", () => {
         await Misc.loadDriver();
         try {
             await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
+
+            if (process.env.PARALLEL) {
+                await driver.wait(Misc.untilSchemaExists(constants.restServiceMetadataSchema), constants.wait2minutes);
+            }
+
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
             await Workbench.dismissNotifications();
@@ -106,6 +109,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Workbench.closeAllEditors();
             await new BottomBarPanel().toggle(false);
             await dbTreeSection.focus();
+
         } catch (e) {
             await Misc.processFailure(this);
             await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
@@ -226,6 +230,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
         const dbConnectionOverview = new DatabaseConnectionOverview();
+        let existsInQueue = false;
 
         before(async function () {
 
@@ -267,7 +272,10 @@ describe("DATABASE CONNECTIONS", () => {
                 await Misc.processFailure(this);
             }
 
-            testLocker.unlockTest(this.currentTest.title, this.currentTest.duration);
+            if (existsInQueue) {
+                await TestQueue.pop(this.currentTest.title);
+                existsInQueue = false;
+            }
 
         });
 
@@ -430,7 +438,10 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Copy paste and cut paste into the DB Connection dialog", async function () {
 
-            await testLocker.lockTest(this.test.title, constants.wait30seconds);
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+
             await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
             const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
                 constants.wait5seconds, "Connection dialog was not displayed");
@@ -892,6 +903,7 @@ describe("DATABASE CONNECTIONS", () => {
         const testEvent = "test_event";
         const dup = "duplicatedConnection";
         const tasksTreeSection = new E2EAccordionSection(constants.tasksTreeSection);
+        let existsInQueue = false;
 
         before(async function () {
 
@@ -928,7 +940,10 @@ describe("DATABASE CONNECTIONS", () => {
                 await Misc.processFailure(this);
             }
 
-            testLocker.unlockTest(this.currentTest.title, this.currentTest.duration);
+            if (existsInQueue) {
+                await TestQueue.pop(this.currentTest.title);
+                existsInQueue = false;
+            }
         });
 
         after(async () => {
@@ -1161,7 +1176,9 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Schema - Copy name and create statement to clipboard", async function () {
 
-            await testLocker.lockTest(this.test.title, constants.wait30seconds);
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             await driver.wait(new Condition("", async () => {
                 try {
@@ -1216,7 +1233,9 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Table - Copy name and create statement to clipboard", async function () {
 
-            await testLocker.lockTest(this.test.title, constants.wait30seconds);
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             await driver.wait(new Condition("", async () => {
                 try {
@@ -1278,7 +1297,9 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("View - Copy name and create statement to clipboard", async function () {
 
-            await testLocker.lockTest(this.test.title, constants.wait30seconds);
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             await driver.wait(new Condition("", async () => {
                 try {
@@ -1350,7 +1371,10 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Routines - Clipboard", async function () {
 
-            await testLocker.lockTest(this.test.title, constants.wait30seconds);
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+
             await (await dbTreeSection.tree.getElement("Tables")).collapse();
             const treeRoutines = await dbTreeSection.tree.getElement("Routines");
             await treeRoutines.expand();

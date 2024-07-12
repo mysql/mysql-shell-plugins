@@ -29,26 +29,27 @@ import * as constants from "./constants";
 import { join } from "path";
 
 /**
- * This class locks a test. It means that other tests will wait until the current one is finished
+ * This class locks the testing system by creating a folder in the file system.
+ * It is used for parallel execution of the tests that use the system clipboard
  */
-export class TestLocker {
+export class SystemLocker {
 
-    /** Flag to indicate if the test is locked*/
+    /** Flag to indicate if the resource is locked*/
     private locked = false;
 
     /**
-     * Locks a test
-     * @param testName The test name
+     * Creates the lock / Creates the lock folder
+     * @param reason The reason to lock the system
      * @param timeout The time to wait for a lock
-     * @returns A promise resolving when the test is locked
+     * @returns A promise resolving when the system is locked
      */
-    public lockTest = async (testName: string, timeout: number): Promise<void> => {
+    public lock = async (reason: string, timeout: number): Promise<void> => {
         await driver.wait(() => {
             try {
-                mkdirSync(constants.locked);
+                mkdirSync(constants.lockFlag);
                 this.locked = true;
                 const now = new Date();
-                this.writeLog(`LOCKED '${testName}' at ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}\n`);
+                this.log(`LOCKED: "${reason}" at ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`);
 
                 return true;
             } catch (e) {
@@ -56,35 +57,43 @@ export class TestLocker {
 
                 return false;
             }
-        }, timeout, "Could not lock the test");
+        }, timeout, "Could not lock the system");
     };
 
     /**
-     * Unlocks a test
-     * @param testName The test name
-     * @param testDuration The duration of the test
+     * Removes the lock / Removes the lock folder
+     * @param reason The reason to unlock the system
+     * @param testDuration The duration of the lock
      */
-    public unlockTest = (testName: string, testDuration: number): void => {
+    public unlock = (reason: string, testDuration?: number): void => {
         if (this.isLocked()) {
             const now = new Date();
-            let log = `unLOCKED '${testName}' at ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}.`;
-            log += ` Duration: ${testDuration}ms\n`;
-            this.writeLog(log);
-            rmdirSync(constants.locked);
+            let log = `unLOCKED: "${reason}" at ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}\n`;
+
+            if (testDuration) {
+                log += ` Duration: ${testDuration}ms\n`;
+            }
+
+            this.log(log);
+            rmdirSync(constants.lockFlag);
             this.locked = false;
         }
     };
 
     /**
-     * Verifies if a test is locked
-     * @returns True if a test is locked, false otherwise
+     * Verifies if the system is locked
+     * @returns True if the system is locked, false otherwise
      */
     public isLocked = (): boolean => {
         return this.locked === true;
     };
 
-    private writeLog = (content: string) => {
-        const logFile = join(process.cwd(), "testLocks.log");
+    /**
+     * Writes to the log file
+     * @param content The content to write
+     */
+    private log = (content: string) => {
+        const logFile = join(process.cwd(), "systemLocks.log");
 
         if (existsSync(logFile)) {
             appendFileSync(logFile, `${content}\n`);
