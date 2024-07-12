@@ -489,7 +489,7 @@ export class CommandResult implements interfaces.ICommandResult {
             });
         };
 
-        await driver.wait(chatResultIsProcessed(), constants.wait25seconds);
+        await driver.wait(chatResultIsProcessed(), constants.wait1minute);
         const text = await this.context.findElement(resultLocator.chat.resultText);
         this.chat = await text.getText();
     };

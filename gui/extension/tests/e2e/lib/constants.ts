@@ -62,6 +62,7 @@ export const wait30seconds = 30000;
 export const wait1minute = 60000;
 export const wait2minutes = 120000; //extensionReadyWait
 export const wait5minutes = 300000;
+export const queuePollTimeout = wait5minutes;
 
 // TREE SEARCH LEVELS
 export const dbMaxLevel = 5;
@@ -305,7 +306,7 @@ export const preventFiltering = "Prevent filtering operations on this field";
 export const preventUpdates = "Prevent updates on this field";
 export const excludeETAG = "Exclude this field from ETAG calculations";
 
-export const locked = join(process.cwd(), "locked");
+export const lockFlag = join(process.cwd(), "locked");
 
 export const dbMainCtxMenu = new Map([
     [restartInternalShell, 1],
@@ -466,4 +467,6 @@ export const ociComputeInstanceCtxMenu = new Map([
     [viewComputeInstanceInfo, 1],
     [deleteComputeInstance, 3],
 ]);
+
+export const restServiceMetadataSchema = "mysql_rest_service_metadata";
 

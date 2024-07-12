@@ -81,10 +81,14 @@ export class LoadIntoLakehouse {
         const refLocator = locator.lakeHouseNavigator.loadIntoLakeHouse.newLoadingTask;
 
         if (task.name) {
-            await driver.findElement(refLocator.name).sendKeys(task.name);
+            const taskName = await driver.findElement(refLocator.name);
+            await taskName.clear();
+            await taskName.sendKeys(task.name);
         }
 
         if (task.description) {
+            const taskDescription = driver.findElement(refLocator.description);
+            await taskDescription.clear();
             await driver.findElement(refLocator.description).sendKeys(task.description);
         }
 

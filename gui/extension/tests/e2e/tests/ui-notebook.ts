@@ -41,7 +41,7 @@ import { E2ECodeEditorWidget } from "../lib/WebViews/E2ECodeEditorWidget";
 import { Script } from "../lib/WebViews/Script";
 import { LakeHouseNavigator } from "../lib/WebViews/lakehouseNavigator/lakeHouseNavigator";
 import { HeatWaveProfileEditor } from "../lib/WebViews/lakehouseNavigator/heatWaveProfileEditor";
-import { TestLocker } from "../lib/TestLocker";
+import { TestQueue } from "../lib/TestQueue";
 
 describe("NOTEBOOKS", () => {
 
@@ -94,12 +94,16 @@ describe("NOTEBOOKS", () => {
 
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
     const notebook = new E2ENotebook();
-    const testLocker = new TestLocker();
 
     before(async function () {
         await Misc.loadDriver();
         try {
             await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
+
+            if (process.env.PARALLEL) {
+                await driver.wait(Misc.untilSchemaExists(constants.restServiceMetadataSchema), constants.wait2minutes);
+            }
+
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.createDatabaseConnection(globalConn);
             await dbTreeSection.createDatabaseConnection(anotherConn);
@@ -128,6 +132,7 @@ describe("NOTEBOOKS", () => {
     describe("Code Editor", () => {
 
         let cleanEditor = false;
+        let existsInQueue = false;
 
         before(async function () {
             try {
@@ -144,7 +149,10 @@ describe("NOTEBOOKS", () => {
                 await notebook.codeEditor.loadCommandResults();
             }
 
-            testLocker.unlockTest(this.currentTest.title, this.currentTest.duration);
+            if (existsInQueue) {
+                await TestQueue.pop(this.currentTest.title);
+                existsInQueue = false;
+            }
 
             if (cleanEditor) {
                 await notebook.codeEditor.clean();
@@ -485,7 +493,9 @@ describe("NOTEBOOKS", () => {
 
         it("Copy paste into notebook", async function () {
 
-            await testLocker.lockTest(this.test.title, constants.wait30seconds);
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             await notebook.codeEditor.clean();
             await Misc.switchBackToTopFrame();
@@ -525,7 +535,10 @@ describe("NOTEBOOKS", () => {
 
         it("Cut paste into notebook", async function () {
 
-            await testLocker.lockTest(this.test.title, constants.wait30seconds);
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+
             const sentence1 = "select * from sakila.actor";
             const sentence2 = "select * from sakila.address";
             await notebook.codeEditor.clean();
@@ -547,7 +560,10 @@ describe("NOTEBOOKS", () => {
 
         it("Copy to clipboard button", async function () {
 
-            await testLocker.lockTest(this.test.title, constants.wait30seconds);
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("\\about ");
             await result.copyToClipboard();
@@ -718,7 +734,10 @@ describe("NOTEBOOKS", () => {
 
         it("Result grid context menu - Copy single row", async function () {
 
-            await testLocker.lockTest(this.test.title, constants.wait30seconds);
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+
             const result = await notebook.codeEditor.execute("select * from sakila.actor limit 1;");
             expect(result.toolbar.status).to.match(/OK/);
 
@@ -801,7 +820,9 @@ describe("NOTEBOOKS", () => {
 
         it("Result grid context menu - Copy multiple rows", async function () {
 
-            await testLocker.lockTest(this.test.title, constants.wait30seconds);
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             const maxRows = 2;
             const result = await notebook.codeEditor
@@ -887,7 +908,10 @@ describe("NOTEBOOKS", () => {
 
         it("Result grid context menu - Copy field, copy field unquoted, set field to null", async function () {
 
-            await testLocker.lockTest(this.test.title, constants.wait30seconds);
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_chars;");
             expect(result.toolbar.status).to.match(/OK/);
@@ -2018,7 +2042,7 @@ describe("NOTEBOOKS", () => {
             expect(await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.existsItem(cookbookFile))
                 .to.be.true;
             await driver.wait(Workbench.untilNotificationExists("The files have been uploaded successfully"),
-                constants.wait10seconds);
+                constants.wait20seconds);
 
         });
 
@@ -2099,7 +2123,7 @@ describe("NOTEBOOKS", () => {
             await (await notebook.toolbar.getButton(constants.showChatOptions)).click();
             const hwProfileEditor = new HeatWaveProfileEditor();
             await driver.wait(hwProfileEditor.untilIsOpened(), constants.wait5seconds);
-            await hwProfileEditor.selectModel(constants.modelLlama2);
+            await hwProfileEditor.selectModel(constants.modelMistral);
             await notebook.codeEditor.languageSwitch("\\chat");
             await notebook.codeEditor.loadCommandResults();
             const result = await notebook.codeEditor.execute(query);

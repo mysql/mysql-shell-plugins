@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 #>
 
+$ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
 $basePath = Join-Path $PSScriptRoot ".."
 Set-Location $basePath
