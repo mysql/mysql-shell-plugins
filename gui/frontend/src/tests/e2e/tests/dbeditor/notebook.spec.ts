@@ -766,28 +766,8 @@ describe("Notebook", () => {
         }
     });
 
-    it("Valid and invalid json", async () => {
-        try {
-            await commandExecutor.languageSwitch("\\ts ");
-            await commandExecutor.execute(`print('{"a": "b"}')`);
-            await driver.wait(async () => {
-                return ShellSession.isJSON();
-            }, constants.wait5seconds, "Result is not a valid json");
-
-            await commandExecutor.execute(`print('{ a: b }')`);
-            expect(commandExecutor.getResultMessage()).toBe("{ a: b }");
-            await driver.wait(async () => {
-                return !(await ShellSession.isJSON());
-            }, constants.wait5seconds, "Result should not be a valid json");
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
     it("Schema autocomplete context menu", async () => {
         try {
-            await commandExecutor.languageSwitch("\\sql ", true);
             await commandExecutor.write("select sak", true);
             await commandExecutor.openSuggestionMenu();
             let els = await DBNotebooks.getAutoCompleteMenuItems();
@@ -810,9 +790,30 @@ describe("Notebook", () => {
         }
     });
 
+    it("Valid and invalid json", async () => {
+        try {
+            await commandExecutor.clean();
+            await commandExecutor.languageSwitch("\\ts ");
+            await commandExecutor.execute(`print('{"a": "b"}')`);
+            await driver.wait(async () => {
+                return ShellSession.isJSON();
+            }, constants.wait5seconds, "Result is not a valid json");
+
+            await commandExecutor.execute(`print('{ a: b }')`);
+            expect(commandExecutor.getResultMessage()).toBe("{ a: b }");
+            await driver.wait(async () => {
+                return !(await ShellSession.isJSON());
+            }, constants.wait5seconds, "Result should not be a valid json");
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
     it("Verify mysql data types - integer columns", async () => {
         try {
             await commandExecutor.clean();
+            await commandExecutor.languageSwitch("\\sql ", true);
             await commandExecutor.execute("SELECT * from sakila.all_data_types_ints;");
             expect(commandExecutor.getResultMessage()).toMatch(/OK/);
             const row = 0;
