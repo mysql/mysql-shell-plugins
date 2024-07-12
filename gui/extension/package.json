@@ -1722,6 +1722,7 @@
         "esbuild": "esbuild ./src/extension.ts --main-fields=module,main --bundle --outfile=out/main.cjs --external:vscode --format=cjs --platform=node",
         "esbuild-watch": "npm run esbuild -- --sourcemap --watch",
         "lint": "eslint \"./src/**/*.ts\"",
-        "unit-tests": "mkdir -p .vscode-test/vscode-dummy/ && touch .vscode-test/vscode-dummy/dummy.txt"
+        "unit-tests": "mkdir -p .vscode-test/vscode-dummy/ && touch .vscode-test/vscode-dummy/dummy.txt",
+        "package-extension": "pwsh scripts/package_extension.ps1"
     }
 }

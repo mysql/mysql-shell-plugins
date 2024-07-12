@@ -1470,11 +1470,20 @@ export class CommandExecutor {
                             }
 
                             return true;
-                        }, constants.wait5seconds, "Could not find on result ' .'");
+                        }, constants.wait5seconds, "Partial output text was undefined or empty");
                     } else {
-                        for (const output of resultOutput) {
-                            resultToReturn += await output.getText();
-                        }
+                        await driver.wait(async () => {
+                            for (const output of resultOutput) {
+                                const outputText = await output.getText();
+                                if (outputText !== "" && outputText !== undefined) {
+                                    resultToReturn += (await output.getText()).trim();
+                                } else {
+                                    return false;
+                                }
+                            }
+
+                            return true;
+                        }, constants.wait5seconds, "Partial output text was undefined or empty");
                     }
                 }
 
