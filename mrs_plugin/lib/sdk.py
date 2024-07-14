@@ -195,6 +195,9 @@ def substitute_imports_in_template(template, enabled_crud_ops, required_datatype
     crud_ops = ["Create", "Read", "Update",
                 "Delete", "UpdateProcedure", "ReadUnique", "ReadFunction"]
 
+    if required_datatypes is None:
+        required_datatypes = []
+
     for loop in import_loops:
         import_template = loop.group(1)
 
@@ -1332,6 +1335,10 @@ class Mrs {
     s += f"""
     public getStatus = () => {{
         return {json.dumps(status_output)};
+    }}
+
+    public addService = () => {{
+        mrsEditService();
     }}
 
     public printSdkCode = () => {{
