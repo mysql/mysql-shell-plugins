@@ -359,7 +359,7 @@ def test_generate_interfaces():
 
     assert got == want
 
-    db_column = { "datatype": "varchar(3)", "not_null": True, "id_generation": "auto_inc" }
+    db_column = { "datatype": "varchar(3)", "not_null": True, "id_generation": "auto_inc"}
     fields = [{ "lev": 1, "enabled": True, "db_column": db_column, "name": "bar" }]
     want = """export type IFooData = {
     bar?: string,
@@ -389,6 +389,9 @@ export interface IFooCursors {
         create_snippet=create_snippet,
         update_snippet=update_snippet,
     )
+    delete_method = SDK_PYTHON_DATACLASS_TEMPLATE_DELETE.format(name=class_name) if obj_primary_key else ""
+    if save_method and delete_method:
+        delete_method = " "*4 + delete_method.lstrip()
 
     want = '''class I{name}Details(IMrsResourceDetails):
     bar: str
@@ -439,8 +442,9 @@ class I{name}Cursors(TypedDict, total=False):
         join_field_block=join_field_block,
         obj_endpoint=obj_endpoint,
         join_assignment_block=join_assignment_block,
-        primary_key_name=obj_primary_key,
+        primary_key_name=(None if obj_primary_key is None else f'"{obj_primary_key}"'),
         save_method=save_method,
+        delete_method=delete_method,
     ).rstrip()
 )
 
@@ -570,30 +574,40 @@ def test_generate_data_class():
     ]
 
     for update_snippet, create_snippet, db_object_crud_ops in permutations:
-        save_method = ""
-        if update_snippet or create_snippet:
-            save_method = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE.format(
-                create_snippet=create_snippet,
-                update_snippet=update_snippet,
+        for obj_prk, add_delete in [(None, False), (None, True), ("foo_id", True), ("foo_id", False)]:
+            save_method = ""
+            delete_method = ""
+            db_object_delete_op = []
+
+            if update_snippet or create_snippet:
+                save_method = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE.format(
+                    create_snippet=create_snippet,
+                    update_snippet=update_snippet,
+                )
+            if add_delete and obj_prk:
+                delete_method = SDK_PYTHON_DATACLASS_TEMPLATE_DELETE.format(name="Foobar")
+                db_object_delete_op.append("DELETE")
+                if save_method:
+                    delete_method = " "*4 + delete_method.lstrip()
+
+            data_class = generate_data_class(
+                "Foobar",
+                {"foo": "baz", "barBaz": "qux"},
+                "Python",
+                db_object_crud_ops+db_object_delete_op,
+                obj_endpoint=obj_endpoint,
+                obj_primary_key=obj_prk,
             )
 
-        data_class = generate_data_class(
-            "Foobar",
-            {"foo": "baz", "barBaz": "qux"},
-            "Python",
-            db_object_crud_ops,
-            obj_endpoint=obj_endpoint,
-            obj_primary_key=obj_primary_key,
-        )
-
-        assert data_class == SDK_PYTHON_DATACLASS_TEMPLATE.format(
-            name="Foobar",
-            join_field_block=join_field_block,
-            obj_endpoint=obj_endpoint,
-            join_assignment_block=join_assignment_block,
-            primary_key_name=obj_primary_key,
-            save_method=save_method,
-        ) + ("" if save_method else "\n\n")
+            assert data_class == SDK_PYTHON_DATACLASS_TEMPLATE.format(
+                name="Foobar",
+                join_field_block=join_field_block,
+                obj_endpoint=obj_endpoint,
+                join_assignment_block=join_assignment_block,
+                primary_key_name=f'"{obj_prk}"' if obj_prk is not None else obj_prk,
+                save_method=save_method,
+                delete_method=delete_method
+            ) + ("" if save_method or delete_method else "\n\n")
 
 
 def test_generate_literal_type():

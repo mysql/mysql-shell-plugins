@@ -25,12 +25,12 @@ from dataclasses import asdict, dataclass
 import json
 import os
 import ssl
-from typing import Any, Callable, NotRequired, Optional, TypedDict, cast
+from typing import Any, Callable, Generic, NotRequired, Optional, TypedDict, cast
 from unittest.mock import MagicMock
 
 import pytest
 
-from python.mrs_base_classes import IMrsResourceDetails, MrsBaseObjectCreate, MrsBaseObjectQuery, MrsBaseObjectUpdate, MrsJSONDataDecoder, MrsJSONDataEncoder, MrsQueryEncoder, Record, RecordNotFoundError, UndefinedDataClassField, UndefinedField  # type: ignore
+from python.mrs_base_classes import BoolField, Filterable, HighOrderOperator, IMrsResourceDetails, IntField, MrsBaseObjectCreate, MrsBaseObjectDelete, MrsBaseObjectQuery, MrsBaseObjectUpdate, MrsJSONDataDecoder, MrsJSONDataEncoder, MrsQueryEncoder, Record, RecordNotFoundError, StringField, UndefinedDataClassField, UndefinedField  # type: ignore
 
 
 ####################################################################################
@@ -240,6 +240,13 @@ class Obj1Data(TypedDict, total=False):
     a_list_of_types: list["Obj2Data"]
 
 
+class Obj1Filterable(Generic[Filterable], HighOrderOperator[Filterable], total=False):
+    an_int: IntField
+    a_str: StringField
+    a_bool: BoolField
+    a_list_of_types: list["Obj2Data"]
+
+
 class Obj2Details(IMrsResourceDetails):
     an_int: int
     a_str: str
@@ -302,8 +309,9 @@ async def validate_url(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    request: MrsBaseObjectQuery,
+    request: MrsBaseObjectQuery | MrsBaseObjectDelete,
     expected_url: str,
+    mock_request_class: Optional[MagicMock] = None,
 ) -> None:
     """Check final URL is built correctly."""
     # Let urlopen return whatever 'urlopen_read' is assigned to
@@ -312,10 +320,15 @@ async def validate_url(
         ssl.create_default_context()
     )
 
-    _ = await request.fetch()  # returns None because urlopen was mocked to return None
-
-    # check urlopen was called once and the url that was built matches the expected
-    mock_urlopen.assert_called_once_with(expected_url, context=expected_context)
+    if isinstance(request, MrsBaseObjectQuery):
+        _ = (
+            await request.fetch()
+        )  # returns None because urlopen was mocked to return None
+        # check urlopen was called once and the url that was built matches the expected
+        mock_urlopen.assert_called_once_with(expected_url, context=expected_context)
+    else:
+        _ = await request.submit()
+        mock_request_class.assert_called_once_with(url=expected_url, method="DELETE")
 
 
 ####################################################################################
@@ -524,17 +537,25 @@ async def test_where_field_is_equal_with_implicit_filter(
     mock_create_default_context: MagicMock,
     service_url: str,
     query: dict[str, Any],
+    mock_request_class: MagicMock
 ):
     """Specifying `where`. Checking implicit filter."""
-    await validate_url(
-        mock_urlopen=mock_urlopen,
-        urlopen_simulator=urlopen_simulator,
-        mock_create_default_context=mock_create_default_context,
-        request=MrsBaseObjectQuery[Obj1Data, Obj1Details](
-            f"{service_url}/dbobject", options=query
-        ),
-        expected_url=f"{service_url}/dbobject?q=%7B%22anInt%22%3A10%7D",
-    )
+    for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
+        if cls_ == MrsBaseObjectQuery:
+            request = cls_[Obj1Data, Obj1Details](
+                f"{service_url}/dbobject", options=query
+            )
+        else:
+            request = cls_[Obj1Filterable](f"{service_url}/dbobject", where=query.get("where"))
+
+        await validate_url(
+            mock_urlopen=mock_urlopen,
+            urlopen_simulator=urlopen_simulator,
+            mock_create_default_context=mock_create_default_context,
+            request=request,
+            expected_url=f"{service_url}/dbobject?q=%7B%22anInt%22%3A10%7D",
+            mock_request_class=mock_request_class,
+        )
 
 
 @pytest.mark.parametrize(
@@ -547,17 +568,25 @@ async def test_where_field_is_equal_with_explicit_filter(
     mock_create_default_context: MagicMock,
     service_url: str,
     query: dict[str, Any],
+    mock_request_class: MagicMock
 ):
     """Specifying `where`. Checking explicit filter."""
-    await validate_url(
-        mock_urlopen=mock_urlopen,
-        urlopen_simulator=urlopen_simulator,
-        mock_create_default_context=mock_create_default_context,
-        request=MrsBaseObjectQuery[Obj1Data, Obj1Details](
-            f"{service_url}/dbobject", options=query
-        ),
-        expected_url=f"{service_url}/dbobject?q=%7B%22anInt%22%3A%7B%22%24eq%22%3A10%7D%7D",
-    )
+    for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
+        if cls_ == MrsBaseObjectQuery:
+            request = cls_[Obj1Data, Obj1Details](
+                f"{service_url}/dbobject", options=query
+            )
+        else:
+            request = cls_[Obj1Filterable](f"{service_url}/dbobject", where=query.get("where"))
+
+        await validate_url(
+            mock_urlopen=mock_urlopen,
+            urlopen_simulator=urlopen_simulator,
+            mock_create_default_context=mock_create_default_context,
+            request=request,
+            expected_url=f"{service_url}/dbobject?q=%7B%22anInt%22%3A%7B%22%24eq%22%3A10%7D%7D",
+            mock_request_class=mock_request_class,
+        )
 
 
 @pytest.mark.parametrize(
@@ -570,17 +599,25 @@ async def test_where_field_is_null(
     mock_create_default_context: MagicMock,
     service_url: str,
     query: dict[str, Any],
+    mock_request_class: MagicMock
 ):
     """Specifying `where`. Checking filter where field is NULL."""
-    await validate_url(
-        mock_urlopen=mock_urlopen,
-        urlopen_simulator=urlopen_simulator,
-        mock_create_default_context=mock_create_default_context,
-        request=MrsBaseObjectQuery[Obj1Data, Obj1Details](
-            f"{service_url}/dbobject", options=query
-        ),
-        expected_url=f"{service_url}/dbobject?q=%7B%22aStr%22%3A%7B%22%24null%22%3Anull%7D%7D",
-    )
+    for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
+        if cls_ == MrsBaseObjectQuery:
+            request = cls_[Obj1Data, Obj1Details](
+                f"{service_url}/dbobject", options=query
+            )
+        else:
+            request = cls_[Obj1Filterable](f"{service_url}/dbobject", where=query.get("where"))
+
+        await validate_url(
+            mock_urlopen=mock_urlopen,
+            urlopen_simulator=urlopen_simulator,
+            mock_create_default_context=mock_create_default_context,
+            request=request,
+            expected_url=f"{service_url}/dbobject?q=%7B%22aStr%22%3A%7B%22%24null%22%3Anull%7D%7D",
+            mock_request_class=mock_request_class,
+        )
 
 
 @pytest.mark.parametrize(
@@ -593,17 +630,25 @@ async def test_where_field_is_not_null(
     mock_create_default_context: MagicMock,
     service_url: str,
     query: dict[str, Any],
+    mock_request_class: MagicMock
 ):
     """Specifying `where`. Checking filter where field isn't NULL."""
-    await validate_url(
-        mock_urlopen=mock_urlopen,
-        urlopen_simulator=urlopen_simulator,
-        mock_create_default_context=mock_create_default_context,
-        request=MrsBaseObjectQuery[Obj1Data, Obj1Details](
-            f"{service_url}/dbobject", options=query
-        ),
-        expected_url=f"{service_url}/dbobject?q=%7B%22aStr%22%3A%7B%22%24notnull%22%3Anull%7D%7D",
-    )
+    for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
+        if cls_ == MrsBaseObjectQuery:
+            request = cls_[Obj1Data, Obj1Details](
+                f"{service_url}/dbobject", options=query
+            )
+        else:
+            request = cls_[Obj1Filterable](f"{service_url}/dbobject", where=query.get("where"))
+
+        await validate_url(
+            mock_urlopen=mock_urlopen,
+            urlopen_simulator=urlopen_simulator,
+            mock_create_default_context=mock_create_default_context,
+            request=request,
+            expected_url=f"{service_url}/dbobject?q=%7B%22aStr%22%3A%7B%22%24notnull%22%3Anull%7D%7D",
+            mock_request_class=mock_request_class,
+        )
 
 
 ####################################################################################
