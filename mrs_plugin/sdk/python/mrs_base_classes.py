@@ -209,6 +209,12 @@ class IMrsResourceCollectionData(TypedDict):
     links: list[MrsResourceLink]
 
 
+class IMrsDeleteResponse(TypedDict):
+    """Response got by a delete operation"""
+
+    items_deleted: int
+
+
 class EqOperator(Generic[EqOperand], TypedDict):
     """Equal."""
 
@@ -950,3 +956,53 @@ class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
             DataDetails,
             json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys),
         )
+
+
+class MrsBaseObjectDelete(Generic[Filterable]):
+    """Implements the core logic utilized by the `delete*` commands."""
+
+    def __init__(self, request_path: str, where: Filterable) -> None:
+        """Constructor.
+
+        During this stage, query options are parsed and save in the inner state
+        of this instance.
+
+        Args:
+            request_path: the base endpoint to the resource (database table).
+            options: See FindManyOptions, FindFirstOptions and FindUniqueOptions
+                    to know more about the options.
+        """
+        self._request_path: str = request_path
+        self._where: dict = cast(dict, where)
+
+    async def submit(self) -> IMrsDeleteResponse:
+        """Submit the request to the Router to delete a record
+        as of `where` specified at construction time.
+
+        Reurns:
+            A dictionary with information about the
+            number of items deleted.
+            ```
+            items_deleted: int
+            ```
+        """
+        query: dict[str, object] = {}
+
+        if self._where:
+            query["q"] = json.dumps(
+                obj=self._where, cls=MrsQueryEncoder, separators=(",", ":")
+            )
+            querystring = urlencode(query)
+            url = f"{self._request_path}?{querystring}"
+        else:
+            url = self._request_path
+
+        context = ssl.create_default_context()
+
+        req = Request(
+            url=url,
+            method="DELETE",
+        )
+        response = await asyncio.to_thread(urlopen, req, context=context)
+
+        return json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys)

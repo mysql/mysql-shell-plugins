@@ -72,6 +72,24 @@ SDK_PYTHON_DATACLASS_TEMPLATE_SAVE = '''
 '''
 
 # TODO: this skeleton should be extracted into a template file.
+# |--------------- DELETE'S EXECUTION PATH ---------------|
+# If primary key name is `None`, this execution path shouldn't be added.
+# NOTE: We should add `type: ignore[misc]` (see below) because `prk_name`
+# is expected to be a literal string but it should be determined on-the-fly
+# if we want to rely on `get_primary_key_name()` to get it.
+SDK_PYTHON_DATACLASS_TEMPLATE_DELETE = '''
+
+    async def delete(self) -> None:
+        """Deletes the resource represented by the data class instance."""
+        prk_name = cast(str, self.get_primary_key_name())
+        record_id = getattr(self, prk_name)
+
+        _ = await MrsBaseObjectDelete[I{name}Filterable](
+            f"{{self._request_path}}", where={{prk_name: f"{{record_id}}"}}  # type: ignore[misc]
+        ).submit()
+'''
+
+# TODO: this skeleton should be extracted into a template file.
 SDK_PYTHON_DATACLASS_TEMPLATE = '''@dataclass(init=False, repr=True)
 class I{name}(Record):
 
@@ -98,7 +116,7 @@ class I{name}(Record):
         Returns:
             `str` when there is a primary key, `None` otherwise.
         """
-        return {primary_key_name}{save_method}
+        return {primary_key_name}{save_method}{delete_method}
 '''
 
 
@@ -852,6 +870,8 @@ def generate_data_class(
         create_snippet = ""
         update_snippet = ""
         save_method = ""
+        delete_method = ""
+
         if "UPDATE" in db_object_crud_ops:
             update_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_UPDATE.format(
                 name=name
@@ -865,6 +885,12 @@ def generate_data_class(
                 create_snippet=create_snippet,
                 update_snippet=update_snippet,
             )
+        if "DELETE" in db_object_crud_ops and obj_primary_key is not None:
+            delete_method = SDK_PYTHON_DATACLASS_TEMPLATE_DELETE.format(
+                name=name
+            )
+            if save_method:
+                delete_method = " "*4 + delete_method.lstrip()
 
         return SDK_PYTHON_DATACLASS_TEMPLATE.format(
             name=name,
@@ -873,7 +899,8 @@ def generate_data_class(
             join_assignment_block="".join(assignment_block).rstrip(),
             primary_key_name=(None if obj_primary_key is None else f'"{obj_primary_key}"'),
             save_method=save_method,
-        ) + ("" if save_method else "\n\n")
+            delete_method=delete_method,
+        ) + ("" if save_method or delete_method else "\n\n")
 
 
 def generate_field_enum(name, fields=None, sdk_language="TypeScript"):

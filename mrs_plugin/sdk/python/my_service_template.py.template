@@ -28,6 +28,9 @@ from .mrs_base_classes import (
     # --- importUpdateOnlyStart
     MrsBaseObjectUpdate,
     # --- importUpdateOnlyEnd
+    # --- importDeleteOnlyStart
+    MrsBaseObjectDelete,
+    # --- importDeleteOnlyEnd
     Filterable,
     HighOrderOperator,
     IMrsResourceDetails,
@@ -231,6 +234,20 @@ class ${obj_class_name}DatabaseObject:
             for coro in asyncio.as_completed((self.update(item) for item in data))
         ]
     # --- crudUpdateOnlyEnd
+
+    # --- crudDeleteOnlyStart
+    async def delete(self, where: I${obj_class_name}UniqueFilterable) -> bool:
+        return bool(await self.delete_many(where=cast(I${obj_class_name}Filterable, where)))
+
+    async def delete_many(self, where: I${obj_class_name}Filterable) -> int:
+        request = MrsBaseObjectDelete[I${obj_class_name}Filterable](
+            self._request_path, where=where
+        )
+
+        response = await request.submit()
+
+        return response.get("items_deleted", 0)
+    # --- crudDeleteOnlyEnd
 # --- objectLoopEnd
 
 
