@@ -954,4 +954,95 @@ export class ShellInterfaceMrs {
 
         return response.result;
     }
+
+    public async getServiceCreateStatement(serviceId: string): Promise<string> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetServiceCreateStatement,
+            parameters: {
+                kwargs: {
+                    serviceId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getSchemaCreateStatement(schemaId: string): Promise<string> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetSchemaCreateStatement,
+            parameters: {
+                kwargs: {
+                    schemaId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getDbObjectCreateStatement(dbObjectId: string): Promise<string> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetDbObjectCreateStatement,
+            parameters: {
+                kwargs: {
+                    dbObjectId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async dumpServiceCreateStatement(serviceId: string, filePath: string, overwrite: boolean): Promise<boolean> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDumpServiceCreateStatement,
+            parameters: {
+                kwargs: {
+                    serviceId,
+                    filePath,
+                    overwrite,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async dumpSchemaCreateStatement(schemaId: string, filePath: string, overwrite: boolean): Promise<boolean> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDumpSchemaCreateStatement,
+            parameters: {
+                kwargs: {
+                    schemaId,
+                    filePath,
+                    overwrite,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async dumpDbObjectCreateStatement(dbObjectId: string,
+        filePath: string, overwrite: boolean): Promise<boolean> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDumpDbObjectCreateStatement,
+            parameters: {
+                kwargs: {
+                    dbObjectId,
+                    filePath,
+                    overwrite,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
 }
