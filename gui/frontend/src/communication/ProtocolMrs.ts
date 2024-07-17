@@ -1690,5 +1690,11 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsDumpSdkServiceFiles]: { result: boolean; };
     [ShellAPIMrs.MrsGetSdkOptions]: { result: IMrsSdkOptions; };
     [ShellAPIMrs.MrsRunScript]: { result: IMrsScriptResult[]; };
+    [ShellAPIMrs.MrsGetServiceCreateStatement]: { result: string; }
+    [ShellAPIMrs.MrsGetSchemaCreateStatement]: { result: string; }
+    [ShellAPIMrs.MrsGetDbObjectCreateStatement]: { result: string; }
+    [ShellAPIMrs.MrsDumpServiceCreateStatement]: { result: boolean; }
+    [ShellAPIMrs.MrsDumpSchemaCreateStatement]: { result: boolean; }
+    [ShellAPIMrs.MrsDumpDbObjectCreateStatement]: { result: boolean; }
 }
 

@@ -731,6 +731,10 @@
                 "title": "Edit REST Schema..."
             },
             {
+                "command": "msg.mrs.dumpCreateSchemaSql",
+                "title": "Dump REST Schema SQL..."
+            },
+            {
                 "command": "msg.mrs.editAuthApp",
                 "title": "Edit Authentication App"
             },
@@ -801,6 +805,30 @@
             {
                 "command": "msg.mrs.exportServiceSdk",
                 "title": "Export REST Service SDK Files ..."
+            },
+            {
+                "command": "msg.mrs.exportCreateServiceSql",
+                "title": "Export CREATE REST SERVICE Statement..."
+            },
+            {
+                "command": "msg.mrs.exportCreateSchemaSql",
+                "title": "Export CREATE REST SCHEMA Statement..."
+            },
+            {
+                "command": "msg.mrs.exportCreateDbObjectSql",
+                "title": "Export CREATE REST OBJECT Statement..."
+            },
+            {
+                "command": "msg.mrs.copyCreateServiceSql",
+                "title": "Copy CREATE REST SERVICE Statement..."
+            },
+            {
+                "command": "msg.mrs.copyCreateSchemaSql",
+                "title": "Copy CREATE REST SCHEMA Statement..."
+            },
+            {
+                "command": "msg.mrs.copyCreateDbObjectSql",
+                "title": "Copy CREATE REST OBJECT Statement..."
             },
             {
                 "command": "msg.mrs.loadObjectFromJSONFile",
@@ -1423,6 +1451,16 @@
                     "group": "3_msg@1"
                 },
                 {
+                    "command": "msg.mrs.exportCreateDbObjectSql",
+                    "when": "view == msg.connections && viewItem == mrsDbObject",
+                    "group": "3_msg@2"
+                },
+                {
+                    "command": "msg.mrs.copyCreateDbObjectSql",
+                    "when": "view == msg.connections && viewItem == mrsDbObject",
+                    "group": "3_msg@3"
+                },
+                {
                     "command": "msg.mrs.addDbObject",
                     "when": "viewItem == schemaTableItemMySQL || viewItem == schemaViewItemMySQL || viewItem == schemaRoutineItemMySQL",
                     "group": "4_msg@1"
@@ -1458,9 +1496,34 @@
                     "group": "2_msg@2"
                 },
                 {
+                    "command": "msg.mrs.exportCreateServiceSql",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "2_msg@3"
+                },
+                {
+                    "command": "msg.mrs.copyCreateServiceSql",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "2_msg@4"
+                },
+                {
                     "command": "msg.mrs.loadObjectFromJSONFile",
                     "when": "view == msg.connections && viewItem == mrsSchema",
                     "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mrs.dumpCreateSchemaSql",
+                    "when": "view == msg.connections && viewItem == mrsSchema",
+                    "group": "2_msg@2"
+                },
+                {
+                    "command": "msg.mrs.exportCreateSchemaSql",
+                    "when": "view == msg.connections && viewItem == mrsSchema",
+                    "group": "2_msg@3"
+                },
+                {
+                    "command": "msg.mrs.copyCreateSchemaSql",
+                    "when": "view == msg.connections && viewItem == mrsSchema",
+                    "group": "2_msg@4"
                 },
                 {
                     "command": "msg.mds.getProfileInfo",
