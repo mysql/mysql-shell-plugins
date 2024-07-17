@@ -70,12 +70,18 @@ export default class Share extends Component<IShareProps, IShareState> {
                 const response = await myService.mrsNotes.noteShare.call(
                     { noteId: activeNote?.id, email, viewOnly, canShare });
 
-                if (response.items?.length > 0) {
+                // For this specific procedure we expect a single result set of type MyServiceMrsNotesNoteShare
+                // with only one row holding the invitationKey
+                if (response.items.at(0)?.type === "MyServiceMrsNotesNoteShare" &&
+                    response.items[0].items.at(0)) {
+                    // Now that we checked the type and ensured that the result and first row is here
+                    // get the actual invitationKey, which we know cannot be NULL
+                    const invitationKey = response.items[0].items[0].invitationKey ?? undefined;
+
                     // Indicate that the note has been shared
                     this.setState({
                         success: true,
-                        // This is weird. Do we really need the extra response wrapper?
-                        invitationKey: response.items[0].items[0].invitationKey as string,
+                        invitationKey,
                         error: undefined,
                     });
                 }
