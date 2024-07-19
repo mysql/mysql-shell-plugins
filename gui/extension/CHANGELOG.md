@@ -2,13 +2,9 @@
 
 ## Changes in 1.15.2+9.0.0
 
-### Additions
-
-- 
-
 ### Fixes
 
-- 
+- Fixed windows packaging for correct certificate installation. 
 
 ## Changes in 1.15.1+9.0.0
 

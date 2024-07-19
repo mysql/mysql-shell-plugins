@@ -121,4 +121,5 @@ Set-Location $extensionFolder
 Remove-Item "node_modules" -Force -Recurse
 Remove-Item "package-lock.json" -Force -Recurse
 npm install
+npm run fix-vbs
 npm run build-dev-package
