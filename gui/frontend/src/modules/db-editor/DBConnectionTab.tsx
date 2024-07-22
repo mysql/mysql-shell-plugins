@@ -48,7 +48,7 @@ import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
 import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices.js";
 import {
-    IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry, currentNotebookVersion,
+    IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry, LoadingState, currentNotebookVersion,
 } from "../../script-execution/index.js";
 import {
     IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, IMrsSchemaEditRequest, IOpenFileDialogResult,
@@ -1483,6 +1483,7 @@ Execute \\help or \\? for help;`;
                     ...currentChatOptions,
                     chatQueryId,
                 };
+                context.presentation.executionStarts(LoadingState.Waiting);
                 void await backend.mds.executeChatRequest(
                     context.code, backend.moduleSessionId, options, (data) => {
                         let info;
