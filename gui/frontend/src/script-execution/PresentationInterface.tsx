@@ -365,19 +365,24 @@ export class PresentationInterface {
 
     /**
      * Called by the code execution code to indicate that a new request just started.
+     * @param initialState The initial state to set the loading state to. If not set then the state is set to pending.
      */
-    public executionStarts(): void {
+    public executionStarts(initialState?: LoadingState): void {
         if (this.waitTimer || this.loadingState !== LoadingState.Idle) {
             // No need for action if we already know we are waiting for results.
             return;
         }
 
         // Start the wait timer to show a waiting animation, if the first result takes too long to arrive.
-        this.waitTimer = setTimeout(() => {
-            this.waitTimer = null;
-            this.changeLoadingState(LoadingState.Waiting);
-        }, 500);
-        this.changeLoadingState(LoadingState.Pending);
+        if (!initialState) {
+            this.waitTimer = setTimeout(() => {
+                this.waitTimer = null;
+                this.changeLoadingState(LoadingState.Waiting);
+            }, 500);
+            this.changeLoadingState(LoadingState.Pending);
+        } else {
+            this.changeLoadingState(initialState);
+        }
     }
 
     /**
@@ -469,7 +474,9 @@ export class PresentationInterface {
             if (!this.resultData && "executionInfo" in data) {
                 // If there's no result data yet and the new one is finished then we can go into idle state.
                 this.changeLoadingState(LoadingState.Idle);
-            } else {
+            } else if (data.type === "chat" &&  "answer" in data && data.answer !== "")  {
+                this.changeLoadingState(LoadingState.Idle);
+            } else  if (data.type !== "chat") {
                 this.changeLoadingState(LoadingState.Loading);
             }
         }
@@ -692,6 +699,10 @@ export class PresentationInterface {
                 // Chat results display
                 this.resultData = data;
                 this.minHeight = 200;
+                if (data.answer !== "") {
+                    // We got the whole answer, so we can stop waiting.
+                    this.changeLoadingState(LoadingState.Idle);
+                }
 
                 break;
             }
