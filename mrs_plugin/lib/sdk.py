@@ -318,6 +318,9 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
 
             # Todo: Handle SDK Options
             name = lib.core.convert_path_to_camel_case(schema.get("name"))
+            if sdk_language == "Python":
+                name = lib.core.convert_to_snake_case(name)
+
             class_name = service_class_name + \
                 lib.core.convert_path_to_pascal_case(
                     schema.get("request_path"))
