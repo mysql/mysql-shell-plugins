@@ -347,6 +347,93 @@ import {
     assert got == want
 
 
+def test_generate_function_interface():
+    class_name = "MyServiceSakilaSumFuncResult"
+    db_obj = {"object_type": "FUNCTION"}
+    obj = {
+        "id": b"\xbd\x07oC\x91\xaaI\xc4\xdf\xf2\xb7eJ56\xa0",
+        "db_object_id": b"\x11\xefE\x1e\x8c\xc5\xc0\x01\xa9\xaa\n\x00'\x00\x00\t",
+        "name": "MyServiceSakilaSumFuncParams",
+        "kind": "PARAMETERS",
+        "position": 0,
+        "sdk_options": None,
+        "comments": None,
+    }
+    fields = [
+        {
+            "caption": "- b",
+            "lev": 1,
+            "position": 2,
+            "id": b"=]\x0e}\xac~C\r\xdd\xfcv\xef\x0c|\x95\x1d",
+            "represents_reference_id": None,
+            "parent_reference_id": None,
+            "object_id": b"\xbd\x07oC\x91\xaaI\xc4\xdf\xf2\xb7eJ56\xa0",
+            "name": "b",
+            "db_column": {
+                "in": True,
+                "out": False,
+                "name": "b",
+                "datatype": "int",
+                "not_null": True,
+                "is_unique": False,
+                "is_primary": False,
+                "is_generated": False,
+            },
+            "enabled": True,
+            "allow_filtering": True,
+            "allow_sorting": False,
+            "no_check": False,
+            "no_update": False,
+            "sdk_options": None,
+            "comments": None,
+            "object_reference": None,
+        },
+        {
+            "caption": "- a",
+            "lev": 1,
+            "position": 1,
+            "id": b"\xb7\xd6H<\xdd\x03F\xeb\xae\x93VK6\xdb\x9e\xb9",
+            "represents_reference_id": None,
+            "parent_reference_id": None,
+            "object_id": b"\xbd\x07oC\x91\xaaI\xc4\xdf\xf2\xb7eJ56\xa0",
+            "name": "a",
+            "db_column": {
+                "in": True,
+                "out": False,
+                "name": "a",
+                "datatype": "int",
+                "not_null": True,
+                "is_unique": False,
+                "is_primary": False,
+                "is_generated": False,
+            },
+            "enabled": True,
+            "allow_filtering": True,
+            "allow_sorting": False,
+            "no_check": False,
+            "no_update": False,
+            "sdk_options": None,
+            "comments": None,
+            "object_reference": None,
+        },
+    ]
+
+    db_object_crud_ops = ["READFUNCTION"]
+    obj_endpoint = "https://localhost:8444/myService/sakila/sumFunc"
+
+    got, _ = generate_interfaces(
+        db_obj, obj, fields, class_name, "Python", db_object_crud_ops, obj_endpoint
+    )
+
+
+    want = """class IMyServiceSakilaSumFuncResult(TypedDict, total=True):
+    b: int
+    a: int
+    """
+
+    assert got.rstrip() == want.rstrip()
+
+
 def test_generate_interfaces():
     class_name = "Foo"
     db_obj = { "object_type": "TABLE" }
@@ -426,9 +513,6 @@ class I{name}Selectable(TypedDict, total=False):
 
 class I{name}Sortable(TypedDict, total=False):
     bar: Order
-
-
-I{name}UniqueFilterable: TypeAlias = None
 
 
 class I{name}Cursors(TypedDict, total=False):

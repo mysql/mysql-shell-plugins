@@ -177,6 +177,9 @@ NestedField = TypeVar("NestedField", bound=Optional[str])
 ProgressCallback: TypeAlias = Callable[[list[Data]], None]
 Order: TypeAlias = Literal["ASC", "DESC"]
 
+FuncParameters = TypeVar("FuncParameters", bound=Mapping)
+FuncResult = TypeVar("FuncResult", bound=str | int | float | bool)
+
 
 class MrsResourceLink(TypedDict):
     """Available keys for the `links` field."""
@@ -213,6 +216,12 @@ class IMrsDeleteResponse(TypedDict):
     """Response got by a delete operation"""
 
     items_deleted: int
+
+
+class IMrsFunctionResponse(Generic[FuncResult], TypedDict):
+    "Response got by invoking/calling a MySQL function."
+
+    result: FuncResult
 
 
 class EqOperator(Generic[EqOperand], TypedDict):
@@ -641,6 +650,48 @@ class MrsBaseSchema:
     def __init__(self, request_path: str) -> None:
         """Constructor."""
         self._request_path = request_path
+
+
+class MrsBaseObjectFunctionCall(Generic[FuncParameters, FuncResult]):
+    """Implements the core logic utilized by the `__call__*` implemented
+    by MySQL function objects."""
+
+    def __init__(self, request_path: str, parameters: FuncParameters) -> None:
+        """Constructor.
+
+        During this stage, query options are save in the inner
+        state of this instance.
+
+        Args:
+            request_path: the base endpoint to the resource (function).
+            parameters: dictionary representing function's parameters.
+        """
+        self._request_path: str = request_path
+        self._params: FuncParameters = parameters
+
+    async def submit(self) -> FuncResult:
+        """Submit the request to the Router to invoke the corresponding
+        MySQL function.
+
+        Reurns:
+            A value which type complies with the corresponding MySQL
+            function declaration.
+        """
+        context = ssl.create_default_context()
+
+        req = Request(
+            url=self._request_path,
+            data=json.dumps(obj=self._params, cls=MrsJSONDataEncoder).encode(),
+            method="PUT",
+        )
+        data = await asyncio.to_thread(urlopen, req, context=context)
+
+        response = cast(
+            IMrsFunctionResponse[FuncResult],
+            json.loads(data.read(), object_hook=MrsJSONDataDecoder.convert_keys),
+        )
+
+        return response["result"]
 
 
 class MrsBaseObjectQuery(Generic[Data, DataDetails]):
