@@ -25,12 +25,21 @@ from dataclasses import asdict, dataclass
 import json
 import os
 import ssl
-from typing import Any, Callable, Generic, NotRequired, Optional, TypedDict, cast
+from typing import (
+    Any,
+    Callable,
+    Generic,
+    NotRequired,
+    Optional,
+    TypeAlias,
+    TypedDict,
+    cast,
+)
 from unittest.mock import MagicMock
 
 import pytest
 
-from python.mrs_base_classes import BoolField, Filterable, HighOrderOperator, IMrsResourceDetails, IntField, MrsBaseObjectCreate, MrsBaseObjectDelete, MrsBaseObjectQuery, MrsBaseObjectUpdate, MrsJSONDataDecoder, MrsJSONDataEncoder, MrsQueryEncoder, Record, RecordNotFoundError, StringField, UndefinedDataClassField, UndefinedField  # type: ignore
+from python.mrs_base_classes import BoolField, Filterable, HighOrderOperator, IMrsResourceDetails, IntField, MrsBaseObjectCreate, MrsBaseObjectDelete, MrsBaseObjectFunctionCall, MrsBaseObjectQuery, MrsBaseObjectUpdate, MrsJSONDataDecoder, MrsJSONDataEncoder, MrsQueryEncoder, Record, RecordNotFoundError, StringField, UndefinedDataClassField, UndefinedField  # type: ignore
 
 
 ####################################################################################
@@ -269,6 +278,19 @@ class Obj3Data(TypedDict, total=False):
     a_str: str
 
 
+class HelloFuncFuncParameters(TypedDict):
+    name: str
+
+
+class SumFuncFuncParameters(TypedDict):
+    a: int
+    b: int
+
+
+class MyBirthdayFuncFuncParameters(TypedDict):
+    pass
+
+
 ####################################################################################
 #                               Utilities
 ####################################################################################
@@ -456,6 +478,61 @@ async def test_update_submit(
 
 
 ####################################################################################
+#                      Test "submit" Method (function-call's backbone)
+####################################################################################
+@pytest.mark.parametrize(
+    "func_name, parameters, urlopen_read, func_params_type",
+    [
+        (
+            "sumFunc",  # f(i1, i2) -> i3
+            {"a": 2, "b": 3},
+            {"result": 5},
+            SumFuncFuncParameters,
+        ),
+        (
+            "helloFunc",  # f(s) -> s
+            {"name": "Rui"},
+            {"result": "Hello Rui!"},
+            HelloFuncFuncParameters,
+        ),
+        (
+            "myBirthdayFunc",  # f() -> s
+            {},
+            {"result": "2024-07-23 00:00:00"},
+            MyBirthdayFuncFuncParameters,
+        ),
+    ],
+)
+async def test_function_call_submit(
+    mock_urlopen: MagicMock,
+    mock_request_class: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    service_url: str,
+    func_name: str,
+    parameters: dict,
+    urlopen_read: dict,
+    func_params_type: TypeAlias,
+):
+    """Check `MrsBaseObjectFunctionCall.submit()`."""
+    request = MrsBaseObjectFunctionCall[func_params_type, type(urlopen_read)](
+        f"{service_url}/{func_name}", cast(func_params_type, parameters)
+    )
+
+    mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
+    mock_create_default_context.return_value = ssl.create_default_context()
+
+    assert await request.submit() == urlopen_read["result"]
+
+    mock_request_class.assert_called_once_with(
+        url=f"{service_url}/{func_name}",
+        data=json.dumps(obj=parameters, cls=MrsJSONDataEncoder).encode(),
+        method="PUT",
+    )
+    mock_urlopen.assert_called_once()
+
+
+####################################################################################
 #                               Test "select" Option
 ####################################################################################
 @pytest.mark.parametrize(
@@ -537,7 +614,7 @@ async def test_where_field_is_equal_with_implicit_filter(
     mock_create_default_context: MagicMock,
     service_url: str,
     query: dict[str, Any],
-    mock_request_class: MagicMock
+    mock_request_class: MagicMock,
 ):
     """Specifying `where`. Checking implicit filter."""
     for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
@@ -546,7 +623,9 @@ async def test_where_field_is_equal_with_implicit_filter(
                 f"{service_url}/dbobject", options=query
             )
         else:
-            request = cls_[Obj1Filterable](f"{service_url}/dbobject", where=query.get("where"))
+            request = cls_[Obj1Filterable](
+                f"{service_url}/dbobject", where=query.get("where")
+            )
 
         await validate_url(
             mock_urlopen=mock_urlopen,
@@ -568,7 +647,7 @@ async def test_where_field_is_equal_with_explicit_filter(
     mock_create_default_context: MagicMock,
     service_url: str,
     query: dict[str, Any],
-    mock_request_class: MagicMock
+    mock_request_class: MagicMock,
 ):
     """Specifying `where`. Checking explicit filter."""
     for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
@@ -577,7 +656,9 @@ async def test_where_field_is_equal_with_explicit_filter(
                 f"{service_url}/dbobject", options=query
             )
         else:
-            request = cls_[Obj1Filterable](f"{service_url}/dbobject", where=query.get("where"))
+            request = cls_[Obj1Filterable](
+                f"{service_url}/dbobject", where=query.get("where")
+            )
 
         await validate_url(
             mock_urlopen=mock_urlopen,
@@ -599,7 +680,7 @@ async def test_where_field_is_null(
     mock_create_default_context: MagicMock,
     service_url: str,
     query: dict[str, Any],
-    mock_request_class: MagicMock
+    mock_request_class: MagicMock,
 ):
     """Specifying `where`. Checking filter where field is NULL."""
     for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
@@ -608,7 +689,9 @@ async def test_where_field_is_null(
                 f"{service_url}/dbobject", options=query
             )
         else:
-            request = cls_[Obj1Filterable](f"{service_url}/dbobject", where=query.get("where"))
+            request = cls_[Obj1Filterable](
+                f"{service_url}/dbobject", where=query.get("where")
+            )
 
         await validate_url(
             mock_urlopen=mock_urlopen,
@@ -630,7 +713,7 @@ async def test_where_field_is_not_null(
     mock_create_default_context: MagicMock,
     service_url: str,
     query: dict[str, Any],
-    mock_request_class: MagicMock
+    mock_request_class: MagicMock,
 ):
     """Specifying `where`. Checking filter where field isn't NULL."""
     for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
@@ -639,7 +722,9 @@ async def test_where_field_is_not_null(
                 f"{service_url}/dbobject", options=query
             )
         else:
-            request = cls_[Obj1Filterable](f"{service_url}/dbobject", where=query.get("where"))
+            request = cls_[Obj1Filterable](
+                f"{service_url}/dbobject", where=query.get("where")
+            )
 
         await validate_url(
             mock_urlopen=mock_urlopen,

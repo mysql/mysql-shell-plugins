@@ -31,6 +31,9 @@ from .mrs_base_classes import (
     # --- importDeleteOnlyStart
     MrsBaseObjectDelete,
     # --- importDeleteOnlyEnd
+    # --- importReadFunctionOnlyStart
+    MrsBaseObjectFunctionCall,
+    # --- importReadFunctionOnlyEnd
     Filterable,
     HighOrderOperator,
     IMrsResourceDetails,
@@ -41,6 +44,7 @@ from .mrs_base_classes import (
     RecordNotFoundError,
     UndefinedDataClassField,
     UndefinedField,
+    MrsJSONDataEncoder,
     # --- importRequiredDatatypesOnlyStart
     # --- importRequiredDatatypesOnlyEnd
 )
@@ -51,32 +55,18 @@ from .mrs_base_classes import (
 # --- objectLoopStart
 ${obj_interfaces}
 class ${obj_class_name}DatabaseObject:
-    """The following CRUD-related commands are implemented as part of this class [^]:
-
-        * CREATE:
-            - `create`
-            - `create_many`
-
-        * READ:
-            - `find_first`
-            - `find_first_or_throw`
-            - `find_unique`
-            - `find_unique_or_throw`
-            - `find_many`
-            - `find_all`
-
-        * UPDATE:
-            - `update`
-            - `update_many`
-
-    [^] The CRUD permissions configured for a certain table rest object condition the
-    availability of these commands. For instance, with no `READ` permissions, the
-    `find*` methods aren't implemented.
-    """
 
     def __init__(self, request_path: str) -> None:
         self._request_path: str = request_path
         self._has_more: bool = True
+
+    # --- crudReadFunctionOnlyStart
+    async def __call__(self, **parameters: Unpack[I${obj_param_interface}]) -> ${obj_function_result_datatype}:
+        request = MrsBaseObjectFunctionCall[I${obj_param_interface}, ${obj_function_result_datatype}](
+            self._request_path, parameters
+        )
+        return await request.submit()
+    # --- crudReadFunctionOnlyEnd
 
     # --- crudCreateOnlyStart
     async def create(self, data: I${obj_class_name}DataCreate) -> I${obj_class_name}:
@@ -256,7 +246,9 @@ class ${schema_class_name}(MrsBaseSchema):
     def __init__(self, service_url: str) -> None:
         super().__init__(f"{service_url}${schema_request_path}")
         # --- objectLoopStart
-        self.${obj_name} = ${obj_class_name}DatabaseObject(f"{self._request_path}/${obj_name}")
+        self.${obj_name} = ${obj_class_name}DatabaseObject(
+            f"{self._request_path}/{MrsJSONDataEncoder.snake_to_camel('${obj_name}')}"
+        )
         # --- objectLoopEnd
 # --- schemaLoopEnd
 

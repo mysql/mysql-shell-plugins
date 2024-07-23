@@ -506,12 +506,16 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                                 db_datatype=db_column_info.get("datatype"),
                                 sdk_language=sdk_language)
 
-                            if db_column_info.get("not_null") is False:
-                                obj_function_result_datatype = maybe_null(obj_function_result_datatype, sdk_language)
-
             if len(obj_meta_interfaces) > 0 and db_obj.get("object_type") != "FUNCTION":
                 interface_list = ["I" + name + "Result" for name in obj_meta_interfaces]
                 obj_interfaces += generate_union(obj_meta_interface, interface_list, sdk_language)
+
+            # Names by default are formatted in `camelCase`. A different
+            # convention may apply for other SDK languages.
+            if sdk_language == "Python":
+                # It's OK if strings or dictionary keys are in `camelCase`,
+                # but class attributes and variables should be in `snake_case`.
+                name = lib.core.convert_to_snake_case(name)
 
             # Define the mappings
             mapping = {
@@ -786,6 +790,7 @@ def generate_type_declaration(
     apply_convention=True,
     required_fields=False,
     non_mandatory_fields: Set[str] = set(),  # Users may or not specify them
+    object_type: Optional[str] = None,
 ):
     field_block = [
         generate_type_declaration_field(
@@ -810,13 +815,18 @@ def generate_type_declaration(
             "".join(field_block) +
             "}\n\n")
     if sdk_language == "Python":
+        total = "True" if object_type == "FUNCTION" else "False"
+
         if len(fields) == 0:
+            if object_type == "FUNCTION":
+                return f"class I{name}(TypedDict, total={total}):\n{" "*4}pass" + "\n\n"
             return f"I{name}: TypeAlias = None\n\n\n"
+
         ordered_parents = [*parents] if override_parents is True else ["TypedDict", *parents]
         # TODO: remove hack to ignore IMrsMetadata once it is not needed for TypeScript
         parents_without_legacy_class = [parent for parent in ordered_parents if parent != "IMrsFetchData"]
         if not required_fields:
-            inheritance_block = f"({', '.join(parents_without_legacy_class)}, total=False)"
+            inheritance_block = f"({', '.join(parents_without_legacy_class)}, total={total})"
         else:
             inheritance_block = f"({', '.join(parents_without_legacy_class)})"
         param_block = "".join(field_block) if len(field_block) > 0 else "    pass\n"
@@ -846,13 +856,13 @@ def generate_type_declaration_field(
 
 
 def generate_data_class(
-        name,
-        fields,
-        sdk_language,
-        db_object_crud_ops: list[str],
-        obj_endpoint: Optional[str] = None,
-        obj_primary_key: Optional[str] = None
-    ):
+    name,
+    fields,
+    sdk_language,
+    db_object_crud_ops: list[str],
+    obj_endpoint: Optional[str] = None,
+    obj_primary_key: Optional[str] = None
+):
     if sdk_language == "TypeScript":
         return generate_type_declaration(
             name=name, fields=fields, sdk_language=sdk_language
@@ -963,14 +973,14 @@ def generate_union(name, types, sdk_language):
 
 
 def generate_interfaces(
-        db_obj,
-        obj,
-        fields,
-        class_name,
-        sdk_language,
-        db_object_crud_ops: list[str],
-        obj_endpoint: Optional[str] = None
-    ):
+    db_obj,
+    obj,
+    fields,
+    class_name,
+    sdk_language,
+    db_object_crud_ops: list[str],
+    obj_endpoint: Optional[str] = None
+):
     obj_interfaces = []
     interface_fields = {}
     param_interface_fields = {}
@@ -982,6 +992,10 @@ def generate_interfaces(
         [field.get("name") for field in fields if field_is_required(field) is False]
     )
     obj_primary_key = get_primary_key(fields)
+
+    # Aux vars
+    enhanced_fields = False if db_obj.get("object_type") in ("FUNCTION", "PROCEDURE") else True
+    unique_fields_apply = enhanced_fields
 
     # The I{class_name}, I{class_name}Params and I{class_name}Out interfaces
     for field in fields:
@@ -1016,7 +1030,7 @@ def generate_interfaces(
                                  db_obj.get("object_type") != "FUNCTION")
                                     or obj.get("kind") == "PARAMETERS"):
                                 datatype = get_interface_datatype(field=field, sdk_language=sdk_language,
-                                                                  class_name=class_name, enhanced_fields=True)
+                                                                  class_name=class_name, enhanced_fields=enhanced_fields)
                                 param_interface_fields.update({ field.get("name"): datatype })
 
                     # Call recursive interface generation
@@ -1037,23 +1051,29 @@ def generate_interfaces(
                         interface_fields.update({ field.get("name"): datatype })
 
                     # Add all table fields that have allow_filtering set and SP params to the param_interface_fields
-                    if ((field.get("allow_filtering") and db_obj.get("object_type") != "PROCEDURE" and
-                         db_obj.get("object_type") != "FUNCTION")
-                            or obj.get("kind") == "PARAMETERS"):
+                    if (
+                            (
+                                field.get("allow_filtering") and
+                                db_obj.get("object_type") != "PROCEDURE" and
+                                db_obj.get("object_type") != "FUNCTION"
+                            )
+                            or obj.get("kind") == "PARAMETERS"
+                        ):
                         datatype = get_interface_datatype(field=field, sdk_language=sdk_language,
-                                                          class_name=class_name, enhanced_fields=True)
+                                                          class_name=class_name, enhanced_fields=enhanced_fields)
                         param_interface_fields.update({ field.get("name"): datatype })
 
                     # Build Unique list
-                    if field_is_unique(field):
+                    # NOTE: the notion of "unique parameters" doesn't apply to functions and procedures
+                    if unique_fields_apply and field_is_unique(field):
                         datatype = get_interface_datatype(field=field, sdk_language=sdk_language,
-                                                          class_name=class_name, enhanced_fields=True)
+                                                          class_name=class_name, enhanced_fields=enhanced_fields)
                         obj_unique_fields.update({ field.get("name"): datatype })
 
             # Build list of columns which can potentially be used for cursor-based pagination.
             if field_can_be_cursor(field):
                 datatype = get_interface_datatype(field=field, sdk_language=sdk_language,
-                                                  class_name=class_name, enhanced_fields=True)
+                                                  class_name=class_name, enhanced_fields=enhanced_fields)
                 obj_cursor_fields.update({ field.get("name"): datatype })
 
     if len(interface_fields) > 0:
@@ -1188,7 +1208,8 @@ def generate_interfaces(
                 parents=construct_parents,
                 fields=construct_fields,
                 sdk_language=sdk_language,
-                override_parents=construct_override_parents
+                override_parents=construct_override_parents,
+                object_type=db_obj.get("object_type")
             )
         )
 
@@ -1200,7 +1221,7 @@ def generate_interfaces(
         obj_interfaces.append(generate_type_declaration(name=f"{class_name}Out", fields=out_params_interface_fields,
                                                         sdk_language=sdk_language))
 
-    if len(obj_unique_fields) > 0 or sdk_language == "Python":
+    if len(obj_unique_fields) > 0:
         construct_name = f"{class_name}UniqueParams"
         construct_parents = []
         if sdk_language == "Python":
