@@ -23,7 +23,7 @@
 
 import "./ChatOptions.css";
 
-import { ComponentChild, render } from "preact";
+import { ComponentChild, createRef, render } from "preact";
 import { ComponentBase, IComponentProperties, IComponentState } from "../ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../ui/Container/Container.js";
 import { Label } from "../ui/Label/Label.js";
@@ -41,6 +41,7 @@ import { Icon } from "../ui/Icon/Icon.js";
 import { Toggle } from "../ui/Toggle/Toggle.js";
 import { CheckState } from "../ui/Checkbox/Checkbox.js";
 import { Codicon } from "../ui/Codicon.js";
+import { Dialog } from "../ui/Dialog/Dialog.js";
 
 export enum ChatOptionAction {
     SaveChatOptions,
@@ -58,6 +59,7 @@ export interface IChatOptionsState extends IComponentState {
     chatOptionsWidth: number,
     options?: IMdsChatData,
     sectionStates?: Map<string, IChatOptionsSectionState>,
+    chatQueryHistory?: [string, string, string],
 }
 
 export interface IChatOptionsProperties extends IComponentProperties {
@@ -66,9 +68,13 @@ export interface IChatOptionsProperties extends IComponentProperties {
 
     onAction: (action: ChatOptionAction, options?: IMdsChatData) => void,
     onChatOptionsStateChange: (data: Partial<IChatOptionsState>) => void;
+    onClose?: (accepted: boolean, payload?: unknown) => void;
 }
 
 export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOptionsState> {
+
+    #dialogRef = createRef<Dialog>();
+    #chatHistoryText = "";
 
     public constructor(props: IChatOptionsProperties) {
         super(props);
@@ -89,7 +95,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
 
     public render(): ComponentChild {
         const { savedState, currentSchema } = this.props;
-        const { options, sectionStates } = savedState;
+        const { options, sectionStates, chatQueryHistory } = savedState;
 
         const tables: ITag[] = [];
         if (options?.tables) {
@@ -203,12 +209,13 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                                             field: "userMessage",
                                             editable: false,
                                             tooltip: true,
-                                            formatter: this.historyUserMessageColumnFormatter,
+                                            formatter: this.historyMessageColumnFormatter,
                                         }, {
                                             title: "Chatbot",
                                             field: "chatBotMessage",
                                             editable: false,
                                             tooltip: true,
+                                            formatter: this.historyMessageColumnFormatter,
                                         }, {
                                             title: "ChatQueryId",
                                             field: "chatQueryId",
@@ -217,6 +224,46 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                                         }]}
                                         tableData={options?.chatHistory ?? []}
                                     />
+                                    <Dialog
+                                        ref={this.#dialogRef}
+                                        id="historyEditDialog"
+                                        className="historyEditDialog"
+                                        onClose={this.closeEditTextDialog}
+                                        caption={
+                                            <>
+                                                <Icon src={Codicon.EditorLayout} />
+                                                <Label>Edit chat history</Label>
+                                            </>
+                                        }
+                                        content={
+                                            <Input id="historyEdit"
+                                                multiLine={true}
+                                                autoFocus={true}
+                                                multiLineCount={5}
+                                                className="historyEdit"
+                                                value={chatQueryHistory?.[2]}
+                                                onChange={this.handleHistoryValueChange}
+                                            />
+                                        }
+                                        actions={{
+                                            end: [
+                                                <Button
+                                                    caption="Save"
+                                                    id="ok"
+                                                    key="ok"
+                                                    onClick={this.handleDlgEditActionClick}
+                                                />,
+                                                <Button
+                                                    caption="Cancel"
+                                                    id="cancel"
+                                                    key="cancel"
+                                                    onClick={this.handleDlgEditActionClick}
+                                                />,
+                                            ],
+                                        }}
+                                        {...this.unhandledProperties}
+                                    >
+                                    </Dialog>
                                 </Container>,
                             ],
                         },
@@ -690,7 +737,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
         });
     };
 
-    private historyUserMessageColumnFormatter = (cell: CellComponent): string | HTMLElement => {
+    private historyMessageColumnFormatter = (cell: CellComponent): string | HTMLElement => {
         const value = cell.getValue();
 
         const host = document.createElement("div");
@@ -698,6 +745,10 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
 
         const content = (<>
             <Label caption={value} />
+            <Icon className="iconOnMouseOver" src={Codicon.Edit}
+                onClick={(e) => {
+                    void this.handleHistoryTreeEdit(e, cell);
+                }} />
             <Icon className="iconOnMouseOver" src={Codicon.Close}
                 onClick={(e) => {
                     void this.handleHistoryTreeDelete(e, cell);
@@ -708,6 +759,71 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
         render(content, host);
 
         return host;
+    };
+
+    private handleDlgEditActionClick = (_e: MouseEvent | KeyboardEvent,
+        props: Readonly<IComponentProperties>): void => {
+            const { onChatOptionsStateChange, savedState } = this.props;
+            if (props.id === "ok") {
+                const chatHistory = savedState.options?.chatHistory?.find((item) => {
+                    return item.chatQueryId === savedState.chatQueryHistory?.[0];
+                });
+                if (chatHistory) {
+                    switch (savedState.chatQueryHistory?.[1]) {
+                        case "userMessage":
+                            chatHistory.userMessage = this.#chatHistoryText;
+                            break;
+                        case "chatBotMessage":
+                            chatHistory.chatBotMessage = this.#chatHistoryText;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                onChatOptionsStateChange({
+                    options: {
+                        ...savedState.options,
+                    },
+                });
+            }
+            this.#dialogRef.current?.close(props.id !== "ok");
+    };
+
+    private closeEditTextDialog = (cancelled: boolean): void => {
+        const { onChatOptionsStateChange, savedState } = this.props;
+
+        if (cancelled) {
+            savedState.chatQueryHistory = undefined;
+            onChatOptionsStateChange({
+                chatQueryHistory: savedState.chatQueryHistory,
+            });
+        }
+    };
+
+    private handleHistoryValueChange = (e: InputEvent, props: IInputChangeProperties): void => {
+        this.#chatHistoryText = props.value;
+    };
+
+    private handleHistoryTreeEdit = (_e: MouseEvent | KeyboardEvent, cell: CellComponent): void => {
+        const { onChatOptionsStateChange, savedState } = this.props;
+
+        const row = cell.getRow();
+        const fieldId = cell.getField();
+        const chatQueryId = row.getCell("chatQueryId").getValue();
+
+        const chatEntry = savedState.options?.chatHistory?.find((item) => {
+            return item.chatQueryId === chatQueryId;
+        });
+        const textToEdit = fieldId === "userMessage" ? chatEntry?.userMessage ?? ""
+            : chatEntry?.chatBotMessage ?? "";
+
+        const chatQueryHistory: [string, string, string] = [chatQueryId, fieldId, textToEdit];
+        if (this.#dialogRef.current) {
+            this.#dialogRef.current.open();
+        }
+        onChatOptionsStateChange({
+            chatQueryHistory,
+        });
     };
 
     private handleHistoryTreeDelete = (_e: MouseEvent | KeyboardEvent, cell: CellComponent): void => {
