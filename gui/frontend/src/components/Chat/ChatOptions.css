@@ -337,6 +337,10 @@
     min-width: 60px;
 }
 
+.msg.chatOptionsPanel .tabulator .itemField:hover {
+    padding-right: 32px;
+}
+
 .msg.chatOptionsPanel .tabulator .itemField:hover .iconOnMouseOver {
     display: block;
 }
@@ -349,6 +353,14 @@
     cursor: pointer;
 }
 
+.msg.chatOptionsPanel .iconOnMouseOver:nth-of-type(1) {
+    right: 17px;
+}
+
+.msg.historyEditDialog textarea {
+    min-width: 100%;
+    resize: none;
+}
 
 .tabulator-tooltip.tabulator-popup-container {
     color: var(--input-foreground);
