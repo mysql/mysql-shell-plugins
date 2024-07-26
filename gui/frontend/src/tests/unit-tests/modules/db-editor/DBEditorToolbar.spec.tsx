@@ -118,7 +118,7 @@ describe("DBEditorToolbar tests", (): void => {
         );
 
         const id = component.state().currentContext?.id;
-        await requisitions.execute("editorContextStateChanged", id);
+        await requisitions.execute("editorContextStateChanged", id ?? "");
 
 
         component.unmount();
