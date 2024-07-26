@@ -2142,9 +2142,6 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                             } else {
                                 caption = parts[parts.length - 2] ?? caption;
                             }
-                            if (theTask.tableName === undefined) {
-                                theTask.tableName = caption;
-                            }
                             iconSrc = Codicon.Folder;
                             break;
                         }
@@ -2195,8 +2192,45 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 }
             }
 
+            theTask.tableName = this.generateVectorTableName(theTask.items ?? []);
             this.setState({ task: theTask });
         }
+    };
+
+    private generateVectorTableName = (items: ILakehouseTaskItem[]): string => {
+        let tableName = "vector_table";
+        if (items.length === 0) {
+            tableName = "vector_table";
+        } else if (items.length === 1) {
+            let value = items[0].uri;
+            if (value.endsWith("/")) {
+                value = value.slice(0, -1);
+            }
+            tableName = value.split("/").pop() ?? "vector_table";
+            tableName = tableName.split(".").shift() ?? tableName;
+        } else {
+            const sortItems = items.sort((a, b) => {
+                return a.uri.length - b.uri.length;
+            });
+            const commonPartPosition = this.findFirstDiffPos(sortItems[0].uri, sortItems[1].uri);
+            let commonPart = sortItems[0].uri.slice(0, commonPartPosition);
+            if (commonPart.endsWith("/")) {
+                commonPart = commonPart.slice(0, -1);
+            }
+            tableName = commonPart.split("/").pop() ?? "vector_table";
+            tableName = tableName.split(".").shift() ?? tableName;
+        }
+
+        return tableName;
+    };
+
+    private findFirstDiffPos = (a: string, b: string): number => {
+        let i = 0;
+        while (i < a.length && i < b.length && a[i] === b[i]) {
+            i++;
+        }
+
+        return i;
     };
 
     private handleObjTreeDelete = async (_e: Event, cell: CellComponent): Promise<void> => {
