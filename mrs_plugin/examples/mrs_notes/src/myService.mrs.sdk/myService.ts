@@ -141,15 +141,13 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
 
         return result;
     };
-    public delete = async (args: IDeleteOptions<IMyServiceMrsNotesNoteParams>): Promise<IMrsDeleteResult> => {
-        const request = new MrsBaseObjectDelete<IMyServiceMrsNotesNoteParams>(this.schema, MyServiceMrsNotesNoteRequest.#requestPath, args);
-        const response = await request.fetch();
-
-        return response;
+    public delete = async (args: IDeleteOptions<IMyServiceMrsNotesNoteUniqueParams, { many: false }>): Promise<IMrsDeleteResult> => {
+        return this.deleteMany(args as IDeleteOptions<IMyServiceMrsNotesNoteParams, { many: true }>);
     };
 
-    public deleteMany = async (args: IDeleteOptions<IMyServiceMrsNotesNoteParams>): Promise<IMrsDeleteResult> => {
-        const response = await this.delete(args);
+    public deleteMany = async (args: IDeleteOptions<IMyServiceMrsNotesNoteParams, { many: true }>): Promise<IMrsDeleteResult> => {
+        const request = new MrsBaseObjectDelete<IMyServiceMrsNotesNoteParams>(this.schema, MyServiceMrsNotesNoteRequest.#requestPath, args);
+        const response = await request.fetch();
 
         return response;
     };
@@ -303,15 +301,13 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
 
         return result;
     };
-    public delete = async (args: IDeleteOptions<IMyServiceMrsNotesUserParams>): Promise<IMrsDeleteResult> => {
-        const request = new MrsBaseObjectDelete<IMyServiceMrsNotesUserParams>(this.schema, MyServiceMrsNotesUserRequest.#requestPath, args);
-        const response = await request.fetch();
-
-        return response;
+    public delete = async (args: IDeleteOptions<IMyServiceMrsNotesUserUniqueParams, { many: false }>): Promise<IMrsDeleteResult> => {
+        return this.deleteMany(args as IDeleteOptions<IMyServiceMrsNotesUserParams, { many: true }>);
     };
 
-    public deleteMany = async (args: IDeleteOptions<IMyServiceMrsNotesUserParams>): Promise<IMrsDeleteResult> => {
-        const response = await this.delete(args);
+    public deleteMany = async (args: IDeleteOptions<IMyServiceMrsNotesUserParams, { many: true }>): Promise<IMrsDeleteResult> => {
+        const request = new MrsBaseObjectDelete<IMyServiceMrsNotesUserParams>(this.schema, MyServiceMrsNotesUserRequest.#requestPath, args);
+        const response = await request.fetch();
 
         return response;
     };
@@ -405,6 +401,7 @@ export class MyServiceMrsNotesUserHasNoteRequest extends MyServiceMrsNotesObject
 
         return response;
     };
+
 
 }
 

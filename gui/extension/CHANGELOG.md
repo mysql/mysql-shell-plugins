@@ -12,6 +12,9 @@
 
 - BUG#36868599 findUnique-type commands not generated as part of the MRS TypeScript SDK
 - BUG#36877177 MRS Python SDK find_unique* commands generated for objects without unique fields
+- BUG#36886308 MRS SDK "delete" command generated for database objects without unique fields
+- BUG#36353086 The MRS SDK "delete()" command can delete multiple items
+-
 
 ## Changes in 1.15.2+9.0.0
 

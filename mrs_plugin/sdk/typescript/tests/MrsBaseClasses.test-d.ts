@@ -24,12 +24,13 @@
  */
 
 import { assertType, describe, expectTypeOf, it } from "vitest";
-import type {
-    PureFilter, DataFilter, BooleanFieldMapSelect, ColumnOrder, FieldNameSelect, IFindFirstOptions, IFindManyOptions,
-    IFindUniqueOptions, IFindAllOptions, IMrsResourceCollectionData, MaybeNull, Point, MultiPoint, LineString,
-    MultiLineString, Polygon, MultiPolygon, Geometry, GeometryCollection, HighOrderFilter, ComparisonOpExpr,
-    MrsResourceObject,
-    Cursor,
+import {
+    type PureFilter, type DataFilter, type BooleanFieldMapSelect, type ColumnOrder, type FieldNameSelect, type IFindFirstOptions, type IFindManyOptions,
+    type IFindUniqueOptions, type IFindAllOptions, type IMrsResourceCollectionData, type MaybeNull, type Point, type MultiPoint, type LineString,
+    type MultiLineString, type Polygon, type MultiPolygon, type Geometry, type GeometryCollection, type HighOrderFilter, type ComparisonOpExpr,
+    type MrsResourceObject,
+    type Cursor,
+    IDeleteOptions,
 } from "../MrsBaseClasses";
 
 describe("MRS SDK base types", () => {
@@ -441,6 +442,23 @@ describe("MRS SDK base types", () => {
             expectTypeOf<IFindUniqueOptions<unknown, unknown>>().not.toHaveProperty("cursor");
         });
     });
+
+    describe("IDeleteOptions", () => {
+        it("allows matching fields from the underlying type", () => {
+            expectTypeOf({ where: { name: "foo" } }).toMatchTypeOf<IDeleteOptions<{ name: string }, { many: true }>>();
+            expectTypeOf({ where: { name: "foo" } }).toMatchTypeOf<IDeleteOptions<{ name: string }, { many: false }>>();
+        });
+
+        it("allows high order operators for multiple matches", () => {
+            expectTypeOf({ where: { $or: [{ name: "foo" }, { age: 42 }] } })
+                .toMatchTypeOf<IDeleteOptions<{ name: string, age: number }, { many: true }>>();
+        });
+
+        it("does not allow high order operators for unique matches", () => {
+            expectTypeOf({ where: { $or: [{ name: "foo" }, { age: 42 }] } })
+                .not.toMatchTypeOf<IDeleteOptions<{ name: string, age: number }, { many: false }>>();
+        })
+    })
 
     describe("MaybeNull", () => {
         it("accepts a value of a given type", () => {

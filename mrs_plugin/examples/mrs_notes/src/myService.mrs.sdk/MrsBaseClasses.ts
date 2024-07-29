@@ -843,9 +843,10 @@ export type NestingFieldMap<Type> = Type extends unknown[] ? BooleanFieldMapSele
 
 // delete*() API
 
-// To avoid unwarranted data loss, deleting a record from the database always requires a filter (IFilterOptions
-// default).
-export type IDeleteOptions<Type> = IFilterOptions<Type>;
+// To avoid unwarranted data loss, deleting records from the database always requires a filter.
+// Deleting a single item requires a filter that only matches unique fields.
+export type IDeleteOptions<Type, Options extends {many: boolean}> =
+    Options["many"] extends true ? IFilterOptions<Type> : { where: DelegationFilter<Type> };
 
 // update*() API
 
@@ -1245,7 +1246,7 @@ export class MrsBaseObjectDelete<T> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected options: IDeleteOptions<T>) {
+        protected options: IDeleteOptions<T, { many: true }>) {
     }
 
     public fetch = async (): Promise<IMrsDeleteResult> => {
