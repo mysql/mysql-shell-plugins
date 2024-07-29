@@ -427,13 +427,13 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                             db_datatype = db_column_info.get("datatype")
                             db_not_null = db_column_info.get("not_null")
 
-                            if db_not_null is False:
-                                # In TypeScript, there is no native type declaration for SomeType | null, so we add
-                                # our own.
-                                # In Python, we have Optional[SomeType] that does the trick, so there there is no
-                                # need to add one.
-                                if sdk_language == "TypeScript":
-                                    required_datatypes.append("MaybeNull")
+                            # In TypeScript, there is no native type declaration for SomeType | null, so we add
+                            # our own.
+                            # In Python, we have Optional[SomeType] that does the trick, so there there is no
+                            # need to add one.
+                            if (db_not_null is False and sdk_language == "TypeScript" and
+                                db_obj.get("object_type") != "PROCEDURE" and db_obj.get("object_type") != "FUNCTION"):
+                                required_datatypes.append("MaybeNull")
 
                             client_datatype = get_enhanced_datatype_mapping(db_datatype, sdk_language)
 
