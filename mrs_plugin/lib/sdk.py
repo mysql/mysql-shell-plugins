@@ -373,7 +373,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
         schema.get("request_path"))
 
     crud_ops = ["Create", "Read", "Update",
-                "Delete", "UpdateProcedure", "ReadUnique", "ReadFunction"]
+                "Delete", "DeleteUnique", "UpdateProcedure", "ReadUnique", "ReadFunction"]
 
     enabled_crud_ops = []
     required_datatypes = []
@@ -455,6 +455,8 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                     # If this DB Object has unique columns (PK or UNIQUE) allow ReadUnique
                     if len(obj_unique_list) > 0 and "READUNIQUE" not in db_object_crud_ops:
                         db_object_crud_ops.append("READUNIQUE")
+                    if len(obj_unique_list) > 0 and "DELETE" in db_object_crud_ops and "DELETEUNIQUE" not in db_object_crud_ops:
+                        db_object_crud_ops.append("DELETEUNIQUE")
                 # If the database object is a FUNCTION or a PROCEDURE, CRUD operations should not be enabled
                 elif db_obj.get("object_type") == "PROCEDURE":
                     # For PROCEDUREs, handle custom "UpdateProcedure" operation, delete all other

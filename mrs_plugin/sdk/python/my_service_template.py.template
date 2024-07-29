@@ -227,10 +227,12 @@ class ${obj_class_name}DatabaseObject:
         ]
     # --- crudUpdateOnlyEnd
 
-    # --- crudDeleteOnlyStart
+    # --- crudDeleteUniqueOnlyStart
     async def delete(self, where: I${obj_class_name}UniqueFilterable) -> bool:
         return bool(await self.delete_many(where=cast(I${obj_class_name}Filterable, where)))
+    # --- crudDeleteUniqueOnlyEnd
 
+    # --- crudDeleteOnlyStart
     async def delete_many(self, where: I${obj_class_name}Filterable) -> int:
         request = MrsBaseObjectDelete[I${obj_class_name}Filterable](
             self._request_path, where=where
