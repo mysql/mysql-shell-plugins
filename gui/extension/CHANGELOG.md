@@ -4,17 +4,19 @@
 
 ### Additions
 
-- 
+-
 
 ### Fixes
 
-- 
+- BUG#36868599 findUnique-type commands not generated as part of the MRS TypeScript SDK
+- BUG#36877177 MRS Python SDK find_unique* commands generated for objects without unique fields
+-
 
 ## Changes in 1.15.2+9.0.0
 
 ### Fixes
 
-- Fixed windows packaging for correct certificate installation. 
+- Fixed windows packaging for correct certificate installation.
 
 ## Changes in 1.15.1+9.0.0
 

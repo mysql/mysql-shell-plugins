@@ -127,6 +127,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return response;
     };
     // --- crudReadOnlyEnd
+
     // --- crudReadUniqueOnlyStart
     public findUnique = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueParams>): Promise<I${obj_class_name} | undefined> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}UniqueParams>(
@@ -146,6 +147,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return response;
     };
     // --- crudReadUniqueOnlyEnd
+
     // --- crudUpdateOnlyStart
     public update = async (args: IUpdateOptions<I${obj_class_name}, I${obj_class_name}Params, [${obj_quoted_pk_list}], { batch: false }>): Promise<I${obj_class_name}> => {
         const request = new MrsBaseObjectUpdate<I${obj_class_name}, I${obj_class_name}Params, [${obj_quoted_pk_list}]>(

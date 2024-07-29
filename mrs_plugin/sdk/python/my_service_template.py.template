@@ -124,6 +124,7 @@ class ${obj_class_name}DatabaseObject:
             raise RecordNotFoundError
         return data_obj
 
+    # --- crudReadUniqueOnlyStart
     async def find_unique(
         self,
         **options: Unpack[  # type: ignore[misc]
@@ -146,6 +147,7 @@ class ${obj_class_name}DatabaseObject:
         if data_obj is None:
             raise RecordNotFoundError
         return data_obj
+    # --- crudReadUniqueOnlyEnd
 
     async def find_many(
         self,
