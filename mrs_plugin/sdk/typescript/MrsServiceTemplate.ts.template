@@ -180,7 +180,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     // --- crudUpdateProcedureOnlyEnd
     // --- crudReadFunctionOnlyStart
     public call = async (${obj_name}Params: I${obj_param_interface}): Promise<${obj_function_result_datatype}> => {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
+        const request = new MrsBaseObjectFunctionCall<${obj_function_result_datatype}, I${obj_param_interface}>(
             this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}Params);
         const response = await request.fetch();
 
