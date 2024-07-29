@@ -32,6 +32,8 @@
         "Dlanguage",
         "REDUCETO",
         "typecheck",
-        "preact"
+        "preact",
+        "READUNIQUE",
+        "codegen"
     ]
 }

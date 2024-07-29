@@ -196,16 +196,7 @@ export interface IMyServiceMrsNotesNoteParams extends IMrsFetchData {
 }
 
 export interface IMyServiceMrsNotesNoteUniqueParams {
-    title?: string,
     id?: number,
-    lastUpdate?: string,
-    pinned?: boolean,
-    userId?: string,
-    shared?: boolean,
-    tags?: MaybeNull<JsonValue>,
-    createDate?: string,
-    lockedDown?: boolean,
-    content?: MaybeNull<string>,
 }
 
 export interface IMyServiceMrsNotesNoteCursors {
@@ -347,8 +338,6 @@ export interface IMyServiceMrsNotesUserParams extends IMrsFetchData {
 
 export interface IMyServiceMrsNotesUserUniqueParams {
     id?: string,
-    email?: MaybeNull<string>,
-    nickname?: string,
 }
 
 type IMyServiceMrsNotesUserCursors = never;
@@ -447,11 +436,7 @@ export interface IMyServiceMrsNotesUserHasNoteParams extends IMrsFetchData {
 }
 
 export interface IMyServiceMrsNotesUserHasNoteUniqueParams {
-    canShare?: boolean,
-    viewOnly?: boolean,
-    invitationKey?: MaybeNull<string>,
     userId?: string,
-    invitationAccepted?: boolean,
     noteId?: number,
 }
 
@@ -503,23 +488,7 @@ export class MyServiceMrsNotesNotesAllRequest extends MyServiceMrsNotesObjectReq
 
         return response;
     };
-    public findUnique = async (args?: IFindUniqueOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllUniqueParams>): Promise<IMyServiceMrsNotesNotesAll | undefined> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllUniqueParams>(
-            this.schema, MyServiceMrsNotesNotesAllRequest.#requestPath, { ...args, take: 1 });
-        const response = await request.fetchOne();
 
-        return response;
-    };
-
-    public findUniqueOrThrow = async (args?: IFindUniqueOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllUniqueParams>): Promise<IMyServiceMrsNotesNotesAll> => {
-        const response = await this.findUnique(args);
-
-        if (response === undefined) {
-            throw new NotFoundError(`Record not found.`);
-        }
-
-        return response;
-    };
 
 }
 
@@ -556,22 +525,6 @@ export interface IMyServiceMrsNotesNotesAll {
 }
 
 export interface IMyServiceMrsNotesNotesAllParams extends IMrsFetchData {
-    lastUpdate?: string,
-    createDate?: string,
-    content?: MaybeNull<string>,
-    contentBeginning?: MaybeNull<string>,
-    ownNote?: number,
-    viewOnly?: boolean,
-    lockedDown?: boolean,
-    id?: number,
-    pinned?: boolean,
-    title?: string,
-    tags?: MaybeNull<JsonValue>,
-    shared?: boolean,
-    userId?: string,
-}
-
-export interface IMyServiceMrsNotesNotesAllUniqueParams {
     lastUpdate?: string,
     createDate?: string,
     content?: MaybeNull<string>,
@@ -635,23 +588,7 @@ export class MyServiceMrsNotesNotesServedRequest extends MyServiceMrsNotesObject
 
         return response;
     };
-    public findUnique = async (args?: IFindUniqueOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedUniqueParams>): Promise<IMyServiceMrsNotesNotesServed | undefined> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedUniqueParams>(
-            this.schema, MyServiceMrsNotesNotesServedRequest.#requestPath, { ...args, take: 1 });
-        const response = await request.fetchOne();
 
-        return response;
-    };
-
-    public findUniqueOrThrow = async (args?: IFindUniqueOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedUniqueParams>): Promise<IMyServiceMrsNotesNotesServed> => {
-        const response = await this.findUnique(args);
-
-        if (response === undefined) {
-            throw new NotFoundError(`Record not found.`);
-        }
-
-        return response;
-    };
 
 }
 
@@ -664,10 +601,6 @@ export interface IMyServiceMrsNotesNotesServed {
 }
 
 export interface IMyServiceMrsNotesNotesServedParams extends IMrsFetchData {
-    notesServed?: MaybeNull<number>,
-}
-
-export interface IMyServiceMrsNotesNotesServedUniqueParams {
     notesServed?: MaybeNull<number>,
 }
 
@@ -693,14 +626,10 @@ export class MyServiceMrsNotesNoteAcceptShareParamsRequest extends MyServiceMrsN
         return response;
     };
 
+
 }
 
 export interface IMyServiceMrsNotesNoteAcceptShareParams extends IMrsFetchData {
-    userId?: string,
-    invitationKey?: string,
-}
-
-export interface IMyServiceMrsNotesNoteAcceptShareParamsUniqueParams {
     userId?: string,
     invitationKey?: string,
 }
@@ -725,14 +654,10 @@ export class MyServiceMrsNotesNoteDeleteParamsRequest extends MyServiceMrsNotesO
         return response;
     };
 
+
 }
 
 export interface IMyServiceMrsNotesNoteDeleteParams extends IMrsFetchData {
-    userId?: string,
-    noteId?: number,
-}
-
-export interface IMyServiceMrsNotesNoteDeleteParamsUniqueParams {
     userId?: string,
     noteId?: number,
 }
@@ -757,17 +682,10 @@ export class MyServiceMrsNotesNoteShareRequest extends MyServiceMrsNotesObjectRe
         return response;
     };
 
+
 }
 
 export interface IMyServiceMrsNotesNoteShareParams extends IMrsFetchData {
-    viewOnly?: boolean,
-    userId?: string,
-    email?: string,
-    noteId?: number,
-    canShare?: boolean,
-}
-
-export interface IMyServiceMrsNotesNoteShareParamsUniqueParams {
     viewOnly?: boolean,
     userId?: string,
     email?: string,
@@ -786,10 +704,6 @@ export interface IMyServiceMrsNotesNoteShare {
 export interface IMyServiceMrsNotesNoteShareResult {
     type: "MyServiceMrsNotesNoteShare",
     items: IMyServiceMrsNotesNoteShare[],
-}
-
-export interface IMyServiceMrsNotesNoteShareUniqueParams {
-    invitationKey?: MaybeNull<string>,
 }
 
 export type IMyServiceMrsNotesNoteShareMeta = IMyServiceMrsNotesNoteShareResult;
@@ -814,19 +728,10 @@ export class MyServiceMrsNotesNoteUpdateParamsRequest extends MyServiceMrsNotesO
         return response;
     };
 
+
 }
 
 export interface IMyServiceMrsNotesNoteUpdateParams extends IMrsFetchData {
-    tags?: JsonValue,
-    lockedDown?: boolean,
-    noteId?: number,
-    title?: string,
-    content?: string,
-    pinned?: boolean,
-    userId?: string,
-}
-
-export interface IMyServiceMrsNotesNoteUpdateParamsUniqueParams {
     tags?: JsonValue,
     lockedDown?: boolean,
     noteId?: number,

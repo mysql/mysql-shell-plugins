@@ -402,20 +402,6 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
             objects = lib.db_objects.get_objects(
                 session, db_object_id=db_obj.get("id"))
 
-            # Remove unsupported CRUD operations for this DB Object
-            if db_obj.get("object_type") != "PROCEDURE" and db_obj.get("object_type") != "FUNCTION":
-                db_object_crud_ops = db_obj.get("crud_operations", [])
-                # If this DB Object has unique columns (PK or UNIQUE) allow ReadUnique
-                # cSpell:ignore READUNIQUE
-                if len(obj_unique_list) > 0 and not "READUNIQUE" in db_object_crud_ops:
-                    db_object_crud_ops.append("READUNIQUE")
-            elif db_obj.get("object_type") == "PROCEDURE":
-                # For PROCEDUREs, handle custom "UpdateProcedure" operation, delete all other
-                db_object_crud_ops = ["UPDATEPROCEDURE"]
-            elif db_obj.get("object_type") == "FUNCTION":
-                # For FUNCTIONs, handle custom "ReadFunction" operation, delete all other
-                db_object_crud_ops = ["READFUNCTION"]
-
             # Loop over all objects and build interfaces
             for obj in objects:
                 # Get fields
@@ -461,6 +447,21 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                 # Either take the custom interface_name or the default class_name
                 class_name = sdk_lang_options.get(
                     "class_name", obj.get("name"))
+
+                # For database objects other than PROCEDUREs and FUNCTIONS, if there are unique fields,
+                # the corresponding SDK commands should be enabled.
+                if db_obj.get("object_type") != "PROCEDURE" and db_obj.get("object_type") != "FUNCTION":
+                    db_object_crud_ops = db_obj.get("crud_operations", [])
+                    # If this DB Object has unique columns (PK or UNIQUE) allow ReadUnique
+                    if len(obj_unique_list) > 0 and "READUNIQUE" not in db_object_crud_ops:
+                        db_object_crud_ops.append("READUNIQUE")
+                # If the database object is a FUNCTION or a PROCEDURE, CRUD operations should not be enabled
+                elif db_obj.get("object_type") == "PROCEDURE":
+                    # For PROCEDUREs, handle custom "UpdateProcedure" operation, delete all other
+                    db_object_crud_ops = ["UPDATEPROCEDURE"]
+                elif db_obj.get("object_type") == "FUNCTION":
+                    # For FUNCTIONs, handle custom "ReadFunction" operation, delete all other
+                    db_object_crud_ops = ["READFUNCTION"]
 
                 obj_interfaces_def, out_params_interface_fields = generate_interfaces(
                     db_obj,
