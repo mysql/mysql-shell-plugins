@@ -25,57 +25,10 @@
 
 /* eslint-disable max-classes-per-file */
 
-import { CellComponent, ColumnComponent, ColumnDefinition, PopupPosition, type RangeComponent } from "tabulator-tables";
-import { DBDataType, IColumnInfo } from "../../../app-logic/Types.js";
+import { CellComponent, ColumnComponent, PopupPosition, type RangeComponent } from "tabulator-tables";
+import { ColumnComponentMock } from "./ColumnComponentMock.js";
 
-const mockColumnsInfo: IColumnInfo = {
-    title: "col1",
-    field: "0",
-    dataType: { type: DBDataType.Varchar },
-    inPK: false,
-    nullable: false,
-    autoIncrement: false,
-};
-
-
-export class MockColumnComponent implements ColumnComponent {
-    public getElement = jest.fn();
-    public getTable = jest.fn();
-    public getField = jest.fn();
-    public getCells = jest.fn();
-    public getNextColumn = jest.fn();
-    public getPrevColumn = jest.fn();
-    public move = jest.fn();
-    public isVisible = jest.fn();
-    public show = jest.fn();
-    public hide = jest.fn();
-    public toggle = jest.fn();
-    public delete = jest.fn();
-    public scrollTo = jest.fn();
-    public getSubColumns = jest.fn();
-    public getParentColumn = jest.fn();
-    public headerFilterFocus = jest.fn();
-    public setHeaderFilterValue = jest.fn();
-    public reloadHeaderFilter = jest.fn();
-    public getHeaderFilterValue = jest.fn();
-    public updateDefinition = jest.fn();
-    public getWidth = jest.fn();
-    public setWidth = jest.fn();
-    public validate = jest.fn();
-    public popup = jest.fn();
-    public getDefinition = (): ColumnDefinition => {
-        return {
-            title: "",
-            formatterParams: (): { info: IColumnInfo; } => {
-                return {
-                    info: mockColumnsInfo,
-                };
-            },
-        };
-    };
-}
-
-export class MockCellComponent implements CellComponent {
+export class CellComponentMock implements CellComponent {
     public getElement = jest.fn();
     public getTable = jest.fn();
     public getRow = jest.fn();
@@ -93,7 +46,7 @@ export class MockCellComponent implements CellComponent {
     private value: unknown = "Animal";
 
     public getColumn = (): ColumnComponent => {
-        return new MockColumnComponent();
+        return new ColumnComponentMock();
     };
 
     public getValue = (): unknown => {
