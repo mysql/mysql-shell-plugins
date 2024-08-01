@@ -168,6 +168,7 @@ export interface ILakehouseTask {
     description?: string;
     schemaName?: string;
     tableName?: string;
+    userModified?: boolean;
     items?: ILakehouseTaskItem[];
     activeFormat?: string;
     progress?: number;
@@ -2192,7 +2193,12 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 }
             }
 
-            theTask.tableName = this.generateVectorTableName(theTask.items ?? []);
+            if (theTask.userModified !== true) {
+                theTask.tableName = this.generateVectorTableName(theTask.items ?? []);
+            } else if (theTask.userModified && theTask.tableName === "") {
+                theTask.userModified = false;
+                theTask.tableName = this.generateVectorTableName(theTask.items ?? []);
+            }
             this.setState({ task: theTask });
         }
     };
@@ -2200,7 +2206,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
     private generateVectorTableName = (items: ILakehouseTaskItem[]): string => {
         let tableName = "vector_table";
         if (items.length === 0) {
-            tableName = "vector_table";
+            tableName = "";
         } else if (items.length === 1) {
             let value = items[0].uri;
             if (value.endsWith("/")) {
@@ -2306,6 +2312,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             case "taskTableName": {
                 if (task !== undefined) {
                     task.tableName = element.value;
+                    task.userModified = true;
                 }
                 break;
             }
