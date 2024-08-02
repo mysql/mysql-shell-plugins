@@ -147,8 +147,6 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
 
             if (newNotes.length === 0) {
                 this.setState({ forceNoteListDisplay: undefined });
-
-                this.setTextAreaFocus();
             } else {
                 // If a new activeNodeId was given or there was an active note, select that note again
                 const noteId = (activeNoteId !== undefined) ? activeNoteId : activeNote?.id;
