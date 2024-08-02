@@ -334,26 +334,11 @@ export class RestObjectDialog {
                     .getAttribute("class")).includes("selected");
             }, constants.wait5seconds, "Authorization tab was not selected");
 
-            if (restObject.authorization.enforceRowUserOwner !== undefined) {
-                await DialogHelper.setCheckboxValue("rowUserOwnershipEnforced",
-                    restObject.authorization.enforceRowUserOwner);
-            }
-
-            if (restObject.authorization.rowOwnerShipField) {
-                const inOwner = await dialog
-                    .findElement(locator.mrsDbObjectDialog.authorization.rowOwnershipField);
-                await inOwner.click();
-                const popup = await driver.wait(until
-                    .elementLocated(locator.mrsDbObjectDialog.authorization.rowUserOwnershipFieldList),
-                    constants.wait5seconds, "#rowUserOwnershipColumnPopup not found");
-                await popup.findElement(By.id(restObject.authorization.rowOwnerShipField)).click();
-            }
-
-            if (restObject.authorization.customStoredProcedure) {
+            if (restObject.authorization.authStoredProcedure) {
                 const inStoredPrc = await dialog
                     .findElement(locator.mrsDbObjectDialog.authorization.authStoredProcedure);
                 await inStoredPrc.clear();
-                await inStoredPrc.sendKeys(restObject.authorization.customStoredProcedure);
+                await inStoredPrc.sendKeys(restObject.authorization.authStoredProcedure);
             }
         }
 
@@ -439,8 +424,7 @@ export class RestObjectDialog {
         restObject.jsonRelDuality.columns = restColumns;
 
         const restObjectCrud: interfaces.IRestObjectCrud = {
-            create: undefined,
-            read: undefined,
+            insert: undefined,
             update: undefined,
             delete: undefined,
         };
@@ -480,16 +464,11 @@ export class RestObjectDialog {
             return (await dialog.findElement(locator.mrsDbObjectDialog.authorizationTab)
                 .getAttribute("class")).includes("selected");
         }, constants.wait5seconds, "Authorization tab was not selected");
-        restObject.authorization = {};
 
-        restObject.authorization.enforceRowUserOwner = await DialogHelper.getCheckBoxValue("rowUserOwnershipEnforced");
-
-        restObject.authorization.rowOwnerShipField = await dialog
-            .findElement(locator.mrsDbObjectDialog.authorization.rowUserOwnershipColumnLabel)
-            .getText();
-        restObject.authorization.customStoredProcedure = await dialog
-            .findElement(locator.mrsDbObjectDialog.authorization.authStoredProcedure)
-            .getAttribute("value");
+        restObject.authorization = {
+            authStoredProcedure: await DialogHelper.getFieldValue(dialog,
+                locator.mrsDbObjectDialog.authorization.authStoredProcedure),
+        };
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsDbObjectDialog.optionsTab).click();

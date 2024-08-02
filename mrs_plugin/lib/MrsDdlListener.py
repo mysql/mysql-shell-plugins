@@ -26,6 +26,7 @@ import antlr4
 from mrs_plugin.lib.mrs_parser import MRSListener
 from mrs_plugin.lib.mrs_parser import MRSParser
 from mrs_plugin.lib.MrsDdlExecutorInterface import MrsDdlExecutorInterface
+import re
 
 
 def get_text_without_quotes(txt):
@@ -35,10 +36,14 @@ def get_text_without_quotes(txt):
     if len(txt) < 2:
         return txt
 
-    if ((txt[0] == "`" and txt[len(txt)-1] == "`") or
-        (txt[0] == "'" and txt[len(txt)-1] == "'") or
-            (txt[0] == '"' and txt[len(txt)-1] == '"')):
-        return txt[1:-1]
+    if txt[0] == "`" and txt[len(txt)-1] == "`":
+        return txt[1:-1].replace("\\`", "`").replace("\\\\", "\\")
+
+    if txt[0] == "'" and txt[len(txt)-1] == "'":
+        return txt[1:-1].replace("\\'", "'").replace("\\\\", "\\")
+
+    if txt[0] == '"' and txt[len(txt)-1] == '"':
+        return txt[1:-1].replace('\\"', '"').replace("\\\\", "\\")
 
     return txt
 
@@ -60,6 +65,9 @@ class MrsDdlListener(MRSListener):
     def enterJsonOptions(self, ctx):
         self.mrs_object["options"] = ctx.jsonValue().getText()
 
+    def enterMetadata(self, ctx):
+        self.mrs_object["metadata"] = ctx.jsonValue().getText()
+
     def enterComments(self, ctx):
         self.mrs_object["comments"] = get_text_without_quotes(
             ctx.quotedText().getText())
@@ -69,6 +77,12 @@ class MrsDdlListener(MRSListener):
             self.mrs_object["enabled"] = True
         if ctx.DISABLED_SYMBOL() is not None:
             self.mrs_object["enabled"] = False
+
+    def enterPublishedUnpublished(self, ctx):
+        if ctx.PUBLISHED_SYMBOL() is not None:
+            self.mrs_object["published"] = True
+        if ctx.UNPUBLISHED_SYMBOL() is not None:
+            self.mrs_object["published"] = False
 
     def enterAuthenticationRequired(self, ctx):
         # If the NOT keyword is present in (AUTHENTICATION NOT? REQUIRED)?
@@ -82,17 +96,51 @@ class MrsDdlListener(MRSListener):
         self.mrs_object["items_per_page"] = int(
             ctx.itemsPerPageNumber().getText())
 
+    def exitServiceDevelopersIdentifier(self, ctx):
+        # Workaround in order to allow a singe @ after the developer list:
+        # If there was no @ symbol after the developers, and there is no hostAndPortIdentifier
+        # this means that the user only specified a hostAndPortIdentifier and it was
+        # matched as a developer. Fix this assignment.
+        if ctx.AT_SIGN_SYMBOL() is None and ctx.parentCtx.hostAndPortIdentifier() is None:
+            if "new_developer_list" in self.mrs_object.keys():
+                self.mrs_object["new_url_host_name"] = ctx.getText()
+                if "new_developer_list" in self.mrs_object.keys():
+                    self.mrs_object.pop("new_developer_list", None)
+            else:
+                self.mrs_object["url_host_name"] = ctx.getText()
+                if "in_development" in self.mrs_object.keys():
+                    self.mrs_object.pop("in_development", None)
+
+    def enterServiceDeveloperIdentifier(self, ctx):
+        # If the new_developer_list list has been initialized, all following developers are part of the
+        # new developer list to be set by the ALTER REST SERVICE statement
+        if "new_developer_list" in self.mrs_object.keys():
+            self.mrs_object["new_developer_list"].append(
+                get_text_without_quotes(ctx.getText()))
+        else:
+            if not "in_development" in self.mrs_object.keys():
+                self.mrs_object["in_development"] = {"developers": []}
+
+            self.mrs_object["in_development"]["developers"].append(
+                get_text_without_quotes(ctx.getText()))
+
     def enterServiceRequestPath(self, ctx):
-        self.mrs_object["url_context_root"] = ctx.requestPathIdentifier(
-        ).getText()
+        self.mrs_object["url_context_root"] = get_text_without_quotes(
+            ctx.requestPathIdentifier().getText())
         # Check if there was a host:port defined as well
         val = ctx.hostAndPortIdentifier()
         if val is not None:
-            self.mrs_object["url_host_name"] = val.getText()
+            # Make sure to remove a leading @ that could appear because of a hack
+            # to prevent the Lexer matching AT_TEXT_SUFFIX
+            self.mrs_object["url_host_name"] = val.getText().lstrip("@")
 
     def enterServiceSchemaSelector(self, ctx):
         self.mrs_object["schema_request_path"] = ctx.schemaRequestPath(
         ).getText()
+
+    def enterFileIgnoreList(self, ctx):
+        self.mrs_object["file_ignore_list"] = get_text_without_quotes(
+            ctx.quotedText().getText())
 
     # ==================================================================================================================
     # CREATE REST statements
@@ -172,7 +220,7 @@ class MrsDdlListener(MRSListener):
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
             "schema_name": get_text_without_quotes(ctx.schemaName().getText()),
             "schema_request_path": (
-                ctx.schemaRequestPath().getText()
+                get_text_without_quotes(ctx.schemaRequestPath().getText())
                 if ctx.schemaRequestPath() is not None
                 else f'/{lib.core.unquote(ctx.schemaName().getText())}')
         }
@@ -228,22 +276,60 @@ class MrsDdlListener(MRSListener):
 
         return fields
 
-    def get_db_object(self, ctx):
-        if ctx.serviceSchemaSelector() is not None:
-            schema_request_path = ctx.serviceSchemaSelector().schemaRequestPath().getText()
-            url_context_root = None
-            url_host_name = None
+    def get_service_sorted_developers(self, developer_list: list):
+        sorted_developers = ""
+        if developer_list is not None and len(developer_list) > 0:
+            developer_list.sort()
+            sorted_developers = ",".join(
+                f'\'{re.sub(r"(['\\])", "\\\\\\1", dev, 0, re.MULTILINE)}\'' if not re.match(r'^\w+$', dev) else dev for dev in developer_list) + "@"
+        return sorted_developers
 
-            if ctx.serviceSchemaSelector().serviceRequestPath() is not None:
-                url_context_root = ctx.serviceSchemaSelector(
-                ).serviceRequestPath().requestPathIdentifier().getText()
-                if ctx.serviceSchemaSelector().serviceRequestPath().hostAndPortIdentifier() is not None:
+    def get_db_object(self, ctx):
+        developer_list = None
+        if ctx.serviceSchemaSelector() is not None:
+            schema_request_path = get_text_without_quotes(
+                ctx.serviceSchemaSelector().schemaRequestPath().getText())
+            url_context_root = None
+            url_host_name = ""
+
+            serviceRequestPath = ctx.serviceSchemaSelector().serviceRequestPath()
+            if serviceRequestPath is not None:
+                url_context_root = get_text_without_quotes(ctx.serviceSchemaSelector(
+                ).serviceRequestPath().requestPathIdentifier().getText())
+
+                if serviceRequestPath.hostAndPortIdentifier() is not None:
                     url_host_name = ctx.serviceSchemaSelector(
-                    ).serviceRequestPath().hostAndPortIdentifier().getText()
+                    ).serviceRequestPath().hostAndPortIdentifier().getText().lstrip("@")
+
+                if serviceRequestPath.serviceDevelopersIdentifier() is not None:
+                    developer_list = []
+                    developersIdentifier = serviceRequestPath.serviceDevelopersIdentifier()
+                    for item in list(developersIdentifier.getChildren()):
+                        if isinstance(item, MRSParser.ServiceDeveloperIdentifierContext):
+                            if item.quotedText() is not None:
+                                developer_list.append(
+                                    get_text_without_quotes(item.getText()))
+                            else:
+                                developer_list.append(item.getText())
+                    if len(developer_list) == 0:
+                        developer_list = None
+
+                    # Workaround in order to allow a singe @ after the developer list:
+                    # If there was no @ symbol after the developers, and there is no hostAndPortIdentifier
+                    # this means that the user only specified a hostAndPortIdentifier and it was
+                    # matched as a developer. Fix this assignment.
+                    if serviceRequestPath.serviceDevelopersIdentifier().AT_SIGN_SYMBOL() is None and \
+                            serviceRequestPath.hostAndPortIdentifier() is None:
+                        self.mrs_object["url_host_name"] = serviceRequestPath.serviceDevelopersIdentifier(
+                        ).getText()
+                        url_host_name = self.mrs_object["url_host_name"]
+                        developer_list = None
         else:
             schema_request_path = self.mrs_object.get("schema_request_path")
             url_context_root = self.mrs_object.get("url_context_root")
             url_host_name = self.mrs_object.get("url_host_name")
+            if "in_development" in self.mrs_object.keys() and "developers" in self.mrs_object.get("in_development"):
+                developer_list = self.mrs_object["in_development"]["developers"]
 
         if schema_request_path is None:
             schema_id = self.mrs_ddl_executor.current_schema_id
@@ -256,10 +342,12 @@ class MrsDdlListener(MRSListener):
             service = lib.services.get_service(
                 session=self.session,
                 url_context_root=url_context_root,
-                url_host_name=url_host_name)
+                url_host_name=url_host_name,
+                developer_list=developer_list)
             if service is None:
                 raise Exception(
-                    f"The REST service `{url_host_name}{url_context_root}` was not found.")
+                    f"The REST service `{self.get_service_sorted_developers(developer_list)}" +
+                    f"{url_host_name}{url_context_root}` was not found.")
 
             schema = lib.schemas.get_schema(
                 session=self.session,
@@ -272,7 +360,7 @@ class MrsDdlListener(MRSListener):
                         url_host_name if url_host_name is not None else ''}{
                             url_context_root if url_context_root is not None else ''}{
                                 schema_request_path if schema_request_path is not None else ''
-                                }` was not found.""")
+                    }` was not found.""")
             schema_id = schema["id"]
 
         db_object = lib.db_objects.get_db_object(
@@ -319,12 +407,11 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "current_operation": f"""CREATE{
                 '' if ctx.REPLACE_SYMBOL() is None else ' OR REPLACE'
-                } REST DUALITY VIEW""",
+            } REST DUALITY VIEW""",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
             "id": self.get_uuid(),
-            "request_path": ctx.viewRequestPath().requestPathIdentifier().getText(),
-            "crud_operations": self.build_crud_operations_list(
-                ctx=ctx.graphQlCrudOptions()),
+            "request_path": get_text_without_quotes(
+                ctx.viewRequestPath().requestPathIdentifier().getText()),
             "parent_reference_stack": []
         }
 
@@ -338,12 +425,19 @@ class MrsDdlListener(MRSListener):
         ) else "VIEW"
 
         object_id = self.get_uuid()
+        options = self.build_options_list(ctx.graphQlCrudOptions())
         self.mrs_object["objects"] = [{
             "id": object_id,
             "db_object_id": self.mrs_object.get("id"),
             "name": ctx.restObjectName().getText() if ctx.restObjectName() is not None else None,
             "kind": "RESULT",
             "position": 0,
+            "options": {
+                "duality_view_insert": "INSERT" in options,
+                "duality_view_update": "UPDATE" in options,
+                "duality_view_delete": "DELETE" in options,
+                "duality_view_no_check": "NOCHECK" in options,
+            },
             # Get top level fields
             "fields": self.get_db_object_fields(
                 object_id=object_id,
@@ -372,29 +466,31 @@ class MrsDdlListener(MRSListener):
         self.mrs_object["auth_stored_procedure"] = ctx.qualifiedIdentifier(
         ).getText()
 
-    def build_crud_operations_list(self, ctx: MRSParser.GraphQlCrudOptionsContext):
-        crud_list = ["READ"]
+    def build_options_list(self, ctx: MRSParser.GraphQlCrudOptionsContext):
+        options_list = []
 
         if ctx is None:
-            return crud_list
+            return options_list
 
         # cSpell:ignore NOSELECT NOINSERT NOUPDATE NODELETE
-        if (ctx.AT_NOSELECT_SYMBOL(0) is not None) and "READ" in crud_list:
-            crud_list.remove("READ")
-        if (ctx.AT_INSERT_SYMBOL(0) is not None) and "CREATE" not in crud_list:
-            crud_list.append("CREATE")
-        if (ctx.AT_NOINSERT_SYMBOL(0) is not None) and "CREATE" in crud_list:
-            crud_list.remove("CREATE")
-        if (ctx.AT_UPDATE_SYMBOL(0) is not None) and "UPDATE" not in crud_list:
-            crud_list.append("UPDATE")
-        if (ctx.AT_NOUPDATE_SYMBOL(0) is not None) and "UPDATE" in crud_list:
-            crud_list.remove("UPDATE")
-        if (ctx.AT_DELETE_SYMBOL(0) is not None) and "DELETE" not in crud_list:
-            crud_list.append("DELETE")
-        if (ctx.AT_NODELETE_SYMBOL(0) is not None) and "DELETE" in crud_list:
-            crud_list.remove("DELETE")
+        if (ctx.AT_INSERT_SYMBOL(0) is not None) and "INSERT" not in options_list:
+            options_list.append("INSERT")
+        if (ctx.AT_NOINSERT_SYMBOL(0) is not None) and "INSERT" in options_list:
+            options_list.remove("INSERT")
+        if (ctx.AT_UPDATE_SYMBOL(0) is not None) and "UPDATE" not in options_list:
+            options_list.append("UPDATE")
+        if (ctx.AT_NOUPDATE_SYMBOL(0) is not None) and "UPDATE" in options_list:
+            options_list.remove("UPDATE")
+        if (ctx.AT_DELETE_SYMBOL(0) is not None) and "DELETE" not in options_list:
+            options_list.append("DELETE")
+        if (ctx.AT_NODELETE_SYMBOL(0) is not None) and "DELETE" in options_list:
+            options_list.remove("DELETE")
+        if (ctx.AT_NOCHECK_SYMBOL(0) is not None) and "NOCHECK" not in options_list:
+            options_list.append("NOCHECK")
+        if (ctx.AT_CHECK_SYMBOL(0) is not None) and "NOCHECK" in options_list:
+            options_list.remove("NOCHECK")
 
-        return crud_list
+        return options_list
 
     def enterRestProcedureResult(self, ctx):
         # A REST PROCEDURE can have multiple results
@@ -419,7 +515,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object["graph_ql_object_count"] = graph_ql_object_count
 
         self.mrs_object["objects"][1]["name"] = ctx.restResultName().getText(
-            ) if ctx.restResultName() is not None else None
+        ) if ctx.restResultName() is not None else None
 
     def enterGraphQlPair(self, ctx):
         objects = self.mrs_object["objects"]
@@ -444,7 +540,8 @@ class MrsDdlListener(MRSListener):
             db_column_name = ctx.graphQlPairValue().getText().strip("`")
 
             # Check if this is a REST PROCEDURE RESULT
-            graph_ql_object_count = self.mrs_object.get("graph_ql_object_count", 0)
+            graph_ql_object_count = self.mrs_object.get(
+                "graph_ql_object_count", 0)
             if graph_ql_object_count == 0:
                 # A REST VIEW RESULT or REST PROCEDURE/FUNCTION PARAMETERS
                 for i, field in enumerate(fields):
@@ -468,8 +565,8 @@ class MrsDdlListener(MRSListener):
                                 and ctx.graphQlCrudOptions().AT_NOUPDATE_SYMBOL() is not None):
                             field["no_update"] = True
                         if ctx.AT_ROWOWNERSHIP_SYMBOL() is not None:
-                            self.mrs_object["row_user_ownership_enforced"] = True
-                            self.mrs_object["row_user_ownership_column"] = db_column_name
+                            current_object["row_ownership_field_id"] = field.get(
+                                "id", None)
                         if ctx.AT_DATATYPE_SYMBOL() is not None:
                             db_column["datatype"] = lib.core.unquote(
                                 ctx.graphQlDatatypeValue().getText().lower())
@@ -490,7 +587,7 @@ class MrsDdlListener(MRSListener):
                             "name": db_column_name,
                             "datatype": lib.core.unquote(
                                 ctx.graphQlDatatypeValue().getText().lower()
-                            ) if ctx.AT_DATATYPE_SYMBOL() else "varchar(45)"
+                            ) if ctx.AT_DATATYPE_SYMBOL() else "varchar(255)"
                         },
                         "enabled": True,
                         "allow_filtering": True,
@@ -503,11 +600,12 @@ class MrsDdlListener(MRSListener):
 
         else:
             if (ctx.graphQlPairValue().qualifiedIdentifier() is None or
-                ctx.graphQlPairValue().qualifiedIdentifier().dotIdentifier() is None):
+                    ctx.graphQlPairValue().qualifiedIdentifier().dotIdentifier() is None):
                 db_schema_name = self.mrs_object["schema_name"]
                 db_object_name = ctx.graphQlPairValue().getText().strip("`")
             else:
-                db_schema_name = ctx.graphQlPairValue().qualifiedIdentifier().identifier().getText().strip("`")
+                db_schema_name = ctx.graphQlPairValue(
+                ).qualifiedIdentifier().identifier().getText().strip("`")
                 db_object_name = ctx.graphQlPairValue().qualifiedIdentifier(
                 ).dotIdentifier().identifier().getText().strip("`")
 
@@ -523,11 +621,16 @@ class MrsDdlListener(MRSListener):
 
                     # Build object_reference
                     obj_reference_id = self.get_uuid()
+                    options = self.build_options_list(ctx.graphQlCrudOptions())
                     obj_reference = {
                         "id": obj_reference_id,
                         "reference_mapping": ref_mapping,
-                        "crud_operations": ",".join(self.build_crud_operations_list(
-                            ctx.graphQlCrudOptions())),
+                        "options": {
+                            "duality_view_insert": "INSERT" in options,
+                            "duality_view_update": "UPDATE" in options,
+                            "duality_view_delete": "DELETE" in options,
+                            "duality_view_no_check": "NOCHECK" in options,
+                        },
                         "unnest": ctx.AT_UNNEST_SYMBOL() is not None
                     }
 
@@ -551,12 +654,13 @@ class MrsDdlListener(MRSListener):
                     break
             else:
                 raise Exception(
-                    f'The table `{db_schema_name}`.`{db_object_name}` has no reference to '
+                    f'The table `{db_schema_name}`.`{
+                        db_object_name}` has no reference to '
                     f'`{self.mrs_object.get("schema_name")}`.`{self.mrs_object.get("name")}`.')
 
     def exitGraphQlPair(self, ctx):
         if (ctx.graphQlPairValue().qualifiedIdentifier() is not None and
-            ctx.graphQlPairValue().qualifiedIdentifier().dotIdentifier() is not None):
+                ctx.graphQlPairValue().qualifiedIdentifier().dotIdentifier() is not None):
             # Remove last reference_id
             ref_stack = self.mrs_object.get("parent_reference_stack")
             if len(ref_stack) > 0:
@@ -590,7 +694,8 @@ class MrsDdlListener(MRSListener):
                             reduce_to_field_name = reduce_to_field.get("name")
                         else:
                             raise Exception(
-                                f'Only one column `{reduce_to_field_name}` must be defined for a N:1 unnest operation. '
+                                f'Only one column `{
+                                    reduce_to_field_name}` must be defined for a N:1 unnest operation. '
                                 f'The column `{reduce_to_field.get("name")}` needs to be removed.')
 
                 if obj_reference.get("reduce_to_value_of_field_id") is None:
@@ -655,7 +760,8 @@ class MrsDdlListener(MRSListener):
                 else "CREATE OR REPLACE") + " REST PROCEDURE",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
             "id": self.get_uuid(),
-            "request_path": ctx.procedureRequestPath().getText(),
+            "request_path": get_text_without_quotes(
+                ctx.procedureRequestPath().getText()),
             "db_object_type": "PROCEDURE",
             "crud_operations": ["UPDATE"]
         }
@@ -756,7 +862,6 @@ class MrsDdlListener(MRSListener):
             "fields": result_fields
         })
 
-
     def enterCreateRestFunctionStatement(self, ctx):
         self.mrs_object = {
             "current_operation": (
@@ -764,7 +869,8 @@ class MrsDdlListener(MRSListener):
                 else "CREATE OR REPLACE") + " REST FUNCTION",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
             "id": self.get_uuid(),
-            "request_path": ctx.functionRequestPath().getText(),
+            "request_path": get_text_without_quotes(
+                ctx.functionRequestPath().getText()),
             "db_object_type": "FUNCTION",
             "crud_operations": ["READ"]
         }
@@ -775,7 +881,6 @@ class MrsDdlListener(MRSListener):
             ctx=ctx,
             db_schema_name=self.mrs_object["schema_name"],
             db_object_name=self.mrs_object["name"])
-
 
     def exitCreateRestFunctionStatement(self, ctx):
         self.mrs_ddl_executor.createRestDbObject(self.mrs_object)
@@ -789,12 +894,33 @@ class MrsDdlListener(MRSListener):
                 "CREATE" if ctx.REPLACE_SYMBOL() is None
                 else "CREATE OR REPLACE") + " CONTENT SET",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
-            "request_path": ctx.contentSetRequestPath().getText(),
-            "directory_file_path": ctx.directoryFilePath().getText() if ctx.directoryFilePath() is not None else None
+            "request_path": get_text_without_quotes(
+                ctx.contentSetRequestPath().getText()),
+            "directory_file_path": ctx.directoryFilePath().getText() if ctx.directoryFilePath() is not None else None,
+            "content_type": "STATIC" if ctx.SCRIPTS_SYMBOL() is None else "SCRIPTS",
         }
 
     def exitCreateRestContentSetStatement(self, ctx):
         self.mrs_ddl_executor.createRestContentSet(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # CREATE REST CONTENT FILE
+
+    def enterCreateRestContentFileStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": (
+                "CREATE" if ctx.REPLACE_SYMBOL() is None
+                else "CREATE OR REPLACE") + " CONTENT FILE",
+            "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "request_path": get_text_without_quotes(ctx.contentFileRequestPath().getText()),
+            "content_set_path": get_text_without_quotes(ctx.contentSetRequestPath().getText()),
+            "directory_file_path": ctx.directoryFilePath().getText() if ctx.directoryFilePath() is not None else None,
+            "content": get_text_without_quotes(ctx.quotedText().getText()) if ctx.quotedText() is not None else None,
+            "is_binary": ctx.BINARY_SYMBOL() is not None,
+        }
+
+    def exitCreateRestContentFileStatement(self, ctx):
+        self.mrs_ddl_executor.createRestContentFile(self.mrs_object)
 
     # ------------------------------------------------------------------------------------------------------------------
     # CREATE REST AUTH APP
@@ -839,6 +965,20 @@ class MrsDdlListener(MRSListener):
         self.mrs_ddl_executor.createRestUser(self.mrs_object)
 
     # ==================================================================================================================
+    # CLONE REST Statements
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # CLONE REST SERVICE
+
+    def enterCloneRestServiceStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": "CLONE REST SERVICE"
+        }
+
+    def exitCloneRestServiceStatement(self, ctx):
+        self.mrs_ddl_executor.cloneRestService(self.mrs_object)
+
+    # ==================================================================================================================
     # ALTER REST Statements
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -850,12 +990,15 @@ class MrsDdlListener(MRSListener):
         }
 
     def enterNewServiceRequestPath(self, ctx):
-        self.mrs_object["new_url_context_root"] = ctx.requestPathIdentifier(
-        ).getText()
+        if self.mrs_object.get("new_developer_list") is None:
+            self.mrs_object["new_developer_list"] = []
+
+        self.mrs_object["new_url_context_root"] = \
+            get_text_without_quotes(ctx.requestPathIdentifier().getText())
         # Check if there was a host:port defined as well
         val = ctx.hostAndPortIdentifier()
         if val is not None:
-            self.mrs_object["new_url_host_name"] = val.getText()
+            self.mrs_object["new_url_host_name"] = val.getText().lstrip("@")
 
     def exitAlterRestServiceStatement(self, ctx):
         self.mrs_ddl_executor.alterRestService(self.mrs_object)
@@ -869,8 +1012,8 @@ class MrsDdlListener(MRSListener):
         }
 
     def enterNewSchemaRequestPath(self, ctx):
-        self.mrs_object["new_request_path"] = ctx.requestPathIdentifier(
-        ).getText()
+        self.mrs_object["new_request_path"] = get_text_without_quotes(
+            ctx.requestPathIdentifier().getText())
 
     def exitAlterRestSchemaStatement(self, ctx):
         self.mrs_ddl_executor.alterRestSchema(self.mrs_object)
@@ -881,19 +1024,20 @@ class MrsDdlListener(MRSListener):
     def enterAlterRestViewStatement(self, ctx):
         self.mrs_object = {
             "current_operation": "ALTER REST VIEW",
-            "request_path": ctx.viewRequestPath().requestPathIdentifier().getText(),
-            "new_request_path": (
+            "request_path": get_text_without_quotes(
+                ctx.viewRequestPath().requestPathIdentifier().getText()),
+            "new_request_path": get_text_without_quotes((
                 ctx.newViewRequestPath().requestPathIdentifier().getText()
-                if ctx.newViewRequestPath() is not None else None),
+                if ctx.newViewRequestPath() is not None else None)),
             "new_object_name": (
                 ctx.restObjectName().getText() if ctx.restObjectName() is not None else None),
             "type": "DUALITY VIEW",
             "parent_reference_stack": []
         }
 
-        if ctx.graphQlCrudOptions() is not None:
-            self.mrs_object["crud_operations"] = self.build_crud_operations_list(
-                ctx=ctx.graphQlCrudOptions())
+        # if ctx.graphQlCrudOptions() is not None:
+        #     self.mrs_object["crud_operations"] = self.build_options_list(
+        #         ctx=ctx.graphQlCrudOptions())
 
         db_object = self.get_db_object(ctx=ctx)
 
@@ -901,12 +1045,19 @@ class MrsDdlListener(MRSListener):
         self.mrs_object["id"] = db_object["id"]
 
         object_id = self.get_uuid()
+        options = self.build_options_list(ctx.graphQlCrudOptions())
         self.mrs_object["objects"] = [{
             "id": object_id,
             "db_object_id": db_object["id"],
             "name": ctx.restObjectName().getText() if ctx.restObjectName() is not None else None,
             "kind": "RESULT",
             "position": 0,
+            "options": {
+                "duality_view_insert": "INSERT" in options,
+                "duality_view_update": "UPDATE" in options,
+                "duality_view_delete": "DELETE" in options,
+                "duality_view_no_check": "NOCHECK" in options,
+            },
             # Get top level fields
             "fields": self.get_db_object_fields(
                 object_id=object_id,
@@ -923,10 +1074,11 @@ class MrsDdlListener(MRSListener):
     def enterAlterRestProcedureStatement(self, ctx):
         self.mrs_object = {
             "current_operation": "ALTER REST PROCEDURE",
-            "request_path": ctx.procedureRequestPath().getText(),
-            "new_request_path": (
+            "request_path": get_text_without_quotes(
+                ctx.procedureRequestPath().getText()),
+            "new_request_path": get_text_without_quotes((
                 ctx.newProcedureRequestPath().requestPathIdentifier().getText()
-                if ctx.newProcedureRequestPath() is not None else None),
+                if ctx.newProcedureRequestPath() is not None else None)),
             "new_object_name": (
                 ctx.restObjectName().getText() if ctx.restObjectName() is not None else None),
             "type": "PROCEDURE"
@@ -943,6 +1095,35 @@ class MrsDdlListener(MRSListener):
             db_object_name=db_object["name"])
 
     def exitAlterRestProcedureStatement(self, ctx):
+        self.mrs_ddl_executor.alterRestDbObject(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ALTER REST FUNCTION
+
+    def enterAlterRestFunctionStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": "ALTER REST FUNCTION",
+            "request_path": get_text_without_quotes(
+                ctx.functionRequestPath().getText()),
+            "new_request_path": get_text_without_quotes((
+                ctx.newFunctionRequestPath().requestPathIdentifier().getText()
+                if ctx.newFunctionRequestPath() is not None else None)),
+            "new_object_name": (
+                ctx.restObjectName().getText() if ctx.restObjectName() is not None else None),
+            "type": "FUNCTION"
+        }
+
+        db_object = self.get_db_object(ctx=ctx)
+
+        # Set mrs_object["id"] since the field listener need that
+        self.mrs_object["id"] = db_object["id"]
+
+        self.add_rest_functions_params_and_result(
+            ctx=ctx,
+            db_schema_name=db_object["schema_name"],
+            db_object_name=db_object["name"])
+
+    def exitAlterRestFunctionStatement(self, ctx):
         self.mrs_ddl_executor.alterRestDbObject(self.mrs_object)
 
     # ==================================================================================================================
@@ -965,7 +1146,8 @@ class MrsDdlListener(MRSListener):
     def enterDropRestSchemaStatement(self, ctx):
         self.mrs_object = {
             "current_operation": "DROP REST SCHEMA",
-            "request_path": ctx.schemaRequestPath().getText()
+            "request_path": get_text_without_quotes(
+                ctx.schemaRequestPath().getText())
         }
 
     def exitDropRestSchemaStatement(self, ctx):
@@ -977,7 +1159,8 @@ class MrsDdlListener(MRSListener):
     def enterDropRestDualityViewStatement(self, ctx):
         self.mrs_object = {
             "current_operation": "DROP REST VIEW",
-            "request_path": ctx.viewRequestPath().getText(),
+            "request_path": get_text_without_quotes(
+                ctx.viewRequestPath().getText()),
             "type": "DUALITY VIEW"
         }
 
@@ -990,7 +1173,8 @@ class MrsDdlListener(MRSListener):
     def enterDropRestProcedureStatement(self, ctx):
         self.mrs_object = {
             "current_operation": "DROP REST PROCEDURE",
-            "request_path": ctx.procedureRequestPath().getText(),
+            "request_path": get_text_without_quotes(
+                ctx.procedureRequestPath().getText()),
             "type": "PROCEDURE"
         }
 
@@ -1003,13 +1187,13 @@ class MrsDdlListener(MRSListener):
     def enterDropRestFunctionStatement(self, ctx):
         self.mrs_object = {
             "current_operation": "DROP REST FUNCTION",
-            "request_path": ctx.functionRequestPath().getText(),
+            "request_path": get_text_without_quotes(
+                ctx.functionRequestPath().getText()),
             "type": "FUNCTION"
         }
 
     def exitDropRestFunctionStatement(self, ctx):
         self.mrs_ddl_executor.dropRestDbObject(self.mrs_object)
-
 
     # ------------------------------------------------------------------------------------------------------------------
     # DROP REST CONTENT SET
@@ -1017,11 +1201,27 @@ class MrsDdlListener(MRSListener):
     def enterDropRestContentSetStatement(self, ctx):
         self.mrs_object = {
             "current_operation": "DROP REST CONTENT SET",
-            "request_path": ctx.contentSetRequestPath().getText()
+            "request_path": get_text_without_quotes(
+                ctx.contentSetRequestPath().getText())
         }
 
     def exitDropRestContentSetStatement(self, ctx):
         self.mrs_ddl_executor.dropRestContentSet(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # DROP REST CONTENT FILE
+
+    def enterDropRestContentFileStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": "DROP REST CONTENT FILE",
+            "request_path": get_text_without_quotes(
+                ctx.contentFileRequestPath().getText()),
+            "content_set_path": get_text_without_quotes(
+                ctx.contentSetRequestPath().getText()),
+        }
+
+    def exitDropRestContentFileStatement(self, ctx):
+        self.mrs_ddl_executor.dropRestContentFile(self.mrs_object)
 
     # ------------------------------------------------------------------------------------------------------------------
     # DROP REST AUTH APP
@@ -1059,9 +1259,10 @@ class MrsDdlListener(MRSListener):
                     ctx.serviceAndSchemaRequestPaths().serviceSchemaSelector() is None
                 ) else "SCHEMA"),
             "schema_request_path":
-                ctx.serviceAndSchemaRequestPaths().serviceSchemaSelector().schemaRequestPath().getText()
-                if (ctx.serviceAndSchemaRequestPaths().serviceSchemaSelector() is not None)
-                else None
+                get_text_without_quotes(
+                    ctx.serviceAndSchemaRequestPaths().serviceSchemaSelector().schemaRequestPath().getText()
+                    if (ctx.serviceAndSchemaRequestPaths().serviceSchemaSelector() is not None)
+                    else None)
         }
 
     def exitUseStatement(self, ctx):
@@ -1192,7 +1393,8 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "current_operation":
                 "SHOW CREATE REST VIEW",
-            "request_path": ctx.viewRequestPath().getText(),
+            "request_path": get_text_without_quotes(
+                ctx.viewRequestPath().getText()),
             "type": "DUALITY VIEW"
         }
 
@@ -1206,7 +1408,8 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "current_operation":
                 "SHOW CREATE REST PROCEDURE",
-            "request_path": ctx.procedureRequestPath().getText(),
+            "request_path": get_text_without_quotes(
+                ctx.procedureRequestPath().getText()),
             "type": "PROCEDURE"
         }
 
@@ -1220,13 +1423,13 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "current_operation":
                 "SHOW CREATE REST FUNCTION",
-            "request_path": ctx.functionRequestPath().getText(),
+            "request_path": get_text_without_quotes(
+                ctx.functionRequestPath().getText()),
             "type": "FUNCTION"
         }
 
     def exitShowCreateRestFunctionStatement(self, ctx):
         self.mrs_ddl_executor.showCreateRestDbObject(self.mrs_object)
-
 
     # ------------------------------------------------------------------------------------------------------------------
     # SHOW CREATE REST AUTH APP

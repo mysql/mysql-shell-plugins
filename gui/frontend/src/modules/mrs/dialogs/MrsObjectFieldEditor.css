@@ -387,7 +387,11 @@ body[theme=dark] .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.re
     overflow: hidden;
     color: var(--icon-foreground);
     font-size: 0.9em;
-    min-width: 86px;
+    min-width: 60px;
+}
+
+.mrsObjectFieldEditor .crudDiv .multiItems {
+    min-width: 90px;
 }
 
 .mrsObjectFieldEditor .crudDiv .activated {

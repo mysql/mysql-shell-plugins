@@ -24,6 +24,7 @@
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
 
+
 @plugin_function('mrs.list.routerIds', shell=True, cli=True, web=True)
 def get_router_ids(seen_within=None, session=None):
     """List all router ids
@@ -71,3 +72,20 @@ def delete_router(router_id=None, session=None):
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, session=session) as session:
         with lib.core.MrsDbTransaction(session):
             lib.routers.delete_router(session, router_id)
+
+
+@plugin_function('mrs.get.routerServices', shell=True, cli=True, web=True)
+def get_router_services(router_id=None, session=None):
+    """List all services a router serves
+
+    Args:
+        router_id (int): The id of the router.
+        session (object): The database session to use.
+
+    Returns:
+        The list of services served by the router
+    """
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, session=session) as session:
+        with lib.core.MrsDbTransaction(session):
+            return lib.routers.get_router_services(session, router_id)

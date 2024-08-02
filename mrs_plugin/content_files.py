@@ -27,8 +27,19 @@
 
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
+from .interactive import resolve_content_file, resolve_overwrite_file, resolve_file_path
 
 
+def generate_create_statement(**kwargs) -> str:
+    lib.core.convert_ids_to_binary(["service_id", "content_set_id", "content_file_id"], kwargs)
+    service_id = kwargs.get("service_id")
+    content_set_id = kwargs.get("content_set_id")
+    content_file_id = kwargs.get("content_file_id")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        content_file = resolve_content_file(session, content_file_id, content_set_id, service_id)
+
+        return lib.content_files.get_create_statement(session, content_file)
 
 
 @plugin_function('mrs.list.contentFiles', shell=True, cli=True, web=True)
@@ -61,3 +72,58 @@ def get_content_files(content_set_id, **kwargs):
             return lib.content_files.format_content_file_listing(content_files, print_header=True)
         else:
             return content_files
+
+
+@plugin_function('mrs.get.contentFileCreateStatement', shell=True, cli=True, web=True)
+def get_create_statement(**kwargs):
+    """Returns the corresponding CREATE REST CONTENT FILE SQL statement of the given MRS service object.
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        content_set_id (str): The ID of the content set to generate.
+        content_file_id (str): The ID of the content file to generate.
+        service_id (str): The ID of the service where the schema belongs.
+        session (object): The database session to use.
+
+    Returns:
+        The SQL that represents the create statement for the MRS content set
+    """
+    return generate_create_statement(**kwargs)
+
+
+@plugin_function('mrs.dump.contentFileCreateStatement', shell=True, cli=True, web=True)
+def store_create_statement(**kwargs):
+    """Stores the corresponding CREATE REST CONTENT SET SQL statement of the given MRS service
+    into a file.
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        content_file_id (str): The ID of the content file to dump.
+        content_set_id (str): The ID of the content set to dump.
+        service_id (str): The ID of the service where the schema belongs.
+        file_path (str): The path where to store the file.
+        overwrite (bool): Overwrite the file, if already exists.
+        session (object): The database session to use.
+
+    Returns:
+        True if the file was saved.
+    """
+    file_path = kwargs.get("file_path")
+    overwrite = kwargs.get("overwrite")
+
+    file_path = resolve_file_path(file_path)
+    resolve_overwrite_file(file_path, overwrite)
+
+    sql = generate_create_statement(**kwargs)
+
+    with open(file_path, "w") as f:
+        f.write(sql)
+
+    if lib.core.get_interactive_result():
+        return f"File created in {file_path}."
+
+    return True

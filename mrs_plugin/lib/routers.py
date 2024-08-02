@@ -30,15 +30,18 @@ def get_router_ids(session, seen_within=None):
     """
 
     if seen_within:
-        sql += f"WHERE last_check_in > CURRENT_TIMESTAMP - INTERVAL {seen_within} SECOND"
+        sql += f"WHERE last_check_in > CURRENT_TIMESTAMP - INTERVAL {
+            seen_within} SECOND"
 
     return core.MrsDbExec(sql).exec(session).items
+
 
 def get_routers(session, router_id=None, active_when_seen_within=10):
     sql = f"""
     SELECT
         *,
-        last_check_in > CURRENT_TIMESTAMP - INTERVAL {active_when_seen_within} SECOND as active
+        last_check_in > CURRENT_TIMESTAMP - INTERVAL {active_when_seen_within} SECOND as active,
+        options->>'$.developer' AS developer
     FROM `mysql_rest_service_metadata`.`router`
     """
     params = []
@@ -49,6 +52,7 @@ def get_routers(session, router_id=None, active_when_seen_within=10):
 
     return core.MrsDbExec(sql, params).exec(session).items
 
+
 def get_router(session, router_id, active_when_seen_within=10):
     result = get_routers(session, router_id, active_when_seen_within)
 
@@ -57,6 +61,7 @@ def get_router(session, router_id, active_when_seen_within=10):
 
     return None
 
+
 def delete_router(session, router_id):
     sql = """
         DELETE
@@ -64,3 +69,20 @@ def delete_router(session, router_id):
         WHERE id = ?
     """
     core.MrsDbExec(sql, [router_id]).exec(session)
+
+
+def get_router_services(session, router_id=None):
+    current_version = core.get_mrs_schema_version(session)
+    if current_version[0] <= 2:
+        return []
+
+    sql = """
+        SELECT * FROM `mysql_rest_service_metadata`.`router_services` AS r
+        """
+
+    params = []
+    if router_id is not None:
+        sql += "\nWHERE r.router_id = ?"
+        params.append(router_id)
+
+    return core.MrsDbExec(sql).exec(session, params).items

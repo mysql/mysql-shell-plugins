@@ -103,7 +103,6 @@ def add_db_object(**kwargs):
             does not exist yet
         request_path (str): The request_path
         enabled (bool): Whether the db object is enabled
-        crud_operations (list): The allowed CRUD operations for the object
         crud_operation_format (str): The format to use for the CRUD operation
         requires_auth (bool): Whether authentication is required to access
             the schema
@@ -115,6 +114,7 @@ def add_db_object(**kwargs):
         auto_detect_media_type (bool): Whether to automatically detect the media type
         auth_stored_procedure (str): The stored procedure that implements the authentication check for this db object
         options (dict): The options of this db object
+        metadata (dict): The metadata of this db object
         objects (list): The result/parameters objects definition in JSON format
         session (object): The database session to use.
 
@@ -136,27 +136,25 @@ def add_db_object(**kwargs):
 
     request_path = kwargs.get("request_path")
     enabled = kwargs.get("enabled", True)
-    crud_operations = kwargs.get("crud_operations")
     crud_operation_format = kwargs.get("crud_operation_format")
     requires_auth = kwargs.get("requires_auth")
     items_per_page = kwargs.get("items_per_page")
-    row_user_ownership_enforced = kwargs.get("row_user_ownership_enforced")
-    row_user_ownership_column = kwargs.get("row_user_ownership_column")
+    row_user_ownership_enforced = kwargs.get(
+        "row_user_ownership_enforced", None)
+    row_user_ownership_column = kwargs.get("row_user_ownership_column", None)
     comments = kwargs.get("comments")
 
     media_type = kwargs.get("media_type")
     auto_detect_media_type = kwargs.get("auto_detect_media_type", True)
     auth_stored_procedure = kwargs.get("auth_stored_procedure")
     options = kwargs.get("options")
+    metadata = kwargs.get("metadata")
 
     objects = kwargs.get("objects")
 
     session = kwargs.get("session")
 
     interactive = lib.core.get_interactive_default()
-
-    if crud_operations:
-        crud_operations = list(crud_operations)
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
@@ -178,7 +176,8 @@ def add_db_object(**kwargs):
                     service = resolve_service(session=session, required=False)
 
                     if not service:
-                        raise RuntimeError("Operation cancelled. The service was not found.")
+                        raise RuntimeError(
+                            "Operation cancelled. The service was not found.")
 
                     schema_id = lib.schemas.add_schema(schema_name=schema_name,
                                                        service_id=service["id"],
@@ -268,24 +267,6 @@ def add_db_object(**kwargs):
             lib.core.check_request_path(
                 session, schema["host_ctx"] + schema['request_path'] + request_path)
 
-            # Get crud_operations
-            if not crud_operations and interactive:
-                crud_operation_options = [
-                    'CREATE',
-                    'READ',
-                    'UPDATE',
-                    'DELETE']
-                crud_operations = lib.core.prompt_for_list_item(
-                    item_list=crud_operation_options,
-                    prompt_caption=("Please select the CRUD operations that "
-                                    "should be supported, '*' for all [READ]: "),
-                    prompt_default_value="2",
-                    print_list=True,
-                    allow_multi_select=True)
-            if not crud_operations:
-                raise ValueError("No CRUD operations specified."
-                                 "Operation cancelled.")
-
             if not crud_operation_format and interactive:
                 crud_operation_format_options = [
                     'FEED',
@@ -301,10 +282,6 @@ def add_db_object(**kwargs):
                 raise ValueError("No CRUD operation format specified."
                                  "Operation cancelled.")
 
-            if type(crud_operations) != list:
-                raise ValueError("The crud_operations need to be specified as "
-                                 "list. Operation cancelled.")
-
             # Get requires_auth
             if requires_auth is None:
                 if interactive:
@@ -313,35 +290,6 @@ def add_db_object(**kwargs):
                         {'defaultValue': 'n'}).strip().lower() == 'y'
                 else:
                     requires_auth = False
-
-            # Get row_user_ownership_enforced
-            if row_user_ownership_enforced is None:
-                if interactive:
-                    row_user_ownership_enforced = lib.core.prompt(
-                        "Should row ownership be required when querying the "
-                        "object? [y/N]: ",
-                        {'defaultValue': 'n'}).strip().lower() == 'y'
-                else:
-                    row_user_ownership_enforced = False
-
-            if row_user_ownership_enforced and row_user_ownership_column is None:
-                if interactive:
-                    available_fields = lib.db_objects.get_available_db_object_row_ownership_fields(
-                        session,
-                        schema_name=schema["name"],
-                        db_object_name=db_object_name,
-                        db_object_type=db_object_type)
-                    if len(available_fields) < 1:
-                        raise ValueError(
-                            "No IN parameters available for this procedure.")
-
-                    print("List of available fields:")
-                    row_user_ownership_column = lib.core.prompt_for_list_item(
-                        item_list=available_fields, prompt_caption="Which "
-                        + ("parameter" if db_object_type ==
-                           "PROCEDURE" else "column")
-                        + " should be used for row ownership checks",
-                        print_list=True)
 
             # Get items_per_page
             if items_per_page is None:
@@ -375,9 +323,10 @@ def add_db_object(**kwargs):
                 items_per_page=items_per_page, requires_auth=requires_auth,
                 row_user_ownership_enforced=row_user_ownership_enforced,
                 row_user_ownership_column=row_user_ownership_column,
-                crud_operations=crud_operations, crud_operation_format=crud_operation_format,
+                crud_operation_format=crud_operation_format,
                 comments=comments, media_type=media_type, auto_detect_media_type=auto_detect_media_type,
-                auth_stored_procedure=auth_stored_procedure, options=options, objects=objects)
+                auth_stored_procedure=auth_stored_procedure, options=options, metadata=metadata,
+                objects=objects)
 
             for grant in grants:
                 lib.core.MrsDbExec(grant).exec(session)
@@ -563,6 +512,7 @@ def get_db_object_parameters(request_path=None, **kwargs):
                                                        db_object_name=db_object_name,
                                                        db_type=db_type)
 
+
 @plugin_function('mrs.get.dbFunctionReturnType', shell=True, cli=True, web=True)
 def get_db_function_return_type(db_schema_name, db_object_name, **kwargs):
     """Gets the return data type of the FUNCTION
@@ -581,6 +531,7 @@ def get_db_function_return_type(db_schema_name, db_object_name, **kwargs):
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         return lib.db_objects.get_db_function_return_type(
             session, db_schema_name=db_schema_name, db_object_name=db_object_name)
+
 
 @plugin_function('mrs.set.dbObject.requestPath', shell=True, cli=True, web=True)
 def set_request_path(db_object_id=None, request_path=None, **kwargs):
@@ -646,140 +597,6 @@ def set_request_path(db_object_id=None, request_path=None, **kwargs):
                   "successfully.")
         return True
     return False
-
-
-@plugin_function('mrs.set.dbObject.crudOperations', shell=True, cli=True, web=True)
-def set_crud_operations(db_object_id=None, crud_operations=None,
-                        crud_operation_format=None, **kwargs):
-    """Sets the request_path of the given db_object
-
-    Args:
-        db_object_id (str): The id of the schema to list the db_objects from
-        crud_operations (list): The allowed CRUD operations for the object
-        crud_operation_format (str): The format to use for the CRUD operation
-        **kwargs: Additional options
-
-    Keyword Args:
-        session (object): The database session to use
-
-    Returns:
-        None
-    """
-    if db_object_id is not None:
-        db_object_id = lib.core.id_to_binary(db_object_id, "db_object_id")
-
-    interactive = lib.core.get_interactive_default()
-
-    # Get crud_operations
-    if not crud_operations and interactive:
-        crud_operation_options = [
-            'CREATE',
-            'READ',
-            'UPDATE',
-            'DELETE']
-        crud_operations = lib.core.prompt_for_list_item(
-            item_list=crud_operation_options,
-            prompt_caption=("Please select the CRUD operations that "
-                            "should be supported, '*' for all: "),
-            print_list=True,
-            allow_multi_select=True)
-
-    if not crud_operation_format and interactive:
-        crud_operation_format_options = [
-            'FEED',
-            'ITEM',
-            'MEDIA']
-        crud_operation_format = lib.core.prompt_for_list_item(
-            item_list=crud_operation_format_options,
-            prompt_caption=("Please select the CRUD operation format "
-                            "[FEED]: "),
-            prompt_default_value="FEED",
-            print_list=True)
-
-    if not crud_operations:
-        raise ValueError("No CRUD operations specified."
-                        "Operation cancelled.")
-
-    if not isinstance(crud_operations, list):
-        raise ValueError("The crud_operations need to be specified as "
-                        "list. Operation cancelled.")
-
-    for index in range(0, len(crud_operations)):
-        crud_operation = crud_operations[index]
-        crud_operation_mapping = {
-            '1': 'CREATE',
-            '2': 'READ',
-            '3': 'UPDATE',
-            '4': 'DELETE'
-        }
-
-        if crud_operation in crud_operation_mapping.keys():
-            crud_operation = crud_operation_mapping[crud_operation]
-
-        if crud_operation not in ['CREATE', 'READ', 'UPDATE', 'DELETE']:
-            raise ValueError(f"The given CRUD operation {crud_operation} "
-                            "does not exist.")
-
-    if not crud_operation_format:
-        raise ValueError("No CRUD operation format specified."
-                        "Operation cancelled.")
-
-    if crud_operation_format not in ['FEED', 'ITEM', 'MEDIA']:
-        raise Exception(f'Invalid CRUD operation format.')
-
-
-    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        # Get the object with the given id or let the user select it
-        db_object = lib.db_objects.get_db_object(session, db_object_id=db_object_id)
-
-        if db_object is None:
-            raise Exception("The db_object was not found.")
-
-        schema = lib.schemas.get_schema(session,
-                                    schema_id=db_object.get("db_schema_id"), auto_select_single=True)
-
-        if not schema:
-            raise Exception('Schema not found.')
-
-
-        if db_object["object_type"] == "PROCEDURE" or db_object["object_type"] == "FUNCTION":
-            grant_privileges = ["EXECUTE"]
-        else:
-            grant_privileges = lib.database.crud_mapping(crud_operations)
-
-        if not grant_privileges:
-            raise ValueError("No valid CRUD Operation specified")
-
-        # Try to revoke grants. On error it raises an error and no changes are done.
-        lib.database.revoke_all_from_db_object(session, schema["name"],
-                                               db_object["name"], db_object["object_type"])
-
-        current_crud, current_format = lib.db_objects.get_crud_operations(session, db_object_id)
-
-        objects = lib.db_objects.get_objects(session=session, db_object_id=db_object_id)
-        for object in objects:
-            object["fields"] = lib.db_objects.get_object_fields_with_references(session, object["id"])
-
-        try:
-            lib.database.grant_db_object(
-                session, schema["name"], db_object["name"], grant_privileges, objects, db_object["object_type"])
-            lib.db_objects.set_crud_operations(session=session, db_object_id=db_object_id,
-                                           crud_operations=crud_operations,
-                                           crud_operation_format=crud_operation_format)
-        except:
-            grant_privileges = lib.database.crud_mapping(current_crud)
-            lib.database.grant_db_object(
-                session, schema["name"], db_object["name"], grant_privileges, objects, db_object["object_type"])
-            lib.db_objects.set_crud_operations(session=session, db_object_id=db_object_id,
-                                           crud_operations=current_crud,
-                                           crud_operation_format=current_format)
-            raise
-
-        db_object = lib.db_objects.get_db_object(
-            session, db_object_id=db_object_id)
-        if lib.core.get_interactive_result():
-            return f"The db_object {db_object.get('name')} was updated successfully."
-        return db_object
 
 
 @plugin_function('mrs.enable.dbObject', shell=True, cli=True, web=True)
@@ -885,7 +702,8 @@ def delete_db_object(db_object_name=None, schema_id=None, **kwargs):
             if db_object_id is not None:
                 lib.db_objects.delete_db_object(session, db_object_id)
             else:
-                kwargs = resolve_db_object_ids(db_object_name, schema_id, **kwargs)
+                kwargs = resolve_db_object_ids(
+                    db_object_name, schema_id, **kwargs)
                 lib.db_objects.delete_db_objects(**kwargs)
 
         if lib.core.get_interactive_result():
@@ -914,19 +732,17 @@ def update_db_object(**kwargs):
         name (str): The new name to apply to the database object
         db_schema_id (str): The id of the schema to update in the database object
         enabled (bool): If the database object is enabled or not
-        crud_operations (list): The allowed CRUD operations for the object
         crud_operation_format (str): The format to use for the CRUD operation
         requires_auth (bool): Whether authentication is required to access
             the database object
         items_per_page (int): The number of items returned per page
         request_path (str): The request_path
         auto_detect_media_type (bool): Whether the media type should be detected automatically
-        row_user_ownership_enforced (bool): Enable row ownership enforcement
-        row_user_ownership_column (str): The column for row ownership enforcement
         comments (str): Comments for the database object
         media_type (str): The media_type of the db object
         auth_stored_procedure (str): The stored procedure that implements the authentication check for this db object
         options (dict): The options of this db object
+        metadata (dict): The metadata settings of the db object
         objects (list): The result/parameters objects definition in JSON format
 
     Returns:

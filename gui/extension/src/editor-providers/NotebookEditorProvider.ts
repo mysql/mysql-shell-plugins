@@ -276,7 +276,7 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
             this.#requisitions.register("editorLoadNotebook", this.triggerLoad);
             this.#requisitions.register("applicationDidStart", (): Promise<boolean> => {
                 // Finally show the notebook.
-                return this.showNotebookPage(usedConnectionId!, document.getText());
+                return this.showNotebookPage(usedConnectionId, document.getText());
             });
 
             this.#disposables.push(webviewPanel.webview.onDidReceiveMessage((message: IEmbeddedMessage) => {

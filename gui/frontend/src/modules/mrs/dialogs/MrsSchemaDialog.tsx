@@ -39,6 +39,7 @@ export interface IMrsSchemaDialogData extends IDictionary {
     itemsPerPage: number;
     comments: string;
     options: string;
+    metadata: string;
 }
 
 export class MrsSchemaDialog extends AwaitableValueEditDialog {
@@ -78,6 +79,24 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                     result.messages.requestPath = "The request path must start with /.";
                 }
             }
+
+            const optionsSection = values.sections.get("optionsSection");
+            if (optionsSection) {
+                if (optionsSection.values.options.value) {
+                    try {
+                        JSON.parse(optionsSection.values.options.value as string);
+                    } catch (e) {
+                        result.messages.options = "Please provide a valid JSON object.";
+                    }
+                }
+                if (optionsSection.values.metadata.value) {
+                    try {
+                        JSON.parse(optionsSection.values.metadata.value as string);
+                    } catch (e) {
+                        result.messages.metadata = "Please provide a valid JSON object.";
+                    }
+                }
+            }
         }
 
         return result;
@@ -105,9 +124,9 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                 service: {
                     type: "choice",
                     caption: "REST Service Path",
-                    value: selectedService?.hostCtx,
+                    value: selectedService?.fullServicePath ?? "",
                     choices: services.map((service) => {
-                        return service.hostCtx;
+                        return service.fullServicePath ?? "";
                     }),
                     horizontalSpan: 3,
                     description: "The path of the REST Service this REST Schema belongs to",
@@ -186,6 +205,15 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                     multiLineCount: 8,
                     description: "Additional options in JSON format",
                 },
+                metadata: {
+                    type: "text",
+                    caption: "Metadata:",
+                    value: request.values?.metadata as string,
+                    horizontalSpan: 8,
+                    multiLine: true,
+                    multiLineCount: 8,
+                    description: "Metadata settings in JSON format",
+                },
             },
         };
 
@@ -207,7 +235,7 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
             const values: IMrsSchemaDialogData = {
                 dbSchemaName: settingsSection.values.dbSchemaName.value as string,
                 serviceId: services.find((service) => {
-                    return mainSection.values.service.value === service.hostCtx;
+                    return mainSection.values.service.value === service.fullServicePath;
                 })?.id ?? "",
                 requestPath: mainSection.values.requestPath.value as string,
                 requiresAuth: mainSection.values.requiresAuth.value as boolean,
@@ -215,6 +243,7 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                 itemsPerPage: settingsSection.values.itemsPerPage.value as number,
                 comments: settingsSection.values.comments.value as string,
                 options: optionsSection.values.options.value as string,
+                metadata: optionsSection.values.metadata.value as string,
             };
 
             return values;

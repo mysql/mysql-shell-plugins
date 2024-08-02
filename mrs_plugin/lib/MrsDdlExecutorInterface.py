@@ -49,10 +49,16 @@ class MrsDdlExecutorInterface():
     def createRestContentSet(self, mrs_object: dict):
         raise NotImplementedError()
 
+    def createRestContentFile(self, mrs_object: dict):
+        raise NotImplementedError()
+
     def createRestAuthApp(self, mrs_object: dict):
         raise NotImplementedError()
 
     def createRestUser(self, mrs_object: dict):
+        raise NotImplementedError()
+
+    def cloneRestService(self, mrs_object: dict):
         raise NotImplementedError()
 
     def alterRestService(self, mrs_object: dict):
@@ -74,6 +80,9 @@ class MrsDdlExecutorInterface():
         raise NotImplementedError()
 
     def dropRestContentSet(self, mrs_object: dict):
+        raise NotImplementedError()
+
+    def dropRestContentFile(self, mrs_object: dict):
         raise NotImplementedError()
 
     def dropRestAuthApp(self, mrs_object: dict):
@@ -100,6 +109,9 @@ class MrsDdlExecutorInterface():
     def showRestContentSets(self, mrs_object: dict):
         raise NotImplementedError()
 
+    def showRestContentFiles(self, mrs_object: dict):
+        raise NotImplementedError()
+
     def showRestAuthApps(self, mrs_object: dict):
         raise NotImplementedError()
 
@@ -110,6 +122,12 @@ class MrsDdlExecutorInterface():
         raise NotImplementedError()
 
     def showCreateRestDbObject(self, mrs_object: dict):
+        raise NotImplementedError()
+
+    def showCreateRestContentSet(self, mrs_object: dict):
+        raise NotImplementedError()
+
+    def showCreateRestContentFile(self, mrs_object: dict):
         raise NotImplementedError()
 
     def showCreateRestAuthApp(self, mrs_object: dict):

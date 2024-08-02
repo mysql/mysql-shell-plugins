@@ -24,6 +24,7 @@
 from mrs_plugin.lib import core, database, db_objects
 from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
 
+
 def format_schema_listing(schemas, print_header=False):
     """Formats the listing of schemas
 
@@ -73,8 +74,8 @@ def prompt_for_requires_auth() -> bool:
 def prompt_for_items_per_page() -> int:
     while True:
         result = core.prompt(
-        "How many items should be listed per page? [Schema Default]: ",
-        {'defaultValue': '25'}).strip()
+            "How many items should be listed per page? [Schema Default]: ",
+            {'defaultValue': '25'}).strip()
 
         try:
             int_result = int(result)
@@ -82,6 +83,7 @@ def prompt_for_items_per_page() -> int:
         except:
             print("Required an integer value.")
             continue
+
 
 def delete_schema(session, schema_id):
     if not schema_id:
@@ -93,6 +95,7 @@ def delete_schema(session, schema_id):
     if not result.success:
         raise Exception(
             f"The specified schema with id {core.convert_id_to_string(schema_id)} was not found.")
+
 
 def delete_schemas(session, schemas: list):
     if not schemas:
@@ -115,22 +118,27 @@ def update_schema(session, schemas: list, value: dict):
                 f"The specified schema with id {core.convert_id_to_string(schema_id)} was not "
                 "found.")
 
+        # metadata column was only added in 3.0.0
+        current_version = core.get_mrs_schema_version(session)
+        if current_version[0] <= 2:
+            value.pop("metadata", None)
+
         core.update(table="db_schema",
-            sets=value,
-            where=["id=?"]
-        ).exec(session, [schema_id])
+                    sets=value,
+                    where=["id=?"]
+                    ).exec(session, [schema_id])
 
 
 def query_schemas(session, schema_id=None, service_id=None,
-    schema_name=None, request_path=None, include_enable_state=None, auto_select_single=False):
+                  schema_name=None, request_path=None, include_enable_state=None, auto_select_single=False):
 
     if not session:
         raise ValueError("The session is invalid.")
 
     if schema_id is None and auto_select_single:
         record = core.select(table="db_schema",
-            cols=["count(*) as service_count", "min(id)"]
-        ).exec(session).first
+                             cols=["count(*) as service_count", "min(id)"]
+                             ).exec(session).first
 
         if record["service_count"] == 1:
             schema_id = record["id"]
@@ -139,17 +147,33 @@ def query_schemas(session, schema_id=None, service_id=None,
         raise Exception("The request_path has to start with '/'.")
 
     # Build SQL based on which input has been provided
-    sql = """
-        SELECT sc.id, sc.name, sc.service_id, sc.request_path,
-            sc.requires_auth, sc.enabled, sc.items_per_page, sc.comments,  se.url_host_id,
-            CONCAT(h.name, se.url_context_root) AS host_ctx,
-            sc.options
-        FROM `mysql_rest_service_metadata`.db_schema sc
-            LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
-                ON se.id = sc.service_id
-            LEFT JOIN `mysql_rest_service_metadata`.url_host h
-                ON se.url_host_id = h.id
-        """
+
+    # metadata column was only added in 3.0.0
+    current_version = core.get_mrs_schema_version(session)
+    if current_version[0] <= 2:
+        sql = """
+            SELECT sc.id, sc.name, sc.service_id, sc.request_path,
+                sc.requires_auth, sc.enabled, sc.items_per_page, sc.comments,  se.url_host_id,
+                CONCAT(h.name, se.url_context_root) AS host_ctx,
+                sc.options
+            FROM `mysql_rest_service_metadata`.db_schema sc
+                LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
+                    ON se.id = sc.service_id
+                LEFT JOIN `mysql_rest_service_metadata`.url_host h
+                    ON se.url_host_id = h.id
+            """
+    else:
+        sql = """
+            SELECT sc.id, sc.name, sc.service_id, sc.request_path,
+                sc.requires_auth, sc.enabled, sc.items_per_page, sc.comments, se.url_host_id,
+                CONCAT(h.name, se.url_context_root) AS host_ctx,
+                sc.options, sc.metadata
+            FROM `mysql_rest_service_metadata`.db_schema sc
+                LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
+                    ON se.id = sc.service_id
+                LEFT JOIN `mysql_rest_service_metadata`.url_host h
+                    ON se.url_host_id = h.id
+            """
     params = []
     wheres = []
     if schema_id:
@@ -174,7 +198,8 @@ def query_schemas(session, schema_id=None, service_id=None,
 
     return core.MrsDbExec(sql, params).exec(session).items
 
-def get_schemas(session, service_id: bytes=None, include_enable_state=None):
+
+def get_schemas(session, service_id: bytes = None, include_enable_state=None):
     """Returns all schemas for the given MRS service
 
     Args:
@@ -189,9 +214,8 @@ def get_schemas(session, service_id: bytes=None, include_enable_state=None):
     return query_schemas(session, service_id=service_id, include_enable_state=include_enable_state)
 
 
-
-def get_schema(session, schema_id: bytes=None, service_id: bytes=None,
-    schema_name=None, request_path=None, auto_select_single=False):
+def get_schema(session, schema_id: bytes = None, service_id: bytes = None,
+               schema_name=None, request_path=None, auto_select_single=False):
     """Gets a specific MRS schema
 
     Args:
@@ -205,12 +229,12 @@ def get_schema(session, schema_id: bytes=None, service_id: bytes=None,
         The schema as dict or None on error in interactive mode
     """
     result = query_schemas(session, schema_id=schema_id, service_id=service_id,
-        schema_name=schema_name, request_path=request_path, auto_select_single=False)
+                           schema_name=schema_name, request_path=request_path, auto_select_single=False)
     return result[0] if result else None
 
 
-def add_schema(session, schema_name, service_id: bytes=None, request_path=None, requires_auth=None,
-    enabled=True, items_per_page=None, comments=None, options=None, schema_id = None):
+def add_schema(session, schema_name, service_id: bytes = None, request_path=None, requires_auth=None,
+               enabled=True, items_per_page=None, comments=None, options=None, metadata=None, schema_id=None):
     """Add a schema to the given MRS service
 
     Args:
@@ -232,7 +256,8 @@ def add_schema(session, schema_name, service_id: bytes=None, request_path=None, 
     row = database.get_schema(session, schema_name)
 
     if row is None:
-        raise ValueError(f"The given schema_name '{schema_name}' does not exists.")
+        raise ValueError(
+            f"The given schema_name '{schema_name}' does not exists.")
 
     schema_name = row["SCHEMA_NAME"]
 
@@ -259,7 +284,7 @@ def add_schema(session, schema_name, service_id: bytes=None, request_path=None, 
 
     if schema_id is None:
         schema_id = core.get_sequence_id(session)
-    core.insert(table="db_schema", values={
+    values = {
         "id": schema_id,
         "service_id": service_id,
         "name": schema_name,
@@ -268,8 +293,15 @@ def add_schema(session, schema_name, service_id: bytes=None, request_path=None, 
         "enabled": int(enabled),
         "items_per_page": items_per_page,
         "comments": comments,
-        "options": core.convert_json(options) if options else None
-    }).exec(session)
+        "options": core.convert_json(options) if options else None,
+        "metadata": core.convert_json(metadata) if metadata else None}
+
+    # metadata column was only added in 3.0.0
+    current_version = core.get_mrs_schema_version(session)
+    if current_version[0] <= 2:
+        values.pop("metadata", None)
+
+    core.insert(table="db_schema", values=values).exec(session)
 
     return schema_id
 

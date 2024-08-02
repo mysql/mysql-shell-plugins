@@ -31,28 +31,32 @@ EXPECTED = {
         "name": "MRS",
         "validation_url": None,
         "enabled": 1,
-        "comments": "Built-in user management of MRS"
+        "comments": "Built-in user management of MRS",
+        "options": None,
     },
     "0x31000000000000000000000000000000": {
         "id": lib.core.id_to_binary("0x31000000000000000000000000000000", ""),
         "name": "MySQL Internal",
         "validation_url": None,
         "enabled": 1,
-        "comments": "Provides basic authentication via MySQL Server accounts"
+        "comments": "Provides basic authentication via MySQL Server accounts",
+        "options": None,
     },
     "0x32000000000000000000000000000000": {
         "id": lib.core.id_to_binary("0x32000000000000000000000000000000", ""),
         "name": "Facebook",
         "validation_url": None,
         "enabled": 1,
-        "comments": "Uses the Facebook Login OAuth2 service"
+        "comments": "Uses the Facebook Login OAuth2 service",
+        "options": None,
     },
     "0x34000000000000000000000000000000": {
         "id": lib.core.id_to_binary("0x34000000000000000000000000000000", ""),
         "name": "Google",
         "validation_url": None,
         "enabled": 1,
-        "comments": "Uses the Google OAuth2 service"
+        "comments": "Uses the Google OAuth2 service",
+        "options": None,
     },
 }
 

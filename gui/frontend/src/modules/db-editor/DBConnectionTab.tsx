@@ -2349,6 +2349,8 @@ Execute \\help or \\? for help;`;
                             void requisitions.execute("showMrsServiceDialog", service);
                         }
 
+                    } else {
+                        void requisitions.execute("showMrsServiceDialog", undefined);
                     }
 
                     break;

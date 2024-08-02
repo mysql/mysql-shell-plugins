@@ -5197,7 +5197,9 @@ identifierKeywordsUnambiguous:
         | FUNCTIONS_SYMBOL
         | RESULT_SYMBOL
         | ENABLED_SYMBOL
+        | PUBLISHED_SYMBOL
         | DISABLED_SYMBOL
+        | UNPUBLISHED_SYMBOL
         | PROTOCOL_SYMBOL
         | HTTP_SYMBOL
         | HTTPS_SYMBOL
@@ -5215,6 +5217,7 @@ identifierKeywordsUnambiguous:
         | FEED_SYMBOL
         | ITEM_SYMBOL
         | SETS_SYMBOL
+        | FILES_SYMBOL
         | AUTH_SYMBOL
         | APPS_SYMBOL
         | APP_SYMBOL
@@ -5225,9 +5228,12 @@ identifierKeywordsUnambiguous:
         | ALLOW_SYMBOL
         | REGISTER_SYMBOL
         | CLASS_SYMBOL
+        | DEVELOPMENT_SYMBOL
+        | SCRIPTS_SYMBOL
         | AT_INOUT_SYMBOL
         | AT_IN_SYMBOL
         | AT_OUT_SYMBOL
+        | AT_CHECK_SYMBOL
         | AT_NOCHECK_SYMBOL
         | AT_NOUPDATE_SYMBOL
         | AT_SORTABLE_SYMBOL
@@ -5707,18 +5713,22 @@ mrsStatement:
     | createRestProcedureStatement
     | createRestFunctionStatement
     | createRestContentSetStatement
+    | createRestContentFileStatement
     | createRestAuthAppStatement
     | createRestUserStatement
+    | cloneRestServiceStatement
     | alterRestServiceStatement
     | alterRestSchemaStatement
     | alterRestViewStatement
     | alterRestProcedureStatement
+    | alterRestFunctionStatement
     | dropRestServiceStatement
     | dropRestSchemaStatement
     | dropRestDualityViewStatement
     | dropRestProcedureStatement
     | dropRestFunctionStatement
     | dropRestContentSetStatement
+    | dropRestContentFileStatement
     | dropRestAuthAppStatement
     | dropRestUserStatement
     | useStatement
@@ -5729,12 +5739,15 @@ mrsStatement:
     | showRestProceduresStatement
     | showRestFunctionsStatement
     | showRestContentSetsStatement
+    | showRestContentFilesStatement
     | showRestAuthAppsStatement
     | showCreateRestServiceStatement
     | showCreateRestSchemaStatement
     | showCreateRestViewStatement
     | showCreateRestProcedureStatement
     | showCreateRestFunctionStatement
+    | showCreateRestContentSetStatement
+    | showCreateRestContentFileStatement
     | showCreateRestAuthAppStatement
 ;
 
@@ -5750,6 +5763,10 @@ quotedTextOrDefault: (quotedText | DEFAULT_SYMBOL)
 
 jsonOptions:
     OPTIONS_SYMBOL jsonValue
+;
+
+metadata:
+    METADATA_SYMBOL jsonValue
 ;
 
 comments:
@@ -5802,12 +5819,19 @@ createRestServiceStatement:
 
 restServiceOptions: (
         enabledDisabled
+        | publishedUnpublished
         // | restProtocol -- not enabled yet
         | restAuthentication
         // | userManagementSchema -- not enabled yet
         | jsonOptions
         | comments
+        | metadata
     )+
+;
+
+publishedUnpublished:
+    PUBLISHED_SYMBOL
+    | UNPUBLISHED_SYMBOL
 ;
 
 restProtocol:
@@ -5865,6 +5889,7 @@ restSchemaOptions: (
         | itemsPerPage
         | jsonOptions
         | comments
+        | metadata
     )+
 ;
 
@@ -5885,6 +5910,7 @@ restObjectOptions: (
         | itemsPerPage
         | jsonOptions
         | comments
+        | metadata
         | restViewMediaType
         | restViewFormat
         | restViewAuthenticationProcedure
@@ -5908,8 +5934,9 @@ restViewAuthenticationProcedure:
 createRestProcedureStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
         ON_SYMBOL serviceSchemaSelector
-    )? AS_SYMBOL qualifiedIdentifier (PARAMETERS_SYMBOL restObjectName? graphQlObj)?
-        restProcedureResult* restObjectOptions?
+    )? AS_SYMBOL qualifiedIdentifier (
+        PARAMETERS_SYMBOL restObjectName? graphQlObj
+    )? restProcedureResult* restObjectOptions?
 ;
 
 restProcedureResult:
@@ -5921,8 +5948,9 @@ restProcedureResult:
 createRestFunctionStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
         ON_SYMBOL serviceSchemaSelector
-    )? AS_SYMBOL qualifiedIdentifier (PARAMETERS_SYMBOL restObjectName? graphQlObj)?
-        restFunctionResult? restObjectOptions?
+    )? AS_SYMBOL qualifiedIdentifier (
+        PARAMETERS_SYMBOL restObjectName? graphQlObj
+    )? restFunctionResult? restObjectOptions?
 ;
 
 restFunctionResult:
@@ -5935,7 +5963,7 @@ createRestContentSetStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL
         contentSetRequestPath (
         ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )? (FROM_SYMBOL directoryFilePath)? restContentSetOptions?
+    )? (FROM_SYMBOL directoryFilePath)? restContentSetOptions? (AS_SYMBOL SCRIPTS_SYMBOL)?
 ;
 
 directoryFilePath:
@@ -5947,6 +5975,30 @@ restContentSetOptions: (
         | authenticationRequired
         | jsonOptions
         | comments
+        | fileIgnoreList
+    )+
+;
+
+fileIgnoreList:
+    IGNORE_SYMBOL quotedText
+;
+
+// - CREATE REST CONTENT FILE -----------------------------------------------
+
+createRestContentFileStatement:
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL CONTENT_SYMBOL FILE_SYMBOL
+        contentFileRequestPath ON_SYMBOL (
+        SERVICE_SYMBOL? serviceRequestPath
+    )? CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath (
+        (FROM_SYMBOL directoryFilePath)
+        | (BINARY_SYMBOL? CONTENT_SYMBOL quotedText)
+    ) restContentFileOptions?
+;
+
+restContentFileOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | jsonOptions
     )+
 ;
 
@@ -6004,6 +6056,15 @@ userPassword:
     quotedText
 ;
 
+// CLONE statements =========================================================
+
+// - CLONE REST SERVICE -----------------------------------------------------
+
+cloneRestServiceStatement:
+    CLONE_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL
+        newServiceRequestPath
+;
+
 // ALTER statements =========================================================
 
 // - ALTER REST SERVICE -----------------------------------------------------
@@ -6045,6 +6106,16 @@ alterRestProcedureStatement:
     )? (PARAMETERS_SYMBOL restObjectName? graphQlObj)? restProcedureResult* restObjectOptions?
 ;
 
+// - ALTER REST FUNCTION ---------------------------------------------------
+
+alterRestFunctionStatement:
+    ALTER_SYMBOL REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
+        ON_SYMBOL serviceSchemaSelector
+    )? (
+        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newFunctionRequestPath
+    )? (PARAMETERS_SYMBOL restObjectName? graphQlObj)? restFunctionResult* restObjectOptions?
+;
+
 // DROP statements ==========================================================
 
 dropRestServiceStatement:
@@ -6078,6 +6149,12 @@ dropRestContentSetStatement:
     DROP_SYMBOL REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath (
         FROM_SYMBOL SERVICE_SYMBOL? serviceRequestPath
     )?
+;
+
+dropRestContentFileStatement:
+    DROP_SYMBOL REST_SYMBOL CONTENT_SYMBOL FILE_SYMBOL contentFileRequestPath FROM_SYMBOL (
+        SERVICE_SYMBOL? serviceRequestPath
+    )? CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath
 ;
 
 dropRestAuthAppStatement:
@@ -6115,37 +6192,44 @@ showRestServicesStatement:
 
 showRestSchemasStatement:
     SHOW_SYMBOL REST_SYMBOL DATABASES_SYMBOL (
-        (IN_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
+        (ON_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
     )?
 ;
 
 showRestViewsStatement:
     SHOW_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL? VIEWS_SYMBOL (
-        (IN_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
+        (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
     )?
 ;
 
 showRestProceduresStatement:
     SHOW_SYMBOL REST_SYMBOL PROCEDURES_SYMBOL (
-        (IN_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
+        (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
     )?
 ;
 
 showRestFunctionsStatement:
     SHOW_SYMBOL REST_SYMBOL FUNCTIONS_SYMBOL (
-        (IN_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
+        (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
     )?
 ;
 
 showRestContentSetsStatement:
     SHOW_SYMBOL REST_SYMBOL CONTENT_SYMBOL SETS_SYMBOL (
-        (IN_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
+        (ON_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
     )?
+;
+
+showRestContentFilesStatement:
+    SHOW_SYMBOL REST_SYMBOL CONTENT_SYMBOL FILES_SYMBOL (
+        ON_SYMBOL
+        | FROM_SYMBOL
+    ) (SERVICE_SYMBOL? serviceRequestPath)? CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath
 ;
 
 showRestAuthAppsStatement:
     SHOW_SYMBOL REST_SYMBOL AUTH_SYMBOL APPS_SYMBOL (
-        (IN_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
+        (ON_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
     )?
 ;
 
@@ -6178,6 +6262,19 @@ showCreateRestFunctionStatement:
     )?
 ;
 
+showCreateRestContentSetStatement:
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath (
+        (ON_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
+    )?
+;
+
+showCreateRestContentFileStatement:
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL CONTENT_SYMBOL FILE_SYMBOL contentFileRequestPath (
+        ON_SYMBOL
+        | FROM_SYMBOL
+    ) (SERVICE_SYMBOL? serviceRequestPath)? CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath
+;
+
 showCreateRestAuthAppStatement:
     SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName (
         (ON_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
@@ -6187,11 +6284,11 @@ showCreateRestAuthAppStatement:
 // Named identifiers ========================================================
 
 serviceRequestPath:
-    hostAndPortIdentifier? requestPathIdentifier
+    serviceDevelopersIdentifier? hostAndPortIdentifier? requestPathIdentifier
 ;
 
 newServiceRequestPath:
-    hostAndPortIdentifier? requestPathIdentifier
+    serviceDevelopersIdentifier? hostAndPortIdentifier? requestPathIdentifier
 ;
 
 schemaRequestPath:
@@ -6230,11 +6327,28 @@ newProcedureRequestPath:
     requestPathIdentifier
 ;
 
+newFunctionRequestPath:
+    requestPathIdentifier
+;
+
 contentSetRequestPath:
     requestPathIdentifier
 ;
 
+contentFileRequestPath:
+    requestPathIdentifier
+;
+
 //----------------- Common basic rules ---------------------------------------------------------------------------------
+
+serviceDeveloperIdentifier: (identifier | quotedText)
+;
+
+serviceDevelopersIdentifier:
+    serviceDeveloperIdentifier (
+        COMMA_SYMBOL serviceDeveloperIdentifier
+    )* AT_SIGN_SYMBOL?
+;
 
 dottedIdentifier:
     simpleIdentifier
@@ -6242,7 +6356,9 @@ dottedIdentifier:
 ;
 
 hostAndPortIdentifier: (
-        dottedIdentifier (COLON_SYMBOL INT_NUMBER)?
+        (dottedIdentifier | AT_TEXT_SUFFIX) (
+            COLON_SYMBOL INT_NUMBER
+        )?
     )
 ;
 
@@ -6289,14 +6405,14 @@ graphQlObj:
 ;
 
 graphQlCrudOptions: (
-        AT_SELECT_SYMBOL
-        | AT_NOSELECT_SYMBOL
-        | AT_INSERT_SYMBOL
+        AT_INSERT_SYMBOL
         | AT_NOINSERT_SYMBOL
         | AT_UPDATE_SYMBOL
         | AT_NOUPDATE_SYMBOL
         | AT_DELETE_SYMBOL
         | AT_NODELETE_SYMBOL
+        | AT_CHECK_SYMBOL
+        | AT_NOCHECK_SYMBOL
     )+
 ;
 

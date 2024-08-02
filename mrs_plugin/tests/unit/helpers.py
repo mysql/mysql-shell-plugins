@@ -31,19 +31,16 @@ from mrs_plugin.services import add_service, delete_service, get_service
 from mrs_plugin.db_objects import add_db_object, delete_db_object
 
 def get_default_db_object_init(session, schema_id, name=None, request_path=None,
-                               db_object_type=None):
+                               db_object_type=None, object_options=None):
     object_id = lib.core.get_sequence_id(session)
     return {
         "schema_id": schema_id,
         "db_object_name": name or "ContactBasicInfo",
         "db_object_type": db_object_type or "VIEW",
         "request_path": request_path or "/view_contact_basic_info",
-        "crud_operations": ['CREATE', 'READ', 'UPDATE'],
         "crud_operation_format": "FEED",
         "requires_auth": False,
         "items_per_page": 10,
-        "row_user_ownership_enforced": False,
-        "row_user_ownership_column": "",
         "comments": "Object that will be removed",
         "enabled": True,
         "media_type": "application/json",
@@ -53,6 +50,7 @@ def get_default_db_object_init(session, schema_id, name=None, request_path=None,
             "aaa": "val aaa",
             "bbb": "val bbb"
         },
+        "metadata": None,
         "objects": [
             {
                 "id": object_id,
@@ -60,6 +58,11 @@ def get_default_db_object_init(session, schema_id, name=None, request_path=None,
                 "position":0,
                 "kind":"RESULT",
                 "comments": "Comment for object",
+                "options": object_options or {
+                    "duality_view_insert": True,
+                    "duality_view_update": True,
+                    "duality_view_delete": True,
+                },
                 "sdk_options": {
                     "option1": "value 1",
                     "option2": "value 2",
@@ -85,7 +88,8 @@ def get_default_db_object_init(session, schema_id, name=None, request_path=None,
                         "allow_filtering":True,
                         "allow_sorting":False,
                         "no_check":False,
-                        "no_update":False
+                        "no_update":False,
+                        "options": None,
                     }
                 ]
             }
@@ -114,6 +118,20 @@ def get_default_role_init(caption=None, description=None, derived_from=None, spe
         "specific_to_service_id": specific_service_id,
     }
 
+def get_default_content_set_init(service_id, content_dir=None, request_path=None, options={},
+                                 comments=None, requires_auth=False):
+    return {
+        "service_id": service_id,
+        "request_path": request_path or "/tempContentSet",
+        "requires_auth": requires_auth,
+        "comments": comments or "Content set comment",
+        "options": options or {
+            "option_1": "value 1",
+            "option_2": "value 2",
+            "option_3": "value 3",
+        },
+        "content_dir": content_dir,
+    }
 
 class SchemaCT(object):
     def __init__(self, service_id, schema_name, request_path, **kwargs):
@@ -136,17 +154,6 @@ class ServiceCT(object):
         self._args["auth_path"] = "/authentication"
         self._args["comments"] = kwargs.get("comments", "")
 
-        auth_apps = []
-        if "auth_apps" in kwargs:
-
-            for app in kwargs["auth_apps"]:
-                app = lib.core.convert_json(app)
-                lib.core.convert_ids_to_binary(
-                    ["auth_vendor_id", "service_id", "default_role_id"], app)
-                app["id"] = lib.core.get_sequence_id(session)
-                auth_apps.append(app)
-        self._args["auth_apps"] = auth_apps
-
         self._service_id = lib.services.add_service(session, url_host_name, self._args)
         assert self._service_id is not None
 
@@ -159,6 +166,7 @@ class ServiceCT(object):
 class AuthAppCT():
     def __init__(self, session, **kwargs):
         self._session = session
+        self.service_id = kwargs.get("service_id")
         params = {
             "service_id": kwargs.get("service_id"),
             "auth_vendor_id": kwargs.get("auth_vendor_id"),
@@ -188,7 +196,7 @@ class AuthAppCT():
         return self._auth_app_id
 
     def __exit__(self, type, value, traceback):
-        lib.auth_apps.delete_auth_app(self._session, self._auth_app_id)
+        lib.auth_apps.delete_auth_app(self._session, service_id=self.service_id, app_id=self._auth_app_id)
 
 class DbObjectCT():
     def __init__(self, session, **kwargs) -> None:
@@ -207,7 +215,15 @@ class DbObjectCT():
 class ContentSetCT():
     def __init__(self, session, **kwargs) -> None:
         self._session = session
+        self.content_dir = kwargs.pop("content_dir", None)
         self._content_set_id = lib.content_sets.add_content_set(session, **kwargs)
+        if self.content_dir:
+            self.file_list = lib.content_files.add_content_dir(
+                    session, self._content_set_id,
+                    self.content_dir, kwargs.get("requires_auth"),
+                    None,
+                    send_gui_message=kwargs.get("send_gui_message")
+                )
 
     def __enter__(self):
         return self._content_set_id
@@ -457,8 +473,7 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
             "auth_path": "/authentication",
             "auth_completed_url": None,
             "auth_completed_url_validation": None,
-            "auth_completed_page_content": None,
-            "auth_apps": []
+            "auth_completed_page_content": None
         }
 
         service_id = lib.services.add_service(session, "localhost", service_data)
@@ -468,22 +483,29 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
 
     assert service is not None
     assert isinstance(service, dict)
-    assert service == {
-        'id': service["id"],
-        'enabled': 1,
-        'url_protocol': ['HTTP'],
-        'url_host_name': 'localhost',
-        'url_context_root': service_context_root,
-        'comments': 'Test service',
-        'options': None,
-        'host_ctx': f'localhost{service_context_root}',
-        'url_host_id': service["url_host_id"],
-        'auth_path': '/authentication',
-        'auth_completed_url': None,
-        'auth_completed_url_validation': None,
-        'auth_completed_page_content': None,
-        'is_current': 0,
+    expected = {
+        "id": service["id"],
+        "parent_id": None,
+        "enabled": 1,
+        "url_protocol": ["HTTP"],
+        "url_host_name": "localhost",
+        "url_context_root": service_context_root,
+        "comments": "Test service",
+        "options": None,
+        "metadata": None,
+        "host_ctx": f"localhost{service_context_root}",
+        "url_host_id": service["url_host_id"],
+        "auth_path": "/authentication",
+        "auth_completed_url": None,
+        "auth_completed_url_validation": None,
+        "auth_completed_page_content": None,
+        "is_current": 0,
+        "in_development": None,
+        "full_service_path": f"localhost{service_context_root}",
+        "published": 0,
+        "sorted_developers": None,
     }
+    assert service == expected, f"{service}\n{expected}"
 
     schema_data = {
         "service_id": service["id"],
@@ -501,10 +523,13 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
 
     content_set = lib.content_sets.get_content_set(session, service_id=service["id"], request_path="/test_content_set")
 
+
     if not content_set:
         tmpdir_path = temp_dir.name
-        open(os.path.join(tmpdir_path, "file.sh"), 'w+').close()
-        open(os.path.join(tmpdir_path, "readme.txt"), 'w+').close()
+        with open(os.path.join(tmpdir_path, "somebinaryfile.bin"), 'w+') as f:
+            f.write("\0\1\2\3\4\5\6\7")
+        with open(os.path.join(tmpdir_path, "readme.txt"), 'w+') as f:
+            f.write("Line '1'\nLine \"2\"\nLine \\3\\")
         content_set = {
             "request_path": "/test_content_set",
             "requires_auth": False,
@@ -754,6 +779,7 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
         "auth_app_id": auth_app["id"],
         "mrs_user1": user["id"],
         "roles": roles,
+        "temp_dir": temp_dir.name,
     }
 
 

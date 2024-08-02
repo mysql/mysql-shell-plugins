@@ -58,23 +58,23 @@ def test_add_delete_db_object(phone_book, table_contents):
         "name": db_object_init1["db_object_name"],
         "object_type": db_object_init1["db_object_type"],
         "request_path": db_object_init1["request_path"],
-        "crud_operations": db_object_init1["crud_operations"],
+        "crud_operations": ["CREATE", "READ", "UPDATE", "DELETE"],
         "requires_auth": int(db_object_init1["requires_auth"]),
         "items_per_page": db_object_init1["items_per_page"],
-        "row_user_ownership_enforced": int(db_object_init1["row_user_ownership_enforced"]),
-        "row_user_ownership_column": db_object_init1["row_user_ownership_column"],
         "comments": db_object_init1["comments"],
         "media_type": db_object_init1["media_type"],
+        "metadata": db_object_init1["metadata"],
         "auto_detect_media_type": int(db_object_init1["auto_detect_media_type"]),
         "auth_stored_procedure": '1' if db_object_init1["auth_stored_procedure"] else None,
         "options": db_object_init1["options"],
         "enabled": 1,
         "format": db_object_init1["crud_operation_format"],
         "details": None,
+        "internal": 0,
     }
 
     grants = get_db_object_privileges(session, schema["name"], db_object_init1["db_object_name"])
-    assert grants == ['SELECT', 'INSERT', 'UPDATE']
+    assert grants == ["SELECT", "INSERT", "UPDATE", "DELETE"]
 
     db_object_init2 = get_default_db_object_init(session, schema_id, "GetAllContacts", "/procedure_get_all_contacts")
     db_object_init2["db_object_type"] = "PROCEDURE"
@@ -87,12 +87,10 @@ def test_add_delete_db_object(phone_book, table_contents):
     grants = get_db_object_privileges(session, schema["name"], db_object_init2["db_object_name"])
     assert grants == ['EXECUTE']
 
-    db_object_init3 = get_default_db_object_init(session, schema_id)
-    db_object_init3["crud_operations"] = ""
-    with pytest.raises(ValueError) as exc_info:
-        add_db_object(**db_object_init3)
-    assert str(exc_info.value) == "No CRUD operations specified.Operation cancelled."
+    db_object_init3 = get_default_db_object_init(session, schema_id, object_options={})
+    db_object_id3 = add_db_object(**db_object_init3)
 
+    assert db_objects_table.count == db_objects_table.snapshot.count + 3
 
     db_object_init4 = {
         "db_object_name": "Addresses",
@@ -102,8 +100,6 @@ def test_add_delete_db_object(phone_book, table_contents):
         "request_path": "table_addresses",
         "requires_auth": False,
         "items_per_page": 10,
-        "row_user_ownership_enforced": False,
-        "row_user_ownership_column": "",
         "session": session,
     }
 
@@ -111,23 +107,25 @@ def test_add_delete_db_object(phone_book, table_contents):
         add_db_object(**db_object_init4)
     assert str(exc_info.value) == "The request_path has to start with '/'."
 
+    assert db_objects_table.count == db_objects_table.snapshot.count + 3
+
     #  Test deletes
-    assert db_objects_table.count == db_objects_table.snapshot.count + 2
-
-
     assert delete_db_object(db_object_name="ContactsWithEmail", schema_id=schema["id"])
-    assert db_objects_table.count == db_objects_table.snapshot.count + 1
+    assert db_objects_table.count == db_objects_table.snapshot.count + 2
     grants = get_db_object_privileges(session, schema["name"], db_object_init1["db_object_name"])
     assert grants == []
 
 
     assert delete_db_object(db_object_id=db_object_id2)
-    assert db_objects_table.count == db_objects_table.snapshot.count
+    assert db_objects_table.count == db_objects_table.snapshot.count + 1
     grants = get_db_object_privileges(session, schema["name"], db_object_init2["db_object_name"])
     assert grants == []
 
+    assert delete_db_object(db_object_id=db_object_id3)
+    assert db_objects_table.count == db_objects_table.snapshot.count
 
-def test_get_db_objects(phone_book):
+
+def test_get_db_objects(phone_book, table_contents):
     args = {
         "include_enable_state": False,
         "session": phone_book["session"],
@@ -137,11 +135,20 @@ def test_get_db_objects(phone_book):
     assert len(db_objects) == 0
 
     args = {
+        "include_enable_state": True,
+        "session": phone_book["session"],
+    }
+    db_objects = get_db_objects(schema_id=phone_book["schema_id"], **args)
+    assert db_objects is not None
+    assert len(db_objects) == 1
+
+    args = {
         "include_enable_state": None,
         "session": phone_book["session"],
     }
     db_objects = get_db_objects(schema_id=phone_book["schema_id"], **args)
     assert db_objects is not None
+
     assert len(db_objects) == 1
 
 
@@ -156,7 +163,6 @@ def test_get_db_object(phone_book):
     with pytest.raises(Exception) as exc_info:
         get_db_object(**args)
     assert str(exc_info.value) == 'Invalid id type for schema_id.'
-
 
     args["schema_id"] = phone_book["schema_id"]
     with pytest.raises(Exception) as exc_info:
@@ -197,39 +203,67 @@ def test_set_request_path(phone_book, table_contents):
 def test_set_crud_operations(phone_book, table_contents):
     session = phone_book["session"]
     db_object_table: TableContents = table_contents("db_object")
-
     db_object = get_default_db_object_init(session, phone_book["schema_id"])
+
+    db_object["objects"][0]["options"] = {
+        "duality_view_insert": True,
+        "duality_view_update": True,
+        "duality_view_delete": True,
+    }
 
     with DbObjectCT(session, **db_object) as db_object_id:
         result = lib.db_objects.get_db_object(session, db_object_id)
         assert result is not None
-        set_crud_operations(db_object_id, crud_operations=result.get("crud_operations"),
-                crud_operation_format="FEED")
-        assert db_object_table.assert_same
 
-        with pytest.raises(Exception) as exc_info:
-            result = get_db_object(request_path="test_db", db_object_name="db")
-        assert str(exc_info.value) == "The request_path has to start with '/'."
+        assert result["crud_operations"] == ["CREATE", "READ", "UPDATE", "DELETE"]
 
-        with pytest.raises(Exception) as exc_info:
-            set_crud_operations(db_object_id, crud_operations=['CREATE', 'READ', 'UPDATE', 'XXXXXXX'],
-                    crud_operation_format="FEED")
-        assert str(exc_info.value) == "The given CRUD operation XXXXXXX does not exist."
-        assert db_object_table.assert_same
+    db_object["objects"][0]["options"] = {
+        "duality_view_insert": False,
+        "duality_view_update": True,
+        "duality_view_delete": True,
+    }
 
-        set_crud_operations(db_object_id, crud_operations=['CREATE', 'READ'],
-                crud_operation_format="FEED")
+    with DbObjectCT(session, **db_object) as db_object_id:
         result = lib.db_objects.get_db_object(session, db_object_id)
         assert result is not None
-        assert not db_object_table.same_as_snapshot
-        assert result["crud_operations"] == ['CREATE', 'READ']
 
-        set_crud_operations(db_object_id, crud_operations=['CREATE', 'READ', 'UPDATE', 'DELETE'],
-                crud_operation_format="FEED")
+        assert result["crud_operations"] == ["READ", "UPDATE", "DELETE"]
+
+    db_object["objects"][0]["options"] = {
+        "duality_view_insert": False,
+        "duality_view_update": False,
+        "duality_view_delete": True,
+    }
+
+    with DbObjectCT(session, **db_object) as db_object_id:
         result = lib.db_objects.get_db_object(session, db_object_id)
         assert result is not None
-        assert not db_object_table.same_as_snapshot
-        assert result["crud_operations"] == ['CREATE', 'READ', 'UPDATE', 'DELETE']
+
+        assert result["crud_operations"] == ["READ", "DELETE"]
+
+    db_object["objects"][0]["options"] = {
+        "duality_view_insert": False,
+        "duality_view_update": False,
+        "duality_view_delete": False,
+    }
+
+    with DbObjectCT(session, **db_object) as db_object_id:
+        result = lib.db_objects.get_db_object(session, db_object_id)
+        assert result is not None
+
+        assert result["crud_operations"] == ["READ"]
+
+    db_object["objects"][0]["fields"][0]["options"] = {
+        "duality_view_insert": True,
+        "duality_view_update": True,
+        "duality_view_delete": True,
+    }
+
+    with DbObjectCT(session, **db_object) as db_object_id:
+        result = lib.db_objects.get_db_object(session, db_object_id)
+        assert result is not None
+
+        assert result["crud_operations"] == ["READ", "UPDATE"]
 
 
 def test_disable_enable(phone_book, table_contents):
@@ -287,14 +321,11 @@ def test_db_object_update(phone_book):
                 "request_path": "/aaaaaa",
                 "enabled": False,
                 "items_per_page": 33,
-                "crud_operations": ["CREATE", "READ"],
                 "crud_operation_format": "ITEM",
                 "media_type": "media type",
                 "auto_detect_media_type": False,
                 "requires_auth": False,
                 "auth_stored_procedure": "some SP",
-                "row_user_ownership_enforced": True,
-                "row_user_ownership_column": "some column",
                 "comments": "adding some comments",
                 "options": {
                     "aaa": "val aaa",
@@ -311,14 +342,11 @@ def test_db_object_update(phone_book):
                 "request_path": original_db_object.get("request_path"),
                 "enabled": original_db_object.get("enabled"),
                 "items_per_page": original_db_object.get("item_per_page"),
-                "crud_operations": original_db_object.get("crud_operations"),
                 "crud_operation_format": original_db_object.get("crud_operation_format"),
                 "media_type": original_db_object.get("media_type"),
                 "auto_detect_media_type": original_db_object.get("auto_detect_media_type"),
                 "requires_auth": original_db_object.get("requires_auth"),
                 "auth_stored_procedure": original_db_object.get("auth_stored_procedure"),
-                "row_user_ownership_enforced": original_db_object.get("row_user_ownership_enforced"),
-                "row_user_ownership_column": original_db_object.get("row_user_ownership_column"),
                 "comments": original_db_object.get("comments"),
                 "options": original_db_object.get("options")
         }
@@ -331,14 +359,11 @@ def test_db_object_update(phone_book):
         assert db_object.get("request_path") == args["value"]["request_path"]
         assert db_object.get("enabled") == args["value"]["enabled"]
         assert db_object.get("items_per_page") == args["value"]["items_per_page"]
-        assert db_object.get("crud_operations") == args["value"]["crud_operations"]
         assert db_object.get("crud_operation_format") == args["value"]["crud_operation_format"]
         assert db_object.get("media_type") == args["value"]["media_type"]
         assert db_object.get("auto_detect_media_type") == args["value"]["auto_detect_media_type"]
         assert db_object.get("requires_auth") == args["value"]["requires_auth"]
         assert db_object.get("auth_stored_procedure") == args["value"]["auth_stored_procedure"]
-        assert db_object.get("row_user_ownership_enforced") == args["value"]["row_user_ownership_enforced"]
-        assert db_object.get("row_user_ownership_column") == args["value"]["row_user_ownership_column"]
         assert db_object.get("comments") == args["value"]["comments"]
         assert db_object.get("options") == args["value"]["options"]
 
@@ -410,7 +435,6 @@ def test_move_db_object(phone_book, mobile_phone_book, table_contents):
                 "session": session,
                 "value": {
                     "schema_name": "MobilePhoneBook",
-                    "crud_operations": ["CREATE", "READ"],
                     "crud_operation_format": "ITEM",
                 },
             }
@@ -424,7 +448,6 @@ def test_move_db_object(phone_book, mobile_phone_book, table_contents):
             "value": {
                 "schema_name": "NotExistingSchema",
                 "request_path": "/movedObject",
-                "crud_operations": ["CREATE", "READ"],
                 "crud_operation_format": "ITEM",
             },
         }
@@ -440,7 +463,6 @@ def test_move_db_object(phone_book, mobile_phone_book, table_contents):
             "value": {
                 "schema_name": "MobilePhoneBook",
                 "request_path": "/movedObject",
-                "crud_operations": ["CREATE", "READ"],
                 "crud_operation_format": "ITEM",
             },
         }
@@ -469,11 +491,9 @@ def test_add_db_object_auto_add_schema(phone_book, table_contents):
         "schema_name": "EmptyPhoneBook",
         "auto_add_schema": True,
         "request_path": "/view_contacts_with_email_no_service",
-        "crud_operations": ['READ'],
         "crud_operation_format": "MEDIA",
         "requires_auth": False,
         "items_per_page": 10,
-        "row_user_ownership_enforced": False,
         "comments": "Test table",
         "options": None
     }
@@ -603,7 +623,7 @@ def test_dump_create_statement(phone_book, table_contents):
 def test_dump_and_recover(phone_book):
     db_object_create_statement2 = """CREATE OR REPLACE REST DUALITY VIEW /addresses
     ON SERVICE localhost/test SCHEMA /PhoneBook
-    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE {
+    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
         id: id
     }
     ITEMS PER PAGE 10

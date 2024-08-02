@@ -36,9 +36,20 @@ export class MrsServiceTreeItem extends MrsTreeBaseItem {
         backend: ShellInterfaceSqlEditor,
         connectionId: number) {
         const iconName = value.isCurrent ?
-            !value.enabled ? "mrsServiceDefaultDisabled.svg" : "mrsServiceDefault.svg" :
-            !value.enabled ? "mrsServiceDisabled.svg" : "mrsService.svg";
+            !value.enabled ? "mrsServiceDefaultDisabled.svg" :
+                (value.inDevelopment?.developers
+                    ? "mrsServiceDefaultInDevelopment.svg" :
+                    (value.published ? "mrsServiceDefaultPublished.svg" : "mrsServiceDefault.svg")) :
+            !value.enabled ? "mrsServiceDisabled.svg" :
+                (value.inDevelopment?.developers ? "mrsServiceInDevelopment.svg" :
+                    (value.published ? "mrsServicePublished.svg" : "mrsService.svg"));
 
         super(label, backend, connectionId, iconName, true);
+
+        if (value.enabled && value.inDevelopment?.developers) {
+            this.description = `In Development`;
+        } else {
+            this.description = !value.enabled ? "Disabled" : (value.published ? "Published" : "Unpublished");
+        }
     }
 }

@@ -28,6 +28,7 @@ import mysqlsh
 
 from lib.core import MrsDbSession
 from ... content_sets import *
+from .helpers import ContentSetCT, get_default_content_set_init, TableContents
 
 def test_add_content_set(phone_book, table_contents):
     table_content_set = table_contents("content_set")
@@ -75,13 +76,14 @@ def test_get_content_sets(phone_book, table_contents):
     sets = get_content_sets(phone_book["service_id"], **args)
     assert sets is not None
     assert sets ==  [{
-        'id': sets[0]["id"],
-        'options': None,
-        'request_path': '/test_content_set',
-        'requires_auth': 0,
-        'enabled': 1,
-        'comments': 'Content Set',
-        'host_ctx': 'localhost/test'
+        "id": sets[0]["id"],
+        "options": None,
+        "request_path": "/test_content_set",
+        "requires_auth": 0,
+        "enabled": 1,
+        "comments": "Content Set",
+        "host_ctx": "localhost/test",
+        "service_id": phone_book["service_id"],
     }]
 
 
@@ -95,6 +97,7 @@ def test_get_content_set(phone_book):
             'comments': 'Content Set',
             'host_ctx': 'localhost/test',
             "options": None,
+            "service_id": phone_book["service_id"],
         }
         args = {
                 "content_set_id": phone_book["content_set_id"],
@@ -155,3 +158,73 @@ def test_enable_disable(phone_book, table_contents):
     assert result == "The content set has been enabled."
     assert content_set_table.get("id", phone_book["content_set_id"])["enabled"] == True
     assert content_set_table.same_as_snapshot
+
+
+
+def test_dump_and_recover(phone_book, table_contents):
+    create_statement = """CREATE OR REPLACE REST CONTENT SET /tempContentSet
+    ON SERVICE localhost/test
+    COMMENTS "Content set comment"
+    OPTIONS {
+        "option_1": "value 1",
+        "option_2": "value 2",
+        "option_3": "value 3"
+    };
+CREATE OR REPLACE REST CONTENT FILE "/readme.txt"
+    ON SERVICE localhost/test CONTENT SET /tempContentSet
+    CONTENT 'Line \\'1\\'
+Line "2"
+Line \\\\3\\\\';
+CREATE OR REPLACE REST CONTENT FILE "/somebinaryfile.bin"
+    ON SERVICE localhost/test CONTENT SET /tempContentSet
+    BINARY CONTENT 'AAECAwQFBgc=';"""
+
+    create_function = lambda file_path, content_set_id, overwrite=True: \
+        store_create_statement(file_path=file_path,
+                                overwrite=overwrite,
+                                content_set_id=content_set_id,
+                                session=session)
+    session = phone_book["session"]
+    service_id = phone_book["service_id"]
+
+    script = ""
+
+    full_path_file = os.path.expanduser("~/content_set_compare_1.dump.sql")
+    full_path_file2 = os.path.expanduser("~/content_set_compare_2.dump.sql")
+
+    content_sets = lib.content_sets.get_content_sets(session, service_id)
+    assert len(content_sets) == 1
+
+    content_set = get_default_content_set_init(phone_book["service_id"], phone_book["temp_dir"])
+    with ContentSetCT(session, **content_set) as content_set_id:
+        content_sets = lib.content_sets.get_content_sets(session, service_id)
+        assert len(content_sets) == 2
+        content_files_table: TableContents = table_contents("content_file")
+
+        result = create_function(file_path=full_path_file, content_set_id=content_set_id, overwrite=True)
+        assert result == True
+
+
+    content_sets = lib.content_sets.get_content_sets(session, service_id)
+    assert len(content_sets) == 1
+
+
+    with open(os.path.expanduser(full_path_file), "r+") as f:
+        script = f.read()
+        assert script == create_statement
+
+    results = lib.script.run_mrs_script(mrs_script=script)
+
+    content_sets = lib.content_sets.get_content_sets(session, service_id)
+    assert len(content_sets) == 2
+
+    content_set = lib.content_sets.get_content_set(session, phone_book["service_id"], "/tempContentSet")
+    assert content_set is not None
+
+    content_set_table: TableContents = table_contents("content_set")
+
+    lib.content_sets.delete_content_set(session, [content_set["id"]])
+
+    content_sets = lib.content_sets.get_content_sets(session, service_id)
+    assert len(content_sets) == 1
+

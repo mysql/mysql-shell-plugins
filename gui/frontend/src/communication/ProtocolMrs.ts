@@ -41,6 +41,8 @@ export enum ShellAPIMrs {
     MrsConfigure = "mrs.configure",
     /** Checks the MRS service status and prints its */
     MrsStatus = "mrs.status",
+    /** Marks the current version to be ignored during version upgrade checks */
+    MrsIgnoreVersionUpgrade = "mrs.ignore_version_upgrade",
     /** Adds a new MRS service */
     MrsAddService = "mrs.add.service",
     /** Gets a specific MRS service */
@@ -135,8 +137,6 @@ export enum ShellAPIMrs {
     MrsGetDbFunctionReturnType = "mrs.get.db_function_return_type",
     /** Sets the request_path of the given db_object */
     MrsSetDbObjectRequestPath = "mrs.set.dbObject.request_path",
-    /** Sets the request_path of the given db_object */
-    MrsSetDbObjectCrudOperations = "mrs.set.dbObject.crud_operations",
     /** Enables a db_object of the given schema */
     MrsEnableDbObject = "mrs.enable.db_object",
     /** Disables a db_object of the given schema */
@@ -167,8 +167,24 @@ export enum ShellAPIMrs {
     MrsDisableContentSet = "mrs.disable.content_set",
     /** Delete a content_set of the given service */
     MrsDeleteContentSet = "mrs.delete.content_set",
+    /** Returns the MRS Scripts definitions for the given file */
+    MrsGetFileMrsScriptsDefinitions = "mrs.get.file_mrs_scripts_definitions",
+    /** Checks if the given path contains MRS Scripts */
+    MrsGetFolderMrsScriptsLanguage = "mrs.get.folder_mrs_scripts_language",
+    /** Returns the MRS Scripts definitions for the given folder */
+    MrsGetFolderMrsScriptsDefinitions = "mrs.get.folder_mrs_scripts_definitions",
+    /** Updates db_schemas and db_objects based on script definitions of the content set */
+    MrsUpdateScriptsFromContentSet = "mrs.update.scripts_from_content_set",
+    /** Returns the corresponding CREATE REST CONTENT SET SQL statement of the given MRS service object. */
+    MrsGetContentSetCreateStatement = "mrs.get.content_set_create_statement",
+    /** Stores the corresponding CREATE REST CONTENT SET SQL statement of the given MRS service into a file. */
+    MrsDumpContentSetCreateStatement = "mrs.dump.content_set_create_statement",
     /** Returns all files for the given content set */
     MrsListContentFiles = "mrs.list.content_files",
+    /** Returns the corresponding CREATE REST CONTENT FILE SQL statement of the given MRS service object. */
+    MrsGetContentFileCreateStatement = "mrs.get.content_file_create_statement",
+    /** Stores the corresponding CREATE REST CONTENT SET SQL statement of the given MRS service into a file. */
+    MrsDumpContentFileCreateStatement = "mrs.dump.content_file_create_statement",
     /** Dumps the data for REST Service into a JSON file. */
     MrsDumpService = "mrs.dump.service",
     /** Exports the data for REST Schema into a JSON file. */
@@ -205,6 +221,8 @@ export enum ShellAPIMrs {
     MrsListRouters = "mrs.list.routers",
     /** Delete an existing router */
     MrsDeleteRouter = "mrs.delete.router",
+    /** List all services a router serves */
+    MrsGetRouterServices = "mrs.get.router_services",
     /** Run the given MRS script */
     MrsRunScript = "mrs.run.script"
 }
@@ -230,8 +248,10 @@ export interface IShellMrsAddServiceKwargs {
     authCompletedUrlValidation?: string;
     /** The custom page content to use of the authentication completed page */
     authCompletedPageContent?: string;
-    /** The list of auth_apps in JSON format */
-    authApps?: unknown[];
+    /** Metadata of the server */
+    metadata?: IShellDictionary;
+    /** Whether the new service should be published immediately */
+    published?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -362,8 +382,12 @@ export interface IShellMrsUpdateServiceKwargsValue {
     authCompletedUrlValidation?: string;
     /** The custom page content to use of the authentication completed page */
     authCompletedPageContent?: string;
-    /** The list of auth_apps in JSON format */
-    authApps?: unknown[];
+    /** The metadata of the service */
+    metadata?: IShellDictionary;
+    /** The development settings */
+    inDevelopment?: IShellDictionary;
+    /** Whether the service is published */
+    published?: boolean;
 }
 
 export interface IShellMrsUpdateServiceKwargs {
@@ -494,6 +518,8 @@ export interface IShellMrsAddSchemaKwargs {
     comments?: string;
     /** The options for the schema */
     options: IShellDictionary | null;
+    /** The metadata settings of the schema */
+    metadata?: IShellDictionary;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -635,6 +661,8 @@ export interface IShellMrsUpdateSchemaKwargsValue {
     comments?: string;
     /** The options for the schema */
     options: IShellDictionary | null;
+    /** The metadata settings of the schema */
+    metadata?: IShellDictionary;
 }
 
 export interface IShellMrsUpdateSchemaKwargs {
@@ -694,7 +722,7 @@ export interface IShellMrsAddAuthenticationAppKwargs {
     appId?: string;
     /** Limit access to registered users */
     limitToRegisteredUsers?: boolean;
-    /** List of registered users, separated by , */
+    /** List of registered users */
     registeredUsers?: unknown[];
     /** The default role to be assigned to new users */
     defaultRoleId: string | null;
@@ -769,8 +797,6 @@ export interface IShellMrsAddDbObjectKwargs {
     requestPath?: string;
     /** Whether the db object is enabled */
     enabled?: boolean;
-    /** The allowed CRUD operations for the object */
-    crudOperations?: unknown[];
     /** The format to use for the CRUD operation */
     crudOperationFormat?: string;
     /** Whether authentication is required to access the schema */
@@ -791,6 +817,8 @@ export interface IShellMrsAddDbObjectKwargs {
     authStoredProcedure?: string;
     /** The options of this db object */
     options: IShellDictionary | null;
+    /** The metadata of this db object */
+    metadata?: IShellDictionary;
     /** The result/parameters objects definition in JSON format */
     objects?: unknown[];
     /** The string id for the module session object, holding the database session to be used on the operation. */
@@ -842,11 +870,6 @@ export interface IShellMrsSetDbObjectRequestPathKwargs {
     moduleSessionId?: string;
 }
 
-export interface IShellMrsSetDbObjectCrudOperationsKwargs {
-    /** The string id for the module session object, holding the database session to be used on the operation. */
-    moduleSessionId?: string;
-}
-
 export interface IShellMrsEnableDbObjectKwargs {
     /** The id of the db_object */
     dbObjectId: string | null;
@@ -875,8 +898,6 @@ export interface IShellMrsUpdateDbObjectKwargsValue {
     dbSchemaId?: string;
     /** If the database object is enabled or not */
     enabled?: boolean;
-    /** The allowed CRUD operations for the object */
-    crudOperations?: unknown[];
     /** The format to use for the CRUD operation */
     crudOperationFormat?: string;
     /** Whether authentication is required to access the database object */
@@ -887,10 +908,6 @@ export interface IShellMrsUpdateDbObjectKwargsValue {
     requestPath?: string;
     /** Whether the media type should be detected automatically */
     autoDetectMediaType?: boolean;
-    /** Enable row ownership enforcement */
-    rowUserOwnershipEnforced?: boolean;
-    /** The column for row ownership enforcement */
-    rowUserOwnershipColumn?: string;
     /** Comments for the database object */
     comments?: string;
     /** The media_type of the db object */
@@ -899,6 +916,8 @@ export interface IShellMrsUpdateDbObjectKwargsValue {
     authStoredProcedure?: string;
     /** The options of this db object */
     options: IShellDictionary | null;
+    /** The metadata settings of the db object */
+    metadata?: IShellDictionary;
     /** The result/parameters objects definition in JSON format */
     objects?: unknown[];
 }
@@ -978,8 +997,12 @@ export interface IShellMrsAddContentSetKwargs {
     options: IShellDictionary | null;
     /** Whether to replace a content set that uses the same request_path */
     replaceExisting?: boolean;
+    /** List of files and directories to ignore, separated by comma */
+    ignoreList?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
+    /** The function to send a message to he GUI. */
+    sendGuiMessage?: object;
 }
 
 export interface IShellMrsListContentSetsKwargs {
@@ -1033,9 +1056,85 @@ export interface IShellMrsDeleteContentSetKwargs {
     moduleSessionId?: string;
 }
 
+export interface IShellMrsGetFileMrsScriptsDefinitionsKwargs {
+    /** The language the MRS Scripts are written in */
+    language?: string;
+}
+
+export interface IShellMrsGetFolderMrsScriptsLanguageKwargs {
+    /** The list of file patterns to ignore, separated by comma */
+    ignoreList?: string;
+}
+
+export interface IShellMrsGetFolderMrsScriptsDefinitionsKwargs {
+    /** The list of file patterns to ignore, separated by comma */
+    ignoreList?: string;
+    /** The language the MRS Scripts are written in */
+    language?: string;
+}
+
+export interface IShellMrsUpdateScriptsFromContentSetKwargs {
+    /** The id of the content_set */
+    contentSetId?: string;
+    /** The id of the service */
+    serviceId?: string;
+    /** The request_path of the content_set */
+    requestPath?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsGetContentSetCreateStatementKwargs {
+    /** The ID of the service where the schema belongs. */
+    serviceId?: string;
+    /** The ID of the content set to generate. */
+    contentSetId?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsDumpContentSetCreateStatementKwargs {
+    /** The ID of the service where the schema belongs. */
+    serviceId?: string;
+    /** The ID of the content set to dump. */
+    contentSetId?: string;
+    /** The path where to store the file. */
+    filePath?: string;
+    /** Overwrite the file, if already exists. */
+    overwrite?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
 export interface IShellMrsListContentFilesKwargs {
     /** Only include db_objects with the given enabled state */
     includeEnableState?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsGetContentFileCreateStatementKwargs {
+    /** The ID of the content set to generate. */
+    contentSetId?: string;
+    /** The ID of the content file to generate. */
+    contentFileId?: string;
+    /** The ID of the service where the schema belongs. */
+    serviceId?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsDumpContentFileCreateStatementKwargs {
+    /** The ID of the content file to dump. */
+    contentFileId?: string;
+    /** The ID of the content set to dump. */
+    contentSetId?: string;
+    /** The ID of the service where the schema belongs. */
+    serviceId?: string;
+    /** The path where to store the file. */
+    filePath?: string;
+    /** Overwrite the file, if already exists. */
+    overwrite?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -1208,6 +1307,7 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsLs]: { args: { path?: string; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsConfigure]: { args: { moduleSessionId?: string; enableMrs?: boolean; options?: string; updateIfAvailable?: boolean; allowRecreationOnMajorUpgrade?: boolean; }; };
     [ShellAPIMrs.MrsStatus]: { args: { moduleSessionId?: string; }; };
+    [ShellAPIMrs.MrsIgnoreVersionUpgrade]: { args: { moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsAddService]: { kwargs?: IShellMrsAddServiceKwargs; };
     [ShellAPIMrs.MrsGetService]: { kwargs?: IShellMrsGetServiceKwargs; };
     [ShellAPIMrs.MrsListServices]: { kwargs?: IShellMrsListServicesKwargs; };
@@ -1255,7 +1355,6 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsGetDbObjectParameters]: { args: { requestPath?: string; }; kwargs?: IShellMrsGetDbObjectParametersKwargs; };
     [ShellAPIMrs.MrsGetDbFunctionReturnType]: { args: { dbSchemaName: string; dbObjectName: string; }; kwargs?: IShellMrsGetDbFunctionReturnTypeKwargs; };
     [ShellAPIMrs.MrsSetDbObjectRequestPath]: { args: { dbObjectId?: string; requestPath?: string; }; kwargs?: IShellMrsSetDbObjectRequestPathKwargs; };
-    [ShellAPIMrs.MrsSetDbObjectCrudOperations]: { args: { dbObjectId?: string; crudOperations?: unknown[]; crudOperationFormat?: string; }; kwargs?: IShellMrsSetDbObjectCrudOperationsKwargs; };
     [ShellAPIMrs.MrsEnableDbObject]: { args: { dbObjectName?: string; schemaId?: string; }; kwargs?: IShellMrsEnableDbObjectKwargs; };
     [ShellAPIMrs.MrsDisableDbObject]: { args: { dbObjectName?: string; schemaId?: string; }; kwargs?: IShellMrsDisableDbObjectKwargs; };
     [ShellAPIMrs.MrsDeleteDbObject]: { args: { dbObjectName?: string; schemaId?: string; }; kwargs?: IShellMrsDeleteDbObjectKwargs; };
@@ -1271,7 +1370,15 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsEnableContentSet]: { kwargs?: IShellMrsEnableContentSetKwargs; };
     [ShellAPIMrs.MrsDisableContentSet]: { kwargs?: IShellMrsDisableContentSetKwargs; };
     [ShellAPIMrs.MrsDeleteContentSet]: { kwargs?: IShellMrsDeleteContentSetKwargs; };
+    [ShellAPIMrs.MrsGetFileMrsScriptsDefinitions]: { args: { path: string; }; kwargs?: IShellMrsGetFileMrsScriptsDefinitionsKwargs; };
+    [ShellAPIMrs.MrsGetFolderMrsScriptsLanguage]: { args: { path: string; }; kwargs?: IShellMrsGetFolderMrsScriptsLanguageKwargs; };
+    [ShellAPIMrs.MrsGetFolderMrsScriptsDefinitions]: { args: { path: string; }; kwargs?: IShellMrsGetFolderMrsScriptsDefinitionsKwargs; };
+    [ShellAPIMrs.MrsUpdateScriptsFromContentSet]: { kwargs?: IShellMrsUpdateScriptsFromContentSetKwargs; };
+    [ShellAPIMrs.MrsGetContentSetCreateStatement]: { kwargs?: IShellMrsGetContentSetCreateStatementKwargs; };
+    [ShellAPIMrs.MrsDumpContentSetCreateStatement]: { kwargs?: IShellMrsDumpContentSetCreateStatementKwargs; };
     [ShellAPIMrs.MrsListContentFiles]: { args: { contentSetId: string; }; kwargs?: IShellMrsListContentFilesKwargs; };
+    [ShellAPIMrs.MrsGetContentFileCreateStatement]: { kwargs?: IShellMrsGetContentFileCreateStatementKwargs; };
+    [ShellAPIMrs.MrsDumpContentFileCreateStatement]: { kwargs?: IShellMrsDumpContentFileCreateStatementKwargs; };
     [ShellAPIMrs.MrsDumpService]: { args: { path: string; }; kwargs?: IShellMrsDumpServiceKwargs; };
     [ShellAPIMrs.MrsDumpSchema]: { args: { path: string; }; kwargs?: IShellMrsDumpSchemaKwargs; };
     [ShellAPIMrs.MrsDumpObject]: { args: { path: string; }; kwargs?: IShellMrsDumpObjectKwargs; };
@@ -1290,6 +1397,7 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsListRouterIds]: { args: { seenWithin?: number; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsListRouters]: { args: { activeWhenSeenWithin?: number; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsDeleteRouter]: { args: { routerId?: number; moduleSessionId?: string; }; };
+    [ShellAPIMrs.MrsGetRouterServices]: { args: { routerId?: number; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsRunScript]: { args: { mrsScript?: string; }; kwargs?: IShellMrsRunScriptKwargs; };
 
 }
@@ -1316,8 +1424,6 @@ export interface IMrsDbObjectData extends IDictionary {
     objectType: MrsDbObjectType;
     requestPath: string;
     requiresAuth: number;
-    rowUserOwnershipColumn?: string;
-    rowUserOwnershipEnforced: number;
     schemaRequestPath?: string;
     schemaName?: string;
     qualifiedName?: string;
@@ -1326,6 +1432,7 @@ export interface IMrsDbObjectData extends IDictionary {
     autoDetectMediaType: number;
     authStoredProcedure?: string;
     options?: IShellDictionary;
+    metadata?: IShellDictionary;
     objects?: IMrsObject[];
 }
 
@@ -1358,9 +1465,16 @@ export interface IMrsAddContentSetData {
     info?: string;
 }
 
+export interface IMrsServiceDevelopmentOptions {
+    developers: string[];
+}
+
 export interface IMrsServiceData {
     enabled: number;
+    published: number;
     hostCtx: string;
+    fullServicePath?: string;
+    sortedDevelopers?: string;
     id: string;
     isCurrent: number;
     urlContextRoot: string;
@@ -1375,6 +1489,8 @@ export interface IMrsServiceData {
     authApps?: IMrsAuthAppData[];
     enableSqlEndpoint?: number;
     customMetadataSchema?: string;
+    metadata?: IShellDictionary;
+    inDevelopment?: IMrsServiceDevelopmentOptions;
 }
 
 export interface IMrsAddAuthAppData {
@@ -1429,6 +1545,7 @@ export interface IMrsSchemaData {
     requiresAuth: number;
     serviceId: string;
     options?: IShellDictionary;
+    metadata?: string;
 }
 
 export interface IMrsStatusData {
@@ -1437,9 +1554,12 @@ export interface IMrsStatusData {
     serviceEnabled: boolean;
     serviceUpgradeable: boolean;
     majorUpgradeRequired: boolean;
+    minimumVersionRequired: number;
     currentMetadataVersion?: string;
-    requiredMetadataVersion?: string;
+    availableMetadataVersion?: string;
     requiredRouterVersion?: string;
+    serviceUpgradeIgnored: boolean;
+    serviceBeingUpgraded: boolean;
 }
 
 export interface IMrsRoleData {
@@ -1466,7 +1586,23 @@ export interface IMrsRouterData {
     attributes: IShellDictionary,
     options: IShellDictionary,
     active: boolean,
+    developer?: string,
 }
+
+export interface IMrsRouterService {
+    routerId: number;
+    routerName: string;
+    address: string;
+    routerDeveloper: string | null;
+    serviceId: string;
+    serviceUrlHostName: string;
+    serviceUrlContextRoot : string;
+    serviceHostCtx: string;
+    published: number;
+    inDevelopment: IMrsServiceDevelopmentOptions | null;
+    sortedDevelopers: string | null;
+}
+
 
 export interface IMrsCurrentServiceMetadata {
     id?: string,
@@ -1533,9 +1669,10 @@ export interface IMrsObjectReferenceSdkOptions {
 export interface IMrsObjectReference {
     id: string,
     reduceToValueOfFieldId?: string,
+    rowOwnershipFieldId?: string,
     referenceMapping: IMrsTableReference,
     unnest: boolean,
-    crudOperations: string,
+    options?: IMrsObjectOptions,
     sdkOptions?: IMrsObjectReferenceSdkOptions,
     comments?: string,
 }
@@ -1570,13 +1707,22 @@ export interface IMrsObjectSdkOptions {
     languageOptions?: IMrsObjectSdkLanguageOptions[],
 }
 
+export interface IMrsObjectOptions {
+    dualityViewInsert?: boolean,
+    dualityViewUpdate?: boolean,
+    dualityViewDelete?: boolean,
+    dualityViewNoCheck?: boolean,
+}
+
 export interface IMrsObject {
     id: string,
     dbObjectId: string,
     name: string,
     position: number,
     kind: MrsObjectKind,
+    options?: IMrsObjectOptions,
     sdkOptions?: IMrsObjectSdkOptions,
+    rowOwnershipFieldId?: string,
     comments?: string,
     fields?: IMrsObjectFieldWithReference[],
     storedFields?: IMrsObjectFieldWithReference[],
@@ -1605,6 +1751,43 @@ export interface IMrsSdkOptions {
     version?: number,
     generationDate?: string,
     header?: string,
+}
+
+export interface IMrsScriptProperty {
+    name: string;
+    value: string | number | boolean | IDictionary;
+}
+
+export interface IMrsScriptParameter {
+    name: string;
+    type: string;
+}
+
+export interface IMrsScriptDefinition {
+    functionName: string;
+    lineNumber: number;
+    lineNumberEnd: number;
+    characterStart: number;
+    characterEnd: number;
+    parameters: IMrsScriptParameter[];
+    returnType: string;
+    properties: IMrsScriptProperty[];
+}
+
+export interface IMrsSchemaDefinition {
+    fullFileName: string;
+    relativeFileName: string;
+    fileName: string;
+    lastModification: string;
+    className: string;
+    schemaType: string;
+    lineNumber: number;
+    lineNumberEnd: number;
+    characterStart: number;
+    characterEnd: number;
+    properties: IMrsScriptProperty[];
+    scripts: IMrsScriptDefinition[];
+    triggers: IMrsScriptDefinition[];
 }
 
 export interface IProtocolMrsResults {
@@ -1640,13 +1823,16 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsEnableContentSet]: {};
     [ShellAPIMrs.MrsDisableContentSet]: {};
     [ShellAPIMrs.MrsDeleteContentSet]: {};
+    [ShellAPIMrs.MrsGetFolderMrsScriptsLanguage]: { result: string | undefined };
+    [ShellAPIMrs.MrsGetFileMrsScriptsDefinitions]: { result: IMrsSchemaDefinition[] };
+    [ShellAPIMrs.MrsGetFolderMrsScriptsDefinitions]: { result: IDictionary | undefined };
+    [ShellAPIMrs.MrsUpdateScriptsFromContentSet]: {};
     [ShellAPIMrs.MrsAddDbObject]: { result: string; };
     [ShellAPIMrs.MrsGetDbObject]: { result: IMrsDbObjectData; };
     [ShellAPIMrs.MrsListDbObjects]: { result: IMrsDbObjectData[]; };
     [ShellAPIMrs.MrsGetDbObjectParameters]: { result: IMrsDbObjectParameterData[]; };
     [ShellAPIMrs.MrsGetDbFunctionReturnType]: { result: string; };
     [ShellAPIMrs.MrsSetDbObjectRequestPath]: {};
-    [ShellAPIMrs.MrsSetDbObjectCrudOperations]: {};
     [ShellAPIMrs.MrsEnableDbObject]: {};
     [ShellAPIMrs.MrsDisableDbObject]: {};
     [ShellAPIMrs.MrsDeleteDbObject]: {};
@@ -1663,6 +1849,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsLs]: {};
     [ShellAPIMrs.MrsConfigure]: {};
     [ShellAPIMrs.MrsStatus]: { result: IMrsStatusData; };
+    [ShellAPIMrs.MrsIgnoreVersionUpgrade]: {};
     [ShellAPIMrs.MrsDumpService]: {};
     [ShellAPIMrs.MrsDumpSchema]: {};
     [ShellAPIMrs.MrsDumpObject]: {};
@@ -1681,6 +1868,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsListRouterIds]: { result: number[]; };
     [ShellAPIMrs.MrsListRouters]: { result: IMrsRouterData[]; };
     [ShellAPIMrs.MrsDeleteRouter]: {};
+    [ShellAPIMrs.MrsGetRouterServices]: {result: IMrsRouterService[]; };
     [ShellAPIMrs.MrsGetObjects]: { result: IMrsObject[]; };
     [ShellAPIMrs.MrsGetSdkBaseClasses]: { result: string; };
     [ShellAPIMrs.MrsGetSdkServiceClasses]: { result: string; };
@@ -1693,8 +1881,12 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsGetServiceCreateStatement]: { result: string; }
     [ShellAPIMrs.MrsGetSchemaCreateStatement]: { result: string; }
     [ShellAPIMrs.MrsGetDbObjectCreateStatement]: { result: string; }
+    [ShellAPIMrs.MrsGetContentSetCreateStatement]: { result: string; }
+    [ShellAPIMrs.MrsGetContentFileCreateStatement]: { result: string; }
     [ShellAPIMrs.MrsDumpServiceCreateStatement]: { result: boolean; }
     [ShellAPIMrs.MrsDumpSchemaCreateStatement]: { result: boolean; }
     [ShellAPIMrs.MrsDumpDbObjectCreateStatement]: { result: boolean; }
+    [ShellAPIMrs.MrsDumpContentSetCreateStatement]: { result: boolean; }
+    [ShellAPIMrs.MrsDumpContentFileCreateStatement]: { result: boolean; }
 }
 

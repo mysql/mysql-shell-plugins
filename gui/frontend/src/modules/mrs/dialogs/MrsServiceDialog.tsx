@@ -24,10 +24,9 @@
  */
 
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types.js";
-import { IMrsAuthAppData, IMrsAuthVendorData } from "../../../communication/ProtocolMrs.js";
 import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog.js";
 import {
-    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, IRelationDialogValue,
+    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues,
 } from "../../../components/Dialogs/ValueEditDialog.js";
 
 export interface IMrsServiceDialogData extends IDictionary {
@@ -36,13 +35,16 @@ export interface IMrsServiceDialogData extends IDictionary {
     hostName: string;
     isCurrent: boolean;
     enabled: boolean;
+    published: boolean;
     protocols: string[];
     options: string;
     authPath: string;
     authCompletedUrlValidation: string;
     authCompletedUrl: string;
     authCompletedPageContent: string;
-    authApps: Array<IMrsAuthAppData & IDictionary>;
+    metadata: string;
+    mrsAdminUser?: string;
+    mrsAdminUserPassword?: string;
 }
 
 export class MrsServiceDialog extends AwaitableValueEditDialog {
@@ -51,9 +53,7 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
     }
 
     public override async show(request: IDialogRequest): Promise<IDictionary | DialogResponseClosure> {
-        const authVendors = request.parameters?.authVendors as IMrsAuthVendorData[];
-
-        const dialogValues = this.dialogValues(request, authVendors);
+        const dialogValues = this.dialogValues(request);
         const result = await this.doShow(() => { return dialogValues; }, { title: "MySQL REST Service" });
 
         if (result.closure === DialogResponseClosure.Accept) {
@@ -81,55 +81,29 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                     result.messages.servicePath = `The request path \`${servicePath}\` is reserved and cannot be used.`;
                 }
             }
-            const optionsSection = values.sections.get("optionsSection");
-            if (optionsSection) {
-                try {
-                    const options = optionsSection.values.options.value as string;
-                    if (options !== "") {
-                        JSON.parse(options);
-                    }
-                } catch (e) {
-                    result.messages.options = "Please provide a valid JSON object.";
+            const settingsSection = values.sections.get("settingsSection");
+            if (settingsSection) {
+                if (settingsSection.values.mrsAdminUser?.value
+                    && !settingsSection.values.mrsAdminUserPassword?.value) {
+                    result.messages.mrsAdminUserPassword = "Please specify a password for the MRS Admin User.";
                 }
             }
-        } else {
-            // Detect change of the <new> entry
-            const authAppSection = values.sections.get("authAppSection");
-            if (authAppSection && authAppSection.values.authApps) {
-                const authAppsDlgValue = authAppSection.values.authApps as IRelationDialogValue;
-                const authApps = authAppsDlgValue.value as Array<IMrsAuthAppData & IDictionary>;
-                const newEntry = authApps.find((p) => {
-                    return p.id === "";
-                });
-                // Detect a change of the <new> entry
-                if (newEntry && (newEntry.authVendorName !== "" || newEntry.name !== "<new>")) {
-                    // Update id and position
-                    newEntry.id = `${authApps.length * -1}`;
-                    newEntry.position = authApps.length;
 
-                    if (newEntry.authVendorName && newEntry.name === "<new>") {
-                        newEntry.name = newEntry.authVendorName;
+            const optionsSection = values.sections.get("optionsSection");
+            if (optionsSection) {
+                if (optionsSection.values.options.value) {
+                    try {
+                        JSON.parse(optionsSection.values.options.value as string);
+                    } catch (e) {
+                        result.messages.options = "Please provide a valid JSON object.";
                     }
-
-                    authAppsDlgValue.active = newEntry.id;
-
-
-                    authApps.push({
-                        id: "",
-                        authVendorId: "",
-                        authVendorName: "",
-                        serviceId: "",
-                        name: "<new>",
-                        description: "",
-                        url: "",
-                        urlDirectAuth: "",
-                        accessToken: "",
-                        appId: "",
-                        enabled: true,
-                        useBuiltInAuthorization: true,
-                        limitToRegisteredUsers: true,
-                        defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
-                    });
+                }
+                if (optionsSection.values.metadata.value) {
+                    try {
+                        JSON.parse(optionsSection.values.metadata.value as string);
+                    } catch (e) {
+                        result.messages.metadata = "Please provide a valid JSON object.";
+                    }
                 }
             }
         }
@@ -137,7 +111,7 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
         return result;
     };
 
-    private dialogValues(request: IDialogRequest, authVendors: IMrsAuthVendorData[]): IDialogValues {
+    private dialogValues(request: IDialogRequest): IDialogValues {
         const mainSection: IDialogSection = {
             caption: request.title,
             values: {
@@ -184,30 +158,59 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                         CommonDialogValueOption.Grouped,
                     ],
                 },
+                published: {
+                    type: "boolean",
+                    caption: "Published",
+                    value: (request.values?.published ?? false) as boolean,
+                    horizontalSpan: 2,
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                    ],
+                },
             },
         };
 
         const settingsSection: IDialogSection = {
             caption: "Settings",
             groupName: "group1",
-            values: {
-                comments: {
-                    type: "text",
-                    caption: "Comments",
-                    value: request.values?.comments as string,
-                    horizontalSpan: 8,
-                    description: "Comments to describe this REST Service.",
-                },
-                hostName: {
-                    type: "text",
-                    caption: "Host Name Filter",
-                    value: request.values?.hostName as string,
-                    horizontalSpan: 4,
-                    description: "If specified, the REST service will only be made available " +
-                        "to requests for this specific host.",
-                    placeholder: "<Host Name Filter:Port>",
-                },
-            },
+            values: {},
+        };
+
+        // If this is a new service, show the option to create a MRS auth app and user name
+        if (!request.values?.serviceId) {
+            settingsSection.values.mrsAdminUser = {
+                type: "text",
+                caption: "Create MRS Admin User",
+                value: "",
+                horizontalSpan: 4,
+                description: "If a user name is given, a MRS Auth App will be created and the " +
+                    "user will be added.",
+            };
+            settingsSection.values.mrsAdminUserPassword = {
+                type: "text",
+                caption: "MRS Admin User Password",
+                obfuscated: true,
+                value: "",
+                horizontalSpan: 4,
+                description: "The password of the MRS Admin User.",
+            };
+        }
+
+        settingsSection.values.comments = {
+            type: "text",
+            caption: "Comments",
+            value: request.values?.comments as string,
+            horizontalSpan: 8,
+            description: "Comments to describe this REST Service.",
+        };
+        settingsSection.values.hostName = {
+            type: "text",
+            caption: "Host Name Filter",
+            value: request.values?.hostName as string,
+            horizontalSpan: 4,
+            description: "If specified, the REST service will only be made available " +
+                "to requests for this specific host.",
+            placeholder: "<Host Name Filter:Port>",
         };
 
         const optionsSection: IDialogSection = {
@@ -222,6 +225,15 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                     multiLine: true,
                     multiLineCount: 8,
                     description: "Additional options in JSON format",
+                },
+                metadata: {
+                    type: "text",
+                    caption: "Metadata:",
+                    value: request.values?.metadata as string,
+                    horizontalSpan: 8,
+                    multiLine: true,
+                    multiLineCount: 8,
+                    description: "Metadata settings in JSON format",
                 },
             },
         };
@@ -264,114 +276,6 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
             },
         };
 
-        const appData = request.values?.authApps as Array<IMrsAuthAppData & IDictionary> ?? [];
-        const authAppSection: IDialogSection = {
-            caption: "Authentication Apps",
-            groupName: "group1",
-            values: {
-                authApps: {
-                    type: "relation",
-                    caption: "Apps:",
-                    value: appData,
-                    listItemCaptionFields: ["name"],
-                    listItemId: "id",
-                    active: appData.length > 0 ? String(appData[0].id) : undefined,
-                    horizontalSpan: 2,
-                    verticalSpan: 4,
-                    relations: {
-                        authVendorName: "appAuthVendorName",
-                        name: "appName",
-                        description: "appDescription",
-                        url: "appUrl",
-                        urlDirectAuth: "appUrlDirectAuth",
-                        accessToken: "appAccessToken",
-                        appId: "appId",
-                        enabled: "appEnabled",
-                        limitToRegisteredUsers: "appLimitToRegisteredUsers",
-                    },
-                },
-                appAuthVendorName: {
-                    type: "choice",
-                    caption: "Vendor",
-                    choices: authVendors ? [""].concat(authVendors.map((authVendor) => {
-                        return authVendor.name;
-                    })) : [],
-                    value: "",
-                    horizontalSpan: 3,
-                    description: "The authentication vendor",
-                },
-                appName: {
-                    type: "text",
-                    caption: "Name",
-                    value: "",
-                    horizontalSpan: 3,
-                    description: "The name of the app",
-                },
-                appDescription: {
-                    type: "text",
-                    caption: "Description",
-                    value: "",
-                    horizontalSpan: 3,
-                    description: "A short description of the app",
-                },
-                flags: {
-                    type: "description",
-                    caption: "Auth App Flags",
-                    horizontalSpan: 3,
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                        CommonDialogValueOption.NewGroup,
-                    ],
-                },
-                appEnabled: {
-                    type: "boolean",
-                    caption: "Enabled",
-                    horizontalSpan: 3,
-                    value: true,
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                    ],
-                },
-                appLimitToRegisteredUsers: {
-                    type: "boolean",
-                    caption: "Limit to registered users",
-                    horizontalSpan: 3,
-                    value: true,
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                    ],
-                },
-                appId: {
-                    type: "text",
-                    caption: "App ID",
-                    value: "",
-                    horizontalSpan: 3,
-                    description: "The OAuth2 App ID for this app as defined by the vendor",
-                },
-                appAccessToken: {
-                    type: "text",
-                    caption: "Access Token",
-                    value: "",
-                    horizontalSpan: 3,
-                    description: "The OAuth2 access token for this app as defined by the vendor",
-                },
-                appUrl: {
-                    type: "text",
-                    caption: "Custom URL",
-                    value: "",
-                    horizontalSpan: 3,
-                    description: "A custom OAuth2 service URL",
-                },
-                appUrlDirectAuth: {
-                    type: "text",
-                    caption: "Custom URL for Access Token",
-                    value: "",
-                    horizontalSpan: 3,
-                    description: "A custom URL for exchanging the Access Token",
-                },
-            },
-        };
-
         return {
             id: "mainSection",
             sections: new Map<string, IDialogSection>([
@@ -379,7 +283,6 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                 ["settingsSection", settingsSection],
                 ["optionsSection", optionsSection],
                 ["authSection", authSection],
-                ["authAppSection", authAppSection],
             ]),
         };
     }
@@ -389,22 +292,24 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
         const settingsSection = dialogValues.sections.get("settingsSection");
         const optionsSection = dialogValues.sections.get("optionsSection");
         const authSection = dialogValues.sections.get("authSection");
-        const authAppSection = dialogValues.sections.get("authAppSection");
 
-        if (mainSection && settingsSection && optionsSection && authSection && authAppSection) {
+        if (mainSection && settingsSection && optionsSection && authSection) {
             const values: IMrsServiceDialogData = {
                 servicePath: mainSection.values.servicePath.value as string,
                 comments: settingsSection.values.comments.value as string,
                 hostName: settingsSection.values.hostName.value as string,
                 isCurrent: mainSection.values.makeDefault.value as boolean,
                 enabled: mainSection.values.enabled.value as boolean,
+                published: mainSection.values.published.value as boolean,
                 protocols: ["HTTP", "HTTPS"], // mainSection.values.protocols.value as string[],
                 options: optionsSection.values.options.value as string,
                 authPath: authSection.values.authPath.value as string,
                 authCompletedUrlValidation: authSection.values.authCompletedUrlValidation.value as string,
                 authCompletedUrl: authSection.values.authCompletedUrl.value as string,
                 authCompletedPageContent: authSection.values.authCompletedPageContent.value as string,
-                authApps: authAppSection.values.authApps.value as Array<IMrsAuthAppData & IDictionary>,
+                metadata: optionsSection.values.metadata.value as string,
+                mrsAdminUser: settingsSection.values.mrsAdminUser?.value as string | undefined,
+                mrsAdminUserPassword: settingsSection.values.mrsAdminUserPassword?.value as string | undefined,
             };
 
             return values;

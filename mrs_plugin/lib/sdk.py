@@ -1090,7 +1090,7 @@ def generate_interfaces(
         # * Currently, the notion of `{class_name}Details` does not exist in TypeScript.
         # * Currently, the notion of `{class_name}Data` exists in TypeScript but it
         #   includes hypermedia and metadata information.
-        # TODO: change the TypeScript codegen to follow a construct similar to Python.
+        # TODO: change the TypeScript code gen to follow a construct similar to Python.
 
         if sdk_language == "Python":
             # Create the `Details` data type construct

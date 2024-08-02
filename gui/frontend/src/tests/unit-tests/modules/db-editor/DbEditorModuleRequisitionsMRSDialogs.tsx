@@ -108,7 +108,9 @@ export const testReqShowMrsServiceDialog = async (
 
     const request: IMrsServiceData = {
         enabled: 1,
+        published: 1,
         hostCtx: "test_ctx",
+        fullServicePath: "test_ctx",
         id: serviceID,
         isCurrent: 1,
         urlContextRoot: "root",
@@ -258,7 +260,9 @@ export const testReqShowMrsAuthAppDialog = async (
 
     const service: IMrsServiceData = {
         enabled: 1,
+        published: 1,
         hostCtx: "test",
+        fullServicePath: "test_ctx",
         id: serviceID,
         isCurrent: 1,
         urlContextRoot: "root",

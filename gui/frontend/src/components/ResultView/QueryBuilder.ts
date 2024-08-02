@@ -22,6 +22,7 @@
  */
 
 import { DBDataType, IColumnInfo, defaultValues } from "../../app-logic/Types.js";
+import { formatBase64ToHex } from "../../utilities/string-helpers.js";
 
 /**
  * A class that manages the unique selector for a row in a data set.
@@ -47,6 +48,78 @@ export class QueryBuilder {
 
     private static escapeControlChars(value: string): string {
         return value.replaceAll("\n", "\\n").replaceAll("\r", "\\r").replaceAll("\t", "\\t");
+    }
+
+    private static formatValue(column: IColumnInfo, value: unknown): string {
+        switch (column.dataType.type) {
+            case DBDataType.Char:
+            case DBDataType.Nchar:
+            case DBDataType.Varchar:
+            case DBDataType.Nvarchar:
+            case DBDataType.String:
+            case DBDataType.TinyText:
+            case DBDataType.Text:
+            case DBDataType.MediumText:
+            case DBDataType.LongText: {
+                // Strings need to be quoted.
+                return `'${String(value)}'`;
+            }
+
+            case DBDataType.Binary:
+            case DBDataType.Varbinary: {
+                // Strings need to be quoted.
+                return formatBase64ToHex(value as string);
+            }
+
+
+            case DBDataType.DateTime:
+            case DBDataType.Timestamp: {
+                const date = value instanceof Date ? value : new Date(value as string);
+
+                return `'${date.toISOString().slice(0, 19).replace("T", " ")}'`;
+            }
+
+            case DBDataType.Date: {
+                const date = value instanceof Date ? value : new Date(value as string);
+
+                return `'${date.toISOString().slice(0, 10)}'`;
+            }
+
+            case DBDataType.Time: {
+                if (value instanceof Date) {
+                    return `'${value.toISOString().slice(11, 19)}'`;
+                }
+
+                return `'${value as string}'`;
+
+            }
+
+            case DBDataType.Bit:
+                return `b'${String(value)}'`;
+
+            case DBDataType.TinyBlob:
+            case DBDataType.Blob:
+            case DBDataType.MediumBlob:
+            case DBDataType.LongBlob: {
+                // Blobs are stored as array buffers. Convert them to hex strings.
+                const buffer = value as ArrayBuffer;
+                const bytes = new Uint8Array(buffer);
+                const hex = [];
+                for (const byte of bytes) {
+                    hex.push(byte.toString(16).padStart(2, "0"));
+                }
+
+                return `0x${hex.join("")}`;
+            }
+
+            default: {
+                if (column.dataType.needsQuotes) {
+                    return `'${String(value)}'`;
+                }
+
+                return `${String(value)}`;
+            }
+        }
     }
 
     public get columnNames(): string[] {
@@ -111,7 +184,7 @@ export class QueryBuilder {
 
     private whereClause(pkValues: unknown[]): string {
         const whereExpressions = this.#pkColumns.map((column, index) => {
-            const value = pkValues[index] as number | string;
+            const value = QueryBuilder.formatValue(column, pkValues[index]);
 
             return `${column.title} = ${value}`;
         });
@@ -147,68 +220,7 @@ export class QueryBuilder {
                 }
             }
 
-            switch (dataType.type) {
-                case DBDataType.Char:
-                case DBDataType.Nchar:
-                case DBDataType.Varchar:
-                case DBDataType.Nvarchar:
-                case DBDataType.String:
-                case DBDataType.TinyText:
-                case DBDataType.Text:
-                case DBDataType.MediumText:
-                case DBDataType.LongText: {
-                    // Strings need to be quoted.
-                    return `'${String(value)}'`;
-                }
-
-                case DBDataType.DateTime:
-                case DBDataType.Timestamp: {
-                    const date = value instanceof Date ? value : new Date(value as string);
-
-                    return `'${date.toISOString().slice(0, 19).replace("T", " ")}'`;
-                }
-
-                case DBDataType.Date: {
-                    const date = value instanceof Date ? value : new Date(value as string);
-
-                    return `'${date.toISOString().slice(0, 10)}'`;
-                }
-
-                case DBDataType.Time: {
-                    if (value instanceof Date) {
-                        return `'${value.toISOString().slice(11, 19)}'`;
-                    }
-
-                    return `'${value as string}'`;
-
-                }
-
-                case DBDataType.Bit:
-                    return `b'${String(value)}'`;
-
-                case DBDataType.TinyBlob:
-                case DBDataType.Blob:
-                case DBDataType.MediumBlob:
-                case DBDataType.LongBlob: {
-                    // Blobs are stored as array buffers. Convert them to hex strings.
-                    const buffer = value as ArrayBuffer;
-                    const bytes = new Uint8Array(buffer);
-                    const hex = [];
-                    for (const byte of bytes) {
-                        hex.push(byte.toString(16).padStart(2, "0"));
-                    }
-
-                    return `0x${hex.join("")}`;
-                }
-
-                default: {
-                    if (column.dataType.needsQuotes) {
-                        return `'${String(value)}'`;
-                    }
-
-                    return `${String(value)}`;
-                }
-            }
+            return QueryBuilder.formatValue(column, value);
         });
     }
 }

@@ -141,25 +141,49 @@ def load_object_dump(session, target_schema_id, object, reuse_ids):
     if reuse_ids:
         db_object_id = lib.core.id_to_binary(object["id"], "object.id")
 
-    return lib.db_objects.add_db_object(session, target_schema_id,
-                                 object["name"],
-                                 object["request_path"],
-                                 object["object_type"],
-                                 object["enabled"],
-                                 object["items_per_page"],
-                                 object["requires_auth"],
-                                 object["row_user_ownership_enforced"],
-                                 object["row_user_ownership_column"],
-                                 object["crud_operations"],
-                                 object["format"],
-                                 object["comments"],
-                                 object["media_type"],
-                                 object["auto_detect_media_type"],
-                                 object["auth_stored_procedure"],
-                                 object["options"],
-                                 object["objects"],
-                                 db_object_id=db_object_id,
-                                 reuse_ids=reuse_ids)
+    objects = object.get("objects")
+
+    current_version = core.get_mrs_schema_version(session)
+    if current_version[0] >= 3 and "crud_operations" in object.keys() and \
+        objects is not None and len(objects) > 0:
+        crud_operations = object.pop("crud_operations")
+
+        if object["object_type"] == "TABLE" or object["object_type"] == "VIEW":
+            options = objects[0].get("options")
+            if options is None:
+                options = {}
+            if "CREATE" in crud_operations:
+                options["duality_view_insert"] = True
+            if "UPDATE" in crud_operations:
+                options["duality_view_update"] = True
+            if "DELETE" in crud_operations:
+                options["duality_view_delete"] = True
+
+            objects[0]["options"] = options
+
+
+    return lib.db_objects.add_db_object(
+        session=session, schema_id=target_schema_id,
+        db_object_name=object["name"],
+        request_path=object["request_path"],
+        db_object_type=object["object_type"],
+        enabled=object["enabled"],
+        items_per_page=object["items_per_page"],
+        requires_auth=object["requires_auth"],
+        crud_operation_format=object["format"],
+        comments=object["comments"],
+        media_type=object["media_type"],
+        auto_detect_media_type=object["auto_detect_media_type"],
+        auth_stored_procedure=object["auth_stored_procedure"],
+        options=object["options"],
+        objects=objects,
+        metadata=object.get("metadata", None),
+        db_object_id=db_object_id,
+        reuse_ids=reuse_ids,
+        row_user_ownership_enforced=object.get(
+            "row_user_ownership_enforced", None),
+        row_user_ownership_column=object.get(
+            "row_user_ownership_column", None))
 
 
 def load_schema_dump(session, target_service_id, schema, reuse_ids):

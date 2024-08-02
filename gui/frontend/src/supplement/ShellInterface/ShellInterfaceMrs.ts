@@ -32,6 +32,7 @@ import {
     IShellMrsUpdateUserKwargsValue, IMrsRoleData, IMrsUserRoleData,
     IMrsRouterData, IMrsCurrentServiceMetadata, IMrsTableColumnWithReference, IMrsObjectFieldWithReference,
     IMrsObject, IMrsDbObjectParameterData, IMrsSdkOptions, IMrsAddAuthAppData,
+    IMrsRouterService, IMrsSchemaDefinition,
 } from "../../communication/ProtocolMrs.js";
 import { MrsDbObjectType } from "../../modules/mrs/types.js";
 import { webSession } from "../WebSession.js";
@@ -70,6 +71,17 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
+    public async ignoreVersionUpgrade(): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsIgnoreVersionUpgrade,
+            parameters: {
+                args: {
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+    }
+
     public async listServices(): Promise<IMrsServiceData[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsListServices,
@@ -87,7 +99,7 @@ export class ShellInterfaceMrs {
         comments: string, enabled: boolean, options: IShellDictionary | null,
         authPath: string, authCompletedUrl: string,
         authCompletedUrlValidation: string, authCompletedPageContent: string,
-        authApps: IMrsAuthAppData[]): Promise<IMrsServiceData> {
+        metadata?: IShellDictionary, published = false): Promise<IMrsServiceData> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddService,
             parameters: {
@@ -95,6 +107,7 @@ export class ShellInterfaceMrs {
                     urlContextRoot,
                     urlHostName,
                     enabled,
+                    published,
                     moduleSessionId: this.moduleSessionId,
                     urlProtocol,
                     authPath,
@@ -103,7 +116,7 @@ export class ShellInterfaceMrs {
                     authCompletedUrl,
                     authCompletedUrlValidation,
                     authCompletedPageContent,
-                    authApps,
+                    metadata,
                 },
             },
         }, true, ["options"]);
@@ -199,7 +212,7 @@ export class ShellInterfaceMrs {
     }
 
 
-    public async addAuthApp(serviceId: string, authApp: IMrsAuthAppData, registerUsers: [])
+    public async addAuthApp(serviceId: string, authApp: IMrsAuthAppData, registerUsers: string[])
         : Promise<IMrsAddAuthAppData> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddAuthenticationApp,
@@ -256,11 +269,12 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async deleteAuthApp(appId: string): Promise<void> {
+    public async deleteAuthApp(serviceId: string, appId: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsDeleteAuthenticationApp,
             parameters: {
                 kwargs: {
+                    serviceId,
                     appId,
                     moduleSessionId: this.moduleSessionId,
                 },
@@ -397,7 +411,7 @@ export class ShellInterfaceMrs {
 
     public async addSchema(serviceId: string, schemaName: string, requestPath: string, requiresAuth: boolean,
         options: IShellDictionary | null,
-        itemsPerPage: number | null, comments?: string): Promise<string> {
+        itemsPerPage: number | null, comments?: string, metadata?: IShellDictionary): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddSchema,
             parameters: {
@@ -410,6 +424,7 @@ export class ShellInterfaceMrs {
                     itemsPerPage,
                     comments,
                     options,
+                    metadata,
                     moduleSessionId: this.moduleSessionId,
                 },
             },
@@ -420,7 +435,7 @@ export class ShellInterfaceMrs {
 
     public async updateSchema(schemaId: string, serviceId: string, schemaName: string, requestPath: string,
         requiresAuth: boolean, enabled: boolean, itemsPerPage: number | null, comments: string,
-        options: IShellDictionary | null): Promise<void> {
+        options: IShellDictionary | null, metadata?: IShellDictionary): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsUpdateSchema,
             parameters: {
@@ -436,6 +451,7 @@ export class ShellInterfaceMrs {
                         itemsPerPage,
                         comments,
                         options,
+                        metadata,
                     },
                 },
             },
@@ -443,15 +459,15 @@ export class ShellInterfaceMrs {
     }
 
     public async addDbObject(dbObjectName: string, dbObjectType: MrsDbObjectType,
-        autoAddSchema: boolean, requestPath: string, enabled: boolean, crudOperations: string[],
+        autoAddSchema: boolean, requestPath: string, enabled: boolean,
         crudOperationFormat: string, requiresAuth: boolean,
-        rowUserOwnershipEnforced: boolean, autoDetectMediaType: boolean,
+        autoDetectMediaType: boolean,
         options: IShellDictionary | null,
         itemsPerPage: number | null,
-        rowUserOwnershipColumn?: string,
         schemaId?: string, schemaName?: string,
         comments?: string, mediaType?: string,
         authStoredProcedure?: string,
+        metadata?: IShellDictionary | null,
         objects?: IMrsObject[]): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddDbObject,
@@ -465,17 +481,15 @@ export class ShellInterfaceMrs {
                     autoAddSchema,
                     requestPath,
                     enabled,
-                    crudOperations,
                     crudOperationFormat,
                     requiresAuth,
                     itemsPerPage: itemsPerPage === null ? undefined : itemsPerPage,
-                    rowUserOwnershipEnforced,
-                    rowUserOwnershipColumn,
                     comments,
                     mediaType,
                     autoDetectMediaType,
                     authStoredProcedure,
                     options,
+                    metadata: metadata === null ? undefined : metadata,
                     objects,
                 },
             },
@@ -532,6 +546,7 @@ export class ShellInterfaceMrs {
         requiresAuth: boolean, options: IShellDictionary | null,
         serviceId?: string, comments?: string,
         enabled?: boolean, replaceExisting?: boolean,
+        ignoreList?: string,
         callback?: DataCallback<ShellAPIMrs.MrsAddContentSet>): Promise<IMrsAddContentSetData> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddContentSet,
@@ -548,6 +563,7 @@ export class ShellInterfaceMrs {
                     options,
                     enabled,
                     replaceExisting,
+                    ignoreList,
                 },
             },
             onData: callback,
@@ -764,6 +780,20 @@ export class ShellInterfaceMrs {
                 },
             },
         });
+    }
+
+    public async getRouterServices(routerId?: number): Promise<IMrsRouterService[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetRouterServices,
+            parameters: {
+                args: {
+                    routerId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
     }
 
     public async getSdkBaseClasses(
@@ -997,6 +1027,36 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
+
+    public async getContentSetCreateStatement(contentSetId: string): Promise<string> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetContentSetCreateStatement,
+            parameters: {
+                kwargs: {
+                    contentSetId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+
+    public async getContentFileCreateStatement(contentFileId: string): Promise<string> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetContentFileCreateStatement,
+            parameters: {
+                kwargs: {
+                    contentFileId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
     public async dumpServiceCreateStatement(serviceId: string, filePath: string, overwrite: boolean): Promise<boolean> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsDumpServiceCreateStatement,
@@ -1039,6 +1099,56 @@ export class ShellInterfaceMrs {
                     filePath,
                     overwrite,
                     moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async dumpContentSetCreateStatement(contentSetId: string,
+        filePath: string, overwrite: boolean): Promise<boolean> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDumpContentSetCreateStatement,
+            parameters: {
+                kwargs: {
+                    contentSetId,
+                    filePath,
+                    overwrite,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async dumpContentFileCreateStatement(contentFileId: string,
+        filePath: string, overwrite: boolean): Promise<boolean> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDumpContentFileCreateStatement,
+            parameters: {
+                kwargs: {
+                    contentFileId,
+                    filePath,
+                    overwrite,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getFileMrsScriptDefinitions(path: string, language: string): Promise<IMrsSchemaDefinition[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetFileMrsScriptsDefinitions,
+            parameters: {
+                args: {
+                    path,
+                },
+                kwargs: {
+                    language,
                 },
             },
         });

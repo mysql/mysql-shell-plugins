@@ -377,6 +377,8 @@ export const mrsServiceDialog = {
     exists: By.id("mrsServiceDialog"),
     servicePath: By.id("servicePath"),
     settings: {
+        mrsAdminUser: By.id("mrsAdminUser"),
+        mrsAdminUserPassword: By.id("mrsAdminUserPassword"),
         comments: By.id("comments"),
         hostNameFilter: By.id("hostName"),
     },
@@ -456,7 +458,6 @@ export const mrsUserDialog = {
     mappedUserId: By.id("mappedUserId"),
     rolesLabel: By.css("#roles label"),
     rolesList: By.id("rolesPopup"),
-    authAppLabel: By.css("#authApp label"),
     ok: By.id("ok"),
     cancel: By.id("cancel"),
 };
@@ -490,10 +491,7 @@ export const mrsDbObjectDialog = {
     },
     authorizationTab: By.id("page2"),
     authorization: {
-        rowOwnershipField: By.id("rowUserOwnershipColumn"),
-        rowUserOwnershipFieldList: By.id("rowUserOwnershipColumnPopup"),
         authStoredProcedure: By.id("authStoredProcedure"),
-        rowUserOwnershipColumnLabel: By.css("#rowUserOwnershipColumn label"),
     },
     optionsTab: By.id("page3"),
     options: {

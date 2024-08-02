@@ -33,32 +33,36 @@ def test_verify_auth_vendors(phone_book, table_contents):
 
     assert auth_vendor_table.count == 4
     assert auth_vendor_table.items == [{
-        'comments': 'Built-in user management of MRS',
-        'enabled': 1,
-        'id': lib.core.id_to_binary("0x30000000000000000000000000000000", ""),
-        'name': 'MRS',
-        'validation_url': None
+        "comments": "Built-in user management of MRS",
+        "enabled": 1,
+        "id": lib.core.id_to_binary("0x30000000000000000000000000000000", ""),
+        "name": "MRS",
+        "validation_url": None,
+        "options": None,
     },
     {
-        'comments': 'Provides basic authentication via MySQL Server accounts',
-        'enabled': 1,
-        'id': lib.core.id_to_binary("0x31000000000000000000000000000000", ""),
-        'name': 'MySQL Internal',
-        'validation_url': None
+        "comments": "Provides basic authentication via MySQL Server accounts",
+        "enabled": 1,
+        "id": lib.core.id_to_binary("0x31000000000000000000000000000000", ""),
+        "name": "MySQL Internal",
+        "validation_url": None,
+        "options": None,
     },
     {
-        'comments': 'Uses the Facebook Login OAuth2 service',
-        'enabled': 1,
-        'id': lib.core.id_to_binary("0x32000000000000000000000000000000", ""),
-        'name': 'Facebook',
-        'validation_url': None
+        "comments": "Uses the Facebook Login OAuth2 service",
+        "enabled": 1,
+        "id": lib.core.id_to_binary("0x32000000000000000000000000000000", ""),
+        "name": "Facebook",
+        "validation_url": None,
+        "options": None,
     },
     {
-        'comments': 'Uses the Google OAuth2 service',
-        'enabled': 1,
-        'id': lib.core.id_to_binary("0x34000000000000000000000000000000", ""),
-        'name': 'Google',
-        'validation_url': None
+        "comments": "Uses the Google OAuth2 service",
+        "enabled": 1,
+        "id": lib.core.id_to_binary("0x34000000000000000000000000000000", ""),
+        "name": "Google",
+        "validation_url": None,
+        "options": None,
     }]
 
 
@@ -82,18 +86,18 @@ def test_add_auth_apps(phone_book, table_contents):
     InitialAuthAppIds.append(result1["auth_app_id"])
     assert auth_apps_table.count == auth_apps_table.snapshot.count + 1
     assert auth_apps_table.get("id", result1["auth_app_id"]) == {
-        'access_token': args["access_token"],
-        'app_id': args["app_id"],
-        'auth_vendor_id': lib.core.id_to_binary(args['auth_vendor_id'], ""),
-        'default_role_id': lib.auth_apps.DEFAULT_ROLE_ID,
-        'description': args["description"],
-        'enabled': 1,
-        'id': result1["auth_app_id"],
-        'limit_to_registered_users': int(args["limit_to_registered_users"]),
-        'name': 'Test Auth App',
-        'service_id': phone_book["service_id"],
-        'url': args["url"],
-        'url_direct_auth': None
+        "access_token": args["access_token"],
+        "app_id": args["app_id"],
+        "auth_vendor_id": lib.core.id_to_binary(args["auth_vendor_id"], ""),
+        "default_role_id": lib.auth_apps.DEFAULT_ROLE_ID,
+        "description": args["description"],
+        "enabled": 1,
+        "id": result1["auth_app_id"],
+        "limit_to_registered_users": int(args["limit_to_registered_users"]),
+        "name": "Test Auth App",
+        "url": args["url"],
+        "url_direct_auth": None,
+        "options": None,
     }
 
     args = {
@@ -112,27 +116,27 @@ def test_add_auth_apps(phone_book, table_contents):
     InitialAuthAppIds.append(result2["auth_app_id"])
     assert auth_apps_table.count == auth_apps_table.snapshot.count + 2
     assert auth_apps_table.get("id", result2["auth_app_id"]) == {
-        'access_token': args["access_token"],
-        'app_id': args["app_id"],
-        'auth_vendor_id': lib.core.id_to_binary(args['auth_vendor_id'], ""),
-        'default_role_id': lib.auth_apps.DEFAULT_ROLE_ID,
-        'description': args["description"],
-        'enabled': 1,
-        'id': result2["auth_app_id"],
-        'limit_to_registered_users': int(args["limit_to_registered_users"]),
-        'name': 'Test Auth App 2',
-        'service_id': phone_book["service_id"],
-        'url': args["url"],
-        'url_direct_auth': None
+        "access_token": args["access_token"],
+        "app_id": args["app_id"],
+        "auth_vendor_id": lib.core.id_to_binary(args["auth_vendor_id"], ""),
+        "default_role_id": lib.auth_apps.DEFAULT_ROLE_ID,
+        "description": args["description"],
+        "enabled": 1,
+        "id": result2["auth_app_id"],
+        "limit_to_registered_users": int(args["limit_to_registered_users"]),
+        "name": "Test Auth App 2",
+        "url": args["url"],
+        "url_direct_auth": None,
+        "options": None,
     }
 
     assert auth_apps_table.count == 3
 
-    delete_auth_app(session=phone_book["session"], app_id=result1["auth_app_id"])
+    delete_auth_app(session=phone_book["session"], service_id=phone_book["service_id"], app_id=result1["auth_app_id"])
 
     assert auth_apps_table.count == 2
 
-    delete_auth_app(session=phone_book["session"], app_id=result2["auth_app_id"])
+    delete_auth_app(session=phone_book["session"], service_id=phone_book["service_id"], app_id=result2["auth_app_id"])
 
     assert auth_apps_table.count == 1
 
@@ -238,16 +242,16 @@ def test_update_auth_apps(phone_book, table_contents):
         assert auth_apps_table.count == auth_apps_table.snapshot.count
 
         assert auth_apps_table.get("id", args["app_id"]) == {
-            'access_token': value["access_token"],
-            'app_id': value["app_id"],
-            'auth_vendor_id': lib.core.id_to_binary("0x31000000000000000000000000000000", ""),
-            'default_role_id': value["default_role_id"],
-            'description': value["description"],
-            'enabled': int(value["enabled"]),
-            'id': args["app_id"],
-            'limit_to_registered_users': int(value["limit_to_registered_users"]),
-            'name': value["name"],
-            'service_id': phone_book["service_id"],
-            'url': value["url"],
-            'url_direct_auth': value["url_direct_auth"]
+            "access_token": value["access_token"],
+            "app_id": value["app_id"],
+            "auth_vendor_id": lib.core.id_to_binary("0x31000000000000000000000000000000", ""),
+            "default_role_id": value["default_role_id"],
+            "description": value["description"],
+            "enabled": int(value["enabled"]),
+            "id": args["app_id"],
+            "limit_to_registered_users": int(value["limit_to_registered_users"]),
+            "name": value["name"],
+            "url": value["url"],
+            "url_direct_auth": value["url_direct_auth"],
+            "options": None,
         }

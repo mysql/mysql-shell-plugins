@@ -329,6 +329,11 @@
                         "In editor group beside the active one",
                         "In the editor group beneath the active one"
                     ]
+                },
+                "msg.mrs.displayScriptHelpers": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enables an icon in the editor menu to display the MRS Script Helpers icon."
                 }
             }
         },
@@ -819,6 +824,14 @@
                 "title": "Export CREATE REST OBJECT Statement..."
             },
             {
+                "command": "msg.mrs.exportCreateContentSetSql",
+                "title": "Export CREATE REST CONTENT SET Statement..."
+            },
+            {
+                "command": "msg.mrs.exportCreateContentFileSql",
+                "title": "Export CREATE REST CONTENT FILE Statement..."
+            },
+            {
                 "command": "msg.mrs.copyCreateServiceSql",
                 "title": "Copy CREATE REST SERVICE Statement..."
             },
@@ -829,6 +842,14 @@
             {
                 "command": "msg.mrs.copyCreateDbObjectSql",
                 "title": "Copy CREATE REST OBJECT Statement..."
+            },
+            {
+                "command": "msg.mrs.copyCreateContentSetSql",
+                "title": "Copy CREATE REST CONTENT SET Statement..."
+            },
+            {
+                "command": "msg.mrs.copyCreateContentFileSql",
+                "title": "Copy CREATE REST CONTENT FILE Statement..."
             },
             {
                 "command": "msg.mrs.loadObjectFromJSONFile",
@@ -977,6 +998,22 @@
             {
                 "command": "msg.mds.getLoadBalancer",
                 "title": "Get Load Balancer Information"
+            },
+            {
+                "command": "msg.mrs.enableScriptHelpers",
+                "title": "Enable MRS Script Helpers",
+                "icon": {
+                    "dark": "images/dark/mrsService.svg",
+                    "light": "images/light/mrsService.svg"
+                }
+            },
+            {
+                "command": "msg.mrs.disableScriptHelpers",
+                "title": "Disable MRS Script Helpers",
+                "icon": {
+                    "dark": "images/dark/mrsServiceDefault.svg",
+                    "light": "images/light/mrsServiceDefault.svg"
+                }
             }
         ],
         "submenus": [
@@ -1036,6 +1073,16 @@
                     "when": "resourceLangId == mysql",
                     "command": "msg.execute.normal",
                     "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mrs.enableScriptHelpers",
+                    "group": "navigation",
+                    "when": "editorLangId == typescript && Oracle.mysql-shell-for-vs-code.mrsScriptDecorationEnabled == false && config.msg.mrs.displayScriptHelpers == true"
+                },
+                {
+                    "command": "msg.mrs.disableScriptHelpers",
+                    "group": "navigation",
+                    "when": "editorLangId == typescript && Oracle.mysql-shell-for-vs-code.mrsScriptDecorationEnabled == true  && config.msg.mrs.displayScriptHelpers == true"
                 }
             ],
             "editor/context": [
@@ -1471,14 +1518,34 @@
                     "group": "9_msg@1"
                 },
                 {
+                    "command": "msg.mrs.exportCreateContentSetSql",
+                    "when": "viewItem == mrsContentSet",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mrs.copyCreateContentSetSql",
+                    "when": "viewItem == mrsContentSet",
+                    "group": "1_msg@2"
+                },
+                {
                     "command": "msg.mrs.deleteContentSet",
                     "when": "viewItem == mrsContentSet",
                     "group": "2_msg@1"
                 },
                 {
-                    "command": "msg.mrs.openContentFileRequestPath",
+                    "command": "msg.mrs.exportCreateContentFileSql",
                     "when": "viewItem == mrsContentFile",
                     "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mrs.copyCreateContentFileSql",
+                    "when": "viewItem == mrsContentFile",
+                    "group": "1_msg@2"
+                },
+                {
+                    "command": "msg.mrs.openContentFileRequestPath",
+                    "when": "viewItem == mrsContentFile",
+                    "group": "2_msg@1"
                 },
                 {
                     "command": "msg.mrs.dumpSchemaToJSONFile",

@@ -21,8 +21,10 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import core, schemas
+from mrs_plugin.lib import core, schemas, content_sets
 from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
+
+import re
 
 
 def prompt_for_url_context_root(default=None):
@@ -134,8 +136,8 @@ def add_service(session, url_host_name, service):
             f'The REST service path `{path}` is reserved and cannot be used.')
 
     # Check if another service already uses this request path
-    core.check_request_path(session, url_host_name +
-                            service.get("url_context_root"))
+    # core.check_request_path(session, url_host_name +
+    #                         service.get("url_context_root"))
 
     # If there is no id for the given host yet, create a host entry
     if service.get("url_host_id") is None:
@@ -154,20 +156,15 @@ def add_service(session, url_host_name, service):
                         }
                         ).exec(session)
 
-    auth_apps = service.pop("auth_apps", [])
-
     service["id"] = core.get_sequence_id(session)
+
+    # metadata column was only added in 3.0.0
+    current_version = core.get_mrs_schema_version(session)
+    if current_version[0] <= 2:
+        service.pop("metadata", None)
 
     if not core.insert(table="service", values=service).exec(session).success:
         raise Exception("Failed to add the new service.")
-
-    for auth_app in auth_apps:
-        auth_app.pop("auth_vendor_name", None)
-        auth_app.pop("auth_vendor", None)
-        auth_app.pop("position", None)
-        auth_app["service_id"] = service["id"]
-        auth_app["id"] = core.get_sequence_id(session)
-        core.insert(table="auth_app", values=auth_app).exec(session)
 
     return service["id"]
 
@@ -200,8 +197,6 @@ def update_services(session, service_ids, value):
     Returns:
         The result message as string
     """
-    auth_apps = value.pop("auth_apps", None)
-
     # Update all given services
     for service_id in service_ids:
 
@@ -230,40 +225,19 @@ def update_services(session, service_ids, value):
             del value["url_host_name"]
             value["url_host_id"] = host_id
 
+        # metadata column was only added in 3.0.0
+        current_version = core.get_mrs_schema_version(session)
+        if current_version[0] <= 2:
+            value.pop("metadata", None)
+            value.pop("published", None)
+
         core.update("service",
                     sets=value,
                     where=["id=?"]).exec(session, [service_id])
 
-        if auth_apps is not None:
-            auth_apps_in_db = core.select(table="auth_app",
-                                          where="service_id=?"
-                                          ).exec(session, [service_id]).items
-
-            for auth_app_in_db in auth_apps_in_db:
-                if auth_app_in_db["id"] not in [app["id"] for app in auth_apps]:
-                    core.delete(table="auth_app", where="id=?").exec(
-                        session, [auth_app_in_db["id"]])
-
-            for auth_app in auth_apps:
-                id = auth_app.pop("id", None)
-                auth_app.pop("auth_vendor_name", None)
-                auth_app.pop("auth_vendor", None)
-                auth_app.pop("position", None)
-
-                # force the current service id (we could also remove it and don't allow to update this)
-                auth_app["service_id"] = service_id
-
-                if id:
-                    core.update(table="auth_app", sets=auth_app,
-                                where="id=?").exec(session, [id])
-                else:
-                    auth_app["id"] = core.get_sequence_id(session)
-                    core.insert(table="auth_app",
-                                values=auth_app).exec(session)
-
 
 def query_services(session, service_id: bytes = None, url_context_root=None, url_host_name=None,
-                   get_default=False):
+                   get_default=False, developer_list=None):
     """Query MRS services
 
     Query the existing services. Filters may be applied as the 'service_id' or
@@ -288,55 +262,103 @@ def query_services(session, service_id: bytes = None, url_context_root=None, url
     if url_context_root and not url_context_root.startswith('/'):
         raise Exception("The url_context_root has to start with '/'.")
 
+    wheres = []
+
     current_service_id = get_current_service_id(session)
     if not current_service_id:
         current_service_id = "0x00000000000000000000000000000000"
 
-    # Build SQL based on which input has been provided
-    sql = f"""
-        SELECT se.id, se.enabled, se.url_protocol, h.name AS url_host_name,
-            se.url_context_root, se.comments, se.options, se.url_host_id,
-            CONCAT(h.name, se.url_context_root) AS host_ctx,
-            se.auth_path, se.auth_completed_url,
-            se.auth_completed_url_validation,
-            se.auth_completed_page_content,
-            se.id = ? as is_current
-        FROM `mysql_rest_service_metadata`.`service` se
-            LEFT JOIN `mysql_rest_service_metadata`.url_host h
-                ON se.url_host_id = h.id
-        """
+    current_version = core.get_mrs_schema_version(session)
+    if current_version[0] <= 2:
+        # Build SQL based on which input has been provided
+        sql = f"""
+            SELECT se.id, se.enabled, se.url_protocol, h.name AS url_host_name,
+                se.url_context_root, se.comments, se.options, se.url_host_id,
+                CONCAT(h.name, se.url_context_root) AS host_ctx,
+                CONCAT(h.name, se.url_context_root) AS full_service_path,
+                se.auth_path, se.auth_completed_url,
+                se.auth_completed_url_validation,
+                se.auth_completed_page_content,
+                se.id = ? as is_current,
+                NULL AS in_development,
+                NULL AS sorted_developers
+            FROM `mysql_rest_service_metadata`.`service` se
+                LEFT JOIN `mysql_rest_service_metadata`.url_host h
+                    ON se.url_host_id = h.id
+            """
+    else:
+        sql = f"""
+            SELECT se.id, se.enabled, se.published, se.url_protocol, h.name AS url_host_name,
+                se.url_context_root, se.comments, se.options, se.url_host_id,
+                CONCAT(h.name, se.url_context_root) AS host_ctx,
+                (SELECT CONCAT(COALESCE(CONCAT(GROUP_CONCAT(IF(item REGEXP '^[A-Za-z0-9_]+$', item, QUOTE(item)) ORDER BY item), '@'), ''), h.name, se.url_context_root) FROM JSON_TABLE(
+                    se.in_development->>'$.developers', '$[*]' COLUMNS (item text path '$')
+                    ) AS jt) AS full_service_path,
+                se.auth_path, se.auth_completed_url,
+                se.auth_completed_url_validation,
+                se.auth_completed_page_content,
+                se.metadata, se.parent_id,
+                se.id = ? as is_current,
+                se.in_development,
+                (SELECT GROUP_CONCAT(IF(item REGEXP '^[A-Za-z0-9_]+$', item, QUOTE(item)) ORDER BY item)
+                    FROM JSON_TABLE(
+                    se.in_development->>'$.developers', '$[*]' COLUMNS (item text path '$')
+                    ) AS jt) AS sorted_developers
+            FROM `mysql_rest_service_metadata`.`service` se
+                LEFT JOIN `mysql_rest_service_metadata`.url_host h
+                    ON se.url_host_id = h.id
+            """
+        # Make sure that each user only sees the services that are either public or the user is a developer of
+        # wheres.append("(in_development IS NULL OR "
+        #               "SUBSTRING_INDEX(CURRENT_USER(),'@',1) MEMBER OF(in_development->>'$.developers'))")
+
     params = [current_service_id]
-    wheres = []
 
     if service_id:
         wheres.append("se.id = ?")
         params.append(service_id)
-    elif url_context_root is not None and url_host_name is not None:
+    elif url_context_root is not None and url_host_name is not None and developer_list is None:
         wheres.append("h.name = ?")
         wheres.append("url_context_root = ?")
         params.append(url_host_name)
         params.append(url_context_root)
+        wheres.append("se.in_development IS NULL")
     elif get_default:
-        #if nothing else is supplied and get_default is True, then get the default service
+        # if nothing else is supplied and get_default is True, then get the default service
         wheres = ["se.id = ?"]
         params = [current_service_id, current_service_id]
 
         return core.MrsDbExec(sql + core._generate_where(wheres), params).exec(session).items
 
-    result = core.MrsDbExec(sql + core._generate_where(wheres), params).exec(session).items
+    having = ""
+    if developer_list is not None:
+        # Build the sorted_developer string that matches the selected column, use same quoting as MySQL
+        developer_list.sort()
+        sorted_developers = ",".join(
+            dev if re.match("^[A-Za-z0-9_-]*$", dev) else
+            f'\'{re.sub(r"(['\\])", "\\\\\\1", dev, 0, re.MULTILINE)}\'' for dev in developer_list)
+        having = "\nHAVING h.name = ? AND url_context_root = ? AND sorted_developers = ?"
+        params.append(url_host_name)
+        params.append(url_context_root)
+        params.append(sorted_developers)
+
+    result = core.MrsDbExec(
+        sql + core._generate_where(wheres) + having
+        + "\nORDER BY se.url_context_root, h.name, sorted_developers", params).exec(session).items
 
     if len(result) == 0 and get_default:
         # No service was found s if we should get the default, then lets get it
         wheres = ["se.id = ?"]
         params = [current_service_id, current_service_id]
 
-        result = core.MrsDbExec(sql + core._generate_where(wheres), params).exec(session).items
+        result = core.MrsDbExec(
+            sql + core._generate_where(wheres), params).exec(session).items
 
     return result
 
 
 def get_service(session, service_id: bytes = None, url_context_root=None, url_host_name=None,
-                get_default=False):
+                get_default=False, developer_list=None):
     """Gets a specific MRS service
 
     If no service is specified, the service that is set as current service is
@@ -353,7 +375,8 @@ def get_service(session, service_id: bytes = None, url_context_root=None, url_ho
         The service as dict or None on error in interactive mode
     """
     result = query_services(session, service_id=service_id, url_context_root=url_context_root,
-                            url_host_name=url_host_name, get_default=get_default)
+                            url_host_name=url_host_name, get_default=get_default,
+                            developer_list=developer_list)
     return result[0] if len(result) == 1 else None
 
 
@@ -426,6 +449,7 @@ def set_current_service_id(session, service_id: bytes):
     config.settings["current_objects"] = current_objects
     config.store()
 
+
 def get_create_statement(session, service) -> str:
     executor = MrsDdlExecutor(
         session=session,
@@ -439,10 +463,15 @@ def get_create_statement(session, service) -> str:
     if executor.results[0]["type"] == "error":
         raise Exception(executor.results[0]['message'])
 
-    service_schemas = schemas.get_schemas(session, service["id"])
-
     result = [executor.results[0]['result'][0]['CREATE REST SERVICE']]
+
+    service_schemas = schemas.get_schemas(session, service["id"])
+    service_content_sets = content_sets.get_content_sets(session, service["id"])
+
     for service_schema in service_schemas:
         result.append(schemas.get_create_statement(session, service_schema))
+
+    for service_content_set in service_content_sets:
+        result.append(content_sets.get_create_statement(session, service_content_set))
 
     return "\n".join(result)

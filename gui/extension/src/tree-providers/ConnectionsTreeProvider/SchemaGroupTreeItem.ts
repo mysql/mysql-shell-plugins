@@ -36,10 +36,10 @@ export class SchemaGroupTreeItem extends ConnectionsTreeBaseItem {
         backend: ShellInterfaceSqlEditor,
         connectionId: number,
         public groupType: SchemaItemGroupType) {
-        super(groupType, schema, backend, connectionId, SchemaGroupTreeItem.getIonName(groupType), true);
+        super(groupType, schema, backend, connectionId, SchemaGroupTreeItem.getIconName(groupType), true);
     }
 
-    private static getIonName(groupType: SchemaItemGroupType): string {
+    private static getIconName(groupType: SchemaItemGroupType): string {
         switch (groupType) {
             case SchemaItemGroupType.Tables: {
                 return "schemaTables.svg";

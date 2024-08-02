@@ -22,12 +22,14 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 from mrs_plugin import lib
+import json
 
 # Define plugin version
-VERSION = "1.15.3"
+VERSION = "1.16.0"
 
-DB_VERSION = [2, 2, 0]
+DB_VERSION = [3, 0, 0]
 REQUIRED_ROUTER_VERSION = [8, 1, 0]
+SUPPORTED_MAJOR_VERSION = 3
 
 DB_VERSION_STR = '%d.%d.%d' % tuple(DB_VERSION)
 DB_VERSION_NUM = DB_VERSION[0] * 100000 + DB_VERSION[1] * 1000 + DB_VERSION[2]
@@ -43,17 +45,52 @@ def get_status(session):
             'service_enabled': False,
             'service_count': 0,
             'service_upgradeable': False,
+            'service_upgrade_ignored': False,
             'major_upgrade_required': False,
+            'service_being_upgraded': False,
         }
-    else:
-        result = {'service_configured': True}
+    # Check if the schema_version VIEW already exists
+    row = lib.database.get_db_object(session, "mysql_rest_service_metadata", "schema_version", "VIEW")
+    if row is None:
+        return {
+            'service_configured': False,
+            'service_enabled': False,
+            'service_count': 0,
+            'service_upgradeable': False,
+            'service_upgrade_ignored': False,
+            'major_upgrade_required': False,
+            'service_being_upgraded': True,
+        }
+
+    # Get current version of metadata schema
+    current_version = lib.core.get_mrs_schema_version(session)
+
+    result = {
+        'service_configured': True,
+        'service_enabled': False,
+        'service_upgradeable': DB_VERSION > current_version,
+        'service_upgrade_ignored': False,
+        'service_count': 0,
+        'service_being_upgraded': current_version[0] == 0 and current_version[1] == 0 and current_version[2] == 0,
+        'major_upgrade_required':current_version[0] == 1,
+        'current_metadata_version': '%d.%d.%d' % tuple(current_version),
+        'available_metadata_version': DB_VERSION_STR,
+        'required_router_version': REQUIRED_ROUTER_VERSION_STR,
+    }
+
+    if result["service_being_upgraded"] == True:
+        return result
 
     # Check if MRS is enabled
     row = lib.core.select(table="config",
-                          cols="service_enabled",
+                          cols=["service_enabled", "JSON_VALUE(data, '$.ignore_service_upgrades_till') as ignore_till"],
                           where="id=1"
                           ).exec(session).first
     result['service_enabled'] = row["service_enabled"] == 1
+
+    ignore_till = row["ignore_till"]
+    if ignore_till != None:
+        result['service_upgrade_ignored'] = [int(i) for i in ignore_till.split(".")] >= current_version
 
     # Get the number of enabled services
     row = lib.core.select(table="service",
@@ -61,13 +98,6 @@ def get_status(session):
                           ).exec(session).first
     result['service_count'] = 0 if row["service_count"] is None else int(
         row["service_count"])
-
-    current_version = lib.core.get_mrs_schema_version(session)
-    result["service_upgradeable"] = DB_VERSION > current_version
-    result["major_upgrade_required"] = DB_VERSION[0] > current_version[0]
-    result["current_metadata_version"] = '%d.%d.%d' % tuple(current_version)
-    result["required_metadata_version"] = DB_VERSION_STR
-    result["required_router_version"] = REQUIRED_ROUTER_VERSION_STR
 
     return result
 
@@ -94,12 +124,12 @@ def configure(session=None, enable_mrs=None, options=None,
 
             if lib.general.DB_VERSION < current_db_version:
                 raise Exception(
-                    "Unsupported MRS metadata database schema "
+                    "This version of MySQL Shell does not support the MRS metadata database schema "
                     f"version {lib.general.DB_VERSION_STR}. "
-                    "Please update your MRS Shell Plugin.")
+                    "Please update your MySQL Shell to work with MRS.")
 
-            # Major upgrade available
-            if current_db_version[0] < lib.general.DB_VERSION[0]:
+            # Major upgrade required for v1
+            if current_db_version[0] < 2:
                 # this is a major version upgrade, so allow_recreation_on_major_upgrade
                 # must be set to true
                 if not allow_recreation_on_major_upgrade:
@@ -146,3 +176,11 @@ def configure(session=None, enable_mrs=None, options=None,
             "schema_changed": schema_changed,
             "mrs_enabled": True if enable_mrs else False
         }
+
+
+def ignore_version_upgrade(session):
+    lib.core.update(
+        table="`mysql_rest_service_metadata`.`config`",
+        sets=f"data = JSON_SET(data, '$.ignore_service_upgrades_till', '{DB_VERSION_STR}')",
+        where="id = 1"
+    ).exec(session)

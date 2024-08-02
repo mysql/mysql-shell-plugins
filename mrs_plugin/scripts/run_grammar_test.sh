@@ -22,4 +22,5 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-mysqlsh dba@localhost --py -e "mrs.run.script(path='./grammar/test/grammar_test.mrs')"
+mysqlsh dba@localhost --sql -f "./grammar/test/grammar_test_setup.sql"
+mysqlsh dba@localhost --log-level=debug3 --verbose=4 --py -e "mrs.run.script(path='./grammar/test/grammar_test.mrs')"

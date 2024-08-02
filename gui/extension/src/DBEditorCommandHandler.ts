@@ -447,7 +447,8 @@ export class DBEditorCommandHandler {
             }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.loadScriptFromDisk", (entry?: ICdmConnectionEntry) => {
+        context.subscriptions.push(commands.registerCommand("msg.loadScriptFromDisk", (
+            entry?: ICdmConnectionEntry | IEditorConnectionEntry) => {
             if (entry) {
                 void window.showOpenDialog({
                     title: "Select the script file to load to MySQL Shell",
@@ -488,8 +489,14 @@ export class DBEditorCommandHandler {
                                         }
 
                                         case ".sql": {
-                                            if (entry.treeItem.details.dbType === DBType.Sqlite) {
-                                                language = "sql";
+                                            if ("dbType" in entry.treeItem) {
+                                                if (entry.treeItem.dbType === DBType.Sqlite) {
+                                                    language = "sql";
+                                                }
+                                            } else if ("details" in entry.treeItem) {
+                                                if (entry.treeItem.details.dbType === DBType.Sqlite) {
+                                                    language = "sql";
+                                                }
                                             }
 
                                             break;
@@ -512,7 +519,11 @@ export class DBEditorCommandHandler {
                                     }
                                     scripts.set(details.scriptId, uri);
 
-                                    void provider.editScript(String(entry.treeItem.details.id), details);
+                                    if ("connectionId" in entry) {
+                                        void provider.editScript(String(entry.connectionId), details);
+                                    } else if ("details" in entry.treeItem) {
+                                        void provider.editScript(String(entry.treeItem.details.id), details);
+                                    }
                                 }
                             });
                         }

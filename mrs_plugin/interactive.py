@@ -58,6 +58,7 @@ def resolve_service(session, service_id=None, required=True, auto_select_single=
 
     return service
 
+
 def resolve_schema(session, schema_id=None, service_id=None, required=True):
     schema = None
     service = None
@@ -83,6 +84,7 @@ def resolve_schema(session, schema_id=None, service_id=None, required=True):
         raise Exception("Cancelling operation. Could not determine the schema.")
 
     return schema
+
 
 def resolve_db_object(session, db_object_id=None, schema_id=None, service_id=None, required=True):
     db_object = None
@@ -110,6 +112,56 @@ def resolve_db_object(session, db_object_id=None, schema_id=None, service_id=Non
     return db_object
 
 
+def resolve_content_set(session, content_set_id=None, service_id=None, required=True):
+    content_set = None
+
+    if content_set_id:
+        content_set = lib.content_sets.get_content_set(session, content_set_id=content_set_id)
+
+    if content_set:
+        return content_set
+
+    if lib.core.get_interactive_default():
+        if not service_id:
+            service = resolve_service(session, service_id)
+
+        content_sets = lib.content_sets.get_content_sets(session, service["id"])
+        content_set = lib.core.prompt_for_list_item(
+            item_list=content_sets,
+            prompt_caption='Please enter the name or index of a content set: ',
+            item_name_property="request_path",
+            print_list=True)
+
+    if not content_set and required:
+        raise Exception("Cancelling operation. Could not determine the schema.")
+
+    return content_set
+
+
+def resolve_content_file(session, content_file_id=None, content_set_id=None, service_id=None, required=True):
+    content_file = None
+
+    if content_file_id:
+        content_file = lib.content_files.get_content_file(session, content_file_id)
+
+    if content_file:
+        return content_file
+
+    if lib.core.get_interactive_default():
+        content_set = resolve_content_set(session, content_set_id, service_id)
+
+        content_files = lib.content_files.get_content_files(session,
+                                                          service_id=content_set["id"])
+        content_file = lib.core.prompt_for_list_item(
+            item_list=content_files,
+            prompt_caption='Please enter the name or index of a content file: ',
+            item_name_property="request_path",
+            print_list=True)
+
+    if not content_file and required:
+        raise Exception("Cancelling operation. Could not determine the content file.")
+
+    return content_file
 
 def resolve_options(options, default = None):
     # it should be possible to override the default value with an empty dict

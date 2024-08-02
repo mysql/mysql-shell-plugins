@@ -27,6 +27,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
     IFindManyOptions, IFindUniqueOptions, JsonObject, JsonValue, MrsBaseObjectQuery, MrsBaseSchema, MrsBaseService,
     MrsResourceObject, MrsBaseObjectCreate, IFindFirstOptions, IMrsResourceCollectionData,
+    MrsBaseObjectDelete,
+    IDeleteOptions,
+    MrsBaseObjectUpdate,
 } from "../MrsBaseClasses";
 
 // fixtures
@@ -585,109 +588,117 @@ describe("MRS SDK API", () => {
         });
     });
 
-    // describe("when updating a resource", () => {
-    //     beforeEach(() => {
-    //         const singleResourceResponse: MrsResourceObject<ITableMetadata1> = {
-    //             id: 1,
-    //             str: "qux",
-    //             _metadata: {
-    //                 etag: "XYZ",
-    //             },
-    //             links: [{
-    //                 href: "http://localhost:8444/foo/bar/baz/1",
-    //                 rel: "self",
-    //             }],
-    //         };
+    describe("when updating a resource", () => {
+        beforeEach(() => {
+            const singleResourceResponse: MrsResourceObject<ITableMetadata1> = {
+                id: 1,
+                str: "qux",
+                _metadata: {
+                    etag: "XYZ",
+                },
+                links: [{
+                    href: "http://localhost:8444/foo/bar/baz/1",
+                    rel: "self",
+                }],
+            };
 
-    //         createFetchMock(singleResourceResponse as JsonObject);
-    //     });
+            createFetchMock(singleResourceResponse as JsonObject);
+        });
 
-    //     it("hypermedia properties are not part of the JSON representation of an application resource instance",
-    //             async () => {
-    //         const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
-    //         const res = await query.fetch();
+        it("hypermedia properties are not part of the JSON representation of an application resource instance",
+                async () => {
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz",
+                { where: { id: 1 }, data: { id: 1, str: "qux" } });
+            const res = await query.fetch();
 
-    //         expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
-    //     });
+            expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
+        });
 
-    //     it("hypermedia properties are not enumerable in an application resource instance", async () => {
-    //         const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
-    //         const res = await query.fetch();
+        it("hypermedia properties are not enumerable in an application resource instance", async () => {
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz",
+                { where: { id: 1 }, data: { id: 1, str: "qux" } });
+            const res = await query.fetch();
 
-    //         expect(Object.keys(res)).toEqual(["id", "str"]);
-    //     });
+            expect(Object.keys(res)).toEqual(["id", "str"]);
+        });
 
-    //     it("hypermedia properties are not iterable in an application resource instance", async () => {
-    //         const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
-    //         const res = await query.fetch();
+        it("hypermedia properties are not iterable in an application resource instance", async () => {
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz",
+                { where: { id: 1 }, data: { id: 1, str: "qux" } });
+            const res = await query.fetch();
 
-    //         expect("_metadata" in res).toBeFalsy();
-    //         expect("links" in res).toBeFalsy();
-    //     });
+            expect("_metadata" in res).toBeFalsy();
+            expect("links" in res).toBeFalsy();
+        });
 
-    //     it("hypermedia properties are not writable in an application resource instance", async () => {
-    //         const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
-    //         const res = await query.fetch();
+        it("hypermedia properties are not writable in an application resource instance", async () => {
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz",
+                { where: { id: 1 }, data: { id: 1, str: "qux" } });
+            const res = await query.fetch();
 
-    //         // eslint-disable-next-line no-underscore-dangle
-    //         expect(() => { res._metadata = { etag: "ZYX" }; })
-    //             .toThrowError('The "_metadata" property cannot be changed.');
-    //         expect(() => { res.links = []; }).toThrowError('The "links" property cannot be changed.');
-    //     });
+            // eslint-disable-next-line no-underscore-dangle
+            expect(() => { res._metadata = { etag: "ZYX" }; })
+                .toThrowError('The "_metadata" property cannot be changed.');
+            expect(() => { res.links = []; }).toThrowError('The "links" property cannot be changed.');
+        });
 
-    //     it("hypermedia properties are not removable from an application resource instance", async () => {
-    //         const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
-    //         const res = await query.fetch() as Omit<MrsResourceObject<ITableMetadata1>, "_metadata" | "links">;
+        it("hypermedia properties are not removable from an application resource instance", async () => {
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz",
+                { where: { id: 1 }, data: { id: 1, str: "qux" } });
+            const res = await query.fetch() as Omit<MrsResourceObject<ITableMetadata1>, "_metadata" | "links">;
 
-    //         // eslint-disable-next-line no-underscore-dangle
-    //         expect(() => { delete res._metadata; }).toThrowError('The "_metadata" property cannot be deleted.');
-    //         expect(() => { delete res.links; }).toThrowError('The "links" property cannot be deleted.');
-    //     });
+            // eslint-disable-next-line no-underscore-dangle
+            expect(() => { delete res._metadata; }).toThrowError('The "_metadata" property cannot be deleted.');
+            expect(() => { delete res.links; }).toThrowError('The "links" property cannot be deleted.');
+        });
 
-    //     it("hypermedia and database object fields are directly accessible in an application resource instance",
-    //             async () => {
-    //         const query = new MrsBaseObjectUpdate<ITableMetadata1>(schema, "/baz", { id: 1, str: "qux" }, ["id"]);
-    //         const res = await query.fetch();
+        it("hypermedia and database object fields are directly accessible in an application resource instance",
+                async () => {
+                    const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz",
+                        { where: { id: 1 }, data: { id: 1, str: "qux" } });
+            const res = await query.fetch();
 
-    //         expect(res.id).toEqual(1);
-    //         expect(res.str).toEqual("qux");
-    //         // eslint-disable-next-line no-underscore-dangle
-    //         expect(res._metadata).toBeDefined();
-    //         expect(res.links).toBeDefined();
-    //     });
-    // });
+            expect(res.id).toEqual(1);
+            expect(res.str).toEqual("qux");
+            // eslint-disable-next-line no-underscore-dangle
+            expect(res._metadata).toBeDefined();
+            expect(res.links).toBeDefined();
+        });
+    });
 
-    // describe("when deleting resources", () => {
-    //     it("removes all records where a given field is NULL", async () => {
-    //         const options: IFindManyOptions<unknown, { maybe: number | null }, unknown> = {
-    //             where: {
-    //                 maybe: null,
-    //             },
-    //         };
+    describe("when deleting resources", () => {
+        it("removes all records where a given field is NULL", async () => {
+            const options: IDeleteOptions<{ maybe: number | null }> = {
+                where: {
+                    maybe: null,
+                },
+            };
 
-    //         const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz");
-    //         await query.where(options.where).fetch();
+            const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz", options);
+            await query.fetch();
 
-    //         expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$null":"null"}}', expect.objectContaining({
-    //             method: "DELETE",
-    //         }));
-    //     });
+            const searchParams = new URLSearchParams({ q: '{"maybe":{"$null":"null"}}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.objectContaining({
+                method: "DELETE",
+            }));
+        });
 
-    //     it("removes all records where a given field is not NULL", async () => {
-    //         const options: IFindManyOptions<unknown, { maybe: number | null }, unknown> = {
-    //             where: {
-    //                 maybe: {
-    //                     not: null,
-    //                 },
-    //             },
-    //         };
+        it("removes all records where a given field is not NULL", async () => {
+            const options: IDeleteOptions<{ maybe: number | null }> = {
+                where: {
+                    maybe: {
+                        not: null,
+                    },
+                },
+            };
 
-    //         const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz");
-    //         await query.where(options.where).fetch();
+            const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz", options);
+            await query.fetch();
 
-    //         expect(fetch).toHaveBeenCalledWith('/foo/bar/baz?q={"maybe":{"$notnull":"null"}}', expect.objectContaining({
-    //             method: "DELETE",
-    //         }));
-    //     });
-    // });
+            const searchParams = new URLSearchParams({ q: '{"maybe":{"$notnull":"null"}}' });
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.objectContaining({
+                method: "DELETE",
+            }));
+        });
+    });
 });

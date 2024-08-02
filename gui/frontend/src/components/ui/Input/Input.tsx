@@ -45,6 +45,7 @@ export interface IInputProperties extends IComponentProperties {
     multiLineSwitchEnterKeyBehavior?: boolean;
     autoComplete?: boolean;
     spellCheck?: boolean;
+    readOnly?: boolean;
 
     innerRef?: preact.RefObject<HTMLElement>;
 
@@ -74,7 +75,7 @@ export class Input extends ComponentBase<IInputProperties> {
         // Note: "placeholder", "autocomplete" and "spellCheck" are directly handled in HTML. "autoFocus" is
         // intentionally written in camel case to indicate this is *not* the HTML autofocus attribute.
         this.addHandledProperties("password", "autoFocus", "value", "textAlignment", "multiLine", "multiLineCount",
-            "innerRef");
+            "innerRef", "readOnly");
     }
 
     /**
@@ -96,7 +97,7 @@ export class Input extends ComponentBase<IInputProperties> {
     }
 
     public render(): ComponentChild {
-        const { password, textAlignment, value, multiLine, multiLineCount, spellCheck } = this.mergedProps;
+        const { password, textAlignment, value, multiLine, multiLineCount, spellCheck, readOnly } = this.mergedProps;
 
         const className = this.getEffectiveClassNames(["input"]);
 
@@ -112,6 +113,7 @@ export class Input extends ComponentBase<IInputProperties> {
                     spellCheck={spellCheck}
                     rows={multiLineCount}
                     style={{ textAlign: textAlignment }}
+                    readOnly={readOnly}
                     {...this.unhandledProperties}
                 />
             );
@@ -127,6 +129,7 @@ export class Input extends ComponentBase<IInputProperties> {
                     value={value}
                     spellCheck={spellCheck}
                     style={{ textAlign: textAlignment }}
+                    readOnly={readOnly}
                     {...this.unhandledProperties}
                 />
             );

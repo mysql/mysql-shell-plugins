@@ -27,10 +27,13 @@
 
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
-from .interactive import resolve_service
+from .interactive import resolve_service, resolve_content_set, resolve_overwrite_file, resolve_file_path
 
 import os
+import mysqlsh
+import json
 
+# TODO (miguel): replace this with the one in interactive module
 def resolve_content_set_id(**kwargs):
     request_path = kwargs.get("request_path")
     session = kwargs.get("session")
@@ -57,17 +60,18 @@ def resolve_content_set_id(**kwargs):
 
     # get the service object specified by the service id or the default one
     service = lib.services.get_service(
-        service_id=service_id,session=session, get_default=True)
+        service_id=service_id, session=session, get_default=True)
 
     service_id = service.get("id")
 
     # get the list of existing content sets
     content_sets = lib.content_sets.get_content_sets(session=session,
-        service_id=service_id, request_path=request_path)
+                                                     service_id=service_id, request_path=request_path)
 
     # if no content sets were found, this will cancel the call
     if not content_sets:
-        raise ValueError("Unable to determine a unique content set for the operation.")
+        raise ValueError(
+            "Unable to determine a unique content set for the operation.")
 
     # If there is exactly one service, set id to its id
     if len(content_sets) == 1 and auto_select_single:
@@ -79,8 +83,8 @@ def resolve_content_set_id(**kwargs):
 
     # allow the user to select from a list of content sets
     print(f"Content Set Listing for Service "
-            f"{service.get('url_host_name')}"
-            f"{service.get('url_context_root')}")
+          f"{service.get('url_host_name')}"
+          f"{service.get('url_context_root')}")
 
     selected_item = lib.core.prompt_for_list_item(
         item_list=content_sets,
@@ -95,6 +99,7 @@ def resolve_content_set_id(**kwargs):
 
     kwargs["content_set_id"] = selected_item
     return kwargs
+
 
 def resolve_content_set_ids(**kwargs):
     include_enable_state = None
@@ -117,8 +122,8 @@ def resolve_content_set_ids(**kwargs):
                 include_enable_state=include_enable_state,
                 session=session)
             caption = ("Please select an index, type "
-                        "the request_path or type '*' "
-                        "to select all: ")
+                       "the request_path or type '*' "
+                       "to select all: ")
             selection = lib.core.prompt_for_list_item(
                 item_list=content_sets,
                 prompt_caption=caption,
@@ -145,6 +150,18 @@ def resolve_content_set_ids(**kwargs):
 
     return kwargs
 
+
+def generate_create_statement(**kwargs) -> str:
+    lib.core.convert_ids_to_binary(["service_id", "content_set_id"], kwargs)
+    service_id = kwargs.get("service_id")
+    content_set_id = kwargs.get("content_set_id")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        content_set = resolve_content_set(session, content_set_id, service_id)
+
+        return lib.content_sets.get_create_statement(session, content_set)
+
+
 @plugin_function('mrs.add.contentSet', shell=True, cli=True, web=True)
 def add_content_set(service_id=None, content_dir=None, **kwargs):
     """Adds content to the given MRS service
@@ -162,7 +179,9 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
         enabled (bool): Whether to enable the content set after all files are uploaded
         options (dict): The options as JSON string
         replace_existing (bool): Whether to replace a content set that uses the same request_path
+        ignore_list (str): List of files and directories to ignore, separated by comma
         session (object): The database session to use.
+        send_gui_message (object): The function to send a message to he GUI.
 
     Returns:
         None in interactive mode, a dict with content_set_id and
@@ -175,11 +194,20 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
     requires_auth = kwargs.get("requires_auth")
     comments = kwargs.get("comments")
     enabled = kwargs.get("enabled", 1)
+    build_folder = "build/"
+    contains_mrs_scripts = False
     options = lib.core.convert_json(kwargs.get("options"))
     if options:
         options = lib.core.convert_json(options)
+        build_folder = options.get("build_folder", build_folder)
+        contains_mrs_scripts = options.get(
+            "contains_mrs_scripts", contains_mrs_scripts)
     replace_existing = kwargs.get("replace_existing", False)
+    ignore_list = kwargs.get("ignore_list")
+
     interactive = lib.core.get_interactive_default()
+
+    send_gui_message = kwargs.get("send_gui_message")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
@@ -215,7 +243,7 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
         if not os.path.isdir(content_dir):
             raise ValueError(
                 f"The given content directory path '{content_dir}' "
-                "does not exists.")
+                "does not exist.")
 
         # Get requires_auth
         if requires_auth is None:
@@ -233,21 +261,49 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
         with lib.core.MrsDbTransaction(session):
             if replace_existing:
                 content_set = lib.content_sets.get_content_set(session,
-                    service.get("id"), request_path)
+                                                               service.get("id"), request_path)
                 if content_set:
                     lib.core.delete(table="content_set",
-                        where="id=?").exec(session, [content_set.get("id")])
+                                    where="id=?").exec(session, [content_set.get("id")])
 
-            lib.core.check_request_path(session, service["host_ctx"] + request_path)
+            lib.core.check_request_path(
+                session, service["host_ctx"] + request_path)
+
+            if contains_mrs_scripts:
+                # Reset options->>'$.holdsCurrentMrsScripts' for all existing content_sets
+                lib.core.MrsDbExec("""
+                    UPDATE content_set
+                    SET options=json_set(options, '$.holdsCurrentMrsScripts', false)
+                    WHERE options->>'$.holdsCurrentMrsScripts' IS NOT NULL
+                    """).exec(session)
+                # Set the options->>'$.holdsCurrentMrsScripts' field to true for this new content_set
+                options["holdsCurrentMrsScripts"] = True
 
             # Create the content_set, ensure it is created as "not enabled"
-            content_set_id = lib.content_sets.add_content_set(session, service.get("id"),
+            content_set_id = lib.content_sets.add_content_set(
+                session, service.get("id"),
                 request_path,
                 int(requires_auth),
-                comments, options)
+                comments, options,
+                enabled=False)
 
-            file_list = lib.content_files.add_content_dir(session, content_set_id,
-                content_dir, requires_auth)
+            file_list = lib.content_files.add_content_dir(
+                session, content_set_id,
+                content_dir, requires_auth,
+                ignore_list,
+                send_gui_message=send_gui_message
+            )
+
+            if contains_mrs_scripts:
+                # Update db_schemas/db_objects based on script definition
+                lib.content_sets.update_scripts_from_content_set(
+                    session=session, content_set_id=content_set_id,
+                    send_gui_message=send_gui_message)
+                enabled = False
+
+            # Enable the content set if requested by the user
+            lib.content_sets.enable_content_set(
+                session=session, content_set_ids=[content_set_id], value=enabled)
 
             if interactive:
                 print(f"{len(file_list)} files added.")
@@ -289,8 +345,9 @@ def get_content_sets(service_id=None, **kwargs):
         service = lib.services.get_service(
             service_id=service_id, session=session)
         content_sets = lib.content_sets.get_content_sets(session=session,
-            service_id=service.get("id"),
-            include_enable_state=include_enable_state)
+                                                         service_id=service.get(
+                                                             "id"),
+                                                         include_enable_state=include_enable_state)
 
         if lib.core.get_interactive_result():
             return lib.content_sets.format_content_set_listing(
@@ -352,7 +409,7 @@ def enable_content_set(**kwargs):
         if len(kwargs['content_set_ids']) == 1:
             return f"The content set has been enabled."
 
-        return  f"The content sets have been enabled."
+        return f"The content sets have been enabled."
 
 
 @plugin_function('mrs.disable.contentSet', shell=True, cli=True, web=True)
@@ -383,7 +440,7 @@ def disable_content_set(**kwargs):
         if len(kwargs['content_set_ids']) == 1:
             return f"The content set has been disabled."
 
-        return  f"The content sets have been disabled."
+        return f"The content sets have been disabled."
 
 
 @plugin_function('mrs.delete.contentSet', shell=True, cli=True, web=True)
@@ -413,4 +470,170 @@ def delete_content_set(**kwargs):
         if len(kwargs['content_set_ids']) == 1:
             return f"The content set has been deleted."
 
-        return  f"The content sets have been deleted."
+        return f"The content sets have been deleted."
+
+
+@plugin_function('mrs.get.fileMrsScriptsDefinitions', shell=True, cli=True, web=True)
+def get_file_mrs_scripts_definitions(path, **kwargs):
+    """Returns the MRS Scripts definitions for the given file
+
+    Args:
+        path (str): The path to check
+        **kwargs: Additional options
+
+    Keyword Args:
+        language (str): The language the MRS Scripts are written in
+
+    Returns:
+        A Dict with the MRS Scripts definitions or None if the lastModification matches the one of the file
+    """
+
+    language = kwargs.get("language")
+    if language is None:
+        raise ValueError("No language given.")
+
+    script_def = lib.content_sets.get_file_mrs_scripts_definitions(
+        path=path, language=language)
+
+    return script_def
+
+
+@plugin_function('mrs.get.folderMrsScriptsLanguage', shell=True, cli=True, web=True)
+def get_folder_mrs_scripts_language(path, **kwargs):
+    """Checks if the given path contains MRS Scripts
+
+    Args:
+        path (str): The path to check
+        **kwargs: Additional options
+
+    Keyword Args:
+        ignore_list (str): The list of file patterns to ignore, separated by comma
+
+    Returns:
+        "TypeScript" or None
+    """
+
+    ignore_list = kwargs.get("ignore_list", "*node_modules/*")
+
+    mrs_scripts_language = lib.content_sets.get_folder_mrs_scripts_language(
+        path, ignore_list)
+
+    if mysqlsh.globals.shell.options.useWizards:
+        print(f"This folder contains MRS Scripts written in {mrs_scripts_language}."
+              if mrs_scripts_language is not None else "This folder does not contain MRS Scripts.")
+    else:
+        return mrs_scripts_language
+
+
+@plugin_function('mrs.get.folderMrsScriptsDefinitions', shell=True, cli=True, web=True)
+def get_folder_mrs_scripts_definitions(path, **kwargs):
+    """Returns the MRS Scripts definitions for the given folder
+
+    Args:
+        path (str): The path to check
+        **kwargs: Additional options
+
+    Keyword Args:
+        ignore_list (str): The list of file patterns to ignore, separated by comma
+        language (str): The language the MRS Scripts are written in
+
+    Returns:
+        A Dict with the MRS Scripts definitions
+    """
+
+    ignore_list = kwargs.get("ignore_list", "*node_modules/*")
+    language = kwargs.get(
+        "language", lib.content_sets.get_folder_mrs_scripts_language(path, ignore_list))
+
+    if language is None:
+        raise ValueError(
+            "The given file path does not contain any MRS Scripts.")
+
+    script_def = lib.content_sets.get_folder_mrs_scripts_definitions(
+        path=path, ignore_list=ignore_list, language=language)
+
+    if mysqlsh.globals.shell.options.useWizards:
+        print(json.dumps(script_def, indent=4))
+    else:
+        return script_def
+
+
+@plugin_function('mrs.update.scriptsFromContentSet', shell=True, cli=True, web=True)
+def update_scripts_from_content_set(**kwargs):
+    """Updates db_schemas and db_objects based on script definitions of the content set
+
+    Args:
+        **kwargs: Additional options
+
+    Keyword Args:
+        content_set_id (str): The id of the content_set
+        service_id (str): The id of the service
+        request_path (str): The request_path of the content_set
+        session (object): The database session to use.
+
+    Returns:
+        The result message as string
+    """
+    lib.core.convert_ids_to_binary(["content_set_id", "service_id"], kwargs)
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        kwargs["session"] = session
+        kwargs = resolve_content_set_ids(**kwargs)
+
+        if len(kwargs['content_set_ids']) >= 1:
+            content_set_id = kwargs['content_set_ids'][0]
+
+            lib.content_sets.update_scripts_from_content_set(
+                session=session, content_set_id=content_set_id)
+
+@plugin_function('mrs.get.contentSetCreateStatement', shell=True, cli=True, web=True)
+def get_create_statement(**kwargs):
+    """Returns the corresponding CREATE REST CONTENT SET SQL statement of the given MRS service object.
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        service_id (str): The ID of the service where the schema belongs.
+        content_set_id (str): The ID of the content set to generate.
+        session (object): The database session to use.
+
+    Returns:
+        The SQL that represents the create statement for the MRS content set
+    """
+    return generate_create_statement(**kwargs)
+
+
+@plugin_function('mrs.dump.contentSetCreateStatement', shell=True, cli=True, web=True)
+def store_create_statement(**kwargs):
+    """Stores the corresponding CREATE REST CONTENT SET SQL statement of the given MRS service
+    into a file.
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        service_id (str): The ID of the service where the schema belongs.
+        content_set_id (str): The ID of the content set to dump.
+        file_path (str): The path where to store the file.
+        overwrite (bool): Overwrite the file, if already exists.
+        session (object): The database session to use.
+
+    Returns:
+        True if the file was saved.
+    """
+    file_path = kwargs.get("file_path")
+    overwrite = kwargs.get("overwrite")
+
+    file_path = resolve_file_path(file_path)
+    resolve_overwrite_file(file_path, overwrite)
+
+    sql = generate_create_statement(**kwargs)
+
+    with open(file_path, "w") as f:
+        f.write(sql)
+
+    if lib.core.get_interactive_result():
+        return f"File created in {file_path}."
+
+    return True

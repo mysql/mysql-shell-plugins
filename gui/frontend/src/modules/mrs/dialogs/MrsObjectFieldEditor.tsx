@@ -211,7 +211,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         };
 
         const walk = (fields: IMrsObjectFieldWithReference[],
-            parentId?: string, level?: number, addDataType?: boolean): string => {
+            parentId?: string, level?: number, addDataType?: boolean,
+            currentObject?: IMrsObject | IMrsObjectReference): string => {
             let s = "";
             const reduceToFieldIds = fields.filter((f) => {
                 return f.objectReference?.reduceToValueOfFieldId !== undefined;
@@ -233,21 +234,21 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         if (field.noUpdate) { s += ` @NOUPDATE`; }
                         if (field.allowSorting) { s += ` @SORTABLE`; }
                         if (!field.allowFiltering) { s += ` @NOFILTERING`; }
-                        if (field.dbColumn?.name === data.dbObject.rowUserOwnershipColumn &&
-                            data.dbObject.rowUserOwnershipEnforced) { s += ` @ROWOWNERSHIP`; }
+                        if (field.id === currentObject?.rowOwnershipFieldId) { s += ` @ROWOWNERSHIP`; }
                         if (addDataType && field.dbColumn && field.dbColumn.datatype) {
                             s += ` @DATATYPE("${field.dbColumn.datatype}")`;
                         }
                         s += ",\n";
                     } else if (field.objectReference !== undefined && (field.enabled || field.objectReference.unnest)) {
                         const c = cutLastComma(walk(
-                            fields, field.representsReferenceId, (level ?? 1) + 1, addDataType));
+                            fields, field.representsReferenceId, (level ?? 1) + 1, addDataType, field.objectReference));
                         const refTable = field.objectReference.referenceMapping.referencedSchema + "." +
                             field.objectReference.referenceMapping.referencedTable;
                         s += `${indent}${field.name}: ${refTable}`;
-                        if (field.objectReference.crudOperations.includes("CREATE")) { s += ` @INSERT`; }
-                        if (field.objectReference.crudOperations.includes("UPDATE")) { s += ` @UPDATE`; }
-                        if (field.objectReference.crudOperations.includes("DELETE")) { s += ` @DELETE`; }
+                        if (field.objectReference.options?.dualityViewInsert) { s += ` @INSERT`; }
+                        if (field.objectReference.options?.dualityViewUpdate) { s += ` @UPDATE`; }
+                        if (field.objectReference.options?.dualityViewDelete) { s += ` @DELETE`; }
+                        if (field.objectReference.options?.dualityViewNoCheck) { s += ` @NOCHECK`; }
                         if (field.objectReference.unnest ||
                             field.objectReference.reduceToValueOfFieldId !== undefined) { s += ` @UNNEST`; }
                         s += ` {\n${c}\n${indent}},\n`;
@@ -282,6 +283,14 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             if (dbObject.authStoredProcedure) {
                 s += `\n    AUTHENTICATION PROCEDURE ${dbObject.authStoredProcedure}`;
             }
+            if (dbObject.metadata) {
+                const metadata = JSON.stringify(dbObject.metadata, undefined, 4);
+                const indentString = (str: string, count: number, indent = " ") => {
+                    return str.replace(/^/gm, indent.repeat(count));
+                };
+
+                s += `\n    METADATA ${indentString(metadata, 4).substring(4)}`;
+            }
 
             return s;
         };
@@ -299,18 +308,21 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     `    ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath}\n` +
                     `    AS ${data.dbSchemaName}.${data.dbObject.name} CLASS ${mrsObject.name}`;
 
-                for (const op of data.dbObject.crudOperations) {
-                    if (op === "CREATE") {
-                        view += ` @INSERT`;
-                    } else if (op === "UPDATE") {
-                        view += ` @UPDATE`;
-                    } else if (op === "DELETE") {
-                        view += ` @DELETE`;
-                    }
+                if (mrsObject.options?.dualityViewInsert) {
+                    view += ` @INSERT`;
+                }
+                if (mrsObject.options?.dualityViewUpdate) {
+                    view += ` @UPDATE`;
+                }
+                if (mrsObject.options?.dualityViewDelete) {
+                    view += ` @DELETE`;
+                }
+                if (mrsObject.options?.dualityViewNoCheck) {
+                    view += ` @NOCHECK`;
                 }
 
                 if (mrsObject.fields) {
-                    view += ` {\n${cutLastComma(walk(mrsObject?.fields, undefined, 2))}\n    }`;
+                    view += ` {\n${cutLastComma(walk(mrsObject?.fields, undefined, 2, undefined, mrsObject))}\n    }`;
                 }
 
                 view += addOptions(data.dbObject) + ";";
@@ -328,14 +340,14 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
                 if (mrsObject.fields) {
                     view += `\n    PARAMETERS ${mrsObject.name} {\n` +
-                        walk(mrsObject?.fields, undefined, 2).slice(0, -2) + "\n    }";
+                        walk(mrsObject?.fields, undefined, 2, undefined, mrsObject).slice(0, -2) + "\n    }";
                 }
 
                 for (const obj of data.mrsObjects) {
                     if (obj.kind !== MrsObjectKind.Parameters) {
                         if (obj.fields) {
                             view += `\n    RESULT ${obj.name} {\n`
-                                + walk(obj.fields, undefined, 2, true).slice(0, -2) + "\n    }";
+                                + walk(obj.fields, undefined, 2, true, obj).slice(0, -2) + "\n    }";
                         }
                     }
                 }
@@ -367,7 +379,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             field: "json",
             resizable: true,
             hozAlign: "left",
-            editable: false,
+            editable: true,
+            widthGrow: 2,
             editor: this.editorHost,
             formatter: this.treeGridJsonColumnFormatter,
             cellEdited: this.handleCellEdited,
@@ -377,7 +390,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             field: "relational",
             resizable: false,
             hozAlign: "left",
-            editable: false,
+            editable: true,
+            widthGrow: 3,
             editor: this.editorHost,
             formatter: this.treeGridRelationalColumnFormatter,
             cellEdited: this.handleCellEdited,
@@ -724,6 +738,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         }
 
         const mrsObject = this.findMrsObjectById(data.currentMrsObjectId);
+        const mrsObjectReference = cellData.parent?.field.objectReference;
         let content;
 
         if (cellData.type === MrsObjectFieldTreeEntryType.FieldListOpen) {
@@ -746,6 +761,14 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         orientation={Orientation.LeftToRight}
                         crossAlignment={ContentAlignment.Center}
                     >
+                        {!((data.dbObject.objectType === MrsDbObjectType.Procedure ||
+                            data.dbObject.objectType === MrsDbObjectType.Function)
+                            && mrsObject?.kind === MrsObjectKind.Result) &&
+                            <Icon className={mrsObject?.options?.dualityViewNoCheck
+                                ? "selected" : "notSelected"} src={noCheckIcon} width={16} height={16}
+                                onClick={() => { this.handleIconClick(cell, ActionIconName.Check); }}
+                                data-tooltip="Disable ETAG calculations for this table." />
+                        }
                         <Icon className="action"
                             src={checkAllIcon} width={16} height={16}
                             onClick={() => { this.handleIconClick(cell, ActionIconName.CheckAll); }} />
@@ -808,16 +831,17 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     orientation={Orientation.LeftToRight}
                     crossAlignment={ContentAlignment.Center}
                 >
-                    {cellData.field.objectReference === undefined
-                        && !((data.dbObject.objectType === MrsDbObjectType.Procedure ||
+                    {cellData.field.objectReference === undefined &&
+                        !((data.dbObject.objectType === MrsDbObjectType.Procedure ||
                             data.dbObject.objectType === MrsDbObjectType.Function)
                             && mrsObject?.kind === MrsObjectKind.Result) &&
                         <>
-                            {cellData.parent === undefined &&
-                                <Icon className={(
-                                    cellData.field.dbColumn?.name === data.dbObject.rowUserOwnershipColumn &&
-                                    data.dbObject.rowUserOwnershipEnforced)
-                                    ? "selected" : "notSelected"} src={rowOwnershipIcon} width={16} height={16}
+                            {(cellData.parent === undefined || cellData.field.objectReference === undefined) &&
+                                <Icon className={
+                                    (cellData.field.id === mrsObject?.rowOwnershipFieldId ||
+                                        cellData.field.id === mrsObjectReference?.rowOwnershipFieldId)
+                                        ? "selected" : "notSelected"}
+                                    src={rowOwnershipIcon} width={16} height={16}
                                     onClick={() => { this.handleIconClick(cell, ActionIconName.Ownership); }}
                                     data-tooltip="Set as row ownership field" />
                             }
@@ -858,6 +882,10 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     }
                     {cellData.field.objectReference &&
                         <>
+                            <Icon className={cellData.field.objectReference.options?.dualityViewNoCheck
+                                ? "selected" : "notSelected"} src={noCheckIcon} width={16} height={16}
+                                onClick={() => { this.handleIconClick(cell, ActionIconName.Check); }}
+                                data-tooltip="Disable ETAG calculations for this table." />
                             <Icon className="action notSelected"
                                 src={checkAllIcon} width={16} height={16}
                                 onClick={() => { this.handleIconClick(cell, ActionIconName.CheckAll); }}
@@ -882,16 +910,15 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         && !((data.dbObject.objectType === MrsDbObjectType.Procedure ||
                             data.dbObject.objectType === MrsDbObjectType.Function)
                             && mrsObject?.kind === MrsObjectKind.Result) &&
-                        ((cellData.field.dbColumn?.name === data.dbObject.rowUserOwnershipColumn &&
-                            data.dbObject.rowUserOwnershipEnforced)
-                        )
+                        (cellData.field.id === mrsObject?.rowOwnershipFieldId ||
+                            cellData.field.id === mrsObjectReference?.rowOwnershipFieldId)
                     )
                         || !((cellData.field.objectReference === undefined
                             && (data.dbObject.objectType !== MrsDbObjectType.Procedure &&
                                 data.dbObject.objectType !== MrsDbObjectType.Function) &&
-                            ((cellData.field.dbColumn?.name === data.dbObject.rowUserOwnershipColumn &&
-                                data.dbObject.rowUserOwnershipEnforced)
-                            ))
+                            (cellData.field.id === mrsObject?.rowOwnershipFieldId ||
+                                cellData.field.id === mrsObjectReference?.rowOwnershipFieldId)
+                        )
                             && !cellData.field.allowFiltering
                             && cellData.field.allowSorting
                             && cellData.field.noUpdate
@@ -946,19 +973,39 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         const cellData = cell.getData() as IMrsObjectFieldTreeItem;
         const { values } = this.props;
         const data = values as IMrsObjectFieldEditorData;
+        const mrsObject = this.findMrsObjectById(data.currentMrsObjectId);
 
         const host = document.createElement("div");
         host.className = this.getEffectiveClassNames(["mrsObjectDbColumnFieldDiv"]);
         let content;
 
-        const tableCrud = (!cell.getRow().getPrevRow())
-            ? data.crudOperations : cellData.field.objectReference?.crudOperations.split(",") ?? [];
+        // Get the options, either from the MRS object or from the object reference
+        const options = !cell.getRow().getPrevRow() ? mrsObject?.options : cellData.field.objectReference?.options;
+
+        let availableCrud = ["INSERT", "UPDATE", "DELETE"];
+        if (cellData.field.objectReference?.referenceMapping.kind === "n:1") {
+            availableCrud = ["UPDATE"];
+        }
+
+
+        const tableCrud: string[] = [];
+        if (options) {
+            if (options.dualityViewInsert) {
+                tableCrud.push("INSERT");
+            }
+            if (options.dualityViewUpdate) {
+                tableCrud.push("UPDATE");
+            }
+            if (options.dualityViewDelete) {
+                tableCrud.push("DELETE");
+            }
+        }
 
         const crudDiv = <Container
-            className={"crudDiv"}
+            className={this.getEffectiveClassNames(["crudDiv", availableCrud.length > 1 ? "multiItems" : undefined])}
             orientation={Orientation.LeftToRight}
             crossAlignment={ContentAlignment.Center}>
-            {["CREATE", "READ", "UPDATE", "DELETE"].map((op) => {
+            {availableCrud.map((op) => {
                 return <Container
                     className={this.getEffectiveClassNames([
                         tableCrud.includes(op) ? "activated" : "deactivated",
@@ -971,7 +1018,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     key={cellData.field.id + op}
                     data-tooltip={`Allow ${op} operations on this object`}
                 >
-                    <Label data-tooltip="inherit">{op.slice(0, 1)}</Label>
+                    <Label data-tooltip="inherit">{!cell.getRow().getPrevRow() || availableCrud.length === 1
+                        ? op : op.substring(0, 3)}</Label>
                 </Container>;
             })}
         </Container >;
@@ -1113,7 +1161,6 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                                     }
 
                                     treeItem.field.objectReference.reduceToValueOfFieldId = reduceToFieldId;
-                                    treeItem.field.objectReference.crudOperations = "READ";
 
                                     if (reduceToFieldId === undefined &&
                                         treeItem.field.objectReference.unnest === true) {
@@ -1442,12 +1489,13 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     // If there is an existing field, copy the object reference values from there
                     const objectReference: IMrsObjectReference = {
                         id: existingField?.representsReferenceId ?? uuidBinary16Base64(),
-                        reduceToValueOfFieldId: existingField?.objectReference?.reduceToValueOfFieldId ?? undefined,
+                        reduceToValueOfFieldId: existingField?.objectReference?.reduceToValueOfFieldId,
+                        rowOwnershipFieldId: existingField?.objectReference?.rowOwnershipFieldId,
                         referenceMapping: existingField?.objectReference?.referenceMapping
                             ? { ...existingField?.objectReference?.referenceMapping }
                             : column.referenceMapping,
                         unnest: existingField?.objectReference?.unnest ?? false,
-                        crudOperations: existingField?.objectReference?.crudOperations ?? "READ",
+                        options: existingField?.objectReference?.options,
                         sdkOptions: existingField?.objectReference?.sdkOptions,
                         comments: existingField?.objectReference?.comments,
                     };
@@ -2107,33 +2155,91 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         }
     };
 
+    private updateDbObjectCrudOperations = (): void => {
+        const { values } = this.props;
+        const data = values as IMrsObjectFieldEditorData;
+        const mrsObject = this.findMrsObjectById(data.currentMrsObjectId);
+        const crudOps: string[] = [];
+
+        if (data.dbObject.objectType === MrsDbObjectType.Procedure
+            || data.dbObject.objectType === MrsDbObjectType.Function) {
+            crudOps.push("UPDATE");
+        } else {
+            crudOps.push("READ");
+        }
+
+        // Consider the settings of the mrsObject first
+        if (mrsObject?.options?.dualityViewInsert) {
+            crudOps.push("INSERT");
+        }
+        if (mrsObject?.options?.dualityViewUpdate) {
+            crudOps.push("UPDATE");
+        }
+        if (mrsObject?.options?.dualityViewDelete) {
+            crudOps.push("DELETE");
+        }
+
+        // Loop over all fields and check if an object reference has a CRUD operation set. If so, the mrsObject
+        // needs to be updatable as well
+        if (!crudOps.includes("UPDATE")) {
+            mrsObject?.fields?.forEach((field) => {
+                if (field.objectReference?.options && crudOps.length < 4) {
+                    if (!crudOps.includes("UPDATE")
+                        && (field.objectReference?.options.dualityViewInsert
+                            || field.objectReference?.options.dualityViewUpdate
+                            || field.objectReference?.options.dualityViewDelete)) {
+                        crudOps.push("UPDATE");
+                    }
+                }
+            });
+        }
+
+        data.crudOperations = crudOps;
+    };
+
     private performIconClick = async (treeItem: IMrsObjectFieldTreeItem, iconGroup: ActionIconName,
         icon?: string): Promise<void> => {
         const { values, dbObjectChange } = this.props;
         const data = values as IMrsObjectFieldEditorData;
+        const mrsObject = this.findMrsObjectById(data.currentMrsObjectId);
 
-        if (treeItem && treeItem.field) {
+        if (treeItem && treeItem.field && mrsObject) {
             switch (iconGroup) {
                 case ActionIconName.Crud: {
-                    if (icon && treeItem.field.objectReference?.reduceToValueOfFieldId === undefined) {
-                        let crudOps;
+                    if (icon && (treeItem.field.objectReference?.reduceToValueOfFieldId === undefined
+                        || treeItem.field.objectReference?.reduceToValueOfFieldId === null)) {
+                        // Get the right options, either from mrsObject or from objectReference and initialize if needed
+                        let options;
                         if (treeItem.field.representsReferenceId === undefined) {
-                            crudOps = data.crudOperations;
-                        } else {
-                            crudOps = treeItem.field.objectReference?.crudOperations.split(",") ?? [];
-                        }
-
-                        if (crudOps.includes(icon)) {
-                            crudOps.splice(crudOps.indexOf(icon), 1);
-                        } else {
-                            crudOps.push(icon);
-                        }
-
-                        if (treeItem.field.representsReferenceId === undefined) {
-                            data.crudOperations = crudOps;
+                            if (!mrsObject.options) {
+                                mrsObject.options = {};
+                            }
+                            options = mrsObject.options;
                         } else if (treeItem.field.objectReference) {
-                            treeItem.field.objectReference.crudOperations = crudOps.join(",");
+                            if (!treeItem.field.objectReference.options) {
+                                treeItem.field.objectReference.options = {};
+                            }
+                            options = treeItem.field.objectReference.options;
+                        } else {
+                            return;
                         }
+
+                        // If the individual flag is not set or false, set to true - otherwise false
+                        if (icon === "INSERT") {
+                            options.dualityViewInsert =
+                                !options.dualityViewInsert ? true : false;
+                        }
+                        if (icon === "UPDATE") {
+                            options.dualityViewUpdate =
+                                !options.dualityViewUpdate ? true : false;
+                        }
+                        if (icon === "DELETE") {
+                            options.dualityViewDelete =
+                                !options.dualityViewDelete ? true : false;
+                        }
+
+                        // Update the DBObject's CRUD operations
+                        this.updateDbObjectCrudOperations();
                     }
 
                     break;
@@ -2157,16 +2263,46 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     break;
                 }
                 case ActionIconName.Check: {
-                    treeItem.field.noCheck = !treeItem.field.noCheck;
+                    // Get the right options, either from mrsObject or from objectReference and initialize if needed
+                    let options;
+                    if (treeItem.field.dbColumn === undefined) {
+                        if (!mrsObject.options) {
+                            mrsObject.options = {};
+                        }
+                        options = mrsObject.options;
+                    } else if (treeItem.field.objectReference) {
+                        if (!treeItem.field.objectReference.options) {
+                            treeItem.field.objectReference.options = {};
+                        }
+                        options = treeItem.field.objectReference.options;
+                    } else {
+                        treeItem.field.noCheck = !treeItem.field.noCheck;
+
+                        return;
+                    }
+
+                    options.dualityViewNoCheck = !options.dualityViewNoCheck ? true : false;
+
                     break;
                 }
                 case ActionIconName.Ownership: {
-                    if (data.dbObject.rowUserOwnershipColumn !== treeItem.field.dbColumn?.name) {
-                        data.dbObject.rowUserOwnershipEnforced = 1;
-                        data.dbObject.rowUserOwnershipColumn = treeItem.field.dbColumn?.name;
+                    const mrsObject = this.findMrsObjectById(data.currentMrsObjectId);
+                    const mrsObjectReference = treeItem.parent?.field.objectReference;
+
+                    if (mrsObjectReference === undefined) {
+                        if (mrsObject) {
+                            if (mrsObject.rowOwnershipFieldId !== treeItem.field.id) {
+                                mrsObject.rowOwnershipFieldId = treeItem.field.id;
+                            } else {
+                                mrsObject.rowOwnershipFieldId = undefined;
+                            }
+                        }
                     } else {
-                        data.dbObject.rowUserOwnershipEnforced = 0;
-                        data.dbObject.rowUserOwnershipColumn = undefined;
+                        if (mrsObjectReference.rowOwnershipFieldId !== treeItem.field.id) {
+                            mrsObjectReference.rowOwnershipFieldId = treeItem.field.id;
+                        } else {
+                            mrsObjectReference.rowOwnershipFieldId = undefined;
+                        }
                     }
 
                     if (dbObjectChange) {

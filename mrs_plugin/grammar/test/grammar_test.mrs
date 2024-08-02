@@ -1,5 +1,5 @@
 /* MRS Grammar Test
-Copyright (c) 2023, Oracle and/or its affiliates. */
+Copyright (c) 2023, 2024, Oracle and/or its affiliates.*/
 
 # cSpell:ignore gtid
 CONFIGURE REST METADATA
@@ -7,6 +7,16 @@ CONFIGURE REST METADATA
     UPDATE IF AVAILABLE;
 
 CREATE OR REPLACE REST SERVICE localhost/myTestService;
+
+CREATE OR REPLACE REST SERVICE mike@/myTestService;
+
+CREATE OR REPLACE REST SERVICE mike@localhost/myTestService;
+
+SHOW REST SERVICES;
+
+DROP REST SERVICE mike@/myTestService;
+
+DROP REST SERVICE mike@localhost/myTestService;
 
 CREATE OR REPLACE REST SERVICE localhost/myTestService
     ENABLED
@@ -37,7 +47,12 @@ CREATE OR REPLACE REST SERVICE localhost/myTestService
             }
         },
         "returnInternalErrorDetails": true
+    }
+    METADATA {
+        "position": 1
     };
+
+SHOW CREATE REST SERVICE localhost/myTestService;
 
 ALTER REST SERVICE localhost/myTestService
     NEW REQUEST PATH localhost/myAlteredTestService
@@ -52,7 +67,12 @@ ALTER REST SERVICE localhost/myTestService
             "exceptions": true
         },
         "returnInternalErrorDetails": false
+    }
+    METADATA {
+        "position": 2
     };
+
+SHOW CREATE REST SERVICE localhost/myAlteredTestService;
 
 ALTER REST SERVICE localhost/myAlteredTestService
     NEW REQUEST PATH localhost/myTestService;
@@ -61,7 +81,8 @@ CREATE REST SCHEMA ON SERVICE localhost/myTestService FROM `sakila`
     ENABLED
     AUTHENTICATION REQUIRED
     ITEMS PER PAGE 25
-    COMMENTS "The sakila schema";
+    COMMENTS "The sakila schema"
+    METADATA { "position": 1};
 
 USE REST SERVICE localhost/myTestService;
 
@@ -110,7 +131,7 @@ CREATE OR REPLACE REST DUALITY VIEW /city
 
 CREATE OR REPLACE REST DUALITY VIEW /country
 ON SERVICE localhost/myTestService SCHEMA /sakila
-AS sakila.country CLASS MyServiceSakilaCountry @SELECT @INSERT @UPDATE @DELETE {
+AS sakila.country CLASS MyServiceSakilaCountry @INSERT @UPDATE @DELETE @NOCHECK {
     countryId: country_id @SORTABLE,
     country: country,
     lastUpdate: last_update,
@@ -252,7 +273,8 @@ SHOW CREATE REST PROCEDURE /filmInStock;
 
 CREATE REST CONTENT SET /testContent
 ON SERVICE localhost/myTestService
-FROM "./grammar/test";
+FROM "./grammar/test"
+IGNORE "*.txt";
 
 SHOW REST CONTENT SETS;
 
@@ -328,9 +350,23 @@ AS `sakila`.`language` {
     }
 };
 
-CREATE OR REPLACE REST FUNCTION /actorFunc
+DROP REST DUALITY VIEW /moviesByLanguage;
+
+CREATE REST FUNCTION /actorFunc
 ON SERVICE localhost/myTestService SCHEMA /sakila
 AS `sakila`.`actor`;
+
+SHOW CREATE REST FUNCTION /actorFunc
+ON SERVICE localhost/myTestService SCHEMA /sakila;
+
+ALTER REST FUNCTION /actorFunc
+ON SERVICE localhost/myTestService SCHEMA /sakila
+NEW REQUEST PATH /actorFuncNew;
+
+SHOW CREATE REST FUNCTION /actorFuncNew
+ON SERVICE localhost/myTestService SCHEMA /sakila;
+
+DROP REST FUNCTION /actorFuncNew;
 
 CREATE OR REPLACE REST FUNCTION /actorFunc
     ON SERVICE localhost/myTestService SCHEMA /sakila
@@ -347,3 +383,116 @@ DROP REST FUNCTION /actorFunc;
 DROP REST SCHEMA /sakila FROM localhost/myTestService;
 
 DROP REST SERVICE localhost/myTestService;
+
+SHOW REST SERVICES;
+
+
+
+
+CREATE OR REPLACE REST SERVICE mike@/myTestService;
+
+SHOW REST SERVICES;
+
+CREATE OR REPLACE REST SERVICE mike@localhost:80/myTestService;
+
+SHOW REST SERVICES;
+
+
+
+CREATE OR REPLACE REST SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;
+
+SHOW REST SERVICES;
+
+ALTER REST SERVICE mike@/myTestService
+    NEW REQUEST PATH mike,alfredo@/myTestService;
+
+SHOW REST SERVICES;
+
+ALTER REST SERVICE mike,alfredo@/myTestService
+    NEW REQUEST PATH mike@/myTestService;
+
+CLONE REST SERVICE mike@/myTestService
+    NEW REQUEST PATH /myClonedService;
+
+SHOW REST SERVICES;
+
+DROP REST SERVICE /myClonedService;
+
+DROP REST SERVICE mike@/myTestService;
+
+DROP REST SERVICE mike@localhost:80/myTestService;
+
+
+CREATE REST SCHEMA /sakila
+ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService
+FROM `sakila`
+    ENABLED
+    AUTHENTICATION REQUIRED
+    ITEMS PER PAGE 25
+    COMMENTS "The sakila schema"
+    METADATA { "position": 1};
+
+CREATE OR REPLACE REST DUALITY VIEW /actor
+ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService SCHEMA /sakila
+AS `sakila`.`actor` CLASS MyServiceSakilaActor {
+    actorId: actor_id @SORTABLE,
+    firstName: first_name,
+    lastName: last_name,
+    lastUpdate: last_update,
+    filmActor: sakila.film_actor @UNNEST {
+        film: sakila.film @UNNEST {
+            title: title
+        }
+    }
+};
+
+ALTER REST DUALITY VIEW /actor
+ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService SCHEMA /sakila
+OPTIONS {
+    "option1": "this is option 1",
+    "option2": {
+        "option11": "this is option 1.1"
+    }
+};
+
+CREATE REST CONTENT SET /mySet
+ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;
+
+CREATE REST CONTENT FILE "/textFile"
+ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet
+CONTENT "normal string";
+
+CREATE REST CONTENT FILE "/binaryFile1"
+ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet
+BINARY CONTENT "aHR0cHM6Ly93d3cuYmFzZTY0ZW5jb2RlLm9yZy8gVGVzdA==";
+
+CREATE REST CONTENT FILE "/binaryFile2"
+ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet
+BINARY CONTENT "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=";
+
+CREATE REST CONTENT FILE "/binaryFile3"
+ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet
+BINARY CONTENT "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=";
+
+CREATE REST CONTENT FILE "/binaryFile4"
+ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet
+FROM "grammar/test/binary_test_file";
+
+CREATE REST CONTENT FILE "/binaryFile5"
+ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet
+FROM "grammar/test/text_test_file.sql";
+
+
+DROP REST CONTENT FILE "/textFile"
+FROM SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet;
+
+DROP REST CONTENT FILE "/binaryFile1"
+FROM SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet;
+
+DROP REST CONTENT SET /mySet
+FROM SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;
+
+ALTER REST SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService
+    PUBLISHED;
+
+DROP REST SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;

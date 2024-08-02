@@ -194,6 +194,7 @@ export class DBNotebooks {
             const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await textArea.sendKeys(Key.ESCAPE); // close the suggestions menu if exists
             await textArea.sendKeys(Key.ENTER);
+            await driver.sleep(500);
 
             return (await getLastLineNumber()) > lastLineNumber;
         }, constants.wait5seconds, "Could not set a new line on the editor");

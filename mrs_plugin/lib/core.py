@@ -34,6 +34,9 @@ from enum import IntEnum
 import threading
 import base64
 
+MRS_METADATA_LOCK_ERROR = \
+    "Failed to acquire MRS metadata lock. Please ensure no other metadata update is running, then try again."
+
 
 class ConfigFile:
     def __init__(self) -> None:
@@ -329,54 +332,65 @@ def update_mrs_metadata_schema(session, current_db_version_str):
     # run updates until ending up at current version
     upgrade_file_found = True
 
-    while general.DB_VERSION_STR != version_to_update and upgrade_file_found:
-        # set upgrade_file_found to False to ensure execution will not be
-        # stuck in this loop forever
-        upgrade_file_found = False
+    mrs_lock = 0
+    try:
+        mrs_lock = MrsDbExec('SELECT GET_LOCK("MRS_METADATA_LOCK", 1) AS mrs_lock').exec(
+            session).first["mrs_lock"]
+        if mrs_lock == 0:
+            raise Exception(MRS_METADATA_LOCK_ERROR)
 
-        for f in os.listdir(script_dir_path):
-            m = re.match(
-                r'mrs_metadata_schema_(\d+\.\d+\.\d+)_to_'
-                r'(\d+\.\d+\.\d+)\.sql', f)
-            if m:
-                g = m.groups()
+        while general.DB_VERSION_STR != version_to_update and upgrade_file_found:
+            # set upgrade_file_found to False to ensure execution will not be
+            # stuck in this loop forever
+            upgrade_file_found = False
 
-                update_from_version = g[0]
-                update_to_version = g[1]
+            for f in os.listdir(script_dir_path):
+                m = re.match(
+                    r'mrs_metadata_schema_(\d+\.\d+\.\d+)_to_'
+                    r'(\d+\.\d+\.\d+)\.sql', f)
+                if m:
+                    g = m.groups()
 
-                if version_to_update == update_from_version:
-                    upgrade_file_found = True
+                    update_from_version = g[0]
+                    update_to_version = g[1]
 
-                    try:
-                        with open(os.path.join(script_dir_path, f),
-                                  'r') as sql_file:
-                            sql_script = sql_file.read()
+                    if version_to_update == update_from_version:
+                        upgrade_file_found = True
 
-                        if interactive:
-                            print(f"Update from version {update_from_version} "
-                                  f"to version {update_to_version} ...")
+                        try:
+                            with open(os.path.join(script_dir_path, f),
+                                      'r') as sql_file:
+                                sql_script = sql_file.read()
 
-                        for cmd in mysqlsh.mysql.split_script(sql_script):
-                            current_cmd = cmd.strip()
-                            if current_cmd:
-                                MrsDbExec(current_cmd).exec(session)
-                                # session.run_sql(current_cmd)
+                            if interactive:
+                                print(f"Update from version {update_from_version} "
+                                      f"to version {update_to_version} ...")
 
-                        version_to_update = update_to_version
-                    except (mysqlsh.DBError, Exception) as e:
-                        print(f"Failed to upgrade {f}: {e}")
-                        raise Exception(
-                            "The MRS metadata database schema could not "
-                            f"be updated.\n{current_cmd}\n{e}")
+                            for cmd in mysqlsh.mysql.split_script(sql_script):
+                                current_cmd = cmd.strip()
+                                if current_cmd:
+                                    MrsDbExec(current_cmd).exec(session)
+                                    # session.run_sql(current_cmd)
 
-        if general.DB_VERSION_STR != version_to_update and not upgrade_file_found:
-            raise Exception("The file to update the metadata "
-                            f"schema from version {version_to_update} to "
-                            f"version {general.DB_VERSION_STR} was not found.")
-        else:
-            if interactive:
-                print(f"The MRS metadata schema was successfully update "
-                      f"to version {general.DB_VERSION_STR}.")
+                            version_to_update = update_to_version
+                        except (mysqlsh.DBError, Exception) as e:
+                            if interactive:
+                                print(f"Failed to updated {f}: {e}")
+                            raise Exception(
+                                "The MRS metadata database schema could not "
+                                f"be updated.\n{current_cmd}\n{e}")
+
+            if general.DB_VERSION_STR != version_to_update and not upgrade_file_found:
+                raise Exception("The file to update the metadata "
+                                f"schema from version {version_to_update} to "
+                                f"version {general.DB_VERSION_STR} was not found.")
+            else:
+                if interactive:
+                    print(f"The MRS metadata schema was successfully update "
+                          f"to version {general.DB_VERSION_STR}.")
+    finally:
+        if mrs_lock == 1:
+            MrsDbExec('SELECT RELEASE_LOCK("MRS_METADATA_LOCK")').exec(session)
 
 
 def create_mrs_metadata_schema(session, drop_existing=False):
@@ -418,21 +432,34 @@ def create_mrs_metadata_schema(session, drop_existing=False):
 
     commands = mysqlsh.mysql.split_script(sql_script)
 
-    if drop_existing:
-        session.run_sql("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`")
-
-    # Execute all commands
-    current_cmd = ""
+    mrs_lock = 0
     try:
-        for cmd in commands:
-            current_cmd = cmd.strip()
-            if current_cmd:
-                session.run_sql(current_cmd)
-    except mysqlsh.DBError as e:
-        # On exception, drop the schema and re-raise
-        session.run_sql("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`")
-        raise Exception(f"Failed to create the MRS metadata schema.\n"
-                        f"{current_cmd}\n{e}")
+        # Acquire MRS_METADATA_LOCK
+        mrs_lock = MrsDbExec('SELECT GET_LOCK("MRS_METADATA_LOCK", 1) AS mrs_lock').exec(
+            session).first["mrs_lock"]
+        if mrs_lock == 0:
+            raise Exception(MRS_METADATA_LOCK_ERROR)
+
+        if drop_existing:
+            session.run_sql(
+                "DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`")
+
+        # Execute all commands
+        current_cmd = ""
+        try:
+            for cmd in commands:
+                current_cmd = cmd.strip()
+                if current_cmd:
+                    session.run_sql(current_cmd)
+        except mysqlsh.DBError as e:
+            # On exception, drop the schema and re-raise
+            session.run_sql(
+                "DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`")
+            raise Exception(f"Failed to create the MRS metadata schema.\n"
+                            f"{current_cmd}\n{e}")
+    finally:
+        if mrs_lock == 1:
+            MrsDbExec('SELECT RELEASE_LOCK("MRS_METADATA_LOCK")').exec(session)
 
 
 def prompt_for_list_item(item_list, prompt_caption, prompt_default_value='',
@@ -746,7 +773,8 @@ def check_mrs_object_names(session, db_schema_id, objects):
     assigned_names = []
     for obj in objects:
         if obj.get("name") in assigned_names:
-            raise Exception(f'The object name {obj.get("name")} has been used more than once.')
+            raise Exception(
+                f'The object name {obj.get("name")} has been used more than once.')
         check_mrs_object_name(
             session=session, db_schema_id=db_schema_id,
             obj_id=obj.get("id"), obj_name=obj.get("name"))
@@ -972,14 +1000,11 @@ class MrsDbSession:
         check_version = kwargs.get("check_version", True)
         if mrs_metadata_schema_exists(self._session) and check_version:
             current_db_version = get_mrs_schema_version(self._session)
-            if current_db_version[0] != general.DB_VERSION[0]:
+            if current_db_version[0] < 2:
                 raise Exception("This MySQL Shell version requires a new major version of the MRS metadata schema, "
                                 f"{general.DB_VERSION_STR}. The currently deployed schema version is "
                                 f"{'%d.%d.%d' % tuple(current_db_version)}. Please downgrade the MySQL Shell version "
                                 "or drop the MRS metadata schema and run `mrs.configure()`.")
-            if current_db_version < general.DB_VERSION:
-                raise Exception(
-                    "The MRS metadata schema is outdated. Please run `mrs.configure()` to upgrade.")
 
     def __enter__(self):
         return self._session
@@ -1113,10 +1138,12 @@ def get_session_uri(session):
 
     return uri
 
+
 def uppercase_first_char(s):
     if len(s) > 0:
         return s[0].upper() + s[1:]
     return ""
+
 
 def convert_path_to_camel_case(path):
     if (path.startswith("/")):
@@ -1219,3 +1246,25 @@ def format_result(result):
     # To make handling easier, return an empty string if there are no rows so
     # the result does not have to be checked for None
     return ""
+
+
+def is_text(data: bytes) -> bool:
+    if isinstance(data, str):
+        data = data.encode()
+
+    valid_text__chars = "".join(list(map(chr, range(32, 127))) + list("\n\r\t\b"))
+
+    data_without_text = data.translate(None, valid_text__chars.encode())
+
+    # If there's a null character, then it's not a text string
+    if 0 in data_without_text:
+        return False
+
+    # Check how many bytes are available after removing the ones that
+    # are considered as text.
+    if len(data_without_text) >= len(data) * 0.3:
+        # if more then 30% if the characters are binary, then
+        # take the data as binary
+        return False
+
+    return True

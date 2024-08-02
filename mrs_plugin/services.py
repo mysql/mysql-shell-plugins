@@ -41,7 +41,8 @@ def verify_value_keys(**kwargs):
         if key not in ["url_host_id",  "url_context_root",  "url_protocol", "url_host_name",
                        "enabled",  "comments", "options",
                        "auth_path", "auth_completed_url", "auth_completed_url_validation",
-                       "auth_completed_page_content", "auth_apps"] and key != "delete":
+                       "auth_completed_page_content", "auth_apps", "metadata",
+                       "in_development", "published"] and key != "delete":
             raise Exception(f"Attempting to change an invalid service value.")
 
 
@@ -262,7 +263,8 @@ def add_service(**kwargs):
             app redirection URL specified by the /login?onCompletionRedirect parameter
         auth_completed_page_content (str): The custom page content to use of the
             authentication completed page
-        auth_apps (list): The list of auth_apps in JSON format
+        metadata (dict): Metadata of the server
+        published (bool): Whether the new service should be published immediately
         session (object): The database session to use.
 
     Returns:
@@ -271,17 +273,10 @@ def add_service(**kwargs):
     if "options" in kwargs:
         kwargs["options"] = lib.core.convert_json(kwargs["options"])
 
-    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        if "auth_apps" in kwargs:
-            auth_apps = []
-            for app in kwargs.get("auth_apps", []):
-                app = lib.core.convert_json(app)
-                lib.core.convert_ids_to_binary(
-                    ["auth_vendor_id", "service_id", "default_role_id"], app)
-                app["id"] = lib.core.get_sequence_id(session)
-                auth_apps.append(app)
-            kwargs["auth_apps"] = auth_apps
+    if "metadata" in kwargs:
+        kwargs["metadata"] = lib.core.convert_json(kwargs["metadata"])
 
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         options = kwargs.get("options")
 
         kwargs["session"] = session
@@ -338,7 +333,8 @@ def add_service(**kwargs):
                 "auth_completed_url": kwargs.get("auth_completed_url"),
                 "auth_completed_url_validation": kwargs.get("auth_completed_url_validation"),
                 "auth_completed_page_content": kwargs.get("auth_completed_page_content"),
-                "auth_apps": kwargs.get("auth_apps", [])
+                "metadata": kwargs.get("metadata"),
+                "published": int(kwargs.get("published", False)),
             })
 
         service = lib.services.get_service(session, service_id)
@@ -676,7 +672,9 @@ def update_service(**kwargs):
             app redirection URL specified by the /login?onCompletionRedirect parameter
         auth_completed_page_content (str): The custom page content to use of the
             authentication completed page
-        auth_apps (list): The list of auth_apps in JSON format
+        metadata (dict): The metadata of the service
+        in_development (dict): The development settings
+        published (bool): Whether the service is published
 
     Returns:
         The result message as string
@@ -684,19 +682,6 @@ def update_service(**kwargs):
     if kwargs.get("value") is not None:
         # create a copy so that the dict won't change for the caller...and convert to dict
         kwargs["value"] = lib.core.convert_json(kwargs["value"])
-
-        for auth_app in kwargs["value"].get("auth_apps", []):
-            ids = ["auth_vendor_id", "service_id", "default_role_id"]
-
-            # the ids to insert have the value of position * -1, otherwise, it comes
-            # with the id to update. To avoid issues, for inserts, we're marking
-            # the id to None
-            if auth_app["id"].startswith("-"):
-                auth_app["id"] = None
-            else:
-                ids.append("id")
-
-            lib.core.convert_ids_to_binary(ids, auth_app)
 
     lib.core.convert_ids_to_binary(["service_id"], kwargs)
 
