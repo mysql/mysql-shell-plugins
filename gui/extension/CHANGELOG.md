@@ -1,16 +1,17 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.15.3+9.0.1
+## Changes in 1.16.0+9.0.1
 
 ### Additions
 
+- Added support for MySQL REST Service metadata schema 3.0.0. Please update your MySQL Router installations to 9.0.1 and upgrade the MRS metadata schema when prompted.
 - Updated MySQL Shell to 9.0.1
+- Updated embedded MySQL Router to 9.0.1
 
 ### Fixes
 
 - BUG#36868599 findUnique-type commands not generated as part of the MRS TypeScript SDK
 - BUG#36877177 MRS Python SDK find_unique* commands generated for objects without unique fields
--
 
 ## Changes in 1.15.2+9.0.0
 
