@@ -51,8 +51,8 @@ import { ConnectionMySQLTreeItem } from "./ConnectionMySQLTreeItem.js";
 import { ConnectionSqliteTreeItem } from "./ConnectionSqliteTreeItem.js";
 import {
     ConnectionsTreeDataModelEntry, ICdmConnectionEntry, ICdmRestAuthAppEntry, ICdmRestContentSetEntry,
-    ICdmRestRootEntry, ICdmRestSchemaEntry, ICdmRestServiceEntry, ICdmSchemaEntry, ICdmSchemaGroupEntry,
-    ICdmTableGroupEntry,
+    ICdmRestRootEntry, ICdmRestRouterEntry, ICdmRestSchemaEntry, ICdmRestServiceEntry,
+    ICdmSchemaEntry, ICdmSchemaGroupEntry, ICdmTableGroupEntry,
 } from "./ConnectionsTreeDataModel.js";
 import { MrsAuthAppTreeItem } from "./MrsAuthAppTreeItem.js";
 import { MrsContentFileTreeItem } from "./MrsContentFileTreeItem.js";
@@ -78,6 +78,7 @@ import { SchemaViewMySQLTreeItem } from "./SchemaViewMySQLTreeItem.js";
 import { SchemaViewSqliteTreeItem } from "./SchemaViewSqliteTreeItem.js";
 import { DBConnectionViewProvider } from "../../WebviewProviders/DBConnectionViewProvider.js";
 import { MrsDbObjectType } from "../../../../frontend/src/modules/mrs/types.js";
+import { MrsRouterServiceTreeItem } from "./MrsRouterServiceTreeItem.js";
 
 /** A class to provide the entire tree structure for DB editor connections and the DB objects from them. */
 export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionsTreeDataModelEntry> {
@@ -373,6 +374,12 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                 return entry.dbObjects;
             }
 
+            case "mrsRouter": {
+                await this.loadMrsRouterServices(entry);
+
+                return entry.services;
+            }
+
             default: {
                 return Promise.resolve([]);
             }
@@ -431,7 +438,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
     /**
      * Queries the backend for a list of stored user DB connections and updates our connection entries.
      */
-    private async updateConnections(): Promise<void> {
+    public async updateConnections(): Promise<void> {
         if (webSession.currentProfileId === -1) {
             await this.closeAllConnections();
         } else {
@@ -608,6 +615,15 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                         try {
                             let addMrsTreeItem = true;
                             const status = await item.backend.mrs.status();
+                            if (status.serviceBeingUpgraded) {
+                                void window.showInformationMessage(
+                                    "The MySQL REST Service is currently being updated. Please refresh the list of " +
+                                    "DB Connections after the update has been completed.");
+
+                                return;
+                            }
+
+
                             this.requiredRouterVersion = status.requiredRouterVersion;
 
                             if (status.majorUpgradeRequired) {
@@ -617,33 +633,35 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                                 addMrsTreeItem = false;
                                 let answer: string | undefined = await window.showInformationMessage(
                                     "This MySQL Shell version requires a new major version of the MRS metadata " +
-                                    `schema, ${String(status.requiredMetadataVersion)}. The currently deployed ` +
+                                    "schema. The latest available version is " +
+                                    `${String(status.availableMetadataVersion)}. The currently deployed ` +
                                     `schema version is ${String(status.currentMetadataVersion)}. You need to ` +
                                     "downgrade the MySQL Shell version or drop and recreate the MRS metadata " +
                                     "schema. Do you want to drop and recreate the MRS metadata schema? " +
-                                    "WARNING: All existing MRS data will be lost."
-                                    , "Yes", "No");
+                                    "WARNING: All existing MRS data will be lost.",
+                                    "Drop and Recreate", "Disable MRS features");
 
-                                if (answer === "Yes") {
+                                if (answer === "Drop and Recreate") {
                                     answer = await window.showInformationMessage(
                                         "Are you really sure you want to drop and recreate the MRS metadata " +
                                         "schema? WARNING: All existing MRS data will be lost."
-                                        , "Drop and Recreate", "No");
-                                    if (answer === "Drop and Recreate") {
+                                        , "Yes", "No");
+                                    if (answer === "Yes") {
                                         await item.backend.mrs.configure(true, true);
                                         addMrsTreeItem = true;
                                     }
                                 }
-                            } else if (status.serviceUpgradeable) {
+                            } else if (status.serviceUpgradeable && !status.serviceUpgradeIgnored) {
                                 addMrsTreeItem = false;
 
                                 const answer: string | undefined = await window.showInformationMessage(
-                                    "This MySQL Shell version requires a new minor version of the MRS metadata " +
-                                    `schema, ${String(status.requiredMetadataVersion)}. The currently deployed ` +
+                                    "A new MRS metadata schema update to version " +
+                                    `${String(status.availableMetadataVersion)} is available. The currently deployed ` +
                                     `schema version is ${String(status.currentMetadataVersion)}. Do you want to ` +
-                                    "update the MRS metadata schema?"
-                                    , "Yes", "No");
-                                if (answer === "Yes") {
+                                    "update the MRS metadata schema, skip this version for now or permanently ignore " +
+                                    "this version upgrade going forward?",
+                                    "Upgrade", "Skip", "Permanently Ignore");
+                                if (answer === "Upgrade") {
                                     addMrsTreeItem = true;
                                     const statusbarItem = window.createStatusBarItem();
                                     try {
@@ -658,6 +676,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                                     } finally {
                                         statusbarItem.hide();
                                     }
+                                } else if (answer === "Permanently Ignore") {
+                                    await item.backend.mrs.ignoreVersionUpgrade();
                                 }
                             }
 
@@ -909,9 +929,12 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
 
             const services = await item.backend.mrs.listServices();
             entry.services = services.map((value) => {
-                let label = value.urlContextRoot;
-                if (value.urlHostName) {
-                    label = label + ` (${value.urlHostName})`;
+                const developers = !value.sortedDevelopers ? "" : value.sortedDevelopers;
+                const urlHostName = !value.urlHostName ? "" : value.urlHostName;
+
+                let label = urlHostName + value.urlContextRoot;
+                if (value.inDevelopment) {
+                    label = label + ` [${developers}]`;
                 }
 
                 return {
@@ -926,13 +949,19 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
 
             const routers = await item.backend.mrs.listRouters(10);
             entry.routers = routers.map((value) => {
+                let label = value.address;
+                if (value.routerName) {
+                    label = `${value.routerName} (${value.address})`;
+                }
+
                 return {
                     parent: entry,
                     type: "mrsRouter",
-                    treeItem: new MrsRouterTreeItem(value.address, value, item.backend, item.connectionId,
+                    treeItem: new MrsRouterTreeItem(label, value, item.backend, item.connectionId,
                         this.requiredRouterVersion !== undefined
                             ? compareVersionStrings(this.requiredRouterVersion, value.version) > 0
                             : false),
+                    services: [],
                 };
             });
 
@@ -1107,6 +1136,47 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
             }
 
             entry.dbObjects = [];
+        }
+    }
+
+    /**
+     * Loads the list of MRS router services.
+     *
+     * @param entry The MRS service element.
+     *
+     * @returns A promise that resolves to when the MRS schema objects have been loaded.
+     */
+    private async loadMrsRouterServices(entry: ICdmRestRouterEntry): Promise<void> {
+        const item = entry.treeItem;
+
+        try {
+            const routerServices = await item.backend.mrs.getRouterServices(item.value.id);
+            entry.services = routerServices.map((value) => {
+                const developers = !value.sortedDevelopers ? "" : value.sortedDevelopers;
+                const urlHostName = !value.serviceUrlHostName ? "" : value.serviceUrlHostName;
+
+                let label = urlHostName + value.serviceUrlContextRoot;
+                if (value.inDevelopment) {
+                    label = label + ` [${developers}]`;
+                }
+
+                return {
+                    parent: entry,
+                    type: "mrsRouterService",
+                    treeItem: new MrsRouterServiceTreeItem(label, value, item.backend,
+                        item.connectionId),
+                };
+            });
+
+            this.#errorAlreadyDisplayed = false;
+        } catch (error) {
+            if (!this.#errorAlreadyDisplayed) {
+                window.setStatusBarMessage("An error occurred while retrieving MRS router services. " +
+                    `Error: ${error instanceof Error ? error.message : String(error) ?? "<unknown>"}`, 10000);
+                this.#errorAlreadyDisplayed = true;
+            }
+
+            entry.services = [];
         }
     }
 

@@ -144,16 +144,47 @@ def query_db_objects(session, db_object_id=None, schema_id=None, request_path=No
                      db_object_name=None, include_enable_state=None, object_types=None):
 
     # Build SQL based on which input has been provided
-    sql = """
+
+    # metadata column was only added in 3.0.0, row_user_ownership_enforced and row_user_ownership_column removed
+    current_version = core.get_mrs_schema_version(session)
+    if current_version[0] <= 2:
+        sql = """
             SELECT o.id, o.db_schema_id, o.name, o.request_path,
                 o.requires_auth, o.enabled, o.object_type,
-                o.items_per_page, o.row_user_ownership_enforced,
-                o.row_user_ownership_column, o.comments,
+                o.items_per_page, o.comments,
                 sc.request_path AS schema_request_path,
                 CONCAT(h.name, se.url_context_root) AS host_ctx,
                 o.crud_operations, o.format as crud_operation_format,
                 o.media_type, o.auto_detect_media_type,
                 o.auth_stored_procedure, o.options,
+                MAX(al.changed_at) as changed_at,
+                CONCAT(sc.name, '.', o.name) AS qualified_name,
+                se.id AS service_id, sc.name AS schema_name
+            FROM mysql_rest_service_metadata.db_object o
+                LEFT OUTER JOIN mysql_rest_service_metadata.db_schema sc
+                    ON sc.id = o.db_schema_id
+                LEFT OUTER JOIN mysql_rest_service_metadata.service se
+                    ON se.id = sc.service_id
+                LEFT JOIN mysql_rest_service_metadata.url_host h
+                    ON se.url_host_id = h.id
+                LEFT OUTER JOIN (
+                    SELECT new_row_id AS id, MAX(changed_at) as changed_at
+                    FROM mysql_rest_service_metadata.audit_log
+                    WHERE table_name = 'db_object'
+                    GROUP BY new_row_id) al
+                ON al.id = o.id
+            """
+    else:
+        sql = """
+            SELECT o.id, o.db_schema_id, o.name, o.request_path,
+                o.requires_auth, o.enabled, o.object_type,
+                o.items_per_page, o.comments,
+                sc.request_path AS schema_request_path,
+                CONCAT(h.name, se.url_context_root) AS host_ctx,
+                o.crud_operations, o.format as crud_operation_format,
+                o.media_type, o.auto_detect_media_type,
+                o.auth_stored_procedure, o.options,
+                o.metadata,
                 MAX(al.changed_at) as changed_at,
                 CONCAT(sc.name, '.', o.name) AS qualified_name,
                 se.id AS service_id, sc.name AS schema_name
@@ -199,7 +230,7 @@ def query_db_objects(session, db_object_id=None, schema_id=None, request_path=No
 
     if include_enable_state is not None:
         wheres.append("o.enabled = ?")
-        params.append("TRUE" if include_enable_state else "FALSE")
+        params.append("1" if include_enable_state else "0")
 
     sql += core._generate_where(wheres)
     sql += " GROUP BY o.id"
@@ -259,25 +290,16 @@ def get_db_objects(session, schema_id: bytes, include_enable_state=None, object_
 
 
 def add_db_object(session, schema_id, db_object_name, request_path, db_object_type,
-                  enabled, items_per_page, requires_auth,
-                  row_user_ownership_enforced, row_user_ownership_column, crud_operations,
-                  crud_operation_format, comments, media_type, auto_detect_media_type, auth_stored_procedure,
-                  options, objects, db_object_id=None, reuse_ids=False):
-
+                  enabled, items_per_page, requires_auth, crud_operation_format,
+                  comments, media_type, auto_detect_media_type, auth_stored_procedure,
+                  options, objects, metadata=None, db_object_id=None, reuse_ids=False,
+                  row_user_ownership_enforced=None, row_user_ownership_column=None):
     if not isinstance(db_object_name, str):
         raise Exception('Invalid object name.')
 
     if db_object_type not in ["TABLE", "VIEW", "PROCEDURE", "FUNCTION"]:
         raise ValueError(
             'Invalid db_object_type. Only valid types are TABLE, VIEW, PROCEDURE and FUNCTION.')
-
-    if not crud_operations:
-        raise ValueError("No CRUD operations specified."
-                         "Operation cancelled.")
-
-    if not isinstance(crud_operations, list):
-        raise TypeError("The crud_operations parameter need to be specified as "
-                        "list. Operation cancelled.")
 
     if not crud_operation_format:
         raise ValueError("No CRUD operation format specified."
@@ -286,8 +308,10 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     if row_user_ownership_enforced is None:
         row_user_ownership_enforced = False
 
-    if row_user_ownership_enforced and not row_user_ownership_column:
-        raise ValueError('Operation cancelled.')
+    current_version = core.get_mrs_schema_version(session=session)
+    if current_version[0] <= 2:
+        if row_user_ownership_enforced and not row_user_ownership_column:
+            raise ValueError('Operation cancelled.')
 
     if not comments:
         comments = ""
@@ -298,12 +322,12 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     core.check_request_path(
         session, schema["host_ctx"] + schema["request_path"] + request_path)
 
-    if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
-        crud_operations = ["UPDATE"]
-
     if db_object_id is None:
         db_object_id = core.get_sequence_id(session)
-    core.insert(table="db_object", values={
+
+    crud_operations = calculate_crud_operations(db_object_type, objects)
+
+    values = {
         "id": db_object_id,
         "db_schema_id": schema_id,
         "name": db_object_name,
@@ -318,10 +342,29 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
         "format": crud_operation_format,
         "comments": comments,
         "media_type": media_type,
+        "metadata": metadata,
         "auto_detect_media_type": int(auto_detect_media_type),
         "auth_stored_procedure": auth_stored_procedure,
         "options": options,
-    }).exec(session)
+    }
+
+    if current_version[0] >= 3:
+        # Remove row_user_ownership_enforced and row_user_ownership_column from db_object values as they are now
+        # passed in object and object_reference directly
+        values.pop("row_user_ownership_enforced", None)
+        values.pop("row_user_ownership_column", None)
+
+        # Update object.row_ownership_field_id when the old parameters are still used
+        if row_user_ownership_enforced and row_user_ownership_column:
+            for obj in objects:
+                fields = obj.get("fields", [])
+                for field in fields:
+                    db_column = field.get("db_column", None)
+                    if db_column is not None:
+                        if db_column.get("name") == row_user_ownership_column:
+                            obj["row_ownership_field_id"] = field.get("id")
+
+    core.insert(table="db_object", values=values).exec(session)
 
     set_objects(session, db_object_id, objects)
 
@@ -339,29 +382,9 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
 
 def get_crud_operations(session, db_object_id: bytes):
     result = core.select("db_object",
-                        cols="crud_operations, format",
-                        where=["id = ?"]).exec(session, [db_object_id]).first
+                         cols="crud_operations, format",
+                         where=["id = ?"]).exec(session, [db_object_id]).first
     return result["crud_operations"], result["format"]
-
-
-def set_crud_operations(session, db_object_id: bytes, crud_operations=None,
-                        crud_operation_format=None):
-    """Sets the request_path of the given db_object
-
-    Args:
-        session (object): The database session to use
-        db_object_id: The id of the schema to list the db_objects from
-        crud_operations (list): The allowed CRUD operations for the object
-        crud_operation_format (str): The format to use for the CRUD operation
-
-    Returns:
-        None
-    """
-    core.update(table="db_object", sets={
-        "crud_operations": crud_operations,
-        "format": crud_operation_format
-    }, where="id=?").exec(session, [db_object_id])
-
 
 
 def get_available_db_object_row_ownership_fields(session, schema_name, db_object_name, db_object_type):
@@ -386,10 +409,16 @@ def update_db_objects(session, db_object_ids, value):
         value["format"] = value.pop("crud_operation_format")
 
     for db_object_id in db_object_ids:
+        db_object = get_db_object(session=session, db_object_id=db_object_id)
+
         objects = value.pop("objects", None)
 
         if objects is not None:
-            core.check_mrs_object_names(session=session, db_schema_id=value["db_schema_id"], objects=objects)
+            core.check_mrs_object_names(
+                session=session, db_schema_id=value["db_schema_id"], objects=objects)
+
+            value["crud_operations"] = calculate_crud_operations(
+                db_object_type=db_object.get("object_type"), objects=objects)
 
         core.update("db_object",
                     sets=value,
@@ -444,6 +473,7 @@ def get_db_object_parameters(session, db_object_id=None,
     return database.get_db_object_parameters(
         session=session, db_schema_name=db_schema_name, db_object_name=db_object_name, db_type=db_type)
 
+
 def get_db_function_return_type(session, db_schema_name, db_object_name):
     return database.get_db_function_return_type(
         session=session, db_schema_name=db_schema_name, db_object_name=db_object_name)
@@ -492,7 +522,7 @@ def set_objects(session, db_object_id, objects):
 
 
 def set_object_fields_with_references(session, db_object_id, obj):
-    core.insert(table="object", values={
+    values = {
         "id": core.id_to_binary(obj.get("id"), "object.id"),
         "db_object_id": core.id_to_binary(db_object_id, "db_object_id"),
         "name": obj.get("name"),
@@ -500,7 +530,17 @@ def set_object_fields_with_references(session, db_object_id, obj):
         "position": obj.get("position"),
         "sdk_options": core.convert_dict_to_json_string(obj.get("sdk_options")),
         "comments": obj.get("comments"),
-    }).exec(session)
+    }
+
+    current_version = core.get_mrs_schema_version(session=session)
+    if current_version[0] >= 3:
+        values["options"] = obj.get("options", None)
+        row_ownership_field_id = obj.get("row_ownership_field_id", None)
+        if row_ownership_field_id is not None:
+            values["row_ownership_field_id"] = core.id_to_binary(
+                row_ownership_field_id, "row_ownership_field_id")
+
+    core.insert(table="object", values=values).exec(session)
 
     fields = obj.get("fields", [])
 
@@ -539,17 +579,25 @@ def set_object_fields_with_references(session, db_object_id, obj):
                 raise Exception(
                     f'reference_mapping not defined for field {field.get("name")}')
 
-            core.insert(table="object_reference", values={
+            values = {
                 "id": core.id_to_binary(obj_ref.get("id"), "objectReference.id"),
                 "reduce_to_value_of_field_id": core.id_to_binary(
                     obj_ref.get("reduce_to_value_of_field_id"),
                     "objectReference.reduce_to_value_of_field_id", True),
                 "reference_mapping": ref_map_json,
                 "unnest": obj_ref.get("unnest"),
-                "crud_operations": obj_ref.get("crud_operations"),
                 "sdk_options": core.convert_dict_to_json_string(obj_ref.get("sdk_options")),
                 "comments": obj_ref.get("comments"),
-            }).exec(session)
+            }
+            if current_version[0] >= 3:
+                values["options"] = obj_ref.get("options", None)
+                row_ownership_field_id = obj_ref.get(
+                    "row_ownership_field_id", None)
+                if row_ownership_field_id is not None:
+                    values["row_ownership_field_id"] = core.id_to_binary(row_ownership_field_id,
+                                                                         "objectReference.row_ownership_field_id")
+
+            core.insert(table="object_reference", values=values).exec(session)
 
     # Then insert object_fields
     inserted_field_ids = []
@@ -559,7 +607,7 @@ def set_object_fields_with_references(session, db_object_id, obj):
         if (not (field.get("id") in inserted_field_ids)):
             inserted_field_ids.append(field.get("id"))
 
-            core.insert(table="object_field", values={
+            values = {
                 "id": core.id_to_binary(field.get("id"), "field.id"),
                 "object_id": core.id_to_binary(field.get("object_id"), "field.object_id"),
                 "parent_reference_id": core.id_to_binary(
@@ -576,7 +624,51 @@ def set_object_fields_with_references(session, db_object_id, obj):
                 "no_update": field.get("no_update"),
                 "sdk_options": core.convert_dict_to_json_string(field.get("sdk_options")),
                 "comments": field.get("comments"),
-            }).exec(session)
+            }
+
+            if current_version[0] >= 3:
+                values["options"] = field.get("options", None)
+
+            core.insert(table="object_field", values=values).exec(session)
+
+
+def calculate_crud_operations(db_object_type, objects=None):
+    if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
+        return ["UPDATE"]
+
+    if objects is None:
+        return ["READ"]
+
+    if len(objects) == 0:
+        raise Exception("No object result definition present.")
+
+    obj = objects[0]
+    options = obj.get("options", {})
+    if options is None:
+        options = {}
+    crudOps = ["READ"]
+
+    if options.get("duality_view_insert", False) is True:
+        crudOps.append("CREATE")
+    if options.get("duality_view_update", False) is True:
+        crudOps.append("UPDATE")
+    if options.get("duality_view_delete", False) is True:
+        crudOps.append("DELETE")
+
+    # Loop over all fields and check if an object reference has a CRUD operation set. If so, the mrsObject
+    # needs to be updatable as well
+    if "UPDATE" not in crudOps:
+        for field in obj.get("fields"):
+            options = field.get("options", None)
+            if options is not None and len(crudOps) < 4:
+                if "UPDATE" not in crudOps and \
+                    (options.get("duality_view_insert", False) is True
+                     or options.get("duality_view_update", False) is True
+                     or options.get("duality_view_delete", False) is True):
+                    crudOps.append("UPDATE")
+
+    return crudOps
+
 
 def get_create_statement(session, db_object) -> str:
     executor = MrsDdlExecutor(session=session)
@@ -595,4 +687,3 @@ def get_create_statement(session, db_object) -> str:
         raise Exception(executor.results[0]['message'])
 
     return executor.results[0]["result"][0][f"CREATE REST {db_object_type}"]
-

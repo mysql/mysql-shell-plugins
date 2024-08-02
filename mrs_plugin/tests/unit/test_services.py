@@ -25,7 +25,7 @@ import pytest
 
 from tests.conftest import table_contents
 from ... services import *
-from .helpers import ServiceCT, SchemaCT, DbObjectCT, get_default_db_object_init
+from .helpers import ServiceCT, SchemaCT, DbObjectCT, get_default_db_object_init, TableContents
 from mrs_plugin import lib
 
 service_create_statement = """CREATE REST SERVICE localhost/test
@@ -65,7 +65,18 @@ CREATE OR REPLACE REST DUALITY VIEW /Contacts
         number: number,
         email: email
     }
-    AUTHENTICATION REQUIRED;"""
+    AUTHENTICATION REQUIRED;
+CREATE OR REPLACE REST CONTENT SET /test_content_set
+    ON SERVICE localhost/test
+    COMMENTS "Content Set";
+CREATE OR REPLACE REST CONTENT FILE "/readme.txt"
+    ON SERVICE localhost/test CONTENT SET /test_content_set
+    CONTENT 'Line \\'1\\'
+Line "2"
+Line \\\\3\\\\';
+CREATE OR REPLACE REST CONTENT FILE "/somebinaryfile.bin"
+    ON SERVICE localhost/test CONTENT SET /test_content_set
+    BINARY CONTENT 'AAECAwQFBgc=';"""
 
 def test_add_service(phone_book, table_contents):
     session = phone_book["session"]
@@ -79,7 +90,7 @@ def test_add_service(phone_book, table_contents):
 
     with pytest.raises(Exception) as exc_info:
         add_service(url_context_root="/test", url_host_name="localhost", enabled=True, **args)
-    assert str(exc_info.value) == "The request_path localhost/test is already in use."
+    assert str(exc_info.value) == "MySQL Error (1644): ClassicSession.run_sql: The request_path is already used by another entity."
 
     assert services_table.same_as_snapshot
 
@@ -106,20 +117,26 @@ def test_get_services(phone_book, table_contents):
     assert services is not None
     assert len(services) > 0
     assert services == [{
-        'id': services[0]["id"],
-        'enabled': 1,
-        'auth_completed_page_content': None,
-        'auth_completed_url': None,
-        'auth_completed_url_validation': None,
-        'auth_path': '/authentication',
-        'url_protocol': ['HTTP'],
-        'url_host_name': 'localhost',
-        'url_context_root': '/test',
-        'url_host_id': services[0]["url_host_id"],
-        'options': None,
-        'comments': 'Test service',
-        'host_ctx': 'localhost/test',
-        'is_current': 1,
+        "id": services[0]["id"],
+        "parent_id": None,
+        "enabled": 1,
+        "auth_completed_page_content": None,
+        "auth_completed_url": None,
+        "auth_completed_url_validation": None,
+        "auth_path": "/authentication",
+        "url_protocol": ["HTTP"],
+        "url_host_name": "localhost",
+        "url_context_root": "/test",
+        "url_host_id": services[0]["url_host_id"],
+        "options": None,
+        "metadata": None,
+        "comments": "Test service",
+        "host_ctx": "localhost/test",
+        "is_current": 1,
+        "in_development": None,
+        "full_service_path": "localhost/test",
+        "published": 0,
+        "sorted_developers": None,
     }]
 
 
@@ -133,35 +150,46 @@ def test_get_service(phone_book, table_contents):
     assert service is not None
     assert isinstance(service, dict)
     assert service == {
-        'comments': 'Test service',
-        'enabled': 1,
-        'host_ctx': 'localhost/test',
-        'id': service["id"],
-        'auth_completed_page_content': None,
-        'auth_completed_url': None,
-        'auth_completed_url_validation': None,
-        'auth_path': '/authentication',
-        'options': None,
-        'url_context_root': '/test',
-        'url_host_id': service["url_host_id"],
-        'url_host_name': 'localhost',
-        'url_protocol': ['HTTP'],
-        'is_current': 1,
+        "comments": "Test service",
+        "enabled": 1,
+        "host_ctx": "localhost/test",
+        "id": service["id"],
+        "parent_id": None,
+        "auth_completed_page_content": None,
+        "auth_completed_url": None,
+        "auth_completed_url_validation": None,
+        "auth_path": "/authentication",
+        "options": None,
+        "metadata": None,
+        "url_context_root": "/test",
+        "url_host_id": service["url_host_id"],
+        "url_host_name": "localhost",
+        "url_protocol": ["HTTP"],
+        "is_current": 1,
+        "in_development": None,
+        "full_service_path": "localhost/test",
+        "published": 0,
+        "sorted_developers": None,
     }
     assert service_table.snapshot[0] == {
-        'comments': 'Test service',
-        'enabled': 1,
-        'id': service["id"],
-        'auth_completed_page_content': None,
-        'auth_completed_url': None,
-        'auth_completed_url_validation': None,
-        'auth_path': '/authentication',
-        'options': None,
-        'url_context_root': '/test',
-        'url_host_id': service["url_host_id"],
-        'url_protocol': ['HTTP'],
-        'custom_metadata_schema': None,
-        'enable_sql_endpoint': 0,
+        "comments": "Test service",
+        "enabled": 1,
+        "id": service["id"],
+        "parent_id": None,
+        "auth_completed_page_content": None,
+        "auth_completed_url": None,
+        "auth_completed_url_validation": None,
+        "auth_path": "/authentication",
+        "options": None,
+        "metadata": None,
+        "url_context_root": "/test",
+        "url_host_id": service["url_host_id"],
+        "url_protocol": ["HTTP"],
+        "custom_metadata_schema": None,
+        "enable_sql_endpoint": 0,
+        "in_development": None,
+        "published": 0,
+        "name": "mrs",
     }
 
     with ServiceCT(session, "/service2", "localhost", **args) as service_id:
@@ -170,33 +198,39 @@ def test_get_service(phone_book, table_contents):
         assert service is not None
         assert isinstance(service, dict)
         assert service == {
-            'comments': '',
-            'enabled': 1,
-            'host_ctx': 'localhost/service2',
-            'id': service_id,
-            'auth_completed_page_content': None,
-            'auth_completed_url': None,
-            'auth_completed_url_validation': None,
-            'auth_path': '/authentication',
-            'options': {
-                'headers': {
-                    'Access-Control-Allow-Credentials': 'true',
-                    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token',
-                    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            "comments": "",
+            "enabled": 1,
+            "host_ctx": "localhost/service2",
+            "id": service_id,
+            "parent_id": None,
+            "auth_completed_page_content": None,
+            "auth_completed_url": None,
+            "auth_completed_url_validation": None,
+            "auth_path": "/authentication",
+            "options": {
+                "headers": {
+                    "Access-Control-Allow-Credentials": "true",
+                    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token",
+                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
                 },
-                'http': { 'allowedOrigin': 'auto' },
-                'logging': {
-                    'exceptions': True,
-                    'request': { 'body': True, 'headers': True },
-                    'response': { 'body': True, 'headers': True },
+                "http": { "allowedOrigin": "auto" },
+                "logging": {
+                    "exceptions": True,
+                    "request": { "body": True, "headers": True },
+                    "response": { "body": True, "headers": True },
                 },
-                'returnInternalErrorDetails': True,
+                "returnInternalErrorDetails": True,
             },
-            'url_context_root': '/service2',
-            'url_host_id': service["url_host_id"],
-            'url_host_name': 'localhost',
-            'url_protocol': ['HTTP'],
-            'is_current': 0,
+            "metadata": None,
+            "url_context_root": "/service2",
+            "url_host_id": service["url_host_id"],
+            "url_host_name": "localhost",
+            "url_protocol": ["HTTP"],
+            "is_current": 0,
+            "in_development": None,
+            "full_service_path": "localhost/service2",
+            "published": 0,
+            "sorted_developers": None,
         }
 
 
@@ -398,7 +432,7 @@ CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE localhost/test2
     FROM `PhoneBook`;
 CREATE OR REPLACE REST DUALITY VIEW /addresses
     ON SERVICE localhost/test2 SCHEMA /PhoneBook2
-    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE {
+    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
         id: id
     }
     ITEMS PER PAGE 10
@@ -457,6 +491,7 @@ CREATE OR REPLACE REST DUALITY VIEW /addresses
             lib.services.delete_service(session, service["id"])
 
     services = lib.services.get_services(session)
+
     assert len(services) == 1
 
     with open(full_path_file2, "r") as f:

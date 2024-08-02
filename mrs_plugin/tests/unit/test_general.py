@@ -62,14 +62,14 @@ def test_configure(phone_book):
 
     config_output = configure()
     assert config_output == {
-        'mrs_enabled': 1,
-        'schema_changed': False
+        "mrs_enabled": 1,
+        "schema_changed": False
     }
 
     config_output = configure(**config)
     assert config_output == {
-        'mrs_enabled': 1,
-        'schema_changed': False
+        "mrs_enabled": 1,
+        "schema_changed": False
     }
 
     config = {
@@ -78,14 +78,14 @@ def test_configure(phone_book):
     }
 
     config_output = configure(**config)
-    assert config_output == {'mrs_enabled': False, 'schema_changed': False}
+    assert config_output == {"mrs_enabled": False, "schema_changed": False}
 
     config = {
         "enable_mrs": True,
         "session": phone_book["session"]
     }
     config_output = configure(**config)
-    assert config_output == {'mrs_enabled': True, 'schema_changed': False}
+    assert config_output == {"mrs_enabled": True, "schema_changed": False}
 
     config = {
         "enable_mrs": False,
@@ -93,8 +93,8 @@ def test_configure(phone_book):
     }
     config_output = configure(**config)
     assert config_output is not None
-    assert config_output == {'schema_changed': False,
-                             'mrs_enabled': False}
+    assert config_output == {"schema_changed": False,
+                             "mrs_enabled": False}
 
     config = {
         "enable_mrs": True,
@@ -102,8 +102,8 @@ def test_configure(phone_book):
     }
     config_output = configure(**config)
     assert config_output is not None
-    assert config_output == {'schema_changed': False,
-                             'mrs_enabled': True}
+    assert config_output == {"schema_changed": False,
+                             "mrs_enabled": True}
 
 
 def test_ls(phone_book):
@@ -151,61 +151,67 @@ def test_status(phone_book):
     # disable service
     config_output = configure(phone_book["session"], False)
     assert config_output == {
-        'mrs_enabled': False,
-        'schema_changed': False
+        "mrs_enabled": False,
+        "schema_changed": False
     }
 
     status_output = status(phone_book["session"])
     assert status_output is not None
     assert isinstance(status_output, dict)
     assert status_output == {
-        'service_configured': True,
-        'service_count': 1,
-        'service_enabled': 0,
-        'service_upgradeable': False,
-        'current_metadata_version': lib.general.DB_VERSION_STR,
-        'major_upgrade_required': False,
-        'required_metadata_version': lib.general.DB_VERSION_STR,
-        'required_router_version': lib.general.REQUIRED_ROUTER_VERSION_STR,
+        "service_configured": True,
+        "service_count": 1,
+        "service_enabled": False,
+        "service_upgradeable": False,
+        "current_metadata_version": lib.general.DB_VERSION_STR,
+        "major_upgrade_required": False,
+        "available_metadata_version": lib.general.DB_VERSION_STR,
+        "service_upgrade_ignored": False,
+        "required_router_version": lib.general.REQUIRED_ROUTER_VERSION_STR,
+        "service_being_upgraded": False,
     }
 
     # enable service
     config_output = configure(phone_book["session"], True)
     assert config_output == {
-        'mrs_enabled': True,
-        'schema_changed': False
+        "mrs_enabled": True,
+        "schema_changed": False
     }
 
     status_output = status(phone_book["session"])
     assert status_output is not None
     assert isinstance(status_output, dict)
     assert status_output == {
-        'service_configured': True,
-        'service_count': 1,
-        'service_enabled': 1,
-        'service_upgradeable': False,
-        'current_metadata_version': lib.general.DB_VERSION_STR,
-        'major_upgrade_required': False,
-        'required_metadata_version': lib.general.DB_VERSION_STR,
-        'required_router_version': lib.general.REQUIRED_ROUTER_VERSION_STR,
+        "service_configured": True,
+        "service_count": 1,
+        "service_enabled": True,
+        "service_upgradeable": False,
+        "current_metadata_version": lib.general.DB_VERSION_STR,
+        "major_upgrade_required": False,
+        "available_metadata_version": lib.general.DB_VERSION_STR,
+        "service_upgrade_ignored": False,
+        "required_router_version": lib.general.REQUIRED_ROUTER_VERSION_STR,
+        "service_being_upgraded": False,
     }
 
     config_output = configure(phone_book["session"], enabled)
     assert config_output == {
-        'mrs_enabled': enabled,
-        'schema_changed': False
+        "mrs_enabled": enabled,
+        "schema_changed": False
     }
 
     status_output = status(phone_book["session"])
     assert status_output is not None
     assert isinstance(status_output, dict)
     assert status_output == {
-        'service_configured': True,
-        'service_count': 1,
-        'service_enabled': enabled,
-        'service_upgradeable': False,
-        'current_metadata_version': lib.general.DB_VERSION_STR,
-        'major_upgrade_required': False,
-        'required_metadata_version': lib.general.DB_VERSION_STR,
-        'required_router_version': lib.general.REQUIRED_ROUTER_VERSION_STR,
+        "service_configured": True,
+        "service_count": 1,
+        "service_enabled": enabled,
+        "service_upgradeable": False,
+        "current_metadata_version": lib.general.DB_VERSION_STR,
+        "major_upgrade_required": False,
+        "available_metadata_version": lib.general.DB_VERSION_STR,
+        "service_upgrade_ignored": False,
+        "required_router_version": lib.general.REQUIRED_ROUTER_VERSION_STR,
+        "service_being_upgraded": False,
     }

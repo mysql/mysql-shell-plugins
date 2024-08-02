@@ -67,7 +67,7 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
         access_token (str): access_token of the app
         app_id (str): app_id of the app
         limit_to_registered_users (bool): Limit access to registered users
-        registered_users (list): List of registered users, separated by ,
+        registered_users (list): List of registered users
         default_role_id (str): The default role to be assigned to new users
         session (object): The database session to use
 
@@ -267,7 +267,7 @@ def delete_auth_app(**kwargs):
         auth_app = resolve_auth_app(session, app_id, service_id)
 
         with lib.core.MrsDbTransaction(session):
-            lib.auth_apps.delete_auth_app(session, app_id=auth_app["id"])
+            lib.auth_apps.delete_auth_app(session, service_id=service_id, app_id=auth_app["id"])
 
 
 @plugin_function('mrs.update.authenticationApp', shell=True, cli=True, web=True)

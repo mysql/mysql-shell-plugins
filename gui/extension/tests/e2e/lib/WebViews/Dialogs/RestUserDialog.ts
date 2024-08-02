@@ -51,13 +51,6 @@ export class RestUserDialog {
         await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.username, restUser.username);
         await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.password, restUser.password);
 
-        if (restUser.authenticationApp) {
-            await dialog.findElement(locator.mrsUserDialog.authApp).click();
-            await driver.wait(until.elementLocated(locator.mrsUserDialog.authAppList),
-                constants.wait5seconds, "Auth app drop down list was not displayed");
-
-            await driver.wait(until.elementLocated(By.id(restUser.authenticationApp)), constants.wait5seconds).click();
-        }
         if (restUser.email) {
             await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.email, restUser.email);
         }
@@ -115,7 +108,7 @@ export class RestUserDialog {
         const restUser: interfaces.IRestUser = {
             username: await DialogHelper.getFieldValue(dialog, locator.mrsUserDialog.username),
             password: await DialogHelper.getFieldValue(dialog, locator.mrsUserDialog.password),
-            authenticationApp: await dialog.findElement(locator.mrsUserDialog.authAppLabel).getText(),
+            authenticationApp: await (await dialog.findElement(locator.mrsUserDialog.authApp)).getAttribute("value"),
             email: await DialogHelper.getFieldValue(dialog, locator.mrsUserDialog.email),
             assignedRoles: await dialog.findElement(locator.mrsUserDialog.rolesLabel).getText(),
             userOptions: (await dialog.findElement(locator.mrsUserDialog.appOptions)

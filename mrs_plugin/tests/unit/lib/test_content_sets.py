@@ -27,7 +27,7 @@ import mysqlsh
 
 from lib.core import MrsDbSession
 from mrs_plugin import lib
-from .. helpers import ContentSetCT
+from .. helpers import ContentSetCT, get_default_content_set_init
 
 def test_add_content_set(phone_book, table_contents):
     with lib.core.MrsDbSession(session=phone_book["session"]) as session:
@@ -66,13 +66,7 @@ def test_enable_disable(phone_book, table_contents):
 
         assert table_content_set.same_as_snapshot
 
-        content_set_init = {
-            "service_id": phone_book["service_id"],
-            "request_path": "/tempContentSet",
-            "requires_auth": False,
-            "comments": "",
-            "options": {}
-        }
+        content_set_init = get_default_content_set_init(phone_book["service_id"])
         with ContentSetCT(session, **content_set_init) as content_set_id:
             table_content_set.take_snapshot()
 
@@ -93,13 +87,14 @@ def test_get_content_set(phone_book, table_contents):
     with MrsDbSession(session=phone_book["session"]) as session:
         table_content_set = table_contents("content_set")
         content_set_1 = {
-            'id': phone_book["content_set_id"],
-            'request_path': '/test_content_set',
-            'requires_auth': 0,
-            'enabled': 1,
-            'comments': 'Content Set',
-            'host_ctx': 'localhost/test',
+            "id": phone_book["content_set_id"],
+            "request_path": "/test_content_set",
+            "requires_auth": 0,
+            "enabled": 1,
+            "comments": "Content Set",
+            "host_ctx": "localhost/test",
             "options": None,
+            "service_id": phone_book["service_id"],
         }
         args = {
             "content_set_id": phone_book["content_set_id"],
@@ -111,13 +106,15 @@ def test_get_content_set(phone_book, table_contents):
         sets = lib.content_sets.get_content_set(**args)
         assert sets == content_set_1
         assert table_content_set.get("id", phone_book["content_set_id"]) == {
-            'id': phone_book["content_set_id"],
-            'request_path': '/test_content_set',
-            'requires_auth': 0,
-            'enabled': 1,
-            'comments': 'Content Set',
-            'options': None,
-            'service_id': phone_book["service_id"],
+            "id": phone_book["content_set_id"],
+            "request_path": "/test_content_set",
+            "requires_auth": 0,
+            "enabled": 1,
+            "comments": "Content Set",
+            "options": None,
+            "service_id": phone_book["service_id"],
+            "content_type": "STATIC",
+            "internal": 0,
         }
 
         args["content_set_id"] = "0x00000000000000000000000000000000"

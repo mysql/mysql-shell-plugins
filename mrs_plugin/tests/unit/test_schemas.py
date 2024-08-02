@@ -66,6 +66,7 @@ def test_get_schemas(phone_book):
                     'name': 'PhoneBook',
                     'request_path': '/PhoneBook2',
                     'options': None,
+                    'metadata': None,
                     'requires_auth': 0,
                     'service_id': phone_book["service_id"],
                     'url_host_id': schemas[1]["url_host_id"]
@@ -94,6 +95,7 @@ def test_get_schema(phone_book):
         'requires_auth': 0,
         'service_id': phone_book["service_id"],
         'options': None,
+        'metadata': None,
         'url_host_id': phone_book["url_host_id"]
     }
 
@@ -109,15 +111,18 @@ def test_change_schema(phone_book, table_contents):
     with SchemaCT(phone_book["service_id"], "PhoneBook", "/test_schema2") as schema_id:
         schema_table.count == schema_table.snapshot.count + 1
         assert schema_table.get("id", schema_id) == {
-            'comments': '',
-            'enabled': 1,
-            'id': schema_id,
-            'items_per_page': 25,
-            'name': 'PhoneBook',
-            'request_path': '/test_schema2',
-            'requires_auth': 0,
-            'service_id': phone_book["service_id"],
-            'options': None
+            "comments": "",
+            "enabled": 1,
+            "id": schema_id,
+            "items_per_page": 25,
+            "name": "PhoneBook",
+            "request_path": "/test_schema2",
+            "requires_auth": 0,
+            "service_id": phone_book["service_id"],
+            "options": None,
+            "metadata": None,
+            "schema_type": "DATABASE_SCHEMA",
+            "internal": 0,
         }
 
         result = disable_schema(schema_id=schema_id, **args)
@@ -217,15 +222,18 @@ def test_change_schema(phone_book, table_contents):
         assert result is not None
         assert result == True
         assert schema_table.get("id", schema_id) == {
-            'comments': args['value']["comments"],
-            'enabled': int(args['value']["enabled"]),
-            'id': schema_id,
-            'items_per_page': args['value']["items_per_page"],
-            'name': args['value']["name"],
-            'request_path': args['value']["request_path"],
-            'requires_auth': int(args['value']["requires_auth"]),
-            'options': None,
-            'service_id': phone_book["service_id"]
+            "comments": args["value"]["comments"],
+            "enabled": int(args["value"]["enabled"]),
+            "id": schema_id,
+            "items_per_page": args["value"]["items_per_page"],
+            "name": args["value"]["name"],
+            "request_path": args["value"]["request_path"],
+            "requires_auth": int(args["value"]["requires_auth"]),
+            "options": None,
+            "service_id": phone_book["service_id"],
+            "metadata": None,
+            "schema_type": "DATABASE_SCHEMA",
+            "internal": 0,
         }
 
         schema = get_schema(**kwargs)
@@ -320,7 +328,7 @@ def test_dump_and_recover(phone_book, table_contents):
     FROM `PhoneBook`;
 CREATE OR REPLACE REST DUALITY VIEW /addresses
     ON SERVICE localhost/test SCHEMA /PhoneBook2
-    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE {
+    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
         id: id
     }
     ITEMS PER PAGE 10

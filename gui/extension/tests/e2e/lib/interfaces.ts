@@ -109,6 +109,8 @@ export interface IConnSSH {
 }
 
 export interface IRestServiceSettings {
+    mrsAdminUser?: string;
+    mrsAdminPassword?: string;
     comments?: string;
     hostNameFilter?: string;
 }
@@ -136,6 +138,7 @@ export interface IRestService {
     servicePath: string;
     enabled?: boolean;
     default?: boolean;
+    published?: boolean;
     settings?: IRestServiceSettings;
     options?: string;
     authentication?: IRestServiceAuthentication;
@@ -177,8 +180,7 @@ export interface IRestObjectJsonDual {
 }
 
 export interface IRestObjectCrud {
-    create: boolean;
-    read: boolean;
+    insert: boolean;
     update: boolean;
     delete: boolean;
 }
@@ -202,9 +204,7 @@ export interface IRestObjectSettings {
 }
 
 export interface IRestObjectAuthorization {
-    enforceRowUserOwner?: boolean;
-    rowOwnerShipField?: string;
-    customStoredProcedure?: string;
+    authStoredProcedure?: string;
 }
 
 export interface IRestAuthenticationApp {

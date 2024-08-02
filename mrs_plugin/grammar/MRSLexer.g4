@@ -63,6 +63,10 @@ IDENTIFIED_SYMBOL:     I D E N T I F I E D;
 BY_SYMBOL:             B Y;
 ROLE_SYMBOL:           R O L E;
 TO_SYMBOL:             T O;
+IGNORE_SYMBOL:         I G N O R E;
+CLONE_SYMBOL:          C L O N E;
+FILE_SYMBOL:           F I L E;
+BINARY_SYMBOL:         B I N A R Y;
 
 // Used for auto merging this grammar and the standard MySQL grammar.
 /* START OF MERGE PART */
@@ -80,7 +84,9 @@ PARAMETERS_SYMBOL:  P A R A M E T E R S;
 FUNCTIONS_SYMBOL:   F U N C T I O N S;
 RESULT_SYMBOL:      R E S U L T;
 ENABLED_SYMBOL:     E N A B L E D;
+PUBLISHED_SYMBOL:   P U B L I S H E D;
 DISABLED_SYMBOL:    D I S A B L E D;
+UNPUBLISHED_SYMBOL: U N P U B L I S H E D;
 PROTOCOL_SYMBOL:    P R O T O C O L;
 HTTP_SYMBOL:        H T T P;
 HTTPS_SYMBOL:       H T T P S;
@@ -98,6 +104,7 @@ AUTODETECT_SYMBOL:  A U T O D E T E C T;
 FEED_SYMBOL:        F E E D;
 ITEM_SYMBOL:        I T E M;
 SETS_SYMBOL:        S E T S;
+FILES_SYMBOL:       F I L E S;
 AUTH_SYMBOL:        A U T H;
 APPS_SYMBOL:        A P P S;
 APP_SYMBOL:         A P P;
@@ -108,12 +115,15 @@ USERS_SYMBOL:       U S E R S;
 ALLOW_SYMBOL:       A L L O W;
 REGISTER_SYMBOL:    R E G I S T E R;
 CLASS_SYMBOL:       C L A S S;
+DEVELOPMENT_SYMBOL: D E V E L O P M E N T;
+SCRIPTS_SYMBOL:     S C R I P T S;
 
 //----------------- GraphQL --------------------------------------------------------------------------------------------
 
 AT_INOUT_SYMBOL:        AT_SIGN_SYMBOL I N O U T;
 AT_IN_SYMBOL:           AT_SIGN_SYMBOL I N;
 AT_OUT_SYMBOL:          AT_SIGN_SYMBOL O U T;
+AT_CHECK_SYMBOL:        AT_SIGN_SYMBOL C H E C K;
 AT_NOCHECK_SYMBOL:      AT_SIGN_SYMBOL N O C H E C K;
 AT_NOUPDATE_SYMBOL:     AT_SIGN_SYMBOL N O U P D A T E;
 AT_SORTABLE_SYMBOL:     AT_SIGN_SYMBOL S O R T A B L E;

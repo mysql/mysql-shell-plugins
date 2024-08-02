@@ -52,7 +52,8 @@ def test_add_users(phone_book, table_contents):
     assert users_has_role_table.filter("user_id", phone_book["mrs_user1"]) == [{
         "user_id": phone_book["mrs_user1"],
         "role_id": lib.auth_apps.DEFAULT_ROLE_ID,
-        "comments": "Default role."
+        "comments": "Default role.",
+        "options": None,
     }]
 
     user = None
@@ -288,6 +289,7 @@ def test_user_roles(phone_book, table_contents):
                 "user_id": user_id,
                 "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
                 "comments": "Default role.",
+                "options": None,
             }
         ]
 
@@ -300,11 +302,13 @@ def test_user_roles(phone_book, table_contents):
                 "user_id": user_id,
                 "role_id": phone_book["roles"]["Process Admin"],
                 "comments": "Added as process admin",
+                "options": None,
             },
             {
                 "user_id": user_id,
                 "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
                 "comments": "Default role.",
+                "options": None,
             },
         ]
 
@@ -323,5 +327,6 @@ def test_user_roles(phone_book, table_contents):
                 "user_id": user_id,
                 "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
                 "comments": "Default role.",
+                "options": None,
             }
         ]

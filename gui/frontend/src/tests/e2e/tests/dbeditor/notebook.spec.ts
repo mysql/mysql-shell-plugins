@@ -1030,7 +1030,12 @@ describe("Notebook", () => {
             for (let i = 5; i <= tableColumns.length - 1; i++) {
                 const column = Misc.getDbTableColumnName("all_data_types_blobs", i);
                 const cellText = await commandExecutor.getCellValueFromResultGrid(rowNumber, column);
-                await commandExecutor.reduceCellWidth(rowNumber, column);
+                if (i === tableColumns.length - 1) {
+                    await commandExecutor.reduceCellWidth(rowNumber, column, "js");
+                } else {
+                    await commandExecutor.reduceCellWidth(rowNumber, column);
+                }
+
                 await driver.wait(waitUntil.cellTooltipIs(commandExecutor, rowNumber, column, cellText),
                     constants.wait3seconds);
             }

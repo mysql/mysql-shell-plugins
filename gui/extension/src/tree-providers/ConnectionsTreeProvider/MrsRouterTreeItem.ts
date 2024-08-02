@@ -36,9 +36,13 @@ export class MrsRouterTreeItem extends MrsTreeBaseItem {
         backend: ShellInterfaceSqlEditor,
         connectionId: number,
         requiresUpgrade: boolean) {
-        super(label, backend, connectionId, MrsRouterTreeItem.getIconName(value, requiresUpgrade), false);
+        super(label, backend, connectionId, MrsRouterTreeItem.getIconName(value, requiresUpgrade), true);
 
-        this.description = value.version;
+        if (value.options && value.options.developer) {
+            this.description = `[${String(value.options.developer)}] ${value.version}`;
+        } else {
+            this.description = value.version;
+        }
         this.tooltip = requiresUpgrade
             ? "This MySQL Router requires an upgrade."
             : `MySQL Router ${value.version} - ${value.address}`;

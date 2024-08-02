@@ -22,7 +22,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { until, error, By } from "vscode-extension-tester";
+import { until } from "vscode-extension-tester";
 import { driver, Misc } from "../../Misc";
 import * as constants from "../../constants";
 import * as interfaces from "../../interfaces";
@@ -54,10 +54,21 @@ export class RestServiceDialog {
 
         // Settings
         if (restService.settings) {
+            if (restService.settings.mrsAdminUser) {
+                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.mrsAdminUser,
+                    restService.settings.mrsAdminUser);
+            }
+
+            if (restService.settings.mrsAdminPassword) {
+                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.mrsAdminUserPassword,
+                    restService.settings.mrsAdminPassword);
+            }
+
             if (restService.settings.comments) {
                 await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.comments,
                     restService.settings.comments);
             }
+
             if (restService.settings.hostNameFilter) {
                 await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.hostNameFilter,
                     restService.settings.hostNameFilter);
@@ -92,59 +103,6 @@ export class RestServiceDialog {
                     restService.authentication.authCompletedChangeCont);
             }
         }
-        if (restService.authenticationApps) {
-            await dialog.findElement(locator.mrsServiceDialog.authenticationAppsTab).click();
-            if (restService.authenticationApps.vendor) {
-                await driver.wait(async () => {
-                    try {
-                        await dialog.findElement(locator.mrsServiceDialog.authenticationApps.vendorName).click();
-                    } catch (e) {
-                        if (!(e instanceof error.ElementClickInterceptedError)) {
-                            throw e;
-                        }
-                    }
-
-                    return (await driver.findElements(locator.mrsServiceDialog.authenticationApps.vendorNameList))
-                        .length > 0;
-                }, constants.wait5seconds, "Vendor drop down list was not displayed");
-
-                const popup = await driver.findElement(locator.mrsServiceDialog.authenticationApps.vendorNameList);
-                await popup.findElement(By.id(restService.authenticationApps.vendor)).click();
-            }
-            if (restService.authenticationApps.name) {
-                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsName,
-                    restService.authenticationApps.name);
-            }
-            if (restService.authenticationApps.description) {
-                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsDescription,
-                    restService.authenticationApps.description);
-            }
-            if (restService.authenticationApps.enabled !== undefined) {
-                await DialogHelper.setCheckboxValue("authApps.enabled", restService.authenticationApps.enabled);
-            }
-            if (restService.authenticationApps.limitToRegisteredUsers !== undefined) {
-                await DialogHelper.setCheckboxValue("authApps.limitToRegisteredUsers",
-                    restService.authenticationApps.limitToRegisteredUsers);
-
-            }
-            if (restService.authenticationApps.appId) {
-                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsId,
-                    restService.authenticationApps.appId);
-            }
-            if (restService.authenticationApps.accessToken) {
-                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsAccessToken,
-                    restService.authenticationApps.accessToken);
-            }
-            if (restService.authenticationApps.customUrl) {
-                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.authenticationApps.authAppsUrl,
-                    restService.authenticationApps.customUrl);
-            }
-            if (restService.authenticationApps.customUrlForAccessToken) {
-                await DialogHelper.setFieldText(dialog,
-                    locator.mrsServiceDialog.authenticationApps.authAppsUrlDirectAuth,
-                    restService.authenticationApps.customUrlForAccessToken);
-            }
-        }
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsServiceDialog.ok).click();
@@ -174,7 +132,6 @@ export class RestServiceDialog {
         restService.enabled = await DialogHelper.getCheckBoxValue("enabled");
 
         // Settings
-
         const restServiceSettings: interfaces.IRestServiceSettings = {};
         restServiceSettings.comments = await DialogHelper.getFieldValue(dialog,
             locator.mrsServiceDialog.settings.comments);
@@ -199,27 +156,6 @@ export class RestServiceDialog {
         authentication.authCompletedChangeCont = await DialogHelper.getFieldValue(dialog,
             locator.mrsServiceDialog.authentication.authCompletedPageContent);
         restService.authentication = authentication;
-
-        // Authentication apps
-        await dialog.findElement(locator.mrsServiceDialog.authenticationAppsTab).click();
-        const authenticationApps: interfaces.IRestServiceAuthApps = {
-            vendor: await dialog.findElement(locator.mrsServiceDialog.authenticationApps.vendorName)
-                .findElement(locator.htmlTag.label).getText(),
-            name: await DialogHelper.getFieldValue(dialog, locator.mrsServiceDialog.authenticationApps.authAppsName),
-            description: await DialogHelper.getFieldValue(dialog,
-                locator.mrsServiceDialog.authenticationApps.authAppsDescription),
-            enabled: await DialogHelper.getCheckBoxValue("authApps.enabled"),
-            limitToRegisteredUsers: await DialogHelper.getCheckBoxValue("authApps.limitToRegisteredUsers"),
-            appId: await DialogHelper.getFieldValue(dialog, locator.mrsServiceDialog.authenticationApps.authAppsId),
-            accessToken: await DialogHelper.getFieldValue(dialog,
-                locator.mrsServiceDialog.authenticationApps.authAppsAccessToken),
-            customUrl: await DialogHelper.getFieldValue(dialog,
-                locator.mrsServiceDialog.authenticationApps.authAppsUrl),
-            customUrlForAccessToken: await DialogHelper.getFieldValue(dialog,
-                locator.mrsServiceDialog.authenticationApps.authAppsUrlDirectAuth),
-        };
-
-        restService.authenticationApps = authenticationApps;
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsServiceDialog.cancel).click();

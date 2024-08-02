@@ -30,6 +30,7 @@ import { MrsAuthAppTreeItem } from "./MrsAuthAppTreeItem.js";
 import { MrsContentFileTreeItem } from "./MrsContentFileTreeItem.js";
 import { MrsContentSetTreeItem } from "./MrsContentSetTreeItem.js";
 import { MrsDbObjectTreeItem } from "./MrsDbObjectTreeItem.js";
+import { MrsRouterServiceTreeItem } from "./MrsRouterServiceTreeItem.js";
 import { MrsRouterTreeItem } from "./MrsRouterTreeItem.js";
 import { MrsSchemaTreeItem } from "./MrsSchemaTreeItem.js";
 import { MrsServiceTreeItem } from "./MrsServiceTreeItem.js";
@@ -213,8 +214,17 @@ export interface ICdmRestRouterEntry {
     parent: ICdmRestRootEntry;
 
     type: "mrsRouter";
+    services: ICdmRestRouterServiceEntry[];
     treeItem: MrsRouterTreeItem;
 }
+
+export interface ICdmRestRouterServiceEntry {
+    parent: ICdmRestRouterEntry;
+
+    type: "mrsRouterService";
+    treeItem: MrsRouterServiceTreeItem;
+}
+
 
 export interface ICdmRestRootEntry {
     parent: ICdmConnectionEntry;
@@ -262,6 +272,7 @@ export type ConnectionsTreeDataModelEntry =
     | ICdmRestRootEntry
     | ICdmRestServiceEntry
     | ICdmRestRouterEntry
+    | ICdmRestRouterServiceEntry
     | ICdmRestSchemaEntry
     | ICdmRestContentSetEntry
     | ICdmRestAuthAppEntry

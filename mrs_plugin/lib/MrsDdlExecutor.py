@@ -24,8 +24,10 @@
 import mrs_plugin.lib as lib
 from mrs_plugin.lib.MrsDdlExecutorInterface import MrsDdlExecutorInterface
 import json
+import re
 from datetime import datetime
-
+import base64
+import os
 
 def cutLastComma(fields):
     # Cut the last , away if present
@@ -62,8 +64,7 @@ def walk(fields, parent_id=None, level=1, add_data_type=False, current_object=No
                 attributes.append(
                     f'@DATATYPE("{field["db_column"]["datatype"]}")')
 
-            field["db_column"].get("name") == current_object.get("row_user_ownership_column") and \
-                current_object.get("row_user_ownership_enforced") and \
+            if field["id"] == current_object.get("row_ownership_field_id", None):
                 attributes.append("@ROWOWNERSHIP")
 
             result += f"{indent}{field['name']}: {field['db_column']['name']}"
@@ -74,17 +75,24 @@ def walk(fields, parent_id=None, level=1, add_data_type=False, current_object=No
             ref_table = f'{field["object_reference"]["reference_mapping"]["referenced_schema"]}.{field["object_reference"]["reference_mapping"]["referenced_table"]}'
 
             attributes = []
-            "CREATE" in field["object_reference"]["crud_operations"] and attributes.append(
-                "@INSERT")
-            "UPDATE" in field["object_reference"]["crud_operations"] and attributes.append(
-                "@UPDATE")
-            "DELETE" in field["object_reference"]["crud_operations"] and attributes.append(
-                "@DELETE")
+            options = field["object_reference"].get("options", {})
+            if options is None:
+                options = {}
+
+            if options.get("duality_view_insert", False) is True:
+                attributes.append("@INSERT")
+            if options.get("duality_view_update", False) is True:
+                attributes.append("@UPDATE")
+            if options.get("duality_view_delete", False) is True:
+                attributes.append("@DELETE")
+            if options.get("duality_view_no_check", False) is True:
+                attributes.append("@NOCHECK")
+
             if field["object_reference"]["unnest"] or field["object_reference"].get("reduce_to_value_of_field_id"):
                 attributes.append("@UNNEST")
 
             children = cutLastComma(walk(fields=fields, parent_id=field["represents_reference_id"],
-                                         level=level + 1, add_data_type=add_data_type, current_object=current_object))
+                                         level=level + 1, add_data_type=add_data_type, current_object=field["object_reference"]))
 
             result = f'{result}{indent}{field["name"]}: {ref_table}'
 
@@ -109,7 +117,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
     def __init__(self, session,
                  current_service_id=None, current_service=None,
-                 current_service_host=None,
+                 current_service_host=None, current_in_development=None,
                  current_schema_id=None, current_schema=None,
                  state_data={}):
         self.state_data = state_data
@@ -123,6 +131,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         if current_service is not None:
             self.current_service = current_service
+
+        if current_in_development is not None:
+            self.current_in_development = current_in_development
 
         if current_service_host is not None:
             self.current_service_host = current_service_host
@@ -177,6 +188,14 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         self.state_data['current_service_host'] = value
 
     @property
+    def current_in_development(self):
+        return self.state_data.get('current_in_development')
+
+    @current_in_development.setter
+    def current_in_development(self, value):
+        self.state_data['current_in_development'] = value
+
+    @property
     def current_schema(self):
         return self.state_data.get('current_schema')
 
@@ -196,20 +215,34 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             service_id = self.current_service_id
             mrs_object["url_context_root"] = self.current_service
             mrs_object["url_host_name"] = self.current_service_host
+            mrs_object["in_development"] = self.current_in_development
         elif url_context_root is not None:
             url_host_name = mrs_object.get("url_host_name", "")
+            developer_list = mrs_object.get("in_development").get(
+                    "developers", []) if mrs_object.get("in_development") else None
             service = lib.services.get_service(
                 url_context_root=url_context_root,
                 url_host_name=url_host_name,
+                developer_list=developer_list,
                 session=self.session,
                 get_default=False)
             if service is None:
                 raise Exception(
-                    f"Could not find the REST SERVICE {url_host_name}{url_context_root}.")
+                    f"Could not find the REST SERVICE {self.get_service_sorted_developers(developer_list)}" +
+                    f"{url_host_name}{url_context_root}.")
 
             service_id = service.get("id")
 
         return service_id
+
+    def get_service_sorted_developers(self, developer_list: list):
+        sorted_developers = ""
+        if developer_list is not None and len(developer_list) > 0:
+            developer_list.sort()
+            sorted_developers = ",".join(
+                f'\'{re.sub(r"(['\\])", "\\\\\\1", dev, 0, re.MULTILINE)}\'' \
+                    if not re.match(r'^\w+$', dev) else dev for dev in developer_list) + "@"
+        return sorted_developers
 
     # Check if the current mrs_object includes a schema request_path or if a
     # current schema has been set via USE REST SCHEMA
@@ -222,12 +255,13 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             mrs_object["schema_request_path"] = self.current_schema
             mrs_object["url_context_root"] = self.current_service
             mrs_object["url_host_name"] = self.current_service_host
+            mrs_object["in_development"] = self.current_in_development
         elif schema_request_path is not None:
             service_id = self.get_given_or_current_service_id(mrs_object)
             schema = lib.schemas.get_schema(
-                service_id=service_id,
-                request_path=schema_request_path,
-                session=self.session)
+                service_id = service_id,
+                request_path = schema_request_path,
+                session = self.session)
             if schema is None:
                 full_path = (
                     mrs_object.get("url_host_name", "") +
@@ -240,16 +274,36 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         return schema_id
 
     def getFullServicePath(self, mrs_object, request_path=""):
+        if "url_context_root" not in mrs_object.keys():
+            developers= ""
+            if self.current_in_development is not None:
+                developers = self.get_service_sorted_developers(self.current_in_development.get("developers", ""))
+
+            return (
+                developers +
+                self.current_service_host if self.current_service_host is not None else "" +
+                self.current_service if self.current_service is not None else "" +
+                request_path
+            )
+
+        developers= ""
+        if mrs_object.get("in_development") is not None:
+            developers = self.get_service_sorted_developers(mrs_object.get("in_development").get("developers", ""))
+
         return (
-            mrs_object.get("url_host_name",
-                           self.current_service_host if self.current_service_host is not None else "") +
-            mrs_object.get("url_context_root",
-                           self.current_service if self.current_service is not None else "") +
+            developers +
+            mrs_object.get("url_host_name", "") +
+            mrs_object.get("url_context_root", "") +
             request_path
         )
 
     def getFullSchemaPath(self, mrs_object, request_path=""):
+        developers= ""
+        if "in_development" in mrs_object.keys():
+            developers= self.get_service_sorted_developers(mrs_object.get("in_development").get("developers"))
+
         return (
+            developers +
             mrs_object.get("url_host_name",
                            self.current_service_host if self.current_service_host is not None else "") +
             mrs_object.get("url_context_root",
@@ -260,14 +314,14 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         )
 
     def createRestMetadata(self, mrs_object: dict):
-        timer = Timer()
-        self.current_operation = mrs_object.pop("current_operation")
+        timer= Timer()
+        self.current_operation= mrs_object.pop("current_operation")
         try:
-            status = lib.general.configure(
-                session=self.session,
-                enable_mrs=mrs_object.get("enabled"),
-                options=mrs_object.get("options"),
-                update_if_available=mrs_object.get("update_if_available"))
+            status= lib.general.configure(
+                session = self.session,
+                enable_mrs = mrs_object.get("enabled"),
+                options = mrs_object.get("options"),
+                update_if_available = mrs_object.get("update_if_available"))
 
             self.results.append({
                 "statementIndex": len(self.results) + 1,
@@ -288,28 +342,32 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             raise
 
     def createRestService(self, mrs_object):
-        timer = Timer()
-        self.current_operation = mrs_object.pop("current_operation")
-        do_replace = mrs_object.pop("do_replace")
-        context_root = mrs_object.get("url_context_root", "")
-        url_host_name = mrs_object.pop("url_host_name", "")
-        full_path = f'{url_host_name}{context_root}'
+        timer= Timer()
+        self.current_operation= mrs_object.pop("current_operation")
+        do_replace= mrs_object.pop("do_replace")
+        context_root= mrs_object.get("url_context_root", "")
+        url_host_name= mrs_object.pop("url_host_name", "")
+
+        full_path= self.getFullServicePath(mrs_object=mrs_object)
 
         with lib.core.MrsDbTransaction(self.session):
             try:
                 # If the OR REPLACE was specified, check if there is an existing service on the same host
                 # with the same path and delete it.
                 if do_replace is True:
-                    service = lib.services.get_service(
-                        url_context_root=context_root,
-                        url_host_name=url_host_name,
-                        get_default=False, session=self.session)
+                    service= lib.services.get_service(
+                        url_context_root = context_root,
+                        url_host_name = url_host_name,
+                        get_default = False,
+                        developer_list = mrs_object.get("in_development").get(
+                            "developers", []) if "in_development" in mrs_object.keys() else None,
+                        session = self.session)
                     if service is not None:
                         lib.services.delete_service(
-                            service_id=service.get("id"), session=self.session)
+                            service_id = service.get("id"), session = self.session)
 
                 # Add the service
-                service_id = lib.services.add_service(
+                service_id= lib.services.add_service(
                     session=self.session,
                     url_host_name=url_host_name,
                     service=mrs_object)
@@ -320,6 +378,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     self.current_service_id = service_id
                     self.current_service = context_root
                     self.current_service_host = url_host_name
+                    self.current_in_development = mrs_object.get("in_development")
                     # Also set the stored current session
                     lib.services.set_current_service_id(
                         session=self.session, service_id=self.current_service_id)
@@ -477,11 +536,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     enabled=mrs_object.get("enabled", True),
                     items_per_page=mrs_object.get("items_per_page"),
                     requires_auth=mrs_object.get("requires_auth", 0),
-                    row_user_ownership_enforced=mrs_object.get(
-                        "row_user_ownership_enforced"),
-                    row_user_ownership_column=mrs_object.get(
-                        "row_user_ownership_column"),
-                    crud_operations=mrs_object.get("crud_operations"),
                     crud_operation_format=mrs_object.get("format", "FEED"),
                     comments=mrs_object.get("comments"),
                     media_type=mrs_object.get("media_type"),
@@ -492,7 +546,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     options=mrs_object.get("options"),
                     db_object_id=lib.core.id_to_binary(
                         mrs_object.get("id"), "db_object_id"),
-                    objects=mrs_object.get("objects"))
+                    objects=mrs_object.get("objects"),
+                    metadata=mrs_object.get("metadata", None))
 
                 for grant in grants:
                     lib.core.MrsDbExec(grant).exec(self.session)
@@ -546,13 +601,18 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     requires_auth=mrs_object.get("requires_auth", 1),
                     comments=mrs_object.get("comments"),
                     options=mrs_object.get("options"),
-                    enabled=mrs_object.get("enabled", 1)
+                    enabled=mrs_object.get("enabled", 1),
+                    content_type=mrs_object.get("content_type"),
                 )
 
-                file_list = lib.content_files.add_content_dir(
-                    session=self.session, content_set_id=content_set_id,
-                    content_dir=mrs_object.get("directory_file_path"),
-                    requires_auth=mrs_object.get("requires_auth", True))
+                if mrs_object.get("directory_file_path") is not None:
+                    file_list = lib.content_files.add_content_dir(
+                        session=self.session, content_set_id=content_set_id,
+                        content_dir=mrs_object.get("directory_file_path"),
+                        requires_auth=mrs_object.get("requires_auth", True),
+                        ignore_list=mrs_object.get("file_ignore_list", ""))
+                else:
+                    file_list = []
 
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
@@ -567,6 +627,86 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "statementIndex": len(self.results) + 1,
                     "type": "error",
                     "message": f"Failed to create the REST CONTENT SET `{full_path}`. {e}",
+                    "operation": self.current_operation
+                })
+                raise
+
+    def createRestContentFile(self, mrs_object: dict):
+        timer = Timer()
+        self.current_operation = mrs_object.pop("current_operation")
+        do_replace = mrs_object.pop("do_replace")
+
+        full_path = mrs_object.get("request_path")
+
+        with lib.core.MrsDbTransaction(self.session):
+            try:
+                service_id = self.get_given_or_current_service_id(mrs_object)
+                if service_id is None:
+                    raise Exception("No REST SERVICE specified.")
+
+                # Get content set
+                content_set = lib.content_sets.get_content_set(
+                    session=self.session,
+                    service_id=service_id,
+                    request_path=mrs_object.get("content_set_path"),
+                )
+                if content_set is None:
+                    raise Exception(f"CONTENT SET {mrs_object.get("content_set_path")} not found.")
+
+                full_path = self.getFullServicePath(
+                    mrs_object=mrs_object,
+                    request_path=content_set.get("request_path") + mrs_object.get("request_path"))
+
+                # If the OR REPLACE was specified, check if there is an existing content set on the same service
+                # and delete it.
+                if do_replace == True:
+                    content_file = lib.content_files.get_content_file(
+                        content_set_id=content_set.get("id"),
+                        request_path=mrs_object.get("request_path"),
+                        include_file_content=False,
+                        session=self.session)
+                    if content_file is not None:
+                        lib.content_files.delete_content_file(
+                            content_file_ids=[content_file.get("id")], session=self.session)
+
+                file_path: str | None = mrs_object.get("directory_file_path")
+                if file_path is not None:
+                    file_path = file_path.replace('"', "")
+
+                    if not os.path.exists(file_path):
+                        raise Exception(f"File '{file_path}' does not exist.")
+
+                    with open(file_path, "rb") as f:
+                        data = f.read()
+                elif mrs_object.get("is_binary", False):
+                    data = base64.b64decode(mrs_object.get("content"))
+                else:
+                    data = mrs_object.get("content")
+
+                # TODO Add support for options
+                content_file_id = lib.content_files.add_content_file(
+                    session=self.session,
+                    content_set_id=content_set.get("id"),
+                    request_path=mrs_object.get("request_path"),
+                    requires_auth=mrs_object.get("requires_auth", 1),
+                    options=mrs_object.get("options"),
+                    data=data,
+                    enabled=mrs_object.get("enabled", 1)
+                )
+
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "success",
+                    "message": f"REST CONTENT FILE `{full_path}` created successfully.",
+                    "operation": self.current_operation,
+                    "id": content_file_id,
+                    "executionTime": timer.elapsed()
+                })
+            except Exception as e:
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "error",
+                    "message": f"Failed to create the REST CONTENT FILE `{full_path}`. {e}",
                     "operation": self.current_operation
                 })
                 raise
@@ -595,7 +735,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         session=self.session)
                     if auth_app is not None:
                         lib.auth_apps.delete_auth_app(
-                            app_id=auth_app.get("id"), session=self.session)
+                            service_id=service_id, app_id=auth_app.get("id"), session=self.session)
 
                 # TODO: Lookup default role by name
                 if mrs_object.get("default_role"):
@@ -720,6 +860,70 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 })
                 raise
 
+    def cloneRestService(self, mrs_object: dict):
+        timer = Timer()
+        self.current_operation = mrs_object.pop("current_operation")
+
+        full_path = self.getFullServicePath(mrs_object)
+
+        try:
+            service_id = self.get_given_or_current_service_id(mrs_object)
+            if service_id is None:
+                raise Exception("No REST SERVICE specified.")
+
+            service = lib.services.get_service(
+                service_id = service_id,
+                session = self.session)
+            if service is None:
+                raise Exception("The given REST SERVICE was not found.")
+
+            # A new developer_list / url_context_root / url_host_name is defined for the clone
+            if "new_developer_list" in mrs_object.keys() and len(mrs_object["new_developer_list"]) > 0:
+                if not "in_development" in service.keys():
+                    service["in_development"] = {"developers": []}
+                service["in_development"]["developers"] = mrs_object.pop(
+                    "new_developer_list")
+            else:
+                service["in_development"] = None
+
+            service["url_context_root"] = mrs_object.pop("new_url_context_root", "/undefined")
+            new_url_host_name = mrs_object.pop("new_url_host_name", "")
+
+            service["parent_id"] = service_id
+            service.pop("id", None)
+            service.pop("url_host_name", None)
+            service.pop("host_ctx", None)
+            service.pop("full_service_path", None)
+            service.pop("is_current", None)
+            service.pop("sorted_developers", None)
+
+            # Add the service
+            service_id = lib.services.add_service(
+                session=self.session,
+                url_host_name=new_url_host_name,
+                service=service)
+
+            # TODO: Making the correct entry into service_has_auth_app, using the same auth_apps_ids as the parent
+
+            # TODO: Add copying of schemas and db_objects and content_sets
+
+            self.results.append({
+                "statementIndex": len(self.results) + 1,
+                "type": "success",
+                "affectedItemsCount": 1,
+                "operation": self.current_operation,
+                "id": lib.core.convert_id_to_string(service_id),
+                "executionTime": timer.elapsed()
+            })
+        except Exception as e:
+            self.results.append({
+                "statementIndex": len(self.results) + 1,
+                "type": "error",
+                "message": f"Failed to clone the REST SERVICE `{full_path}`. {e}",
+                "operation": self.current_operation
+            })
+            raise
+
     def alterRestService(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
@@ -731,9 +935,17 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             if service_id is None:
                 raise Exception("No REST SERVICE specified.")
 
-            # If a new url_context_root / url_host_name was given,
+            service = lib.services.get_service(session=self.session, service_id=service_id)
+
+            # If a new developer_list / url_context_root / url_host_name was given,
             # overwrite the existing values in the mrs_object
             # so they are set during the update
+            if "new_developer_list" in mrs_object.keys():
+                if not "in_development" in mrs_object.keys():
+                    mrs_object["in_development"] = {"developers": []}
+                mrs_object["in_development"]["developers"] = mrs_object.pop(
+                    "new_developer_list")
+
             new_url_context_root = mrs_object.pop("new_url_context_root", None)
             new_url_host_name = mrs_object.pop("new_url_host_name", None)
             if new_url_context_root is not None:
@@ -793,6 +1005,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "items_per_page": mrs_object.get("items_per_page", schema["items_per_page"]),
                     "comments": mrs_object.get("comments", schema["comments"]),
                     "options": mrs_object.get("options", schema["options"]),
+                    "metadata": mrs_object.get("metadata", schema["metadata"]),
                 })
 
             self.results.append({
@@ -827,6 +1040,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         mrs_object.pop("parent_reference_stack", "")
         mrs_object.pop("url_context_root", "")
         mrs_object.pop("schema_request_path", "")
+        mrs_object.pop("in_development", "")
 
         try:
             db_object = lib.db_objects.get_db_object(
@@ -890,6 +1104,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 service = lib.services.get_service(
                     url_context_root=mrs_object.get("url_context_root"),
                     url_host_name=mrs_object.get("url_host_name", ""),
+                    developer_list=mrs_object.get("in_development").get(
+                        "developers", []) if "in_development" in mrs_object.keys() else None,
                     session=self.session)
                 if service is None:
                     raise Exception(
@@ -1040,6 +1256,59 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 })
                 raise
 
+    def dropRestContentFile(self, mrs_object: dict):
+        timer = Timer()
+        self.current_operation = mrs_object.pop("current_operation")
+
+        full_path = mrs_object.get("request_path")
+
+        with lib.core.MrsDbTransaction(self.session):
+            try:
+                service_id = self.get_given_or_current_service_id(mrs_object)
+                if service_id is None:
+                    raise Exception("No REST service specified.")
+
+                # Get content set
+                content_set = lib.content_sets.get_content_set(
+                    session=self.session,
+                    service_id=service_id,
+                    request_path=mrs_object.get("content_set_path"),
+                )
+                if content_set is None:
+                    raise Exception(f"The REST content set {mrs_object.get("content_set_path")} was not found.")
+
+                full_path = self.getFullServicePath(
+                    mrs_object=mrs_object,
+                    request_path=content_set.get("request_path") + mrs_object.get("request_path"))
+
+                content_file = lib.content_files.get_content_file(
+                    content_set_id=content_set.get("id"),
+                    request_path=mrs_object.get("request_path"),
+                    include_file_content=False,
+                    session=self.session)
+                if content_file is None:
+                    raise Exception(f"The REST content file {full_path} was not found.")
+
+                lib.content_files.delete_content_file(
+                    content_file_id=content_file["id"], session=self.session)
+
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "success",
+                    "message": f"REST CONTENT FILE `{full_path}` created successfully.",
+                    "operation": self.current_operation,
+                    "id": content_file["id"],
+                    "executionTime": timer.elapsed()
+                })
+            except Exception as e:
+                self.results.append({
+                    "statementIndex": len(self.results) + 1,
+                    "type": "error",
+                    "message": f"Failed to create the REST CONTENT FILE `{full_path}`. {e}",
+                    "operation": self.current_operation
+                })
+                raise
+
     def dropRestAuthApp(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
@@ -1064,7 +1333,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         f'The given REST AUTH APP `{full_path}` could not be found.')
 
                 lib.auth_apps.delete_auth_app(
-                    app_id=auth_app.get("id"), session=self.session)
+                    service_id=service_id, app_id=auth_app.get("id"), session=self.session)
 
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
@@ -1133,6 +1402,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 })
                 raise
 
+
     def use(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
@@ -1141,20 +1411,26 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             url_context_root = mrs_object.get("url_context_root")
             if url_context_root is not None:
                 service = lib.services.get_service(
-                    url_context_root=url_context_root,
-                    url_host_name=mrs_object.get("url_host_name", ""),
-                    session=self.session)
+                    url_context_root = url_context_root,
+                    url_host_name = mrs_object.get("url_host_name", ""),
+                    developer_list=mrs_object.get("in_development").get(
+                        "developers", []) if "in_development" in mrs_object.keys() else None,
+                    session = self.session)
                 if service is not None:
                     self.current_service_id = service.get("id")
                     self.current_service = service.get("url_context_root")
                     self.current_service_host = mrs_object.get(
                         "url_host_name", "")
+                    self.current_in_development = service.get("in_development")
                     # Also set the stored current session
                     lib.services.set_current_service_id(
-                        session=self.session, service_id=self.current_service_id)
+                        session = self.session, service_id = self.current_service_id)
                 else:
                     raise Exception(
                         f"A REST SERVICE with the request path {url_context_root} could not be found.")
+
+            developers = self.get_service_sorted_developers(self.current_in_development.get("developers")) \
+                if self.current_in_development is not None else ""
 
             if mrs_object.get("schema_request_path") is not None:
                 if self.current_service_id is None:
@@ -1163,9 +1439,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
                 request_path = mrs_object.get("schema_request_path")
                 schema = lib.schemas.get_schema(
-                    service_id=self.current_service_id,
-                    request_path=request_path,
-                    session=self.session)
+                    service_id = self.current_service_id,
+                    request_path = request_path,
+                    session = self.session)
                 if schema is not None:
                     self.current_schema_id = schema.get("id")
                     self.current_schema = schema.get("request_path")
@@ -1176,8 +1452,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "success",
-                    "message": (f'Now using REST SCHEMA `{self.current_schema}` '
-                                f'on REST SERVICE `{self.current_service_host}{self.current_service}`.'),
+                    "message": (
+                        f'Now using REST SCHEMA `{self.current_schema}` '
+                        f'on REST SERVICE `{developers}{self.current_service_host}{self.current_service}`.'),
                     "operation": self.current_operation,
                     "id": lib.core.convert_id_to_string(self.current_schema_id),
                     "executionTime": timer.elapsed()
@@ -1186,7 +1463,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 self.results.append({
                     "statementIndex": len(self.results) + 1,
                     "type": "success",
-                    "message": f'Now using REST SERVICE `{self.current_service_host}{self.current_service}`.',
+                    "message": f'Now using REST SERVICE `{developers}{self.current_service_host}{self.current_service}`.',
                     "operation": self.current_operation,
                     "id": lib.core.convert_id_to_string(self.current_service_id)
                 })
@@ -1232,7 +1509,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             result = []
             for service in services:
                 result.append({
-                    "REST SERVICE Path": service.get("host_ctx"),
+                    "REST SERVICE Path": service.get("full_service_path"),
                     "enabled": (service.get("enabled") == 1),
                     "current": (service.get("id") == self.current_service_id)
                 })
@@ -1358,6 +1635,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             })
             raise
 
+    def showRestContentFiles(self, mrs_object: dict):
+        raise NotImplementedError()
+
     def showRestAuthApps(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
@@ -1395,6 +1675,17 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             })
             raise
 
+    def formatJsonSetting(self, setting_name, value: dict):
+        if value is None or value == "":
+            return ""
+
+        js = json.dumps(value, indent=4)
+        # Indent the json.dumps with 4 spaces
+        js_indented = ""
+        for ln in js.split("\n"):
+            js_indented += f'    {ln}\n'
+        return f'    {setting_name} {js_indented[4:-1]}\n'
+
     def showCreateRestService(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
@@ -1427,14 +1718,16 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             if auth != "":
                 stmt += f'    AUTHENTICATION\n{auth}'
 
-            options = service.get("options")
-            if options is not None and options != "":
-                js = json.dumps(options, indent=4)
-                # Indent the json.dumps with 4 spaces
-                js_indented = ""
-                for ln in js.split("\n"):
-                    js_indented += f'    {ln}\n'
-                stmt += f'    OPTIONS {js_indented[4:-1]}\n'
+            stmt += self.formatJsonSetting("OPTIONS", service.get("options"))
+            stmt += self.formatJsonSetting("METADATA", service.get("metadata"))
+            # options = service.get("options")
+            # if options is not None and options != "":
+            #     js = json.dumps(options, indent=4)
+            #     # Indent the json.dumps with 4 spaces
+            #     js_indented = ""
+            #     for ln in js.split("\n"):
+            #         js_indented += f'    {ln}\n'
+            #     stmt += f'    OPTIONS {js_indented[4:-1]}\n'
 
             result = [{
                 "CREATE REST SERVICE": stmt[:-1] + ";"
@@ -1485,14 +1778,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             if schema.get("enabled") != 1:
                 stmt += "    DISABLED\n"
 
-            options = schema.get("options")
-            if options is not None and options != "":
-                js = json.dumps(options, indent=4)
-                # Indent the json.dumps with 4 spaces
-                js_indented = ""
-                for ln in js.split("\n"):
-                    js_indented += f'    {ln}\n'
-                stmt += f'    OPTIONS {js_indented[4:-1]}\n'
+            stmt += self.formatJsonSetting("OPTIONS", schema.get("options"))
+            stmt += self.formatJsonSetting("METADATA", schema.get("metadata"))
 
             result = [{
                 "CREATE REST SCHEMA ": stmt[:-1] + ";"
@@ -1543,6 +1830,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 session=self.session,
                 db_object_id=db_object.get("id")
             )
+            if len(objects) == 0:
+                raise Exception(
+                    f'The given REST object `{full_path}` does not have a result definition defined.')
 
             if rest_object_type == "PROCEDURE" and db_object.get("object_type") != "PROCEDURE":
                 raise Exception(
@@ -1555,8 +1845,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 raise Exception(
                     f'The given REST object `{full_path}` is not a REST DUALITY VIEW.')
 
-            options = []
-
             stmt = (f'CREATE OR REPLACE REST {rest_object_type} {db_object.get("request_path")}\n' +
                     f'    ON SERVICE {mrs_object.get("host_ctx")} SCHEMA {db_object.get("schema_request_path")}\n' +
                     f'    AS {db_object.get("qualified_name")}')
@@ -1564,20 +1852,25 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             if rest_object_type != "PROCEDURE" and rest_object_type != "FUNCTION":
                 stmt += f' CLASS {objects[0]["name"]}'
 
-                crud_ops = db_object.get("crud_operations")
-                if "CREATE" in crud_ops:
+                options = objects[0].get("options", {})
+                if options is None:
+                    options = {}
+
+                if options.get("duality_view_insert", False) is True:
                     stmt += " @INSERT"
-                if "UPDATE" in crud_ops:
+                if options.get("duality_view_update", False) is True:
                     stmt += " @UPDATE"
-                if "DELETE" in crud_ops:
+                if options.get("duality_view_delete", False) is True:
                     stmt += " @DELETE"
+                if options.get("duality_view_no_check", False) is True:
+                    stmt += " @NOCHECK"
 
                 fields = []
                 if len(objects) > 0:
                     fields = lib.db_objects.get_object_fields_with_references(
                         session=self.session, object_id=objects[0]["id"])
 
-                stmt += f' {{\n{cutLastComma(walk(fields=fields, level=2, current_object=db_object))}\n    }}\n'
+                stmt += f' {{\n{cutLastComma(walk(fields=fields, level=2, current_object=objects[0]))}\n    }}\n'
             else:
                 stmt += "\n"
                 for object in objects:
@@ -1585,7 +1878,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         session=self.session, object_id=object["id"])
 
                     children = cutLastComma(walk(
-                        fields=fields, level=2, add_data_type=object["kind"] == "RESULT", current_object=db_object))
+                        fields=fields, level=2, add_data_type=object["kind"] == "RESULT", current_object=object))
 
                     stmt += f'    {object["kind"]} {object["name"]}'
 
@@ -1614,14 +1907,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             if db_object["auth_stored_procedure"]:
                 stmt += f'    AUTHENTICATION PROCEDURE {db_object["auth_stored_procedure"]}\n'
 
-            options = db_object.get("options")
-            if options is not None and options != "":
-                js = json.dumps(options, indent=4)
-                # Indent the json.dumps with 4 spaces
-                js_indented = ""
-                for ln in js.split("\n"):
-                    js_indented += f'    {ln}\n'
-                stmt += f'    OPTIONS {js_indented[4:-1]}\n'
+            stmt += self.formatJsonSetting("OPTIONS", db_object.get("options"))
+            stmt += self.formatJsonSetting("METADATA", db_object.get("metadata"))
 
             # Build CREATE statement
             result = [{
@@ -1641,6 +1928,106 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 "statementIndex": len(self.results) + 1,
                 "type": "error",
                 "message": f'Failed to get the REST {rest_object_type} `{full_path}`. {e}',
+                "operation": self.current_operation
+            })
+            raise
+
+    def showCreateRestContentSet(self, mrs_object: dict):
+        timer = Timer()
+        try:
+            service_id = self.get_given_or_current_service_id(mrs_object)
+            service = lib.services.get_service(self.session, service_id)
+            # Build CREATE statement
+            stmt = (
+                f"CREATE OR REPLACE REST CONTENT SET {mrs_object.get("request_path")}\n" +
+                f"    ON SERVICE {service.get("full_service_path")}\n"
+            )
+
+            if mrs_object["enabled"] is False or mrs_object["enabled"] == 0:
+                stmt += "    DISABLED\n"
+
+            if mrs_object["comments"]:
+                stmt += f'    COMMENTS "{mrs_object["comments"]}"\n'
+
+            stmt += self.formatJsonSetting("OPTIONS", mrs_object.get("options"))
+
+            if mrs_object["requires_auth"] is True or mrs_object["requires_auth"] == 1:
+                stmt += "    AUTHENTICATION REQUIRED\n"
+
+            result = [{
+                "CREATE REST CONTENT SET": stmt.rstrip("\n") + ";"
+            }]
+
+            self.results.append({
+                "statementIndex": len(self.results) + 1,
+                "type": "success",
+                "operation": self.current_operation,
+                "id": lib.core.convert_id_to_string(mrs_object["id"]),
+                "result": result,
+                "executionTime": timer.elapsed()
+            })
+        except Exception as e:
+            self.results.append({
+                "statementIndex": len(self.results) + 1,
+                "type": "error",
+                "message": f'Failed to get the REST CONTENT SET `{mrs_object.get("request_path")}`. {e}',
+                "operation": self.current_operation
+            })
+            raise
+
+    def showCreateRestContentFile(self, mrs_object: dict):
+        timer = Timer()
+        try:
+            content_file = lib.content_files.get_content_file(self.session,
+                                                              content_set_id=mrs_object["content_set_id"],
+                                                              request_path=mrs_object["request_path"],
+                                                              include_file_content=True)
+            content_set = lib.content_sets.get_content_set(self.session, content_set_id=mrs_object["content_set_id"])
+            service_id = self.get_given_or_current_service_id(mrs_object)
+            service = lib.services.get_service(self.session, service_id)
+            # Build CREATE statement
+            stmt = (
+                f"CREATE OR REPLACE REST CONTENT FILE \"{content_file.get("request_path")}\"\n" +
+                f"    ON SERVICE {service.get("full_service_path")} CONTENT SET {content_set["request_path"]}\n"
+            )
+
+            if content_file["enabled"] is False or content_file["enabled"] == 0:
+                stmt += "    DISABLED\n"
+
+            stmt += self.formatJsonSetting("OPTIONS", content_file.get("options"))
+
+            if mrs_object["requires_auth"] is True or mrs_object["requires_auth"] == 1:
+                stmt += "    AUTHENTICATION REQUIRED\n"
+
+            if lib.core.is_text(content_file["content"]):
+                content_type = "CONTENT"
+                contents = content_file["content"].decode()
+                # Escape special characters
+                contents = contents.replace("\\", "\\\\")
+                contents = contents.replace("'", "\\\'")
+            else:
+                content_type = "BINARY CONTENT"
+                contents = base64.b64encode(content_file["content"]).decode('ascii')
+
+            stmt += f"    {content_type} \'{contents}'"
+
+            result = [{
+                "CREATE REST CONTENT FILE": stmt + ";"
+            }]
+
+            self.results.append({
+                "statementIndex": len(self.results) + 1,
+                "type": "success",
+                "operation": self.current_operation,
+                "id": lib.core.convert_id_to_string(content_file["id"]),
+                "result": result,
+                "executionTime": timer.elapsed()
+            })
+        except Exception as e:
+            self.results.append({
+                "statementIndex": len(self.results) + 1,
+                "type": "error",
+                "message": f'Failed to get the REST CONTENT SET `{content_file.get("request_path")}`. {e}',
                 "operation": self.current_operation
             })
             raise

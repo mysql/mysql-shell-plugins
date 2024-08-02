@@ -52,11 +52,10 @@ export class MrsUserDialog extends AwaitableValueEditDialog {
     }
 
     public override async show(request: IDialogRequest): Promise<IDictionary | DialogResponseClosure> {
-        const authApps = request.parameters?.authApps as IMrsAuthAppData[];
         const availableRoles = request.parameters?.availableRoles as IMrsRoleData[];
         const userRoles = request.parameters?.userRoles as IMrsUserRoleData[];
 
-        const dialogValues = this.dialogValues(request, authApps, availableRoles, userRoles);
+        const dialogValues = this.dialogValues(request, availableRoles, userRoles);
         const result = await this.doShow(() => { return dialogValues; }, { title: "MySQL REST User" });
 
         if (result.closure === DialogResponseClosure.Accept) {
@@ -90,7 +89,7 @@ export class MrsUserDialog extends AwaitableValueEditDialog {
         return result;
     };
 
-    private dialogValues(request: IDialogRequest, authApps: IMrsAuthAppData[], availableRoles: IMrsRoleData[],
+    private dialogValues(request: IDialogRequest, availableRoles: IMrsRoleData[],
         userRoles: IMrsUserRoleData[]): IDialogValues {
         const data = (request.values as unknown) as IMrsUserData;
         this.currentAuthApp = request.parameters?.authApp as IMrsAuthAppData;
@@ -123,14 +122,12 @@ export class MrsUserDialog extends AwaitableValueEditDialog {
                     description: "The password of the user",
                 },
                 authApp: {
-                    type: "choice",
+                    type: "text",
                     caption: "Authentication App",
-                    choices: authApps ? [""].concat(authApps.map((authApp) => {
-                        return authApp.name ? authApp.name : "";
-                    })) : [],
                     value: this.currentAuthApp.name,
                     horizontalSpan: 2,
                     description: "The authentication app",
+                    options: [CommonDialogValueOption.ReadOnly],
                 },
                 email: {
                     type: "text",

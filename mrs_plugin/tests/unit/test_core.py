@@ -43,20 +43,26 @@ def test_get_current_service(phone_book):
         current_service = get_current_service(session)
     assert current_service is not None
     assert current_service == {
-        'id': phone_book["service_id"],
-        'enabled': 1,
-        'auth_completed_page_content': None,
-        'auth_completed_url': None,
-        'auth_completed_url_validation': None,
-        'auth_path': "/authentication",
-        'url_protocol': ['HTTP'],
-        'url_host_name': 'localhost',
-        'url_context_root': '/test',
-        'url_host_id': phone_book["url_host_id"],
-        'options': None,
-        'comments': 'Test service',
-        'host_ctx': 'localhost/test',
-        'is_current': 1,
+        "id": phone_book["service_id"],
+        "parent_id": None,
+        "enabled": 1,
+        "auth_completed_page_content": None,
+        "auth_completed_url": None,
+        "auth_completed_url_validation": None,
+        "auth_path": "/authentication",
+        "url_protocol": ["HTTP"],
+        "url_host_name": "localhost",
+        "url_context_root": "/test",
+        "url_host_id": phone_book["url_host_id"],
+        "options": None,
+        "metadata": None,
+        "comments": "Test service",
+        "host_ctx": "localhost/test",
+        "is_current": 1,
+        "in_development": None,
+        "full_service_path": "localhost/test",
+        "published": 0,
+        "sorted_developers": None,
     }
 
 def test_get_current_content_set():
@@ -82,17 +88,18 @@ def test_get_current_schema(phone_book):
     schema = get_current_schema(phone_book["session"])
     assert schema is not None
     assert schema == {
-        'id': phone_book["schema_id"],
-        'name': 'PhoneBook',
-        'service_id': phone_book["service_id"],
-        'request_path': '/PhoneBook',
-        'requires_auth': 0,
-        'enabled': 1,
-        'options': None,
-        'url_host_id': phone_book["url_host_id"],
-        'items_per_page': 20,
-        'comments': 'test schema',
-        'host_ctx': 'localhost/test'
+        "id": phone_book["schema_id"],
+        "name": "PhoneBook",
+        "service_id": phone_book["service_id"],
+        "request_path": "/PhoneBook",
+        "requires_auth": 0,
+        "enabled": 1,
+        "options": None,
+        "metadata": None,
+        "url_host_id": phone_book["url_host_id"],
+        "items_per_page": 20,
+        "comments": "test schema",
+        "host_ctx": "localhost/test"
     }
 
 def test_get_interactive_default():
@@ -108,9 +115,9 @@ def test_get_current_session():
 def test_get_current_config(phone_book):
     config = get_current_config()
     assert config is not None
-    assert config == {'current_service_id': phone_book["service_id"],
-                      'current_schema_id': phone_book["schema_id"],
-                      'current_content_set_id': phone_book["content_set_id"]}
+    assert config == {"current_service_id": phone_book["service_id"],
+                      "current_schema_id": phone_book["schema_id"],
+                      "current_content_set_id": phone_book["content_set_id"]}
 
 
 def test_validate_service_path(phone_book):
@@ -123,35 +130,42 @@ def test_validate_service_path(phone_book):
         service, schema, content_set = validate_service_path(session, "localhost/test/PhoneBook")
         assert service is not None
         assert service == {
-            'id': phone_book["service_id"],
-            'enabled': 1,
-            'auth_completed_page_content': None,
-            'auth_completed_url': None,
-            'auth_completed_url_validation': None,
-            'auth_path': '/authentication',
-            'url_protocol': ['HTTP'],
-            'url_host_name': 'localhost',
-            'url_context_root': '/test',
-            'url_host_id': phone_book["url_host_id"],
-            'options': None,
-            'comments': 'Test service',
-            'host_ctx': 'localhost/test',
-            'is_current': 1,
+            "id": phone_book["service_id"],
+            "parent_id": None,
+            "enabled": 1,
+            "auth_completed_page_content": None,
+            "auth_completed_url": None,
+            "auth_completed_url_validation": None,
+            "auth_path": "/authentication",
+            "url_protocol": ["HTTP"],
+            "url_host_name": "localhost",
+            "url_context_root": "/test",
+            "url_host_id": phone_book["url_host_id"],
+            "options": None,
+            "metadata": None,
+            "comments": "Test service",
+            "host_ctx": "localhost/test",
+            "is_current": 1,
+            "in_development": None,
+            "full_service_path": "localhost/test",
+            "published": 0,
+            "sorted_developers": None,
         }
 
         assert schema is not None
         assert schema == {
-            'id': phone_book["schema_id"],
-            'name': 'PhoneBook',
-            'service_id': phone_book["service_id"],
-            'request_path': '/PhoneBook',
-            'requires_auth': 0,
-            'enabled': 1,
-            'options': None,
-            'items_per_page': 20,
-            'comments': 'test schema',
-            'host_ctx': 'localhost/test',
-            'url_host_id': phone_book["url_host_id"],
+            "id": phone_book["schema_id"],
+            "name": "PhoneBook",
+            "service_id": phone_book["service_id"],
+            "request_path": "/PhoneBook",
+            "requires_auth": 0,
+            "enabled": 1,
+            "options": None,
+            "metadata": None,
+            "items_per_page": 20,
+            "comments": "test schema",
+            "host_ctx": "localhost/test",
+            "url_host_id": phone_book["url_host_id"],
         }
 
         assert content_set is None

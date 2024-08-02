@@ -44,7 +44,7 @@ import { IResultSet, IResultSetRows } from "../../script-execution/index.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { KeyboardKeys, saveArrayAsFile, saveTextAsFile, selectFile } from "../../utilities/helpers.js";
-import { convertCamelToTitleCase, formatBase64ToHex } from "../../utilities/string-helpers.js";
+import { convertCamelToTitleCase, convertHexToBase64, formatBase64ToHex } from "../../utilities/string-helpers.js";
 import { Button, IButtonProperties } from "../ui/Button/Button.js";
 import {
     ComponentBase, ComponentPlacement, IComponentProperties, SelectionType,
@@ -524,6 +524,9 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 case DBDataType.Varbinary: {
                     // No in-place editor. Uses value editor popup.
                     formatter = this.binaryFormatter;
+                    // For now, use built in text editor with HEX formatting
+                    editor = this.editorHost;
+                    minWidth = 150;
 
                     break;
                 }
@@ -1349,6 +1352,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 break;
             }
 
+            case DBDataType.Binary:
+            case DBDataType.Varbinary:
             case DBDataType.Enum:
             case DBDataType.Set:
             case DBDataType.Geometry:
@@ -1373,6 +1378,15 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             case DBDataType.Float:
             case DBDataType.Double:
             case DBDataType.Decimal: {
+                // Until we have a dedicated binary editor, use normal editor and edit in HEX
+                if (info.dataType.type === DBDataType.Binary || info.dataType.type === DBDataType.Varbinary) {
+                    // Convert back from HEX to Base64
+                    if (value) {
+                        value = formatBase64ToHex(value as string);
+                    } else {
+                        value = "";
+                    }
+                }
                 element = <Input
                     value={value as string ?? ""}
                     multiLine={this.useMultiLineEditor(info.dataType.type)}
@@ -1390,7 +1404,16 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                         }
                     }}
                     onConfirm={(e: KeyboardEvent, props: IInputChangeProperties): void => {
-                        success(props.value);
+                        // Until we have a dedicated binary editor, use normal editor and edit in HEX
+                        if (info.dataType.type === DBDataType.Binary || info.dataType.type === DBDataType.Varbinary) {
+                            if (props.value) {
+                                success(convertHexToBase64(props.value));
+                            } else {
+                                success(null);
+                            }
+                        } else {
+                            success(props.value);
+                        }
                         e.preventDefault();
                         this.handleConfirm(cell);
                     }}
@@ -1819,8 +1842,16 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         const value = cell.getValue();
         if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
             if (String(element.value) !== String(value)) {
-                // Assume the user wants to take over any change so far.
-                success(element.value);
+                // If this was using this.binaryFormatter then we have to convert back from HEX to Base64
+                if (cell.getColumn().getDefinition().formatter === this.binaryFormatter) {
+                    if (element.value) {
+                        success(convertHexToBase64(element.value));
+                    } else {
+                        success(null);
+                    }
+                } else {
+                    success(element.value);
+                }
                 this.markIfChanged(cell);
             } else {
                 cancel(undefined);

@@ -426,6 +426,11 @@ export interface IStatusData {
     result: string;
 }
 
+export interface IRequestState {
+    type: string;
+    msg: string;
+}
+
 
 export interface IShellPromptValues {
     promptDescriptor?: {
@@ -706,7 +711,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiSqleditorGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiSqleditorStartSession]: { result: { moduleSessionId?: string; }; };
     [ShellAPIGui.GuiSqleditorCloseSession]: {};
-    [ShellAPIGui.GuiSqleditorOpenConnection]: { result: IOpenConnectionData | IShellPasswordFeedbackRequest | IStatusData; };
+    [ShellAPIGui.GuiSqleditorOpenConnection]: { result: IOpenConnectionData | IShellPasswordFeedbackRequest | IStatusData; requestState: IRequestState};
     [ShellAPIGui.GuiSqleditorReconnect]: {};
     [ShellAPIGui.GuiSqleditorExecute]: { result: IDbEditorResultSetData; };
     [ShellAPIGui.GuiSqleditorKillQuery]: {};

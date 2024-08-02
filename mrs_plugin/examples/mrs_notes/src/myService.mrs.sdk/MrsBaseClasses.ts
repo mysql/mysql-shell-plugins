@@ -1249,8 +1249,12 @@ export class MrsBaseObjectDelete<T> {
     }
 
     public fetch = async (): Promise<IMrsDeleteResult> => {
+        const url = new URL("https://example.com");
+        url.pathname = `${this.schema.requestPath}${this.requestPath}`;
+        url.searchParams.set("q", MrsJSON.stringify(this.options.where));
+
         const response = await this.schema.service.session.doFetch({
-            input: `${this.schema.requestPath}${this.requestPath}?q=${MrsJSON.stringify(this.options.where)}`,
+            input: `${url.pathname}${url.search}`,
             method: "DELETE",
             errorMsg: "Failed to delete items.",
         });

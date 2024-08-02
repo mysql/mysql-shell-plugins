@@ -165,11 +165,12 @@ export class ExtensionHost {
      *
      * @param dbType The DBType of the connection
      * @param forcePicker If true then always open the connection picker and ignore the default connection.
+     * @param showErrorMessages If set to true, error messages are displayed, otherwise undefined is returned
      *
      * @returns A promise resolving to a connection entry or undefined if no entry was found.
      */
     public determineConnection = async (dbType?: DBType,
-        forcePicker?: boolean): Promise<ICdmConnectionEntry | undefined> => {
+        forcePicker?: boolean, showErrorMessages=true): Promise<ICdmConnectionEntry | undefined> => {
         let connections = this.connectionsProvider.connections;
 
         let title = "Select a connection for SQL execution";
@@ -181,17 +182,21 @@ export class ExtensionHost {
                 });
 
                 if (!connection) {
-                    void window.showErrorMessage(`The default Database Connection ${connectionName} is not available ` +
-                        `anymore.`);
+                    if (showErrorMessages) {
+                        void window.showErrorMessage(`The default Database Connection ${connectionName} is ` +
+                            `not available anymore.`);
+                    }
                 } else if (dbType && connection.treeItem.details.dbType !== dbType) {
-                    void window.showErrorMessage(`The default Database Connection ${connectionName} is a ` +
-                        `${String(connection.treeItem.details.dbType)} connection. This function requires a ` +
-                        `${String(dbType)} connection.`);
+                    if (showErrorMessages) {
+                        void window.showErrorMessage(`The default Database Connection ${connectionName} is a ` +
+                            `${String(connection.treeItem.details.dbType)} connection. This function requires a ` +
+                            `${String(dbType)} connection.`);
+                    }
                 } else {
                     return connection;
                 }
 
-                title = "Select another connection for SQL execution";
+                title = "Select a connection for SQL execution";
             }
         }
 
@@ -204,6 +209,10 @@ export class ExtensionHost {
 
         // Check if there is at least one connection
         if (connections.length === 0) {
+            if (!showErrorMessages) {
+                return undefined;
+            }
+
             if (dbType) {
                 void window.showErrorMessage(`Please create a ${String(dbType)} Database Connection first.`);
             } else {

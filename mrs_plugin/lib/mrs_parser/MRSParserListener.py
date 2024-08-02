@@ -1,4 +1,4 @@
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 from antlr4 import *
 if "." in __name__:
     from .MRSParser import MRSParser
@@ -50,6 +50,15 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#jsonOptions.
     def exitJsonOptions(self, ctx:MRSParser.JsonOptionsContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#metadata.
+    def enterMetadata(self, ctx:MRSParser.MetadataContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#metadata.
+    def exitMetadata(self, ctx:MRSParser.MetadataContext):
         pass
 
 
@@ -140,6 +149,15 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#restServiceOptions.
     def exitRestServiceOptions(self, ctx:MRSParser.RestServiceOptionsContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#publishedUnpublished.
+    def enterPublishedUnpublished(self, ctx:MRSParser.PublishedUnpublishedContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#publishedUnpublished.
+    def exitPublishedUnpublished(self, ctx:MRSParser.PublishedUnpublishedContext):
         pass
 
 
@@ -332,6 +350,33 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#fileIgnoreList.
+    def enterFileIgnoreList(self, ctx:MRSParser.FileIgnoreListContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#fileIgnoreList.
+    def exitFileIgnoreList(self, ctx:MRSParser.FileIgnoreListContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#createRestContentFileStatement.
+    def enterCreateRestContentFileStatement(self, ctx:MRSParser.CreateRestContentFileStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#createRestContentFileStatement.
+    def exitCreateRestContentFileStatement(self, ctx:MRSParser.CreateRestContentFileStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#restContentFileOptions.
+    def enterRestContentFileOptions(self, ctx:MRSParser.RestContentFileOptionsContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#restContentFileOptions.
+    def exitRestContentFileOptions(self, ctx:MRSParser.RestContentFileOptionsContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#createRestAuthAppStatement.
     def enterCreateRestAuthAppStatement(self, ctx:MRSParser.CreateRestAuthAppStatementContext):
         pass
@@ -413,6 +458,15 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#cloneRestServiceStatement.
+    def enterCloneRestServiceStatement(self, ctx:MRSParser.CloneRestServiceStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#cloneRestServiceStatement.
+    def exitCloneRestServiceStatement(self, ctx:MRSParser.CloneRestServiceStatementContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#alterRestServiceStatement.
     def enterAlterRestServiceStatement(self, ctx:MRSParser.AlterRestServiceStatementContext):
         pass
@@ -446,6 +500,15 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#alterRestProcedureStatement.
     def exitAlterRestProcedureStatement(self, ctx:MRSParser.AlterRestProcedureStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#alterRestFunctionStatement.
+    def enterAlterRestFunctionStatement(self, ctx:MRSParser.AlterRestFunctionStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#alterRestFunctionStatement.
+    def exitAlterRestFunctionStatement(self, ctx:MRSParser.AlterRestFunctionStatementContext):
         pass
 
 
@@ -500,6 +563,15 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#dropRestContentSetStatement.
     def exitDropRestContentSetStatement(self, ctx:MRSParser.DropRestContentSetStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#dropRestContentFileStatement.
+    def enterDropRestContentFileStatement(self, ctx:MRSParser.DropRestContentFileStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#dropRestContentFileStatement.
+    def exitDropRestContentFileStatement(self, ctx:MRSParser.DropRestContentFileStatementContext):
         pass
 
 
@@ -602,6 +674,15 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#showRestContentFilesStatement.
+    def enterShowRestContentFilesStatement(self, ctx:MRSParser.ShowRestContentFilesStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#showRestContentFilesStatement.
+    def exitShowRestContentFilesStatement(self, ctx:MRSParser.ShowRestContentFilesStatementContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#showRestAuthAppsStatement.
     def enterShowRestAuthAppsStatement(self, ctx:MRSParser.ShowRestAuthAppsStatementContext):
         pass
@@ -653,6 +734,24 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#showCreateRestFunctionStatement.
     def exitShowCreateRestFunctionStatement(self, ctx:MRSParser.ShowCreateRestFunctionStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#showCreateRestContentSetStatement.
+    def enterShowCreateRestContentSetStatement(self, ctx:MRSParser.ShowCreateRestContentSetStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#showCreateRestContentSetStatement.
+    def exitShowCreateRestContentSetStatement(self, ctx:MRSParser.ShowCreateRestContentSetStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#showCreateRestContentFileStatement.
+    def enterShowCreateRestContentFileStatement(self, ctx:MRSParser.ShowCreateRestContentFileStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#showCreateRestContentFileStatement.
+    def exitShowCreateRestContentFileStatement(self, ctx:MRSParser.ShowCreateRestContentFileStatementContext):
         pass
 
 
@@ -764,12 +863,48 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#newFunctionRequestPath.
+    def enterNewFunctionRequestPath(self, ctx:MRSParser.NewFunctionRequestPathContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#newFunctionRequestPath.
+    def exitNewFunctionRequestPath(self, ctx:MRSParser.NewFunctionRequestPathContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#contentSetRequestPath.
     def enterContentSetRequestPath(self, ctx:MRSParser.ContentSetRequestPathContext):
         pass
 
     # Exit a parse tree produced by MRSParser#contentSetRequestPath.
     def exitContentSetRequestPath(self, ctx:MRSParser.ContentSetRequestPathContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#contentFileRequestPath.
+    def enterContentFileRequestPath(self, ctx:MRSParser.ContentFileRequestPathContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#contentFileRequestPath.
+    def exitContentFileRequestPath(self, ctx:MRSParser.ContentFileRequestPathContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#serviceDeveloperIdentifier.
+    def enterServiceDeveloperIdentifier(self, ctx:MRSParser.ServiceDeveloperIdentifierContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#serviceDeveloperIdentifier.
+    def exitServiceDeveloperIdentifier(self, ctx:MRSParser.ServiceDeveloperIdentifierContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#serviceDevelopersIdentifier.
+    def enterServiceDevelopersIdentifier(self, ctx:MRSParser.ServiceDevelopersIdentifierContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#serviceDevelopersIdentifier.
+    def exitServiceDevelopersIdentifier(self, ctx:MRSParser.ServiceDevelopersIdentifierContext):
         pass
 
 

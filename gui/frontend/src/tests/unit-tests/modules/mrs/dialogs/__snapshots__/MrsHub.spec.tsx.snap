@@ -404,7 +404,7 @@ exports[`MrsHub Tests MRS Content Set dialog tests Show MRS Content Set Dialog (
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
         >
           <label
             class="msg label valueTitle"
@@ -432,13 +432,13 @@ exports[`MrsHub Tests MRS Content Set dialog tests Show MRS Content Set Dialog (
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
         >
           <label
             class="msg label valueTitle"
             data-tooltip="expand"
           >
-            MRS Service
+            REST Service Path
           </label>
           <div
             class="msg container fixedScrollbar dropdown valueEditor"
@@ -463,7 +463,38 @@ exports[`MrsHub Tests MRS Content Set dialog tests Show MRS Content Set Dialog (
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            MRS Object Flags
+          </label>
+          <label
+            class="msg checkbox checked valueEditor"
+            id="enabled"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Enabled
+          </label>
+          <label
+            class="msg checkbox unchecked valueEditor"
+            id="requiresAuth"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Requires Auth
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
         >
           <label
             class="msg label valueTitle"
@@ -500,56 +531,85 @@ exports[`MrsHub Tests MRS Content Set dialog tests Show MRS Content Set Dialog (
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
         >
           <label
             class="msg label valueTitle"
             data-tooltip="expand"
           >
-            Enabled
+            Files to ignore
           </label>
-          <label
-            class="msg checkbox checked valueEditor"
-            id="enabled"
-            tabindex="0"
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <span
-              class="checkMark"
+            <input
+              class="msg input valueEditor"
+              id="ignoreList"
+              spellcheck="true"
+              type="text"
             />
-            Enabled
-          </label>
+          </div>
           <label
             class="msg label cellDescription"
             data-tooltip="expand"
           >
-            Defines if the static content should be made available
+            A list of files to ignore, use * and ? for pattern matching
           </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
         >
           <label
             class="msg label valueTitle"
             data-tooltip="expand"
           >
-            Requires Authentication
+            MRS Scripts
           </label>
           <label
             class="msg checkbox unchecked valueEditor"
-            id="requiresAuth"
+            id="containsMrsScripts"
             tabindex="0"
           >
             <span
               class="checkMark"
             />
-            Requires Authentication
+            Contains MRS Scripts written in TypeScript
           </label>
           <label
             class="msg label cellDescription"
             data-tooltip="expand"
           >
-            Only authenticated users can access the content if checked
+            If checked, the MRS scripts and triggers will be loaded from this content set
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Javascript Build Folder
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="buildFolder"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The name of the JavaScript build folder
           </label>
         </div>
         <div
@@ -1868,6 +1928,16 @@ exports[`MrsHub Tests MRS Service dialog tests Show MRS Service Dialog (snapshot
             />
             Default
           </label>
+          <label
+            class="msg checkbox unchecked valueEditor"
+            id="published"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Published
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -1927,19 +1997,6 @@ exports[`MrsHub Tests MRS Service dialog tests Show MRS Service Dialog (snapshot
                       Authentication
                     </label>
                   </div>
-                  <div
-                    class="msg button tabItem"
-                    id="page3"
-                    role="button"
-                    tabindex="-1"
-                  >
-                    <label
-                      class="msg label"
-                      data-tooltip="inherit"
-                    >
-                      Authentication Apps
-                    </label>
-                  </div>
                 </div>
                 <div
                   class="scrollbar"
@@ -1958,6 +2015,62 @@ exports[`MrsHub Tests MRS Service dialog tests Show MRS Service Dialog (snapshot
                 class="msg grid"
                 style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
               >
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                >
+                  <label
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    Create MRS Admin User
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
+                  >
+                    <input
+                      class="msg input valueEditor"
+                      id="mrsAdminUser"
+                      spellcheck="true"
+                      type="text"
+                    />
+                  </div>
+                  <label
+                    class="msg label cellDescription"
+                    data-tooltip="expand"
+                  >
+                    If a user name is given, a MRS Auth App will be created and the user will be added.
+                  </label>
+                </div>
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+                >
+                  <label
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    MRS Admin User Password
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
+                  >
+                    <input
+                      class="msg input valueEditor"
+                      id="mrsAdminUserPassword"
+                      spellcheck="true"
+                      type="password"
+                    />
+                  </div>
+                  <label
+                    class="msg label cellDescription"
+                    data-tooltip="expand"
+                  >
+                    The password of the MRS Admin User.
+                  </label>
+                </div>
                 <div
                   class="msg container fixedScrollbar gridCell"
                   style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
@@ -2175,18 +2288,16 @@ exports[`MrsHub Tests MRS User dialog tests Show MRS User Dialog (snapshot) and 
             Authentication App
           </label>
           <div
-            class="msg container fixedScrollbar dropdown valueEditor"
-            data-tooltip="inherit"
-            id="authApp"
-            style="flex-direction: row; align-items: center;"
-            tabindex="0"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <label
-              class="msg label ellipsis"
-              data-tooltip="expand"
-            >
-              MRS
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="authApp"
+              readonly=""
+              spellcheck="true"
+              type="text"
+            />
           </div>
           <label
             class="msg label cellDescription"

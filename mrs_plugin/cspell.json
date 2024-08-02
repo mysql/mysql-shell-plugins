@@ -2,19 +2,25 @@
     "version": "0.2",
     "language": "en",
     "words": [
+        "NOCHECK",
+        "NOFILTERING",
+        "NOUPDATE",
+        "quux",
+        "READFUNCTION",
+        "ROWOWNERSHIP",
         "sakila",
         "struct",
         "symlink",
         "unregister",
         "UPDATEPROCEDURE",
-        "READFUNCTION",
-        "urandom",
-        "quux"
+        "urandom"
     ],
     "flagWords": [
         "hte"
     ],
-    "ignorePaths": ["cspell.json"],
+    "ignorePaths": [
+        "cspell.json"
+    ],
     "ignoreWords": [
         "mysqlsh",
         "PYTHONPATH",

@@ -82,6 +82,7 @@ describe("MySQL REST Service", () => {
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
 
     before(async function () {
+
         await Misc.loadDriver();
         try {
             await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
@@ -233,6 +234,8 @@ describe("MySQL REST Service", () => {
             enabled: true,
             default: false,
             settings: {
+                mrsAdminUser: "testUser",
+                mrsAdminPassword: "testPassword",
                 comments: "testing",
             },
             authentication: {
@@ -242,7 +245,7 @@ describe("MySQL REST Service", () => {
             },
             authenticationApps: {
                 vendor: "MRS",
-                name: "test",
+                name: "MRS",
                 description: "testing",
                 enabled: false,
                 limitToRegisteredUsers: false,
@@ -347,6 +350,7 @@ describe("MySQL REST Service", () => {
 
         before(async function () {
             try {
+
                 globalService.settings.hostNameFilter = `localhost:${routerPort}`;
                 sakilaRestSchema.restServicePath = globalService.settings.hostNameFilter;
                 sakilaRestSchema.restServicePath += globalService.servicePath;
@@ -367,7 +371,7 @@ describe("MySQL REST Service", () => {
                         constants.wait20seconds);
 
                     await driver.wait(dbTreeSection.tree
-                        .untilExists(`${service.servicePath} (${service.settings.hostNameFilter})`),
+                        .untilExists(`${service.settings.hostNameFilter}${service.servicePath}`),
                         constants.wait10seconds);
                 }
                 await dbTreeSection.focus();
@@ -404,7 +408,7 @@ describe("MySQL REST Service", () => {
 
         it("Edit REST Service", async () => {
             let treeRandomService = await dbTreeSection.tree.getElement(
-                `${serviceToEdit.servicePath} (${serviceToEdit.settings.hostNameFilter})`);
+                `${serviceToEdit.settings.hostNameFilter}${serviceToEdit.servicePath}`);
             await dbTreeSection.tree.openContextMenuAndSelect(treeRandomService, constants.editRESTService);
             const editedService = {
                 servicePath: `/edited`,
@@ -421,27 +425,16 @@ describe("MySQL REST Service", () => {
                     redirectionUrlValid: "(.*)(.*)",
                     authCompletedChangeCont: "<body>",
                 },
-                authenticationApps: {
-                    vendor: "Google",
-                    name: "testing",
-                    description: "testing description",
-                    enabled: true,
-                    limitToRegisteredUsers: true,
-                    appId: "OAuth3",
-                    accessToken: "12345",
-                    customUrl: "http://testingTest",
-                    customUrlForAccessToken: "http://testing/123456",
-                },
             };
 
             await RestServiceDialog.set(editedService);
             await driver.wait(Workbench.untilNotificationExists("The MRS service has been successfully updated."),
                 constants.wait10seconds);
             await driver.wait(dbTreeSection.tree
-                .untilExists(`${editedService.servicePath} (${editedService.settings.hostNameFilter})`),
+                .untilExists(`${editedService.settings.hostNameFilter}${editedService.servicePath}`),
                 constants.wait10seconds);
             treeRandomService = await dbTreeSection.tree.getElement(
-                `${editedService.servicePath} (${editedService.settings.hostNameFilter})`);
+                `${editedService.settings.hostNameFilter}${editedService.servicePath}`);
             await dbTreeSection.tree.openContextMenuAndSelect(treeRandomService, constants.editRESTService);
             const service = await RestServiceDialog.get();
             expect(editedService).to.deep.equal(service);
@@ -460,7 +453,7 @@ describe("MySQL REST Service", () => {
                 await driver.wait(Workbench.untilNotificationExists("The MRS schema has been added successfully."),
                     constants.wait10seconds);
                 const treeService = await dbTreeSection.tree.getElement(
-                    `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
+                    `${globalService.settings.hostNameFilter}${globalService.servicePath}`);
                 await treeService.expand();
                 await driver.wait(dbTreeSection.tree
                     .untilExists(`${schema.restSchemaPath} (${schema.settings.schemaName})`),
@@ -472,7 +465,7 @@ describe("MySQL REST Service", () => {
         it("Edit REST Schema", async () => {
 
             const treeRandomService = await dbTreeSection.tree.getElement(
-                `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
+                `${globalService.settings.hostNameFilter}${globalService.servicePath}`);
             const randomServiceLabel = await treeRandomService.getLabel();
             const treeService = await dbTreeSection.tree.getElement(String(randomServiceLabel));
             await treeService.expand();
@@ -508,13 +501,13 @@ describe("MySQL REST Service", () => {
         it("Set as Current REST Service", async () => {
 
             const treeRandomService = await dbTreeSection.tree.getElement(
-                `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
+                `${globalService.settings.hostNameFilter}${globalService.servicePath}`);
             await dbTreeSection.tree.openContextMenuAndSelect(treeRandomService, constants.setAsCurrentREST);
             await driver.wait(Workbench
                 .untilNotificationExists("The MRS service has been set as the new default service."),
                 constants.wait10seconds);
             await driver.wait(dbTreeSection.tree.untilIsDefault(
-                `${globalService.servicePath} (${globalService.settings.hostNameFilter})`,
+                `${globalService.settings.hostNameFilter}${globalService.servicePath}`,
                 "rest"), constants.wait5seconds, "REST Service tree item did not became default");
         });
 
@@ -605,8 +598,7 @@ describe("MySQL REST Service", () => {
                         excludeETAG: true,
                     }],
                     crud: {
-                        create: false,
-                        read: false,
+                        insert: false,
                         update: false,
                         delete: false,
                     },
@@ -619,9 +611,7 @@ describe("MySQL REST Service", () => {
                     autoDetectMediaType: true,
                 },
                 authorization: {
-                    enforceRowUserOwner: true,
-                    rowOwnerShipField: "name",
-                    customStoredProcedure: "TEST",
+                    authStoredProcedure: "testProcedure",
                 },
                 options: `{"test":"value"}`,
             };
@@ -677,7 +667,7 @@ describe("MySQL REST Service", () => {
         it("Delete REST Schema", async () => {
 
             const treeRandomService = await dbTreeSection.tree.getElement(
-                `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
+                `${globalService.settings.hostNameFilter}${globalService.servicePath}`);
             await treeRandomService.expand();
             const treeMySQLRestSchema = await dbTreeSection.tree.getElement(
                 `${restSchemaToDump.restSchemaPath} (${restSchemaToDump.settings.schemaName})`);
@@ -704,7 +694,7 @@ describe("MySQL REST Service", () => {
         it("Load REST Schema from JSON file", async () => {
 
             const treeRandomService = await dbTreeSection.tree.getElement(
-                `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
+                `${globalService.settings.hostNameFilter}${globalService.servicePath}`);
             await dbTreeSection.tree.openContextMenuAndSelect(treeRandomService, constants.loadRESTSchemaFromJSON);
             await Workbench.setInputPath(`${destDumpSchema}.mrs.json`);
             await driver.wait(Workbench.untilNotificationExists("The REST Schema has been loaded successfully"),
@@ -717,7 +707,7 @@ describe("MySQL REST Service", () => {
         it("Export Rest Service SDK files", async () => {
 
             const treeRandomService = await dbTreeSection.tree.getElement(
-                `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
+                `${globalService.settings.hostNameFilter}${globalService.servicePath}`);
             await dbTreeSection.tree.openContextMenuAndSelect(treeRandomService, constants.exportRestSdk);
 
             await fs.rm(destDumpSdk, { force: true, recursive: true });
@@ -765,13 +755,13 @@ describe("MySQL REST Service", () => {
         it("Add New Authentication App", async () => {
 
             let treeRandomService = await dbTreeSection.tree.getElement(
-                `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
+                `${globalService.settings.hostNameFilter}${globalService.servicePath}`);
             await dbTreeSection.tree.openContextMenuAndSelect(treeRandomService, constants.addNewAuthApp);
             await AuthenticationAppDialog.set(restAuthenticationApp);
             await driver.wait(Workbench.untilNotificationExists("The MRS Authentication App has been added"),
                 constants.wait5seconds);
             treeRandomService = await dbTreeSection.tree.getElement(
-                `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
+                `${globalService.settings.hostNameFilter}${globalService.servicePath}`);
             await treeRandomService.expand();
             await driver.wait(dbTreeSection.tree
                 .untilExists(`${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`),
@@ -863,7 +853,7 @@ describe("MySQL REST Service", () => {
         it("MRS Service Documentation", async () => {
 
             const treeRandomService = await dbTreeSection.tree.getElement(
-                `${globalService.servicePath} (${globalService.settings.hostNameFilter})`);
+                `${globalService.settings.hostNameFilter}${globalService.servicePath}`);
             await dbTreeSection.tree.openContextMenuAndSelect(treeRandomService, constants.mrsServiceDocs);
             await driver.wait(async () => {
                 await Misc.switchBackToTopFrame();
@@ -894,7 +884,7 @@ describe("MySQL REST Service", () => {
             const services = [globalService, serviceToEdit];
             for (const service of services) {
                 const treeRestService = await dbTreeSection.tree.getElement(
-                    `${service.servicePath} (${service.settings.hostNameFilter})`);
+                    `${service.settings.hostNameFilter}${service.servicePath}`);
                 await dbTreeSection.tree.openContextMenuAndSelect(treeRestService, constants.deleteRESTService);
                 const ntf = await Workbench
                     .getNotification(`Are you sure the MRS service ${service.servicePath} should be deleted`, false);
@@ -937,8 +927,7 @@ describe("MySQL REST Service", () => {
             restObjectPath: "/actor",
             jsonRelDuality: {
                 crud: {
-                    create: true,
-                    read: true,
+                    insert: true,
                     update: true,
                     delete: true,
                 },
@@ -977,7 +966,7 @@ describe("MySQL REST Service", () => {
                 await driver.wait(Workbench.untilNotificationExists("The MRS schema has been added successfully."),
                     constants.wait5seconds);
                 const treeService = await dbTreeSection.tree.getElement(
-                    `${crudService.servicePath} (${crudService.settings.hostNameFilter})`);
+                    `${crudService.settings.hostNameFilter}${crudService.servicePath}`);
                 await treeService.expand();
                 await driver.wait(dbTreeSection.tree
                     .untilExists(`${crudSchema.restSchemaPath} (${crudSchema.settings.schemaName})`),
@@ -1031,25 +1020,25 @@ describe("MySQL REST Service", () => {
         });
 
         it("Get object metadata", async () => {
-            response = await fetch(`${baseUrl}/metadata-catalog/${crudObject.restObjectPath.replace("/", "")}`);
+            response = await fetch(`${baseUrl}/metadata-catalog${crudObject.restObjectPath}`);
             const data = await response.json();
             expect(response.ok, `response should be OK`).to.be.true;
             expect(data.name).equals(`/${crudObject.restObjectPath.replace("/", "")}`);
-            expect(data.primaryKey[0]).to.equals("actor_id");
+            expect(data.primaryKey[0]).to.equals("actorId");
         });
 
         it("Get object data", async () => {
-            response = await fetch(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}`);
+            response = await fetch(`${baseUrl}${crudObject.restObjectPath}`);
             const data = await response.json();
             expect(response.ok, `response should be OK`).to.be.true;
             expect(data.items[0].firstName).to.equals("PENELOPE");
         });
 
         it("Insert table row", async () => {
-            response = await fetch(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}`, {
+            response = await fetch(`${baseUrl}${crudObject.restObjectPath}`, {
                 method: "post",
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                body: JSON.stringify({ firstName: "Doctor", lastName: "Testing" }),
+                body: JSON.stringify({ firstName: "Doctor", lastName: "Testing", lastUpdate: "2023-01-01 00:02:00" }),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 headers: { "Content-Type": "application/json" },
             });
@@ -1063,15 +1052,23 @@ describe("MySQL REST Service", () => {
         });
 
         it("Update table row", async () => {
-            response = await fetch(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}/${actorId}`, {
-                method: "put",
+
+            const bodyContent = JSON.stringify({
+                actorId,
+                firstName: "Mister",
+                lastName: "Test",
+                lastUpdate: "2023-06-23 13:32:54",
+            });
+
+            response = await fetch(encodeURI(`${baseUrl}${crudObject.restObjectPath}/${actorId}`), {
+                method: "PUT",
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                body: JSON
-                    .stringify({ firstName: "Mister", lastName: "Test", lastUpdate: "2023-06-23 13:32:54" }),
+                body: bodyContent,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 headers: { "Content-Type": "application/json" },
             });
             const data = await response.json();
+
             expect(actorId).to.exist;
             expect(data.firstName).to.equals("Mister");
             expect(data.lastName).to.equals("Test");
@@ -1080,8 +1077,13 @@ describe("MySQL REST Service", () => {
 
         it("Delete table row", async () => {
             const query = `"actorId":${actorId}`;
-            response = await fetch(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}?q={${query}}`,
-                { method: "delete" });
+            response = await fetch(encodeURI(`${baseUrl}${crudObject.restObjectPath}?q={${query}}`),
+                {
+                    method: "delete",
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    headers: { "Content-Type": "application/json" },
+                });
+
             const data = await response.json();
             expect(response.ok, `response should be OK`).to.be.true;
             expect(data.itemsDeleted).to.equals(1);
@@ -1089,7 +1091,12 @@ describe("MySQL REST Service", () => {
 
         it("Filter object data", async () => {
             const query = `"firstName":"PENELOPE"`;
-            response = await fetch(`${baseUrl}/${crudObject.restObjectPath.replace("/", "")}?q={${query}}`);
+            response = await fetch(encodeURI(`${baseUrl}${crudObject.restObjectPath}?q={${query}}`),
+                {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    headers: { "Content-Type": "application/json" },
+                },
+            );
             const data = await response.json();
             expect(response.ok, `response should be OK`).to.be.true;
             expect(data.items).to.exist;

@@ -219,6 +219,8 @@ The MySQL REST Service supports the creation of many individual REST services. I
 
 Each REST service can have its own options, authentication apps and supports a different set of authentication users.
 
+Please note that service will not be published at creation time by default. They will only be served by MySQL Routers that are bootstrapped for development purposes. To publish a REST service after all REST schemas and REST objects have been created please use the [`ALTER REST SERVICE`](#alter-rest-service) statement and set the PUBLISHED option.
+
 **_SYNTAX_**
 
 ```antlr
@@ -227,11 +229,17 @@ createRestServiceStatement:
         restServiceOptions?
 ;
 
+serviceRequestPath:
+    serviceDevelopersIdentifier? hostAndPortIdentifier? requestPathIdentifier
+;
+
 restServiceOptions: (
         enabledDisabled
+        | publishedUnpublished
         | restAuthentication
         | jsonOptions
         | comments
+        | metadata
     )+
 ;
 ```
@@ -239,25 +247,30 @@ restServiceOptions: (
 createRestServiceStatement ::=
 ![CREATE REST SERVICE Statement](../../images/sql/createRestServiceStatement.svg "CREATE REST SERVICE Statement")
 
+serviceRequestPath ::=
+![serviceRequestPath](../../images/sql/serviceRequestPath.svg "serviceRequestPath")
+
 restServiceOptions ::=
 ![restServiceOptions](../../images/sql/restServiceOptions.svg "restServiceOptions")
 
 **_Examples_**
 
-The following example creates a REST service `/myTestService` that can only be accessed from localhost.
+The following example creates a REST service `/myService`. Please note that you need to set the `PUBLISHED` option to make the REST service publicly available.
 
 ```sql
 CREATE OR REPLACE REST SERVICE /myService
     COMMENTS "A simple REST service";
 ```
 
-The following example creates a REST service `/myTestService` that can only be accessed on localhost and is disabled after creation.
+The following example creates a REST service `/myTestService` that can only be accessed on localhost and is published at creation time.
 
 ```sql
 CREATE OR REPLACE REST SERVICE localhost/myTestService
-    DISABLED
+    PUBLISHED
     COMMENTS "A REST service that can only be accessed on localhost";
 ```
+
+The next examples shows how to set the REST service options.
 
 ```sql
 CREATE OR REPLACE REST SERVICE localhost/myTestService
@@ -267,7 +280,6 @@ CREATE OR REPLACE REST SERVICE localhost/myTestService
         REDIRECTION DEFAULT
         VALIDATION DEFAULT
         PAGE CONTENT DEFAULT
-    USER MANAGEMENT SCHEMA DEFAULT
     OPTIONS {
         "headers": {
             "Access-Control-Allow-Credentials": "true",
@@ -293,9 +305,55 @@ CREATE OR REPLACE REST SERVICE localhost/myTestService
     };
 ```
 
+### Building a ServiceRequestPath
+
+When creating or accessing a REST service a `serviceRequestPath` has to be specified which uniquely identifies the REST service across the MySQL REST Service.
+
+It consists of three components.
+
+- `serviceDevelopersIdentifier` (optional) - When set, the REST service is only available to the developers listed.
+- `hostAndPortIdentifier` (optional) - When set, the access to the REST service is limited to the given host and port.
+- `requestPathIdentifier` - The URL context root path the REST service will be served from.
+
+In many cases setting the `requestPathIdentifier` will be sufficient.
+
+The `hostAndPortIdentifier` only needs to be set if a REST service should only be made available through access via a specific host, like `localhost` when the MySQL Router is co-located with the client application.
+
+The `serviceDevelopersIdentifier` will be set automatically when a REST service is cloned for development by a given developer. Should such a REST service be made available to more developers, the list of developers can be extended via an [`ALTER REST SERVICE`](#alter-rest-service) command.
+
+```antlr
+serviceDevelopersIdentifier:
+    serviceDeveloperIdentifier (
+        COMMA_SYMBOL serviceDeveloperIdentifier
+    )* AT_SIGN_SYMBOL?
+;
+
+hostAndPortIdentifier: (
+        (dottedIdentifier | AT_TEXT_SUFFIX) (
+            COLON_SYMBOL INT_NUMBER
+        )?
+    )
+;
+
+requestPathIdentifier:
+    DIV_OPERATOR dottedIdentifier (DIV_OPERATOR dottedIdentifier)?
+;
+```
+
+serviceDevelopersIdentifier ::=
+![serviceDevelopersIdentifier](../../images/sql/serviceDevelopersIdentifier.svg "serviceDevelopersIdentifier")
+
+hostAndPortIdentifier ::=
+![hostAndPortIdentifier](../../images/sql/hostAndPortIdentifier.svg "hostAndPortIdentifier")
+
+requestPathIdentifier ::=
+![requestPathIdentifier](../../images/sql/requestPathIdentifier.svg "requestPathIdentifier")
+
 ### Enabling or Disabling a REST Service at Creation Time
 
-The `enabledDisabled` option specifies whether the REST schema should be enabled or disabled after it has been created.
+The `enabledDisabled` option specifies whether the REST service should be enabled or disabled. REST services are created in the ENABLED state by default. The state can be changed via the [`ALTER REST SERVICE`](#alter-rest-service) statement.
+
+Please also see the `publishedUnpublished` option which determines if a REST service is served by MySQL Routers.
 
 ```antlr
 enabledDisabled:
@@ -306,6 +364,22 @@ enabledDisabled:
 
 enabledDisabled ::=
 ![enabledDisabled](../../images/sql/enabledDisabled.svg "enabledDisabled")
+
+### Publishing a REST Service at Creation Time
+
+The `publishedUnpublished` option specifies whether the REST service should be in `PUBLISHED` or `UNPUBLISHED` state. REST services are created in the `UNPUBLISHED` state by default.
+
+A REST service in `UNPUBLISHED` state will only be served by MySQL Routers that are bootstrapped for development using the `--mrs-development <user>` option. To make a REST service publicly available on all MySQL Routers it needs to be set to the `PUBLISHED` state using the [`ALTER REST SERVICE`](#alter-rest-service) statement.
+
+```antlr
+publishedUnpublished:
+    PUBLISHED_SYMBOL
+    | UNPUBLISHED_SYMBOL
+;
+```
+
+publishedUnpublished ::=
+![publishedUnpublished](../../images/sql/publishedUnpublished.svg "publishedUnpublished")
 
 ### REST Service Authentication Settings
 
@@ -346,6 +420,7 @@ These options can include the following JSON keys.
 - `headers` - Allows the specification of HTTP headers. Please refer to the HTTP header documentation for details.
 - `http`
   - `allowedOrigin` - The setting for Access-Control-Allow-Origin HTTP header. Can either be set to `*`, `null`, `<origin>` or `auto`. When set to `auto`, the MySQL Routers will return the origin of the specific client making the request.
+- `httpMethodsAllowedForUnauthorizedAccess` - If a REST objects is configured to not require authentication, only GET is allowed by default. In a testing environment it might be desireable to allow all HTTP methods. In that case this option can be set to a list of allowed methods, e.g. ["GET", "POST", "PUT", "DELETE"]
 - `logging`
   - `exceptions` - If exceptions should be logged.
   - `requests`
@@ -403,6 +478,16 @@ comments:
 comments ::=
 ![comments](../../images/sql/comments.svg "comments")
 
+### REST Service Metadata
+
+The metadata can hold any JSON data. It can later be consumed by a front end implementation to dynamically render certain attributes, like a specific icon or a color.
+
+```antlr
+metadata:
+    METADATA_SYMBOL jsonValue
+;
+```
+
 ## CREATE REST SCHEMA
 
 The CREATE REST SCHEMA statement is used to create a new or replace an existing REST schema. Each REST schema directly maps to a database schema and allows the database schema objects (tables, views and stored procedures) to be exposed via REST endpoints.
@@ -417,7 +502,7 @@ Each REST schema can have its own options, authentication apps and supports a di
 
 ```antlr
 createRestSchemaStatement:
-    CREATE (OR REPLACE)? REST DATABASE schemaRequestPath? (
+    CREATE (OR REPLACE)? REST SCHEMA schemaRequestPath? (
         ON SERVICE? serviceRequestPath
     )? FROM schemaName restSchemaOptions?
 ;
@@ -428,6 +513,7 @@ restSchemaOptions: (
         | itemsPerPage
         | jsonOptions
         | comments
+        | metadata
     )+
 ;
 ```
@@ -524,6 +610,16 @@ comments:
 comments ::=
 ![comments](../../images/sql/comments.svg "comments")
 
+### REST Schema Metadata
+
+The metadata can hold any JSON data. It can later be consumed by a front end implementation to dynamically render certain attributes, like a specific icon or a color.
+
+```antlr
+metadata:
+    METADATA_SYMBOL jsonValue
+;
+```
+
 ## CREATE REST DUALITY VIEW
 
 The `CREATE REST DUALITY VIEW` statement is used to add REST endpoints for database schema tables or views. They will be served as JSON duality views.
@@ -545,7 +641,7 @@ createRestViewStatement:
 ;
 
 serviceSchemaSelector:
-    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+    (SERVICE serviceRequestPath)? SCHEMA schemaRequestPath
 ;
 
 restObjectOptions: (
@@ -554,6 +650,7 @@ restObjectOptions: (
         | itemsPerPage
         | jsonOptions
         | comments
+        | metadata
         | restViewMediaType
         | restViewFormat
         | restViewAuthenticationProcedure
@@ -757,14 +854,14 @@ graphQlObj:
 ;
 
 graphQlCrudOptions: (
-        AT_SELECT
-        | AT_NOSELECT
-        | AT_INSERT
+        AT_INSERT
         | AT_NOINSERT
         | AT_UPDATE
         | AT_NOUPDATE
         | AT_DELETE
         | AT_NODELETE
+        | AT_CHECK
+        | AT_NOCHECK
     )+
 ;
 
@@ -801,6 +898,16 @@ graphQlPair ::=
 graphQlValue ::=
 ![graphQlValue](../../images/sql/graphQlValue.svg "graphQlValue")
 
+### REST Duality View Metadata
+
+The metadata can hold any JSON data. It can later be consumed by a front end implementation to dynamically render certain attributes, like a specific icon or a color.
+
+```antlr
+metadata:
+    METADATA_SYMBOL jsonValue
+;
+```
+
 ## CREATE REST PROCEDURE
 
 The `CREATE REST PROCEDURE` statement is used to add REST endpoints for database schema stored procedures. It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-duality-view) as defined for REST duality views to describe the REST procedure's parameters and result sets. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-duality-view).
@@ -816,7 +923,7 @@ createRestProcedureStatement:
 ;
 
 serviceSchemaSelector:
-    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+    (SERVICE serviceRequestPath)? SCHEMA schemaRequestPath
 ;
 
 restObjectOptions: (
@@ -825,6 +932,7 @@ restObjectOptions: (
         | itemsPerPage
         | jsonOptions
         | comments
+        | metadata
         | restViewMediaType
         | restViewFormat
         | restViewAuthenticationProcedure
@@ -863,7 +971,7 @@ createRestFunctionStatement:
 ;
 
 serviceSchemaSelector:
-    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+    (SERVICE serviceRequestPath)? SCHEMA schemaRequestPath
 ;
 
 restObjectOptions: (
@@ -872,6 +980,7 @@ restObjectOptions: (
         | itemsPerPage
         | jsonOptions
         | comments
+        | metadata
         | restViewMediaType
         | restViewFormat
         | restViewAuthenticationProcedure

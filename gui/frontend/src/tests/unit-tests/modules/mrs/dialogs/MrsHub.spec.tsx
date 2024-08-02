@@ -106,8 +106,7 @@ describe("MrsHub Tests", () => {
             "(actor_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci");
 
         await backend.mrs.configure();
-        service = await backend.mrs.addService("/myService", ["HTTPS"], "", "", true, {}, "/unit-tests", "", "", "",
-            []);
+        service = await backend.mrs.addService("/myService", ["HTTPS"], "", "", true, {}, "/unit-tests", "", "", "");
 
         const authAppId = await backend.mrs.addAuthApp(service.id, {
             authVendorId: "0x30000000000000000000000000000000",
@@ -121,7 +120,7 @@ describe("MrsHub Tests", () => {
         serviceID = service.id;
         const schemaId = await backend.mrs.addSchema(service.id, "MRS_TEST", "/mrs-test", false, null, null);
         const dbObjectResult = await backend.mrs.addDbObject("actor", MrsDbObjectType.Table, false, "/actor", true,
-            ["READ"], "FEED", false, false, false, null, null, undefined, schemaId);
+            "FEED", false, false, null, null, schemaId);
         await backend.mrs.getDbObject(dbObjectResult);
         host = mount<MrsHub>(<MrsHub ref={hubRef} />);
     });
@@ -197,9 +196,10 @@ describe("MrsHub Tests", () => {
                 comments: string, enabled: boolean, options: IShellDictionary | null,
                 authPath: string, authCompletedUrl: string,
                 authCompletedUrlValidation: string, authCompletedPageContent: string,
-                authApps: IMrsAuthAppData[]): Promise<IMrsServiceData> => {
+                metadata?: IShellDictionary, published = false): Promise<IMrsServiceData> => {
                 return Promise.resolve({
                     enabled: Number(enabled),
+                    published: Number(published),
                     hostCtx: "",
                     id: "",
                     isCurrent: 1,
@@ -212,9 +212,9 @@ describe("MrsHub Tests", () => {
                     authCompletedUrl,
                     authCompletedUrlValidation,
                     authCompletedPageContent,
-                    authApps,
                     enableSqlEndpoint: 0,
                     customMetadataSchema: "",
+                    metadata,
                 });
             };
 
@@ -536,8 +536,6 @@ describe("MrsHub Tests", () => {
                     requiresAuth: false,
                     autoDetectMediaType: false,
                     enabled: true,
-                    rowUserOwnershipEnforced: false,
-                    rowUserOwnershipColumn: null,
                     itemsPerPage: null,
                     comments: "",
                     mediaType: null,
@@ -874,6 +872,7 @@ describe("MrsHub Tests", () => {
                 requiresAuth: boolean, options: IShellDictionary | null,
                 serviceId?: string, comments?: string,
                 enabled?: boolean, replaceExisting?: boolean,
+                ignoreList?: string,
                 callback?: DataCallback<ShellAPIMrs.MrsAddContentSet>): Promise<IMrsAddContentSetData> => {
                 expect(requestPath).toBe("/someRequestPath");
 

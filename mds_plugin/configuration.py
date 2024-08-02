@@ -326,7 +326,8 @@ def get_config_profile_dict_from_parser(config, profile):
         'key_file': config[profile]['key_file'],
         'tenancy': config[profile]['tenancy'],
         'region': config[profile]['region'],
-        'is_current': profile == get_default_profile()
+        'is_current': profile == get_default_profile(),
+        'security_token_file': config[profile].get('security_token_file', None)
     }
 
 

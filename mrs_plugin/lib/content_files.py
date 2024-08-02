@@ -20,8 +20,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-from mrs_plugin.lib import core
+from mrs_plugin.lib import core, content_sets
+from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
 import os
+import re
 
 
 def sizeof_fmt(num, suffix="B"):
@@ -41,7 +43,7 @@ def format_content_file_listing(content_files, print_header=True):
 
 
     Returns:
-        The formated list of file
+        The formatted list of file
     """
 
     if print_header:
@@ -67,8 +69,49 @@ def format_content_file_listing(content_files, print_header=True):
 
     return output
 
+def get_content_file(session, content_file_id: bytes | None=None, content_set_id: bytes | None=None,
+                     request_path: str | None=None, include_file_content: bool=False):
+    sql = f"""
+        SELECT f.id, f.content_set_id, f.request_path,
+            f.requires_auth, f.enabled, f.size,
+            cs.request_path AS content_set_request_path,
+            CONCAT(h.name, se.url_context_root) AS host_ctx,
+            MAX(al.changed_at) as changed_at{", f.content" if include_file_content else ""}
+        FROM mysql_rest_service_metadata.content_file f
+            LEFT OUTER JOIN mysql_rest_service_metadata.content_set cs
+                ON cs.id = f.content_set_id
+            LEFT OUTER JOIN mysql_rest_service_metadata.service se
+                ON se.id = cs.service_id
+            LEFT JOIN mysql_rest_service_metadata.url_host h
+                ON se.url_host_id = h.id
+            LEFT OUTER JOIN (
+                SELECT new_row_id AS id, MAX(changed_at) as changed_at
+                FROM mysql_rest_service_metadata.audit_log
+                WHERE table_name = 'content_file'
+                GROUP BY new_row_id) al
+            ON al.id = f.id
+        """
 
-def get_content_files(session, content_set_id: bytes, include_enable_state=False):
+    wheres = []
+    params = []
+    if content_file_id:
+        wheres.append("f.id = ?")
+        params.append(content_file_id)
+    elif content_set_id and request_path:
+        wheres.append("f.content_set_id = ?")
+        wheres.append("f.request_path = ?")
+        params.append(content_set_id)
+        params.append(request_path)
+
+    sql += core._generate_where(wheres)
+    sql += "GROUP BY f.id"
+
+    result = core.MrsDbExec(sql, params).exec(session).items
+
+    return result[0] if len(result) == 1 else None
+
+
+def get_content_files(session, content_set_id: bytes, include_enable_state: bool | None=False, include_file_content=False):
     """Returns all db_objects for the given schema
 
     Args:
@@ -83,12 +126,12 @@ def get_content_files(session, content_set_id: bytes, include_enable_state=False
     if not content_set_id:
         raise ValueError("No content set specified.")
 
-    sql = """
+    sql = f"""
         SELECT f.id, f.content_set_id, f.request_path,
             f.requires_auth, f.enabled, f.size,
             cs.request_path AS content_set_request_path,
             CONCAT(h.name, se.url_context_root) AS host_ctx,
-            MAX(al.changed_at) as changed_at
+            MAX(al.changed_at) as changed_at{", f.content" if include_file_content else ""}
         FROM mysql_rest_service_metadata.content_file f
             LEFT OUTER JOIN mysql_rest_service_metadata.content_set cs
                 ON cs.id = f.content_set_id
@@ -111,14 +154,34 @@ def get_content_files(session, content_set_id: bytes, include_enable_state=False
 
     sql += "GROUP BY f.id"
 
-    return core.MrsDbExec(sql).exec(session, [content_set_id]).items
+    return core.MrsDbExec(sql, [content_set_id]).exec(session).items
 
 
-def add_content_dir(session, content_set_id, content_dir, requires_auth):
+def add_content_dir(session, content_set_id, content_dir, requires_auth, ignore_list, send_gui_message=None):
     file_list = []
+    ignore_patterns = []
+    full_ignore_pattern = None
+
+    if ignore_list:
+        for pattern in ignore_list.split(","):
+            if pattern.strip().startswith("*"):
+                pattern = f".{pattern}"
+            ignore_patterns.append(pattern.strip().replace("?", ".").replace("\\", "/"))
+
+    if len(ignore_patterns) > 0:
+        full_ignore_pattern = re.compile(
+            "(" + ")|(".join(ignore_patterns) + ")")
+
+    content_dir = os.path.expanduser(content_dir)
+
     for root, dirs, files in os.walk(content_dir):
-        for file in files:
+        for file in sorted(files):
             fullname = os.path.join(root, file)
+
+            # If the filename matches the ignore list, ignore the file
+            if full_ignore_pattern is not None and re.match(full_ignore_pattern, fullname.replace("\\", "/")):
+                continue
+
             file_list.append(fullname)
             # Read the file content
             with open(fullname, 'rb') as f:
@@ -128,14 +191,16 @@ def add_content_dir(session, content_set_id, content_dir, requires_auth):
             if os.name == 'nt':
                 request_path = request_path.replace("\\", "/")
 
-            print(f"Adding file {file} ...")
+            if send_gui_message is not None:
+                send_gui_message("data", {"info": f"Adding file {file} ..."})
+
             add_content_file(session, content_set_id,
-                             request_path, requires_auth, data)
+                             request_path, requires_auth, options=None, data=data)
 
     return file_list
 
 
-def add_content_file(session, content_set_id, request_path, requires_auth, data, enabled=1):
+def add_content_file(session, content_set_id, request_path, requires_auth, data, enabled=1, options=None):
     # Upload it to the content table
     id = core.get_sequence_id(session)
     core.insert(table="content_file", values={
@@ -144,7 +209,41 @@ def add_content_file(session, content_set_id, request_path, requires_auth, data,
         "request_path": request_path,
         "requires_auth": int(requires_auth),
         "enabled": enabled,
-        "content": data
+        "content": data,
+        "options": options,
     }).exec(session)
 
     return id
+
+
+def delete_content_file(session, content_file_id):
+    if not content_file_id:
+        raise ValueError("No REST content file id specified.")
+
+    res = core.delete(table="content_file", where=["id=?"]).exec(
+        session, params=[content_file_id])
+
+    if not res.success:
+        raise Exception(
+            f"The specified REST content file with id {content_file_id} was not found.")
+
+
+def get_create_statement(session, content_file) -> str:
+    content_set: dict = content_sets.get_content_set(session, content_set_id=content_file["content_set_id"])
+
+    executor = MrsDdlExecutor(
+        session=session,
+
+        current_service_id=content_set["service_id"])
+
+    executor.showCreateRestContentFile({
+        "current_operation": "SHOW CREATE REST CONTENT FILE",
+        **content_file
+    })
+
+    if executor.results[0]["type"] == "error":
+        raise Exception(executor.results[0]['message'])
+
+    result = [executor.results[0]['result'][0]['CREATE REST CONTENT FILE']]
+
+    return "\n".join(result)

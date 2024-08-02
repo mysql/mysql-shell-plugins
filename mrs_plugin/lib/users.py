@@ -58,29 +58,52 @@ def cypher_auth_string(auth_string) -> bytes:
         return '$' + '$'.join(parts)
 
 def get_users(session, service_id=None, auth_app_id=None, user_id=None, mask_password=True, user_name=None):
-    sql = f"""
-        SELECT  user.id, user.auth_app_id, user.name, user.email,
-                user.vendor_user_id, user.login_permitted,
-                user.mapped_user_id, user.app_options,
-                {f'"{STORED_PASSWORD_STRING}" as auth_string' if mask_password else "user.auth_string"}
-            FROM `mysql_rest_service_metadata`.`mrs_user` as user
-            JOIN `mysql_rest_service_metadata`.`auth_app` as app
-                ON app.id = user.auth_app_id
-            JOIN `mysql_rest_service_metadata`.`service` as service
-                ON app.service_id = service.id
-    """
+    # Get current version of metadata schema
+    current_version = core.get_mrs_schema_version(session)
+
     wheres = []
     params = []
-
     if user_id:
         wheres.append("user.id = ?")
         params.append(user_id)
-    if auth_app_id:
-        wheres.append("auth_app_id = ?")
-        params.append(auth_app_id)
-    if service_id:
-        wheres.append("service_id = ?")
-        params.append(service_id)
+    # Use different handling for 2.x.x
+    if current_version[0] <= 2:
+        sql = f"""
+            SELECT  user.id, user.auth_app_id, user.name, user.email,
+                    user.vendor_user_id, user.login_permitted,
+                    user.mapped_user_id, user.app_options,
+                    {f'"{STORED_PASSWORD_STRING}" as auth_string' if mask_password else "user.auth_string"}
+                FROM `mysql_rest_service_metadata`.`mrs_user` as user
+                JOIN `mysql_rest_service_metadata`.`auth_app` as app
+                    ON app.id = user.auth_app_id
+                JOIN `mysql_rest_service_metadata`.`service` as service
+                    ON app.service_id = service.id
+        """
+        if auth_app_id:
+            wheres.append("auth_app_id = ?")
+            params.append(auth_app_id)
+        if service_id:
+            wheres.append("service_id = ?")
+            params.append(service_id)
+    else:
+        sql = f"""
+            SELECT  user.id, user.auth_app_id, user.name, user.email,
+                    user.vendor_user_id, user.login_permitted,
+                    user.mapped_user_id, user.app_options,
+                    {f'"{STORED_PASSWORD_STRING}" as auth_string' if mask_password else "user.auth_string"}
+                FROM `mysql_rest_service_metadata`.`mrs_user` as user
+                JOIN `mysql_rest_service_metadata`.`auth_app` as app
+                    ON app.id = user.auth_app_id
+                JOIN `mysql_rest_service_metadata`.`service_has_auth_app` as sa
+                    ON sa.auth_app_id = app.id
+        """
+        if auth_app_id:
+            wheres.append("user.auth_app_id = ?")
+            params.append(auth_app_id)
+        if service_id:
+            wheres.append("sa.service_id = ?")
+            params.append(service_id)
+
     if user_name:
         wheres.append("user.name = ?")
         params.append(user_name)

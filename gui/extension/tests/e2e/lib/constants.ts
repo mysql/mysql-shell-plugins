@@ -259,6 +259,13 @@ export const editRESTObj = "Edit REST Object";
 export const copyRESTObjReqPath = "Copy REST Object Request Path to Clipboard";
 export const copyRESTObjReqPathBrowser = "Copy REST Object Request Path in Web Browser";
 export const dumpRESTObjToJSON = "Dump REST Object To JSON File...";
+export const exportCreateRestObjSt = "Export CREATE REST OBJECT Statement...";
+export const copyCreateRestObjSt = "Copy CREATE REST OBJECT Statement...";
+export const exportCreateRestSchemaSt = "Export CREATE REST SCHEMA Statement...";
+export const copyCreateRestSchemaSt = "Copy CREATE REST SCHEMA Statement...";
+export const exportCreateRestServiceSt = "Export CREATE REST SERVICE Statement...";
+export const copyCreateRestServiceSt = "Copy CREATE REST SERVICE Statement...";
+export const dumpRestSchemaSQL = "Dump Rest Schema SQL...";
 export const deleteRESTObj = "Delete REST Object";
 export const viewConfigProfileInfo = "View Config Profile Information";
 export const setDefaultConfigProfile = "Set as New Default Config Profile";
@@ -390,16 +397,21 @@ export const restServiceCtxMenu = new Map([
     [setAsCurrentREST, 2],
     [loadRESTSchemaFromJSON, 3],
     [exportRestSdk, 4],
-    [addNewAuthApp, 5],
-    [deleteRESTService, 6],
-    [mrsServiceDocs, 7],
+    [exportCreateRestServiceSt, 5],
+    [copyCreateRestServiceSt, 6],
+    [addNewAuthApp, 7],
+    [deleteRESTService, 8],
+    [mrsServiceDocs, 9],
 ]);
 
 export const restSchemaCtxMenu = new Map([
     [editRESTSchema, 1],
     [dumpRESTSchemaToJSON, 2],
     [loadRESTObjFromJSON, 3],
-    [deleteRESTSchema, 4],
+    [dumpRestSchemaSQL, 4],
+    [exportCreateRestSchemaSt, 5],
+    [copyCreateRestSchemaSt, 6],
+    [deleteRESTSchema, 7],
 ]);
 
 export const restObjCtxMenu = new Map([
@@ -407,7 +419,9 @@ export const restObjCtxMenu = new Map([
     [copyRESTObjReqPath, 2],
     [copyRESTObjReqPathBrowser, 3],
     [dumpRESTObjToJSON, 4],
-    [deleteRESTObj, 5],
+    [exportCreateRestObjSt, 5],
+    [copyCreateRestObjSt, 6],
+    [deleteRESTObj, 7],
 ]);
 
 export const restAppCtxMenu = new Map([

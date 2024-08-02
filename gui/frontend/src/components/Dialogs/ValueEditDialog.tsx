@@ -1298,6 +1298,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                                     multiLineCount={entry.value.multiLineCount}
                                     password={entry.value.obfuscated}
                                     autoFocus={options?.includes(CommonDialogValueOption.AutoFocus)}
+                                    readOnly={options?.includes(CommonDialogValueOption.ReadOnly)}
                                 />
                                 {progress}
                             </Container>,

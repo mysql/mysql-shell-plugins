@@ -65,7 +65,8 @@ def test_get_auth_app(phone_book, table_contents):
         assert new_auth_app["auth_vendor"] == "MRS"
 
         for key, value in new_auth_app_data.items():
-            assert new_auth_app[key] == value
+            if key != "service_id":
+                assert new_auth_app[key] == value
 
     assert auth_apps_table.same_as_snapshot
 

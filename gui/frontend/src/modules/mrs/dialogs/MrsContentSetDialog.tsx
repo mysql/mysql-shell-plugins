@@ -38,7 +38,7 @@ export interface IMrsContentSetDialogData extends IDictionary {
     comments: string;
     options: string;
     directory: string;
-
+    ignoreList: string;
 }
 
 export class MrsContentSetDialog extends AwaitableValueEditDialog {
@@ -76,6 +76,14 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                         result.messages.requestPath = "The request path must start with /.";
                     }
                 }
+
+                try {
+                    if (mainSection.values.options.value) {
+                        JSON.parse(mainSection.values.options.value as string);
+                    }
+                } catch (e) {
+                    result.messages.options = `The options need to confirm to JSON format. (${String(e)})`;
+                }
             }
         }
 
@@ -92,6 +100,26 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
             selectedService = services[0];
         }
 
+        // Check if options.containsMrsScripts === true
+        let newOptions = "";
+        let containsMrsScripts = false;
+        let buildFolder = "build/";
+        if (request.values && request.values.options) {
+            const options = JSON.parse(request.values.options as string);
+            if ("containsMrsScripts" in options) {
+                containsMrsScripts = options.containsMrsScripts === true;
+                options.containsMrsScripts = undefined;
+            }
+            if ("buildFolder" in options) {
+                buildFolder = options.buildFolder;
+                options.buildFolder = undefined;
+            }
+            newOptions = JSON.stringify(options, undefined, 4);
+            if (newOptions === "{}") {
+                newOptions = "";
+            }
+        }
+
         const mainSection: IDialogSection = {
             caption: request.title,
             values: {
@@ -99,7 +127,7 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                     type: "text",
                     caption: "Request Path",
                     value: request.values?.requestPath as string,
-                    horizontalSpan: 4,
+                    horizontalSpan: 3,
                     options: [
                         CommonDialogValueOption.AutoFocus,
                     ],
@@ -107,34 +135,69 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                 },
                 service: {
                     type: "choice",
-                    caption: "MRS Service",
-                    value: selectedService?.hostCtx,
+                    caption: "REST Service Path",
+                    value: selectedService?.fullServicePath ?? "",
                     choices: services.map((service) => {
-                        return service.hostCtx;
+                        return service.fullServicePath ?? "";
                     }),
-                    horizontalSpan: 4,
+                    horizontalSpan: 3,
                     description: "The MRS Service to hold the content",
+                },
+                flags: {
+                    type: "description",
+                    caption: "MRS Object Flags",
+                    horizontalSpan: 2,
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                        CommonDialogValueOption.NewGroup,
+                    ],
+                },
+                enabled: {
+                    type: "boolean",
+                    caption: "Enabled",
+                    horizontalSpan: 2,
+                    value: (request.values?.enabled ?? true) as boolean,
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                    ],
+                },
+                requiresAuth: {
+                    type: "boolean",
+                    caption: "Requires Auth",
+                    horizontalSpan: 2,
+                    value: (request.values?.requiresAuth ?? true) as boolean,
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                    ],
                 },
                 directory: {
                     type: "resource",
                     caption: "Folder to upload",
                     value: request.values?.directory as string,
-                    horizontalSpan: 8,
+                    horizontalSpan: 5,
                     description: "The folder that should be uploaded, including all its files and sub-folders",
                 },
-                enabled: {
-                    type: "boolean",
-                    caption: "Enabled",
-                    horizontalSpan: 4,
-                    value: (request.values?.enabled ?? true) as boolean,
-                    description: "Defines if the static content should be made available",
+                ignoreList: {
+                    type: "text",
+                    caption: "Files to ignore",
+                    value: "*node_modules/*, */.*",
+                    horizontalSpan: 3,
+                    description: "A list of files to ignore, use * and ? for pattern matching",
                 },
-                requiresAuth: {
+                containsMrsScripts: {
                     type: "boolean",
-                    caption: "Requires Authentication",
-                    horizontalSpan: 4,
-                    value: (request.values?.requiresAuth ?? true) as boolean,
-                    description: "Only authenticated users can access the content if checked",
+                    caption: "MRS Scripts",
+                    label: "Contains MRS Scripts written in TypeScript",
+                    horizontalSpan: 5,
+                    value: containsMrsScripts,
+                    description: "If checked, the MRS scripts and triggers will be loaded from this content set",
+                },
+                buildFolder: {
+                    type: "text",
+                    caption: "Javascript Build Folder",
+                    value: buildFolder,
+                    horizontalSpan: 3,
+                    description: "The name of the JavaScript build folder",
                 },
                 comments: {
                     type: "text",
@@ -145,7 +208,7 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                 options: {
                     type: "text",
                     caption: "Options",
-                    value: request.values?.options as string,
+                    value: newOptions,
                     horizontalSpan: 8,
                     multiLine: true,
                     description: "Additional options in JSON format",
@@ -164,16 +227,22 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
     private processResults = (dialogValues: IDialogValues, services: IMrsServiceData[]): IDictionary => {
         const mainSection = dialogValues.sections.get("mainSection");
         if (mainSection) {
+            const options = JSON.parse(mainSection.values.options.value as string || "{}") ;
+            options.containsMrsScripts = mainSection.values.containsMrsScripts.value as boolean;
+            options.buildFolder = mainSection.values.buildFolder.value as string;
+            const newOptions = JSON.stringify(options, undefined, 4);
+
             const values: IMrsContentSetDialogData = {
                 serviceId: services.find((service) => {
-                    return mainSection.values.service.value === service.hostCtx;
+                    return mainSection.values.service.value === service.fullServicePath;
                 })?.id ?? "",
                 requestPath: mainSection.values.requestPath.value as string,
                 requiresAuth: mainSection.values.requiresAuth.value as boolean,
                 enabled: mainSection.values.enabled.value as boolean,
                 comments: mainSection.values.comments.value as string,
-                options: mainSection.values.options.value as string,
+                options: newOptions,
                 directory: mainSection.values.directory.value as string,
+                ignoreList: mainSection.values.ignoreList.value as string,
             };
 
             return values;

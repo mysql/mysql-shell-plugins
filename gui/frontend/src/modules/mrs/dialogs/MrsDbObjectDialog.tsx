@@ -117,6 +117,25 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                     result.messages.name = "The object name must not be empty.";
                 }
             }
+
+            const optionsSection = values.sections.get("optionsSection");
+            if (optionsSection) {
+                // options section
+                if (optionsSection.values.options.value) {
+                    try {
+                        JSON.parse(optionsSection.values.options.value as string);
+                    } catch (e) {
+                        result.messages.options = "The options must contain a valid JSON string.";
+                    }
+                }
+                if (optionsSection.values.metadata.value) {
+                    try {
+                        JSON.parse(optionsSection.values.metadata.value as string);
+                    } catch (e) {
+                        result.messages.metadata = "The metadata field must contain a valid JSON string.";
+                    }
+                }
+            }
         }
 
         return result;
@@ -155,8 +174,10 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                 service: {
                     type: "choice",
                     caption: "REST Service Path",
-                    value: selectedService?.hostCtx,
-                    choices: services.map((service) => { return service.hostCtx; }),
+                    value: selectedService?.fullServicePath ?? "",
+                    choices: services.map((service) => {
+                        return service.fullServicePath ?? "";
+                    }),
                     horizontalSpan: 2,
                     description: "The path of the REST Service",
                     options: updateDisabled,
@@ -300,6 +321,16 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                     multiLineCount: 8,
                     description: "Additional options in JSON format",
                 },
+                metadata: {
+                    type: "text",
+                    caption: "Metadata",
+                    value: request.values?.metadata !== undefined
+                        ? JSON.stringify(request.values.metadata, undefined, 4) : "",
+                    horizontalSpan: 8,
+                    multiLine: true,
+                    multiLineCount: 8,
+                    description: "Metadata settings in JSON format",
+                },
             },
         };
 
@@ -307,23 +338,6 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
             caption: "Authorization",
             groupName: "group1",
             values: {
-                rowUserOwnershipEnforced: {
-                    type: "boolean",
-                    caption: "Row Ownership",
-                    label: "Enforce Row User Ownership",
-                    horizontalSpan: 4,
-                    value: (request.values?.rowUserOwnershipEnforced ?? true) as boolean,
-                    description: "Enables the MRS row ownership management",
-                },
-                rowUserOwnershipColumn: {
-                    type: "choice",
-                    caption: "Row Ownership Field",
-                    value: request.values?.rowUserOwnershipColumn as string,
-                    choices: rowOwnershipFields,
-                    horizontalSpan: 4,
-                    optional: true,
-                    description: "Field that holds the user ID that should be managed by MRS",
-                },
                 authStoredProcedure: {
                     type: "text",
                     caption: "Custom Stored Procedure used for Authorization",
@@ -373,12 +387,12 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
             values.autoDetectMediaType = settingsSection.values.autoDetectMediaType.value as boolean;
 
             // authorizationSection
-            values.rowUserOwnershipColumn = authorizationSection.values.rowUserOwnershipColumn.value as string;
-            values.rowUserOwnershipEnforced = authorizationSection.values.rowUserOwnershipEnforced.value as boolean;
             values.authStoredProcedure = authorizationSection.values.authStoredProcedure.value as string;
 
             // optionsSection
             values.options = optionsSection.values.options.value as string;
+            values.metadata = optionsSection.values.metadata.value as string === ""
+                ? undefined : JSON.parse(optionsSection.values.metadata.value as string);
 
             // mrsObject
             const mrsObjectValue = mrsObjectSection.values.tree.value;
@@ -403,21 +417,20 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
     };
 
     private handleDbObjectChange = (): void => {
-        const authorizationSection = this.dialogValues?.sections.get("authorizationSection");
-        if (authorizationSection) {
-            authorizationSection.values.rowUserOwnershipColumn.value =
-                this.requestValue.rowUserOwnershipColumn;
-            authorizationSection.values.rowUserOwnershipEnforced.value =
-                this.requestValue.rowUserOwnershipEnforced ?? true;
-        }
+        // Handle changes to the db_object that appeared in the embedded editor
     };
 
     private handleGetCurrentDbObject = (): IMrsDbObjectData => {
         const mainSection = this.dialogValues?.sections.get("mainSection");
+        const optionsSection = this.dialogValues?.sections.get("optionsSection");
         if (mainSection) {
             this.requestValue.requestPath = mainSection.values.requestPath.value as string;
             this.requestValue.enabled = + (mainSection.values.enabled.value as boolean);
             this.requestValue.requiresAuth = + (mainSection.values.requiresAuth.value as boolean);
+        }
+        if (optionsSection) {
+            this.requestValue.metadata = optionsSection.values.metadata.value as string === ""
+            ? undefined : JSON.parse(optionsSection.values.metadata.value as string);
         }
 
         return this.requestValue;

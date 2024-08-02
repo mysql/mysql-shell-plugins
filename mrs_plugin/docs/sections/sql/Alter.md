@@ -41,6 +41,7 @@ restServiceOptions: (
         | restAuthentication
         | jsonOptions
         | comments
+        | metadata
     )+
 ;
 ```
@@ -81,6 +82,7 @@ restSchemaOptions: (
         | itemsPerPage
         | jsonOptions
         | comments
+        | metadata
     )+
 ;
 ```
@@ -130,6 +132,7 @@ restObjectOptions: (
         | itemsPerPage
         | jsonOptions
         | comments
+        | metadata
         | restViewMediaType
         | restViewFormat
         | restViewAuthenticationProcedure
@@ -186,6 +189,7 @@ restObjectOptions: (
         | itemsPerPage
         | jsonOptions
         | comments
+        | metadata
         | restViewMediaType
         | restViewFormat
         | restViewAuthenticationProcedure
@@ -195,6 +199,50 @@ restObjectOptions: (
 
 alterRestProcedureStatement ::=
 ![alterRestProcedureStatement](../../images/sql/alterRestProcedureStatement.svg "alterRestProcedureStatement")
+
+serviceSchemaSelector ::=
+![serviceSchemaSelector](../../images/sql/serviceSchemaSelector.svg "serviceSchemaSelector")
+
+restObjectOptions ::=
+![restObjectOptions](../../images/sql/restObjectOptions.svg "restObjectOptions")
+
+## ALTER REST FUNCTION
+
+The `ALTER REST FUNCTION` statement is used to alter REST endpoints for database schema stored functions.
+
+It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-duality-view) as defined for REST duality views to describe the REST procedure's parameters and result sets. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-duality-view).
+
+**_SYNTAX_**
+
+```antlr
+alterRestFunctionStatement:
+    ALTER_SYMBOL REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
+        ON_SYMBOL serviceSchemaSelector
+    )? (
+        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newFunctionRequestPath
+    )? (PARAMETERS_SYMBOL restObjectName? graphQlObj)? restFunctionResult* restObjectOptions?
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+
+restObjectOptions: (
+        enabledDisabled
+        | authenticationRequired
+        | itemsPerPage
+        | jsonOptions
+        | comments
+        | metadata
+        | restViewMediaType
+        | restViewFormat
+        | restViewAuthenticationProcedure
+    )+
+;
+```
+
+alterRestFunctionStatement ::=
+![alterRestFunctionStatement](../../images/sql/alterRestFunctionStatement.svg "alterRestFunctionStatement")
 
 serviceSchemaSelector ::=
 ![serviceSchemaSelector](../../images/sql/serviceSchemaSelector.svg "serviceSchemaSelector")

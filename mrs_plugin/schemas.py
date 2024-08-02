@@ -34,7 +34,7 @@ def verify_value_keys(**kwargs):
     for key in kwargs["value"].keys():
         if key not in ["name", "request_path", "requires_auth",
                        "enabled", "items_per_page", "comments",
-                       "service_id", "options"] and key != "delete":
+                       "service_id", "options", "metadata"] and key != "delete":
             raise Exception(f"Attempting to change an invalid schema value.")
 
 
@@ -229,6 +229,7 @@ def add_schema(**kwargs):
         items_per_page (int): The number of items returned per page
         comments (str): Comments for the schema
         options (dict): The options for the schema
+        metadata (dict): The metadata settings of the schema
         session (object): The database session to use.
 
     Returns:
@@ -243,6 +244,7 @@ def add_schema(**kwargs):
     items_per_page = kwargs.get("items_per_page")
     comments = kwargs.get("comments")
     options = kwargs.get("options")
+    metadata = kwargs.get("metadata")
     interactive = lib.core.get_interactive_default()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
@@ -298,6 +300,7 @@ def add_schema(**kwargs):
             id = lib.schemas.add_schema(schema_name=schema_name, service_id=service["id"],
                                         request_path=request_path, requires_auth=requires_auth, enabled=enabled,
                                         items_per_page=items_per_page, comments=comments, options=options,
+                                        metadata=metadata,
                                         session=session)
 
             schema = lib.schemas.get_schema(session=session, schema_id=id)
@@ -609,6 +612,7 @@ def update_schema(**kwargs):
         items_per_page (int): The number of items returned per page
         comments (str): Comments for the schema
         options (dict): The options for the schema
+        metadata (dict): The metadata settings of the schema
 
     Returns:
         The result message as string

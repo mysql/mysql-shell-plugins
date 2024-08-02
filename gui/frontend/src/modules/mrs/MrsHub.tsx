@@ -68,14 +68,13 @@ interface IMrsEditObjectData extends IDictionary {
     enabled: boolean,
     itemsPerPage: number,
     comments: string,
-    rowUserOwnershipEnforced: boolean,
-    rowUserOwnershipColumn: string,
     objectType: MrsDbObjectType,
     crudOperations: string[],
     crudOperationFormat: string,
     autoDetectMediaType: boolean,
     mediaType: string,
     options: string,
+    metadata?: IShellDictionary;
     authStoredProcedure: string,
     objects: IMrsObject[];
 
@@ -140,35 +139,6 @@ export class MrsHub extends ComponentBase {
         const title = service
             ? "Adjust the REST Service Configuration"
             : "Enter Configuration Values for the New REST Service";
-        const authAppNewItem: IMrsAuthAppData = {
-            id: "",
-            authVendorId: "",
-            authVendorName: "",
-            serviceId: "",
-            name: "<new>",
-            description: "",
-            url: "",
-            urlDirectAuth: "",
-            accessToken: "",
-            appId: "",
-            enabled: true,
-            limitToRegisteredUsers: true,
-            defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
-        };
-
-        if (service && (!service.authApps)) {
-            service.authApps = await backend.mrs.getAuthApps(service.id);
-
-            // Add entry for <new> item.
-            service.authApps.push(authAppNewItem);
-
-            // Set the authVendorName fields of the app list so it can be used for the dropdown.
-            for (const app of service.authApps) {
-                app.authVendorName = authVendors.find((vendor) => {
-                    return app.authVendorId === vendor.id;
-                })?.name ?? "";
-            }
-        }
 
         const defaultOptions = {
             headers: {
@@ -219,13 +189,14 @@ export class MrsHub extends ComponentBase {
                 protocols: service?.urlProtocol ?? ["HTTPS"],
                 isCurrent: !service || service.isCurrent === 1,
                 enabled: !service || service.enabled === 1,
+                published: service === undefined ? false : service.published === 1,
                 comments: service?.comments ?? "",
                 options: serviceOptions,
                 authPath: service?.authPath ?? "/authentication",
                 authCompletedUrlValidation: service?.authCompletedUrlValidation ?? "",
                 authCompletedUrl: service?.authCompletedUrl ?? "",
                 authCompletedPageContent: service?.authCompletedPageContent ?? "",
-                authApps: service?.authApps ?? [authAppNewItem],
+                metadata: service?.metadata ? JSON.stringify(service.metadata, undefined, 4) : "",
             },
         };
 
@@ -242,36 +213,44 @@ export class MrsHub extends ComponentBase {
         const comments = data.comments;
         const isCurrent = data.isCurrent;
         const enabled = data.enabled;
+        const published = data.published;
         const options = data.options === "" ?
             null : JSON.parse(data.options) as IShellDictionary;
         const authPath = data.authPath;
         const authCompletedUrl = data.authCompletedUrl;
         const authCompletedUrlValidation = data.authCompletedUrlValidation;
         const authCompletedPageContent = data.authCompletedPageContent;
-
-        // Remove entry for <new> item.
-        const authApps = (data.authApps as IMrsAuthAppData[]).filter((a: IMrsAuthAppData) => {
-            return a.id !== "";
-        });
-
-        // Set the authVendorId based on the authVendorName.
-        for (const app of authApps) {
-            app.authVendorId = authVendors.find((vendor) => {
-                return app.authVendorName === vendor.name;
-            })?.id ?? "";
-            app.serviceId = app.serviceId === "" ? undefined : app.serviceId;
-            app.authVendorId = app.authVendorId === "" ? undefined : app.authVendorId;
-            app.defaultRoleId = app.defaultRoleId === "" ? null : app.defaultRoleId;
-        }
+        const metadata = data.metadata === "" ? undefined : JSON.parse(data.metadata) as IShellDictionary;
 
         if (!service) {
             try {
                 const service = await backend.mrs.addService(urlContextRoot, protocols, hostName ?? "", comments,
                     enabled, options, authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
-                    authApps);
+                    metadata, published);
 
                 if (isCurrent) {
                     await backend.mrs.setCurrentService(service.id);
+                }
+
+                if (data.mrsAdminUser && data.mrsAdminUserPassword) {
+                    const authApp = await backend.mrs.addAuthApp(service.id, {
+                        id: "",
+                        authVendorId: "MAAAAAAAAAAAAAAAAAAAAA==",
+                        authVendorName: "MRS",
+                        serviceId: "",
+                        name: "MRS",
+                        description: "MRS Auth App",
+                        url: "",
+                        urlDirectAuth: "",
+                        accessToken: "",
+                        appId: "",
+                        enabled: true,
+                        limitToRegisteredUsers: true,
+                        defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
+                    }, []);
+
+                    await backend.mrs.addUser(authApp.authAppId, data.mrsAdminUser, "", "", true, "", null,
+                        data.mrsAdminUserPassword, []);
                 }
 
                 void requisitions.executeRemote("refreshConnections", undefined);
@@ -292,13 +271,14 @@ export class MrsHub extends ComponentBase {
                         urlProtocol: protocols,
                         urlHostName: hostName,
                         enabled,
+                        published,
                         comments,
                         options,
                         authPath,
                         authCompletedUrl,
                         authCompletedUrlValidation,
                         authCompletedPageContent,
-                        authApps,
+                        metadata,
                     },
                 );
 
@@ -306,7 +286,7 @@ export class MrsHub extends ComponentBase {
                     await backend.mrs.setCurrentService(service.id);
                 }
 
-                void requisitions.execute("refreshConnections", undefined);
+                void requisitions.executeRemote("refreshConnections", undefined);
                 void requisitions.execute("showInfo", "The MRS service has been successfully updated.");
 
             } catch (reason) {
@@ -350,7 +330,8 @@ export class MrsHub extends ComponentBase {
                     enabled: !schema || schema.enabled === 1,
                     itemsPerPage: schema?.itemsPerPage,
                     comments: schema?.comments ?? "",
-                    options: schema?.options ? JSON.stringify(schema?.options) : "",
+                    options: schema?.options ? JSON.stringify(schema?.options, undefined, 4) : "",
+                    metadata: schema?.metadata ? JSON.stringify(schema.metadata, undefined, 4) : "",
                 },
             };
 
@@ -369,12 +350,13 @@ export class MrsHub extends ComponentBase {
             const comments = data.comments;
             const enabled = data.enabled;
             const options = data.options === "" ? null : JSON.parse(data.options) as IShellDictionary;
+            const metadata = data.metadata === "" ? undefined : JSON.parse(data.metadata) as IShellDictionary;
 
             if (!schema) {
                 try {
                     await backend.mrs.addSchema(
                         serviceId, dbSchemaName, requestPath, requiresAuth, options,
-                        itemsPerPage, comments);
+                        itemsPerPage, comments, metadata);
 
                     void requisitions.executeRemote("refreshConnections", undefined);
                     void requisitions.execute("showInfo", "The MRS schema has been added successfully.");
@@ -386,7 +368,7 @@ export class MrsHub extends ComponentBase {
                 try {
                     await backend.mrs.updateSchema(schema.id, serviceId, dbSchemaName,
                         requestPath, requiresAuth, enabled,
-                        itemsPerPage, comments, options);
+                        itemsPerPage, comments, options, metadata);
 
                     void requisitions.executeRemote("refreshConnections", undefined);
                     void requisitions.execute("showInfo", "The MRS schema has been updated successfully.");
@@ -453,15 +435,14 @@ export class MrsHub extends ComponentBase {
                 enabled: dbObject.enabled === 1,
                 itemsPerPage: dbObject.itemsPerPage,
                 comments: dbObject.comments ?? "",
-                rowUserOwnershipEnforced: dbObject.rowUserOwnershipEnforced === 1,
-                rowUserOwnershipColumn: dbObject.rowUserOwnershipColumn,
                 objectType: dbObject.objectType,
                 crudOperations: dbObject.crudOperations,
                 crudOperationFormat: dbObject.crudOperationFormat,
                 autoDetectMediaType: dbObject.autoDetectMediaType === 1,
                 mediaType: dbObject.mediaType,
-                options: dbObject?.options ? JSON.stringify(dbObject?.options) : "",
+                options: dbObject?.options ? JSON.stringify(dbObject?.options, undefined, 4) : "",
                 authStoredProcedure: dbObject.authStoredProcedure,
+                metadata: dbObject?.metadata,
 
                 payload: {
                     backend,
@@ -486,18 +467,14 @@ export class MrsHub extends ComponentBase {
         const itemsPerPage = data.itemsPerPage;
         const comments = data.comments;
         const enabled = data.enabled;
-        const rowUserOwnershipEnforced = data.rowUserOwnershipEnforced;
-        const rowUserOwnershipColumn = data.rowUserOwnershipColumn;
         const objectType = data.objectType;
-        const crudOperations = objectType === MrsDbObjectType.Procedure
-            ? ["UPDATE"]
-            : (data.crudOperations ?? ["READ"]);
         const crudOperationFormat = data.crudOperationFormat ?? "FEED";
         const mediaType = data.mediaType;
         const autoDetectMediaType = data.autoDetectMediaType;
         const authStoredProcedure = data.authStoredProcedure;
         const options = data.options === "" ? null : JSON.parse(data.options) as IShellDictionary;
         const objects = data.objects;
+        const metadata = data.metadata as IShellDictionary;
 
         const newService = services.find((service) => {
             return service.urlContextRoot === servicePath;
@@ -512,13 +489,13 @@ export class MrsHub extends ComponentBase {
             // Create new DB Object
             try {
                 await backend.mrs.addDbObject(name, objectType,
-                    false, requestPath, enabled, crudOperations,
+                    false, requestPath, enabled,
                     crudOperationFormat, requiresAuth,
-                    rowUserOwnershipEnforced, autoDetectMediaType,
+                    autoDetectMediaType,
                     options, itemsPerPage,
-                    rowUserOwnershipColumn,
                     newSchema?.id, undefined, comments,
                     mediaType, "",
+                    metadata,
                     objects);
 
                 requisitions.executeRemote("refreshConnections", undefined);
@@ -543,16 +520,14 @@ export class MrsHub extends ComponentBase {
                         requiresAuth,
                         autoDetectMediaType,
                         enabled,
-                        rowUserOwnershipEnforced,
-                        rowUserOwnershipColumn,
                         itemsPerPage,
                         comments,
                         mediaType,
                         authStoredProcedure,
-                        crudOperations,
                         crudOperationFormat,
                         options,
                         objects,
+                        metadata: metadata === null ? undefined : metadata,
                     });
 
                 requisitions.executeRemote("refreshConnections", undefined);
@@ -647,6 +622,7 @@ export class MrsHub extends ComponentBase {
             const comments = data.comments;
             const enabled = data.enabled;
             const options = data.options === "" ? null : JSON.parse(data.options) as IShellDictionary;
+            const ignoreList = data.ignoreList;
 
             // Check if the request path is valid for this service and does not overlap with other services
             let requestPathValid = false;
@@ -693,7 +669,7 @@ export class MrsHub extends ComponentBase {
                     try {
                         let addedContentSet: IMrsAddContentSetData = {};
                         void await backend.mrs.addContentSet(data.directory, requestPath,
-                            requiresAuth, options, serviceId, comments, enabled, true, (data) => {
+                            requiresAuth, options, serviceId, comments, enabled, true, ignoreList, (data) => {
                                 if (data.result.info) {
                                     StatusBar.setStatusBarMessage("$(loading~spin) " + data.result.info);
                                 } else {
@@ -868,7 +844,6 @@ export class MrsHub extends ComponentBase {
 
         const title = user ? `Adjust the REST User` : `Enter new MySQL REST User Values`;
 
-        const authApps = await backend.mrs.getAuthApps(authApp.serviceId ?? "unknown");
         const availableRoles = await backend.mrs.listRoles(authApp?.serviceId);
 
         let userRoles: IMrsUserRoleData[] = [];
@@ -889,7 +864,6 @@ export class MrsHub extends ComponentBase {
             title,
             parameters: {
                 authApp,
-                authApps,
                 availableRoles,
                 userRoles,
             },
@@ -910,9 +884,6 @@ export class MrsHub extends ComponentBase {
         }
 
         const data = result as IMrsUserDialogData;
-        const authAppId = authApps.find((authApp) => {
-            return authApp.name === data.authAppName;
-        })?.id;
 
         const rolesToUpdate = (data.userRoles).map((roleToUpdate) => {
             return {
@@ -928,7 +899,7 @@ export class MrsHub extends ComponentBase {
             if (user.id) {
                 try {
                     await backend.mrs.updateUser(user.id, {
-                        authAppId,
+                        authAppId: authApp.id,
                         name: data.name ?? null,
                         email: data.email ?? null,
                         vendorUserId: data.vendorUserId ?? null,
@@ -1005,7 +976,7 @@ export class MrsHub extends ComponentBase {
         const request = {
             id: "mrsSdkExportDialog",
             type: MrsDialogType.MrsSdkExport,
-            title: `Export MRS SDK Files for ${service.hostCtx}`,
+            title: `Export MRS SDK Files for ${service.fullServicePath}`,
             parameters: {
                 serviceName: service.hostCtx,
                 languages: ["TypeScript", "Python"],

@@ -1049,10 +1049,16 @@ describe("NOTEBOOKS", () => {
             }
 
             for (let i = 5; i <= tableColumns.length - 1; i++) {
-                await result.grid.reduceCellWidth(rowNumber, tableColumns[i]);
+                if (i === tableColumns.length - 1) {
+                    await result.grid.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                } else {
+                    await result.grid.reduceCellWidth(rowNumber, tableColumns[i]);
+                }
+
                 const cellText = await result.grid.getCellValue(rowNumber, tableColumns[i]);
                 await driver.wait(result.grid.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
                     constants.wait3seconds);
+
             }
 
         });
@@ -1855,7 +1861,7 @@ describe("NOTEBOOKS", () => {
             }
         });
 
-        it("Save Notebook", async () => {
+        it("Save Notebooks", async () => {
 
             const notebookEditor = await new E2ENotebook().codeEditor.create();
             const result = await notebookEditor.execute("SELECT VERSION();");
