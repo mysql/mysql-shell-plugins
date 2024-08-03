@@ -27,7 +27,7 @@ from mysqlsh.plugin_manager import plugin_function
 from mds_plugin import core, configuration
 
 # Define plugin version
-VERSION = "1.15.3"
+VERSION = "1.16.0"
 
 
 @plugin_function('mds.info')
