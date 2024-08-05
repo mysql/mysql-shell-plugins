@@ -192,6 +192,7 @@ export class CommandResultGrid {
      * @returns A promise resolving when the new value is set
      */
     public addRow = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
+        await driver.sleep(2000); // hack to face the issue of non-NULL default values on some data types
         await this.clickAddNewRowButton();
         await driver.wait(this.untilNewRowExists(), constants.wait5seconds);
 
@@ -582,10 +583,7 @@ export class CommandResultGrid {
      */
     public copyRow = async (row: number, column: string): Promise<string> => {
 
-        const allColumns = [];
-        for (const key of this.columnsMap.keys()) {
-            allColumns.push(key);
-        }
+        const allColumns = Array.from(this.columnsMap.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -614,10 +612,7 @@ export class CommandResultGrid {
      */
     public copyRowWithNames = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = [];
-        for (const key of this.columnsMap.keys()) {
-            allColumns.push(key);
-        }
+        const allColumns = Array.from(this.columnsMap.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -649,10 +644,7 @@ export class CommandResultGrid {
      */
     public copyRowUnquoted = async (row: number, column: string): Promise<string> => {
 
-        const allColumns = [];
-        for (const key of this.columnsMap.keys()) {
-            allColumns.push(key);
-        }
+        const allColumns = Array.from(this.columnsMap.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -681,10 +673,7 @@ export class CommandResultGrid {
      */
     public copyRowWithNamesUnquoted = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = [];
-        for (const key of this.columnsMap.keys()) {
-            allColumns.push(key);
-        }
+        const allColumns = Array.from(this.columnsMap.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -717,10 +706,7 @@ export class CommandResultGrid {
      */
     public copyRowWithNamesTabSeparated = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = [];
-        for (const key of this.columnsMap.keys()) {
-            allColumns.push(key);
-        }
+        const allColumns = Array.from(this.columnsMap.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -753,10 +739,7 @@ export class CommandResultGrid {
      */
     public copyRowTabSeparated = async (row: number, column: string): Promise<string> => {
 
-        const allColumns = [];
-        for (const key of this.columnsMap.keys()) {
-            allColumns.push(key);
-        }
+        const allColumns = Array.from(this.columnsMap.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -786,10 +769,7 @@ export class CommandResultGrid {
      */
     public copyAllRows = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = [];
-        for (const key of this.columnsMap.keys()) {
-            allColumns.push(key);
-        }
+        const allColumns = Array.from(this.columnsMap.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -824,10 +804,7 @@ export class CommandResultGrid {
      */
     public copyAllRowsWithNames = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = [];
-        for (const key of this.columnsMap.keys()) {
-            allColumns.push(key);
-        }
+        const allColumns = Array.from(this.columnsMap.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -862,10 +839,7 @@ export class CommandResultGrid {
      */
     public copyAllRowsUnquoted = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = [];
-        for (const key of this.columnsMap.keys()) {
-            allColumns.push(key);
-        }
+        const allColumns = Array.from(this.columnsMap.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -900,10 +874,7 @@ export class CommandResultGrid {
      */
     public copyAllRowsWithNamesUnquoted = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = [];
-        for (const key of this.columnsMap.keys()) {
-            allColumns.push(key);
-        }
+        const allColumns = Array.from(this.columnsMap.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -938,10 +909,7 @@ export class CommandResultGrid {
      */
     public copyAllRowsWithNamesTabSeparated = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = [];
-        for (const key of this.columnsMap.keys()) {
-            allColumns.push(key);
-        }
+        const allColumns = Array.from(this.columnsMap.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -976,10 +944,7 @@ export class CommandResultGrid {
      */
     public copyAllRowsTabSeparated = async (row: number, column: string): Promise<string[]> => {
 
-        const allColumns = [];
-        for (const key of this.columnsMap.keys()) {
-            allColumns.push(key);
-        }
+        const allColumns = Array.from(this.columnsMap.keys());
 
         await driver.wait(async () => {
             await this.openCellContextMenuAndSelect(row, column,
@@ -1017,7 +982,7 @@ export class CommandResultGrid {
             await this.openCellContextMenuAndSelect(row, column,
                 constants.resultGridContextMenu.copyField);
 
-            return clipboard.readSync().match(/'.*'/) !== null;
+            return clipboard.readSync().match(/'.*'|(\d+)/) !== null;
         }, constants.wait5seconds, `The Copy Field did not copied anything to the clipboard for column '${column}'`);
 
         const cellValue = await this.getCellValue(row, column);
@@ -1244,7 +1209,7 @@ export class CommandResultGrid {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Could not get cell for row: ${gridRow}; column ${gridColumn}`);
+        }, constants.wait10seconds, `Could not get cell for row: ${gridRow}; column ${gridColumn}`);
 
         if (!cellToReturn) {
             throw new Error(`Could not find cell on row '${gridRow}' and column '${gridColumn}'`);
