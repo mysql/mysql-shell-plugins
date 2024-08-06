@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FieldEditor basic tests Test dialogValues function: ImageSectionValues 1`] = `
+{
+  "component": <Image
+    disabled={false}
+    src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAwAB/gnlZAAAAAAASUVORK5CYII="
+  />,
+  "horizontalSpan": 8,
+  "type": "custom",
+}
+`;
