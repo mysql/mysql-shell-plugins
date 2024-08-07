@@ -421,17 +421,14 @@ describe("MRS SDK base types", () => {
     });
 
     describe("IFindUniqueOptions", () => {
-        it("accepts the appropriate option to select specific fields from the records in the result set", () => {
-            const options: IFindUniqueOptions<{ name: string; }, unknown> = {};
-            expectTypeOf(options).toHaveProperty("select");
-            expectTypeOf(options.select).toEqualTypeOf<
-                BooleanFieldMapSelect<{ name: string; }> | FieldNameSelect<{ name: string; }> | undefined>();
+        it("requires the appropriate option to filter the records in the result set", () => {
+            expectTypeOf<IFindUniqueOptions<unknown, { name: string; }>>().toHaveProperty("where");
+            expectTypeOf<{ where: { name: "foo" } }>().toMatchTypeOf<IFindUniqueOptions<unknown, { name: string; }>>();
+            expectTypeOf<{}>().not.toMatchTypeOf<IFindUniqueOptions<unknown, { name: string; }>>();
         });
 
-        it("accepts the appropriate option to filter the records in the result set", () => {
-            const options: IFindUniqueOptions<unknown, { name: string; }> = {};
-            expectTypeOf(options).toHaveProperty("where");
-            expectTypeOf(options.where).toEqualTypeOf<DataFilter<{ name: string; }> | undefined>();
+        it("accepts the appropriate option to select specific fields from the records in the result set", () => {
+            expectTypeOf<IFindUniqueOptions<unknown, unknown>>().toHaveProperty("select");
         });
 
         it("does not accept the maximum number of records to include in the result set", () => {
