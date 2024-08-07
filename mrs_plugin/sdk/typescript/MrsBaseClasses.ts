@@ -719,12 +719,6 @@ export type MultiPolygon = WellKnownText<`MultiPolygon(${string})`> | {
     coordinates: LinearRing[][];
 };
 
-// A filter can apply to different kind of operations - find*(), delete*() and update*().
-// Each operation should determine whether it is required or not.
-export interface IFilterOptions<Filterable> {
-    where: DataFilter<Filterable>;
-}
-
 /**
  * A cursor is a field which is unique and sequential. Examples are auto generated columns (such as ones created with
  * "AUTO INCREMENT") or TIMESTAMP columns.
@@ -740,24 +734,30 @@ export interface ICreateOptions<Type> {
     data: Type;
 }
 
-/** Options available to find a record based on a unique identifier or primary key */
-export interface IFindUniqueOptions<Item, Filterable> extends Partial<IFilterOptions<Filterable>> {
-    // findUnique() should always return the same record based on the unique identifier or primary key.
-    // The identifier is still specified using the "where" option.
-    // Thus the only additional option available is to include a set of specific fields of that record in the result
-    // set.
-
+interface IFindCommonOptions<Item> {
     // "select" determines which fields are included in the result set.
     // It supports both an object with boolean toggles to select or ignore specific fields or an array of field names
     // to include. Nested JSON/Relational duality fields can be specified using nested objects or with boolean toggles
     // or an array with field names containing the full field path using dot "." notation
-
     /** Fields to include in the result set. */
     select?: BooleanFieldMapSelect<Item> | FieldNameSelect<Item>;
 }
 
+/** Options available to find records based on a given filter. */
+interface IFindAnyOptions<Item, Filterable> extends IFindCommonOptions<Item> {
+    // A filter that matches multiple items should be optional and allow both logical operators and valid field names.
+    where?: DataFilter<Filterable>;
+}
+
+/** Options available to find a record based on a unique identifier or primary key. */
+export interface IFindUniqueOptions<Item, Filterable> extends IFindCommonOptions<Item> {
+    // A filter that matches a single item via a unique field must be mandatory and should not allow logical operators
+    // because a unique field by nature should be enough to identify a given item.
+    where: DelegationFilter<Filterable>;
+}
+
 type CursorEnabledOptions<Item, Filterable, Iterable> = [Iterable] extends [never]
-    ? IFindUniqueOptions<Item, Filterable> : (IFindUniqueOptions<Item, Filterable> & {
+    ? IFindAnyOptions<Item, Filterable> : (IFindAnyOptions<Item, Filterable> & {
         cursor?: Cursor<Iterable>
     });
 
@@ -850,7 +850,7 @@ export type NestingFieldMap<Type> = Type extends unknown[] ? BooleanFieldMapSele
 // To avoid unwarranted data loss, deleting records from the database always requires a filter.
 // Deleting a single item requires a filter that only matches unique fields.
 export type IDeleteOptions<Type, Options extends { many: boolean } = { many: true }> =
-    Options["many"] extends true ? IFilterOptions<Type> : { where: DelegationFilter<Type> };
+    Options["many"] extends true ? { where: DataFilter<Type> } : { where: DelegationFilter<Type> };
 
 // update*() API
 

@@ -5,6 +5,7 @@
 ### Additions
 
 - BUG#36925323 Type check error in the MRS TypeScript SDK test suite
+- BUG#36445530 findUnique() command can be tricked to retrieve multiple records
 -
 
 ### Fixes
