@@ -190,12 +190,12 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
 
     // --- crudDeleteUniqueOnlyStart
     public delete = async (args: IDeleteOptions<I${obj_class_name}UniqueParams, { many: false }>): Promise<IMrsDeleteResult> => {
-        return this.deleteMany(args as IDeleteOptions<I${obj_class_name}Params, { many: true }>);
+        return this.deleteMany(args as IDeleteOptions<I${obj_class_name}Params>);
     };
     // --- crudDeleteUniqueOnlyEnd
 
     // --- crudDeleteOnlyStart
-    public deleteMany = async (args: IDeleteOptions<I${obj_class_name}Params, { many: true }>): Promise<IMrsDeleteResult> => {
+    public deleteMany = async (args: IDeleteOptions<I${obj_class_name}Params>): Promise<IMrsDeleteResult> => {
         const request = new MrsBaseObjectDelete<I${obj_class_name}Params>(this.schema, ${obj_class_name}Request.#requestPath, args);
         const response = await request.fetch();
 

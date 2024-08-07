@@ -849,7 +849,7 @@ export type NestingFieldMap<Type> = Type extends unknown[] ? BooleanFieldMapSele
 
 // To avoid unwarranted data loss, deleting records from the database always requires a filter.
 // Deleting a single item requires a filter that only matches unique fields.
-export type IDeleteOptions<Type, Options extends {many: boolean}> =
+export type IDeleteOptions<Type, Options extends { many: boolean } = { many: true }> =
     Options["many"] extends true ? IFilterOptions<Type> : { where: DelegationFilter<Type> };
 
 // update*() API
