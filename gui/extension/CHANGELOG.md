@@ -4,11 +4,12 @@
 
 ### Additions
 
-- 
+- BUG#36925323 Type check error in the MRS TypeScript SDK test suite
+-
 
 ### Fixes
 
-- 
+-
 
 ## Changes in 1.16.0+9.0.1
 
