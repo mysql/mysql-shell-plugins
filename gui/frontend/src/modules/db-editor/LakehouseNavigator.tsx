@@ -2932,6 +2932,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                         prefix,
                         bucketName,
                         compartmentId,
+                        true,
                         (data) => {
                             const res = data.result.data;
                             if (res.filePath !== undefined) {

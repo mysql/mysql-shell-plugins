@@ -776,6 +776,7 @@ def create_bucket_objects(file_paths, prefix, **kwargs):
         interactive (bool): Whether exceptions should be raised
         raise_exceptions (bool): If true exceptions are raised
         send_gui_message (object): The function to send a message to he GUI.
+        fix_extension (bool): If set to true, the extension is changed to lower case.
 
     Returns:
         None
@@ -796,6 +797,8 @@ def create_bucket_objects(file_paths, prefix, **kwargs):
 
     send_gui_message = kwargs.get("send_gui_message")
 
+    fix_ext = kwargs.get("fix_extension", False)
+
     # Get the active config and compartment
     try:
         # Get the active config and compartment
@@ -809,8 +812,6 @@ def create_bucket_objects(file_paths, prefix, **kwargs):
 
         if file_paths is None or len(file_paths) == 0:
             raise Exception("No files given.")
-
-
 
         if bucket_name is None or bucket_name == "":
             bucket = get_bucket(
@@ -865,11 +866,18 @@ def create_bucket_objects(file_paths, prefix, **kwargs):
             elif data["status"] == "PROGRESS":
                 bucket_objects_upload_progress_callback(data["file_path"], data["bytes_uploaded"], data["file_size"], send_gui_message)
 
+        def fix_extension(file_path):
+            if fix_ext:
+                root, ext = os.path.splitext(file_path)
+                return root + ext.lower()
+            else:
+                return file_path
+
         try:
             parallel_bucket_upload(
                 files=[
                     {
-                        "object_name": prefix + os.path.basename(f),
+                        "object_name": prefix + fix_extension(os.path.basename(f)),
                         "file_path": os.path.expanduser(f),
                     }
                     for f in file_paths
