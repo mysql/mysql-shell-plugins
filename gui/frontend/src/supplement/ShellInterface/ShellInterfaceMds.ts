@@ -212,13 +212,13 @@ export class ShellInterfaceMds {
     }
 
     public async createMdsBucketObjects(configProfile: string, filePaths: string[], prefix: string,
-        bucketName: string, compartmentId: string,
+        bucketName: string, compartmentId: string, fixExtension?: boolean,
         callback?: DataCallback<ShellAPIMds.MdsCreateBucketObjects>): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMds.MdsCreateBucketObjects,
             parameters: {
                 args: { filePaths, prefix },
-                kwargs: { configProfile, compartmentId, bucketName },
+                kwargs: { configProfile, compartmentId, bucketName, fixExtension },
             },
             onData: callback,
         });

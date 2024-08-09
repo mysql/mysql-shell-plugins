@@ -864,6 +864,8 @@ export interface IShellMdsCreateBucketObjectsKwargs {
     raiseExceptions?: boolean;
     /** The function to send a message to he GUI. */
     sendGuiMessage?: object;
+    /** If set to true, the extension is changed to lower case. */
+    fixExtension?: boolean;
 }
 
 export interface IShellMdsListBucketObjectsKwargs {
