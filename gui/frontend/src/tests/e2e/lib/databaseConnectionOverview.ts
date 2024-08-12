@@ -27,8 +27,41 @@ import { until, WebElement, error } from "selenium-webdriver";
 import * as locator from "./locators.js";
 import * as constants from "./constants.js";
 import { driver } from "./driver.js";
+import * as interfaces from "./interfaces.js";
+import { DatabaseConnectionDialog } from "./databaseConnectionDialog.js";
 
 export class DatabaseConnectionOverview {
+
+    /**
+     * Creates a new database connection, from the DB Editor main page.
+     * It verifies that the Connection dialog is closed, at the end.
+     * @param dbConfig Database Config object
+     * @returns Promise resolving with the connection created
+     */
+    public static createDataBaseConnection = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
+        const ctx = await driver.wait(until.elementLocated(locator.dbConnectionOverview.browser),
+            constants.wait5seconds, "DB Connection Overview page was not loaded");
+
+        await driver.wait(async () => {
+            const isDialogVisible = (await driver.findElements(locator.dbConnectionDialog.exists))
+                .length > 0;
+
+            if (isDialogVisible) {
+                return true;
+            } else {
+                try {
+                    await ctx.findElement(locator.dbConnectionOverview.newDBConnection).click();
+                } catch (e) {
+                    if (!(e instanceof error.ElementClickInterceptedError)) {
+                        throw e;
+                    }
+                }
+
+                return false;
+            }
+        }, constants.wait5seconds, "Connection dialog was not displayed");
+        await DatabaseConnectionDialog.setConnection(dbConfig);
+    };
 
     /**
      * Verifies if the Connection Overview tab is selected/opened, on the DB Editor

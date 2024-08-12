@@ -1581,7 +1581,7 @@ describe("NOTEBOOKS", () => {
             }, constants.wait5seconds, "Current editor does not match Untitled-(*)");
             expect((await notebook.toolbar.getCurrentEditor()).icon, "The current editor icon should be 'Mysql'")
                 .to.include(constants.mysqlScriptIcon);
-            const result = await new Script().executeCode("select * from sakila.actor limit 1;");
+            const result = await new Script().codeEditor.execute("select * from sakila.actor limit 1;");
             expect(result.toolbar.status).to.match(/OK, (\d+) record/);
             await notebook.toolbar.closeCurrentEditor();
 
@@ -1596,7 +1596,7 @@ describe("NOTEBOOKS", () => {
             }, constants.wait5seconds, "Current editor is not Untitled-(*)");
             expect((await notebook.toolbar.getCurrentEditor()).icon, "The current editor icon should be 'scriptTs'")
                 .to.include(constants.tsScriptIcon);
-            const result = await new Script().executeCode("Math.random()");
+            const result = await new Script().codeEditor.execute("Math.random()");
             expect(result.text, "Query result is not a number").to.match(/(\d+).(\d+)/);
             await notebook.toolbar.closeCurrentEditor();
 
@@ -1611,7 +1611,7 @@ describe("NOTEBOOKS", () => {
             }, constants.wait5seconds, "Current editor does not match Untitled-(*)");
             expect((await notebook.toolbar.getCurrentEditor()).icon, "The current editor icon should be 'scriptJs'")
                 .to.include(constants.jsScriptIcon);
-            const result = await new Script().executeCode("Math.random()");
+            const result = await new Script().codeEditor.execute("Math.random()");
             expect(result.text, "Query result is not a number").to.match(/(\d+).(\d+)/);
             await notebook.toolbar.closeCurrentEditor();
 

@@ -21,17 +21,53 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebElement } from "selenium-webdriver";
+import { WebElement, Condition } from "selenium-webdriver";
+import { CommandResultGrid } from "./CommandResultGrid.js";
 
 export interface ICommandResult {
-    message?: string;
-    content?: WebElement | ICommandTabResult[];
-    toolbar?: WebElement;
+    id?: string;
+    text?: string;
+    json?: string;
+    graph?: WebElement;
+    tabs?: ICommandResultTab[];
+    grid?: CommandResultGrid;
+    preview?: ICommandResultPreview;
+    toolbar?: ICommandResultToolbar;
+    context?: WebElement;
+    chat?: string;
+    isHWAboutInfo?: boolean;
+    copyToClipboard(): Promise<void>;
+    selectTab(name: string): Promise<void>;
+    clickSqlPreviewContent(): Promise<void>;
+    maximize(): Promise<void>;
+    normalize(): Promise<void>;
+    selectSqlPreview(): Promise<void>;
+    applyChanges(): Promise<void>;
+    rollbackChanges(): Promise<void>;
+    untilIsMaximized(): Condition<boolean>;
+    closeResultSet(): Promise<void>;
+    untilStatusMatches(regex: RegExp): Condition<boolean>;
+    heatWaveChatIsDisplayed(): Condition<boolean>;
 }
 
-export interface ICommandTabResult {
-    tabName: string;
-    content: string;
+export interface ICurrentEditor {
+    label: string;
+    icon: string;
+}
+
+export interface ICommandResultToolbar {
+    status: string;
+    element?: WebElement;
+}
+
+export interface ICommandResultTab {
+    name: string;
+    element: WebElement;
+}
+
+export interface ICommandResultPreview {
+    text: string;
+    link: WebElement;
 }
 
 export interface ICommandResultIdHolder {

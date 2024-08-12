@@ -21,18 +21,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { error, Key, until, WebElement, Condition } from "vscode-extension-tester";
-import { PasswordDialog } from "./Dialogs/PasswordDialog";
-import { E2ENotebook } from "./E2ENotebook";
-import * as constants from "../constants";
-import * as locator from "../locators";
-import * as interfaces from "../interfaces";
-import { Misc, driver } from "../Misc";
-import { Os } from "../Os";
-import * as errors from "../errors";
-import { CommandResult } from "./CommandResult";
-import { Script } from "./Script";
-import { E2EShellConsole } from "./E2EShellConsole";
+import { error, Key, until, WebElement, Condition } from "selenium-webdriver";
+import { PasswordDialog } from "./Dialogs/PasswordDialog.js";
+import { E2ENotebook } from "./E2ENotebook.js";
+import * as constants from "./constants.js";
+import * as locator from "./locators.js";
+import * as interfaces from "./interfaces.js";
+import { driver } from "./driver.js";
+import { Os } from "./os.js";
+import { CommandResult } from "./CommandResult.js";
+import { E2EScript } from "./E2EScript.js";
+import { E2EShellSession } from "./E2EShellSession.js";
 
 /**
  * This class represents the code editor that exist on notebooks, scripts or shell consoles
@@ -40,12 +39,12 @@ import { E2EShellConsole } from "./E2EShellConsole";
 export class E2ECodeEditor {
 
     /** The page it belongs to (it can be a notebook, script or shell console)*/
-    public parent: E2ENotebook | Script | E2EShellConsole;
+    public parent: E2ENotebook | E2EScript | E2EShellSession;
 
     /** Collection of command result ids */
     public resultIds: string[] = [];
 
-    public constructor(parent: E2ENotebook | Script | E2EShellConsole) {
+    public constructor(parent: E2ENotebook | E2EScript | E2EShellSession) {
         this.parent = parent;
     }
 
@@ -64,19 +63,16 @@ export class E2ECodeEditor {
      * @returns The last result id
      */
     public loadCommandResults = async (): Promise<void> => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-
         await driver.wait(async () => {
             try {
                 const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
                 this.resultIds = await Promise.all(results.map(async (item: WebElement) => {
-                    return (await item.getAttribute("monaco-view-zone")).match(/(\d+)/)[1];
+                    return (await item.getAttribute("monaco-view-zone")).match(/(\d+)/)![1];
                 }));
 
                 return true;
             } catch (e) {
-                if (!(errors.isStaleError(e as Error))) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
@@ -87,10 +83,6 @@ export class E2ECodeEditor {
      * Scrolls down the code editor
      */
     public scrollDown = async (): Promise<void> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
         const scroll = await driver.findElements(locator.notebook.codeEditor.editor.scrollBar);
         if (scroll.length > 0) {
             await driver.executeScript("arguments[0].scrollBy(0, 1500)", scroll[0]);
@@ -105,10 +97,6 @@ export class E2ECodeEditor {
      * @returns A promise resolving when the command is written
      */
     public write = async (cmd: string, slowWriting?: boolean): Promise<void> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
         await driver.wait(async () => {
             try {
                 const textArea = await driver.wait(until.elementLocated(locator.notebook.codeEditor.textArea),
@@ -148,7 +136,7 @@ export class E2ECodeEditor {
                     await this.scrollDown();
                     const editorLines = await driver.findElements(locator.notebook.codeEditor.editor.currentLine);
                     await editorLines[editorLines.length - 1].click();
-                } else if (!(errors.isStaleError(e as Error))) {
+                } else if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
@@ -169,9 +157,6 @@ export class E2ECodeEditor {
      * @returns A promise resolving when the editor is cleaned
      */
     public clean = async (): Promise<void> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
         await driver.wait(async () => {
             try {
                 const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
@@ -188,13 +173,33 @@ export class E2ECodeEditor {
 
                 return true;
             } catch (e) {
-                if (!(errors.isStaleError(e as Error))) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
         }, constants.wait5seconds, "Editor was not cleaned");
 
         //this.reset();
+    };
+
+    /**
+     * Deletes all stored credentials on the key chain, using shell
+     * @returns A promise resolving when the command is executed
+     */
+    public deleteCredentials = async (): Promise<void> => {
+        if (this.parent instanceof E2EShellSession) {
+            const cmd = "shell.deleteAllCredentials()";
+            await this.write(cmd, false);
+            await this.exec();
+
+            if (!(await Os.existsCredentialHelper())) {
+                // we expect an error on the console
+                const id = await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
+                const commandResult = new CommandResult(this, cmd, id);
+                await commandResult.loadResult();
+                this.resultIds.push(commandResult.id!);
+            }
+        }
     };
 
     /**
@@ -216,7 +221,7 @@ export class E2ECodeEditor {
 
         let commandResult: CommandResult;
 
-        if (this.parent instanceof Script) {
+        if (this.parent instanceof E2EScript) {
             commandResult = new CommandResult(this, cmd);
             await commandResult.loadResult(true);
         } else {
@@ -225,7 +230,7 @@ export class E2ECodeEditor {
             await commandResult.loadResult();
         }
 
-        this.resultIds.push(commandResult.id);
+        this.resultIds.push(commandResult.id!);
 
         return commandResult;
     };
@@ -251,11 +256,12 @@ export class E2ECodeEditor {
         }
 
         await this.write(cmd, slowWriting);
-        await (await this.parent.toolbar.getButton(button)).click();
+        const parent = this.parent as E2ENotebook | E2EScript; // Shell sessions does not have any toolbar
+        await (await parent.toolbar.getButton(button))!.click();
         const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
         const commandResult = new CommandResult(this, cmd, id);
         await commandResult.loadResult();
-        this.resultIds.push(commandResult.id);
+        this.resultIds.push(commandResult.id!);
 
         return commandResult;
     };
@@ -281,7 +287,7 @@ export class E2ECodeEditor {
         const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
         const commandResult = new CommandResult(this, cmd, id);
         await commandResult.loadResult();
-        this.resultIds.push(commandResult.id);
+        this.resultIds.push(commandResult.id!);
 
         return commandResult;
     };
@@ -308,7 +314,7 @@ export class E2ECodeEditor {
         const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
         const commandResult = new CommandResult(this, cmd, id);
         await commandResult.loadResult();
-        this.resultIds.push(commandResult.id);
+        this.resultIds.push(commandResult.id!);
 
         return commandResult;
     };
@@ -327,12 +333,13 @@ export class E2ECodeEditor {
         }
 
         await this.setMouseCursorAt(cmd);
+        const parent = this.parent as E2ENotebook | E2EScript;
 
-        if (await this.parent.toolbar.existsButton(constants.execCaret)) {
-            const toolbarButton = await this.parent.toolbar.getButton(constants.execCaret);
+        if (await parent.toolbar.existsButton(constants.execCaret)) {
+            const toolbarButton = await parent.toolbar.getButton(constants.execCaret);
             await driver.executeScript("arguments[0].click()", toolbarButton);
         } else {
-            const button = await this.parent.toolbar.getButton(constants.execFullBlockJs);
+            const button = await parent.toolbar.getButton(constants.execFullBlockJs);
             await driver.executeScript("arguments[0].click()", button);
         }
         const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
@@ -349,10 +356,6 @@ export class E2ECodeEditor {
      */
     public getLastExistingCommandResult = async (waitForIncomingResult = false): Promise<interfaces.ICommandResult> => {
         let commandResult: CommandResult;
-
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
 
         if (waitForIncomingResult) {
             commandResult = new CommandResult(this, undefined,
@@ -375,7 +378,7 @@ export class E2ECodeEditor {
      * @returns A promise resolving when the command is executed
      */
     public languageSwitch = async (cmd: string, slowWriting = false, searchOnExistingId?:
-        string | undefined): Promise<interfaces.ICommandResult> => {
+        string | undefined): Promise<interfaces.ICommandResult | undefined> => {
         if (!this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.execute() or others'");
         }
@@ -383,11 +386,11 @@ export class E2ECodeEditor {
         await this.write(cmd, slowWriting);
         await this.exec();
 
-        if (this.parent instanceof E2EShellConsole) {
+        if (this.parent instanceof E2EShellSession) {
             const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
             const commandResult = new CommandResult(this, cmd, nextId);
             await commandResult.loadResult();
-            this.resultIds[this.resultIds.length - 1] = commandResult.id;
+            this.resultIds[this.resultIds.length - 1] = commandResult.id!;
 
             return commandResult;
         }
@@ -434,7 +437,7 @@ export class E2ECodeEditor {
 
                 return true;
             } catch (e) {
-                if (!(errors.isStaleError(e as Error))) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
@@ -446,10 +449,6 @@ export class E2ECodeEditor {
      * @returns A promise resolving with the text
      */
     public getPromptLastTextLine = async (): Promise<string> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
         const context = await driver.findElement(locator.notebook.codeEditor.editor.exists);
         let sentence = "";
         await driver.wait(async () => {
@@ -463,7 +462,7 @@ export class E2ECodeEditor {
                     return true;
                 }
             } catch (e) {
-                if (!(errors.isStaleError(e as Error))) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
@@ -478,10 +477,6 @@ export class E2ECodeEditor {
      * @returns A promise resolving when the click is performed
      */
     public clickContextItem = async (item: string): Promise<void> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
         const isCtxMenuDisplayed = async (): Promise<boolean> => {
             const el = await driver.executeScript(`return document.querySelector(".shadow-root-host").
                 shadowRoot.querySelector("span[aria-label='${item}']")`);
@@ -518,10 +513,6 @@ export class E2ECodeEditor {
      * @returns A promise resolving with the line number
      */
     public getLineFromWord = async (wordRef: string): Promise<number> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
         const lines = await driver.findElements(locator.notebook.codeEditor.editor.promptLine);
         for (let i = 0; i <= lines.length - 1; i++) {
             const match = (await lines[i].getAttribute("innerHTML")).match(/(?<=">)(.*?)(?=<\/span>)/gm);
@@ -540,10 +531,6 @@ export class E2ECodeEditor {
      * @returns A promise resolving when the new line is set
      */
     public setNewLine = async (): Promise<void> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
         const getLastLineNumber = async (): Promise<number> => {
             const lineNumbers = await driver.findElements(locator.notebook.codeEditor.editor.lineNumber);
 
@@ -571,7 +558,7 @@ export class E2ECodeEditor {
                         return false;
                     });
             } catch (e) {
-                if (!(errors.isStaleError(e as Error))) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
@@ -583,10 +570,6 @@ export class E2ECodeEditor {
      * @returns A promise resolving with the menu items
      */
     public getAutoCompleteMenuItems = async (): Promise<string[]> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
         const els = [];
         let items = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.autoCompleteListItem),
             constants.wait5seconds, "Auto complete items were not displayed");
@@ -621,6 +604,67 @@ export class E2ECodeEditor {
     };
 
     /**
+     * Verifies if a new prompt exists on the Code Editor
+     * @returns A promise resolving with true if exists, false otherwise
+     */
+    public hasNewPrompt = async (): Promise<boolean> => {
+        let text: String;
+        await driver.wait(async () => {
+            try {
+                await this.scrollDown();
+                const context = await driver.findElement(locator.notebook.codeEditor.editor.exists);
+                const prompts = await context.findElements(locator.notebook.codeEditor.editor.editorPrompt);
+                const lastPrompt = await prompts[prompts.length - 1]
+                    .findElement(locator.htmlTag.span)
+                    .findElement(locator.htmlTag.span);
+                text = await lastPrompt.getText();
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, "Could not check the new prompt");
+
+        return String(text!).length === 0;
+    };
+
+    /**
+     * Returns true if the given text exists on the editor
+     * @param text The text to search for
+     * @returns A promise resolving with the truthiness of the function
+     */
+    public isTextOnEditor = async (text: string): Promise<boolean> => {
+        let isTextOnEditor = false;
+        await driver.wait(async () => {
+            try {
+                const regex = text
+                    .replace(/\*/g, "\\*")
+                    .replace(/\./g, ".*")
+                    .replace(/;/g, ".*")
+                    .replace(/\s/g, ".*");
+                const prompts = await driver.findElements(locator.notebook.codeEditor.editor.sentence);
+                for (const prompt of prompts) {
+                    const html = await prompt.getAttribute("innerHTML");
+                    if (html.match(new RegExp(regex)) !== undefined) {
+                        isTextOnEditor = true;
+                        break;
+                    }
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds);
+
+        return isTextOnEditor;
+    };
+
+    /**
      * Checks if the command is considered as "Special". Special means the command is one of the following:
      * - \\js
      * - \\javascript
@@ -645,7 +689,7 @@ export class E2ECodeEditor {
      * @param lastResultId The last known result id
      * @returns A promise resolving with the next result id
      */
-    private getNextResultId = async (lastResultId: string): Promise<string> => {
+    private getNextResultId = async (lastResultId: string): Promise<string | undefined> => {
         let resultId: string;
         if (lastResultId) {
             resultId = String(parseInt(lastResultId, 10) + 1);
@@ -654,7 +698,7 @@ export class E2ECodeEditor {
             // the editor may not have any previous results at all (it has been cleaned)
             if (results.length > 0) {
                 const result = results[results.length - 1];
-                const id = (await result.getAttribute("monaco-view-zone")).match(/(\d+)/)[1];
+                const id = (await result.getAttribute("monaco-view-zone")).match(/(\d+)/)![1];
                 resultId = String(parseInt(id, 10));
             } else {
                 return undefined;
@@ -662,40 +706,6 @@ export class E2ECodeEditor {
         }
 
         return resultId;
-    };
-
-    /**
-     * Returns true if the given text exists on the editor
-     * @param text The text to search for
-     * @returns A promise resolving with the truthiness of the function
-     */
-    private isTextOnEditor = async (text: string): Promise<boolean> => {
-        let isTextOnEditor = false;
-        await driver.wait(async () => {
-            try {
-                const regex = text
-                    .replace(/\*/g, "\\*")
-                    .replace(/\./g, ".*")
-                    .replace(/;/g, ".*")
-                    .replace(/\s/g, ".*");
-                const prompts = await driver.findElements(locator.notebook.codeEditor.editor.sentence);
-                for (const prompt of prompts) {
-                    const html = await prompt.getAttribute("innerHTML");
-                    if (html.match(new RegExp(regex)) !== undefined) {
-                        isTextOnEditor = true;
-                        break;
-                    }
-                }
-
-                return true;
-            } catch (e) {
-                if (!(errors.isStaleError(e as Error))) {
-                    throw e;
-                }
-            }
-        }, constants.wait5seconds);
-
-        return isTextOnEditor;
     };
 
 }

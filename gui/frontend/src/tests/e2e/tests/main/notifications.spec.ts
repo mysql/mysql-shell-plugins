@@ -31,7 +31,6 @@ import { driver, loadDriver } from "../../lib/driver.js";
 import * as constants from "../../lib/constants.js";
 import { Os } from "../../lib/os.js";
 import { E2EToastNotification } from "../../lib/E2EToastNotification.js";
-import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import * as interfaces from "../../lib/interfaces.js";
 import { PasswordDialog } from "../../lib/Dialogs/PasswordDialog.js";
 import { E2ENotificationsCenter } from "../../lib/E2ENotificationsCenter.js";
@@ -118,11 +117,12 @@ describe("Notifications", () => {
 
         try {
             await driver.executeScript("arguments[0].click()", await driver.findElement(locator.sqlEditorPage.icon));
-            await DBNotebooks.createDataBaseConnection(localConn);
+            await DatabaseConnectionOverview.createDataBaseConnection(localConn);
             await DatabaseConnectionOverview.moreActions(localConn.caption!, constants.editConnection);
             await DatabaseConnectionDialog.clearPassword();
 
-            await driver.executeScript("arguments[0].click();", await DBNotebooks.getConnection(localConn.caption!));
+            await driver.executeScript("arguments[0].click();",
+                await DatabaseConnectionOverview.getConnection(localConn.caption!));
             await PasswordDialog.cancel();
 
             const notification = await new E2EToastNotification().create();
@@ -270,7 +270,8 @@ describe("Notifications", () => {
             await notificationsCenter?.hide();
 
             await driver.executeScript("arguments[0].click()", await driver.findElement(locator.sqlEditorPage.icon));
-            await driver.executeScript("arguments[0].click();", await DBNotebooks.getConnection(localConn.caption!));
+            await driver.executeScript("arguments[0].click();",
+                await DatabaseConnectionOverview.getConnection(localConn.caption!));
             await PasswordDialog.cancel();
 
             const notification = await new E2EToastNotification().create();

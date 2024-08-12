@@ -156,23 +156,46 @@ export const treeContextMenu = {
     selectRows: By.id("selectRowsMenuItem"),
 };
 
+export const errorDialog = {
+    exists: By.className("errorPanel"),
+    message: By.id("errorMessage"),
+};
+
+export const shellConsole = {
+    editor: By.id("shellEditorHost"),
+    connectionTab: {
+        server: By.id("server"),
+        schema: By.id("schema"),
+        schemaMenu: By.css(".visible.shellPromptSchemaMenu"),
+        schemaItem: By.css("div.menuItem > label"),
+    },
+    currentLine: By.className("current-line"),
+    prompt: By.css(".margin-view-overlays div div"),
+    title: By.id("title"),
+};
+
 // NOTEBOOK
 export const notebook = {
     exists: By.id("contentHost"),
     toolbar: {
         exists: By.id("dbEditorToolbar"),
-        editorSelector: {
-            exists: By.id("documentSelector"),
-            currentValue: By.css("label"),
-            currentIcon: By.className("icon"),
-            currentImage: By.css("img"),
-            items: By.css("div.visible.dropdownList > div"),
-            iconType: By.css(".msg.icon"),
-        },
         button: {
             exists: By.className("button"),
             icon: By.className("icon"),
         },
+        editorSelector: {
+            exists: By.id("documentSelector"),
+            list: {
+                exists: By.id("documentSelectorPopup"),
+                item: By.css("div.visible.dropdownList > div"),
+            },
+            currentValue: {
+                label: By.className("label"),
+                image: By.className("image"),
+                icon: By.className("icon"),
+            },
+        },
+        closeEditor: By.id("itemCloseButton"),
     },
     codeEditor: {
         textArea: By.css("textarea"),
@@ -184,7 +207,9 @@ export const notebook = {
             lineNumber: By.css(".margin-view-overlays .line-numbers"),
             host: By.id("editorPaneHost"),
             editorHost: By.className("editorHost"),
+            sentence: By.css(".view-lines.monaco-mouse-cursor-text > div > span"),
             scrollBar: By.className("editor-scrollable"),
+            autoCompleteListItem: By.css(".monaco-list .monaco-highlighted-label"),
             result: {
                 exists: By.className("zoneHost"),
                 hasContent: By.className("content"),
@@ -198,85 +223,130 @@ export const notebook = {
                         @monaco-view-zone='f${view}' or
                         @monaco-view-zone='g${view}' or
                         @monaco-view-zone='h${view}' or
-                        @monaco-view-zone='i${view}' or
-                        @monaco-view-zone='j${view}' or
-                        @monaco-view-zone='l${view}'
+                        @monaco-view-zone='i${view}'
                         )]
                     `;
 
                     return By.xpath(xpath);
                 },
-                table: By.className("tabulator"),
-                tableHeaders: By.className("tabulator-headers"),
-                tableColumnTitle: By.className("tabulator-col-title"),
-                tableRow: By.css(".tabulator-selectable.tabulator-row-odd"),
-                tableRows: By.css(".tabulator-selectable.tabulator-row-odd"),
-                addedTableRow: By.css(".tabulator-row.added"),
-                tableCellUpDownInput: By.id("upDownInput"),
-                deletedTableRow: By.css(".tabulator-row.deleted"),
-                tableCell: By.className("tabulator-cell"),
                 host: By.className("resultHost"),
+                table: By.className("tabulator"),
+                tableColumn: By.className("tabulator-col"),
                 changedTableCell: By.css(".tabulator-cell.changed"),
-                tableCellSelectList: {
-                    exists: By.css(".cellEditorHost .dropdown"),
-                    list: {
-                        exists: By.id("Popup"),
-                        item: By.css(".dropdownItem > label"),
-                    },
-                },
-                tableCellDateTime: By.css("input.dateTime"),
-                tableCellIcon: By.css(".iconHost .icon"),
-                status: {
-                    exists: By.className("resultStatus"),
-                    text: By.css(".resultStatus > label"),
-                    message: By.css(".containsMessage > div"),
-                    toolbar: {
-                        exists: By.css(".resultStatus .toolbar"),
-                        showActionMenu: {
-                            open: By.id("showActionMenu"),
-                            exists: By.css(".popup.visible"),
-                            closeResultSet: By.id("closeMenuItem"),
+                resultGridScrollBar: By.className("tabulator-tableholder"),
+                grid: {
+                    exists: By.css(".resultTabview .resultView"),
+                    headers: By.className("tabulator-headers"),
+                    status: By.css(".resultStatus label, .resultStatus .info"),
+                    content: By.className("tabulator"),
+                    row: {
+                        exists: By.className("tabulator-row"),
+                        isSelected: By.className("tabulator-selected"),
+                        cell: {
+                            exists: By.className("tabulator-cell"),
+                            dateTimeInput: By.css("input.dateTime"),
+                            upDownInput: By.id("upDownInput"),
+                            selectList: {
+                                exists: By.css(".cellEditorHost .dropdown"),
+                                list: {
+                                    exists: By.id("Popup"),
+                                    item: By.css(".dropdownItem label"),
+                                },
+                            },
+                            icon: By.css(".iconHost .icon"),
+                            contextMenu: {
+                                exists: By.css("#cellContextMenu .popup.visible"),
+                                capitalize: By.id("capitalizeMenuItem"),
+                                lowerCase: By.id("lowerCaseMenuItem"),
+                                upperCase: By.id("upperCaseMenuItem"),
+                                toggleForDeletion: By.id("deleteRowMenuItem"),
+                                copySingleRow: {
+                                    exists: By.id("copyRowSubmenu"),
+                                    subMenu: {
+                                        exists: By.css("#copyRowSubmenu .popup.visible"),
+                                        copyRow: By.id("copyRowMenuItem1"),
+                                        copyRowWithNames: By.id("copyRowMenuItem2"),
+                                        copyRowUnquoted: By.id("copyRowMenuItem3"),
+                                        copyRowWithNamesUnquoted: By.id("copyRowMenuItem4"),
+                                        copyRowWithNamesTabSeparated: By.id("copyRowMenuItem5"),
+                                        copyRowTabSeparated: By.id("copyRowMenuItem6"),
+                                    },
+                                },
+                                copyAllRows: {
+                                    exists: By.id("copyRowsSubmenu"),
+                                    subMenu: {
+                                        exists: By.css("#copyRowsSubmenu .popup.visible"),
+                                        copyAllRows: By.id("copyRowsMenuItem1"),
+                                        copyAllRowsWithNames: By.id("copyRowsMenuItem2"),
+                                        copyAllRowsUnquoted: By.id("copyRowsMenuItem3"),
+                                        copyAllRowsWithNamesUnquoted: By.id("copyRowsMenuItem4"),
+                                        copyAllRowsWithNamesTabSeparated: By.id("copyRowsMenuItem5"),
+                                        copyAllRowsTabSeparated: By.id("copyRowsMenuItem6"),
+                                    },
+                                },
+                                setFieldToNull: By.id("setNullMenuItem"),
+                                copyField: By.id("copyFieldMenuItem"),
+                                copyFieldUnquoted: By.id("copyFieldUnquotedMenuItem"),
+                            },
                         },
-                        applyButton: By.id("applyButton"),
-                        rollbackButton: By.id("rollbackButton"),
-                        previewButton: By.id("previewButton"),
-                        editButton: By.id("editButton"),
-                        addNewRowButton: By.id("addNewRow"),
                     },
+                    column: By.className("tabulator-col"),
+                    columnTitle: By.className("tabulator-col-title"),
+                    newAddedRow: By.css(".tabulator-row.added"),
+                    deletedRow: By.css(".tabulator-row.deleted"),
+                },
+                toolbar: {
+                    exists: By.className("toolbar"),
+                    status: {
+                        exists: By.className("resultStatus"),
+                        text: By.css(".resultStatus > label, .resultStatus .info"),
+                        message: By.css(".containsMessage > div"),
+                    },
+                    showActionMenu: {
+                        open: By.id("showActionMenu"),
+                        exists: By.css(".popup.visible"),
+                        closeResultSet: By.id("closeMenuItem"),
+                    },
+                    applyButton: By.id("applyButton"),
+                    rollbackButton: By.id("rollbackButton"),
+                    previewButton: By.id("previewButton"),
+                    editButton: By.id("editButton"),
+                    addNewRowButton: By.id("addNewRow"),
+                    maximize: By.id("toggleStateButton"),
+                    normalize: By.id("normalizeResultStateButton"),
+                },
+                tabs: {
+                    exists: By.className("tabAreaContainer"),
+                    tab: By.css(".tabArea div.tabItem"),
+                    body: By.className("tabArea"),
                 },
                 graphHost: {
                     exists: By.className("graphHost"),
                     column: By.css("rect"),
                 },
+                json: {
+                    pretty: By.xpath(".//label[contains(@data-lang, 'json')]"),
+                    raw: By.className("jsonView"),
+                },
                 singleOutput: {
-                    exists: By.className("outputHost"),
+                    exists: By.className("actionOutput"),
+                    text: {
+                        exists: By.xpath(".//label[@tabindex]"),
+                        words: By.css(".actionOutput span"),
+                        children: By.xpath(".//*"),
+                    },
                     copy: By.className("copyButton"),
                 },
-                info: By.css(".message.info"),
-                tabSection: {
-                    exists: By.className("tabAreaContainer"),
-                    tabs: By.css(".resultHost .tabArea div"),
-                    tab: By.css(".tabArea .tabItem > label"),
-                },
-                text: {
-                    exists: By.css(".textHost span, .resultText > span"),
-                    entry: By.css(".entry > span"),
-                    info: By.className("info"),
-                },
-                anyResult: By.css(".resultStatus .label,.actionOutput span > span"),
-                script: By.className("standaloneScriptHost"),
-                json: {
-                    exists: By.css(".actionOutput .jsonView, label[data-lang='json']"),
-                    field: By.css(".jsonView span > span"),
-                },
-                textOutput: By.css(".actionOutput span > span"),
                 previewChanges: {
                     exists: By.className("sqlPreviewHost"),
                     title: By.className("sqlPreviewTitle"),
-                    words: By.css(".sqlPreviewHost .Auto span > span"),
+                    words: By.css(".sqlPreviewItem span span"),
+                    link: By.css(".sqlPreviewItem > span"),
                 },
+                script: By.className("standaloneScriptHost"),
+                textOutput: By.css(".actionOutput span > span"),
                 cellContextMenu: {
-                    exists: By.id("cellContextMenu"),
+                    exists: By.css("#cellContextMenu .popup.visible"),
                     capitalize: By.id("capitalizeMenuItem"),
                     lowerCase: By.id("lowerCaseMenuItem"),
                     upperCase: By.id("upperCaseMenuItem"),
@@ -309,8 +379,45 @@ export const notebook = {
                     copyField: By.id("copyFieldMenuItem"),
                     copyFieldUnquoted: By.id("copyFieldUnquotedMenuItem"),
                 },
+                chat: {
+                    aboutInfo: By.className("aboutResultPanel"),
+                    isProcessingResult: By.className("chatResultInfo"),
+                    resultText: By.className("chatResultText"),
+                    resultContent: By.className("chatResultPanel"),
+                },
+                chatOptions: {
+                    button: By.id("ChatOptionsIcon"),
+                    panel: By.className("chatOptionsPanel"),
+                    history: {
+                        row: By.css("#historySectionHost .scopeMultiItemRow .tabulator-row"),
+                        cell: {
+                            userMessage: By.css("div.tabulator-cell[tabulator-field='userMessage']"),
+                            chatBotMessage: By.css("div.tabulator-cell[tabulator-field='chatBotMessage']"),
+                        },
+                    },
+                    databaseTable: By.css("#tablesSectionHost .scopeTables label"),
+                    matchedDocuments: {
+                        row: By.css("#docsSectionHost .scopeMultiItemRow .tabulator-row"),
+                        cell: {
+                            title: By.css("div.tabulator-cell[tabulator-field='title']"),
+                            segment: By.css("div.tabulator-cell[tabulator-field='segment']"),
+                        },
+                    },
+                    model: {
+                        selectList: By.css("#modelSectionHost .scopeModel"),
+                        list: By.css("#Popup .popup"),
+                        item: {
+                            llama2: By.id("llama2-7b-v1"),
+                            mistral: By.id("mistral-7b-instruct-v1"),
+                        },
+                    },
+                    temp: By.css("#modelSectionHost .scopeTemp"),
+                    runAgain: By.css("#modelSectionHost div[caption='Run Again']"),
+                    startNewChat: By.css("#modelSectionHost div[caption='Start New Chat']"),
+                },
+
             },
-            promptLine: By.css(".margin-view-overlays > div"),
+            promptLine: By.css(".view-lines.monaco-mouse-cursor-text > div"),
             editorLine: By.css(".view-lines.monaco-mouse-cursor-text > div > span"),
             wordInSentence: By.css(".view-lines.monaco-mouse-cursor-text > div > span span"),
             editorPrompt: By.css(".view-lines.monaco-mouse-cursor-text .view-line"),
@@ -352,7 +459,7 @@ export const notebook = {
             container: By.css("div.container.section"),
             scrollBar: By.className("fixedScrollbar"),
             item: By.className("accordionItem"),
-            itemToClick: By.css("#adminSectionHost .accordionItem .label"),
+            label: By.css("#adminSectionHost .accordionItem .label"),
         },
         scripts: {
             exists: By.id("scriptSectionHost"),
@@ -382,17 +489,18 @@ export const notebook = {
 };
 
 export const findWidget = {
-    exists: By.className("find-widget"),
-    isVisible: By.css(".find-widget.visible"),
-    textArea: By.css("textarea"),
+    exists: By.css(".find-widget.visible"),
+    actions: By.css(".find-actions div"),
+    toggleReplace: By.css(".button.toggle"),
+    toggleReplaceCollapsed: By.css(".button.toggle.codicon-find-collapsed"),
+    toggleReplaceExpanded: By.css(".button.toggle.codicon-find-expanded"),
+    replaceActions: By.css(".replace-actions div"),
     matchesCount: By.className("matchesCount"),
     findMatch: By.css(".cdr.findMatch"),
     replacePart: By.className("replace-part"),
-    actions: By.css(".find-actions div"),
     close: By.xpath(".//div[contains(@aria-label, 'Close')]"),
-    replacerActions: By.css(".replace-actions div"),
-    toggleReplace: By.css(".button.toggle"),
-    toggleReplaceExpanded: By.css(".button.toggle.codicon-find-expanded"),
+    textAreaFind: By.xpath(".//textarea[@aria-label='Find']"),
+    textAreaReplace: By.xpath(".//textarea[@aria-label='Replace']"),
 };
 
 export const htmlTag = {
@@ -426,11 +534,13 @@ export const shellPage = {
     },
     contentTitle: By.css("#shellModuleHost #contentTitle"),
     sessions: {
+        exists: By.className("sessionTile"),
         caption: By.className("tileCaption"),
         open: By.css("#shellModuleHost #tilesHost button"),
         newSession: By.css("#shellModuleHost #\\-1"),
         tile: By.css("#shellModuleHost #tilesHost .sessionTile"),
     },
+    sessionTabs: By.xpath(".//div[contains(@id, 'session_') and contains(@class, 'tabItem')]"),
 };
 
 export const shellSession = {
@@ -618,3 +728,4 @@ export const notificationsCenter = {
         },
     },
 };
+
