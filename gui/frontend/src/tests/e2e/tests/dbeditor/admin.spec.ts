@@ -25,14 +25,14 @@
 
 import { until } from "selenium-webdriver";
 import { Misc } from "../../lib/misc.js";
-import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import * as locator from "../../lib/locators.js";
 import { basename } from "path";
 import { driver, loadDriver } from "../../lib/driver.js";
 import * as interfaces from "../../lib/interfaces.js";
-import * as waitUntil from "../../lib/until.js";
 import * as constants from "../../lib/constants.js";
 import { Os } from "../../lib/os.js";
+import { DatabaseConnectionOverview } from "../../lib/databaseConnectionOverview.js";
+import { E2ENotebook } from "../../lib/E2ENotebook.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -56,6 +56,8 @@ describe("MySQL Administration", () => {
         },
     };
 
+    const notebook = new E2ENotebook();
+
     beforeAll(async () => {
         try {
             await loadDriver();
@@ -69,9 +71,10 @@ describe("MySQL Administration", () => {
                 }
             }, constants.wait20seconds, "Home Page was not loaded");
             await driver.findElement(locator.sqlEditorPage.icon).click();
-            await DBNotebooks.createDataBaseConnection(globalConn);
-            await driver.executeScript("arguments[0].click();", await DBNotebooks.getConnection(globalConn.caption!));
-            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait10seconds);
+            await DatabaseConnectionOverview.createDataBaseConnection(globalConn);
+            await driver.executeScript("arguments[0].click();",
+                await DatabaseConnectionOverview.getConnection(globalConn.caption!));
+            await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait10seconds);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_Admin");
             throw e;
@@ -94,8 +97,8 @@ describe("MySQL Administration", () => {
 
     it("Server Status", async () => {
         try {
-            await DBNotebooks.clickAdminItem("Server Status");
-            expect(await DBNotebooks.getCurrentEditor()).toBe("Server Status");
+            await (await notebook.explorer.getMySQLAdminElement(constants.serverStatus)).click();
+            expect((await notebook.toolbar.getCurrentEditor())?.label).toBe(constants.serverStatus);
 
             const sections = await driver?.findElements(locator.serverStatusHeadings);
             const headings = [];
@@ -115,8 +118,9 @@ describe("MySQL Administration", () => {
 
     it("Client Connections", async () => {
         try {
-            await DBNotebooks.clickAdminItem("Client Connections");
-            expect(await DBNotebooks.getCurrentEditor()).toBe("Client Connections");
+            await (await notebook.explorer.getMySQLAdminElement(constants.clientConnections)).click();
+            expect((await notebook.toolbar.getCurrentEditor())?.label).toBe(constants.clientConnections);
+
             const properties = await driver?.findElements(locator.clientConnections.properties);
             const props = [];
             for (const item of properties) {
@@ -145,8 +149,8 @@ describe("MySQL Administration", () => {
 
     it("Performance Dashboard", async () => {
         try {
-            await DBNotebooks.clickAdminItem("Performance Dashboard");
-            expect(await DBNotebooks.getCurrentEditor()).toBe("Performance Dashboard");
+            await (await notebook.explorer.getMySQLAdminElement(constants.performanceDashboard)).click();
+            expect((await notebook.toolbar.getCurrentEditor())?.label).toBe(constants.performanceDashboard);
 
             const grid = await driver?.findElement(locator.performanceDashboardGrid.exists);
             const gridItems = await grid?.findElements(locator.performanceDashboardGrid.headings);
@@ -169,18 +173,13 @@ describe("MySQL Administration", () => {
 
     it("Switch between MySQL Administration tabs", async () => {
         try {
-            await DBNotebooks.clickAdminItem("Server Status");
-            await DBNotebooks.clickAdminItem("Client Connections");
-            await DBNotebooks.clickAdminItem("Performance Dashboard");
+            await (await notebook.explorer.getMySQLAdminElement(constants.serverStatus)).click();
+            await (await notebook.explorer.getMySQLAdminElement(constants.clientConnections)).click();
+            await (await notebook.explorer.getMySQLAdminElement(constants.performanceDashboard)).click();
 
-            await DBNotebooks.selectEditor("Server Status");
-            await driver.switchTo().defaultContent();
-
-            await DBNotebooks.selectEditor("Client Connections");
-            await driver.switchTo().defaultContent();
-
-            await DBNotebooks.selectEditor("Performance Dashboard");
-            await driver.switchTo().defaultContent();
+            await notebook.toolbar.selectEditor(new RegExp(constants.serverStatus));
+            await notebook.toolbar.selectEditor(new RegExp(constants.clientConnections));
+            await notebook.toolbar.selectEditor(new RegExp(constants.performanceDashboard));
         } catch (e) {
             testFailed = true;
             throw e;

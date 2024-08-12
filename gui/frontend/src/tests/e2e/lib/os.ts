@@ -25,7 +25,8 @@ import { existsSync } from "fs";
 import { appendFile, readFile, writeFile } from "fs/promises";
 import { platform } from "os";
 import { join } from "path";
-import { Logs, logging } from "selenium-webdriver";
+import { Logs, logging, WebElement, Key } from "selenium-webdriver";
+import * as constants from "./constants.js";
 
 import { driver } from "../lib/driver.js";
 
@@ -89,6 +90,33 @@ export class Os {
     };
 
     /**
+     * Gets the clipboard content and applies the following rules:
+     * - Removes all line breaks (\n characters)
+     * - Removes hours, minutes and seconds (useful for clipboard content coming from result grids)
+     * @returns A promise resolving with the clipboard content as a string or array of string, if there are line breaks
+     */
+    public static getClipboardContent = async (): Promise<string | string[]> => {
+        const clipboardData = (await this.readClipboard()).split("\n").filter((item) => { return item; });
+        const replacers = [/\n/, / (\d+):(\d+):(\d+)/];
+
+        if (clipboardData.length > 1) {
+            for (let i = 0; i <= clipboardData.length - 1; i++) {
+                for (const replacer of replacers) {
+                    clipboardData[i] = clipboardData[i].replace(replacer, "").trim();
+                }
+            }
+
+            return clipboardData;
+        } else {
+            for (const replacer of replacers) {
+                clipboardData[0] = clipboardData[0].replace(replacer, "").trim();
+            }
+
+            return clipboardData[0];
+        }
+    };
+
+    /**
      * Writes content to the clipboard
      * @param text The text to write
      * @returns A promise revolved when the clipboard ir written
@@ -115,4 +143,70 @@ export class Os {
     public static isMacOs = (): boolean => {
         return platform() === "darwin";
     };
+
+    /**
+     * Presses CTRL+V
+     * @param el The element to perform the action on
+     * @returns A promise resolving when the command is executed
+     */
+    public static keyboardPaste = async (el?: WebElement): Promise<void> => {
+        if (Os.isMacOs()) {
+            await driver.executeScript("arguments[0].click()", el);
+            await el!.sendKeys(Key.chord(Key.COMMAND, "v"));
+        } else {
+            await driver.executeScript("arguments[0].click()", el);
+            await el!.sendKeys(Key.chord(Key.CONTROL, "v"));
+        }
+    };
+
+    /**
+     * Presses CTRL+A
+     * @param el The element to perform the action on
+     * @returns A promise resolving when the command is executed
+     */
+    public static keyboardSelectAll = async (el: WebElement): Promise<void> => {
+        if (Os.isMacOs()) {
+            await driver.executeScript("arguments[0].click()", el);
+            await el.sendKeys(Key.chord(Key.COMMAND, "a"));
+        } else {
+            await driver.executeScript("arguments[0].click()", el);
+            await el.sendKeys(Key.chord(Key.CONTROL, "a"));
+        }
+    };
+
+    /**
+     * Presses CTRL+C
+     * @param el The element to perform the action on
+     * @returns A promise resolving when the command is executed
+     */
+    public static keyboardCopy = async (el?: WebElement): Promise<void> => {
+        await driver.wait(async () => {
+            if (Os.isMacOs()) {
+                await driver.executeScript("arguments[0].click()", el);
+                await el!.sendKeys(Key.chord(Key.COMMAND, "c"));
+            } else {
+                await driver.executeScript("arguments[0].click()", el);
+                await el!.sendKeys(Key.chord(Key.CONTROL, "c"));
+            }
+
+            return (await this.readClipboard()) !== "";
+        }, constants.wait5seconds, `The clipboard is empty`);
+    };
+
+    /**
+     * Presses CTRL+X
+     * @param el The element to perform the action on
+     * @returns A promise resolving when the command is executed
+     */
+    public static keyboardCut = async (el?: WebElement): Promise<void> => {
+        if (Os.isMacOs()) {
+            await driver.executeScript("arguments[0].click()", el);
+            await el!.sendKeys(Key.chord(Key.COMMAND, "X"));
+        } else {
+            await driver.executeScript("arguments[0].click()", el);
+            await el!.sendKeys(Key.chord(Key.CONTROL, "X"));
+        }
+    };
+
+
 }

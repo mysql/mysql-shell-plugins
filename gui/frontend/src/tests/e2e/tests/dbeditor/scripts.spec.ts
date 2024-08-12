@@ -23,18 +23,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Key } from "selenium-webdriver";
-import { DBNotebooks } from "../../lib/dbNotebooks.js";
 import { Misc } from "../../lib/misc.js";
 import { basename } from "path";
 import * as locator from "../../lib/locators.js";
-import { CommandExecutor } from "../../lib/cmdExecutor.js";
 import { driver, loadDriver } from "../../lib/driver.js";
 import * as interfaces from "../../lib/interfaces.js";
-import * as waitUntil from "../../lib/until.js";
 import * as constants from "../../lib/constants.js";
 import { Os } from "../../lib/os.js";
 import { E2EStatusBar } from "../../lib/E2EStatusBar.js";
+import { E2ENotebook } from "../../lib/E2ENotebook.js";
+import { DatabaseConnectionOverview } from "../../lib/databaseConnectionOverview.js";
+import { E2EScript } from "../../lib/E2EScript.js";
 
 const url = Misc.getUrl(basename(basename(__filename)));
 
@@ -57,7 +56,7 @@ describe("Scripts", () => {
         },
     };
 
-    const commandExecutor = new CommandExecutor();
+    const notebook = new E2ENotebook();
 
     beforeAll(async () => {
         try {
@@ -73,9 +72,11 @@ describe("Scripts", () => {
             }, constants.wait20seconds, "Home Page was not loaded");
 
             await driver.findElement(locator.sqlEditorPage.icon).click();
-            await DBNotebooks.createDataBaseConnection(globalConn);
-            await driver.executeScript("arguments[0].click();", await DBNotebooks.getConnection(globalConn.caption!));
-            await driver.wait(waitUntil.dbConnectionIsOpened(globalConn), constants.wait10seconds);
+            await DatabaseConnectionOverview.createDataBaseConnection(globalConn);
+            await driver.executeScript("arguments[0].click();",
+                await DatabaseConnectionOverview.getConnection(globalConn.caption!));
+            await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait10seconds);
+            await notebook.explorer.toggleSection(constants.scripts, true);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_Scripts");
             throw e;
@@ -97,35 +98,13 @@ describe("Scripts", () => {
     });
 
 
-    it("Add_run JS script", async () => {
+    it("Create and run a JS script", async () => {
         try {
-            await DBNotebooks.toggleSection("scripts", true, 0);
-            const script = await DBNotebooks.addScript("JS");
-            await DBNotebooks.selectCurrentEditor(script, "scriptJs");
-            expect(await DBNotebooks.existsScript(script, "scriptJs")).toBe(true);
-            expect(
-                await driver
-                    .findElement(locator.notebook.toolbar.exists)
-                    .findElement(locator.notebook.toolbar.editorSelector.currentImage)
-                    .getAttribute("src"),
-            ).toContain("scriptJs");
 
-            expect(
-                await driver
-                    .findElement(locator.notebook.toolbar.editorSelector.exists)
-                    .findElement(locator.notebook.toolbar.editorSelector.currentValue)
-                    .getText(),
-            ).toBe(script);
+            const jsScript = await notebook.explorer.addScript("JS");
+            await notebook.toolbar.selectEditor(new RegExp(jsScript));
 
-            expect(
-                await (await DBNotebooks.getOpenEditor(script))!.getAttribute("class"),
-            ).toContain("selected");
-
-            expect(
-                await (await DBNotebooks.getOpenEditor(script))!
-                    .findElement(locator.notebook.toolbar.editorSelector.currentImage)
-                    .getAttribute("src"),
-            ).toContain("scriptJs");
+            expect(await notebook.explorer.existsScript(jsScript, "scriptJs")).toBe(true);
 
             const statusBar = new E2EStatusBar();
             const editorPosition = await statusBar.getEditorPosition();
@@ -138,17 +117,18 @@ describe("Scripts", () => {
             expect(await statusBar.getEditorEOL()).toBe("LF");
             expect(await statusBar.getEditorLanguage()).toBe("javascript");
 
-            await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys("testing status bar");
-            await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.ENTER);
+            const scriptObj = new E2EScript();
+            await scriptObj.codeEditor.write("testing status bar");
+            await scriptObj.codeEditor.setNewLine();
 
             const nextEditorPosition = await statusBar.getEditorPosition();
             groups = nextEditorPosition.match(regex);
             expect(parseInt(groups![1], 10)).toBeGreaterThan(line);
             expect(parseInt(groups![1], 10)).toBeGreaterThan(col);
 
-            await commandExecutor.clean();
-            await commandExecutor.executeScript("Math.random()", true);
-            expect(commandExecutor.getResultMessage()).toMatch(/(\d+).(\d+)/);
+            await scriptObj.codeEditor.clean();
+            const result = await scriptObj.codeEditor.execute("Math.random()");
+            expect(result.text).toMatch(/(\d+).(\d+)/);
 
         } catch (e) {
             testFailed = true;
@@ -156,37 +136,11 @@ describe("Scripts", () => {
         }
     });
 
-    it("Add_run SQL script", async () => {
+    it("Create and run a SQL script", async () => {
         try {
-            const script = await DBNotebooks.addScript("SQL");
-            await DBNotebooks.selectCurrentEditor(script, "Mysql");
-            expect(await DBNotebooks.existsScript(script, "Mysql")).toBe(true);
-            expect(
-                await driver
-                    .findElement(locator.notebook.codeEditor.editor.editorHost)
-                    .getAttribute("data-mode-id"),
-            ).toBe("mysql");
-
-            expect(
-                await driver
-                    .findElement(locator.notebook.toolbar.editorSelector.exists)
-                    .findElement(locator.notebook.toolbar.editorSelector.currentImage)
-                    .getAttribute("src"),
-            ).toContain("Mysql");
-            expect(
-                await driver
-                    .findElement(locator.notebook.toolbar.editorSelector.exists)
-                    .findElement(locator.notebook.toolbar.editorSelector.currentValue)
-                    .getText(),
-            ).toBe(script);
-            expect(
-                await (await DBNotebooks.getOpenEditor(script))!.getAttribute("class"),
-            ).toContain("selected");
-            expect(
-                await (await DBNotebooks.getOpenEditor(script))!
-                    .findElement(locator.notebook.toolbar.editorSelector.currentImage)
-                    .getAttribute("src"),
-            ).toContain("Mysql");
+            const sqlScript = await notebook.explorer.addScript("SQL");
+            await notebook.toolbar.selectEditor(new RegExp(sqlScript));
+            expect(await notebook.explorer.existsScript(sqlScript, "Mysql")).toBe(true);
 
             const statusBar = new E2EStatusBar();
             const editorPosition = await statusBar.getEditorPosition();
@@ -199,57 +153,29 @@ describe("Scripts", () => {
             expect(await statusBar.getEditorEOL()).toBe("LF");
             expect(await statusBar.getEditorLanguage()).toBe("mysql");
 
-            await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys("testing status bar");
-            await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.ENTER);
+            const scriptObj = new E2EScript();
+            await scriptObj.codeEditor.write("testing status bar");
+            await scriptObj.codeEditor.setNewLine();
 
             const nextEditorPosition = await statusBar.getEditorPosition();
             groups = nextEditorPosition.match(regex);
             expect(parseInt(groups![1], 10)).toBeGreaterThan(line);
             expect(parseInt(groups![1], 10)).toBeGreaterThan(col);
 
-            await commandExecutor.clean();
-            await commandExecutor.executeScript("select * from sakila.actor limit 1;", false);
-            expect(commandExecutor.getResultMessage()).toMatch(/OK, (\d+) record/);
+            await scriptObj.codeEditor.clean();
+            const result = await scriptObj.codeEditor.execute("select * from sakila.actor limit 1;", false);
+            expect(result.toolbar!.status).toMatch(/OK, (\d+) record/);
         } catch (e) {
             testFailed = true;
             throw e;
         }
     });
 
-    it("Add_run TS script", async () => {
+    it("Create and run a TS script", async () => {
         try {
-            const script = await DBNotebooks.addScript("TS");
-            await DBNotebooks.selectCurrentEditor(script, "scriptTs");
-            expect(await DBNotebooks.existsScript(script, "scriptTs")).toBe(true);
-            expect(
-                await driver.findElement(locator.notebook.codeEditor.editor.editorHost).getAttribute("data-mode-id"),
-
-            ).toBe("typescript");
-
-            let src = await driver.findElement(locator.notebook.toolbar.editorSelector.exists)
-                .findElement(locator.notebook.toolbar.editorSelector.currentImage)
-                .getAttribute("src");
-
-            expect(
-                src.indexOf("scriptTs") !== -1,
-            ).toBe(true);
-
-            expect(
-                await driver
-                    .findElement(locator.notebook.toolbar.editorSelector.exists)
-                    .findElement(locator.notebook.toolbar.editorSelector.currentValue)
-                    .getText(),
-            ).toBe(script);
-
-            expect(
-                await (await DBNotebooks.getOpenEditor(script))!.getAttribute("class"),
-            ).toContain("selected");
-
-            src = (await (await DBNotebooks.getOpenEditor(script))!
-                .findElement(locator.notebook.toolbar.editorSelector.currentImage)
-                .getAttribute("src"));
-
-            expect(src.indexOf("scriptTs") !== -1).toBe(true);
+            const tsScript = await notebook.explorer.addScript("TS");
+            await notebook.toolbar.selectEditor(new RegExp(tsScript));
+            expect(await notebook.explorer.existsScript(tsScript, "scriptTs")).toBe(true);
 
             const statusBar = new E2EStatusBar();
             const editorPosition = await statusBar.getEditorPosition();
@@ -262,17 +188,18 @@ describe("Scripts", () => {
             expect(await statusBar.getEditorEOL()).toBe("LF");
             expect(await statusBar.getEditorLanguage()).toBe("typescript");
 
-            await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys("testing status bar ");
-            await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.ENTER);
+            const scriptObj = new E2EScript();
+            await scriptObj.codeEditor.write("testing status bar");
+            await scriptObj.codeEditor.setNewLine();
 
             const nextEditorPosition = await statusBar.getEditorPosition();
             groups = nextEditorPosition.match(regex);
             expect(parseInt(groups![1], 10)).toBeGreaterThan(line);
             expect(parseInt(groups![1], 10)).toBeGreaterThan(col);
 
-            await commandExecutor.clean();
-            await commandExecutor.executeScript("Math.random()", false);
-            expect(commandExecutor.getResultMessage()).toMatch(/(\d+).(\d+)/);
+            await scriptObj.codeEditor.clean();
+            const result = await scriptObj.codeEditor.execute("Math.random()");
+            expect(result.text).toMatch(/(\d+).(\d+)/);
 
         } catch (e) {
             testFailed = true;
@@ -282,60 +209,43 @@ describe("Scripts", () => {
 
     it("Switch between scripts", async () => {
         try {
-            await DBNotebooks.selectCurrentEditor("DB Notebook", "notebook");
-            const script1 = await DBNotebooks.addScript("JS");
-            await DBNotebooks.selectCurrentEditor(script1, "scriptJs");
 
-            let textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
-                .findElement(locator.notebook.codeEditor.textArea);
-            await textArea.sendKeys("c");
-            await textArea.sendKeys("onsole.log('Hello JavaScript')");
+            await notebook.toolbar.selectEditor(new RegExp(constants.dbNotebook));
+            const jsScript = await notebook.explorer.addScript("JS");
+            await notebook.toolbar.selectEditor(new RegExp(jsScript));
 
-            const script2 = await DBNotebooks.addScript("TS");
-            await DBNotebooks.selectCurrentEditor(script2, "scriptTs");
-            textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
-                .findElement(locator.notebook.codeEditor.textArea);
-            await textArea.sendKeys("c");
-            await textArea.sendKeys("onsole.log('Hello Typescript')");
+            const jsScriptObj = new E2EScript();
+            const jsCode = "console.log('Hello JavaScript')";
+            await jsScriptObj.codeEditor.write(jsCode);
 
-            const script3 = await DBNotebooks.addScript("SQL");
-            await DBNotebooks.selectCurrentEditor(script3, "Mysql");
-            textArea = await driver.findElement(locator.notebook.codeEditor.editor.host)
-                .findElement(locator.notebook.codeEditor.textArea);
-            await textArea.sendKeys("S");
-            await textArea.sendKeys("ELECT * FROM sakila.actor;");
+            const tsScript = await notebook.explorer.addScript("TS");
+            await notebook.toolbar.selectEditor(new RegExp(tsScript));
 
-            await DBNotebooks.selectCurrentEditor(script1, "scriptJs");
+            const tsScriptObj = new E2EScript();
+            const tsCode = "console.log('Hello TypeScript')";
+            await tsScriptObj.codeEditor.write(tsCode);
 
-            expect(
-                await driver
-                    .findElement(locator.notebook.codeEditor.editor.host)
-                    .findElement(locator.notebook.codeEditor.textArea)
-                    .getAttribute("value"),
-            ).toBe("console.log('Hello JavaScript')");
+            const sqlScript = await notebook.explorer.addScript("SQL");
+            await notebook.toolbar.selectEditor(new RegExp(sqlScript));
 
-            await DBNotebooks.selectCurrentEditor(script2, "scriptTs");
+            const sqlScriptObj = new E2EScript();
+            const sqlCode = "SELECT * FROM sakila.actor;";
+            await sqlScriptObj.codeEditor.write(sqlCode);
 
-            expect(
-                await driver
-                    .findElement(locator.notebook.codeEditor.editor.host)
-                    .findElement(locator.notebook.codeEditor.textArea)
-                    .getAttribute("value"),
-            ).toBe("console.log('Hello Typescript')");
+            await notebook.toolbar.selectEditor(new RegExp(jsScript));
+            expect(await jsScriptObj.codeEditor.isTextOnEditor(jsCode)).toBe(true);
 
-            await DBNotebooks.selectCurrentEditor(script3, "Mysql");
+            await notebook.toolbar.selectEditor(new RegExp(tsScript));
+            expect(await tsScriptObj.codeEditor.isTextOnEditor(tsCode)).toBe(true);
 
-            expect(
-                await driver
-                    .findElement(locator.notebook.codeEditor.editor.host)
-                    .findElement(locator.notebook.codeEditor.textArea)
-                    .getAttribute("value"),
-            ).toBe("SELECT * FROM sakila.actor;");
+            await notebook.toolbar.selectEditor(new RegExp(sqlScript));
+            expect(await sqlScriptObj.codeEditor.isTextOnEditor(sqlCode)).toBe(true);
+
         } catch (e) {
             testFailed = true;
             throw e;
         } finally {
-            await DBNotebooks.selectCurrentEditor("DB Notebook", "notebook");
+            await notebook.toolbar.selectEditor(new RegExp(constants.dbNotebook));
         }
     });
 

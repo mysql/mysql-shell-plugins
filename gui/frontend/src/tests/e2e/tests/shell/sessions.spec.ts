@@ -23,16 +23,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebElement, until } from "selenium-webdriver";
+import { until } from "selenium-webdriver";
 import { basename } from "path";
-import { GuiConsole } from "../../lib/guiConsole.js";
 import { Misc } from "../../lib/misc.js";
 import * as locator from "../../lib/locators.js";
-import { CommandExecutor } from "../../lib/cmdExecutor.js";
 import * as constants from "../../lib/constants.js";
 import { driver, loadDriver } from "../../lib/driver.js";
 import * as interfaces from "../../lib/interfaces.js";
 import { Os } from "../../lib/os.js";
+import { E2EGuiConsole } from "../../lib/E2EGuiConsole.js";
+import { E2EShellSession } from "../../lib/E2EShellSession.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -44,7 +44,6 @@ describe("Sessions", () => {
     let password: string | undefined;
     let hostname: string | undefined;
     let schema: string | undefined;
-    let port: number | undefined;
     let portX: number | undefined;
 
     const globalConn: interfaces.IDBConnection = {
@@ -54,11 +53,11 @@ describe("Sessions", () => {
         basic: {
             hostname: String(process.env.DBHOSTNAME),
             protocol: "mysql",
-            username: "dbuser1",
+            username: "dbuser2",
             port: parseInt(process.env.DBPORT!, 10),
             portX: parseInt(process.env.DBPORTX!, 10),
             schema: "sakila",
-            password: "dbuser1",
+            password: "dbuser2",
         },
     };
 
@@ -67,13 +66,13 @@ describe("Sessions", () => {
         password = globalConn.basic.password;
         hostname = globalConn.basic.hostname;
         schema = globalConn.basic.schema;
-        port = globalConn.basic.port;
         portX = globalConn.basic.portX;
     } else {
         throw new Error("Unknown connection type");
     }
 
-    const commandExecutor = new CommandExecutor();
+    const guiConsole = new E2EGuiConsole();
+    let session: E2EShellSession;
 
     beforeAll(async () => {
         try {
@@ -89,27 +88,28 @@ describe("Sessions", () => {
             }, constants.wait20seconds, "Home Page was not loaded");
 
             await driver.findElement(locator.shellPage.icon).click();
-            await GuiConsole.openSession();
+            await guiConsole.openSession();
+            session = guiConsole.sessions[0];
             const editor = await driver.findElement(locator.shellSession.exists);
             await driver.executeScript(
                 "arguments[0].click();",
                 await editor.findElement(locator.shellSession.currentLine),
             );
 
+            await session.codeEditor.loadCommandResults();
             let uri = `\\c ${username}:${password}@${hostname}:${portX}/${schema}`;
-
-            await commandExecutor.execute(uri);
+            const result = await session.codeEditor.execute(uri);
             uri = `Creating a session to '${username}@${hostname}:${portX}/${schema}'`;
-            expect(commandExecutor.getResultMessage()).toMatch(new RegExp(uri));
+            expect(result.text).toMatch(new RegExp(uri));
             uri = `Connection to server ${hostname} at port ${portX},`;
             uri += ` using the X protocol`;
-            const server = await driver.wait(until.elementLocated(locator.shellSession.server),
+            const server = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.server),
                 constants.wait5seconds);
-            const schemaEl = await driver.wait(until.elementLocated(locator.shellSession.schema),
+            const schemaEl = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schema),
                 constants.wait5seconds);
             await driver.wait(until.elementTextContains(server,
-                `${hostname}:${String(portX)}`),
-                constants.wait5seconds, `Server tab does not contain '${hostname}:${port}'`);
+                `${hostname}:${portX}`),
+                constants.wait5seconds, `Server tab does not contain '${hostname}:${portX}'`);
             await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
                 constants.wait5seconds, `Schema tab does not contain '${schema}'`);
         } catch (e) {
@@ -133,21 +133,20 @@ describe("Sessions", () => {
 
     it("Verify collections - json format", async () => {
         try {
-            await commandExecutor.changeSchemaOnTab("world_x_cst");
-            await commandExecutor.execute("db.countryinfo.find()");
-            expect(await (commandExecutor.getResultContent() as WebElement)
-                .getAttribute("innerHTML")).toMatch(/Yugoslavia/);
+            await session.changeSchema("world_x_cst");
+            const result = await session.codeEditor.execute("db.countryinfo.find()");
+            expect(result.json).toMatch(/Yugoslavia/);
         } catch (e) {
             testFailed = true;
             throw e;
         } finally {
-            await commandExecutor.changeSchemaOnTab("sakila");
+            await session.changeSchema("sakila");
         }
     });
 
     it("Verify help command", async () => {
         try {
-            await commandExecutor.execute("\\help ");
+            const result = await session.codeEditor.execute("\\help ");
             const regex = [
                 /The Shell Help is organized in categories and topics/,
                 /SHELL COMMANDS/,
@@ -177,7 +176,7 @@ describe("Sessions", () => {
             ];
 
             for (const reg of regex) {
-                expect(commandExecutor.getResultMessage()).toMatch(reg);
+                expect(result.text).toMatch(reg);
             }
         } catch (e) {
             testFailed = true;
@@ -187,10 +186,12 @@ describe("Sessions", () => {
 
     it("Switch session language", async () => {
         try {
-            await commandExecutor.languageSwitch("\\py ", true);
-            expect(commandExecutor.getResultMessage()).toMatch(/Python/);
-            await commandExecutor.languageSwitch("\\js ", true);
-            expect(commandExecutor.getResultMessage()).toMatch(/JavaScript/);
+            await driver.wait(until.elementLocated(locator.shellConsole.editor),
+                constants.wait10seconds, "Console was not loaded");
+            let result = await session.codeEditor.languageSwitch("\\py ", true);
+            expect(result!.text).toMatch(/Python/);
+            result = await session.codeEditor.languageSwitch("\\js ", true);
+            expect(result!.text).toMatch(/JavaScript/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -199,28 +200,26 @@ describe("Sessions", () => {
 
     it("Check query result content", async () => {
         try {
-            await commandExecutor.languageSwitch("\\sql ");
-            await commandExecutor.execute("SHOW DATABASES;", true);
-            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
-                .toMatch(/sakila/);
-            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML")).toMatch(/mysql/);
-            await commandExecutor.languageSwitch("\\js ");
-            await commandExecutor.execute(`shell.options.resultFormat="json/raw" `);
-            expect(commandExecutor.getResultMessage()).toMatch(/json\/raw/);
-            await commandExecutor.execute(`shell.options.showColumnTypeInfo=false `);
-            expect(commandExecutor.getResultMessage()).toMatch(/false/);
-            await commandExecutor.execute(`shell.options.resultFormat="json/pretty" `);
-            expect(commandExecutor.getResultMessage()).toMatch(/json\/pretty/);
-            await commandExecutor.changeSchemaOnTab("sakila");
-            expect(commandExecutor.getResultMessage()).toMatch(/Default schema `sakila` accessible through db/);
-            await commandExecutor.execute("db.category.select().limit(1)");
-            expect(await (commandExecutor.getResultContent() as WebElement)
-                .getAttribute("innerHTML")).toMatch(/Action/);
-            await commandExecutor.execute(`shell.options.resultFormat="table" `);
-            expect(commandExecutor.getResultMessage()).toMatch(/table/);
-            await commandExecutor.execute("db.category.select().limit(1)");
-            expect(await (commandExecutor.getResultContent() as WebElement).getAttribute("innerHTML"))
-                .toMatch(/Action/);
+            await session.codeEditor.languageSwitch("\\sql ");
+            let result = await session.codeEditor.execute("SHOW DATABASES;", true);
+            expect(await result.grid!.content!.getAttribute("innerHTML")).toMatch(/sakila/);
+            expect(await result.grid!.content!.getAttribute("innerHTML")).toMatch(/mysql/);
+
+            await session.codeEditor.languageSwitch("\\js ");
+            result = await session.codeEditor.execute(`shell.options.resultFormat="json/raw" `);
+            expect(result.text).toMatch(/json\/raw/);
+            result = await session.codeEditor.execute(`shell.options.showColumnTypeInfo=false `);
+            expect(result.text).toMatch(/false/);
+            result = await session.codeEditor.execute(`shell.options.resultFormat="json/pretty" `);
+            expect(result.text).toMatch(/json\/pretty/);
+            result = await session.changeSchema("sakila");
+            expect(result.text).toMatch(/Default schema `sakila` accessible through db/);
+            result = await session.codeEditor.execute("db.category.select().limit(1)");
+            expect(result.json).toMatch(/Action/);
+            result = await session.codeEditor.execute(`shell.options.resultFormat="table" `);
+            expect(result.text).toMatch(/table/);
+            result = await session.codeEditor.execute("db.category.select().limit(1)");
+            expect(await result.grid!.content!.getAttribute("innerHTML")).toMatch(/Action/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -229,9 +228,8 @@ describe("Sessions", () => {
 
     it("Using db global variable", async () => {
         try {
-            await commandExecutor.execute("db.actor.select().limit(1)");
-            expect(await (commandExecutor.getResultContent() as WebElement)
-                .getAttribute("innerHTML")).toMatch(/PENELOPE/);
+            const result = await session.codeEditor.execute("db.actor.select().limit(1)");
+            expect(await result.grid!.content!.getAttribute("innerHTML")).toMatch(/PENELOPE/);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -240,8 +238,8 @@ describe("Sessions", () => {
 
     it("Using util global variable", async () => {
         try {
-            await commandExecutor.execute('util.exportTable("actor", "test.txt")');
-            expect(commandExecutor.getResultMessage()).toMatch(/Running data dump using 1 thread/);
+            const result = await session.codeEditor.execute('util.exportTable("actor", "test.txt")');
+            expect(result.text).toMatch(/Running data dump using 1 thread/);
             const matches = [
                 /Total duration: (\d+)(\d+):(\d+)(\d+):(\d+)(\d+)s/,
                 /Data size: (\d+).(\d+)(\d+) KB/,
@@ -249,8 +247,9 @@ describe("Sessions", () => {
                 /Bytes written: (\d+).(\d+)(\d+) KB/,
                 /Average throughput: (\d+).(\d+)(\d+) KB/,
             ];
+
             for (const match of matches) {
-                expect(commandExecutor.getResultMessage()).toMatch(match);
+                expect(result.text).toMatch(match);
             }
         } catch (e) {
             testFailed = true;

@@ -22,7 +22,7 @@
  */
 
 import { mkdir, writeFile } from "fs/promises";
-import { until, WebDriver, error } from "selenium-webdriver";
+import { until, WebDriver, error, Condition, WebElement } from "selenium-webdriver";
 import * as constants from "../lib/constants.js";
 import { driver } from "../lib/driver.js";
 import * as locator from "../lib/locators.js";
@@ -140,30 +140,6 @@ export class Misc {
     };
 
     /**
-     * Gets the index of a column, from a table
-     * @param tableName The table
-     * @param columnName The column name
-     *  @returns The index of the column
-     */
-    public static getDbTableColumnIndex = (tableName: string, columnName: string): number => {
-        let index: number | undefined;
-
-        for (const table of constants.dbTables) {
-
-            if (table.name === tableName) {
-                index = table.columns.indexOf(columnName);
-                break;
-            }
-        }
-
-        if (index === undefined) {
-            throw new Error(`Could not find index on table '${tableName}' and column '${columnName}'`);
-        } else {
-            return index;
-        }
-    };
-
-    /**
      * Converts a time to a 12h time string (AM/PM)
      * @param time The time
      * @returns The converted time
@@ -187,27 +163,6 @@ export class Misc {
         const splitted = toReturn.split("T");
 
         return `${splitted[0]} ${splitted[1].replace(":00.000Z", "")}`;
-    };
-
-    /**
-     * Gets the index of a column, from a table
-     * @param tableName The table
-     * @param columnIndex The column index
-     *  @returns The index of the column
-     */
-    public static getDbTableColumnName = (tableName: string, columnIndex: number): string => {
-        let name: string | undefined;
-        for (const table of constants.dbTables) {
-            if (table.name === tableName) {
-                name = table.columns[columnIndex];
-                break;
-            }
-        }
-        if (!name) {
-            throw new Error(`Could not find on table column name '${tableName}' with index column '${columnIndex}'`);
-        } else {
-            return name;
-        }
     };
 
     /**
@@ -237,5 +192,44 @@ export class Misc {
         }, constants.wait10seconds, "Never going to hit here");
 
         return toastNotifications;
+    };
+
+    /**
+     * Verifies if the confirmation dialog exists
+     * @param context The context
+     * @returns A condition resolving to true when the confirmation dialog exists
+     */
+    public static untilConfirmationDialogExists = (context?: string): Condition<WebElement | undefined> => {
+        let msg = "for confirmation dialog to be displayed";
+        if (context) {
+            msg += ` ${context}`;
+        }
+
+        return new Condition(msg, async () => {
+            const confirmDialog = await driver.findElements(locator.confirmDialog.exists);
+            if (confirmDialog) {
+                return confirmDialog[0];
+            }
+        });
+    };
+
+    /**
+     * Waits until the confirmation dialog exists
+     * @param context The context
+     * @returns A promise resolving when the confirmation dialog exists
+     */
+    public untilConfirmationDialogExists = (context?: string): Condition<WebElement | undefined> => {
+        let msg = "for confirmation dialog to be displayed";
+        if (context) {
+            msg += ` ${context}`;
+        }
+
+        return new Condition(msg, async () => {
+            const confirmDialog = await driver.findElements(locator.confirmDialog.exists);
+
+            if (confirmDialog) {
+                return confirmDialog[0];
+            }
+        });
     };
 }

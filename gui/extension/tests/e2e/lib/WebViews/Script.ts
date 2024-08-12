@@ -39,6 +39,9 @@ export class Script {
     /** The toolbar*/
     public toolbar = new Toolbar();
 
+    /** The code editor*/
+    public codeEditor = new E2ECodeEditor(this);
+
     /**
      * Waits until the shell session is opened
      * @param connection The database connection
@@ -65,25 +68,6 @@ export class Script {
 
             return ((await this.toolbar.getCurrentEditor()).label).match(/Script/) !== null;
         });
-
-    };
-
-    /**
-     * Executes the code within the script
-     *
-     * @param cmd The command
-     * @param slowWriting True if the command should be written with a delay between each character
-     * @returns A promise resolving with the script result
-     */
-    public executeCode = async (cmd: string, slowWriting = false): Promise<interfaces.ICommandResult> => {
-
-        const codeEditor = new E2ECodeEditor(this);
-        await codeEditor.write(cmd, slowWriting);
-        await codeEditor.exec();
-        const commandResult = new CommandResult(codeEditor, cmd);
-        await commandResult.loadResult(true);
-
-        return commandResult;
 
     };
 

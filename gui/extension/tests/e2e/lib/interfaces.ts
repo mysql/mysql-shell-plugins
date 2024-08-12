@@ -292,7 +292,6 @@ export interface ICommandResultTab {
     element: WebElement;
 }
 
-
 export interface IExportMrsSdk {
     directory: string;
     url: string;

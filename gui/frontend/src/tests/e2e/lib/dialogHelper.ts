@@ -23,9 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { By, WebElement, Locator, Key, until } from "selenium-webdriver";
-import * as locator from "../lib/locators.js";
-import * as constants from "../lib/constants.js";
-import { driver } from "../lib/driver.js";
+import * as locator from "./locators.js";
+import * as constants from "./constants.js";
+import { driver } from "./driver.js";
 import { Os } from "./os.js";
 
 /**

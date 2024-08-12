@@ -24,12 +24,11 @@
  */
 import { basename } from "path";
 import { Misc } from "../../lib/misc.js";
-import { GuiConsole } from "../../lib/guiConsole.js";
-import { ShellSession } from "../../lib/shellSession.js";
 import * as locator from "../../lib/locators.js";
 import { driver, loadDriver } from "../../lib/driver.js";
 import * as constants from "../../lib/constants.js";
 import { Os } from "../../lib/os.js";
+import { E2EGuiConsole } from "../../lib/E2EGuiConsole.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -72,36 +71,28 @@ describe("GUI Console", () => {
 
     it("Open multiple sessions", async () => {
         try {
-            await GuiConsole.openSession();
-            await driver.findElement(locator.shellPage.guiConsoleTab).click();
+            const guiConsole = new E2EGuiConsole();
 
-            let session = await GuiConsole.getSession("1");
-            expect(await session!.findElement(locator.shellPage.sessions.caption).getText()).toBe("Session 1");
-            await GuiConsole.openSession();
-            await driver.findElement(locator.shellPage.guiConsoleTab).click();
+            await guiConsole.openSession();
+            await (await guiConsole.sessions[0].getGuiConsoleTab()).click();
+            await driver.wait(guiConsole.untilSessionExists("1"), constants.wait3seconds);
 
-            session = await GuiConsole.getSession("2");
-            expect(await session!.findElement(locator.shellPage.sessions.caption).getText()).toBe("Session 2");
+            await guiConsole.openSession();
+            await (await guiConsole.sessions[1].getGuiConsoleTab()).click();
+            await driver.wait(guiConsole.untilSessionExists("2"), constants.wait3seconds);
 
-            await GuiConsole.openSession();
-            await driver.findElement(locator.shellPage.guiConsoleTab).click();
-            session = await GuiConsole.getSession("3");
-            expect(await session!.findElement(locator.shellPage.sessions.caption).getText()).toBe("Session 3");
+            await guiConsole.openSession();
+            await (await guiConsole.sessions[2].getGuiConsoleTab()).click();
+            await driver.wait(guiConsole.untilSessionExists("3"), constants.wait3seconds);
 
-            await ShellSession.closeSession("1");
-            await driver.wait(async () => {
-                return (await GuiConsole.getSession("1")) === undefined;
-            }, constants.wait5seconds, "Session 1 was not closed");
+            await guiConsole.sessions[0].close();
+            await driver.wait(guiConsole.untilSessionDoesNotExist("1"), constants.wait3seconds);
 
-            await ShellSession.closeSession("2");
-            await driver.wait(async () => {
-                return (await GuiConsole.getSession("2")) === undefined;
-            }, constants.wait5seconds, "Session 2 was not closed");
+            await guiConsole.sessions[1].close();
+            await driver.wait(guiConsole.untilSessionDoesNotExist("2"), constants.wait3seconds);
 
-            await ShellSession.closeSession("3");
-            await driver.wait(async () => {
-                return (await GuiConsole.getSession("3")) === undefined;
-            }, constants.wait5seconds, "Session 3 was not closed");
+            await guiConsole.sessions[2].close();
+            await driver.wait(guiConsole.untilSessionDoesNotExist("3"), constants.wait3seconds);
 
         } catch (e) {
             testFailed = true;
