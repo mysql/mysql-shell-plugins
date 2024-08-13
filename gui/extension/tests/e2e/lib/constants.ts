@@ -197,6 +197,12 @@ export const blob = "blob";
 export const geometry = "geometry";
 export const json = "json";
 export const isNull = "null";
+export const closeEditor = "Close Editor";
+
+// SCRIPT TYPES
+export const mysqlType = "Mysql";
+export const tsType = "scriptTs";
+export const jsType = "scriptJs";
 
 // CONTEXT MENUS ITEMS
 export const executeBlock = "Execute Block";

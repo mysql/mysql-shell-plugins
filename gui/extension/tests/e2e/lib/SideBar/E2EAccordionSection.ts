@@ -28,7 +28,7 @@ import {
     ActivityBar,
 } from "vscode-extension-tester";
 import * as constants from "../constants";
-import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
+import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import * as locator from "../locators";
 import * as interfaces from "../interfaces";
 import * as errors from "../errors";

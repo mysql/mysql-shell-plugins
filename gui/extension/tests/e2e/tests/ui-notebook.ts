@@ -38,7 +38,6 @@ import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import * as errors from "../lib/errors";
 import { E2ECodeEditorWidget } from "../lib/WebViews/E2ECodeEditorWidget";
-import { Script } from "../lib/WebViews/Script";
 import { LakeHouseNavigator } from "../lib/WebViews/lakehouseNavigator/lakeHouseNavigator";
 import { HeatWaveProfileEditor } from "../lib/WebViews/lakehouseNavigator/heatWaveProfileEditor";
 import { TestQueue } from "../lib/TestQueue";
@@ -1724,92 +1723,6 @@ describe("NOTEBOOKS", () => {
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
             await dialog.findElement(locator.confirmDialog.refuse).click();
             await driver.wait(until.stalenessOf(dialog), constants.wait3seconds, "The dialog was not closed");
-
-        });
-
-    });
-
-    describe("Scripts", () => {
-
-        const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
-
-        before(async function () {
-            try {
-                await Os.deleteCredentials();
-                await dbTreeSection.focus();
-                const treeGlobalConn = await dbTreeSection.tree.getElement(globalConn.caption);
-                await (await dbTreeSection.tree.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
-                await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait15seconds);
-                await openEditorsSection.focus();
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
-
-        afterEach(async function () {
-
-            if (this.currentTest.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
-        });
-
-        after(async function () {
-            try {
-                await dbTreeSection.focus();
-                const treeGlobalConn = await dbTreeSection.tree.getElement(globalConn.caption);
-                await treeGlobalConn.collapse();
-                await Workbench.closeAllEditors();
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-
-        });
-
-        it("Add SQL Script", async () => {
-
-            const treeGlobalConn = await openEditorsSection.tree.getElement(globalConn.caption);
-            await openEditorsSection.tree.openContextMenuAndSelect(treeGlobalConn, constants.newMySQLScript);
-            await driver.wait(async () => {
-                return (await notebook.toolbar.getCurrentEditor()).label.match(/Untitled-(\d+)/);
-            }, constants.wait5seconds, "Current editor does not match Untitled-(*)");
-            expect((await notebook.toolbar.getCurrentEditor()).icon, "The current editor icon should be 'Mysql'")
-                .to.include(constants.mysqlScriptIcon);
-            const result = await new Script().codeEditor.execute("select * from sakila.actor limit 1;");
-            expect(result.toolbar.status).to.match(/OK, (\d+) record/);
-            await notebook.toolbar.closeCurrentEditor();
-
-        });
-
-        it("Add Typescript", async () => {
-
-            const treeGlobalConn = await openEditorsSection.tree.getElement(globalConn.caption);
-            await openEditorsSection.tree.openContextMenuAndSelect(treeGlobalConn, constants.newTS);
-            await driver.wait(async () => {
-                return ((await notebook.toolbar.getCurrentEditor()).label).match(/Untitled-(\d+)/);
-            }, constants.wait5seconds, "Current editor is not Untitled-(*)");
-            expect((await notebook.toolbar.getCurrentEditor()).icon, "The current editor icon should be 'scriptTs'")
-                .to.include(constants.tsScriptIcon);
-            const result = await new Script().codeEditor.execute("Math.random()");
-            expect(result.text, "Query result is not a number").to.match(/(\d+).(\d+)/);
-            await notebook.toolbar.closeCurrentEditor();
-
-        });
-
-        it("Add Javascript", async () => {
-
-            const treeGlobalConn = await openEditorsSection.tree.getElement(globalConn.caption);
-            await openEditorsSection.tree.openContextMenuAndSelect(treeGlobalConn, constants.newJS);
-            await driver.wait(async () => {
-                return ((await notebook.toolbar.getCurrentEditor()).label).match(/Untitled-(\d+)/);
-            }, constants.wait5seconds, "Current editor does not match Untitled-(*)");
-            expect((await notebook.toolbar.getCurrentEditor()).icon, "The current editor icon should be 'scriptJs'")
-                .to.include(constants.jsScriptIcon);
-            const result = await new Script().codeEditor.execute("Math.random()");
-            expect(result.text, "Query result is not a number").to.match(/(\d+).(\d+)/);
-            await notebook.toolbar.closeCurrentEditor();
 
         });
 

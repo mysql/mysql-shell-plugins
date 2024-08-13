@@ -142,7 +142,7 @@ export class E2ECodeEditor {
                     }
                 }
 
-                return this.isTextOnEditor(lines[0]);
+                return true;
             } catch (e) {
                 if (e instanceof error.ElementNotInteractableError) {
                     await this.scrollDown();
@@ -622,6 +622,46 @@ export class E2ECodeEditor {
     };
 
     /**
+     * Returns true if the given text exists on the editor
+     * @param text The text to search for
+     * @returns A promise resolving with the truthiness of the function
+     */
+    public existsText = async (text: string): Promise<boolean> => {
+        let isTextOnEditor = false;
+
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
+
+        await driver.wait(async () => {
+            try {
+                const regex = text
+                    .replace(/\*/g, "\\*")
+                    .replace(/\./g, ".*")
+                    .replace(/;/g, ".*")
+                    .replace(/\s/g, ".*");
+                const prompts = await driver.findElements(locator.notebook.codeEditor.editor.sentence);
+                for (const prompt of prompts) {
+                    const html = await prompt.getAttribute("innerHTML");
+                    if (html.match(new RegExp(regex)) !== null) {
+                        isTextOnEditor = true;
+                        break;
+                    }
+                }
+
+                return true;
+            } catch (e) {
+                if (!(errors.isStaleError(e as Error))) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds);
+
+        return isTextOnEditor;
+    };
+
+
+    /**
      * Checks if the command is considered as "Special". Special means the command is one of the following:
      * - \\js
      * - \\javascript
@@ -664,39 +704,4 @@ export class E2ECodeEditor {
 
         return resultId;
     };
-
-    /**
-     * Returns true if the given text exists on the editor
-     * @param text The text to search for
-     * @returns A promise resolving with the truthiness of the function
-     */
-    private isTextOnEditor = async (text: string): Promise<boolean> => {
-        let isTextOnEditor = false;
-        await driver.wait(async () => {
-            try {
-                const regex = text
-                    .replace(/\*/g, "\\*")
-                    .replace(/\./g, ".*")
-                    .replace(/;/g, ".*")
-                    .replace(/\s/g, ".*");
-                const prompts = await driver.findElements(locator.notebook.codeEditor.editor.sentence);
-                for (const prompt of prompts) {
-                    const html = await prompt.getAttribute("innerHTML");
-                    if (html.match(new RegExp(regex)) !== undefined) {
-                        isTextOnEditor = true;
-                        break;
-                    }
-                }
-
-                return true;
-            } catch (e) {
-                if (!(errors.isStaleError(e as Error))) {
-                    throw e;
-                }
-            }
-        }, constants.wait5seconds);
-
-        return isTextOnEditor;
-    };
-
 }

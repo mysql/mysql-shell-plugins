@@ -215,14 +215,14 @@ describe("Scripts", () => {
             await notebook.toolbar.selectEditor(new RegExp(jsScript));
 
             const jsScriptObj = new E2EScript();
-            const jsCode = "console.log('Hello JavaScript')";
+            const jsCode = "Hello JavaScript";
             await jsScriptObj.codeEditor.write(jsCode);
 
             const tsScript = await notebook.explorer.addScript("TS");
             await notebook.toolbar.selectEditor(new RegExp(tsScript));
 
             const tsScriptObj = new E2EScript();
-            const tsCode = "console.log('Hello TypeScript')";
+            const tsCode = "Hello TypeScript";
             await tsScriptObj.codeEditor.write(tsCode);
 
             const sqlScript = await notebook.explorer.addScript("SQL");
@@ -233,19 +233,17 @@ describe("Scripts", () => {
             await sqlScriptObj.codeEditor.write(sqlCode);
 
             await notebook.toolbar.selectEditor(new RegExp(jsScript));
-            expect(await jsScriptObj.codeEditor.isTextOnEditor(jsCode)).toBe(true);
+            expect(await jsScriptObj.codeEditor.existsText(jsCode)).toBe(true);
 
             await notebook.toolbar.selectEditor(new RegExp(tsScript));
-            expect(await tsScriptObj.codeEditor.isTextOnEditor(tsCode)).toBe(true);
+            expect(await tsScriptObj.codeEditor.existsText(tsCode)).toBe(true);
 
             await notebook.toolbar.selectEditor(new RegExp(sqlScript));
-            expect(await sqlScriptObj.codeEditor.isTextOnEditor(sqlCode)).toBe(true);
+            expect(await sqlScriptObj.codeEditor.existsText(sqlCode)).toBe(true);
 
         } catch (e) {
             testFailed = true;
             throw e;
-        } finally {
-            await notebook.toolbar.selectEditor(new RegExp(constants.dbNotebook));
         }
     });
 
