@@ -354,7 +354,8 @@ export class CommandResult implements interfaces.ICommandResult {
      * @returns A promise resolving when the button is clicked
      */
     public applyChanges = async (): Promise<void> => {
-        await this.toolbar!.element!.findElement(resultLocator.toolbar.applyButton).click();
+        await driver.executeScript("arguments[0].click()",
+            await this.toolbar!.element!.findElement(resultLocator.toolbar.applyButton));
         await this.loadResult();
     };
 

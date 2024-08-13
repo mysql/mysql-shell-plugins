@@ -563,6 +563,7 @@ export class E2ECodeEditor {
                 const lastLineNumber = await getLastLineNumber();
                 const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
                 await textArea.sendKeys(Key.RETURN);
+                await driver.sleep(500);
 
                 return driver.wait(async () => {
                     return (await getLastLineNumber()) > lastLineNumber;
