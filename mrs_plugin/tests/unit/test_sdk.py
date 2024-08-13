@@ -727,7 +727,16 @@ def test_generate_sortable():
 
 def test_generate_union():
     union = generate_union("Foo", ["Bar", "Baz"], "TypeScript")
-    assert union == 'export type Foo = Bar | Baz;\n\n'
+    assert union == "export type Foo = Bar | Baz;\n\n"
 
     union = generate_union("Foo", ["Bar", "Baz"], "Python")
-    assert union == 'Foo: TypeAlias = Bar | Baz\n\n\n'
+    assert union == "Foo: TypeAlias = Bar | Baz\n\n\n"
+
+
+def test_generate_sequence_constant():
+    constant = generate_sequence_constant("Foo", ["Bar", "Baz"], "TypeScript")
+    assert constant == 'const Foo = ["Bar", "Baz"] as const;\n'
+
+    constant = generate_sequence_constant("Foo", ["Bar", "Baz"], "Python")
+    assert constant == 'Foo: Sequence = ["Bar", "Baz"]\n\n'
+

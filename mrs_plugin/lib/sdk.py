@@ -38,8 +38,9 @@ import json
 SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_CREATE = '''
         if record_id is UndefinedField:
             request = MrsBaseObjectCreate[I{name}DataCreate, I{name}Details](
-                self._request_path,
-                cast(I{name}DataCreate, asdict(self)),
+                schema=self._schema,
+                request_path=self._request_path,
+                data=cast(I{name}DataCreate, asdict(self)),
             )
             return self.__load_fields(cast(I{name}Data, await request.submit()))
 '''
@@ -51,7 +52,9 @@ SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_CREATE = '''
 # Therefore, `record_id` is defined.
 SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_UPDATE = '''
         await MrsBaseObjectUpdate[I{name}, I{name}Details](
-            f"{{self._request_path}}/{{record_id}}", self
+            schema=self._schema,
+            request_path=f"{{self._request_path}}/{{record_id}}",
+            data=self,
         ).submit()
 '''
 
@@ -85,7 +88,9 @@ SDK_PYTHON_DATACLASS_TEMPLATE_DELETE = '''
         record_id = getattr(self, prk_name)
 
         _ = await MrsBaseObjectDelete[I{name}Filterable](
-            f"{{self._request_path}}", where={{prk_name: f"{{record_id}}"}}  # type: ignore[misc]
+            schema=self._schema,
+            request_path=f"{{self._request_path}}",
+            where={{prk_name: f"{{record_id}}"}},  # type: ignore[misc]
         ).submit()
 '''
 
@@ -97,8 +102,9 @@ class I{name}(Record):
     # `UndefinedField` means "not set or undefined"
 {join_field_block}
 
-    def __init__(self, data: I{name}Data) -> None:
+    def __init__(self, schema: MrsBaseSchema, data: I{name}Data) -> None:
         """Actor data class."""
+        self._schema: MrsBaseSchema = schema
         self._request_path: str = "{obj_endpoint}"
         self.__load_fields(data)
 
@@ -175,7 +181,9 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
 
     code = substitute_imports_in_template(
         template=code.get("template"), enabled_crud_ops=code.get("enabled_crud_ops"),
-        required_datatypes=code.get("required_datatypes"), sdk_language=sdk_language)
+        required_datatypes=code.get("required_datatypes"), sdk_language=sdk_language,
+        requires_auth=code.get("requires_auth", False)
+        )
 
     template = code.get("template")
     delimiter = language_comment_delimiter(sdk_language)
@@ -204,14 +212,22 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
     return template
 
 
-def substitute_imports_in_template(template, enabled_crud_ops, required_datatypes, sdk_language):
+def substitute_imports_in_template(template, enabled_crud_ops, required_datatypes, sdk_language, requires_auth: bool = False):
     delimiter = language_comment_delimiter(sdk_language)
     import_loops = re.finditer(
         f"^[^\\S\r\n]*?{delimiter} --- importLoopStart\n\\s*(^[\\S\\s]*?)^\\s*?{delimiter} --- importLoopEnd\n",
         template, flags=re.DOTALL | re.MULTILINE)
 
-    crud_ops = ["Create", "Read", "Update",
-                "Delete", "UpdateProcedure", "ReadUnique", "ReadFunction"]
+    ops = [
+        "Create", "Read", "Update",
+        "Delete", "UpdateProcedure",
+        "ReadUnique", "ReadFunction",
+        "Authenticate"
+    ]
+    enabled_ops = set(enabled_crud_ops) if enabled_crud_ops else set()
+
+    if requires_auth:
+        enabled_ops.add("Authenticate")
 
     if required_datatypes is None:
         required_datatypes = []
@@ -235,21 +251,21 @@ def substitute_imports_in_template(template, enabled_crud_ops, required_datatype
                                  f"^\\s*?{delimiter} --- importRequiredDatatypesOnlyEnd\n",
                                  datatypes_block, import_template, flags=re.DOTALL | re.MULTILINE)
 
-        for crud_op in crud_ops:
+        for op in ops:
             # Find all "import{crud_op}OnlyStart / End" blocks
-            crud_op_loops = re.finditer(
-                f"^[^\\S\r\n]*?{delimiter} --- import{crud_op}OnlyStart\n\\s*(^[\\S\\s]*?)^\\s*?{delimiter} --- import{crud_op}OnlyEnd\n",
+            op_loops = re.finditer(
+                f"^[^\\S\r\n]*?{delimiter} --- import{op}OnlyStart\n\\s*(^[\\S\\s]*?)^\\s*?{delimiter} --- import{op}OnlyEnd\n",
                 import_template, flags=re.DOTALL | re.MULTILINE)
 
-            for crud_loop in crud_op_loops:
-                # If the CRUD operation is enabled for any DB Object, keep the identified code block
-                if enabled_crud_ops is not None and crud_op in enabled_crud_ops:
+            for op_loop in op_loops:
+                # If the `CRUD + Auth` operation is enabled for any DB Object, keep the identified code block
+                if op in enabled_ops:
                     import_template = import_template.replace(
-                        crud_loop.group(), crud_loop.group(1))
+                        op_loop.group(), op_loop.group(1))
                 else:
                     # Delete the identified code block otherwise
                     import_template = import_template.replace(
-                        crud_loop.group(), "")
+                        op_loop.group(), "")
 
         template = template.replace(loop.group(), import_template)
 
@@ -257,10 +273,68 @@ def substitute_imports_in_template(template, enabled_crud_ops, required_datatype
 
 
 def substitute_service_in_template(service, template, sdk_language, session, service_url):
+    service_level_constants = ""
+    service_level_type_definitions = ""
+
     code = substitute_schemas_in_template(
-        service=service, template=template, sdk_language=sdk_language, session=session, service_url=service_url)
+        service=service,
+        template=template,
+        sdk_language=sdk_language,
+        session=session,
+        service_url=service_url)
 
     template = code.get("template")
+    requires_auth = code.get("requires_auth")
+
+    # if no db object requires auth, the authentication command should not be generated for this service
+    delimiter = language_comment_delimiter(sdk_language)
+    auth_loops = re.finditer(
+        pattern=(
+            "^[^\\S\r\n]*?"
+            f"{delimiter} --- serviceAuthenticateStart"
+            "\n\\s*(^[\\S\\s]*?)^\\s*?"
+            f"{delimiter} --- serviceAuthenticateEnd\n"
+        ),
+        string=template,
+        flags=re.DOTALL | re.MULTILINE
+    )
+    for auth_loop in auth_loops:
+        if requires_auth:
+            template = template.replace(auth_loop.group(), auth_loop.group(1))
+        else:
+            template = template.replace(auth_loop.group(), "")
+
+    service_id = service.get("id")
+    # Auth App infrastructure should only be generated if the service contains a
+    # db object that requires authentication
+    if requires_auth:
+        service_auth_apps = [
+            {
+                "name": auth_app.get("name"),
+                "vendor_id": auth_app.get("auth_vendor_id").hex(),
+            }
+            for auth_app in lib.auth_apps.get_auth_apps(
+                session=session, service_id=service_id, include_enable_state=True
+            )
+            # Todo: include apps from all vendors
+            # for now, only include MRS vendor (0x30000000000000000000000000000000) auth apps
+            if auth_app.get("auth_vendor_id").hex() == "30000000000000000000000000000000"
+        ]
+
+        service_class_name = lib.core.convert_path_to_pascal_case(service.get("url_context_root"))
+        service_level_constants += generate_sequence_constant(name="AUTH_APPS", values=service_auth_apps,
+                                                            sdk_language=sdk_language)
+
+        if len(service_auth_apps) > 0:
+            service_level_type_definitions += generate_enum(
+                name=f"{service_class_name}AuthApp",
+                values=[auth_app.get("name") for auth_app in service_auth_apps],
+                sdk_language=sdk_language,
+            )
+        else:
+            service_level_type_definitions += generate_type_declaration_placeholder(
+                name=f"{service_class_name}AuthApp", sdk_language=sdk_language
+            )
 
     # If no explicit service_url is given, use the service's host_ctx and url_context_root
     if not service_url:
@@ -273,16 +347,18 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
             service_url = host_ctx
 
     mapping = {
+        "service_level_constants": service_level_constants,
+        "service_level_type_definitions": service_level_type_definitions,
         "service_name": lib.core.convert_path_to_camel_case(service.get("url_context_root")),
         "service_class_name": lib.core.convert_path_to_pascal_case(service.get("url_context_root")),
         "service_url": service_url,
         "service_auth_path": service.get("auth_path"),
-        "service_id": lib.core.convert_id_to_string(service.get("id")),
+        "service_id": lib.core.convert_id_to_string(service_id),
     }
 
     template = Template(template).substitute(**mapping)
 
-    return {"template": template, "enabled_crud_ops": code.get("enabled_crud_ops"), "required_datatypes": code.get("required_datatypes")}
+    return {"template": template, "enabled_crud_ops": code.get("enabled_crud_ops"), "required_datatypes": code.get("required_datatypes"), "requires_auth": requires_auth}
 
 
 def substitute_schemas_in_template(service, template, sdk_language, session, service_url):
@@ -297,12 +373,16 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
 
     enabled_crud_ops = None
     required_datatypes = None
+    requires_auth = False
 
     for loop in schema_loops:
         schema_template = loop.group(1)
 
         filled_temp = ""
         for schema in schemas:
+            if requires_auth is False:
+                requires_auth |= schema.get("requires_auth") == 1
+
             delimiter = language_comment_delimiter(sdk_language)
             if f"{delimiter} --- objectLoopStart" in schema_template:
                 # Fill inner Object loops
@@ -313,6 +393,9 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
                 schema_template_with_obj_filled = code.get("template")
                 enabled_crud_ops = code.get("enabled_crud_ops")
                 required_datatypes = code.get("required_datatypes")
+
+                if requires_auth is False:
+                    requires_auth |= code.get("requires_auth")
             else:
                 schema_template_with_obj_filled = schema_template
 
@@ -336,7 +419,7 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
 
         template = template.replace(loop.group(), filled_temp)
 
-    return {"template": template, "enabled_crud_ops": enabled_crud_ops, "required_datatypes": required_datatypes}
+    return {"template": template, "enabled_crud_ops": enabled_crud_ops, "required_datatypes": required_datatypes, "requires_auth": requires_auth}
 
 
 def get_mrs_object_sdk_language_options(sdk_options, sdk_language):
@@ -377,6 +460,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
     enabled_crud_ops = []
     required_datatypes = []
+    requires_auth = False
 
     for loop in object_loops:
         filled_temp = ""
@@ -404,6 +488,10 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
             # Loop over all objects and build interfaces
             for obj in objects:
+                if requires_auth is False:
+                    object_data = lib.db_objects.get_db_object(session=session, db_object_id=obj.get("db_object_id"))
+                    requires_auth |= object_data.get("requires_auth") == 1
+
                 # Get fields
                 fields = lib.db_objects.get_object_fields_with_references(
                     session=session, object_id=obj.get("id"))
@@ -569,7 +657,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
         template = template.replace(loop.group(), filled_temp)
 
-    return {"template": template, "enabled_crud_ops": frozenset(enabled_crud_ops), "required_datatypes": set(required_datatypes)}
+    return {"template": template, "enabled_crud_ops": frozenset(enabled_crud_ops), "required_datatypes": set(required_datatypes), "requires_auth": requires_auth}
 
 
 def get_datatype_mapping(db_datatype, sdk_language):
@@ -926,11 +1014,16 @@ def generate_field_enum(name, fields=None, sdk_language="TypeScript"):
         if not fields or len(fields) == 0:
             return generate_type_declaration_placeholder(f"{name}Field", sdk_language)
 
-        stringified_fields = [f'{" " * 4}"{lib.core.convert_to_snake_case(field)}"' for field in fields]
-        s = ',\n'.join(stringified_fields)
-        return (f"I{name}Field: TypeAlias = Literal[\n" +
-                f"{s},\n" +
-                "]\n\n\n")
+        fields_in_case = [lib.core.convert_to_snake_case(field) for field in fields]
+        return generate_enum(f"{name}Field", fields_in_case, sdk_language)
+
+
+def generate_enum(name, values, sdk_language):
+    enum_def = generate_literal_type(values, sdk_language)
+    if sdk_language == "TypeScript":
+        return f"export type I{name} = {enum_def};\n\n"
+    if sdk_language == "Python":
+        return f"I{name}: TypeAlias = {enum_def}\n\n\n"
 
 
 def generate_type_declaration_placeholder(name, sdk_language):
@@ -973,6 +1066,13 @@ def generate_union(name, types, sdk_language):
         return f"export type {name} = {' | '.join(types)};\n\n"
     if sdk_language == "Python":
         return f"{name}: TypeAlias = {' | '.join(types)}\n\n\n"
+
+
+def generate_sequence_constant(name, values, sdk_language):
+    if sdk_language == "TypeScript":
+        return f"const {name} = {json.dumps(values)} as const;\n"
+    elif sdk_language == "Python":
+        return f"{name}: Sequence = {json.dumps(values)}\n\n"
 
 
 def generate_interfaces(
