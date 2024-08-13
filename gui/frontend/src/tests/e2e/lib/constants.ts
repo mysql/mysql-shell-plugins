@@ -92,6 +92,10 @@ export const geometry = "geometry";
 export const json = "json";
 export const isNull = "null";
 
+// RESULT GRID VIEW
+export const gridView = "grid";
+export const previewView = "preview";
+
 // COMMAND RESULT TYPES
 export const isText = "text";
 export const isGrid = "grid";

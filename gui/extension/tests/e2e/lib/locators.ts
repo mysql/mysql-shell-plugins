@@ -217,6 +217,12 @@ export const notebook = {
                     addNewRowButton: By.id("addNewRow"),
                     maximize: By.id("toggleStateButton"),
                     normalize: By.id("normalizeResultStateButton"),
+                    view: {
+                        exists: By.id("viewStyleDropDown"),
+                        isVisible: By.css("#viewStyleDropDownPopup .popup.visible"),
+                        grid: By.id("grid"),
+                        preview: By.id("preview"),
+                    },
                 },
                 tabs: {
                     exists: By.className("tabAreaContainer"),

@@ -81,66 +81,11 @@ export class E2ENotebook {
     };
 
     /**
-     * Verifies if a sql and result status exist on the notebook
-     * @param sql The sql query
-     * @param resultStatus The result status
-     * @returns A promise resolving when the notebook is verified
-     */
-    public verifyNotebook = async (sql: string, resultStatus: string): Promise<void> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
-
-        const notebookCommands: string[] = [];
-        await driver.wait(async () => {
-            try {
-                const commands = await driver.wait(
-                    until.elementsLocated(locator.notebook.codeEditor.editor.sentence),
-                    constants.wait5seconds, "No lines were found");
-                for (const cmd of commands) {
-                    const spans = await cmd.findElements(locator.htmlTag.span);
-                    let sentence = "";
-                    for (const span of spans) {
-                        sentence += (await span.getText()).replace("&nbsp;", " ");
-                    }
-                    notebookCommands.push(sentence);
-                }
-
-                return commands.length > 0;
-            } catch (e) {
-                if (!(errors.isStaleError(e as Error))) {
-                    throw e;
-                }
-            }
-        }, constants.wait5seconds, "No SQL commands were found on the notebook");
-
-
-        if (!notebookCommands.includes(sql)) {
-            throw new Error(`Could not find the SQL statement ${sql} on the notebook`);
-        }
-
-        let foundResult = false;
-        const results = await driver.findElements(locator.notebook.codeEditor.editor.result.toolbar.status.exists);
-        for (const result of results) {
-            const text = await result.getText();
-            if (text.includes(resultStatus)) {
-                foundResult = true;
-                break;
-            }
-        }
-
-        if (!foundResult) {
-            throw new Error(`Could not find the SQL result ${resultStatus} on the notebook`);
-        }
-
-    };
-
-    /**
      * Verifies if a word exists on the notebook
      * @param word The word
      * @returns A promise resolving with true if the word is found, false otherwise
      */
-    public existsOnNotebook = async (word: string): Promise<boolean> => {
+    public exists = async (word: string): Promise<boolean> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }

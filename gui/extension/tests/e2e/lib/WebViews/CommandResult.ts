@@ -29,9 +29,8 @@ import * as constants from "../constants";
 import * as interfaces from "../interfaces";
 import * as locator from "../locators";
 import { CommandResultGrid } from "./CommandResultGrid";
-import * as errors from "../errors";
 import { E2ECodeEditor } from "./E2ECodeEditor";
-import { Workbench } from "../Workbench";
+import { CommandResultToolbar } from "./CommandResultToolbar";
 
 const resultLocator = locator.notebook.codeEditor.editor.result;
 
@@ -288,85 +287,12 @@ export class CommandResult implements interfaces.ICommandResult {
     };
 
     /**
-     * Maximizes the result grid
-     * @returns A promise resolving when the result is maximized
-     */
-    public maximize = async (): Promise<void> => {
-        await this.toolbar.element.findElement(resultLocator.toolbar.maximize).click();
-        await driver.wait(this.untilIsMaximized(), constants.wait5seconds);
-        this.toolbar.element = await driver.findElement(resultLocator.toolbar.exists);
-    };
-
-    /**
      * Normalize the result grid
      * @returns A promise resolving when the result is normalized
      */
     public normalize = async (): Promise<void> => {
         await driver.findElement(resultLocator.toolbar.normalize).click();
         await driver.wait(this.untilIsNormalized(), constants.wait5seconds);
-    };
-
-    /**
-     * Gets the SQL Preview generated for a string
-     * @returns A promise resolving with the sql preview
-     */
-    public selectSqlPreview = async (): Promise<void> => {
-        await this.toolbar.element.findElement(resultLocator.toolbar.previewButton).click();
-        await this.loadResult();
-    };
-
-    /**
-     * Closes the current result set
-     * @returns A promise resolving when the result set is closed
-     */
-    public closeResultSet = async (): Promise<void> => {
-        await driver.wait(async () => {
-            try {
-                await driver.wait(async () => {
-                    return (await this.toolbar.element
-                        .findElements(resultLocator.toolbar.showActionMenu.open)).length > 0;
-                }, constants.wait5seconds, "Could not find Show Actions button");
-
-                const showActions = await this.toolbar.element
-                    .findElement(resultLocator.toolbar.showActionMenu.open);
-                await driver.executeScript("arguments[0].click()", showActions);
-
-                await driver.wait(async () => {
-                    return (await driver.findElements(resultLocator.toolbar.showActionMenu.exists))
-                        .length > 0;
-                }, constants.wait5seconds, "Action menu was not displayed");
-
-                const menu = await driver.findElement(resultLocator.toolbar.showActionMenu.exists);
-                await menu.findElement(resultLocator.toolbar.showActionMenu.closeResultSet).click();
-
-                return true;
-            } catch (e) {
-                if (!(errors.isStaleError(e as Error))) {
-                    throw e;
-                }
-            }
-        }, constants.wait10seconds, "Show actions button was not interactable");
-
-        this.id = String(parseInt(this.id, 10) - 1);
-    };
-
-    /**
-     * Clicks on the Apply Changes button of a result grid
-     * @returns A promise resolving when the button is clicked
-     */
-    public applyChanges = async (): Promise<void> => {
-        await this.toolbar.element.findElement(resultLocator.toolbar.applyButton).click();
-        await this.loadResult();
-    };
-
-    /**
-     * Clicks on the Rollback Changes button of a result grid
-     * @returns A promise resolving when the button is clicked
-     */
-    public rollbackChanges = async (): Promise<void> => {
-        await this.toolbar.element.findElement(resultLocator.toolbar.rollbackButton).click();
-        const confirmDialog = await driver.wait(Workbench.untilConfirmationDialogExists("for rollback"));
-        await confirmDialog.findElement(locator.confirmDialog.accept).click();
     };
 
     /**
@@ -388,19 +314,6 @@ export class CommandResult implements interfaces.ICommandResult {
     public untilIsNormalized = (): Condition<boolean> => {
         return new Condition(`for result to be normalized`, async () => {
             return (await driver.findElements(resultLocator.toolbar.maximize)).length > 0;
-        });
-    };
-
-    /**
-     * Verifies if the grid status matches a message
-     * @param message The message
-     * @returns A condition resolving to true if the message matches the status of the grid, false otherwise
-     */
-    public untilStatusMatches = (message: RegExp): Condition<boolean> => {
-        return new Condition(`for result message to match '${String(message)}'`, async () => {
-            await this.loadResult();
-
-            return this.toolbar.status.match(message) !== null;
         });
     };
 
@@ -516,26 +429,12 @@ export class CommandResult implements interfaces.ICommandResult {
     };
 
     /**
-     * Sets the grid content
-     * @returns A promise resolving when grid content is set
+     * Sets the result toolbar
+     * @returns A promise resolving when toolbar content is set
      */
     private setToolbar = async (): Promise<void> => {
-        let status: WebElement;
-
-        await driver.wait(async () => {
-            status = await this.context.findElement(resultLocator.toolbar.status.text);
-
-            return (await status.getText()) !== "";
-        }, constants.wait5seconds, `The status is empty for cmd ${this.command}`);
-
-        this.toolbar = {
-            status: await status.getText(),
-        };
-
-        const toolbar = await this.context.findElements(resultLocator.toolbar.exists);
-        if (toolbar) {
-            this.toolbar.element = toolbar[0];
-        }
+        this.toolbar = new CommandResultToolbar(this);
+        await this.toolbar.setStatus();
     };
 
     /**
