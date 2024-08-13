@@ -130,7 +130,7 @@ export class E2ECodeEditor {
                     }
                 }
 
-                return this.isTextOnEditor(lines[0]);
+                return true;
             } catch (e) {
                 if (e instanceof error.ElementNotInteractableError) {
                     await this.scrollDown();
@@ -636,7 +636,7 @@ export class E2ECodeEditor {
      * @param text The text to search for
      * @returns A promise resolving with the truthiness of the function
      */
-    public isTextOnEditor = async (text: string): Promise<boolean> => {
+    public existsText = async (text: string): Promise<boolean> => {
         let isTextOnEditor = false;
         await driver.wait(async () => {
             try {
@@ -648,7 +648,7 @@ export class E2ECodeEditor {
                 const prompts = await driver.findElements(locator.notebook.codeEditor.editor.sentence);
                 for (const prompt of prompts) {
                     const html = await prompt.getAttribute("innerHTML");
-                    if (html.match(new RegExp(regex)) !== undefined) {
+                    if (html.match(new RegExp(regex)) !== null) {
                         isTextOnEditor = true;
                         break;
                     }

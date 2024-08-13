@@ -35,6 +35,7 @@ import * as errors from "../lib/errors";
 import { Script } from "../lib/WebViews/Script";
 import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
 import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
+import { join } from "path";
 
 describe("OPEN EDITORS", () => {
 
@@ -133,8 +134,24 @@ describe("OPEN EDITORS", () => {
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
         expect((await new Script().toolbar.getCurrentEditor()).icon, `The current editor icon should be 'Mysql'`)
             .to.include(constants.mysqlScriptIcon);
-        const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, "Mysql");
-        await (await openEditorsTreeSection.tree.getActionButton(treeItem, "Close Editor")).click();
+        const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, constants.mysqlType);
+        await (await openEditorsTreeSection.tree.getActionButton(treeItem, constants.closeEditor)).click();
+
+    });
+
+    it("Icon - Load SQL Script from Disk", async () => {
+
+        const sqlScript = "setup.sql";
+        const treeOEGlobalConn = await openEditorsTreeSection.tree.getElement(globalConn.caption);
+        const loadScriptFromDisk = await openEditorsTreeSection.tree.getActionButton(treeOEGlobalConn,
+            constants.loadScriptFromDisk);
+        await driver.executeScript("arguments[0].click()", loadScriptFromDisk);
+        await Workbench.setInputPath(join(process.cwd(), "sql", sqlScript));
+        await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(sqlScript)), constants.wait5seconds);
+        await driver.wait(openEditorsTreeSection.tree.untilExists(sqlScript), constants.wait5seconds);
+        expect((await new Script().codeEditor.existsText("GEOMETRYCOLLECTION"))).to.be.true;
+        const treeItem = await openEditorsTreeSection.tree.getScript(new RegExp(sqlScript), constants.mysqlType);
+        await (await openEditorsTreeSection.tree.getActionButton(treeItem, constants.closeEditor)).click();
 
     });
 
@@ -146,8 +163,8 @@ describe("OPEN EDITORS", () => {
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
         expect((await new Script().toolbar.getCurrentEditor()).icon, `The current editor icon should be 'Mysql'`)
             .to.include(constants.mysqlScriptIcon);
-        const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, "Mysql");
-        await (await openEditorsTreeSection.tree.getActionButton(treeItem, "Close Editor")).click();
+        const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, constants.mysqlType);
+        await (await openEditorsTreeSection.tree.getActionButton(treeItem, constants.closeEditor)).click();
 
     });
 
@@ -158,8 +175,8 @@ describe("OPEN EDITORS", () => {
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
         expect((await new Script().toolbar.getCurrentEditor()).icon, `The current editor icon should be 'scriptJs'`)
             .to.include(constants.jsScriptIcon);
-        const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, "scriptJs");
-        await (await openEditorsTreeSection.tree.getActionButton(treeItem, "Close Editor")).click();
+        const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, constants.jsType);
+        await (await openEditorsTreeSection.tree.getActionButton(treeItem, constants.closeEditor)).click();
 
     });
 
@@ -170,8 +187,8 @@ describe("OPEN EDITORS", () => {
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
         expect((await new Script().toolbar.getCurrentEditor()).icon, `The current editor icon should be 'scriptTs'`)
             .to.include(constants.tsScriptIcon);
-        const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, "scriptTs");
-        await (await openEditorsTreeSection.tree.getActionButton(treeItem, "Close Editor")).click();
+        const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, constants.tsType);
+        await (await openEditorsTreeSection.tree.getActionButton(treeItem, constants.closeEditor)).click();
 
     });
 

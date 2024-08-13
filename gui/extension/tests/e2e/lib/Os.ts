@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { WebElement, Key } from "vscode-extension-tester";
-import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
+import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import clipboard from "clipboardy";
 import { existsSync, readFileSync } from "fs";
 import { spawnSync, execSync } from "child_process";

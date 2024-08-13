@@ -31,7 +31,7 @@ import {
 } from "vscode-extension-tester";
 import fs from "fs/promises";
 import { join } from "path";
-import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
+import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import * as constants from "./constants";
 import * as locator from "./locators";
 import { Os } from "./Os";

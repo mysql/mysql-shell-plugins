@@ -28,7 +28,7 @@ import * as constants from "../../constants";
 import * as interfaces from "../../interfaces";
 import * as locator from "../../locators";
 import { DialogHelper } from "./DialogHelper";
-import { keyboard, Key as nutKey } from "@nut-tree/nut-js";
+import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 
 /**
  * This class holds the functions to interact with the Rest user dialog
