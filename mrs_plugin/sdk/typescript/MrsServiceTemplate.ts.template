@@ -48,6 +48,8 @@ export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
 
 // --- importLoopEnd
 
+${service_level_constants}
+${service_level_type_definitions}
 // --- schemaLoopStart
 /* -----------------------------------------------------------------------------
  * MRS Schema ${schema_request_path}

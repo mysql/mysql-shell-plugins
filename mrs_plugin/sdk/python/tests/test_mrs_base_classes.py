@@ -21,14 +21,15 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from dataclasses import asdict, dataclass
 import json
 import os
 import ssl
+from dataclasses import asdict, dataclass
 from typing import (
     Any,
     Callable,
     Generic,
+    Literal,
     NotRequired,
     Optional,
     TypeAlias,
@@ -36,11 +37,37 @@ from typing import (
     cast,
 )
 from unittest.mock import MagicMock
+from urllib.parse import quote, urlencode
+from urllib.request import HTTPError
 
 import pytest
 
-from python.mrs_base_classes import BoolField, Filterable, HighOrderOperator, IMrsResourceDetails, IntField, MrsBaseObjectCreate, MrsBaseObjectDelete, MrsBaseObjectFunctionCall, MrsBaseObjectQuery, MrsBaseObjectUpdate, MrsJSONDataDecoder, MrsJSONDataEncoder, MrsQueryEncoder, Record, RecordNotFoundError, StringField, UndefinedDataClassField, UndefinedField  # type: ignore
-
+from python.mrs_base_classes import (
+    AuthAppNotFoundError,
+    AuthenticateOptions,
+    BoolField,
+    Filterable,  # type: ignore
+    HighOrderOperator,
+    IMrsResourceDetails,
+    IntField,
+    MrsAuthenticate,
+    MrsBaseObjectCreate,
+    MrsBaseObjectDelete,
+    MrsBaseObjectFunctionCall,
+    MrsBaseObjectQuery,
+    MrsBaseObjectUpdate,
+    MrsBaseSchema,
+    MrsBaseService,
+    MrsJSONDataDecoder,
+    MrsJSONDataEncoder,
+    MrsQueryEncoder,
+    Record,
+    RecordNotFoundError,
+    MrsBaseSession,
+    StringField,
+    UndefinedDataClassField,
+    UndefinedField,
+)
 
 ####################################################################################
 #                               Sample Data
@@ -291,12 +318,31 @@ class MyBirthdayFuncFuncParameters(TypedDict):
     pass
 
 
+IMyServiceAuthApp: TypeAlias = Literal["MRS",]
+
+
 ####################################################################################
 #                               Utilities
 ####################################################################################
 @pytest.fixture
-def service_url():
-    return f"https://localhost:{MRS_SERVICE_PORT}/{MRS_SERVICE_NAME}/{DATABASE}"
+def schema():
+    service_url = f"https://localhost:{MRS_SERVICE_PORT}/{MRS_SERVICE_NAME}"
+    schema_url = f"{service_url}/{DATABASE}"
+
+    return MrsBaseSchema(
+        service=MrsBaseService(service_url=service_url), request_path=schema_url
+    )
+
+
+@pytest.fixture
+def schema_on_service_with_session():
+    service_url = f"https://localhost:{MRS_SERVICE_PORT}/{MRS_SERVICE_NAME}"
+    schema_url = f"{service_url}/{DATABASE}"
+    session: MrsBaseSession = {"access_token": ""}
+    session.update({"access_token": "foo"})
+    service = MrsBaseService(service_url=service_url)
+    service._session = session
+    return MrsBaseSchema(service=service, request_path=schema_url)
 
 
 @pytest.fixture
@@ -310,13 +356,29 @@ def mock_request_class(mocker) -> MagicMock:
 
 
 @pytest.fixture
+def mock_authenticate_nonce(mocker) -> MagicMock:
+    return mocker.patch("python.mrs_base_classes.MrsAuthenticate._nonce")
+
+
+@pytest.fixture
 def urlopen_simulator() -> Callable[[dict], MagicMock]:
     """Construction to mock the method 'urlopen'."""
 
-    def _urlopen_simulator(urlopen_read: dict) -> MagicMock:
+    def _urlopen_simulator(
+        urlopen_read: dict,
+        url: str = "foo",
+        status: int = 200,
+        msg: str = "Error",
+        headers: dict[str, str] = {"header": "value"},
+    ) -> MagicMock:
         """urlopen will return whatever 'urlopen_read' is assigned to"""
         simulator = MagicMock()
         simulator.read.return_value = json.dumps(urlopen_read).encode()
+        simulator.url = url
+        simulator.status = status
+        simulator.msg = msg
+        simulator.headers = headers
+
         return simulator
 
     return _urlopen_simulator
@@ -333,7 +395,7 @@ async def validate_url(
     mock_create_default_context: MagicMock,
     request: MrsBaseObjectQuery | MrsBaseObjectDelete,
     expected_url: str,
-    mock_request_class: Optional[MagicMock] = None,
+    mock_request_class: MagicMock,
 ) -> None:
     """Check final URL is built correctly."""
     # Let urlopen return whatever 'urlopen_read' is assigned to
@@ -347,10 +409,113 @@ async def validate_url(
             await request.fetch()
         )  # returns None because urlopen was mocked to return None
         # check urlopen was called once and the url that was built matches the expected
-        mock_urlopen.assert_called_once_with(expected_url, context=expected_context)
+        # mock_urlopen.assert_called_once_with(ANY, context=expected_context)
+        mock_request_class.assert_called_with(
+            url=expected_url, headers={}, method="GET"
+        )
     else:
         _ = await request.submit()
-        mock_request_class.assert_called_once_with(url=expected_url, method="DELETE")
+        mock_request_class.assert_called_with(
+            url=expected_url, headers={}, method="DELETE"
+        )
+
+
+####################################################################################
+#                      Test "submit" Method (authenticate*'s backbone)
+####################################################################################
+@pytest.mark.parametrize(
+    "options, vendor_id, nonce, challenge, client_proof",
+    [
+        (
+            {
+                "app_name": "MRS",
+                "user": "furbo",
+                "password": "s3cr3t",
+            },
+            "30000000000000000000000000000000",
+            "419eebd0e8722f4c77a9",
+            {
+                "session": "2024-08-22 13:06:45-3",
+                "iterations": 5000,
+                "nonce": "419eebd0e8722f4c77a9JLEwx;*?o9bH",
+                "salt": list(
+                    b"c_\xa5nC\xe9e\x06%.\xce\xe7\xc8\xe1\xdd\x1e\xa8v\xa7\xba"
+                ),
+            },
+            tuple(
+                b"8\x16\xa5\x8d\xf4]\xad\x16\xfb\x9a\xf5I\xa82\xed\x03c\xc0\x8c\xf1\xff\x1e\xd7\x12\xa2\xdf\xee.S(\xa4\xa3"
+            ),
+        ),
+    ],
+)
+async def test_authenticate_submit(
+    mock_urlopen: MagicMock,
+    mock_request_class: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    mock_authenticate_nonce: MagicMock,
+    options: AuthenticateOptions[IMyServiceAuthApp],
+    vendor_id: str,
+    nonce: str,
+    challenge: dict[str, Any],
+    client_proof: bytes,
+    schema: MrsBaseSchema,
+):
+    """Check `MrsAuthenticate.submit()`."""
+    request_path = f"{schema._service._service_url}{schema._service._auth_path}"
+
+    request = MrsAuthenticate[IMyServiceAuthApp](
+        request_path=request_path,
+        vendor_id=vendor_id,
+        **options,
+    )
+
+    # mocking
+    mock_urlopen.return_value = urlopen_simulator(urlopen_read=challenge)
+    mock_create_default_context.return_value = ssl.create_default_context()
+    mock_authenticate_nonce.return_value = nonce
+
+    # do auth
+    _ = await request.submit()
+
+    # check two requests happened
+    assert mock_request_class.call_count == 2
+
+    # check first request
+    query = [("app", cast(str, options["app_name"]))]
+    mock_request_class.assert_any_call(
+        url=f"{request_path}?{urlencode(query)}",
+        data=json.dumps({"user": options["user"], "nonce": nonce}).encode(),
+        method="POST",
+    )
+
+    # check last request
+    query.extend(
+        [
+            ("sessionType", "bearer"),
+            ("session", challenge.get("session", "")),
+        ]
+    )
+    data = json.dumps(
+        {
+            "clientProof": client_proof,
+            "nonce": challenge["nonce"],
+            "state": "response",
+        }
+    ).encode()
+    mock_request_class.assert_called_with(
+        url=f"{request_path}?{urlencode(query, quote_via=quote)}",
+        data=data,
+        method="POST",
+    )
+
+    # check an error is raised when response isn't `OK`
+    mock_urlopen.return_value = urlopen_simulator(
+        urlopen_read={"foo": "bar"}, status=400, msg="Bad response"
+    )
+    with pytest.raises(HTTPError, match="Bad response"):
+        # do auth
+        _ = await request.submit()
 
 
 ####################################################################################
@@ -375,12 +540,16 @@ async def test_create_submit(
     mock_request_class: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     data: dict[str, Any],
     urlopen_read: dict[str, Any],
+    schema: MrsBaseSchema,
+    schema_on_service_with_session: MrsBaseSchema,
 ):
     """Check `MrsBaseObjectCreate.submit()`."""
-    request = MrsBaseObjectCreate[ActorData, ActorDetails](f"{service_url}/actor", data)
+    request_path = f"{schema._request_path}/actor"
+    request = MrsBaseObjectCreate[ActorData, ActorDetails](
+        schema=schema, request_path=request_path, data=data
+    )
 
     mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
     mock_create_default_context.return_value = ssl.create_default_context()
@@ -388,7 +557,8 @@ async def test_create_submit(
     response = await request.submit()
 
     mock_request_class.assert_called_once_with(
-        url=f"{service_url}/actor",
+        url=request_path,
+        headers={},
         data=json.dumps(obj=data, cls=MrsJSONDataEncoder).encode(),
         method="POST",
     )
@@ -402,6 +572,21 @@ async def test_create_submit(
         response["last_name"]
         == MrsJSONDataDecoder.convert_keys(urlopen_read)["last_name"]
     )
+
+    # Check authenticated `MrsBaseObjectCreate.submit()`
+    request = MrsBaseObjectCreate[ActorData, ActorDetails](
+        schema=schema_on_service_with_session, request_path=request_path, data=data
+    )
+
+    _ = await request.submit()
+
+    mock_request_class.assert_called_with(
+        url=request_path,
+        headers={"Authorization": "Bearer foo"},
+        data=json.dumps(obj=data, cls=MrsJSONDataEncoder).encode(),
+        method="POST",
+    )
+    assert mock_urlopen.call_count == 2
 
 
 ####################################################################################
@@ -442,16 +627,17 @@ async def test_update_submit(
     mock_request_class: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     data: Actor,
     urlopen_read: dict[str, Any],
+    schema: MrsBaseSchema,
+    schema_on_service_with_session: MrsBaseSchema,
 ):
     """Check `MrsBaseObjectUpdate.submit()`."""
     prk = cast(str, data.get_primary_key_name())
-
     record_id = getattr(data, prk)
+    request_path = f"{schema._request_path}/actor/{record_id}"
     request = MrsBaseObjectUpdate[Actor, ActorDetails](
-        f"{service_url}/actor/{record_id}", data
+        schema=schema, request_path=request_path, data=data
     )
 
     mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
@@ -460,7 +646,7 @@ async def test_update_submit(
     response = await request.submit()
 
     mock_request_class.assert_called_once_with(
-        url=f"{service_url}/actor/{record_id}",
+        url=request_path,
         headers={"If-Match": data.__dict__["_metadata"]["etag"]},
         data=json.dumps(obj=asdict(data), cls=MrsJSONDataEncoder).encode(),
         method="PUT",
@@ -475,6 +661,26 @@ async def test_update_submit(
         response["last_name"]
         == MrsJSONDataDecoder.convert_keys(urlopen_read)["last_name"]
     )
+
+    # Check authenticated `MrsBaseObjectUpdate.submit()`
+    request = MrsBaseObjectUpdate[Actor, ActorDetails](
+        schema=schema_on_service_with_session,
+        request_path=request_path,
+        data=data,
+    )
+
+    _ = await request.submit()
+
+    mock_request_class.assert_called_with(
+        url=request_path,
+        headers={
+            "If-Match": data.__dict__["_metadata"]["etag"],
+            "Authorization": "Bearer foo",
+        },
+        data=json.dumps(obj=asdict(data), cls=MrsJSONDataEncoder).encode(),
+        method="PUT",
+    )
+    assert mock_urlopen.call_count == 2
 
 
 ####################################################################################
@@ -505,18 +711,22 @@ async def test_update_submit(
 )
 async def test_function_call_submit(
     mock_urlopen: MagicMock,
-    mock_request_class: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     func_name: str,
     parameters: dict,
     urlopen_read: dict,
     func_params_type: TypeAlias,
+    mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
+    schema_on_service_with_session: MrsBaseSchema,
 ):
     """Check `MrsBaseObjectFunctionCall.submit()`."""
+    request_path = f"{schema._request_path}/{func_name}"
     request = MrsBaseObjectFunctionCall[func_params_type, type(urlopen_read)](
-        f"{service_url}/{func_name}", cast(func_params_type, parameters)
+        schema=schema,
+        request_path=request_path,
+        parameters=cast(func_params_type, parameters),
     )
 
     mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
@@ -525,11 +735,29 @@ async def test_function_call_submit(
     assert await request.submit() == urlopen_read["result"]
 
     mock_request_class.assert_called_once_with(
-        url=f"{service_url}/{func_name}",
+        url=request_path,
+        headers={},
         data=json.dumps(obj=parameters, cls=MrsJSONDataEncoder).encode(),
         method="PUT",
     )
     mock_urlopen.assert_called_once()
+
+    # Check authenticated `MrsBaseObjectFunctionCall.submit()`
+    request = MrsBaseObjectFunctionCall[func_params_type, type(urlopen_read)](
+        schema=schema_on_service_with_session,
+        request_path=request_path,
+        parameters=cast(func_params_type, parameters),
+    )
+
+    _ = await request.submit()
+
+    mock_request_class.assert_called_with(
+        url=request_path,
+        headers={"Authorization": "Bearer foo"},
+        data=json.dumps(obj=parameters, cls=MrsJSONDataEncoder).encode(),
+        method="PUT",
+    )
+    assert mock_urlopen.call_count == 2
 
 
 ####################################################################################
@@ -542,18 +770,22 @@ async def test_select_with_list_for_inclusion(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
+    mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
 ):
     """Specifying `select` as a list. Checking `include` mechanism."""
+    request_path = f"{schema._request_path}/dbobject"
+
     await validate_url(
         mock_urlopen=mock_urlopen,
         urlopen_simulator=urlopen_simulator,
         mock_create_default_context=mock_create_default_context,
         request=MrsBaseObjectQuery[Obj1Data, Obj1Details](
-            f"{service_url}/dbobject", options=query
+            schema=schema, request_path=request_path, options=query
         ),
-        expected_url=f"{service_url}/dbobject?f=aStr%2CaListOfTypes.aType.aStr",
+        expected_url=f"{request_path}?f=aStr%2CaListOfTypes.aType.aStr",
+        mock_request_class=mock_request_class,
     )
 
 
@@ -564,18 +796,22 @@ async def test_select_with_mapper_for_inclusion(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
+    mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
 ):
     """Specifying `select` as a dictionary. Checking `include` mechanism."""
+    request_path = f"{schema._request_path}/dbobject"
+
     await validate_url(
         mock_urlopen=mock_urlopen,
         urlopen_simulator=urlopen_simulator,
         mock_create_default_context=mock_create_default_context,
         request=MrsBaseObjectQuery[Obj1Data, Obj1Details](
-            f"{service_url}/dbobject", options=query
+            schema=schema, request_path=request_path, options=query
         ),
-        expected_url=f"{service_url}/dbobject?f=aStr%2CaListOfTypes.aType.aStr",
+        expected_url=f"{request_path}?f=aStr%2CaListOfTypes.aType.aStr",
+        mock_request_class=mock_request_class,
     )
 
 
@@ -586,18 +822,22 @@ async def test_select_with_mapper_for_exclusion(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
+    mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
 ):
     """Specifying `select` as a dictionary. Checking `exclude` mechanism."""
+    request_path = f"{schema._request_path}/dbobject"
+
     await validate_url(
         mock_urlopen=mock_urlopen,
         urlopen_simulator=urlopen_simulator,
         mock_create_default_context=mock_create_default_context,
         request=MrsBaseObjectQuery[Obj1Data, Obj1Details](
-            f"{service_url}/dbobject", options=query
+            schema=schema, request_path=request_path, options=query
         ),
-        expected_url=f"{service_url}/dbobject?f=%21aStr%2C%21aListOfTypes.aType.aStr",
+        expected_url=f"{request_path}?f=%21aStr%2C%21aListOfTypes.aType.aStr",
+        mock_request_class=mock_request_class,
     )
 
 
@@ -612,19 +852,21 @@ async def test_where_field_is_equal_with_implicit_filter(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
     mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
 ):
     """Specifying `where`. Checking implicit filter."""
+    request_path = f"{schema._request_path}/dbobject"
+
     for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
         if cls_ == MrsBaseObjectQuery:
             request = cls_[Obj1Data, Obj1Details](
-                f"{service_url}/dbobject", options=query
+                schema=schema, request_path=request_path, options=query
             )
         else:
             request = cls_[Obj1Filterable](
-                f"{service_url}/dbobject", where=query.get("where")
+                schema=schema, request_path=request_path, where=query.get("where")
             )
 
         await validate_url(
@@ -632,7 +874,7 @@ async def test_where_field_is_equal_with_implicit_filter(
             urlopen_simulator=urlopen_simulator,
             mock_create_default_context=mock_create_default_context,
             request=request,
-            expected_url=f"{service_url}/dbobject?q=%7B%22anInt%22%3A10%7D",
+            expected_url=f"{request_path}?q=%7B%22anInt%22%3A10%7D",
             mock_request_class=mock_request_class,
         )
 
@@ -645,19 +887,25 @@ async def test_where_field_is_equal_with_explicit_filter(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
     mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
 ):
     """Specifying `where`. Checking explicit filter."""
+    request_path = f"{schema._request_path}/dbobject"
+
     for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
         if cls_ == MrsBaseObjectQuery:
             request = cls_[Obj1Data, Obj1Details](
-                f"{service_url}/dbobject", options=query
+                schema=schema,
+                request_path=request_path,
+                options=query,
             )
         else:
             request = cls_[Obj1Filterable](
-                f"{service_url}/dbobject", where=query.get("where")
+                schema=schema,
+                request_path=request_path,
+                where=query.get("where"),
             )
 
         await validate_url(
@@ -665,7 +913,7 @@ async def test_where_field_is_equal_with_explicit_filter(
             urlopen_simulator=urlopen_simulator,
             mock_create_default_context=mock_create_default_context,
             request=request,
-            expected_url=f"{service_url}/dbobject?q=%7B%22anInt%22%3A%7B%22%24eq%22%3A10%7D%7D",
+            expected_url=f"{request_path}?q=%7B%22anInt%22%3A%7B%22%24eq%22%3A10%7D%7D",
             mock_request_class=mock_request_class,
         )
 
@@ -678,19 +926,21 @@ async def test_where_field_is_null(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
     mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
 ):
     """Specifying `where`. Checking filter where field is NULL."""
+    request_path = f"{schema._request_path}/dbobject"
+
     for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
         if cls_ == MrsBaseObjectQuery:
             request = cls_[Obj1Data, Obj1Details](
-                f"{service_url}/dbobject", options=query
+                schema=schema, request_path=request_path, options=query
             )
         else:
             request = cls_[Obj1Filterable](
-                f"{service_url}/dbobject", where=query.get("where")
+                schema=schema, request_path=request_path, where=query.get("where")
             )
 
         await validate_url(
@@ -698,7 +948,7 @@ async def test_where_field_is_null(
             urlopen_simulator=urlopen_simulator,
             mock_create_default_context=mock_create_default_context,
             request=request,
-            expected_url=f"{service_url}/dbobject?q=%7B%22aStr%22%3A%7B%22%24null%22%3Anull%7D%7D",
+            expected_url=f"{request_path}?q=%7B%22aStr%22%3A%7B%22%24null%22%3Anull%7D%7D",
             mock_request_class=mock_request_class,
         )
 
@@ -711,19 +961,21 @@ async def test_where_field_is_not_null(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
     mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
 ):
     """Specifying `where`. Checking filter where field isn't NULL."""
+    request_path = f"{schema._request_path}/dbobject"
+
     for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
         if cls_ == MrsBaseObjectQuery:
             request = cls_[Obj1Data, Obj1Details](
-                f"{service_url}/dbobject", options=query
+                schema=schema, request_path=request_path, options=query
             )
         else:
             request = cls_[Obj1Filterable](
-                f"{service_url}/dbobject", where=query.get("where")
+                schema=schema, request_path=request_path, where=query.get("where")
             )
 
         await validate_url(
@@ -731,7 +983,7 @@ async def test_where_field_is_not_null(
             urlopen_simulator=urlopen_simulator,
             mock_create_default_context=mock_create_default_context,
             request=request,
-            expected_url=f"{service_url}/dbobject?q=%7B%22aStr%22%3A%7B%22%24notnull%22%3Anull%7D%7D",
+            expected_url=f"{request_path}?q=%7B%22aStr%22%3A%7B%22%24notnull%22%3Anull%7D%7D",
             mock_request_class=mock_request_class,
         )
 
@@ -747,18 +999,22 @@ async def test_skip(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
+    mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
 ):
     """Specifying `skip`. It represents the `offset`."""
+    request_path = f"{schema._request_path}/dbobject"
+
     await validate_url(
         mock_urlopen=mock_urlopen,
         urlopen_simulator=urlopen_simulator,
         mock_create_default_context=mock_create_default_context,
         request=MrsBaseObjectQuery[Obj1Data, Obj1Details](
-            f"{service_url}/dbobject", options=query
+            schema=schema, request_path=request_path, options=query
         ),
-        expected_url=f"{service_url}/dbobject?offset=7",
+        expected_url=f"{request_path}?offset=7",
+        mock_request_class=mock_request_class,
     )
 
 
@@ -773,18 +1029,22 @@ async def test_cursor(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
+    mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
 ):
     """Check cursor-based pagination."""
+    request_path = f"{schema._request_path}/actor"
+
     await validate_url(
         mock_urlopen=mock_urlopen,
         urlopen_simulator=urlopen_simulator,
         mock_create_default_context=mock_create_default_context,
         request=MrsBaseObjectQuery[ActorData, ActorDetails](
-            f"{service_url}/actor", options=query
+            schema=schema, request_path=request_path, options=query
         ),
-        expected_url=f"{service_url}/actor?q=%7B%22actorId%22%3A%7B%22%24gt%22%3A13%7D%7D",
+        expected_url=f"{request_path}?q=%7B%22actorId%22%3A%7B%22%24gt%22%3A13%7D%7D",
+        mock_request_class=mock_request_class,
     )
 
 
@@ -799,18 +1059,22 @@ async def test_take(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
+    mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
 ):
     """Specifying `take`. It represents the `limit`."""
+    request_path = f"{schema._request_path}/dbobject"
+
     await validate_url(
         mock_urlopen=mock_urlopen,
         urlopen_simulator=urlopen_simulator,
         mock_create_default_context=mock_create_default_context,
         request=MrsBaseObjectQuery[Obj1Data, Obj1Details](
-            f"{service_url}/dbobject", options=query
+            schema=schema, request_path=request_path, options=query
         ),
-        expected_url=f"{service_url}/dbobject?limit=3",
+        expected_url=f"{request_path}?limit=3",
+        mock_request_class=mock_request_class,
     )
 
 
@@ -825,18 +1089,22 @@ async def test_order_by_asc_without_filter(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
+    mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
 ):
     """Check `order_by` option."""
+    request_path = f"{schema._request_path}/actor"
+
     await validate_url(
         mock_urlopen=mock_urlopen,
         urlopen_simulator=urlopen_simulator,
         mock_create_default_context=mock_create_default_context,
         request=MrsBaseObjectQuery[ActorData, ActorDetails](
-            f"{service_url}/actor", options=query
+            schema=schema, request_path=request_path, options=query
         ),
-        expected_url=f"{service_url}/actor?q=%7B%22%24orderby%22%3A%7B%22firstName%22%3A%22ASC%22%7D%7D",
+        expected_url=f"{request_path}?q=%7B%22%24orderby%22%3A%7B%22firstName%22%3A%22ASC%22%7D%7D",
+        mock_request_class=mock_request_class,
     )
 
 
@@ -848,18 +1116,22 @@ async def test_order_by_asc_with_filter(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
+    mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
 ):
     """Check `order_by` and `where` options."""
+    request_path = f"{schema._request_path}/actor"
+
     await validate_url(
         mock_urlopen=mock_urlopen,
         urlopen_simulator=urlopen_simulator,
         mock_create_default_context=mock_create_default_context,
         request=MrsBaseObjectQuery[ActorData, ActorDetails](
-            f"{service_url}/actor", options=query
+            schema=schema, request_path=request_path, options=query
         ),
-        expected_url=f"{service_url}/actor?q=%7B%22actorId%22%3A10%2C%22%24orderby%22%3A%7B%22firstName%22%3A%22ASC%22%7D%7D",
+        expected_url=f"{request_path}?q=%7B%22actorId%22%3A10%2C%22%24orderby%22%3A%7B%22firstName%22%3A%22ASC%22%7D%7D",
+        mock_request_class=mock_request_class,
     )
 
 
@@ -871,18 +1143,22 @@ async def test_order_by_desc_with_filter(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
+    mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
 ):
     """Check `order_by` and `where` options."""
+    request_path = f"{schema._request_path}/actor"
+
     await validate_url(
         mock_urlopen=mock_urlopen,
         urlopen_simulator=urlopen_simulator,
         mock_create_default_context=mock_create_default_context,
         request=MrsBaseObjectQuery[ActorData, ActorDetails](
-            f"{service_url}/actor", options=query
+            schema=schema, request_path=request_path, options=query
         ),
-        expected_url=f"{service_url}/actor?q=%7B%22actorId%22%3A10%2C%22%24orderby%22%3A%7B%22firstName%22%3A%22DESC%22%7D%7D",
+        expected_url=f"{request_path}?q=%7B%22actorId%22%3A10%2C%22%24orderby%22%3A%7B%22firstName%22%3A%22DESC%22%7D%7D",
+        mock_request_class=mock_request_class,
     )
 
 
@@ -894,13 +1170,14 @@ async def test_fetch(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
     urlopen_read: dict[str, Any],
+    schema: MrsBaseSchema,
 ):
     """Check `MrsBaseObjectQuery.fetch()`."""
+    request_path = f"{schema._request_path}/actor"
     request = MrsBaseObjectQuery[ActorData, ActorDetails](
-        f"{service_url}/actor", options=query
+        schema=schema, request_path=request_path, options=query
     )
     mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
     mock_create_default_context.return_value = ssl.create_default_context()
@@ -915,13 +1192,14 @@ async def test_fetch_one(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
     urlopen_read: dict[str, Any],
+    schema: MrsBaseSchema,
 ):
     """Check `MrsBaseObjectQuery.fetch_one()`."""
+    request_path = f"{schema._request_path}/actor"
     request = MrsBaseObjectQuery[ActorData, ActorDetails](
-        f"{service_url}/actor", options=query
+        schema=schema, request_path=request_path, options=query
     )
     mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
     mock_create_default_context.return_value = ssl.create_default_context()
@@ -940,13 +1218,14 @@ async def test_fetch_all(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    service_url: str,
     query: dict[str, Any],
     urlopen_read: dict[str, Any],
+    schema: MrsBaseSchema,
 ):
     """Check `MrsBaseObjectQuery.fetch_all()`."""
+    request_path = f"{schema._request_path}/actor"
     request = MrsBaseObjectQuery[ActorData, ActorDetails](
-        f"{service_url}/actor", options=query
+        schema=schema, request_path=request_path, options=query
     )
     mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
     mock_create_default_context.return_value = ssl.create_default_context()
@@ -1119,16 +1398,14 @@ def test_decode_data(data: dict[str, Any], converted_data: dict[str, Any]):
     ],
 )
 async def test_query_encoder(
-    mock_urlopen: MagicMock,
-    urlopen_simulator: MagicMock,
-    mock_create_default_context: MagicMock,
-    service_url: str,
     sample_filter: dict[str, Any],
     expected_payload: str,
+    schema: MrsBaseSchema,
 ):
     """Check the custom query encoder parses and serializes the query filter ('where') correctly."""
+    request_path = f"{schema._request_path}/actor"
     request = MrsBaseObjectQuery[ActorData, ActorDetails](
-        f"{service_url}/actor", options=sample_filter
+        schema=schema, request_path=request_path, options=sample_filter
     )
 
     assert (
@@ -1160,3 +1437,12 @@ def test_record_not_found_exception():
         match=RecordNotFoundError._default_msg,
     ):
         raise RecordNotFoundError
+
+
+def test_auth_app_not_found_exception():
+    """Check custom message is shown when raising `AuthAppNotFoundError"""
+    with pytest.raises(
+        AuthAppNotFoundError,
+        match=AuthAppNotFoundError._default_msg,
+    ):
+        raise AuthAppNotFoundError

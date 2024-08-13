@@ -25,7 +25,11 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import hashlib
+import hmac
 import json
+import random
 import re
 import ssl
 from abc import ABC, abstractmethod
@@ -39,6 +43,7 @@ from typing import (
     Generic,
     Literal,
     Mapping,
+    NotRequired,
     Optional,
     Required,
     Sequence,
@@ -48,8 +53,8 @@ from typing import (
     Union,
     cast,
 )
-from urllib.parse import urlencode
-from urllib.request import urlopen, Request
+from urllib.parse import urlencode, quote
+from urllib.request import HTTPError, Request, urlopen
 
 
 ####################################################################################
@@ -94,7 +99,7 @@ class Record(ABC):
             super().__delattr__(name)
 
     @abstractmethod
-    def __init__(self, data: Any) -> None:
+    def __init__(self, schema: "MrsBaseSchema", data: Any) -> None:
         """Constructor."""
 
     def __dir__(self) -> Iterable[str]:
@@ -132,17 +137,25 @@ class UndefinedDataClassField:
 class MrsError(Exception):
     """Base class for `MySQL Rest Service` errors."""
 
-
-class RecordNotFoundError(MrsError):
-    """Raised when a record doesn't exist in the database."""
-
-    _default_msg = "No record exists matching the query options"
+    _default_msg = "MRS Error"
 
     def __init__(self, *args: object, msg: Optional[str] = None) -> None:
         """Constructor."""
         if msg is None:
             msg = self._default_msg
         super().__init__(msg, *args)
+
+
+class RecordNotFoundError(MrsError):
+    """Raised when a record doesn't exist in the database."""
+
+    _default_msg = "No record exists matching the query options"
+
+
+class AuthAppNotFoundError(MrsError):
+    """Raised when there are no auth apps for a given service."""
+
+    _default_msg = "No auth apps are registered for the service"
 
 
 ####################################################################################
@@ -179,6 +192,8 @@ Order: TypeAlias = Literal["ASC", "DESC"]
 
 FuncParameters = TypeVar("FuncParameters", bound=Mapping)
 FuncResult = TypeVar("FuncResult", bound=str | int | float | bool)
+
+AuthAppName = TypeVar("AuthAppName", bound=Optional[str])
 
 
 class MrsResourceLink(TypedDict):
@@ -222,6 +237,27 @@ class IMrsFunctionResponse(Generic[FuncResult], TypedDict):
     "Response got by invoking/calling a MySQL function."
 
     result: FuncResult
+
+
+class AuthenticateOptions(Generic[AuthAppName], TypedDict):
+    app_name: AuthAppName
+    user: str
+    password: NotRequired[str]
+
+
+class MrsBaseSession(TypedDict):
+    access_token: str
+
+
+class IMrsAuthenticationAccessTokenResponse(TypedDict):
+    access_token: str
+
+
+class IMrsAuthenticationStartResponse(TypedDict):
+    nonce: str
+    iterations: int
+    salt: list[int] | bytes
+    session: NotRequired[str]
 
 
 class EqOperator(Generic[EqOperand], TypedDict):
@@ -630,8 +666,7 @@ class MrsQueryEncoder(json.JSONEncoder):
 ####################################################################################
 #                               Core Implementation
 ####################################################################################
-class MrsBaseSession:
-    """Base class for MRS-related session instances."""
+# pylint: disable=protected-access,too-many-lines
 
 
 class MrsBaseService:
@@ -639,33 +674,47 @@ class MrsBaseService:
 
     def __init__(self, service_url: str, auth_path: Optional[str] = None) -> None:
         """Constructor."""
-        self.service_url = service_url
-        self.auth_path = auth_path
-        self.session = MrsBaseSession()
+        self._service_url: str = service_url
+        self._auth_path: Optional[str] = auth_path
+        self._session: MrsBaseSession = {"access_token": ""}
 
 
 class MrsBaseSchema:
     """Base class for MRS-related schema (database) instances."""
 
-    def __init__(self, request_path: str) -> None:
+    def __init__(self, service: MrsBaseService, request_path: str) -> None:
         """Constructor."""
-        self._request_path = request_path
+        self._service: MrsBaseService = service
+        self._request_path: str = request_path
+
+
+class MrsBaseObject:
+    """Base class for MRS-related database object instances."""
+
+    def __init__(self, schema: MrsBaseSchema, request_path: str) -> None:
+        self._schema: MrsBaseSchema = schema
+        self._request_path: str = request_path
+        self._has_more: bool = True
 
 
 class MrsBaseObjectFunctionCall(Generic[FuncParameters, FuncResult]):
     """Implements the core logic utilized by the `__call__*` implemented
     by MySQL function objects."""
 
-    def __init__(self, request_path: str, parameters: FuncParameters) -> None:
+    def __init__(
+        self, schema: MrsBaseSchema, request_path: str, parameters: FuncParameters
+    ) -> None:
         """Constructor.
 
         During this stage, query options are save in the inner
         state of this instance.
 
         Args:
+            schema: instance of the corresponding MRS schema
             request_path: the base endpoint to the resource (function).
             parameters: dictionary representing function's parameters.
         """
+        self._schema: MrsBaseSchema = schema
         self._request_path: str = request_path
         self._params: FuncParameters = parameters
 
@@ -677,13 +726,19 @@ class MrsBaseObjectFunctionCall(Generic[FuncParameters, FuncResult]):
             A value which type complies with the corresponding MySQL
             function declaration.
         """
-        context = ssl.create_default_context()
+        headers = {}
+        access_token = self._schema._service._session.get("access_token")
+
+        if access_token:
+            headers = {"Authorization": f"Bearer {access_token}"}
 
         req = Request(
             url=self._request_path,
+            headers=headers,
             data=json.dumps(obj=self._params, cls=MrsJSONDataEncoder).encode(),
             method="PUT",
         )
+        context = ssl.create_default_context()
         data = await asyncio.to_thread(urlopen, req, context=context)
 
         response = cast(
@@ -715,6 +770,7 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
 
     def __init__(
         self,
+        schema: MrsBaseSchema,
         request_path: str,
         options: Optional[Union[FindManyOptions, FindFirstOptions, FindUniqueOptions]],
     ) -> None:
@@ -724,10 +780,12 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
         of this instance.
 
         Args:
+            schema: instance of the corresponding MRS schema
             request_path: the base endpoint to the resource (database table).
             options: See FindManyOptions, FindFirstOptions and FindUniqueOptions
                     to know more about the options.
         """
+        self._schema: MrsBaseSchema = schema
         self.request_path: str = request_path
         self.where: Optional[dict] = None
         self.exclude: list[str] = []
@@ -816,12 +874,21 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
 
         querystring = urlencode(query)
         url = f"{self.request_path}?{querystring}"
+        headers = {}
+        access_token = self._schema._service._session.get("access_token")
 
+        if access_token:
+            headers = {"Authorization": f"Bearer {access_token}"}
+
+        req = Request(
+            url=url,
+            headers=headers,
+            method="GET",
+        )
         context = ssl.create_default_context()
+        response = await asyncio.to_thread(urlopen, req, context=context)
 
-        data = await asyncio.to_thread(urlopen, url, context=context)
-
-        return json.loads(data.read(), object_hook=MrsJSONDataDecoder.convert_keys)
+        return json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys)
 
     async def fetch_all(
         self, progress: Optional[ProgressCallback] = None
@@ -910,13 +977,14 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
 class MrsBaseObjectCreate(Generic[Data, DataDetails]):
     """Implements the core logic utilized by the `create*` commands."""
 
-    def __init__(self, request_path: str, data: Data) -> None:
+    def __init__(self, schema: MrsBaseSchema, request_path: str, data: Data) -> None:
         """Constructor.
 
         Args:
             request_path: the base endpoint to the resource (database table).
             data: record to be created.
         """
+        self._schema: MrsBaseSchema = schema
         self._request_path: str = request_path
         self._data: Data = data
 
@@ -940,13 +1008,19 @@ class MrsBaseObjectCreate(Generic[Data, DataDetails]):
                 last_update: str
             ```
         """
-        context = ssl.create_default_context()
+        headers = {}
+        access_token = self._schema._service._session.get("access_token")
+
+        if access_token:
+            headers.update({"Authorization": f"Bearer {access_token}"})
 
         req = Request(
             url=self._request_path,
+            headers=headers,
             data=json.dumps(obj=self._data, cls=MrsJSONDataEncoder).encode(),
             method="POST",
         )
+        context = ssl.create_default_context()
         response = await asyncio.to_thread(urlopen, req, context=context)
 
         return cast(
@@ -958,13 +1032,17 @@ class MrsBaseObjectCreate(Generic[Data, DataDetails]):
 class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
     """Implements the core logic utilized by the `update*` commands."""
 
-    def __init__(self, request_path: str, data: DataClass) -> None:
+    def __init__(
+        self, schema: MrsBaseSchema, request_path: str, data: DataClass
+    ) -> None:
         """Constructor.
 
         Args:
+            schema: instance of the corresponding MRS schema
             request_path: the base endpoint to the resource (database table).
             data: record's information to be updated.
         """
+        self._schema: MrsBaseSchema = schema
         self._request_path: str = request_path
         self._data: DataClass = data
 
@@ -988,19 +1066,24 @@ class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
                 last_update: str
             ```
         """
-        context = ssl.create_default_context()
-
         try:
             etag = self._data.__dict__["_metadata"]["etag"]
         except TypeError:
             etag = ""
 
+        headers = {"If-Match": etag}
+        access_token = self._schema._service._session.get("access_token")
+
+        if access_token:
+            headers.update({"Authorization": f"Bearer {access_token}"})
+
         req = Request(
             url=self._request_path,
-            headers={"If-Match": etag},
+            headers=headers,
             data=json.dumps(obj=asdict(self._data), cls=MrsJSONDataEncoder).encode(),
             method="PUT",
         )
+        context = ssl.create_default_context()
         response = await asyncio.to_thread(urlopen, req, context=context)
 
         return cast(
@@ -1012,17 +1095,21 @@ class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
 class MrsBaseObjectDelete(Generic[Filterable]):
     """Implements the core logic utilized by the `delete*` commands."""
 
-    def __init__(self, request_path: str, where: Filterable) -> None:
+    def __init__(
+        self, schema: MrsBaseSchema, request_path: str, where: Filterable
+    ) -> None:
         """Constructor.
 
         During this stage, query options are parsed and save in the inner state
         of this instance.
 
         Args:
+            schema: instance of the corresponding MRS schema
             request_path: the base endpoint to the resource (database table).
             options: See FindManyOptions, FindFirstOptions and FindUniqueOptions
                     to know more about the options.
         """
+        self._schema: MrsBaseSchema = schema
         self._request_path: str = request_path
         self._where: dict = cast(dict, where)
 
@@ -1048,12 +1135,142 @@ class MrsBaseObjectDelete(Generic[Filterable]):
         else:
             url = self._request_path
 
-        context = ssl.create_default_context()
+        headers = {}
+        access_token = self._schema._service._session.get("access_token")
+
+        if access_token:
+            headers = {"Authorization": f"Bearer {access_token}"}
 
         req = Request(
             url=url,
+            headers=headers,
             method="DELETE",
         )
+        context = ssl.create_default_context()
         response = await asyncio.to_thread(urlopen, req, context=context)
 
         return json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys)
+
+
+class MrsAuthenticate(Generic[AuthAppName]):
+    def __init__(
+        self,
+        request_path: str,
+        vendor_id: str,
+        app_name: AuthAppName,
+        user: str,
+        password: str = "",
+    ) -> None:
+        self._request_path: str = request_path
+        self._vendor_id: str = vendor_id
+        self._app_name: AuthAppName = app_name
+        self._user: str = user
+        self._password: str = password
+
+    @staticmethod
+    def _hmac_sign(secret: bytes, data: bytes) -> bytes:
+        return hmac.HMAC(key=secret, msg=data, digestmod=hashlib.sha256).digest()
+
+    @staticmethod
+    def _xor(key: bytes, data: bytes) -> Sequence[int]:
+        buffer = list(data if len(data) >= len(key) else key)
+        for i in range(min(len(data), len(key))):
+            buffer[i] = key[i] ^ data[i]
+        return tuple(buffer)
+
+    @staticmethod
+    def _compute_client_proof(
+        password: str, salt: bytes, iterations: int, auth_message: str
+    ) -> Sequence[int]:
+        salted_password = hashlib.pbkdf2_hmac(
+            "sha256", password.encode(), salt, iterations
+        )
+
+        client_key = MrsAuthenticate._hmac_sign(salted_password, b"Client Key")
+        stored_key = hashlib.sha256(client_key, usedforsecurity=True).digest()
+        client_signature = MrsAuthenticate._hmac_sign(
+            stored_key, auth_message.encode("utf-8")
+        )
+
+        return MrsAuthenticate._xor(client_signature, client_key)  # client_proof
+
+    @staticmethod
+    def _nonce() -> str:
+        return "".join(["%02x" % random.randint(0, 255) for i in range(10)])
+
+    async def submit(self) -> IMrsAuthenticationAccessTokenResponse:
+        nonce = MrsAuthenticate._nonce()
+        ssl_context = ssl.create_default_context()
+        query = [("app", cast(str, self._app_name))]
+
+        req = Request(
+            url=f"{self._request_path}?{urlencode(query)}",
+            data=json.dumps({"user": self._user, "nonce": nonce}).encode(),
+            method="POST",
+        )
+
+        response = await asyncio.to_thread(urlopen, req, context=ssl_context)
+
+        if response.status != 200:
+            raise HTTPError(
+                url=response.url,
+                code=response.status,
+                msg=response.msg,
+                hdrs=response.headers,
+                fp=None,
+            )
+
+        # `salt` is delivered as a `list[int]`; converting to `bytes`.
+        challenge: IMrsAuthenticationStartResponse = json.loads(response.read())
+        challenge["salt"] = bytes(challenge["salt"])
+
+        client_first, client_final = (
+            f"n={self._user},r={nonce}",
+            f"r={challenge['nonce']}",
+        )
+        server_first = (
+            f"r={challenge['nonce']},"
+            f"s={base64.b64encode(cast(bytes, challenge["salt"])).decode('utf-8')},"
+            f"i={challenge['iterations']}"
+        )
+
+        client_proof = MrsAuthenticate._compute_client_proof(
+            password=self._password,
+            salt=bytes(challenge["salt"]),
+            iterations=challenge["iterations"],
+            auth_message=f"{client_first},{server_first},{client_final}",
+        )
+
+        query.extend(
+            [("sessionType", "bearer"), ("session", challenge.get("session", ""))]
+        )
+
+        data = json.dumps(
+            {
+                "clientProof": client_proof,
+                "nonce": challenge["nonce"],
+                "state": "response",
+            }
+        ).encode()
+
+        req = Request(
+            url=f"{self._request_path}?{urlencode(query, quote_via=quote)}",
+            data=data,
+            method="POST",
+        )
+
+        response = await asyncio.to_thread(urlopen, req, context=ssl_context)
+
+        if response.status != 200:
+            raise HTTPError(
+                url=response.url,
+                code=response.status,
+                msg=response.msg,
+                hdrs=response.headers,
+                fp=None,
+            )
+
+        return cast(
+            IMrsAuthenticationAccessTokenResponse,
+            json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys),
+        )
