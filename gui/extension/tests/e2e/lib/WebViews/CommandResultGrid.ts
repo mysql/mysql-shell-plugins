@@ -105,12 +105,14 @@ export class CommandResultGrid {
                     isDate = true;
                     await driver.executeScript("arguments[0].value=arguments[1]", input, cellRef.value as string);
                 }
+
+                await this.result.context
+                    .findElement(locator.notebook.codeEditor.editor.result.toolbar.exists).click();
             } else {
                 await this.setCellBooleanValue(cellRef.rowNumber, cellRef.columnName,
                     cellRef.value as boolean);
             }
 
-            await this.result.toolbar.element.click();
             await this.result.loadResult();
 
             if (isDate) {
@@ -237,11 +239,12 @@ export class CommandResultGrid {
                     isDate = true;
                     await driver.executeScript("arguments[0].value=arguments[1]", input, cell.value as string);
                 }
+
+                await this.result.context
+                    .findElement(locator.notebook.codeEditor.editor.result.toolbar.exists).click();
             } else {
                 await this.setCellBooleanValue(-1, cell.columnName, cell.value as boolean);
             }
-
-            await this.result.toolbar.element.click();
 
             if (isDate) {
                 await driver.wait(async () => {
@@ -389,7 +392,8 @@ export class CommandResultGrid {
         const cellContextMenu = locator.notebook.codeEditor.editor.result.grid.row.cell.contextMenu;
         await driver.wait(async () => {
             try {
-                await this.result.toolbar.element.click(); // Remove context menu if exists
+                await driver.findElement(locator.notebook.codeEditor.textArea)
+                    .sendKeys(Key.ESCAPE); // Remove context menu if exists
                 const cell = await this.getCell(gridRow, columnName);
                 await driver
                     // eslint-disable-next-line max-len

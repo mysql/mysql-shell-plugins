@@ -178,8 +178,6 @@ export class E2ECodeEditor {
                 }
             }
         }, constants.wait5seconds, "Editor was not cleaned");
-
-        //this.reset();
     };
 
     /**
@@ -550,7 +548,7 @@ export class E2ECodeEditor {
                 const lastLineNumber = await getLastLineNumber();
                 const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
                 await textArea.sendKeys(Key.RETURN);
-                await driver.sleep(500);
+                await driver.sleep(200);
 
                 return driver.wait(async () => {
                     return (await getLastLineNumber()) > lastLineNumber;

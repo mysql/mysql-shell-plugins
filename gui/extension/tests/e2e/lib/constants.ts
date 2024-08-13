@@ -192,6 +192,10 @@ export const resultGridContextMenu = {
 export const modelLlama2 = "Llama2";
 export const modelMistral = "Mistral";
 
+// RESULT GRID VIEW
+export const gridView = "grid";
+export const previewView = "preview";
+
 // CELL ICONS
 export const blob = "blob";
 export const geometry = "geometry";

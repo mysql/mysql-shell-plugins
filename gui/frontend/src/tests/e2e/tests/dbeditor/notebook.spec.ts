@@ -80,6 +80,7 @@ describe("Notebook", () => {
             await driver.executeScript("arguments[0].click();",
                 await DatabaseConnectionOverview.getConnection(globalConn.caption!));
             await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait10seconds);
+            await notebook.codeEditor.loadCommandResults();
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_Notebook");
             throw e;
@@ -688,7 +689,7 @@ describe("Notebook", () => {
             await result.grid!.openCellContextMenuAndSelect(0, rowColumn,
                 constants.resultGridContextMenu.toggleForDeletion);
             await driver.wait(result.grid!.untilRowIsMarkedForDeletion(rowNumber), constants.wait5seconds);
-            await result.rollbackChanges();
+            await result.toolbar!.rollbackChanges();
         } catch (e) {
             testFailed = true;
             throw e;
@@ -821,6 +822,28 @@ describe("Notebook", () => {
         }
     });
 
+    it("Select a Result Grid View", async () => {
+        try {
+            const result = await notebook.codeEditor.execute("select * from sakila.actor;");
+            expect(result.toolbar!.status).toMatch(/OK/);
+            await result.grid!.editCells([{
+                rowNumber: 0,
+                columnName: "first_name",
+                value: "changed",
+            }]);
+
+            await result.toolbar!.selectView(constants.previewView);
+            expect(result.preview).toBeDefined();
+            await result.toolbar!.selectView(constants.gridView);
+            expect(result.preview).toBeUndefined();
+            expect(result.grid).toBeDefined();
+            await result.toolbar?.rollbackChanges();
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
     it("Edit a result grid, verify query preview and commit - integer columns", async () => {
         try {
             await notebook.codeEditor.clean();
@@ -863,7 +886,7 @@ describe("Notebook", () => {
                 /WHERE id = 1;/,
             ];
 
-            await result.selectSqlPreview();
+            await result.toolbar!.selectSqlPreview();
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
                 expect(result.preview!.text).toMatch(expectedSqlPreview[i]);
             }
@@ -871,8 +894,8 @@ describe("Notebook", () => {
             await result.clickSqlPreviewContent();
             await driver.wait(result.grid!.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
 
-            await result.applyChanges();
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await result.toolbar!.applyChanges();
+            await driver.wait(result.toolbar!.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor.execute("select * from sakila.all_data_types_ints where id = 1;");
             expect(result1.toolbar!.status).toMatch(/OK/);
@@ -933,15 +956,15 @@ describe("Notebook", () => {
                 /WHERE id = 1;/,
             ];
 
-            await result.selectSqlPreview();
+            await result.toolbar!.selectSqlPreview();
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
                 expect(result.preview!.text).toMatch(expectedSqlPreview[i]);
             }
 
             await result.clickSqlPreviewContent();
             await driver.wait(result.grid!.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
-            await result.applyChanges();
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await result.toolbar!.applyChanges();
+            await driver.wait(result.toolbar!.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_dates where id = 1;");
@@ -1008,15 +1031,15 @@ describe("Notebook", () => {
                 /WHERE id = 2;/,
             ];
 
-            await result.selectSqlPreview();
+            await result.toolbar!.selectSqlPreview();
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
                 expect(result.preview!.text).toMatch(expectedSqlPreview[i]);
             }
 
             await result.clickSqlPreviewContent();
             await driver.wait(result.grid!.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
-            await result.applyChanges();
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await result.toolbar!.applyChanges();
+            await driver.wait(result.toolbar!.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_chars where id = 2;");
@@ -1086,15 +1109,15 @@ describe("Notebook", () => {
                 new RegExp(`WHERE id = 1;`),
             ];
 
-            await result.selectSqlPreview();
+            await result.toolbar!.selectSqlPreview();
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
                 expect(result.preview!.text).toMatch(expectedSqlPreview[i]);
             }
 
             await result.clickSqlPreviewContent();
             await driver.wait(result.grid!.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
-            await result.applyChanges();
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await result.toolbar!.applyChanges();
+            await driver.wait(result.toolbar!.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_geometries where id = 1;");
@@ -1272,7 +1295,7 @@ describe("Notebook", () => {
                     value: modifiedText,
                 }]);
 
-            await result.rollbackChanges();
+            await result.toolbar!.rollbackChanges();
             expect((await result.grid!.content!.getAttribute("innerHTML")).match(/rollbackTest/) === null).toBe(true);
         } catch (e) {
             testFailed = true;
@@ -1297,9 +1320,8 @@ describe("Notebook", () => {
             for (const query of queries) {
                 const result = await notebook.codeEditor.execute(query);
                 expect(result.toolbar!.status).toMatch(/OK/);
-                const editBtn = await result.toolbar!.element!
-                    .findElement(locator.notebook.codeEditor.editor.result.toolbar.editButton);
-                expect(await editBtn.getAttribute("data-tooltip")).toBe("Data not editable");
+                const editBtn = await result.toolbar?.getEditButton();
+                expect(await editBtn!.getAttribute("data-tooltip")).toBe("Data not editable");
             }
         } catch (e) {
             testFailed = true;
@@ -1333,9 +1355,9 @@ describe("Notebook", () => {
             ];
 
             await result.grid!.addRow(rowToAdd);
-            await result.applyChanges();
+            await result.toolbar!.applyChanges();
 
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.toolbar!.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
             const result1 = await notebook.codeEditor
                 // eslint-disable-next-line max-len
                 .execute("select * from sakila.all_data_types_ints where id = (select max(id) from sakila.all_data_types_ints);");
@@ -1385,8 +1407,8 @@ describe("Notebook", () => {
             ];
 
             await result.grid!.addRow(rowToAdd);
-            await result.applyChanges();
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await result.toolbar!.applyChanges();
+            await driver.wait(result.toolbar!.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor
                 // eslint-disable-next-line max-len
@@ -1439,9 +1461,9 @@ describe("Notebook", () => {
             ];
 
             await result.grid!.addRow(rowToAdd);
-            await result.applyChanges();
+            await result.toolbar!.applyChanges();
 
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.toolbar!.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
             const result1 = await notebook.codeEditor
                 // eslint-disable-next-line max-len
                 .execute("select * from sakila.all_data_types_chars where id = (select max(id) from sakila.all_data_types_chars);");
@@ -1499,9 +1521,9 @@ describe("Notebook", () => {
             ];
 
             await result.grid!.addRow(rowToAdd);
-            await result.applyChanges();
+            await result.toolbar!.applyChanges();
 
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.toolbar!.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
             result = await notebook.codeEditor
                 // eslint-disable-next-line max-len
                 .execute("select * from sakila.all_data_types_geometries where id = (select max(id) from sakila.all_data_types_geometries);");
@@ -1536,7 +1558,7 @@ describe("Notebook", () => {
             expect(result.toolbar!.status).toMatch(/OK/);
 
             const id = result.id;
-            await result.closeResultSet();
+            await result.toolbar!.closeResultSet();
 
             await driver.wait(async () => {
                 return (await driver.findElements(locator.notebook.codeEditor.editor.result.existsById(id!)))
@@ -1661,6 +1683,7 @@ describe("Notebook headless off", () => {
             await driver.executeScript("arguments[0].click();",
                 await DatabaseConnectionOverview.getConnection(anotherConnection.caption!));
             await driver.wait(new E2ENotebook().untilIsOpened(anotherConnection), constants.wait10seconds);
+            await notebook.codeEditor.loadCommandResults();
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_Notebook");
             throw e;
@@ -1688,7 +1711,7 @@ describe("Notebook headless off", () => {
             const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await Os.keyboardPaste(textArea);
             await driver.wait(async () => {
-                return notebook.existsOnNotebook("Welcome");
+                return notebook.exists("Welcome");
             }, constants.wait5seconds, "The text was not pasted to the notebook");
             expect(await driver.executeScript("return await navigator.clipboard.readText()")).toContain("Welcome");
         } catch (e) {
@@ -1908,7 +1931,7 @@ describe("Notebook headless off", () => {
                 expect(await result.grid!.getCellValue(row, String(allColumns[i]))).toBe(constants.isNull);
             }
 
-            await result.rollbackChanges();
+            await result.toolbar!.rollbackChanges();
         } catch (e) {
             testFailed = true;
             throw e;

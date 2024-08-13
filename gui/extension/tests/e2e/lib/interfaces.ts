@@ -259,27 +259,30 @@ export interface ICommandResult {
     tabs?: ICommandResultTab[];
     grid?: CommandResultGrid;
     preview?: ICommandResultPreview;
-    toolbar: ICommandResultToolbar;
-    context: WebElement;
-    chat: string;
-    isHWAboutInfo: boolean;
+    toolbar?: ICommandResultToolbar;
+    context?: WebElement;
+    chat?: string;
+    isHWAboutInfo?: boolean;
     copyToClipboard(): Promise<void>;
     selectTab(name: string): Promise<void>;
     clickSqlPreviewContent(): Promise<void>;
-    maximize(): Promise<void>;
     normalize(): Promise<void>;
-    selectSqlPreview(): Promise<void>;
-    applyChanges(): Promise<void>;
-    rollbackChanges(): Promise<void>;
     untilIsMaximized(): Condition<boolean>;
-    closeResultSet(): Promise<void>;
-    untilStatusMatches(regex: RegExp): Condition<boolean>;
     heatWaveChatIsDisplayed(): Condition<boolean>;
 }
 
 export interface ICommandResultToolbar {
-    status: string;
-    element?: WebElement;
+    status?: string;
+    setStatus(): Promise<void>;
+    maximize(): Promise<void>;
+    selectView(name: string): Promise<void>;
+    selectSqlPreview(): Promise<void>;
+    applyChanges(): Promise<void>;
+    rollbackChanges(): Promise<void>;
+    closeResultSet(): Promise<void>;
+    untilStatusMatches(regex: RegExp): Condition<boolean>;
+    getEditButton(): Promise<WebElement | undefined>;
+    edit(): Promise<void>;
 }
 
 export interface ICommandResultPreview {

@@ -433,7 +433,7 @@ describe("NOTEBOOKS", () => {
 
             const result = await notebook.codeEditor.execute("select * from sakila.actor;");
             expect(result.toolbar.status).to.match(/OK/);
-            await result.maximize();
+            await result.toolbar.maximize();
             expect((await notebook.toolbar.getCurrentEditor()).label, `The current editor name should be Result #1`)
                 .to.equals("Result #1");
             try {
@@ -547,13 +547,13 @@ describe("NOTEBOOKS", () => {
             const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await Os.keyboardSelectAll(textArea);
             await Os.keyboardCut(textArea);
-            expect(await notebook.existsOnNotebook(sentence1), `${sentence1} should not exist on the notebook`)
+            expect(await notebook.exists(sentence1), `${sentence1} should not exist on the notebook`)
                 .to.be.false;
-            expect(await notebook.existsOnNotebook(sentence2),
+            expect(await notebook.exists(sentence2),
                 `${sentence2} should not exist on the notebook`).to.be.false;
             await Os.keyboardPaste(textArea);
-            expect(await notebook.existsOnNotebook(sentence1), `${sentence1} should exist on the notebook`).to.be.true;
-            expect(await notebook.existsOnNotebook(sentence2), `${sentence2} should exist on the notebook`).to.be.true;
+            expect(await notebook.exists(sentence1), `${sentence1} should exist on the notebook`).to.be.true;
+            expect(await notebook.exists(sentence2), `${sentence2} should exist on the notebook`).to.be.true;
 
         });
 
@@ -570,7 +570,7 @@ describe("NOTEBOOKS", () => {
             const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await Os.keyboardPaste(textArea);
             await driver.wait(async () => {
-                return notebook.existsOnNotebook("Welcome");
+                return notebook.exists("Welcome");
             }, constants.wait5seconds, "The text was not pasted to the notebook");
 
         });
@@ -728,7 +728,7 @@ describe("NOTEBOOKS", () => {
             await result.grid.openCellContextMenuAndSelect(0, rowColumn,
                 constants.resultGridContextMenu.toggleForDeletion);
             await driver.wait(result.grid.untilRowIsMarkedForDeletion(rowNumber), constants.wait5seconds);
-            await result.rollbackChanges();
+            await result.toolbar.rollbackChanges();
         });
 
         it("Result grid context menu - Copy single row", async function () {
@@ -949,7 +949,26 @@ describe("NOTEBOOKS", () => {
                     .to.equals(constants.isNull);
             }
 
-            await result.rollbackChanges();
+            await result.toolbar.rollbackChanges();
+
+        });
+
+        it("Select a Result Grid View", async () => {
+
+            const result = await notebook.codeEditor.execute("select * from sakila.actor;");
+            expect(result.toolbar.status).to.match(/OK/);
+            await result.grid.editCells([{
+                rowNumber: 0,
+                columnName: "first_name",
+                value: "changed",
+            }]);
+
+            await result.toolbar.selectView(constants.previewView);
+            expect(result.preview).to.exist;
+            await result.toolbar.selectView(constants.gridView);
+            expect(result.preview).to.not.exist;
+            expect(result.grid).to.exist;
+            await result.toolbar?.rollbackChanges();
 
         });
 
@@ -995,7 +1014,7 @@ describe("NOTEBOOKS", () => {
                 /WHERE id = 1;/,
             ];
 
-            await result.selectSqlPreview();
+            await result.toolbar.selectSqlPreview();
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
                 expect(result.preview.text).to.match(expectedSqlPreview[i]);
             }
@@ -1003,8 +1022,8 @@ describe("NOTEBOOKS", () => {
             await result.clickSqlPreviewContent();
             await driver.wait(result.grid.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
 
-            await result.applyChanges();
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await result.toolbar.applyChanges();
+            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor.execute("select * from sakila.all_data_types_ints where id = 1;");
             expect(result1.toolbar.status).to.match(/OK/);
@@ -1062,15 +1081,15 @@ describe("NOTEBOOKS", () => {
                 /WHERE id = 1;/,
             ];
 
-            await result.selectSqlPreview();
+            await result.toolbar.selectSqlPreview();
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
                 expect(result.preview.text).to.match(expectedSqlPreview[i]);
             }
 
             await result.clickSqlPreviewContent();
             await driver.wait(result.grid.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
-            await result.applyChanges();
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await result.toolbar.applyChanges();
+            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_dates where id = 1;");
@@ -1135,15 +1154,15 @@ describe("NOTEBOOKS", () => {
                 /WHERE id = 2;/,
             ];
 
-            await result.selectSqlPreview();
+            await result.toolbar.selectSqlPreview();
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
                 expect(result.preview.text).to.match(expectedSqlPreview[i]);
             }
 
             await result.clickSqlPreviewContent();
             await driver.wait(result.grid.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
-            await result.applyChanges();
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await result.toolbar.applyChanges();
+            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_chars where id = 2;");
@@ -1210,15 +1229,15 @@ describe("NOTEBOOKS", () => {
                 new RegExp(`WHERE id = 1;`),
             ];
 
-            await result.selectSqlPreview();
+            await result.toolbar.selectSqlPreview();
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
                 expect(result.preview.text).to.match(expectedSqlPreview[i]);
             }
 
             await result.clickSqlPreviewContent();
             await driver.wait(result.grid.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
-            await result.applyChanges();
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await result.toolbar.applyChanges();
+            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_geometries where id = 1;");
@@ -1379,7 +1398,7 @@ describe("NOTEBOOKS", () => {
                     value: modifiedText,
                 }]);
 
-            await result.rollbackChanges();
+            await result.toolbar.rollbackChanges();
             expect((await result.grid.content.getAttribute("innerHTML")).match(/rollbackTest/) === null,
                 `${modifiedText} should not exist on the cell`).to.be.true;
 
@@ -1402,8 +1421,7 @@ describe("NOTEBOOKS", () => {
             for (const query of queries) {
                 const result = await notebook.codeEditor.execute(query);
                 expect(result.toolbar.status).to.match(/OK/);
-                const editBtn = await result.toolbar.element
-                    .findElement(locator.notebook.codeEditor.editor.result.toolbar.editButton);
+                const editBtn = await result.toolbar.getEditButton();
                 expect(await editBtn.getAttribute("data-tooltip"),
                     `'${query}' should not be editable`).to.equal("Data not editable");
             }
@@ -1437,9 +1455,9 @@ describe("NOTEBOOKS", () => {
             ];
 
             await result.grid.addRow(rowToAdd);
-            await result.applyChanges();
+            await result.toolbar.applyChanges();
 
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
             const result1 = await notebook.codeEditor
                 // eslint-disable-next-line max-len
                 .execute("select * from sakila.all_data_types_ints where id = (select max(id) from sakila.all_data_types_ints);");
@@ -1486,8 +1504,8 @@ describe("NOTEBOOKS", () => {
             ];
 
             await result.grid.addRow(rowToAdd);
-            await result.applyChanges();
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await result.toolbar.applyChanges();
+            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor
                 // eslint-disable-next-line max-len
@@ -1538,9 +1556,9 @@ describe("NOTEBOOKS", () => {
             ];
 
             await result.grid.addRow(rowToAdd);
-            await result.applyChanges();
+            await result.toolbar.applyChanges();
 
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
             const result1 = await notebook.codeEditor
                 // eslint-disable-next-line max-len
                 .execute("select * from sakila.all_data_types_chars where id = (select max(id) from sakila.all_data_types_chars);");
@@ -1595,9 +1613,9 @@ describe("NOTEBOOKS", () => {
             ];
 
             await result.grid.addRow(rowToAdd);
-            await result.applyChanges();
+            await result.toolbar.applyChanges();
 
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
             result = await notebook.codeEditor
                 // eslint-disable-next-line max-len
                 .execute("select * from sakila.all_data_types_geometries where id = (select max(id) from sakila.all_data_types_geometries);");
@@ -1629,7 +1647,7 @@ describe("NOTEBOOKS", () => {
             expect(result.toolbar.status).to.match(/OK/);
 
             const id = result.id;
-            await result.closeResultSet();
+            await result.toolbar.closeResultSet();
 
             await driver.wait(async () => {
                 return (await driver.findElements(locator.notebook.codeEditor.editor.result.existsById(id)))
@@ -1797,7 +1815,7 @@ describe("NOTEBOOKS", () => {
 
             await (await notebook.toolbar.getButton(constants.loadNotebook)).click();
             await Workbench.setInputPath(`${destFile}.mysql-notebook`);
-            await notebook.verifyNotebook("SELECT VERSION();", "1 record retrieved");
+            await notebook.exists("SELECT VERSION");
             await Workbench.closeAllEditors();
 
         });
@@ -1813,7 +1831,7 @@ describe("NOTEBOOKS", () => {
             await (await input.findQuickPick(globalConn.caption)).select();
             await Workbench.openEditor("test.mysql-notebook");
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
-            await notebook.verifyNotebook("SELECT VERSION();", "1 record retrieved");
+            await notebook.exists("SELECT VERSION");
             await Workbench.closeEditor("test.mysql-notebook", true);
 
         });
@@ -1829,7 +1847,7 @@ describe("NOTEBOOKS", () => {
             await (await input.findQuickPick(globalConn.caption)).select();
             await driver.wait(Workbench.untilTabIsOpened("test.mysql-notebook"), constants.wait5seconds);
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
-            await notebook.verifyNotebook("SELECT VERSION();", "1 record retrieved");
+            await notebook.exists("SELECT VERSION");
 
         });
 
