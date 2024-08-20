@@ -492,7 +492,7 @@ metadata:
 
 The CREATE REST SCHEMA statement is used to create a new or replace an existing REST schema. Each REST schema directly maps to a database schema and allows the database schema objects (tables, views and stored procedures) to be exposed via REST endpoints.
 
-> Note: Adding a REST schema to a REST service does not automatically expose any database schema objects via REST. The corresponding `CREATE REST TABLE`, `CREATE REST DUALITY VIEW`, `CREATE REST PROCEDURE` ddl commands need to be called to explicitly expose a database schema object.
+> Note: Adding a REST schema to a REST service does not automatically expose any database schema objects via REST. The corresponding `CREATE REST DATA MAPPING VIEW`, `CREATE REST PROCEDURE`, `CREATE REST FUNCTION` ddl commands need to be called to explicitly expose a database schema object.
 
 Each REST schema belongs to a REST service, which has to be created first. One REST service can hold many REST schemas.
 
@@ -620,20 +620,19 @@ metadata:
 ;
 ```
 
-## CREATE REST DUALITY VIEW
+## CREATE REST VIEW
 
-The `CREATE REST DUALITY VIEW` statement is used to add REST endpoints for database schema tables or views. They will be served as JSON duality views.
+The `CREATE REST DATA MAPPING VIEW` statement is used to add REST endpoints for database schema tables or views. Their data will be served as JSON documents.
 
-The structure of the served JSON documents is defined using an [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-duality-view). This allows to define even complex REST duality views in a simple and human readable way. Please see the corresponding [GraphQL section](#defining-the-graphql-definition-for-a-rest-duality-view) about how to design the GraphQL definition for a REST duality view.
+The structure of the served JSON documents is defined using an [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-view). This allows to define even complex REST data mapping views in a simple and human readable way. Please see the corresponding [GraphQL section](#defining-the-graphql-definition-for-a-rest-view) about how to design the GraphQL definition for a REST data mapping view.
 
-Please see the MRS Developer's Guide to learn more about [JSON duality views](index.html#json-duality-views).
+Please see the MRS Developer's Guide to learn more about [JSON data mapping views](index.html#json-data-mapping-views).
 
 **_SYNTAX_**
 
 ```antlr
 createRestViewStatement:
-    CREATE (OR REPLACE)? REST JSON? RELATIONAL?
-        DUALITY? VIEW viewRequestPath (
+    CREATE (OR REPLACE)? REST DATA? MAPPING? VIEW viewRequestPath (
         ON serviceSchemaSelector
     )? AS qualifiedIdentifier (
         CLASS restObjectName
@@ -669,10 +668,10 @@ restObjectOptions ::=
 
 **_Examples_**
 
-The following example adds a REST duality view for the `sakila.city` database schema table.
+The following example adds a REST data mapping view for the `sakila.city` database schema table.
 
 ```sql
-CREATE REST DUALITY VIEW /city
+CREATE REST VIEW /city
 ON SERVICE /myService SCHEMA /sakila
 AS `sakila`.`city` {
     cityId: city_id @SORTABLE,
@@ -683,7 +682,7 @@ AS `sakila`.`city` {
 AUTHENTICATION REQUIRED;
 ```
 
-Querying the REST duality view using the TypeScript SDK returns the following JSON document.
+Querying the REST data mapping view using the TypeScript SDK returns the following JSON document.
 
 ```ts
 ts> myService.sakila.city.findFirst();
@@ -704,10 +703,10 @@ ts> myService.sakila.city.findFirst();
 }
 ```
 
-The next example adds the referenced table `sakila.country` to the REST duality view.
+The next example adds the referenced table `sakila.country` to the REST data mapping view.
 
 ```sql
-CREATE OR REPLACE REST DUALITY VIEW /city
+CREATE OR REPLACE REST VIEW /city
 ON SERVICE /myService SCHEMA /sakila
 AS `sakila`.`city` {
     cityId: city_id @SORTABLE,
@@ -723,7 +722,7 @@ AS `sakila`.`city` {
 AUTHENTICATION REQUIRED;
 ```
 
-This is what the REST duality view looks like in the interactive MySQL REST Object Dialog in the MySQL Shell for VS Code extension.
+This is what the REST data mapping view looks like in the interactive MySQL REST Object Dialog in the MySQL Shell for VS Code extension.
 
 ![Adding a Referenced Table](../../images/vsc-mrs-json-relational-editor-2-referenced-table.png "Adding a Referenced Table")
 
@@ -755,18 +754,18 @@ ts> myService.sakila.city.findFirst();
 
 ### Preconditions
 
-You define a REST duality view against a set of tables related by primary key (PK), foreign key (FK) or unique key constraints (UK). The following rules apply:
+You define a REST data mapping view against a set of tables related by primary key (PK), foreign key (FK) or unique key constraints (UK). The following rules apply:
 
 - The constraints must be declared in the database.
 - The relationships type can be 1-to-1, 1-to-N and N-to-M (using a mapping table with two FKs). The N-to-M relationship can be thought of as the combination of 1-to-N and 1-to-1 relationship
 - Columns of two or more tables with 1-to-1 or N-to-1 relationships can be merged into the same JSON object via UNNEST. Otherwise a nested JSON object is created.
 - Tables with a 1-to-N relationship create a nested JSON array.
-- Each item in the duality view is one JSON object, which is typically a hierarchy of nested objects and arrays.
+- Each item in the data mapping view is one JSON object, which is typically a hierarchy of nested objects and arrays.
 - Each application object is built from values originating from one or multiple rows from the underlying tables of that view. Typically, each table contributes to one (nested) JSON object.
 
-### Enabling or Disabling a REST Duality View at Creation Time
+### Enabling or Disabling a REST View at Creation Time
 
-The `enabledDisabled` option specifies whether the REST duality view should be enabled or disabled when it is created.
+The `enabledDisabled` option specifies whether the REST data mapping view should be enabled or disabled when it is created.
 
 ```antlr
 enabledDisabled:
@@ -778,9 +777,9 @@ enabledDisabled:
 enabledDisabled ::=
 ![enabledDisabled](../../images/sql/enabledDisabled.svg "enabledDisabled")
 
-### Requiring Authentication for REST Duality Views
+### Requiring Authentication for REST Views
 
-The `authenticationRequired` option specifies if a REST duality view requires authentication before accessing its REST endpoints.
+The `authenticationRequired` option specifies if a REST data mapping view requires authentication before accessing its REST endpoints.
 
 ```antlr
 authenticationRequired:
@@ -791,9 +790,9 @@ authenticationRequired:
 authenticationRequired ::=
 ![authenticationRequired](../../images/sql/authenticationRequired.svg "authenticationRequired")
 
-### Specifying the Page Count for REST Duality Views
+### Specifying the Page Count for REST Views
 
-The `itemsPerPage` option can be used to specify the number of items returned for queries run against the REST duality view.
+The `itemsPerPage` option can be used to specify the number of items returned for queries run against the REST data mapping view.
 
 ```antlr
 itemsPerPage:
@@ -806,9 +805,9 @@ itemsPerPage ::=
 
 The number of items per page can also be specified for each REST object individually.
 
-### Setting the Media Type for REST Duality Views
+### Setting the Media Type for REST Views
 
-If this REST duality view returns a specific MIME type it can be set via the `restViewMediaType` option. If MRS should try to automatically detect the file type based on the content of the file the `AUTODETECT` option can be used.
+If this REST data mapping view returns a specific MIME type it can be set via the `restViewMediaType` option. If MRS should try to automatically detect the file type based on the content of the file the `AUTODETECT` option can be used.
 
 ```antlr
 restViewMediaType:
@@ -819,9 +818,9 @@ restViewMediaType:
 restViewMediaType ::=
 ![restViewMediaType](../../images/sql/restViewMediaType.svg "restViewMediaType")
 
-### Setting the Result Format for REST Duality Views
+### Setting the Result Format for REST Views
 
-A REST duality view can return one of the following formats which can be set with the `restViewFormat` option.
+A REST data mapping view can return one of the following formats which can be set with the `restViewFormat` option.
 
 - FEED: A list of result JSON objects
 - ITEM: A single result item
@@ -836,16 +835,16 @@ restViewFormat:
 restViewFormat ::=
 ![restViewFormat](../../images/sql/restViewFormat.svg "restViewFormat")
 
-### Using a Custom Authentication Procedure for a REST Duality View
+### Using a Custom Authentication Procedure for a REST View
 
-In case the built in authentication handling does not cover the specific use case for a REST duality view, a custom MySQL stored procedure can be used to handle the authentication check for the given user and the requested CRUD operation.
+In case the built in authentication handling does not cover the specific use case for a REST data mapping view, a custom MySQL stored procedure can be used to handle the authentication check for the given user and the requested CRUD operation.
 
 The referenced MySQL stored procedure has to be in the same schema as the database schema object and it has to accept the following parameters: `(IN user_id BINARY(16), IN schema VARCHAR(255), IN object VARCHAR(255), IN crud_operation VARCHAR(4))`.  It needs to returns `true` or `false`.
 
 restViewAuthenticationProcedure ::=
 ![restViewAuthenticationProcedure](../../images/sql/restViewAuthenticationProcedure.svg "restViewAuthenticationProcedure")
 
-### Defining the GraphQL definition for a REST Duality View
+### Defining the GraphQL definition for a REST View
 
 ```antlr
 graphQlObj:
@@ -898,7 +897,7 @@ graphQlPair ::=
 graphQlValue ::=
 ![graphQlValue](../../images/sql/graphQlValue.svg "graphQlValue")
 
-### REST Duality View Metadata
+### REST View Metadata
 
 The metadata can hold any JSON data. It can later be consumed by a front end implementation to dynamically render certain attributes, like a specific icon or a color.
 
@@ -910,7 +909,7 @@ metadata:
 
 ## CREATE REST PROCEDURE
 
-The `CREATE REST PROCEDURE` statement is used to add REST endpoints for database schema stored procedures. It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-duality-view) as defined for REST duality views to describe the REST procedure's parameters and result sets. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-duality-view).
+The `CREATE REST PROCEDURE` statement is used to add REST endpoints for database schema stored procedures. It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-view) as defined for REST data mapping views to describe the REST procedure's parameters and result sets. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-view).
 
 **_SYNTAX_**
 
@@ -958,7 +957,7 @@ restProcedureResult ::=
 
 ## CREATE REST FUNCTION
 
-The `CREATE REST FUNCTION` statement is used to add REST endpoints for database schema stored function. It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-duality-view) as defined for REST duality views to describe the REST functions's parameters and result. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-duality-view).
+The `CREATE REST FUNCTION` statement is used to add REST endpoints for database schema stored function. It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-view) as defined for REST data mapping views to describe the REST functions's parameters and result. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-view).
 
 **_SYNTAX_**
 

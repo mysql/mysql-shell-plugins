@@ -672,7 +672,7 @@ def calculate_crud_operations(db_object_type, objects=None):
 
 def get_create_statement(session, db_object) -> str:
     executor = MrsDdlExecutor(session=session)
-    db_object_type = "DUALITY VIEW" if db_object["object_type"] in ["TABLE", "VIEW"] else db_object["object_type"]
+    db_object_type = "VIEW" if db_object["object_type"] in ["TABLE", "VIEW"] else db_object["object_type"]
 
     executor.showCreateRestDbObject({
         "current_operation": "SHOW CREATE REST DB_OBJECT",

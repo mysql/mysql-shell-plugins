@@ -5189,8 +5189,6 @@ identifierKeywordsUnambiguous:
         | METADATA_SYMBOL
         | SERVICES_SYMBOL
         | SERVICE_SYMBOL
-        | RELATIONAL_SYMBOL
-        | DUALITY_SYMBOL
         | VIEWS_SYMBOL
         | PROCEDURES_SYMBOL
         | PARAMETERS_SYMBOL
@@ -5230,6 +5228,7 @@ identifierKeywordsUnambiguous:
         | CLASS_SYMBOL
         | DEVELOPMENT_SYMBOL
         | SCRIPTS_SYMBOL
+        | MAPPING_SYMBOL
         | AT_INOUT_SYMBOL
         | AT_IN_SYMBOL
         | AT_OUT_SYMBOL
@@ -5724,7 +5723,7 @@ mrsStatement:
     | alterRestFunctionStatement
     | dropRestServiceStatement
     | dropRestSchemaStatement
-    | dropRestDualityViewStatement
+    | dropRestViewStatement
     | dropRestProcedureStatement
     | dropRestFunctionStatement
     | dropRestContentSetStatement
@@ -5896,10 +5895,8 @@ restSchemaOptions: (
 // - CREATE REST VIEW -------------------------------------------------------
 
 createRestViewStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL?
-        DUALITY_SYMBOL? VIEW_SYMBOL viewRequestPath (
-        ON_SYMBOL serviceSchemaSelector
-    )? AS_SYMBOL qualifiedIdentifier (
+    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL? VIEW_SYMBOL
+        viewRequestPath (ON_SYMBOL serviceSchemaSelector)? AS_SYMBOL qualifiedIdentifier (
         CLASS_SYMBOL restObjectName
     )? graphQlCrudOptions? graphQlObj? restObjectOptions?
 ;
@@ -5963,7 +5960,9 @@ createRestContentSetStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL
         contentSetRequestPath (
         ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )? (FROM_SYMBOL directoryFilePath)? restContentSetOptions? (AS_SYMBOL SCRIPTS_SYMBOL)?
+    )? (FROM_SYMBOL directoryFilePath)? restContentSetOptions? (
+        AS_SYMBOL SCRIPTS_SYMBOL
+    )?
 ;
 
 directoryFilePath:
@@ -6088,7 +6087,7 @@ alterRestSchemaStatement:
 // - ALTER REST VIEW --------------------------------------------------------
 
 alterRestViewStatement:
-    ALTER_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
+    ALTER_SYMBOL REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL? VIEW_SYMBOL
         viewRequestPath (ON_SYMBOL serviceSchemaSelector)? (
         NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newViewRequestPath
     )? (
@@ -6128,8 +6127,8 @@ dropRestSchemaStatement:
     )?
 ;
 
-dropRestDualityViewStatement:
-    DROP_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL? VIEW_SYMBOL
+dropRestViewStatement:
+    DROP_SYMBOL REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL? VIEW_SYMBOL
         viewRequestPath (FROM_SYMBOL serviceSchemaSelector)?
 ;
 
@@ -6197,7 +6196,7 @@ showRestSchemasStatement:
 ;
 
 showRestViewsStatement:
-    SHOW_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL? VIEWS_SYMBOL (
+    SHOW_SYMBOL REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL? VIEWS_SYMBOL (
         (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
     )?
 ;
@@ -6244,7 +6243,7 @@ showCreateRestSchemaStatement:
 ;
 
 showCreateRestViewStatement:
-    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL JSON_SYMBOL? RELATIONAL_SYMBOL? DUALITY_SYMBOL?
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL?
         VIEW_SYMBOL viewRequestPath (
         (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
     )?
@@ -6362,8 +6361,14 @@ hostAndPortIdentifier: (
     )
 ;
 
-requestPathIdentifier:
-    DIV_OPERATOR dottedIdentifier (DIV_OPERATOR dottedIdentifier)?
+requestPathIdentifier: (
+        (
+            DIV_OPERATOR dottedIdentifier (
+                DIV_OPERATOR dottedIdentifier
+            )?
+        )
+        | quotedText
+    )
 ;
 
 quotedText:
@@ -6453,8 +6458,8 @@ graphQlAllowedKeyword:
     | METADATA_SYMBOL
     | SERVICES_SYMBOL
     | SERVICE_SYMBOL
-    | RELATIONAL_SYMBOL
-    | DUALITY_SYMBOL
+    | DATA_SYMBOL
+    | MAPPING_SYMBOL
     | VIEWS_SYMBOL
     | PROCEDURES_SYMBOL
     | PARAMETERS_SYMBOL

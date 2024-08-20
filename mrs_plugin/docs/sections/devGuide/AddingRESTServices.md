@@ -218,24 +218,24 @@ The following figure shows the a REST schema and its REST objects.
 
 ![REST Schema and its Objects](../../images/vsc-mrs-schema-and-objects.png "REST Schema and its Objects")
 
-Once a MySQL database schema has been added as a REST schema, its objects can be added. Database schema tables and views are added as [REST duality views](#json-relational-duality-views), stored procedures are added as REST procedures.
+Once a MySQL database schema has been added as a REST schema, its objects can be added. Database schema tables and views are added as [REST data mapping views](#rest-data-mapping-views), stored procedures are added as REST procedures.
 
-> Note: REST duality views enabled application developers to take a document centric approach when implementing their applications. Please refer to the [JSON duality view](#json-relational-duality-views) section of this document to learn about the advantages of using REST duality views.
+> Note: REST data mapping views enabled application developers to take a document centric approach when implementing their applications. Please refer to the [JSON data mapping view](#rest-data-mapping-views) section of this document to learn about the advantages of using REST data mapping views.
 
 The MySQL database schema objects can be added by using MySQL Shell for VS Code or MySQL Shell on the command line.
 
 ### Adding a Schema Object via MRS DDL
 
-On an active MySQL Shell connection execute the [CREATE REST DUALITY VIEW](sql.html#create-rest-duality-view) DDL statement to add a database schema table or view as REST object. Please see the [MRS SQL Reference](sql.html#create-rest-duality-view) for more details.
+On an active MySQL Shell connection execute the [CREATE REST DATA MAPPING VIEW](sql.html#create-rest-view) DDL statement to add a database schema table or view as REST object. Please see the [MRS SQL Reference](sql.html#create-rest-view) for more details.
 
 To add a stored procedure the [CREATE REST PROCEDURE](sql.html#create-rest-procedure) DDL statement can be used.
 
 **_Examples_**
 
-The following example adds a REST duality view for the `sakila.city` database schema table.
+The following example adds a REST data mapping view for the `sakila.city` database schema table.
 
 ```sql
-CREATE REST DUALITY VIEW /city
+CREATE REST VIEW /city
 ON SERVICE /myService SCHEMA /sakila
 AS `sakila`.`city` {
     cityId: city_id @SORTABLE,

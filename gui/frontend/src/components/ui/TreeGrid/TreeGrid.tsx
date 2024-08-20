@@ -314,7 +314,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                 return;
             }
 
-            // TODO: switch to the comparison of the data objects. Need to always update until the duality view editor
+            // TODO: switch to the comparison of the data objects. Need to always update until the view editor
             // is changed to use the setData API.
             //if (prevProps.tableData !== tableData) {
             if (tableData) {

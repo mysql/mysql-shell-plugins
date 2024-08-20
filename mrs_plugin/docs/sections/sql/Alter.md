@@ -102,19 +102,19 @@ ALTER REST SCHEMA /sakila ON SERVICE /myService
     NEW REQUEST PATH /myPublicService;
 ```
 
-## ALTER REST DUALITY VIEW
+## ALTER REST VIEW
 
-The `ALTER REST DUALITY VIEW` statement is used to alter existing REST duality views.
+The `ALTER REST DATA MAPPING VIEW` statement is used to alter existing REST data mapping views.
 
-Please see the corresponding [GraphQL section](#defining-the-graphql-definition-for-a-rest-duality-view) about how to design the GraphQL definition for a REST duality view.
+Please see the corresponding [GraphQL section](#defining-the-graphql-definition-for-a-rest-view) about how to design the GraphQL definition for a REST data mapping view.
 
-Please see the MRS Developer's Guide to learn more about [JSON duality views](index.html#json-duality-views).
+Please see the MRS Developer's Guide to learn more about [JSON data mapping views](index.html#rest-views).
 
 **_SYNTAX_**
 
 ```antlr
 alterRestViewStatement:
-    ALTER REST JSON? RELATIONAL? DUALITY? VIEW
+    ALTER REST DATA? MAPPING? VIEW
         viewRequestPath (ON serviceSchemaSelector)? (
         NEW REQUEST PATH newViewRequestPath
     )? (
@@ -151,10 +151,10 @@ restObjectOptions ::=
 
 **_Examples_**
 
-The following example alters a REST duality view for the `sakila.city` database schema table and sets a new list of fields.
+The following example alters a REST data mapping view for the `sakila.city` database schema table and sets a new list of fields.
 
 ```sql
-ALTER REST DUALITY VIEW /city
+ALTER REST VIEW /city
 ON SERVICE /myService SCHEMA /sakila
 FROM `sakila`.`city` AS MyServiceSakilaCity {
     cityId: city_id @SORTABLE,
@@ -166,7 +166,7 @@ FROM `sakila`.`city` AS MyServiceSakilaCity {
 
 The `ALTER REST PROCEDURE` statement is used to alter REST endpoints for database schema stored procedures.
 
-It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-duality-view) as defined for REST duality views to describe the REST procedure's parameters and result sets. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-duality-view).
+It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-view) as defined for REST data mapping views to describe the REST procedure's parameters and result sets. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-view).
 
 **_SYNTAX_**
 
@@ -210,7 +210,7 @@ restObjectOptions ::=
 
 The `ALTER REST FUNCTION` statement is used to alter REST endpoints for database schema stored functions.
 
-It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-duality-view) as defined for REST duality views to describe the REST procedure's parameters and result sets. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-duality-view).
+It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-view) as defined for REST data mapping views to describe the REST procedure's parameters and result sets. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-view).
 
 **_SYNTAX_**
 

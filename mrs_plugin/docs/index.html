@@ -246,17 +246,18 @@
                                                 Object</a></li>
                                                 </ul></li>
                                                 <li><a
-                                                href="#json-relational-duality-views"
-                                                id="toc-json-relational-duality-views"><span
+                                                href="#rest-data-mapping-views"
+                                                id="toc-rest-data-mapping-views"><span
                                                 class="toc-section-number">6</span>
-                                                JSON-Relational Duality
+                                                REST Data Mapping
                                                 Views</a>
                                                 <ul>
                                                 <li><a
-                                                href="#introduction-to-duality-views"
-                                                id="toc-introduction-to-duality-views"><span
+                                                href="#introduction-to-rest-data-mapping-views"
+                                                id="toc-introduction-to-rest-data-mapping-views"><span
                                                 class="toc-section-number">6.1</span>
-                                                Introduction to Duality
+                                                Introduction to REST
+                                                Data Mapping
                                                 Views</a></li>
                                                 <li><a
                                                 href="#lock-free-optimistic-concurrency-control"
@@ -266,10 +267,10 @@
                                                 Concurrency
                                                 Control</a></li>
                                                 <li><a
-                                                href="#interactive-duality-view-design"
-                                                id="toc-interactive-duality-view-design"><span
+                                                href="#interactive-rest-view-design"
+                                                id="toc-interactive-rest-view-design"><span
                                                 class="toc-section-number">6.3</span>
-                                                Interactive Duality View
+                                                Interactive REST View
                                                 Design</a></li>
                                                 </ul></li>
                                                 <li><a
@@ -494,12 +495,12 @@ Developer's Guide
                 tables as REST resources.</td>
                 </tr>
                 <tr class="even">
-                <td>JSON-Relational Duality Views</td>
-                <td>Duality views combine the advantages of relational
-                schemas with the ease-of-use of document databases. They
-                give your data a conceptual and an operational duality
-                as it is organized both relationally and
-                hierarchically.</td>
+                <td>REST data mapping Views</td>
+                <td>REST data mapping views combine the advantages of
+                relational schemas with the ease-of-use of document
+                databases. They give your data a conceptual and an
+                operational duality as it is organized both relationally
+                and hierarchically.</td>
                 </tr>
                 <tr class="odd">
                 <td>Serving Static Content</td>
@@ -1274,16 +1275,16 @@ router_id=16</code></pre>
                 <p>Once a MySQL database schema has been added as a REST
                 schema, its objects can be added. Database schema tables
                 and views are added as <a
-                href="#json-relational-duality-views">REST duality
+                href="#rest-data-mapping-views">REST data mapping
                 views</a>, stored procedures are added as REST
                 procedures.</p>
                 <blockquote>
-                <p>Note: REST duality views enabled application
+                <p>Note: REST data mapping views enabled application
                 developers to take a document centric approach when
                 implementing their applications. Please refer to the <a
-                href="#json-relational-duality-views">JSON duality
+                href="#rest-data-mapping-views">JSON data mapping
                 view</a> section of this document to learn about the
-                advantages of using REST duality views.</p>
+                advantages of using REST data mapping views.</p>
                 </blockquote>
                 <p>The MySQL database schema objects can be added by
                 using MySQL Shell for VS Code or MySQL Shell on the
@@ -1293,19 +1294,20 @@ router_id=16</code></pre>
                 class="header-section-number">4.3.1</span> Adding a
                 Schema Object via MRS DDL</h3>
                 <p>On an active MySQL Shell connection execute the <a
-                href="sql.html#create-rest-duality-view">CREATE REST
-                DUALITY VIEW</a> DDL statement to add a database schema
+                href="sql.html#create-rest-view">CREATE REST DATA
+                MAPPING VIEW</a> DDL statement to add a database schema
                 table or view as REST object. Please see the <a
-                href="sql.html#create-rest-duality-view">MRS SQL
-                Reference</a> for more details.</p>
+                href="sql.html#create-rest-view">MRS SQL Reference</a>
+                for more details.</p>
                 <p>To add a stored procedure the <a
                 href="sql.html#create-rest-procedure">CREATE REST
                 PROCEDURE</a> DDL statement can be used.</p>
                 <p><strong><em>Examples</em></strong></p>
-                <p>The following example adds a REST duality view for
-                the <code>sakila.city</code> database schema table.</p>
+                <p>The following example adds a REST data mapping view
+                for the <code>sakila.city</code> database schema
+                table.</p>
                 <div class="sourceCode" id="cb15"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="kw">AS</span> `sakila`.`city` {</span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
@@ -1443,7 +1445,7 @@ router_id=16</code></pre>
                 <p>MySQL Shell for VS Code features a live, interactive
                 workflow for designing REST Services.</p>
                 <p>It allows developers to immediately test their newly
-                created or modified REST duality views and REST
+                created or modified REST data mapping views and REST
                 procedures by using the MRS SDK TypeScript client API
                 right from within a DB Notebook.</p>
                 <p><strong><em>Preconditions for The Interactive
@@ -1688,30 +1690,30 @@ router_id=16</code></pre>
                 You should have received a copy of the GNU General Public License
                 along with this program; if not, write to the Free Software Foundation, Inc.,
                 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
-                <h1 data-number="6"
-                id="json-relational-duality-views"><span
-                class="header-section-number">6</span> JSON-Relational
-                Duality Views</h1>
+                <h1 data-number="6" id="rest-data-mapping-views"><span
+                class="header-section-number">6</span> REST Data Mapping
+                Views</h1>
                 <h2 data-number="6.1"
-                id="introduction-to-duality-views"><span
+                id="introduction-to-rest-data-mapping-views"><span
                 class="header-section-number">6.1</span> Introduction to
-                Duality Views</h2>
-                <p>Duality views combine the advantages of relational
-                schemas with the ease-of-use of document databases. They
-                give your data a conceptual and an operational duality
-                as it is organized both relationally and hierarchically.
-                You can base different duality views on data stored in
-                one or more of the same tables, providing different JSON
-                hierarchies over the same, shared data. This means that
-                applications can access (create, query, modify) the same
-                data as a collection of JSON documents or as a set of
-                related tables and columns, and both approaches can be
-                employed at the same time.</p>
+                REST Data Mapping Views</h2>
+                <p>REST data mapping views combine the advantages of
+                relational schemas with the ease-of-use of document
+                databases. They give your data a conceptual and an
+                operational duality as it is organized both relationally
+                and hierarchically. You can base different REST data
+                mapping views on data stored in one or more of the same
+                tables, providing different JSON hierarchies over the
+                same, shared data. This means that applications can
+                access (create, query, modify) the same data as a
+                collection of JSON documents or as a set of related
+                tables and columns, and both approaches can be employed
+                at the same time.</p>
                 <h3 data-number="6.1.1" id="use-cases"><span
                 class="header-section-number">6.1.1</span> Use
                 Cases</h3>
-                <p>The MySQL REST Service offers full support for
-                duality views. They are used to cover both, the
+                <p>The MySQL REST Service offers full support for REST
+                data mapping views. They are used to cover both, the
                 relational use case (1) as well as the document centric
                 use case (2).</p>
                 <ol type="1">
@@ -1737,60 +1739,59 @@ router_id=16</code></pre>
                 cases.</p>
                 <figure>
                 <img
-                src="sections/devGuide/../../images/json-relational-duality-use-cases.svg"
-                title="JSON Relational Duality - Use Cases"
-                alt="JSON Relational Duality - Use Cases" />
-                <figcaption aria-hidden="true">JSON Relational Duality -
+                src="sections/devGuide/../../images/rest-view-use-cases.svg"
+                title="REST Data Mapping View - Use Cases"
+                alt="REST Data Mapping View - Use Cases" />
+                <figcaption aria-hidden="true">REST Data Mapping View -
                 Use Cases</figcaption>
                 </figure>
                 <h3 data-number="6.1.2"
-                id="rest-duality-view-workflow"><span
-                class="header-section-number">6.1.2</span> REST Duality
-                View Workflow</h3>
-                <p>In the scope of the MySQL REST Service,
-                JSON-Relational duality views are exposed as REST
-                duality views. These can be created using the <a
-                href="sql.html#create-rest-duality-view">CREATE REST
-                DUALITY VIEW</a> MRS DDL statement or <a
-                href="#interactive-duality-view-design">interactively
-                using the MRS Object Dialog</a> of the MySQL Shell for
-                VS Code extension.</p>
-                <p>Once a REST duality view has been created, it is
+                id="rest-data-mapping-view-workflow"><span
+                class="header-section-number">6.1.2</span> REST Data
+                Mapping View Workflow</h3>
+                <p>The REST data mapping views can be created using the
+                <a href="sql.html#create-rest-view">CREATE REST DATA
+                MAPPING VIEW</a> MRS DDL statement or <a
+                href="#interactive-rest-view-design">interactively using
+                the MRS Object Dialog</a> of the MySQL Shell for VS Code
+                extension.</p>
+                <p>Once a REST data mapping view has been created, it is
                 extremely simple to access it using REST. The following
                 workflow applies.</p>
                 <ul>
-                <li>GET a document from the REST duality view</li>
+                <li>GET a document from the REST data mapping view</li>
                 <li>Make any changes needed to the document, including
                 changes to the nested JSON objects</li>
-                <li>PUT the document back into the REST duality
+                <li>PUT the document back into the REST data mapping
                 view</li>
                 </ul>
                 <p>The next figure shows a typical JSON document update
                 cycle.</p>
                 <figure>
                 <img
-                src="sections/devGuide/../../images/json-relational-duality-update-cycle.svg"
-                title="JSON Relational Duality - Update Cycle"
-                alt="JSON Relational Duality - Update Cycle" />
-                <figcaption aria-hidden="true">JSON Relational Duality -
-                Update Cycle</figcaption>
+                src="sections/devGuide/../../images/rest-view-update-cycle.svg"
+                title="REST VIEW - Update Cycle"
+                alt="REST VIEW - Update Cycle" />
+                <figcaption aria-hidden="true">REST VIEW - Update
+                Cycle</figcaption>
                 </figure>
                 <p>The database automatically detects the changes in the
                 new document and modifies the underlying rows, including
-                all nested tables. All duality views that share the same
-                data immediately reflect this change. This drastically
-                simplifies application development since developers no
-                longer have to worry about inconsistencies, compared to
-                using traditional document databases.</p>
+                all nested tables. All REST data mapping views that
+                share the same data immediately reflect this change.
+                This drastically simplifies application development
+                since developers no longer have to worry about
+                inconsistencies, compared to using traditional document
+                databases.</p>
                 <h2 data-number="6.2"
                 id="lock-free-optimistic-concurrency-control"><span
                 class="header-section-number">6.2</span> Lock-Free
                 Optimistic Concurrency Control</h2>
-                <p>Duality Views can be safely updated concurrently
-                without the use of locks. Objects fetched from the
-                database have a checksum computed, which is called ETag
-                and is included in the returned object, in the
-                <code>_metadata.etag</code> field.</p>
+                <p>REST data mapping views can be safely updated
+                concurrently without the use of locks. Objects fetched
+                from the database have a checksum computed, which is
+                called ETag and is included in the returned object, in
+                the <code>_metadata.etag</code> field.</p>
                 <p>When that object is submitted back to MRS to be
                 updated (via PUT), the ETag of the original object is
                 compared to the current version of the ETag. If the rows
@@ -1860,62 +1861,63 @@ router_id=16</code></pre>
                 the PUT would result in error
                 <code>412 Precondition Failed</code>.</p>
                 <h2 data-number="6.3"
-                id="interactive-duality-view-design"><span
+                id="interactive-rest-view-design"><span
                 class="header-section-number">6.3</span> Interactive
-                Duality View Design</h2>
-                <p>While REST duality views can be created by manually
-                writing <a
-                href="sql.html#create-rest-duality-view">CREATE REST
-                DUALITY VIEW</a> MRS DDL statements, it is often much
-                easier to design REST duality views in a visual
+                REST View Design</h2>
+                <p>While REST data mapping views can be created by
+                manually writing <a
+                href="sql.html#create-rest-view">CREATE REST DATA
+                MAPPING VIEW</a> MRS DDL statements, it is often much
+                easier to design REST data mapping views in a visual
                 editor.</p>
                 <p><a
                 href="https://marketplace.visualstudio.com/items?itemName=Oracle.mysql-shell-for-vs-code">MySQL
                 Shell for VS Code</a> includes the MySQL REST Object
                 dialog which features an advanced
-                <code>JSON/Relational Duality</code> designer. Using
-                this designer it is possible to create even complex,
-                nested REST duality views within seconds.</p>
+                <code>Data Mapping</code> designer. Using this designer
+                it is possible to create even complex, nested REST data
+                mapping views within seconds.</p>
                 <p>The <code>DDL Preview</code> button allows to preview
                 the corresponding MRS DDL statement while interactively
-                designing the REST duality view.</p>
+                designing the REST data mapping view.</p>
                 <h3 data-number="6.3.1"
-                id="building-a-jsonrelational-duality-view"><span
+                id="building-a-rest-data-mapping-view"><span
                 class="header-section-number">6.3.1</span> Building a
-                JSON/Relational Duality View</h3>
-                <p>Building a REST duality view for a single relational
-                table (or view) is straight forward. Using MySQL Shell
-                for VS Code to <a
+                REST Data Mapping View</h3>
+                <p>Building a REST data mapping view for a single
+                relational table (or view) is straight forward. Using
+                MySQL Shell for VS Code to <a
                 href="adding-a-schema-object-with-mysql-shell-for-vs-code-ui">add
                 the database schema table</a> automatically creates the
-                corresponding REST duality view containing all columns
-                of the table in a <strong>flat</strong> JSON object.</p>
+                corresponding REST data mapping view containing all
+                columns of the table in a <strong>flat</strong> JSON
+                object.</p>
                 <figure>
                 <img
-                src="sections/devGuide/../../images/vsc-mrs-json-relational-editor.svg"
-                title="JSON Relational Editor"
+                src="sections/devGuide/../../images/vsc-mrs-rest-object-editor.svg"
+                title="REST Object Editor"
                 alt="JSON Relational Editor" />
                 <figcaption aria-hidden="true">JSON Relational
                 Editor</figcaption>
                 </figure>
                 <p>Adding the database schema table via VS Code is equal
                 to calling the <a
-                href="sql.html#create-rest-duality-view">CREATE REST
-                DUALITY VIEW</a> MRS DDL statement without a
+                href="sql.html#create-rest-view">CREATE REST DATA
+                MAPPING VIEW</a> MRS DDL statement without a
                 <code>graphQlObj</code> definition, which also adds all
                 columns of the table as a <strong>flat</strong> JSON
                 object.</p>
                 <div class="sourceCode" id="cb28"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="kw">AS</span> `sakila`.`city`</span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>AUTHENTICATION REQUIRED;</span>
 <span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city;</span></code></pre></div>
                 <div class="sourceCode" id="cb29"><pre
                 class="sourceCode txt"><code class="sourceCode default"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>+-----------------------------------------------+</span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>| CREATE REST DUALITY VIEW                      |</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>| CREATE REST VIEW                              |</span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>+-----------------------------------------------+</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>| CREATE OR REPLACE REST DUALITY VIEW /city     |</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>| CREATE OR REPLACE REST VIEW /city             |</span>
 <span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>|     ON SERVICE /myTestService SCHEMA /sakila  |</span>
 <span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>|     AS sakila.city {                          |</span>
 <span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>|         cityId: city_id,                      |</span>
@@ -1950,7 +1952,7 @@ router_id=16</code></pre>
                 <p>The same can be achieved by using annotations in the
                 MRS DDL statement.</p>
                 <div class="sourceCode" id="cb30"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="kw">AS</span> `sakila`.`city` @INSERT @UPDATE @DELETE</span>
 <span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>AUTHENTICATION REQUIRED;</span></code></pre></div>
                 <p>The following table shows the mapping between CRUD
@@ -1987,16 +1989,16 @@ router_id=16</code></pre>
                 </tbody>
                 </table>
                 <h3 data-number="6.3.2"
-                id="creating-a-nested-jsonrelational-duality-view"><span
+                id="creating-a-nested-rest-data-mapping-view"><span
                 class="header-section-number">6.3.2</span> Creating a
-                Nested JSON/Relational Duality View</h3>
+                Nested REST Data Mapping View</h3>
                 <p>By enabling a referenced table, the columns of that
                 table are included as a nested entry in the JSON result.
                 Please note that this works with 1:1 and 1:n
                 relationships.</p>
                 <figure>
                 <img
-                src="sections/devGuide/../../images/vsc-mrs-json-relational-editor-2-referenced-table.png"
+                src="sections/devGuide/../../images/vsc-mrs-rest-object-editor-2-referenced-table.png"
                 title="Adding a Referenced Table"
                 alt="Adding a Referenced Table" />
                 <figcaption aria-hidden="true">Adding a Referenced
@@ -2027,16 +2029,16 @@ router_id=16</code></pre>
 <span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
 <span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
                 <h3 data-number="6.3.3"
-                id="creating-a-jsonrelational-duality-view-with-an-unnested-referenced-table"><span
+                id="creating-a-rest-data-mapping-view-with-an-unnested-referenced-table"><span
                 class="header-section-number">6.3.3</span> Creating a
-                JSON/Relational Duality View with an Unnested Referenced
+                REST Data Mapping View with an Unnested Referenced
                 Table</h3>
                 <p>If the columns of the referenced table should be
                 added to the level above, the <code>Unnest</code> option
                 can be enabled.</p>
                 <figure>
                 <img
-                src="sections/devGuide/../../images/vsc-mrs-json-relational-editor-3-referenced-table-unnested.png"
+                src="sections/devGuide/../../images/vsc-mrs-rest-object-editor-3-referenced-table-unnested.png"
                 title="Unnest a Referenced Table"
                 alt="Unnest a Referenced Table" />
                 <figcaption aria-hidden="true">Unnest a Referenced
@@ -2063,9 +2065,9 @@ router_id=16</code></pre>
 <span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
 <span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
                 <h3 data-number="6.3.4"
-                id="creating-a-jsonrelational-duality-view-with-a-reduced-referenced-table"><span
+                id="creating-a-rest-data-mapping-view-with-a-reduced-referenced-table"><span
                 class="header-section-number">6.3.4</span> Creating a
-                JSON/Relational Duality View with a Reduced Referenced
+                REST Data Mapping View with a Reduced Referenced
                 Table</h3>
                 <p>Instead of having all columns unnested and disabling
                 all columns that are not wanted, the
@@ -2074,7 +2076,7 @@ router_id=16</code></pre>
                 operation.</p>
                 <figure>
                 <img
-                src="sections/devGuide/../../images/vsc-mrs-json-relational-editor-4-referenced-table-reduced.png"
+                src="sections/devGuide/../../images/vsc-mrs-rest-object-editor-4-referenced-table-reduced.png"
                 title="A Reduced Referenced Table"
                 alt="A Reduced Referenced Table" />
                 <figcaption aria-hidden="true">A Reduced Referenced
@@ -2345,7 +2347,7 @@ router_id=16</code></pre>
                 <li>Whether row ownership should be enforced to enable
                 row level security</li>
                 </ul></li>
-                <li>JSON/Relation Duality
+                <li>Data Mapping
                 <ul>
                 <li>Which columns of the database schema object should
                 be exposed and how they should be named</li>

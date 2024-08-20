@@ -252,7 +252,7 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
         const mrsObjectSection: IDialogSection = {
             caption: (this.requestValue.objectType === MrsDbObjectType.Procedure ||
                 this.requestValue.objectType === MrsDbObjectType.Function)
-                ? "Parameters/Result Sets" : "JSON/Relational Duality",
+                ? "Parameters/Result Sets" : "Data Mapping",
             groupName: "group1",
             expand: true,
             values: {

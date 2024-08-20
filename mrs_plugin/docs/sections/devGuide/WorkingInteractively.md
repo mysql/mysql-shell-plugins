@@ -25,7 +25,7 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 MySQL Shell for VS Code features a live, interactive workflow for designing REST Services.
 
-It allows developers to immediately test their newly created or modified REST duality views and REST procedures by using the MRS SDK TypeScript client API right from within a DB Notebook.
+It allows developers to immediately test their newly created or modified REST data mapping views and REST procedures by using the MRS SDK TypeScript client API right from within a DB Notebook.
 
 **_Preconditions for The Interactive Workflow_**
 

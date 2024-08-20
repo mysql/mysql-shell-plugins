@@ -137,15 +137,15 @@ The following example lists all REST schemas of the REST service using the reque
 SHOW REST SERVICES FROM /myService;
 ```
 
-## SHOW REST DUALITY VIEWS
+## SHOW REST VIEWS
 
-The `SHOW REST DUALITY VIEWS` statement lists all available REST duality views of the given or current REST schema.
+The `SHOW REST DATA MAPPING VIEWS` statement lists all available REST data mapping views of the given or current REST schema.
 
 **_SYNTAX_**
 
 ```antlr
 showRestViewsStatement:
-    SHOW REST JSON? RELATIONAL? DUALITY? VIEWS (
+    SHOW REST DATA? MAPPING? VIEWS (
         (IN | FROM) serviceSchemaSelector
     )?
 ;
@@ -163,10 +163,10 @@ serviceSchemaSelector ::=
 
 **_Examples_**
 
-The following example lists all REST duality views of the given REST schema.
+The following example lists all REST data mapping views of the given REST schema.
 
 ```sql
-SHOW REST DUALITY VIEWS FROM SERVICE /myService SCHEMA /sakila;
+SHOW REST VIEWS FROM SERVICE /myService SCHEMA /sakila;
 ```
 
 ## SHOW REST PROCEDURES
@@ -323,16 +323,15 @@ The following example shows the DDL statement for the given REST schema.
 SHOW CREATE REST SCHEMA /sakila FROM /myService;
 ```
 
-## SHOW CREATE REST DUALITY VIEW
+## SHOW CREATE REST VIEW
 
-The `SHOW CREATE REST DUALITY VIEW` statement shows the corresponding DDL statement for the given REST duality view.
+The `SHOW CREATE REST DATA MAPPING VIEW` statement shows the corresponding DDL statement for the given REST data mapping view.
 
 **_SYNTAX_**
 
 ```antlr
 showCreateRestViewStatement:
-    SHOW CREATE REST JSON? RELATIONAL? DUALITY?
-        VIEW viewRequestPath (
+    SHOW CREATE REST DATA? MAPPING? VIEW viewRequestPath (
         (ON | FROM) serviceSchemaSelector
     )?
 ;
@@ -350,10 +349,10 @@ serviceSchemaSelector ::=
 
 **_Examples_**
 
-The following example shows the DDL statement for the given REST duality view.
+The following example shows the DDL statement for the given REST data mapping view.
 
 ```sql
-SHOW CREATE REST DUALITY VIEW /city ON SERVICE /myService SCHEMA /sakila;
+SHOW CREATE REST VIEW /city ON SERVICE /myService SCHEMA /sakila;
 ```
 
 ## SHOW CREATE REST PROCEDURE

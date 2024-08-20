@@ -25,7 +25,7 @@
 import { WebElement, Key } from "vscode-extension-tester";
 import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import clipboard from "clipboardy";
-import { existsSync, readFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync } from "fs";
 import { spawnSync, execSync } from "child_process";
 import fs from "fs/promises";
 import { platform } from "os";
@@ -162,6 +162,7 @@ export class Os {
             "window1",
             "exthost",
         );
+
         const folders = await fs.readdir(pathToLog);
         let outputLogging: string;
         for (const folder of folders) {
@@ -170,15 +171,31 @@ export class Os {
                 break;
             }
         }
-        pathToLog = join(
-            testResources,
-            "settings",
-            "logs",
-            variableFolder[0],
-            "window1",
-            "exthost",
-            outputLogging,
-        );
+
+        // Ensure there is always a pathToLog
+        if (!outputLogging) {
+            outputLogging = `output_logging_${todaysDate}`;
+            pathToLog = join(
+                testResources,
+                "settings",
+                "logs",
+                variableFolder[0],
+                "window1",
+                "exthost",
+                outputLogging,
+            );
+            mkdirSync(pathToLog);
+        } else {
+            pathToLog = join(
+                testResources,
+                "settings",
+                "logs",
+                variableFolder[0],
+                "window1",
+                "exthost",
+                outputLogging,
+            );
+        }
 
         return pathToLog;
     };

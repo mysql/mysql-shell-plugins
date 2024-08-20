@@ -32,7 +32,7 @@ service_create_statement = """CREATE REST SERVICE localhost/test
     COMMENTS "Test service";
 CREATE OR REPLACE REST SCHEMA /AnalogPhoneBook ON SERVICE localhost/test
     FROM `AnalogPhoneBook`;
-CREATE OR REPLACE REST DUALITY VIEW /Contacts
+CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE localhost/test SCHEMA /AnalogPhoneBook
     AS AnalogPhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
         id: id @SORTABLE,
@@ -44,7 +44,7 @@ CREATE OR REPLACE REST DUALITY VIEW /Contacts
     AUTHENTICATION REQUIRED;
 CREATE OR REPLACE REST SCHEMA /MobilePhoneBook ON SERVICE localhost/test
     FROM `MobilePhoneBook`;
-CREATE OR REPLACE REST DUALITY VIEW /Contacts
+CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE localhost/test SCHEMA /MobilePhoneBook
     AS MobilePhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
         id: id @SORTABLE,
@@ -56,7 +56,7 @@ CREATE OR REPLACE REST DUALITY VIEW /Contacts
     AUTHENTICATION REQUIRED;
 CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE localhost/test
     FROM `PhoneBook`;
-CREATE OR REPLACE REST DUALITY VIEW /Contacts
+CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE localhost/test SCHEMA /PhoneBook
     AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
         id: id @SORTABLE,
@@ -430,7 +430,7 @@ def test_dump_and_recover(phone_book, table_contents):
     };
 CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE localhost/test2
     FROM `PhoneBook`;
-CREATE OR REPLACE REST DUALITY VIEW /addresses
+CREATE OR REPLACE REST VIEW /addresses
     ON SERVICE localhost/test2 SCHEMA /PhoneBook2
     AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
         id: id

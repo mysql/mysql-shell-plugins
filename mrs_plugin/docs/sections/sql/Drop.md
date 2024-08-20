@@ -71,28 +71,28 @@ The following example drops a REST schema using the request path `/myService`.
 DROP REST SCHEMA /sakila FROM SERVICE /myService;
 ```
 
-## DROP REST DUALITY VIEW
+## DROP REST VIEW
 
-The `DROP REST DUALITY VIEW` statement is used to drop existing REST duality views.
+The `DROP REST DATA MAPPING VIEW` statement is used to drop existing REST data mapping views.
 
 **_SYNTAX_**
 
 ```antlr
-dropRestDualityViewStatement:
-    DROP REST JSON? RELATIONAL? DUALITY? VIEW
+dropRestViewStatement:
+    DROP REST DATA? MAPPING? VIEW
         viewRequestPath (FROM serviceSchemaSelector)?
 ;
 ```
 
-dropRestDualityViewStatement ::=
-![dropRestDualityViewStatement](../../images/sql/dropRestDualityViewStatement.svg "dropRestDualityViewStatement")
+dropRestViewStatement ::=
+![dropRestViewStatement](../../images/sql/dropRestViewStatement.svg "dropRestViewStatement")
 
 **_Examples_**
 
-The following example drops a REST duality view using the request path `/city`.
+The following example drops a REST data mapping view using the request path `/city`.
 
 ```sql
-DROP REST DUALITY VIEW /city
+DROP REST VIEW /city
 FROM SERVICE /myService SCHEMA /sakila;
 ```
 
