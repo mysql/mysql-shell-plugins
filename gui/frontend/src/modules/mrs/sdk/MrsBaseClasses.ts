@@ -737,7 +737,7 @@ export interface ICreateOptions<Type> {
 interface IFindCommonOptions<Item> {
     // "select" determines which fields are included in the result set.
     // It supports both an object with boolean toggles to select or ignore specific fields or an array of field names
-    // to include. Nested JSON/Relational duality fields can be specified using nested objects or with boolean toggles
+    // to include. Nested data mapping fields can be specified using nested objects or with boolean toggles
     // or an array with field names containing the full field path using dot "." notation
     /** Fields to include in the result set. */
     select?: BooleanFieldMapSelect<Item> | FieldNameSelect<Item>;

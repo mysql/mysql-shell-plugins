@@ -34,7 +34,7 @@ Please also see
 
 !include sections/devGuide/WorkingInteractively.md
 
-!include sections/devGuide/DualityViews.md
+!include sections/devGuide/RestViews.md
 
 !include sections/devGuide/DialogReference.md
 

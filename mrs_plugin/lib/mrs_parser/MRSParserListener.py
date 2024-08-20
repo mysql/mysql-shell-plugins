@@ -530,12 +530,12 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by MRSParser#dropRestDualityViewStatement.
-    def enterDropRestDualityViewStatement(self, ctx:MRSParser.DropRestDualityViewStatementContext):
+    # Enter a parse tree produced by MRSParser#dropRestViewStatement.
+    def enterDropRestViewStatement(self, ctx:MRSParser.DropRestViewStatementContext):
         pass
 
-    # Exit a parse tree produced by MRSParser#dropRestDualityViewStatement.
-    def exitDropRestDualityViewStatement(self, ctx:MRSParser.DropRestDualityViewStatementContext):
+    # Exit a parse tree produced by MRSParser#dropRestViewStatement.
+    def exitDropRestViewStatement(self, ctx:MRSParser.DropRestViewStatementContext):
         pass
 
 

@@ -27,7 +27,7 @@ MySQL supports foreign keys, which permit cross-referencing related data across 
 
 A foreign key relationship involves a parent table that holds the initial column values, and a child table with column values that reference the parent column values. A foreign key constraint is defined on the child table. Foreign keys enable establishing one-to-one, one-to-many or many-to-many relationships between rows in those tables.
 
-With the MySQL REST Service, these relationships can be expanded to include related data from different tables embedded in the same result set with the JSON Relational duality feature available for each MRS database object. The client can then select which columns should be expanded using a specific HTTP query syntax to specify and navigate along the nesting path of columns on other tables that are referenced by a root column in the main (or parent) table.
+With the MySQL REST Service, these relationships can be expanded to include related data from different tables embedded in the same result set with the REST data mapping view feature available for each MRS database object. The client can then select which columns should be expanded using a specific HTTP query syntax to specify and navigate along the nesting path of columns on other tables that are referenced by a root column in the main (or parent) table.
 
 A key feature of the MRS SDK is the ability to query these relations between two database objects and include or exclude specific columns from the query response.
 
@@ -39,7 +39,7 @@ This feature is available using the `select` option in the following API command
 
 By default, all the object fields (expanded or not) and their values are returned in the query response. Specific fields can be excluded from the query response using a plain object format in which the properties are the names of the fields to exclude and each value is `false`.
 
-With a setup using the [Sakila Sample Database](https://dev.mysql.com/doc/sakila/en/) where the schema is available under a REST service called `myService` and the relationship between the city and country tables (one-to-one) is expanded via the JSON/Relational duality feature, the `lastUpdate` and `country.lastUpdate` fields can be excluded as follows:
+With a setup using the [Sakila Sample Database](https://dev.mysql.com/doc/sakila/en/) where the schema is available under a REST service called `myService` and the relationship between the city and country tables (one-to-one) is expanded via the REST data mapping view feature, the `lastUpdate` and `country.lastUpdate` fields can be excluded as follows:
 
 ```TypeScript
 myService.sakila.city.findFirst({ select: { lastUpdate: false, country: { lastUpdate: false } } })

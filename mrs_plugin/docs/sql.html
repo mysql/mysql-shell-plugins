@@ -181,10 +181,10 @@
                                                 CREATE REST
                                                 SCHEMA</a></li>
                                                 <li><a
-                                                href="#create-rest-duality-view"
-                                                id="toc-create-rest-duality-view"><span
+                                                href="#create-rest-view"
+                                                id="toc-create-rest-view"><span
                                                 class="toc-section-number">2.4</span>
-                                                CREATE REST DUALITY
+                                                CREATE REST
                                                 VIEW</a></li>
                                                 <li><a
                                                 href="#create-rest-procedure"
@@ -235,11 +235,10 @@
                                                 ALTER REST
                                                 SCHEMA</a></li>
                                                 <li><a
-                                                href="#alter-rest-duality-view"
-                                                id="toc-alter-rest-duality-view"><span
+                                                href="#alter-rest-view"
+                                                id="toc-alter-rest-view"><span
                                                 class="toc-section-number">3.3</span>
-                                                ALTER REST DUALITY
-                                                VIEW</a></li>
+                                                ALTER REST VIEW</a></li>
                                                 <li><a
                                                 href="#alter-rest-procedure"
                                                 id="toc-alter-rest-procedure"><span
@@ -271,11 +270,10 @@
                                                 DROP REST
                                                 SCHEMA</a></li>
                                                 <li><a
-                                                href="#drop-rest-duality-view"
-                                                id="toc-drop-rest-duality-view"><span
+                                                href="#drop-rest-view"
+                                                id="toc-drop-rest-view"><span
                                                 class="toc-section-number">4.3</span>
-                                                DROP REST DUALITY
-                                                VIEW</a></li>
+                                                DROP REST VIEW</a></li>
                                                 <li><a
                                                 href="#drop-rest-procedure"
                                                 id="toc-drop-rest-procedure"><span
@@ -335,11 +333,10 @@
                                                 SHOW REST
                                                 SCHEMAS</a></li>
                                                 <li><a
-                                                href="#show-rest-duality-views"
-                                                id="toc-show-rest-duality-views"><span
+                                                href="#show-rest-views"
+                                                id="toc-show-rest-views"><span
                                                 class="toc-section-number">5.5</span>
-                                                SHOW REST DUALITY
-                                                VIEWS</a></li>
+                                                SHOW REST VIEWS</a></li>
                                                 <li><a
                                                 href="#show-rest-procedures"
                                                 id="toc-show-rest-procedures"><span
@@ -377,10 +374,10 @@
                                                 SHOW CREATE REST
                                                 SCHEMA</a></li>
                                                 <li><a
-                                                href="#show-create-rest-duality-view"
-                                                id="toc-show-create-rest-duality-view"><span
+                                                href="#show-create-rest-view"
+                                                id="toc-show-create-rest-view"><span
                                                 class="toc-section-number">5.12</span>
-                                                SHOW CREATE REST DUALITY
+                                                SHOW CREATE REST
                                                 VIEW</a></li>
                                                 <li><a
                                                 href="#show-create-rest-procedure"
@@ -489,7 +486,7 @@ Reference
                 <p>The following script configures the MySQL REST
                 Service, creates a new REST service
                 <code>/myService</code> and adds a REST schema
-                <code>/sakila</code> and a REST DUALITY VIEW
+                <code>/sakila</code> and a REST data mapping view
                 <code>/actor</code> that lists all actors and their film
                 titles.</p>
                 <div class="sourceCode" id="cb1"><pre
@@ -501,7 +498,7 @@ Reference
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> `sakila`;</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>actor</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>actor</span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">AS</span> `sakila`.`actor` {</span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    actorId: actor_id @SORTABLE,</span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    firstName: first_name,</span>
@@ -1226,9 +1223,10 @@ requestPathIdentifier:
                 <blockquote>
                 <p>Note: Adding a REST schema to a REST service does not
                 automatically expose any database schema objects via
-                REST. The corresponding <code>CREATE REST TABLE</code>,
-                <code>CREATE REST DUALITY VIEW</code>,
-                <code>CREATE REST PROCEDURE</code> ddl commands need to
+                REST. The corresponding
+                <code>CREATE REST DATA MAPPING VIEW</code>,
+                <code>CREATE REST PROCEDURE</code>,
+                <code>CREATE REST FUNCTION</code> ddl commands need to
                 be called to explicitly expose a database schema
                 object.</p>
                 </blockquote>
@@ -1368,29 +1366,28 @@ restSchemaOptions: (
                 <pre class="antlr"><code>metadata:
     METADATA_SYMBOL jsonValue
 ;</code></pre>
-                <h2 data-number="2.4"
-                id="create-rest-duality-view"><span
+                <h2 data-number="2.4" id="create-rest-view"><span
                 class="header-section-number">2.4</span> CREATE REST
-                DUALITY VIEW</h2>
-                <p>The <code>CREATE REST DUALITY VIEW</code> statement
-                is used to add REST endpoints for database schema tables
-                or views. They will be served as JSON duality views.</p>
+                VIEW</h2>
+                <p>The <code>CREATE REST DATA MAPPING VIEW</code>
+                statement is used to add REST endpoints for database
+                schema tables or views. Their data will be served as
+                JSON documents.</p>
                 <p>The structure of the served JSON documents is defined
                 using an <a
-                href="#defining-the-graphql-definition-for-a-rest-duality-view">extended
+                href="#defining-the-graphql-definition-for-a-rest-view">extended
                 GraphQL syntax</a>. This allows to define even complex
-                REST duality views in a simple and human readable way.
-                Please see the corresponding <a
-                href="#defining-the-graphql-definition-for-a-rest-duality-view">GraphQL
+                REST data mapping views in a simple and human readable
+                way. Please see the corresponding <a
+                href="#defining-the-graphql-definition-for-a-rest-view">GraphQL
                 section</a> about how to design the GraphQL definition
-                for a REST duality view.</p>
+                for a REST data mapping view.</p>
                 <p>Please see the MRS Developer’s Guide to learn more
-                about <a href="index.html#json-duality-views">JSON
-                duality views</a>.</p>
+                about <a href="index.html#json-data-mapping-views">JSON
+                data mapping views</a>.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>createRestViewStatement:
-    CREATE (OR REPLACE)? REST JSON? RELATIONAL?
-        DUALITY? VIEW viewRequestPath (
+    CREATE (OR REPLACE)? REST DATA? MAPPING? VIEW viewRequestPath (
         ON serviceSchemaSelector
     )? AS qualifiedIdentifier (
         CLASS restObjectName
@@ -1425,10 +1422,11 @@ restObjectOptions: (
                 src="sections/sql/../../images/sql/restObjectOptions.svg"
                 title="restObjectOptions" alt="restObjectOptions" /></p>
                 <p><strong><em>Examples</em></strong></p>
-                <p>The following example adds a REST duality view for
-                the <code>sakila.city</code> database schema table.</p>
+                <p>The following example adds a REST data mapping view
+                for the <code>sakila.city</code> database schema
+                table.</p>
                 <div class="sourceCode" id="cb31"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="kw">AS</span> `sakila`.`city` {</span>
 <span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
@@ -1437,8 +1435,8 @@ restObjectOptions: (
 <span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>    lastUpdate: last_update</span>
 <span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>AUTHENTICATION REQUIRED;</span></code></pre></div>
-                <p>Querying the REST duality view using the TypeScript
-                SDK returns the following JSON document.</p>
+                <p>Querying the REST data mapping view using the
+                TypeScript SDK returns the following JSON document.</p>
                 <div class="sourceCode" id="cb32"><pre
                 class="sourceCode ts"><code class="sourceCode typescript"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>{</span>
@@ -1457,10 +1455,10 @@ restObjectOptions: (
 <span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>   }</span>
 <span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
                 <p>The next example adds the referenced table
-                <code>sakila.country</code> to the REST duality
+                <code>sakila.country</code> to the REST data mapping
                 view.</p>
                 <div class="sourceCode" id="cb33"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
 <span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="kw">AS</span> `sakila`.`city` {</span>
 <span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
@@ -1474,9 +1472,9 @@ restObjectOptions: (
 <span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>    }</span>
 <span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>AUTHENTICATION REQUIRED;</span></code></pre></div>
-                <p>This is what the REST duality view looks like in the
-                interactive MySQL REST Object Dialog in the MySQL Shell
-                for VS Code extension.</p>
+                <p>This is what the REST data mapping view looks like in
+                the interactive MySQL REST Object Dialog in the MySQL
+                Shell for VS Code extension.</p>
                 <figure>
                 <img
                 src="sections/sql/../../images/vsc-mrs-json-relational-editor-2-referenced-table.png"
@@ -1512,7 +1510,7 @@ restObjectOptions: (
                 <h3 data-number="2.4.1" id="preconditions"><span
                 class="header-section-number">2.4.1</span>
                 Preconditions</h3>
-                <p>You define a REST duality view against a set of
+                <p>You define a REST data mapping view against a set of
                 tables related by primary key (PK), foreign key (FK) or
                 unique key constraints (UK). The following rules
                 apply:</p>
@@ -1529,20 +1527,20 @@ restObjectOptions: (
                 created.</li>
                 <li>Tables with a 1-to-N relationship create a nested
                 JSON array.</li>
-                <li>Each item in the duality view is one JSON object,
-                which is typically a hierarchy of nested objects and
-                arrays.</li>
+                <li>Each item in the data mapping view is one JSON
+                object, which is typically a hierarchy of nested objects
+                and arrays.</li>
                 <li>Each application object is built from values
                 originating from one or multiple rows from the
                 underlying tables of that view. Typically, each table
                 contributes to one (nested) JSON object.</li>
                 </ul>
                 <h3 data-number="2.4.2"
-                id="enabling-or-disabling-a-rest-duality-view-at-creation-time"><span
+                id="enabling-or-disabling-a-rest-view-at-creation-time"><span
                 class="header-section-number">2.4.2</span> Enabling or
-                Disabling a REST Duality View at Creation Time</h3>
+                Disabling a REST View at Creation Time</h3>
                 <p>The <code>enabledDisabled</code> option specifies
-                whether the REST duality view should be enabled or
+                whether the REST data mapping view should be enabled or
                 disabled when it is created.</p>
                 <pre class="antlr"><code>enabledDisabled:
     ENABLED
@@ -1552,12 +1550,12 @@ restObjectOptions: (
                 src="sections/sql/../../images/sql/enabledDisabled.svg"
                 title="enabledDisabled" alt="enabledDisabled" /></p>
                 <h3 data-number="2.4.3"
-                id="requiring-authentication-for-rest-duality-views"><span
+                id="requiring-authentication-for-rest-views"><span
                 class="header-section-number">2.4.3</span> Requiring
-                Authentication for REST Duality Views</h3>
+                Authentication for REST Views</h3>
                 <p>The <code>authenticationRequired</code> option
-                specifies if a REST duality view requires authentication
-                before accessing its REST endpoints.</p>
+                specifies if a REST data mapping view requires
+                authentication before accessing its REST endpoints.</p>
                 <pre class="antlr"><code>authenticationRequired:
     AUTHENTICATION NOT? REQUIRED
 ;</code></pre>
@@ -1566,12 +1564,12 @@ restObjectOptions: (
                 title="authenticationRequired"
                 alt="authenticationRequired" /></p>
                 <h3 data-number="2.4.4"
-                id="specifying-the-page-count-for-rest-duality-views"><span
+                id="specifying-the-page-count-for-rest-views"><span
                 class="header-section-number">2.4.4</span> Specifying
-                the Page Count for REST Duality Views</h3>
+                the Page Count for REST Views</h3>
                 <p>The <code>itemsPerPage</code> option can be used to
                 specify the number of items returned for queries run
-                against the REST duality view.</p>
+                against the REST data mapping view.</p>
                 <pre class="antlr"><code>itemsPerPage:
     ITEMS PER PAGE itemsPerPageNumber
 ;</code></pre>
@@ -1581,11 +1579,11 @@ restObjectOptions: (
                 <p>The number of items per page can also be specified
                 for each REST object individually.</p>
                 <h3 data-number="2.4.5"
-                id="setting-the-media-type-for-rest-duality-views"><span
+                id="setting-the-media-type-for-rest-views"><span
                 class="header-section-number">2.4.5</span> Setting the
-                Media Type for REST Duality Views</h3>
-                <p>If this REST duality view returns a specific MIME
-                type it can be set via the
+                Media Type for REST Views</h3>
+                <p>If this REST data mapping view returns a specific
+                MIME type it can be set via the
                 <code>restViewMediaType</code> option. If MRS should try
                 to automatically detect the file type based on the
                 content of the file the <code>AUTODETECT</code> option
@@ -1597,11 +1595,11 @@ restObjectOptions: (
                 src="sections/sql/../../images/sql/restViewMediaType.svg"
                 title="restViewMediaType" alt="restViewMediaType" /></p>
                 <h3 data-number="2.4.6"
-                id="setting-the-result-format-for-rest-duality-views"><span
+                id="setting-the-result-format-for-rest-views"><span
                 class="header-section-number">2.4.6</span> Setting the
-                Result Format for REST Duality Views</h3>
-                <p>A REST duality view can return one of the following
-                formats which can be set with the
+                Result Format for REST Views</h3>
+                <p>A REST data mapping view can return one of the
+                following formats which can be set with the
                 <code>restViewFormat</code> option.</p>
                 <ul>
                 <li>FEED: A list of result JSON objects</li>
@@ -1617,15 +1615,14 @@ restObjectOptions: (
                 src="sections/sql/../../images/sql/restViewFormat.svg"
                 title="restViewFormat" alt="restViewFormat" /></p>
                 <h3 data-number="2.4.7"
-                id="using-a-custom-authentication-procedure-for-a-rest-duality-view"><span
+                id="using-a-custom-authentication-procedure-for-a-rest-view"><span
                 class="header-section-number">2.4.7</span> Using a
-                Custom Authentication Procedure for a REST Duality
-                View</h3>
+                Custom Authentication Procedure for a REST View</h3>
                 <p>In case the built in authentication handling does not
-                cover the specific use case for a REST duality view, a
-                custom MySQL stored procedure can be used to handle the
-                authentication check for the given user and the
-                requested CRUD operation.</p>
+                cover the specific use case for a REST data mapping
+                view, a custom MySQL stored procedure can be used to
+                handle the authentication check for the given user and
+                the requested CRUD operation.</p>
                 <p>The referenced MySQL stored procedure has to be in
                 the same schema as the database schema object and it has
                 to accept the following parameters:
@@ -1637,9 +1634,9 @@ restObjectOptions: (
                 title="restViewAuthenticationProcedure"
                 alt="restViewAuthenticationProcedure" /></p>
                 <h3 data-number="2.4.8"
-                id="defining-the-graphql-definition-for-a-rest-duality-view"><span
+                id="defining-the-graphql-definition-for-a-rest-view"><span
                 class="header-section-number">2.4.8</span> Defining the
-                GraphQL definition for a REST Duality View</h3>
+                GraphQL definition for a REST View</h3>
                 <pre class="antlr"><code>graphQlObj:
     OPEN_CURLY graphQlPair (COMMA graphQlPair)* CLOSE_CURLY
     | OPEN_CURLY CLOSE_CURLY
@@ -1689,10 +1686,9 @@ graphQlValue:
                 <p>graphQlValue ::= <img
                 src="sections/sql/../../images/sql/graphQlValue.svg"
                 title="graphQlValue" alt="graphQlValue" /></p>
-                <h3 data-number="2.4.9"
-                id="rest-duality-view-metadata"><span
-                class="header-section-number">2.4.9</span> REST Duality
-                View Metadata</h3>
+                <h3 data-number="2.4.9" id="rest-view-metadata"><span
+                class="header-section-number">2.4.9</span> REST View
+                Metadata</h3>
                 <p>The metadata can hold any JSON data. It can later be
                 consumed by a front end implementation to dynamically
                 render certain attributes, like a specific icon or a
@@ -1706,11 +1702,11 @@ graphQlValue:
                 <p>The <code>CREATE REST PROCEDURE</code> statement is
                 used to add REST endpoints for database schema stored
                 procedures. It uses the same <a
-                href="#defining-the-graphql-definition-for-a-rest-duality-view">extended
-                GraphQL syntax</a> as defined for REST duality views to
-                describe the REST procedure’s parameters and result
-                sets. Please make sure to study the <a
-                href="#defining-the-graphql-definition-for-a-rest-duality-view">corresponding
+                href="#defining-the-graphql-definition-for-a-rest-view">extended
+                GraphQL syntax</a> as defined for REST data mapping
+                views to describe the REST procedure’s parameters and
+                result sets. Please make sure to study the <a
+                href="#defining-the-graphql-definition-for-a-rest-view">corresponding
                 section</a>.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>createRestProcedureStatement:
@@ -1761,11 +1757,11 @@ restProcedureResult:
                 <p>The <code>CREATE REST FUNCTION</code> statement is
                 used to add REST endpoints for database schema stored
                 function. It uses the same <a
-                href="#defining-the-graphql-definition-for-a-rest-duality-view">extended
-                GraphQL syntax</a> as defined for REST duality views to
-                describe the REST functions’s parameters and result.
-                Please make sure to study the <a
-                href="#defining-the-graphql-definition-for-a-rest-duality-view">corresponding
+                href="#defining-the-graphql-definition-for-a-rest-view">extended
+                GraphQL syntax</a> as defined for REST data mapping
+                views to describe the REST functions’s parameters and
+                result. Please make sure to study the <a
+                href="#defining-the-graphql-definition-for-a-rest-view">corresponding
                 section</a>.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>createRestFunctionStatement:
@@ -2003,21 +1999,22 @@ restSchemaOptions: (
                 <div class="sourceCode" id="cb50"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
 <span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">NEW</span> REQUEST PATH <span class="op">/</span>myPublicService;</span></code></pre></div>
-                <h2 data-number="3.3" id="alter-rest-duality-view"><span
+                <h2 data-number="3.3" id="alter-rest-view"><span
                 class="header-section-number">3.3</span> ALTER REST
-                DUALITY VIEW</h2>
-                <p>The <code>ALTER REST DUALITY VIEW</code> statement is
-                used to alter existing REST duality views.</p>
+                VIEW</h2>
+                <p>The <code>ALTER REST DATA MAPPING VIEW</code>
+                statement is used to alter existing REST data mapping
+                views.</p>
                 <p>Please see the corresponding <a
-                href="#defining-the-graphql-definition-for-a-rest-duality-view">GraphQL
+                href="#defining-the-graphql-definition-for-a-rest-view">GraphQL
                 section</a> about how to design the GraphQL definition
-                for a REST duality view.</p>
+                for a REST data mapping view.</p>
                 <p>Please see the MRS Developer’s Guide to learn more
-                about <a href="index.html#json-duality-views">JSON
-                duality views</a>.</p>
+                about <a href="index.html#rest-views">JSON data mapping
+                views</a>.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>alterRestViewStatement:
-    ALTER REST JSON? RELATIONAL? DUALITY? VIEW
+    ALTER REST DATA? MAPPING? VIEW
         viewRequestPath (ON serviceSchemaSelector)? (
         NEW REQUEST PATH newViewRequestPath
     )? (
@@ -2053,11 +2050,11 @@ restObjectOptions: (
                 src="sections/sql/../../images/sql/restObjectOptions.svg"
                 title="restObjectOptions" alt="restObjectOptions" /></p>
                 <p><strong><em>Examples</em></strong></p>
-                <p>The following example alters a REST duality view for
-                the <code>sakila.city</code> database schema table and
-                sets a new list of fields.</p>
+                <p>The following example alters a REST data mapping view
+                for the <code>sakila.city</code> database schema table
+                and sets a new list of fields.</p>
                 <div class="sourceCode" id="cb52"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
 <span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity {</span>
 <span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
@@ -2070,11 +2067,11 @@ restObjectOptions: (
                 used to alter REST endpoints for database schema stored
                 procedures.</p>
                 <p>It uses the same <a
-                href="#defining-the-graphql-definition-for-a-rest-duality-view">extended
-                GraphQL syntax</a> as defined for REST duality views to
-                describe the REST procedure’s parameters and result
-                sets. Please make sure to study the <a
-                href="#defining-the-graphql-definition-for-a-rest-duality-view">corresponding
+                href="#defining-the-graphql-definition-for-a-rest-view">extended
+                GraphQL syntax</a> as defined for REST data mapping
+                views to describe the REST procedure’s parameters and
+                result sets. Please make sure to study the <a
+                href="#defining-the-graphql-definition-for-a-rest-view">corresponding
                 section</a>.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>alterRestProcedureStatement:
@@ -2119,11 +2116,11 @@ restObjectOptions: (
                 used to alter REST endpoints for database schema stored
                 functions.</p>
                 <p>It uses the same <a
-                href="#defining-the-graphql-definition-for-a-rest-duality-view">extended
-                GraphQL syntax</a> as defined for REST duality views to
-                describe the REST procedure’s parameters and result
-                sets. Please make sure to study the <a
-                href="#defining-the-graphql-definition-for-a-rest-duality-view">corresponding
+                href="#defining-the-graphql-definition-for-a-rest-view">extended
+                GraphQL syntax</a> as defined for REST data mapping
+                views to describe the REST procedure’s parameters and
+                result sets. Please make sure to study the <a
+                href="#defining-the-graphql-definition-for-a-rest-view">corresponding
                 section</a>.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>alterRestFunctionStatement:
@@ -2223,25 +2220,26 @@ restObjectOptions: (
                 request path <code>/myService</code>.</p>
                 <div class="sourceCode" id="cb58"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
-                <h2 data-number="4.3" id="drop-rest-duality-view"><span
+                <h2 data-number="4.3" id="drop-rest-view"><span
                 class="header-section-number">4.3</span> DROP REST
-                DUALITY VIEW</h2>
-                <p>The <code>DROP REST DUALITY VIEW</code> statement is
-                used to drop existing REST duality views.</p>
+                VIEW</h2>
+                <p>The <code>DROP REST DATA MAPPING VIEW</code>
+                statement is used to drop existing REST data mapping
+                views.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
-                <pre class="antlr"><code>dropRestDualityViewStatement:
-    DROP REST JSON? RELATIONAL? DUALITY? VIEW
+                <pre class="antlr"><code>dropRestViewStatement:
+    DROP REST DATA? MAPPING? VIEW
         viewRequestPath (FROM serviceSchemaSelector)?
 ;</code></pre>
-                <p>dropRestDualityViewStatement ::= <img
-                src="sections/sql/../../images/sql/dropRestDualityViewStatement.svg"
-                title="dropRestDualityViewStatement"
-                alt="dropRestDualityViewStatement" /></p>
+                <p>dropRestViewStatement ::= <img
+                src="sections/sql/../../images/sql/dropRestViewStatement.svg"
+                title="dropRestViewStatement"
+                alt="dropRestViewStatement" /></p>
                 <p><strong><em>Examples</em></strong></p>
-                <p>The following example drops a REST duality view using
-                the request path <code>/city</code>.</p>
+                <p>The following example drops a REST data mapping view
+                using the request path <code>/city</code>.</p>
                 <div class="sourceCode" id="cb60"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
 <span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
                 <h2 data-number="4.4" id="drop-rest-procedure"><span
                 class="header-section-number">4.4</span> DROP REST
@@ -2437,15 +2435,15 @@ serviceAndSchemaRequestPaths:
                 <code>/myService</code>.</p>
                 <div class="sourceCode" id="cb75"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>SHOW REST SERVICES <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
-                <h2 data-number="5.5" id="show-rest-duality-views"><span
+                <h2 data-number="5.5" id="show-rest-views"><span
                 class="header-section-number">5.5</span> SHOW REST
-                DUALITY VIEWS</h2>
-                <p>The <code>SHOW REST DUALITY VIEWS</code> statement
-                lists all available REST duality views of the given or
-                current REST schema.</p>
+                VIEWS</h2>
+                <p>The <code>SHOW REST DATA MAPPING VIEWS</code>
+                statement lists all available REST data mapping views of
+                the given or current REST schema.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>showRestViewsStatement:
-    SHOW REST JSON? RELATIONAL? DUALITY? VIEWS (
+    SHOW REST DATA? MAPPING? VIEWS (
         (IN | FROM) serviceSchemaSelector
     )?
 ;
@@ -2462,10 +2460,10 @@ serviceSchemaSelector:
                 title="serviceSchemaSelector"
                 alt="serviceSchemaSelector" /></p>
                 <p><strong><em>Examples</em></strong></p>
-                <p>The following example lists all REST duality views of
-                the given REST schema.</p>
+                <p>The following example lists all REST data mapping
+                views of the given REST schema.</p>
                 <div class="sourceCode" id="cb77"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>SHOW REST DUALITY VIEWS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>SHOW REST VIEWS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
                 <h2 data-number="5.6" id="show-rest-procedures"><span
                 class="header-section-number">5.6</span> SHOW REST
                 PROCEDURES</h2>
@@ -2604,17 +2602,15 @@ serviceSchemaSelector:
                 given REST schema.</p>
                 <div class="sourceCode" id="cb88"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
-                <h2 data-number="5.12"
-                id="show-create-rest-duality-view"><span
+                <h2 data-number="5.12" id="show-create-rest-view"><span
                 class="header-section-number">5.12</span> SHOW CREATE
-                REST DUALITY VIEW</h2>
-                <p>The <code>SHOW CREATE REST DUALITY VIEW</code>
+                REST VIEW</h2>
+                <p>The <code>SHOW CREATE REST DATA MAPPING VIEW</code>
                 statement shows the corresponding DDL statement for the
-                given REST duality view.</p>
+                given REST data mapping view.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>showCreateRestViewStatement:
-    SHOW CREATE REST JSON? RELATIONAL? DUALITY?
-        VIEW viewRequestPath (
+    SHOW CREATE REST DATA? MAPPING? VIEW viewRequestPath (
         (ON | FROM) serviceSchemaSelector
     )?
 ;
@@ -2632,9 +2628,9 @@ serviceSchemaSelector:
                 alt="serviceSchemaSelector" /></p>
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example shows the DDL statement for the
-                given REST duality view.</p>
+                given REST data mapping view.</p>
                 <div class="sourceCode" id="cb90"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST DUALITY <span class="kw">VIEW</span> <span class="op">/</span>city <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
                 <h2 data-number="5.13"
                 id="show-create-rest-procedure"><span
                 class="header-section-number">5.13</span> SHOW CREATE

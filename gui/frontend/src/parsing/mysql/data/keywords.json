@@ -3120,11 +3120,7 @@
                 "reserved": false
             },
             {
-                "word": "RELATIONAL",
-                "reserved": false
-            },
-            {
-                "word": "DUALITY",
+                "word": "MAPPING",
                 "reserved": false
             },
             {
@@ -6446,11 +6442,7 @@
                 "reserved": false
             },
             {
-                "word": "RELATIONAL",
-                "reserved": false
-            },
-            {
-                "word": "DUALITY",
+                "word": "MAPPING",
                 "reserved": false
             },
             {

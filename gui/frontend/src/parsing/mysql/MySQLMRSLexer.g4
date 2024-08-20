@@ -1075,8 +1075,6 @@ REST_SYMBOL:        R E S T;
 METADATA_SYMBOL:    M E T A D A T A;
 SERVICES_SYMBOL:    S E R V I C E S;
 SERVICE_SYMBOL:     S E R V I C E;
-RELATIONAL_SYMBOL:  R E L A T I O N A L;
-DUALITY_SYMBOL:     D U A L I T Y;
 VIEWS_SYMBOL:       V I E W S;
 PROCEDURES_SYMBOL:  P R O C E D U R E S;
 PARAMETERS_SYMBOL:  P A R A M E T E R S;
@@ -1116,6 +1114,7 @@ REGISTER_SYMBOL:    R E G I S T E R;
 CLASS_SYMBOL:       C L A S S;
 DEVELOPMENT_SYMBOL: D E V E L O P M E N T;
 SCRIPTS_SYMBOL:     S C R I P T S;
+MAPPING_SYMBOL:     M A P P I N G;
 
 //----------------- GraphQL --------------------------------------------------------------------------------------------
 

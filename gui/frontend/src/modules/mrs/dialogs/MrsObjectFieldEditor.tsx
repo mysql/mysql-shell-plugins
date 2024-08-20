@@ -199,7 +199,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         }
     };
 
-    public static buildDualityViewSql = (data: IMrsObjectFieldEditorData): string | undefined => {
+    public static buildDataMappingViewSql = (data: IMrsObjectFieldEditorData): string | undefined => {
         const cutLastComma = (fields: string): string => {
             // Cut the last , away if present
             if (fields.endsWith(",\n")) {
@@ -304,7 +304,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             });
 
             if (mrsObject) {
-                view = `CREATE OR REPLACE REST DUALITY VIEW ${data.dbObject.requestPath}\n` +
+                view = `CREATE OR REPLACE REST VIEW ${data.dbObject.requestPath}\n` +
                     `    ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath}\n` +
                     `    AS ${data.dbSchemaName}.${data.dbObject.name} CLASS ${mrsObject.name}`;
 
@@ -409,7 +409,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             // Update the local DB Object reference if the DB Object has been updated by the main editor
             data.dbObject = getCurrentDbObject();
             // Build the SQL DDL statement
-            sql = MrsObjectFieldEditor.buildDualityViewSql(data) ?? "";
+            sql = MrsObjectFieldEditor.buildDataMappingViewSql(data) ?? "";
         }
 
         const mrsObject = this.findMrsObjectById(data.currentMrsObjectId);
@@ -667,7 +667,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         // Update the local DB Object reference if the DB Object has been updated by the main editor
         data.dbObject = getCurrentDbObject();
 
-        const text = MrsObjectFieldEditor.buildDualityViewSql(data) ?? "";
+        const text = MrsObjectFieldEditor.buildDataMappingViewSql(data) ?? "";
         requisitions.writeToClipboard(text);
     };
 

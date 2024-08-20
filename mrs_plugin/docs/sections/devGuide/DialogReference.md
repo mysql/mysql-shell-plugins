@@ -126,7 +126,7 @@ The following aspects can be set through the dialog.
   - The CRUD operations that are allowed
   - The CRUD operations that are allowed on referenced tables
   - Whether row ownership should be enforced to enable row level security
-- JSON/Relation Duality
+- Data Mapping
   - Which columns of the database schema object should be exposed and how they should be named
   - Which referenced tables should be included, either nested or unnested or reduced to a single field
 

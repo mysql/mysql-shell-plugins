@@ -130,7 +130,7 @@
 
 ### Fixes
 
-- Fixed MRS SQL generation of REST duality views
+- Fixed MRS SQL generation of REST data mapping views
 - Fixed typo in MRS grammar
 
 ## Changes in 1.13.4+8.1.1
@@ -173,7 +173,7 @@
 
 - MySQL HeadWave Service Endpoint Creation
 - Added support for MySQL REST Service (MRS) DDL execution
-- Added support for REST duality views
+- Added support for REST data mapping views
 - Added new MRS documentation
 - Add MRS SDK types for spatial columns
 - Added support for custom location of MySQL Router directory by setting environment variable MYSQL_ROUTER_CUSTOM_DIR
@@ -293,7 +293,7 @@
 
 ### Additions
 
-- JSON/Relational Duality support and SDK generation
+- REST data mapping view support and SDK generation
 
 ### Fixes
 

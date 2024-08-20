@@ -30,7 +30,7 @@ from .helpers import SchemaCT, DbObjectCT, get_default_db_object_init
 
 schema_create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE localhost/test
     FROM `PhoneBook`;
-CREATE OR REPLACE REST DUALITY VIEW /Contacts
+CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE localhost/test SCHEMA /PhoneBook
     AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
         id: id @SORTABLE,
@@ -326,7 +326,7 @@ def test_dump_create_statement(phone_book, table_contents):
 def test_dump_and_recover(phone_book, table_contents):
     create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE localhost/test
     FROM `PhoneBook`;
-CREATE OR REPLACE REST DUALITY VIEW /addresses
+CREATE OR REPLACE REST VIEW /addresses
     ON SERVICE localhost/test SCHEMA /PhoneBook2
     AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
         id: id

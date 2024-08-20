@@ -31,7 +31,7 @@ This makes the process of creating a MySQL REST Service for your application as 
 
 **_Example_**
 
-The following script configures the MySQL REST Service, creates a new REST service `/myService` and adds a REST schema `/sakila` and a REST DUALITY VIEW `/actor` that lists all actors and their film titles.
+The following script configures the MySQL REST Service, creates a new REST service `/myService` and adds a REST schema `/sakila` and a REST data mapping view `/actor` that lists all actors and their film titles.
 
 ```sql
 CONFIGURE REST METADATA;
@@ -42,7 +42,7 @@ USE REST SERVICE /myService;
 CREATE REST SCHEMA /sakila FROM `sakila`;
 USE REST SCHEMA /sakila;
 
-CREATE REST DUALITY VIEW /actor
+CREATE REST VIEW /actor
 AS `sakila`.`actor` {
     actorId: actor_id @SORTABLE,
     firstName: first_name,

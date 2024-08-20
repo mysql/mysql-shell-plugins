@@ -504,7 +504,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             mrs_object=mrs_object, request_path=mrs_object.get("request_path"))
 
         db_object_type = mrs_object.get("db_object_type")
-        type_caption = "DUALITY VIEW" if db_object_type == "TABLE" or db_object_type == "VIEW" else db_object_type
+        type_caption = "VIEW" if db_object_type == "TABLE" or db_object_type == "VIEW" else db_object_type
 
         with lib.core.MrsDbTransaction(self.session):
             try:
@@ -1804,7 +1804,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
     def showCreateRestDbObject(self, mrs_object: dict):
         timer = Timer()
-        # Keep in sync with the function buildDualityViewSql implemented in
+        # Keep in sync with the function buildDataMappingViewSql implemented in
         # ../../frontend/src/modules/mrs/dialogs/MrsObjectFieldEditor.tsx
 
         self.current_operation = mrs_object.pop("current_operation")
@@ -1840,10 +1840,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             if rest_object_type == "FUNCTION" and db_object.get("object_type") != "FUNCTION":
                 raise Exception(
                     f'The given REST object `{full_path}` is not a REST FUNCTION.')
-            if (rest_object_type == "DUALITY VIEW" and
+            if (rest_object_type == "VIEW" and
                     db_object.get("object_type") != "TABLE" and db_object.get("object_type") != "VIEW"):
                 raise Exception(
-                    f'The given REST object `{full_path}` is not a REST DUALITY VIEW.')
+                    f'The given REST object `{full_path}` is not a REST VIEW.')
 
             stmt = (f'CREATE OR REPLACE REST {rest_object_type} {db_object.get("request_path")}\n' +
                     f'    ON SERVICE {mrs_object.get("host_ctx")} SCHEMA {db_object.get("schema_request_path")}\n' +

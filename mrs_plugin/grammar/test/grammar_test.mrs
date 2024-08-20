@@ -104,7 +104,7 @@ ALTER REST SCHEMA /sakila2
 
 USE REST SCHEMA /sakila;
 
-CREATE OR REPLACE REST DUALITY VIEW /city
+CREATE OR REPLACE REST DATA MAPPING VIEW /city
 AS `sakila`.`city`;
 
 SHOW CREATE REST VIEW /city;
@@ -113,7 +113,7 @@ ALTER REST VIEW /city CLASS MyServiceSakilaCity2;
 
 SHOW CREATE REST VIEW /city;
 
-CREATE OR REPLACE REST DUALITY VIEW /city
+CREATE OR REPLACE REST DATA MAPPING VIEW /city
     AS sakila.city
     CLASS MyServiceSakilaCity {
         cityId: city_id,
@@ -129,7 +129,7 @@ CREATE OR REPLACE REST DUALITY VIEW /city
         }
     };
 
-CREATE OR REPLACE REST DUALITY VIEW /country
+CREATE OR REPLACE REST DATA MAPPING VIEW /country
 ON SERVICE localhost/myTestService SCHEMA /sakila
 AS sakila.country CLASS MyServiceSakilaCountry @INSERT @UPDATE @DELETE @NOCHECK {
     countryId: country_id @SORTABLE,
@@ -147,7 +147,7 @@ MEDIA TYPE "Test"
 FORMAT FEED
 AUTHENTICATION PROCEDURE sakila.auth_proc;
 
-CREATE OR REPLACE REST DUALITY VIEW /actor
+CREATE OR REPLACE REST DATA MAPPING VIEW /actor
 AS `sakila`.`actor` CLASS MyServiceSakilaActor {
     actorId: actor_id @SORTABLE,
     firstName: first_name,
@@ -160,7 +160,7 @@ AS `sakila`.`actor` CLASS MyServiceSakilaActor {
     }
 };
 
-CREATE REST DUALITY VIEW /actorInfo
+CREATE REST DATA MAPPING VIEW /actorInfo
 AS `sakila`.`actor_info` CLASS MyServiceSakilaActorInfo {
     actorId: actor_id @SORTABLE,
     firstName: first_name,
@@ -168,7 +168,7 @@ AS `sakila`.`actor_info` CLASS MyServiceSakilaActorInfo {
     filmInfo: film_info
 };
 
-ALTER REST DUALITY VIEW /actorInfo
+ALTER REST DATA MAPPING VIEW /actorInfo
 ON SERVICE localhost/myTestService SCHEMA /sakila
 DISABLED
 OPTIONS {
@@ -179,16 +179,16 @@ OPTIONS {
 }
 FORMAT ITEM;
 
-ALTER REST DUALITY VIEW /actorInfo
+ALTER REST DATA MAPPING VIEW /actorInfo
 NEW REQUEST PATH /actorInfo2
 CLASS MyServiceSakilaActorInfoTest;
 
-ALTER REST DUALITY VIEW /actorInfo2
+ALTER REST DATA MAPPING VIEW /actorInfo2
 NEW REQUEST PATH /actorInfo;
 
 SHOW CREATE REST VIEW /actorInfo;
 
-ALTER REST DUALITY VIEW /actorInfo
+ALTER REST DATA MAPPING VIEW /actorInfo
 CLASS MyServiceSakilaActorInfoTest2 @UPDATE @INSERT @DELETE {
     actorId: actor_id @SORTABLE,
     firstName: first_name
@@ -197,7 +197,7 @@ DISABLED;
 
 SHOW CREATE REST VIEW /actorInfo;
 
-ALTER REST DUALITY VIEW /actorInfo
+ALTER REST DATA MAPPING VIEW /actorInfo
 CLASS MyServiceSakilaActorInfoTest5 {
     actorId: actor_id @SORTABLE,
     firstName: first_name
@@ -284,7 +284,7 @@ SHOW REST SERVICES;
 
 SHOW REST SCHEMAS;
 
-SHOW REST DUALITY VIEWS
+SHOW REST DATA MAPPING VIEWS
     FROM SERVICE localhost/myTestService SCHEMA /sakila;
 
 SHOW REST PROCEDURES;
@@ -293,7 +293,7 @@ SHOW CREATE REST SERVICE localhost/myTestService;
 
 SHOW CREATE REST SCHEMA /sakila;
 
-SHOW CREATE REST DUALITY VIEW /actorInfo;
+SHOW CREATE REST DATA MAPPING VIEW /actorInfo;
 
 ALTER REST SCHEMA /sakila
 ON SERVICE localhost/myTestService
@@ -329,18 +329,18 @@ DROP REST AUTH APP "MRS";
 
 DROP REST AUTH APP "MySQL" FROM SERVICE localhost/myTestService;
 
-DROP REST DUALITY VIEW /country
+DROP REST DATA MAPPING VIEW /country
 FROM SERVICE localhost/myTestService SCHEMA /sakila;
 
-DROP REST DUALITY VIEW /actor;
+DROP REST DATA MAPPING VIEW /actor;
 
-DROP REST DUALITY VIEW /actorInfo;
+DROP REST DATA MAPPING VIEW /actorInfo;
 
 DROP REST PROCEDURE /filmInStock;
 
 DROP REST CONTENT SET /testContent;
 
-CREATE OR REPLACE REST DUALITY VIEW /moviesByLanguage
+CREATE OR REPLACE REST DATA MAPPING VIEW /moviesByLanguage
 ON SERVICE localhost/myTestService SCHEMA /sakila
 AS `sakila`.`language` {
     id: language_id,
@@ -350,7 +350,7 @@ AS `sakila`.`language` {
     }
 };
 
-DROP REST DUALITY VIEW /moviesByLanguage;
+DROP REST DATA MAPPING VIEW /moviesByLanguage;
 
 CREATE REST FUNCTION /actorFunc
 ON SERVICE localhost/myTestService SCHEMA /sakila
@@ -432,7 +432,7 @@ FROM `sakila`
     COMMENTS "The sakila schema"
     METADATA { "position": 1};
 
-CREATE OR REPLACE REST DUALITY VIEW /actor
+CREATE OR REPLACE REST DATA MAPPING VIEW /actor
 ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService SCHEMA /sakila
 AS `sakila`.`actor` CLASS MyServiceSakilaActor {
     actorId: actor_id @SORTABLE,
@@ -446,7 +446,7 @@ AS `sakila`.`actor` CLASS MyServiceSakilaActor {
     }
 };
 
-ALTER REST DUALITY VIEW /actor
+ALTER REST DATA MAPPING VIEW /actor
 ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService SCHEMA /sakila
 OPTIONS {
     "option1": "this is option 1",

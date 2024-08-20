@@ -407,7 +407,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "current_operation": f"""CREATE{
                 '' if ctx.REPLACE_SYMBOL() is None else ' OR REPLACE'
-            } REST DUALITY VIEW""",
+            } REST VIEW""",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
             "id": self.get_uuid(),
             "request_path": get_text_without_quotes(
@@ -1031,7 +1031,7 @@ class MrsDdlListener(MRSListener):
                 if ctx.newViewRequestPath() is not None else None)),
             "new_object_name": (
                 ctx.restObjectName().getText() if ctx.restObjectName() is not None else None),
-            "type": "DUALITY VIEW",
+            "type": "VIEW",
             "parent_reference_stack": []
         }
 
@@ -1156,15 +1156,15 @@ class MrsDdlListener(MRSListener):
     # ------------------------------------------------------------------------------------------------------------------
     # DROP REST VIEW
 
-    def enterDropRestDualityViewStatement(self, ctx):
+    def enterDropRestViewStatement(self, ctx):
         self.mrs_object = {
             "current_operation": "DROP REST VIEW",
             "request_path": get_text_without_quotes(
                 ctx.viewRequestPath().getText()),
-            "type": "DUALITY VIEW"
+            "type": "VIEW"
         }
 
-    def exitDropRestDualityViewStatement(self, ctx):
+    def exitDropRestViewStatement(self, ctx):
         self.mrs_ddl_executor.dropRestDbObject(self.mrs_object)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -1395,7 +1395,7 @@ class MrsDdlListener(MRSListener):
                 "SHOW CREATE REST VIEW",
             "request_path": get_text_without_quotes(
                 ctx.viewRequestPath().getText()),
-            "type": "DUALITY VIEW"
+            "type": "VIEW"
         }
 
     def exitShowCreateRestViewStatement(self, ctx):

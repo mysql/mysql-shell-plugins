@@ -60,7 +60,7 @@ Representational State Transfer (REST) is a style of software architecture for d
 | Feature | Description
 | --- | ----- |
 | MRS AutoREST | Enabling REST access to a table, view, or procedure allows it to be accessed through RESTful services. AutoREST is a quick and easy way to expose database tables as REST resources.|
-| JSON-Relational Duality Views | Duality views combine the advantages of relational schemas with the ease-of-use of document databases. They give your data a conceptual and an operational duality as it is organized both relationally and hierarchically. |
+| REST data mapping Views | REST data mapping views combine the advantages of relational schemas with the ease-of-use of document databases. They give your data a conceptual and an operational duality as it is organized both relationally and hierarchically. |
 | Serving Static Content | In addition to serving dynamic content using AutoREST it is possible to upload static content, like HTML, CSS, and image files. This feature is not meant to replace dedicated HTTP servers that support capabilities like server-side programming. It can aid the quick deployments of prototypes and proof-of-concept efforts that help bring ideas to life. |
 | End User Authentication | MRS supports a number of authentication methods, including MRS REST service specific authentication, native MySQL authentication and OAuth2 authentication (Sign in with FaceBook and Google)
 | End User Authorization | Built in support for row-level security, role based security, user-hierarchy based security, Group based security, Group-hierarchy based security as well as custom authorization support |
