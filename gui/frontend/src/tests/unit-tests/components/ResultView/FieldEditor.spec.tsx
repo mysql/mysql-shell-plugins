@@ -28,7 +28,6 @@ import { DBDataType, DialogResponseClosure, DialogType, IDialogRequest } from ".
 import { IDialogSection, IDialogValidations, IDialogValues } from "../../../../components/Dialogs/ValueEditDialog.js";
 import { FieldEditor, IFieldEditorData } from "../../../../components/ResultView/FieldEditor.js";
 import { DialogHelper, nextProcessTick } from "../../test-helpers.js";
-import { Image } from "../../../../components/ui/Image/Image.js";
 
 class TestFieldEditor extends FieldEditor {
     public testProcessResults = (dialogValues: IDialogValues): IDictionary => {
@@ -128,11 +127,11 @@ describe("FieldEditor basic tests", () => {
             <FieldEditor />,
         );
 
-        const request: IDialogValues = {
+        const dialogValues: IDialogValues = {
             sections: new Map<string, IDialogSection>([
                 ["mainSection", {
                     values: {
-                        dataType: { value: DBDataType.String, type: "type" },
+                        dataType: { value: DBDataType.String, type: "number" },
                         value: { value: "Test", type: "text" },
                     },
                 }],
@@ -141,7 +140,7 @@ describe("FieldEditor basic tests", () => {
 
         const testFieldEditor = new TestFieldEditor(component.instance().props);
 
-        const result = testFieldEditor.testProcessResults(request);
+        const result = testFieldEditor.testProcessResults(dialogValues);
 
         const expected = {
             dataType: DBDataType.String,
@@ -162,7 +161,7 @@ describe("FieldEditor basic tests", () => {
             sections: new Map<string, IDialogSection>([
                 ["mainSection", {
                     values: {
-                        dataType: { value: DBDataType.String, type: "type" },
+                        dataType: { value: DBDataType.String, type: "number" },
                         value: { value: "Test", type: "text" },
                     },
                 }],

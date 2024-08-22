@@ -27,7 +27,7 @@ import { mount } from "enzyme";
 
 import { screen, waitFor } from "@testing-library/preact";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../communication/MySQL.js";
-import { IDialogValidations, IDialogValues } from "../../../../components/Dialogs/ValueEditDialog.js";
+import { IDialogSection, IDialogValidations, IDialogValues } from "../../../../components/Dialogs/ValueEditDialog.js";
 import { ConnectionEditor } from "../../../../modules/db-editor/ConnectionEditor.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -95,7 +95,7 @@ describe("ConnectionEditor tests", (): void => {
 
     it("Test ConnectionEditor match snapshot", () => {
         const component = mount<ConnectionEditor>(
-            <ConnectionEditor connections={[]} onAddConnection={() => {}} onUpdateConnection={() => {}} />,
+            <ConnectionEditor connections={[]} onAddConnection={() => { }} onUpdateConnection={() => { }} />,
         );
 
         expect(component).toMatchSnapshot();
@@ -210,14 +210,14 @@ describe("ConnectionEditor tests", (): void => {
             sections: new Map([
                 ["general", {
                     values: {
-                        databaseType: { value: "" },
+                        databaseType: { value: "", type: "text" },
                     },
-                }],
+                } as IDialogSection],
                 ["information", {
                     values: {
-                        caption: { value: "Connection 1" },
+                        caption: { value: "Connection 1", type: "text" },
                     },
-                }],
+                } as IDialogSection],
                 ["mysqlDetails", {
                     values: {},
                 }],
@@ -250,19 +250,19 @@ describe("ConnectionEditor tests", (): void => {
             sections: new Map([
                 ["general", {
                     values: {
-                        databaseType: { value: "MySQL" },
+                        databaseType: { value: "MySQL", type: "text" },
                     },
-                }],
+                } as IDialogSection],
                 ["information", {
                     values: {
-                        caption: { value: "" },
+                        caption: { value: "", type: "text" },
                     },
                 }],
                 ["mysqlDetails", {
                     values: {
-                        port: { value: 3306 },
-                        hostName: { value: "localhost" },
-                        userName: { value: "user1" },
+                        port: { value: 3306, type: "number" },
+                        hostName: { value: "localhost", type: "text" },
+                        userName: { value: "user1", type: "text" },
                     },
                 }],
                 ["sqliteDetails", {
@@ -270,7 +270,7 @@ describe("ConnectionEditor tests", (): void => {
                 }],
                 ["mysqlAdvanced", {
                     values: {
-                        timeout: { value: 10 },
+                        timeout: { value: 10, type: "number" },
                     },
                 }],
             ]),
@@ -296,12 +296,12 @@ describe("ConnectionEditor tests", (): void => {
             sections: new Map([
                 ["general", {
                     values: {
-                        databaseType: { value: "Sqlite" },
+                        databaseType: { value: "Sqlite", type: "text" },
                     },
-                }],
+                } as IDialogSection],
                 ["information", {
                     values: {
-                        caption: { value: "Connection 1" },
+                        caption: { value: "Connection 1", type: "text" },
                     },
                 }],
                 ["mysqlDetails", {
@@ -309,7 +309,7 @@ describe("ConnectionEditor tests", (): void => {
                 }],
                 ["sqliteDetails", {
                     values: {
-                        dbFilePath: { value: "" },
+                        dbFilePath: { value: "", type: "text" },
                     },
                 }],
                 ["mysqlAdvanced", {
@@ -338,19 +338,19 @@ describe("ConnectionEditor tests", (): void => {
             sections: new Map([
                 ["general", {
                     values: {
-                        databaseType: { value: "MySQL" },
+                        databaseType: { value: "MySQL", type: "text" },
                     },
-                }],
+                } as IDialogSection],
                 ["information", {
                     values: {
-                        caption: { value: "Connection 1" },
+                        caption: { value: "Connection 1", type: "text" },
                     },
                 }],
                 ["mysqlDetails", {
                     values: {
-                        hostName: { value: "" },
-                        userName: { value: "user1" },
-                        port: { value: 3306 },
+                        hostName: { value: "", type: "text" },
+                        userName: { value: "user1", type: "text" },
+                        port: { value: 3306, type: "number" },
                     },
                 }],
                 ["sqliteDetails", {
@@ -358,7 +358,7 @@ describe("ConnectionEditor tests", (): void => {
                 }],
                 ["mysqlAdvanced", {
                     values: {
-                        timeout: { value: 10 },
+                        timeout: { value: 10, type: "number" },
                     },
                 }],
             ]),
@@ -384,19 +384,19 @@ describe("ConnectionEditor tests", (): void => {
             sections: new Map([
                 ["general", {
                     values: {
-                        databaseType: { value: "MySQL" },
+                        databaseType: { value: "MySQL", type: "text" },
                     },
-                }],
+                } as IDialogSection],
                 ["information", {
                     values: {
-                        caption: { value: "Connection 1" },
+                        caption: { value: "Connection 1", type: "text" },
                     },
                 }],
                 ["mysqlDetails", {
                     values: {
-                        hostName: { value: "localhost" },
-                        userName: { value: "" },
-                        port: { value: 3306 },
+                        hostName: { value: "localhost", type: "text" },
+                        userName: { value: "", type: "text" },
+                        port: { value: 3306, type: "number" },
                     },
                 }],
                 ["sqliteDetails", {
@@ -404,7 +404,7 @@ describe("ConnectionEditor tests", (): void => {
                 }],
                 ["mysqlAdvanced", {
                     values: {
-                        timeout: { value: 10 },
+                        timeout: { value: 10, type: "number" },
                     },
                 }],
             ]),
@@ -430,19 +430,19 @@ describe("ConnectionEditor tests", (): void => {
             sections: new Map([
                 ["general", {
                     values: {
-                        databaseType: { value: "MySQL" },
+                        databaseType: { value: "MySQL", type: "text" },
                     },
-                }],
+                } as IDialogSection],
                 ["information", {
                     values: {
-                        caption: { value: "Connection 1" },
+                        caption: { value: "Connection 1", type: "text" },
                     },
                 }],
                 ["mysqlDetails", {
                     values: {
-                        hostName: { value: "localhost" },
-                        userName: { value: "user1" },
-                        port: { value: -1 },
+                        hostName: { value: "localhost", type: "text" },
+                        userName: { value: "user1", type: "text" },
+                        port: { value: -1, type: "number" },
                     },
                 }],
                 ["sqliteDetails", {
@@ -450,7 +450,7 @@ describe("ConnectionEditor tests", (): void => {
                 }],
                 ["mysqlAdvanced", {
                     values: {
-                        timeout: { value: 10 },
+                        timeout: { value: 10, type: "number" },
                     },
                 }],
             ]),
@@ -476,8 +476,11 @@ describe("ConnectionEditor tests", (): void => {
 
         expect(result.sections.get("information")!.values.caption.value).toEqual(testMySQLConnection.caption);
         expect(result.sections.get("information")!.values.description.value).toEqual(testMySQLConnection.description);
-        expect(result.sections.get("mysqlDetails")!.values.hostName.value).toEqual(testMySQLConnection.options.host);
-        expect(result.sections.get("mysqlDetails")!.values.userName.value).toEqual(testMySQLConnection.options.user);
+
+        const options = testMySQLConnection.options as IMySQLConnectionOptions;
+
+        expect(result.sections.get("mysqlDetails")!.values.hostName.value).toEqual(options.host);
+        expect(result.sections.get("mysqlDetails")!.values.userName.value).toEqual(options.user);
 
         component.unmount();
     });
