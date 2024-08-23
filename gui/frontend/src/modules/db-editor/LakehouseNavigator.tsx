@@ -40,7 +40,7 @@ import { CellComponent, EmptyCallback, RowComponent } from "tabulator-tables";
 import { DialogHost } from "../../app-logic/DialogHost.js";
 import { DialogResponseClosure, DialogType } from "../../app-logic/Types.js";
 import { IBucketObjectSummary, IBucketSummary, ICompartment } from "../../communication/Oci.js";
-import { IMdsProfileData } from "../../communication/ProtocolMds.js";
+import { IMdsChatStatus, IMdsProfileData } from "../../communication/ProtocolMds.js";
 import { Button } from "../../components/ui/Button/Button.js";
 import { CheckState, Checkbox } from "../../components/ui/Checkbox/Checkbox.js";
 import { Codicon } from "../../components/ui/Codicon.js";
@@ -80,6 +80,8 @@ interface ILakehouseNavigatorProperties extends IComponentProperties {
 
     /** Top level toolbar items, to be integrated with page specific ones. */
     toolbarItems: IToolbarItems;
+
+    getAiStatus?: IMdsChatStatus;
 
     onLakehouseNavigatorStateChange: (data: Partial<ILakehouseNavigatorSavedState>) => void;
 }
@@ -178,6 +180,7 @@ export interface ILakehouseTask {
     logTime?: string;
     estimatedCompletionTime?: string;
     estimatedRemainingTime?: number;
+    languageId?: string
 }
 
 enum ObjectStorageTreeItemType {
@@ -826,9 +829,12 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
     private getLoadTabContent = (): ComponentChild => {
         const { activeSchema, task, availableDatabaseSchemas,
             formats, lastTaskScheduleError, newTaskPanelWidth } = this.state;
+        const { getAiStatus } = this.props;
 
         const taskItems = (task?.items !== undefined && task?.items?.length > 0)
             ? task?.items : [];
+
+        const languageSupportEnabled = getAiStatus?.languageSupport;
 
         const newLoadingTaskPanel = <>
             <Container
@@ -906,6 +912,19 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                             })}
                         </Dropdown>
                     </Container>
+                    {languageSupportEnabled &&
+                        <Container className="taskInputLabelContainer" orientation={Orientation.TopDown}>
+                            <Label caption="Language:" />
+                            <Dropdown id="loadTaskLanguageDropdown"
+                                selection={task?.languageId === undefined ? "en" : task.languageId}
+                                onSelect={this.handleLanguageSelection}>
+                                <DropdownItem caption="English" id="en" />
+                                <DropdownItem caption="French" id="fr" />
+                                <DropdownItem caption="German" id="de" />
+                                <DropdownItem caption="Spanish" id="es" />
+                                <DropdownItem caption="Portuguese" id="pt" />
+                            </Dropdown>
+                        </Container>}
                 </Container>
                 <Container
                     className="loadingTaskItems"
@@ -1427,6 +1446,18 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             task: {
                 ...task,
                 activeFormat: id === "all" ? undefined : id,
+            },
+        });
+    };
+
+    private handleLanguageSelection = (_accept: boolean, ids: Set<string>, _props: IDropdownProperties): void => {
+        const { task } = this.state;
+        const id = [...ids][0];
+
+        this.setState({
+            task: {
+                ...task,
+                languageId: id === "en" ? undefined : id,
             },
         });
     };
@@ -2372,6 +2403,12 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 params.push(this.getDefaultTaskDescription(task));
             }
 
+            if (task.languageId !== undefined) {
+                params.push(task.languageId);
+            } else {
+                params.push("en");
+            }
+
             // Add optional parameters if defined by user
             let taskNameSql = "";
             if (task.title !== undefined || task.tableName !== undefined) {
@@ -2419,6 +2456,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 let taskId = "";
                 await backend.execute(
                     "CALL sys.vector_store_load(NULL, JSON_OBJECT('schema_name', ?, 'description', ?, " +
+                    "'language', ?, " +
                     taskNameSql + taskTableName + formatsSql +
                     `'uris', JSON_ARRAY(${urisSql})))`,
                     params, undefined, (data) => {

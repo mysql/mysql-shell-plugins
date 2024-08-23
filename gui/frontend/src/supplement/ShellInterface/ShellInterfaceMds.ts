@@ -33,6 +33,7 @@ import {
     IMdsChatResult,
     IMdsLakehouseStatus,
     IMdsChatData,
+    IMdsChatStatus,
 } from "../../communication/ProtocolMds.js";
 
 export class ShellInterfaceMds {
@@ -233,6 +234,19 @@ export class ShellInterfaceMds {
                 kwargs: { configProfile, compartmentId, bucketName },
             },
         });
+    }
+
+    public async getMdsGetGenAiStatus(moduleSessionId: string): Promise<IMdsChatStatus> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMds.MdsGenaiStatus,
+            parameters: {
+                args: {
+                    moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
     }
 
     public async executeChatRequest(prompt: string, moduleSessionId: string, options?: IDictionary,

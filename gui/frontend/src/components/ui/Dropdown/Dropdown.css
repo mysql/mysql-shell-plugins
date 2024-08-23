@@ -37,6 +37,10 @@
     cursor: pointer;
 }
 
+.msg.dropdown.disabled {
+    background-color: color-mix(in srgb, var(--dropdown-foreground) 20%, var(--dropdown-background));
+}
+
 .msg.dropdown > .container {
     flex: auto;
 }

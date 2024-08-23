@@ -34,7 +34,7 @@ import { CellComponent, RowComponent } from "tabulator-tables";
 import { Dropdown, IDropdownProperties } from "../ui/Dropdown/Dropdown.js";
 import { DropdownItem } from "../ui/Dropdown/DropdownItem.js";
 import { IInputChangeProperties, Input } from "../ui/Input/Input.js";
-import { IMdsChatData } from "../../communication/ProtocolMds.js";
+import { IMdsChatData, IMdsChatStatus } from "../../communication/ProtocolMds.js";
 import { Accordion, IAccordionProperties } from "../ui/Accordion/Accordion.js";
 import chatOptionsIcon from "../../assets/images/chatOptions.svg";
 import { Icon } from "../ui/Icon/Icon.js";
@@ -54,17 +54,25 @@ export interface IChatOptionsSectionState {
     size?: number;
 }
 
+export interface IHistoryEntry {
+    chatQueryId: string;
+    historyEntryType: string;
+    originalText: string;
+    updatedText: string;
+}
+
 export interface IChatOptionsState extends IComponentState {
     chatOptionsExpanded: boolean,
     chatOptionsWidth: number,
     options?: IMdsChatData,
     sectionStates?: Map<string, IChatOptionsSectionState>,
-    chatQueryHistory?: [string, string, string],
+    chatQueryHistory?: IHistoryEntry,
 }
 
 export interface IChatOptionsProperties extends IComponentProperties {
     savedState: IChatOptionsState;
     currentSchema?: string;
+    genAiStatus?: IMdsChatStatus;
 
     onAction: (action: ChatOptionAction, options?: IMdsChatData) => void,
     onChatOptionsStateChange: (data: Partial<IChatOptionsState>) => void;
@@ -74,7 +82,6 @@ export interface IChatOptionsProperties extends IComponentProperties {
 export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOptionsState> {
 
     #dialogRef = createRef<Dialog>();
-    #chatHistoryText = "";
 
     public constructor(props: IChatOptionsProperties) {
         super(props);
@@ -94,7 +101,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
     }
 
     public render(): ComponentChild {
-        const { savedState, currentSchema } = this.props;
+        const { savedState, currentSchema, genAiStatus } = this.props;
         const { options, sectionStates, chatQueryHistory } = savedState;
 
         const tables: ITag[] = [];
@@ -123,6 +130,8 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
         const languageSection = sectionStates?.get("languageSection") ?? {};
 
         const modelOptions = options?.modelOptions;
+
+        const languageSupportEnabled = genAiStatus?.languageSupport;
 
         return (
             <Container className={this.getEffectiveClassNames(["chatOptionsPanel"])} orientation={Orientation.TopDown}>
@@ -236,12 +245,13 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                                             </>
                                         }
                                         content={
-                                            <Input id="historyEdit"
+                                            <Input ref={this.#dialogRef}
+                                                id="historyEdit"
                                                 multiLine={true}
                                                 autoFocus={true}
                                                 multiLineCount={5}
                                                 className="historyEdit"
-                                                value={chatQueryHistory?.[2]}
+                                                value={chatQueryHistory?.updatedText}
                                                 onChange={this.handleHistoryValueChange}
                                             />
                                         }
@@ -361,23 +371,42 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                             id: "modelSection",
                             caption: "Model Options",
                             stretch: false,
-                            minSize: 50,
-                            maxSize: 50,
+                            minSize: 76,
+                            maxSize: 76,
                             expanded: modelSection.expanded ?? true,
-                            initialSize: modelSection.size ?? 50,
+                            initialSize: modelSection.size ?? 76,
                             dimmed: false,
-                            content: [
+                            content: [ // cspell:ignore qwen
                                 <Container className="scopeMultiItemColumn" orientation={Orientation.TopDown}
                                     mainAlignment={ContentAlignment.Start} crossAlignment={ContentAlignment.Stretch}>
                                     <Container className="scopeLabeledItem" orientation={Orientation.LeftToRight}>
                                         <Label className="scopeLabel" caption="Model:" />
                                         <Dropdown className="scopeModel"
-                                            selection={savedState.options?.modelOptions?.modelId ?? "llama2-7b-v1"}
+                                            selection={savedState.options?.modelOptions?.modelId ?? "default"}
                                             onSelect={this.handleModelIdChange}>
-                                            <DropdownItem id={"llama2-7b-v1"} caption={"Llama2"} />
-                                            <DropdownItem id={"mistral-7b-instruct-v1"} caption={"Mistral"} />
+                                            <DropdownItem id="default" caption="Default" />
+                                            <DropdownItem id="llama3-8b-instruct-v1" caption="Llama 3" />
+                                            <DropdownItem id="mistral-7b-instruct-v1" caption="Mistral" />
+                                            <DropdownItem id="qwen2-7b-instruct-v1" caption="Qwen 2" />
+                                            <DropdownItem id="cohere.command-r-plus" caption="OCI GenAI - Cohere +" />
+                                            <DropdownItem id="cohere.command-r-16k" caption="OCI GenAI - Cohere" />
+                                            <DropdownItem id="meta.llama-3-70b-instruct"
+                                                caption="OCI GenAI - Llama 3 Large" />
                                         </Dropdown>
                                     </Container>
+                                    {languageSupportEnabled &&
+                                        <Container className="scopeLabeledItem" orientation={Orientation.LeftToRight}>
+                                            <Label className="scopeLabel" caption="Language:" />
+                                            <Dropdown className="scopeModel"
+                                                selection={savedState.options?.modelOptions?.language ?? "en"}
+                                                onSelect={this.handleModelLanguageChange}>
+                                                <DropdownItem caption="English" id="en" />
+                                                <DropdownItem caption="French" id="fr" />
+                                                <DropdownItem caption="German" id="de" />
+                                                <DropdownItem caption="Spanish" id="es" />
+                                                <DropdownItem caption="Portuguese" id="pt" />
+                                            </Dropdown>
+                                        </Container>}
                                 </Container>,
                             ],
                         },
@@ -481,8 +510,12 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                                         <Label className="scopeLabel" caption="Translation:" />
                                         <Dropdown className="scopeLanguage"
                                             selection={savedState.options?.languageOptions?.language ?? "noTranslation"}
-                                            onSelect={this.handleLanguageChange}>
+                                            onSelect={this.handleTranslationLanguageChange}
+                                            disabled={savedState.options?.modelOptions?.language !== "en" &&
+                                                savedState.options?.modelOptions?.language !== undefined
+                                            }>
                                             <DropdownItem id={"noTranslation"} caption={"No translation"} />
+                                            <DropdownItem id={"English"} caption={"English"} />
                                             <DropdownItem id={"German"} caption={"German"} />
                                             <DropdownItem id={"Spanish"} caption={"Spanish"} />
                                             <DropdownItem id={"Portuguese"} caption={"Portuguese"} />
@@ -606,6 +639,28 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
         });
     };
 
+    private handleModelLanguageChange = (_accept: boolean, ids: Set<string>, _props: IDropdownProperties): void => {
+        const { onChatOptionsStateChange, savedState } = this.props;
+        const id = [...ids][0];
+
+        const modelOptions = savedState.options?.modelOptions ?? {};
+        modelOptions.language = id;
+
+        // Disable translation for all languages other than english
+        const languageOptions = savedState.options?.languageOptions;
+        if (id !== "en" && languageOptions) {
+            languageOptions.language = undefined;
+        }
+
+        onChatOptionsStateChange({
+            options: {
+                ...savedState.options,
+                modelOptions,
+                languageOptions,
+            },
+        });
+    };
+
     private handleLanguageModelIdChange = (_accept: boolean, ids: Set<string>, _props: IDropdownProperties): void => {
         const { onChatOptionsStateChange, savedState } = this.props;
         const id = [...ids][0];
@@ -632,7 +687,8 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
         });
     };
 
-    private handleLanguageChange = (_accept: boolean, ids: Set<string>, _props: IDropdownProperties): void => {
+    private handleTranslationLanguageChange = (_accept: boolean, ids: Set<string>,
+        _props: IDropdownProperties): void => {
         const { onChatOptionsStateChange, savedState } = this.props;
         const id = [...ids][0];
 
@@ -745,10 +801,10 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
 
         const content = (<>
             <Label caption={value} />
-            <Icon className="iconOnMouseOver" src={Codicon.Edit}
+            {/*<Icon className="iconOnMouseOver" src={Codicon.Edit}
                 onClick={(e) => {
                     void this.handleHistoryTreeEdit(e, cell);
-                }} />
+                }} />*/}
             <Icon className="iconOnMouseOver" src={Codicon.Close}
                 onClick={(e) => {
                     void this.handleHistoryTreeDelete(e, cell);
@@ -763,30 +819,33 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
 
     private handleDlgEditActionClick = (_e: MouseEvent | KeyboardEvent,
         props: Readonly<IComponentProperties>): void => {
-            const { onChatOptionsStateChange, savedState } = this.props;
-            if (props.id === "ok") {
-                const chatHistory = savedState.options?.chatHistory?.find((item) => {
-                    return item.chatQueryId === savedState.chatQueryHistory?.[0];
-                });
-                if (chatHistory) {
-                    switch (savedState.chatQueryHistory?.[1]) {
-                        case "userMessage":
-                            chatHistory.userMessage = this.#chatHistoryText;
-                            break;
-                        case "chatBotMessage":
-                            chatHistory.chatBotMessage = this.#chatHistoryText;
-                            break;
-                        default:
-                            break;
-                    }
+        const { onChatOptionsStateChange, savedState } = this.props;
+
+        const chatQueryHistory = savedState.chatQueryHistory;
+
+        if (props.id === "ok" && chatQueryHistory) {
+            const chatHistory = savedState.options?.chatHistory?.find((item) => {
+                return item.chatQueryId === chatQueryHistory.chatQueryId;
+            });
+            if (chatHistory) {
+                switch (chatQueryHistory.historyEntryType) {
+                    case "userMessage":
+                        chatHistory.userMessage = chatQueryHistory.updatedText;
+                        break;
+                    case "chatBotMessage":
+                        chatHistory.chatBotMessage = chatQueryHistory.updatedText;
+                        break;
+                    default:
+                        break;
                 }
-                onChatOptionsStateChange({
-                    options: {
-                        ...savedState.options,
-                    },
-                });
             }
-            this.#dialogRef.current?.close(props.id !== "ok");
+            onChatOptionsStateChange({
+                options: {
+                    ...savedState.options,
+                },
+            });
+        }
+        this.#dialogRef.current?.close(props.id !== "ok");
     };
 
     private closeEditTextDialog = (cancelled: boolean): void => {
@@ -801,7 +860,15 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
     };
 
     private handleHistoryValueChange = (e: InputEvent, props: IInputChangeProperties): void => {
-        this.#chatHistoryText = props.value;
+        const { savedState, onChatOptionsStateChange } = this.props;
+
+        const chatQueryHistory = savedState.chatQueryHistory;
+
+        if (chatQueryHistory) {
+            chatQueryHistory.updatedText = props.value;
+
+            onChatOptionsStateChange({ chatQueryHistory });
+        }
     };
 
     private handleHistoryTreeEdit = (_e: MouseEvent | KeyboardEvent, cell: CellComponent): void => {
@@ -817,7 +884,13 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
         const textToEdit = fieldId === "userMessage" ? chatEntry?.userMessage ?? ""
             : chatEntry?.chatBotMessage ?? "";
 
-        const chatQueryHistory: [string, string, string] = [chatQueryId, fieldId, textToEdit];
+        const chatQueryHistory: IHistoryEntry = {
+            chatQueryId,
+            historyEntryType: fieldId,
+            originalText: textToEdit,
+            updatedText: textToEdit,
+        };
+
         if (this.#dialogRef.current) {
             this.#dialogRef.current.open();
         }
