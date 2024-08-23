@@ -4,13 +4,14 @@
 
 ### Additions
 
-- BUG#36925323 Type check error in the MRS TypeScript SDK test suite
-- BUG#36445530 findUnique() command can be tricked to retrieve multiple records
--
+- Added multi-language support for HeatWave Chat
 
 ### Fixes
 
--
+- BUG#36925323 Type check error in the MRS TypeScript SDK test suite
+- BUG#36445530 findUnique() command can be tricked to retrieve multiple records
+- Fix naming of REST views, now call them REST data mapping views consistently across all MRS
+
 
 ## Changes in 1.16.0+9.0.1
 
