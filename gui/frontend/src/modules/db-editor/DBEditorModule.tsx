@@ -1462,7 +1462,7 @@ EXAMPLES
                     options: {
                         schemaName: currentSchema !== "" ? currentSchema : undefined,
                         modelOptions: {
-                            modelId: "mistral-7b-instruct-v1",
+                            modelId: "default",
                         },
                     },
                 },

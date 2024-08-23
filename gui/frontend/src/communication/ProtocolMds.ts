@@ -1197,6 +1197,7 @@ export interface IMdsProfileData {
 export interface IMdsChatStatus {
     heatwaveSupport: boolean;
     localModelSupport: boolean;
+    languageSupport: boolean;
 }
 
 export interface IMdsChatConfigure {
@@ -1369,6 +1370,9 @@ export interface IMdsChatModelOptions {
 
     /** A list of characters that tells the model when to stop the generated output. */
     stopSequences?: string[];
+
+    /** The language code of the language to use. */
+    language?: string;
 }
 
 export interface IMdsChatTable {

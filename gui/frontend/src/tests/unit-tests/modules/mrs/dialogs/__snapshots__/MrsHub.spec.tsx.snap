@@ -751,7 +751,7 @@ exports[`MrsHub Tests MRS Db Object dialog tests Show MRS DB Object Dialog (snap
             REST Service Path
           </label>
           <div
-            class="msg container fixedScrollbar dropdown valueEditor"
+            class="msg container fixedScrollbar dropdown disabled valueEditor"
             data-tooltip="inherit"
             disabled="true"
             id="service"
@@ -783,7 +783,7 @@ exports[`MrsHub Tests MRS Db Object dialog tests Show MRS DB Object Dialog (snap
             REST Schema Path
           </label>
           <div
-            class="msg container fixedScrollbar dropdown valueEditor"
+            class="msg container fixedScrollbar dropdown disabled valueEditor"
             data-tooltip="inherit"
             disabled="true"
             id="schema"

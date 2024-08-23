@@ -34,7 +34,7 @@ import {
     DBDataType, IColumnInfo, IDictionary, IServicePasswordRequest, IStatusInfo, MessageType,
 } from "../../app-logic/Types.js";
 import { IDbEditorResultSetData } from "../../communication/ProtocolGui.js";
-import { IMdsChatData } from "../../communication/ProtocolMds.js";
+import { IMdsChatData, IMdsChatStatus } from "../../communication/ProtocolMds.js";
 import { ResponseError } from "../../communication/ResponseError.js";
 import { ChatOptionAction, ChatOptions, IChatOptionsState } from "../../components/Chat/ChatOptions.js";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
@@ -213,6 +213,8 @@ interface IDBConnectionTabState extends IComponentState {
 
     // Set to true if a notebook has been loaded the app is embedded, emulating so a one editor-only mode.
     standaloneMode: boolean;
+
+    genAiStatus?: IMdsChatStatus;
 }
 
 /** A list of parameters/options used for query execution. */
@@ -343,6 +345,9 @@ Execute \\help or \\? for help;`;
 
         // Update the cachedMrsServiceSdk for the first time
         void this.updateMrsServiceSdkCache();
+
+        // Check if HeatWave GenAI Chat is available
+        void this.getGenAiStatus();
     }
 
     public componentWillUnmount(): void {
@@ -393,7 +398,7 @@ Execute \\help or \\? for help;`;
         const {
             toolbarItems, id, savedState, dbType, showExplorer = true, onHelpCommand, showAbout, extraLibs,
         } = this.props;
-        const { backend, standaloneMode } = this.state;
+        const { backend, standaloneMode, genAiStatus } = this.state;
 
         const className = this.getEffectiveClassNames(["connectionTabHost"]);
 
@@ -441,6 +446,7 @@ Execute \\help or \\? for help;`;
                                     collapsed: !chatOptionsExpanded,
                                     content: chatOptionsExpanded ? (
                                         <ChatOptions savedState={savedState.chatOptionsState}
+                                            genAiStatus={genAiStatus}
                                             onChatOptionsStateChange={this.updateChatOptionsState}
                                             onAction={this.handleChatAction}
                                             currentSchema={savedState.currentSchema} />) : undefined,
@@ -481,7 +487,10 @@ Execute \\help or \\? for help;`;
                 }
 
                 case EntityType.LakehouseNavigator: {
+                    const { genAiStatus } = this.state;
+
                     document = <LakehouseNavigator backend={savedState.backend} toolbarItems={toolbarItems}
+                        getAiStatus={genAiStatus}
                         savedState={savedState.adminPageStates.lakehouseNavigatorState}
                         onLakehouseNavigatorStateChange={this.handleLakehouseNavigatorStateChange} />;
 
@@ -1528,7 +1537,7 @@ Execute \\help or \\? for help;`;
                                 type: "chat",
                                 chatQueryId,
                                 info,
-                                answer: tokens,
+                                answer: tokens.trim(),
                                 options: currentChatOptions as IDictionary,
                                 chatOptionsVisible: savedState.chatOptionsState.chatOptionsExpanded,
                                 updateOptions: this.updateChatOptionsState,
@@ -1762,7 +1771,6 @@ Execute \\help or \\? for help;`;
         return backend?.getTableObjectNames(schema, table, "Primary Key");
     }
 
-
     private updateMrsServiceSdkCache = async (): Promise<boolean> => {
         const { connectionId } = this.props;
         const { backend } = this.state;
@@ -1868,6 +1876,15 @@ Execute \\help or \\? for help;`;
             }
         } else {
             return false;
+        }
+    };
+
+    private getGenAiStatus = async () => {
+        const { backend } = this.state;
+
+        if (backend?.moduleSessionId) {
+            const genAiStatus = await backend.mds.getMdsGetGenAiStatus(backend?.moduleSessionId);
+            this.setState({ genAiStatus });
         }
     };
 

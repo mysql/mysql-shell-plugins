@@ -155,7 +155,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     public render(): ComponentChild {
         const {
             children, id, defaultId, selection, optional, showDescription, withoutArrow, multiSelect,
-            placeholder, iconOnly,
+            placeholder, iconOnly, disabled,
         } = this.mergedProps;
         const { hotId } = this.state;
 
@@ -166,6 +166,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
             "dropdown",
             withoutArrow ? "withoutArrow" : "",
             this.classFromProperty(multiSelect, "multiSelect"),
+            this.classFromProperty(disabled, "disabled"),
         ]);
 
         const tags: ITag[] = [];

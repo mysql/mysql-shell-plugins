@@ -23,6 +23,7 @@
 
 from mysqlsh.plugin_manager import plugin_function
 from mysqlsh.plugin_manager.general import get_shell_user_dir
+from mds_plugin import languages
 import os
 import json
 
@@ -49,6 +50,7 @@ def get_status(session=None):
 
     heatwave_support = False
     local_model_support = False
+    language_support = False
 
     rows = session.run_sql("""
         SELECT EXISTS (
@@ -60,9 +62,18 @@ def get_status(session=None):
     else:
         local_model_support = check_dependencies()
 
+    rows = session.run_sql("""
+        SELECT EXISTS (
+            SELECT * FROM information_schema.VIEWS
+            WHERE TABLE_SCHEMA = 'sys' AND TABLE_NAME = 'ML_SUPPORTED_LLM_LANGUAGES') AS language_support_available
+        """).fetch_all()
+    if len(rows) > 0 and rows[0][0] == 1:
+        language_support = True
+
     return {
         "heatwave_support": heatwave_support,
         "local_model_support": local_model_support,
+        "language_support": language_support
     }
 
 
@@ -133,15 +144,20 @@ def configure_local_model_support(cohere_api_key: str = "", **kwargs):
                     return {"success": False, "error": error}
 
 
-def translate_string(session, text, language, model_id=None):
+def translate_string(session, text, target_language, model_id=None, source_language="English"):
+    if target_language == source_language:
+        return text
+
     if model_id is None:
         model_id = "mistral-7b-instruct-v1"
     # Load the mistral language model
     session.run_sql('CALL sys.ml_model_load(?, NULL);', [model_id])
 
-    res = session.run_sql("""
-        SELECT sys.ml_generate(CONCAT('translate the following text to ', ?, ': ', ?), JSON_OBJECT("model_id", ?));
-    """, [language, text, model_id])
+    res = session.run_sql(f"""
+        SELECT sys.ml_generate(CONCAT(
+            'translate the following text from ', ?, ' to ', ?, ': ', ?),
+            JSON_OBJECT("model_id", ?));
+    """, [source_language, target_language, text, model_id])
     rows = res.fetch_all()
     if len(rows) > 0:
         translation = json.loads(rows[0][0]).get("text")
@@ -181,9 +197,18 @@ def chat(prompt, **kwargs):
     options = kwargs.get("options", None)
     send_gui_message = kwargs.get("send_gui_message")
 
+    model_options = options.get("model_options", {})
+    model_language = model_options.get("language", "en")
+    model_language_name = languages.GenerativeAILanguage(model_language).name
+
     # Clean up options
     options.pop("documents", None)
     options.pop("request_completed", None)
+
+    # If the user selected default as the model_id, remove it from the model_options and let the server pick
+    if model_options.get("model_id", "") == "default":
+        model_options.pop("model_id")
+        options["model_options"] = model_options
 
     # Clear table list if lock_table_list is not set to true
     if options.get("lock_table_list", False) == False:
@@ -206,13 +231,17 @@ def chat(prompt, **kwargs):
         language = lang_opts.get("language")
 
         # If a language has been selected for translation, do the translation
-        if language is not None and lang_opts.get("translate_user_prompt") is not False:
+        if language is not None and lang_opts.get("translate_user_prompt") is not False and \
+            language != model_language_name:
             send_gui_message(
-                "data", {"info": f"Translating prompt to English ..."})
+                "data", {"info": f"Translating prompt from {language} to {model_language_name} ..."})
 
             # Translate the prompt
             prompt = translate_string(
-                session, prompt, 'English', lang_opts.get("model_id"))
+                session, prompt,
+                target_language=model_language_name,
+                model_id=lang_opts.get("model_id"),
+                source_language=language)
 
         send_gui_message("data", {"info": "Generating answer ..."})
 
@@ -248,13 +277,17 @@ def chat(prompt, **kwargs):
         if len(rows) > 0:
             options = json.loads(rows[0][0])
 
-            if language is not None and lang_opts.get("translate_response") is not False:
+            if language is not None and lang_opts.get("translate_response") is not False and \
+                language != model_language_name:
                 send_gui_message(
-                    "data", {"info": f"Translating response to {language} ..."})
+                    "data", {"info": f"Translating response from {model_language_name} to {language} ..."})
 
                 # Translate the response
-                response = translate_string(session, options.get(
-                    "response"), language, lang_opts.get("model_id"))
+                response = translate_string(
+                    session, options.get("response"),
+                    target_language=language,
+                    model_id=lang_opts.get("model_id"),
+                    source_language=model_language_name)
                 options["response"] = response
 
             send_gui_message("data", options)
