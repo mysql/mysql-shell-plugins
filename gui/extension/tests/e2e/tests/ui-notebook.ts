@@ -961,7 +961,7 @@ describe("NOTEBOOKS", () => {
                 rowNumber: 0,
                 columnName: "first_name",
                 value: "changed",
-            }]);
+            }], constants.doubleClick);
 
             await result.toolbar.selectView(constants.previewView);
             expect(result.preview).to.exist;
@@ -972,9 +972,66 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Edit a result grid, verify query preview and commit - integer columns", async () => {
+        it("Edit a result grid using the keyboard", async () => {
 
             await notebook.codeEditor.clean();
+            const result = await notebook.codeEditor.execute("select * from sakila.result_sets;");
+            expect(result.toolbar.status).to.match(/OK/);
+
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+            await textArea.sendKeys(Key.chord(Key.ALT, Key.UP));
+            await driver.sleep(150);
+            await result.grid.editCells([
+                { rowNumber: 0, columnName: "text_field", value: "edited" },
+            ], constants.pressEnter);
+
+            const refKey = Os.isMacOs() ? Key.COMMAND : Key.META;
+
+            await driver.actions()
+                .keyDown(refKey)
+                .keyDown(Key.ALT)
+                .pause(300)
+                .keyDown(Key.ENTER)
+                .keyUp(Key.ENTER)
+                .keyUp(refKey)
+                .keyUp(Key.ALT)
+                .perform();
+
+            await driver.wait(Workbench.untilNotificationExists("Changes committed successfully", true),
+                constants.wait2seconds);
+
+        });
+
+        it("Edit a result grid using the Start Editing button", async () => {
+
+            await notebook.codeEditor.clean();
+            const result = await notebook.codeEditor.execute("select * from sakila.result_sets;");
+            expect(result.toolbar.status).to.match(/OK/);
+
+            await result.grid.editCells([
+                { rowNumber: 0, columnName: "text_field", value: "other edited" },
+                { rowNumber: 0, columnName: "int_field", value: "30" },
+            ], constants.editButton);
+
+            const refKey = Os.isMacOs() ? Key.COMMAND : Key.META;
+
+            await driver.actions()
+                .keyDown(refKey)
+                .keyDown(Key.ALT)
+                .pause(300)
+                .keyDown(Key.ENTER)
+                .keyUp(Key.ENTER)
+                .keyUp(refKey)
+                .keyUp(Key.ALT)
+                .perform();
+
+            await driver.wait(Workbench.untilNotificationExists("Changes committed successfully", true),
+                constants.wait2seconds);
+
+        });
+
+        it("Edit a result grid, verify query preview and commit - integer columns", async () => {
+
             const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_ints;");
             expect(result.toolbar.status).to.match(/OK/);
 
@@ -999,7 +1056,7 @@ describe("NOTEBOOKS", () => {
                 { rowNumber: rowToEdit, columnName: "test_boolean", value: booleanEdited },
             ];
 
-            await result.grid.editCells(cellsToEdit);
+            await result.grid.editCells(cellsToEdit, constants.doubleClick);
             const booleanField = booleanEdited ? 1 : 0;
             const expectedSqlPreview = [
                 /UPDATE sakila.all_data_types_ints SET/,
@@ -1066,7 +1123,7 @@ describe("NOTEBOOKS", () => {
                 { rowNumber: rowToEdit, columnName: "test_time", value: timeEdited },
                 { rowNumber: rowToEdit, columnName: "test_year", value: yearEdited },
             ];
-            await result.grid.editCells(cellsToEdit);
+            await result.grid.editCells(cellsToEdit, constants.doubleClick);
             const dateTimeToISO = Misc.convertDateToISO(dateTimeEdited);
             const timeStampToISO = Misc.convertDateToISO(timeStampEdited);
             const timeTransformed = Misc.convertTimeTo12H(timeEdited);
@@ -1138,7 +1195,7 @@ describe("NOTEBOOKS", () => {
                 { rowNumber: rowToEdit, columnName: "test_set", value: setEdited },
                 { rowNumber: rowToEdit, columnName: "test_json", value: jsonEdited },
             ];
-            await result.grid.editCells(cellsToEdit);
+            await result.grid.editCells(cellsToEdit, constants.doubleClick);
 
             const expectedSqlPreview = [
                 /UPDATE sakila.all_data_types_chars SET/,
@@ -1214,7 +1271,7 @@ describe("NOTEBOOKS", () => {
                 { rowNumber: rowToEdit, columnName: "test_multipolygon", value: multiPoly },
                 { rowNumber: rowToEdit, columnName: "test_geometrycollection", value: geoCollEd },
             ];
-            await result.grid.editCells(cellsToEdit);
+            await result.grid.editCells(cellsToEdit, constants.doubleClick);
 
             const expectedSqlPreview = [
                 /UPDATE sakila.all_data_types_geometries SET/,
@@ -1396,7 +1453,7 @@ describe("NOTEBOOKS", () => {
                     rowNumber: 0,
                     columnName: "test_integer",
                     value: modifiedText,
-                }]);
+                }], constants.doubleClick);
 
             await result.toolbar.rollbackChanges();
             expect((await result.grid.content.getAttribute("innerHTML")).match(/rollbackTest/) === null,
@@ -1687,7 +1744,7 @@ describe("NOTEBOOKS", () => {
                     columnName: "test_smallint",
                     value: "32751",
                 }];
-            await result.grid.editCells(cellsToEdit);
+            await result.grid.editCells(cellsToEdit, constants.doubleClick);
 
             await (await dbTreeSection.tree.getElement(constants.serverStatus)).click();
             let dialog = await driver
