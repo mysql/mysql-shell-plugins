@@ -147,7 +147,7 @@ export class App extends Component<{}, IAppState> {
         });
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         /* istanbul ignore next */
         if (!appParameters.testsRunning) {
             void MessageScheduler.get.connect({ url: new URL(window.location.href) });

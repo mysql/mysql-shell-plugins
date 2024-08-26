@@ -94,7 +94,7 @@ interface ISplitContainerProperties extends IComponentProperties {
 
 export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         orientation: Orientation.LeftToRight,
         splitterSize: 4,
     };
@@ -130,12 +130,12 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
             "collapse", "onCollapseChange", "innerRef", "onPaneResized");
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         this.updatePaneData();
         this.computeLayout();
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         // Prevent any animation of the splitter panes for a short moment until the UI has settled.
         this.markResizing();
 
@@ -158,7 +158,7 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
         }
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         if (this.resizeTimer) {
             clearTimeout(this.resizeTimer);
         }

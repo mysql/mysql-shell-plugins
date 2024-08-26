@@ -31,7 +31,7 @@ import { IMdsProfileData } from "../../../../frontend/src/communication/Protocol
 import { OciBaseTreeItem } from "./OciBaseTreeItem.js";
 
 export class OciConfigProfileTreeItem extends OciBaseTreeItem {
-    public contextValue = "mdsConfigProfile";
+    public override contextValue = "mdsConfigProfile";
 
     public constructor(profile: IMdsProfileData) {
         super(profile.profile + ` (${profile.region})`, profile, TreeItemCollapsibleState.Collapsed);

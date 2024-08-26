@@ -29,7 +29,7 @@ import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
 import { EntityType, IDBEditorScriptState, IDBDataEntry } from "../../../frontend/src/modules/db-editor/index.js";
 
 export class ScriptTreeItem extends TreeItem {
-    public contextValue = "script";
+    public override contextValue = "script";
 
     public constructor(public entry: IDBDataEntry, command?: Command) {
         super(entry.caption, TreeItemCollapsibleState.None);

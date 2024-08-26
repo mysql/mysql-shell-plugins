@@ -73,7 +73,7 @@ export interface IContainerProperties extends IComponentProperties {
 /** A grouping element with flex layout. */
 export class Container extends ComponentBase<IContainerProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         orientation: Orientation.LeftToRight,
     };
 
@@ -84,7 +84,7 @@ export class Container extends ComponentBase<IContainerProperties> {
             "fixedScrollbars", "innerRef");
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         const { innerRef, scrollPosition } = this.mergedProps;
 
         if (scrollPosition !== undefined) {

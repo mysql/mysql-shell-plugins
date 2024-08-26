@@ -42,7 +42,7 @@ export interface IMrsContentSetDialogData extends IDictionary {
 }
 
 export class MrsContentSetDialog extends AwaitableValueEditDialog {
-    protected get id(): string {
+    protected override get id(): string {
         return "mrsContentSetDialog";
     }
 

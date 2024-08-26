@@ -53,7 +53,7 @@ interface IPopupStates extends IComponentState {
 
 export class Popup extends ComponentBase<IPopupProperties, IPopupStates> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         placement: ComponentPlacement.TopLeft,
         pinned: false,
         showArrow: true,

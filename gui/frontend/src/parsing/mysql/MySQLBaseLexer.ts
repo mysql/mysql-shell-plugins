@@ -248,7 +248,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
     /**
      * Resets the lexer by setting initial values to transient member, resetting the input stream position etc.
      */
-    public reset(): void {
+    public override reset(): void {
         this.inVersionComment = false;
         super.reset();
     }
@@ -1275,7 +1275,7 @@ export abstract class MySQLBaseLexer extends Lexer implements IMySQLRecognizerCo
      *
      * @returns The next token in the token stream.
      */
-    public nextToken(): Token {
+    public override nextToken(): Token {
         // First respond with pending tokens to the next token request, if there are any.
         let pending = this.pendingTokens.shift();
         if (pending) {

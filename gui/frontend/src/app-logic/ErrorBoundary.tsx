@@ -56,7 +56,7 @@ export class ErrorBoundary extends ComponentBase<IErrorBoundaryProperties, IErro
     }
 
     /* istanbul ignore next */
-    public static getDerivedStateFromError(error: Error): object {
+    public static override getDerivedStateFromError(error: Error): object {
         // Update state so the next render will show the fallback UI.
         return {
             error: error.message,
@@ -66,7 +66,7 @@ export class ErrorBoundary extends ComponentBase<IErrorBoundaryProperties, IErro
 
     /* istanbul ignore next */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public componentDidCatch(error: Error, errorInfo: unknown): void {
+    public override componentDidCatch(error: Error, errorInfo: unknown): void {
         // log the error errorInfo.componentStack;
     }
 

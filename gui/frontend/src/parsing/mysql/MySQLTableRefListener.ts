@@ -42,7 +42,7 @@ export class MySQLTableRefListener extends MySQLMRSParserListener {
         super();
     }
 
-    public exitTableRef = (ctx: TableRefContext): void => {
+    public override exitTableRef = (ctx: TableRefContext): void => {
         if (this.done) {
             return;
         }
@@ -72,7 +72,7 @@ export class MySQLTableRefListener extends MySQLMRSParserListener {
         }
     };
 
-    public exitTableAlias = (ctx: TableAliasContext): void => {
+    public override exitTableAlias = (ctx: TableAliasContext): void => {
         if (this.done) {
             return;
         }
@@ -85,7 +85,7 @@ export class MySQLTableRefListener extends MySQLMRSParserListener {
         }
     };
 
-    public enterSubquery = (): void => {
+    public override enterSubquery = (): void => {
         if (this.done) {
             return;
         }
@@ -97,7 +97,7 @@ export class MySQLTableRefListener extends MySQLMRSParserListener {
         }
     };
 
-    public exitSubquery = (): void => {
+    public override exitSubquery = (): void => {
         if (this.done) {
             return;
         }

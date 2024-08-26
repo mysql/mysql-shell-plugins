@@ -33,7 +33,7 @@ export class PythonErrorListener extends BaseErrorListener {
         super();
     }
 
-    public syntaxError<T extends Token>(_recognizer: Recognizer<ATNSimulator>,
+    public override syntaxError<T extends Token>(_recognizer: Recognizer<ATNSimulator>,
         _offendingSymbol: T | null, _line: number, _charPositionInLine: number, _msg: string,
         _e: RecognitionException | null): void {
         // Nothing to do here.

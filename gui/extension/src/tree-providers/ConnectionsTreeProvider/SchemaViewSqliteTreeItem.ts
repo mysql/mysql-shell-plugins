@@ -27,7 +27,7 @@ import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/She
 import { SchemaViewTreeItem } from "./SchemaViewTreeItem.js";
 
 export class SchemaViewSqliteTreeItem extends SchemaViewTreeItem {
-    public contextValue = "schemaViewItem";
+    public override contextValue = "schemaViewItem";
 
     public constructor(
         name: string,

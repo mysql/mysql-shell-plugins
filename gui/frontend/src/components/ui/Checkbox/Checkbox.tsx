@@ -46,7 +46,7 @@ export interface ICheckboxProperties extends IComponentProperties {
 
 export class Checkbox extends ComponentBase<ICheckboxProperties> {
 
-    public static readonly defaultProps = {
+    public static override readonly defaultProps = {
         checkState: CheckState.Unchecked,
         disabled: false,
     };
@@ -60,7 +60,7 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
         this.connectEvents("onClick");
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         const { checkState } = this.mergedProps;
         if (this.#labelRef.current) {
             this.#labelRef.current.value = checkState;
@@ -91,7 +91,7 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
         );
     }
 
-    protected handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
+    protected override handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
         const { disabled } = this.mergedProps;
         if (disabled) {
             e.preventDefault();

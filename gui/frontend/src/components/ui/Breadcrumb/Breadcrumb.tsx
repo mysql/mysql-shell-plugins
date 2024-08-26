@@ -43,7 +43,7 @@ export interface IBreadcrumbProperties extends IComponentProperties {
 
 export class Breadcrumb extends ComponentBase<IBreadcrumbProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         path: [""],
         separator: "❯",
     };

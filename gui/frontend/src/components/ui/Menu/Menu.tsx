@@ -59,7 +59,7 @@ interface IMenuState extends IComponentState {
 
 export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         placement: ComponentPlacement.RightTop,
         orientation: Orientation.TopDown,
     };

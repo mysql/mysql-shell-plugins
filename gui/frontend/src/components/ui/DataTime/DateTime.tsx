@@ -58,7 +58,7 @@ export interface IDateTimeChangeProperties extends IDateTimeProperties {
 
 export class DateTime extends ComponentBase<IDateTimeProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         spellCheck: true,
     };
 
@@ -74,7 +74,7 @@ export class DateTime extends ComponentBase<IDateTimeProperties> {
         this.addHandledProperties("autoFocus", "value", "innerRef");
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         const { autoFocus } = this.mergedProps;
         if (this.dateTimeRef.current && autoFocus) {
             const element = this.dateTimeRef.current;

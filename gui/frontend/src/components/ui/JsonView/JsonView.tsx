@@ -80,14 +80,16 @@ export class JsonView extends ComponentBase<IJsonViewProps> {
         this.#valueNode = this.createValueNode(value);
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         const view = this.#viewRef.current;
         if (view !== null) {
             view.appendChild(this.#valueNode);
         }
     }
 
-    public componentDidUpdate(previousProps: Readonly<IJsonViewProps>, _previousState: {}, _snapshot: unknown): void {
+    public override componentDidUpdate(
+        previousProps: Readonly<IJsonViewProps>, _previousState: {}, _snapshot: unknown,
+    ): void {
         if (previousProps.json !== this.props.json) {
             const { json } = this.props;
 

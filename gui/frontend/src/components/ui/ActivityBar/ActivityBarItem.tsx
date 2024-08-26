@@ -40,7 +40,7 @@ export interface IActivityBarItemProperties extends IComponentProperties {
 
 export class ActivityBarItem extends ComponentBase<IActivityBarItemProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         active: false,
         disabled: false,
         expand: false,

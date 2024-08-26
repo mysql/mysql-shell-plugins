@@ -61,7 +61,7 @@ export interface IInputChangeProperties extends IInputProperties {
 
 export class Input extends ComponentBase<IInputProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         spellCheck: true,
     };
 
@@ -88,7 +88,7 @@ export class Input extends ComponentBase<IInputProperties> {
         }
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         const { autoFocus } = this.mergedProps;
         if (this.inputRef.current && autoFocus) {
             const element = this.inputRef.current;

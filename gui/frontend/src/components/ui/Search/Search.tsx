@@ -71,7 +71,7 @@ export class Search extends ComponentBase<ISearchProperties> {
         this.addHandledProperties("placeholder", "autoFocus", "result", "buttons", "values", "onChange", "onConfirm");
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         const { autoFocus } = this.mergedProps;
         if (autoFocus && this.inputRef.current) {
             this.inputRef.current.focus();

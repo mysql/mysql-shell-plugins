@@ -54,7 +54,7 @@ interface IDialogProperties extends IComponentProperties {
 // For value editing with input validation see ValueEditDialog instead.
 export class Dialog extends ComponentBase<IDialogProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         container: document.body,
     };
 

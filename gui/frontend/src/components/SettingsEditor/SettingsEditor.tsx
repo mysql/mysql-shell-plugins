@@ -87,11 +87,11 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
         };
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("showThemeEditor", this.showThemeEditor);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         if (this.filterTimer) {
             clearTimeout(this.filterTimer);
         }
@@ -99,7 +99,7 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
         requisitions.unregister("showThemeEditor", this.showThemeEditor);
     }
 
-    public componentDidUpdate(prevProps: ISettingsEditorProperties): void {
+    public override componentDidUpdate(prevProps: ISettingsEditorProperties): void {
         const { page } = this.props;
 
         if (prevProps.page !== page) {

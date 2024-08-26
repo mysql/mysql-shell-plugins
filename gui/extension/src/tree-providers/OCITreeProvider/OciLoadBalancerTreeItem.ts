@@ -32,7 +32,7 @@ import { IMdsProfileData } from "../../../../frontend/src/communication/Protocol
 import { OciBaseTreeItem } from "./OciBaseTreeItem.js";
 
 export class OciLoadBalancerTreeItem extends OciBaseTreeItem {
-    public contextValue = "mdsLoadBalancer";
+    public override contextValue = "mdsLoadBalancer";
 
     public constructor(
         profile: IMdsProfileData,

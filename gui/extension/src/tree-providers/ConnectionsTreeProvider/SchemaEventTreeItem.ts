@@ -28,7 +28,7 @@ import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/She
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
 
 export class SchemaEventTreeItem extends ConnectionsTreeBaseItem {
-    public contextValue = "schemaEventItem";
+    public override contextValue = "schemaEventItem";
 
     public constructor(
         name: string,
@@ -39,11 +39,11 @@ export class SchemaEventTreeItem extends ConnectionsTreeBaseItem {
         super(name, schema, backend, connectionId, "schemaEvent.svg", hasChildren);
     }
 
-    public get qualifiedName(): string {
+    public override get qualifiedName(): string {
         return `\`${this.schema}\`.\`${this.name}\``;
     }
 
-    public get dbType(): MrsDbObjectType {
+    public override get dbType(): MrsDbObjectType {
         return MrsDbObjectType.Event;
     }
 }

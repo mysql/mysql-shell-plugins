@@ -30,7 +30,7 @@ import { InnoDBClusterModuleId } from "../ModuleInfo.js";
 
 export class InnoDBClusterModule extends ModuleBase {
 
-    public static get info(): IModuleInfo {
+    public static override get info(): IModuleInfo {
         return {
             id: InnoDBClusterModuleId,
             caption: "InnoDB",

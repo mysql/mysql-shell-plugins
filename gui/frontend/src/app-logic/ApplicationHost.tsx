@@ -76,7 +76,7 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
         requisitions.register("showModule", this.showModule);
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         // Auto select the first module if no active module is given and we have a module to show actually.
         const modules = ModuleRegistry.enabledModules;
         if (modules.size > 0) {
@@ -89,13 +89,13 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
         requisitions.executeRemote("applicationDidStart", undefined);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         requisitions.unregister("showAbout", this.showAbout);
         requisitions.unregister("showPreferences", this.showPreferences);
         requisitions.unregister("showModule", this.showModule);
     }
 
-    public componentDidUpdate(prevProps: IApplicationHostProperties, prevState: IApplicationHostState): void {
+    public override componentDidUpdate(prevProps: IApplicationHostProperties, prevState: IApplicationHostState): void {
         const { activeModule } = this.state;
 
         if (activeModule !== prevState.activeModule) {

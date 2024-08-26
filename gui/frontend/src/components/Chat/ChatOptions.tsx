@@ -89,7 +89,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
         this.addHandledProperties("savedState");
     }
 
-    public static getDerivedStateFromProps(props: IChatOptionsProperties,
+    public static override getDerivedStateFromProps(props: IChatOptionsProperties,
         state: IChatOptionsState): Partial<IChatOptionsState> {
 
         // If no state is yet set, use the saved state as passed in by the props if available

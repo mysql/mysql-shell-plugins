@@ -32,7 +32,7 @@ import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/She
 
 export class ConnectionTreeItem extends TreeItem {
 
-    public contextValue = "connection";
+    public override contextValue = "connection";
 
     public constructor(public details: IConnectionDetails, public backend: ShellInterfaceSqlEditor) {
         super(details.caption, TreeItemCollapsibleState.Collapsed);

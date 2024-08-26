@@ -97,7 +97,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     // eslint-disable-next-line @typescript-eslint/naming-convention
     public static Item = DropdownItem;
 
-    public static defaultProps = {
+    public static override defaultProps = {
         optional: false,
         showDescription: false,
         multiSelect: false,
@@ -124,7 +124,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         this.connectEvents("onFocus", "onBlur");
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         const { autoFocus } = this.mergedProps;
 
         this.currentSelectionIndex = this.indexOfFirstSelectedEntry;
@@ -135,7 +135,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         }
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         if ((!this.popupRef.current || !this.popupRef.current.isOpen) && (this.containerRef.current != null)) {
             // Set back the focus to the drop down, once the popup was closed.
             // This is independent of the auto focus property, because for the popup to show

@@ -175,18 +175,18 @@ export class Explorer extends ComponentBase<IExplorerProperties, IExplorerState>
             "onSaveSchemaTree", "onSaveExplorerState", "onContextMenuItemClick");
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         this.updateSchemaList();
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         const { id, onSaveSchemaTree } = this.props;
         const { schemaList } = this.state;
 
         onSaveSchemaTree?.(id ?? "", schemaList ?? []);
     }
 
-    public componentDidUpdate(prevProps: IExplorerProperties, prevState: IExplorerState): void {
+    public override componentDidUpdate(prevProps: IExplorerProperties, prevState: IExplorerState): void {
         const { id, markedSchema, onSaveSchemaTree } = this.props;
         if (id !== prevProps.id) {
             const { schemaList } = prevState;

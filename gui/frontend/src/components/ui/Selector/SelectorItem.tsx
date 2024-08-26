@@ -49,7 +49,7 @@ export interface ISelectorItemProperties extends IComponentProperties {
 
 export class SelectorItem extends ComponentBase<ISelectorItemProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         disabled: false,
         orientation: Orientation.LeftToRight,
         type: "normal",
@@ -97,7 +97,7 @@ export class SelectorItem extends ComponentBase<ISelectorItemProperties> {
         );
     }
 
-    protected handleDragEvent(type: DragEventType, e: DragEvent): boolean {
+    protected override handleDragEvent(type: DragEventType, e: DragEvent): boolean {
         const element = e.currentTarget as HTMLElement;
         switch (type) {
             case DragEventType.Start: {

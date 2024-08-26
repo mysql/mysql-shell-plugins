@@ -123,7 +123,7 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
         );
     }
 
-    protected handleDragEvent = (type: DragEventType, e: DragEvent): boolean => {
+    protected override handleDragEvent = (type: DragEventType, e: DragEvent): boolean => {
         if (!e.dataTransfer) {
             return false;
         }

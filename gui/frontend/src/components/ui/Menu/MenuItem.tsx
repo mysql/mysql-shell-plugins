@@ -48,7 +48,7 @@ export interface IMenuItemProperties extends IComponentProperties {
 
 export class MenuItem extends ComponentBase<IMenuItemProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         subMenuPlacement: ComponentPlacement.RightTop,
     };
 

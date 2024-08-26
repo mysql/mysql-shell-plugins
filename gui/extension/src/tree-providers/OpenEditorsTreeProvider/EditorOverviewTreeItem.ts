@@ -28,7 +28,7 @@ import * as path from "path";
 import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
 
 export class EditorOverviewTreeItem extends TreeItem {
-    public contextValue = "editorOverview";
+    public override contextValue = "editorOverview";
 
     public constructor(caption: string, tooltip: string, command: Command) {
         super(caption, TreeItemCollapsibleState.None);

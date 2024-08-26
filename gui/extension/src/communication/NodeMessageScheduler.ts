@@ -31,11 +31,11 @@ import { IConnectionOptions, MessageScheduler } from "../../../frontend/src/comm
 
 /** An extended message scheduler for tasks only used in the extension. */
 export class NodeMessageScheduler extends MessageScheduler {
-    protected static createInstance(): MessageScheduler {
+    protected static override createInstance(): MessageScheduler {
         return new NodeMessageScheduler();
     }
 
-    protected createWebSocket(target: URL, options: IConnectionOptions): WebSocket {
+    protected override createWebSocket(target: URL, options: IConnectionOptions): WebSocket {
         let ca;
         if (options.shellConfigDir) {
             const caFile = join(options.shellConfigDir, "plugin_data/gui_plugin/web_certs/rootCA.crt");

@@ -28,7 +28,6 @@ import { mount } from "enzyme";
 import { DBEditorToolbar } from "../../../../modules/db-editor/DBEditorToolbar.js";
 import { IOpenEditorState } from "../../../../modules/db-editor/DBConnectionTab.js";
 import { EntityType } from "../../../../modules/db-editor/index.js";
-import { CodeEditorMode } from "../../../../components/ui/CodeEditor/index.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
 
 describe("DBEditorToolbar tests", (): void => {

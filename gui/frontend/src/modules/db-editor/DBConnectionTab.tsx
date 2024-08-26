@@ -316,7 +316,7 @@ Execute \\help or \\? for help;`;
 
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("editorStopExecution", this.editorStopExecution);
         requisitions.register("editorCommit", this.editorCommit);
         requisitions.register("editorRollback", this.editorRollback);
@@ -350,7 +350,7 @@ Execute \\help or \\? for help;`;
         void this.getGenAiStatus();
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         this.resultTimers.forEach((resultTimer) => {
             void clearIntervalAsync(resultTimer.timer);
         });
@@ -381,7 +381,7 @@ Execute \\help or \\? for help;`;
         requisitions.unregister("selectFile", this.selectFile);
     }
 
-    public componentDidUpdate(prevProps: IDBConnectionTabProperties): void {
+    public override componentDidUpdate(prevProps: IDBConnectionTabProperties): void {
         const { id, connectionId, savedState } = this.props;
 
         if (connectionId !== prevProps.connectionId) {

@@ -104,7 +104,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
             "onEdit");
     }
 
-    public static getDerivedStateFromProps(newProps: IScriptEditorProperties,
+    public static override getDerivedStateFromProps(newProps: IScriptEditorProperties,
         oldState: IScriptEditorState): Partial<IScriptEditorState> {
 
         const { savedState } = newProps;
@@ -121,7 +121,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         return {};
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("explorerDoubleClick", this.handleExplorerDoubleClick);
         requisitions.register("editorCaretMoved", this.handleCaretMove);
 
@@ -156,11 +156,11 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         this.updateStatusItems();
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         this.updateStatusItems();
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         this.#editorLanguageSbEntry.dispose();
         this.#editorIndentSbEntry.dispose();
         this.#editorPositionSbEntry.dispose();

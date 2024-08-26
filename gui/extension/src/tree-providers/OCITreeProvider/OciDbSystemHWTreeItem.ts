@@ -31,12 +31,12 @@ import { IMdsProfileData } from "../../../../frontend/src/communication/Protocol
 import { OciDbSystemTreeItem } from "./OciDbSystemTreeItem.js";
 
 export class OciDbSystemHWTreeItem extends OciDbSystemTreeItem {
-    public contextValue = "mdsDbSystemHW";
+    public override contextValue = "mdsDbSystemHW";
 
     public constructor(
         profile: IMdsProfileData,
-        public compartment: ICompartment,
-        public dbSystem: IMySQLDbSystem) {
+        public override compartment: ICompartment,
+        public override dbSystem: IMySQLDbSystem) {
         super(profile, compartment, dbSystem, TreeItemCollapsibleState.Collapsed);
         let iconName = "ociDbSystemHWNotActive.svg";
         if (dbSystem.lifecycleState === DBSystem.LifecycleState.Active) {

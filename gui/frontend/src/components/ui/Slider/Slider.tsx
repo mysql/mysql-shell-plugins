@@ -41,7 +41,7 @@ interface ISliderProperties extends IComponentProperties {
 
 export class Slider extends ComponentBase<ISliderProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         disabled: false,
         vertical: false,
         handleSize: 20,
@@ -70,7 +70,7 @@ export class Slider extends ComponentBase<ISliderProperties> {
         onChange?.(newValue);
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         const { value, handleSize } = this.mergedProps;
 
         if (this.sliderRef.current) {
@@ -104,7 +104,7 @@ export class Slider extends ComponentBase<ISliderProperties> {
         );
     }
 
-    protected handlePointerEvent(type: PointerEventType, e: PointerEvent): boolean {
+    protected override handlePointerEvent(type: PointerEventType, e: PointerEvent): boolean {
         switch (type) {
             case PointerEventType.Down: {
                 this.handleItemPointerMove(e);

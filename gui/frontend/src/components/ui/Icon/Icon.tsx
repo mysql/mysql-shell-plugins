@@ -41,7 +41,7 @@ export interface IIconProperties extends IComponentProperties {
 }
 
 export class Icon extends ComponentBase<IIconProperties> {
-    public static defaultProps = {
+    public static override defaultProps = {
         disabled: false,
     };
 

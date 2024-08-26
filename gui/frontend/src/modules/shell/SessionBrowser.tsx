@@ -49,7 +49,7 @@ export class SessionBrowser extends ComponentBase<ISessionBrowserProperties> {
 
     private newSessionTileRef = createRef<HTMLDivElement>();
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("settingsChanged", this.settingsChanged);
 
         setTimeout(() => {
@@ -57,7 +57,7 @@ export class SessionBrowser extends ComponentBase<ISessionBrowserProperties> {
         }, 200);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         requisitions.unregister("settingsChanged", this.settingsChanged);
     }
 

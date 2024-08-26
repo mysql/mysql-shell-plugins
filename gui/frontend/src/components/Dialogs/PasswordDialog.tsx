@@ -57,11 +57,11 @@ export class PasswordDialog extends ComponentBase<{}, IPasswordDialogState> {
         };
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("requestPassword", this.requestPassword);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         requisitions.unregister("requestPassword", this.requestPassword);
     }
 

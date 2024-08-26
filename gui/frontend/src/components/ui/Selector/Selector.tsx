@@ -64,7 +64,7 @@ interface ISelectorProperties extends IComponentProperties {
  * Typical use of this component includes activity bars and tabview switchers.
  */
 export class Selector extends ComponentBase<ISelectorProperties> {
-    public static defaultProps = {
+    public static override defaultProps = {
         orientation: Orientation.LeftToRight,
         entryOrientation: Orientation.TopDown,
         smoothScroll: false,
@@ -87,11 +87,11 @@ export class Selector extends ComponentBase<ISelectorProperties> {
         this.connectDragEvents();
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         this.handleResize();
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         this.scrollActiveItemIntoView();
         this.autoHideNavButtons();
     }
@@ -170,7 +170,7 @@ export class Selector extends ComponentBase<ISelectorProperties> {
         );
     }
 
-    protected handleDragEvent(type: DragEventType, e: DragEvent): boolean {
+    protected override handleDragEvent(type: DragEventType, e: DragEvent): boolean {
         const element = e.currentTarget as HTMLElement;
         switch (type) {
             case DragEventType.Over: {

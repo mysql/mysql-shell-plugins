@@ -88,7 +88,7 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
         this.addHandledProperties("container");
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         const { id, children, container = document.body } = this.mergedProps;
         const { open, options } = this.state;
 
@@ -117,7 +117,7 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
         }
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         this.host?.remove();
         this.host = undefined;
     }

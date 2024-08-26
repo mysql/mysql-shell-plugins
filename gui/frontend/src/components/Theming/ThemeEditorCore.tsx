@@ -79,12 +79,12 @@ export class ThemeEditorCore extends ComponentBase<IThemeEditorCoreProperties, I
         this.initializeColorPad();
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("settingsChanged", this.settingsChanged);
         requisitions.register("themeChanged", this.handleThemeChange);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         requisitions.unregister("settingsChanged", this.settingsChanged);
         requisitions.unregister("themeChanged", this.handleThemeChange);
     }

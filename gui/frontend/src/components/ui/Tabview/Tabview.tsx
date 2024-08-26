@@ -109,7 +109,7 @@ interface ITabviewProperties extends IComponentProperties {
  */
 export class Tabview extends ComponentBase<ITabviewProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         tabPosition: TabPosition.Top,
         stretchTabs: true,
         hideSingleTab: false,
@@ -142,11 +142,11 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
 
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         this.resizeObserver?.observe(this.contentRef.current as Element);
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         this.scrollActiveItemIntoView();
         this.handleResize();
     }

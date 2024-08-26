@@ -359,7 +359,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         return view;
     };
 
-    public render(): ComponentChild {
+    public override render(): ComponentChild {
         const { values, getCurrentDbObject } = this.props;
         const { sqlPreview } = this.state;
         const data = values as IMrsObjectFieldEditorData;

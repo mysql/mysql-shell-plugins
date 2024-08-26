@@ -59,7 +59,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         super(editor, language);
     }
 
-    public dispose(): void {
+    public override dispose(): void {
         // Need to get the outer model here, as the super.dispose() call will nullify the backend/model.
         const editorModel = super.model;
 
@@ -94,7 +94,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     /**
      * @returns A local model which contains only the text of this block.
      */
-    public get model(): Monaco.ITextModel {
+    public override get model(): Monaco.ITextModel {
         const editorModel = super.model as ICodeEditorModel | null; // Model for the entire editor content.
 
         if (!this.internalModel || this.internalModel.isDisposed()) {
@@ -134,22 +134,22 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         return this.internalModel;
     }
 
-    public get startLine(): number {
+    public override get startLine(): number {
         return this.startLineNumber;
     }
 
-    public set startLine(value: number) {
+    public override set startLine(value: number) {
         this.modelNeedsUpdate = true;
         if (this.startLineNumber !== value) {
             this.startLineNumber = value;
         }
     }
 
-    public get endLine(): number {
+    public override get endLine(): number {
         return this.endLineNumber;
     }
 
-    public set endLine(value: number) {
+    public override set endLine(value: number) {
         this.modelNeedsUpdate = true;
         if (this.endLineNumber !== value) {
             this.endLineNumber = value;
@@ -157,7 +157,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         }
     }
 
-    public get codeOffset(): number {
+    public override get codeOffset(): number {
         const editorModel = super.model;
         if (editorModel) {
             return editorModel.getOffsetAt({ lineNumber: this.startLineNumber, column: 1 });
@@ -173,7 +173,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
      *
      * @param delta The number of lines we moved.
      */
-    public movePosition(delta: number): void {
+    public override movePosition(delta: number): void {
         this.startLineNumber += delta;
         this.endLineNumber += delta;
 
@@ -186,7 +186,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         }
     }
 
-    public updateMarginDecorations(): void {
+    public override updateMarginDecorations(): void {
         super.updateMarginDecorations();
 
         const lineCount = this.endLine - this.startLine + 1;
@@ -233,7 +233,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         }
     }
 
-    protected get resultDivider(): ComponentChild {
+    protected override get resultDivider(): ComponentChild {
         return <Divider
             innerRef={this.dividerRef}
             thickness={4}
@@ -243,7 +243,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         />;
     }
 
-    protected removeRenderTarget(): void {
+    protected override removeRenderTarget(): void {
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
             this.resizeObserver = undefined;
@@ -259,7 +259,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         super.removeRenderTarget();
     }
 
-    protected updateRenderTarget(height?: number): void {
+    protected override updateRenderTarget(height?: number): void {
         super.updateRenderTarget(height);
 
         if (height !== undefined) {
@@ -347,7 +347,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
      * Creates the minimal zone info required to add the zone to the editor. Everything else is added later
      * in defineRenderTarget.
      */
-    protected prepareRenderTarget(): void {
+    protected override prepareRenderTarget(): void {
         // The zone node is positioned absolutely and hence cannot use margins to define a distance to neighbor
         // elements. That's why we need an additional element below it that acts as background and mount point.
         const zoneHost = document.createElement("div");

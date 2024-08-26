@@ -26,13 +26,13 @@
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
 
 export class SchemaTreeItem extends ConnectionsTreeBaseItem {
-    public contextValue = "schemaItem";
+    public override contextValue = "schemaItem";
 
-    public get qualifiedName(): string {
+    public override get qualifiedName(): string {
         return `\`${this.name}\``;
     }
 
-    public get dbType(): string {
+    public override get dbType(): string {
         return "schema";
     }
 }

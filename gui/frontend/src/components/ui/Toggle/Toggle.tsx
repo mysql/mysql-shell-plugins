@@ -47,7 +47,7 @@ export interface IToggleProperties extends IComponentProperties {
 
 export class Toggle extends ComponentBase<IToggleProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         checkState: CheckState?.Unchecked,
         disabled: false,
         round: true,
@@ -62,7 +62,7 @@ export class Toggle extends ComponentBase<IToggleProperties> {
             "checkedColor", "onChange");
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         if (this.toggleRef.current) {
             const { color, checkedColor, borderWidth, checkState } = this.mergedProps;
 
@@ -85,7 +85,7 @@ export class Toggle extends ComponentBase<IToggleProperties> {
         }
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         if (this.toggleRef.current) {
             const { checkState } = this.mergedProps;
 

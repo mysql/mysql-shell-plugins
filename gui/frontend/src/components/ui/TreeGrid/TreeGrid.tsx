@@ -223,13 +223,13 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             ResizeRowsModule, FrozenRowsModule, TooltipModule]);
     }
 
-    public getSnapshotBeforeUpdate(): IDictionary {
+    public override getSnapshotBeforeUpdate(): IDictionary {
         return {
             currentTop: this.#tabulator?.rowManager.scrollTop ?? 0,
         };
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         const { tableData } = this.mergedProps;
 
         // istanbul ignore else
@@ -298,14 +298,14 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         }
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         if (this.#timeoutId) {
             clearTimeout(this.#timeoutId);
             this.#timeoutId = null;
         }
     }
 
-    public componentDidUpdate(_prevProps: ITreeGridProperties): void {
+    public override componentDidUpdate(_prevProps: ITreeGridProperties): void {
         if (this.#tabulator && this.#tableReady) {
             const { selectedRows, columns, tableData } = this.mergedProps;
 

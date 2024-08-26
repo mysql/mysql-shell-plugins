@@ -166,7 +166,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             "onFieldEditStart", "onFieldEdited", "onFieldEditCancel", "onVerticalScroll");
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         const { editable, editModeActive, selectRow, resultSet, topRowIndex } = this.mergedProps;
 
         document.addEventListener("keydown", this.handleKeyDown);
@@ -192,12 +192,12 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         }
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         document.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("mouseup", this.handleMouseUp);
     }
 
-    public componentDidUpdate(prevProps: IResultViewProperties): void {
+    public override componentDidUpdate(prevProps: IResultViewProperties): void {
         const { resultSet } = this.mergedProps;
 
         if (prevProps.resultSet.columns !== resultSet.columns) {

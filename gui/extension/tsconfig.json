@@ -17,6 +17,7 @@
         "alwaysStrict": true,
         "resolveJsonModule": true,
         "skipLibCheck": true,
+        "noImplicitOverride": true
     },
     "compileOnSave": true,
     "include": [

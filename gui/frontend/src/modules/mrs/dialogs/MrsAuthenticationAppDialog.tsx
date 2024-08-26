@@ -44,7 +44,7 @@ export interface IMrsAuthenticationAppDialogData extends IDictionary {
 }
 
 export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
-    protected get id(): string {
+    protected override get id(): string {
         return "mrsAuthenticationAppDialog";
     }
 

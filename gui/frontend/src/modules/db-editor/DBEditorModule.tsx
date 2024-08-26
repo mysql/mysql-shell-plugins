@@ -150,7 +150,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private mrsHubRef = createRef<MrsHub>();
     private currentTabRef = createRef<DBConnectionTab>();
 
-    public static get info(): IModuleInfo {
+    public static override get info(): IModuleInfo {
         return {
             id: DBEditorModuleId,
             caption: "DB Editor",
@@ -184,7 +184,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         });
     }
 
-    public static getDerivedStateFromProps(props: IDBEditorModuleProperties,
+    public static override getDerivedStateFromProps(props: IDBEditorModuleProperties,
         state: IDBEditorModuleState): Partial<IDBEditorModuleState> {
 
         const { selectedPage, loading } = state;
@@ -203,7 +203,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         return newState;
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("showPage", this.showPage);
         requisitions.register("openConnectionTab", this.openConnectionTab);
         requisitions.register("sqlSetCurrentSchema", this.setCurrentSchema);
@@ -230,7 +230,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.register("showMrsSdkExportDialog", this.showMrsSdkExportDialog);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         requisitions.unregister("showPage", this.showPage);
         requisitions.unregister("openConnectionTab", this.openConnectionTab);
         requisitions.unregister("sqlSetCurrentSchema", this.setCurrentSchema);
@@ -257,7 +257,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         requisitions.unregister("showMrsSdkExportDialog", this.showMrsSdkExportDialog);
     }
 
-    public render(): ComponentChild {
+    public override render(): ComponentChild {
         const { innerRef } = this.props;
         const {
             connections, connectionsLoaded, selectedPage, editorTabs, showExplorer, showTabs, loading,

@@ -60,7 +60,7 @@ export class ShellConsole extends ComponentBase<IShellConsoleProperties> {
         this.addHandledProperties("editorState", "onScriptExecution", "onHelpCommand");
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("editorCaretMoved", this.handleCaretMove);
 
         this.#editorPositionSbEntry = StatusBar.createStatusBarItem({
@@ -94,11 +94,11 @@ export class ShellConsole extends ComponentBase<IShellConsoleProperties> {
         this.updateStatusItems();
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         this.updateStatusItems();
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         requisitions.unregister("editorCaretMoved", this.handleCaretMove);
 
         this.#editorLanguageSbEntry.dispose();

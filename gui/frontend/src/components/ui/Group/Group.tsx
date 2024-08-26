@@ -34,7 +34,7 @@ export interface IGroupProperties extends IComponentProperties {
 
 export class Group extends ComponentBase<IGroupProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
     };
 
     public constructor(props: IGroupProperties) {

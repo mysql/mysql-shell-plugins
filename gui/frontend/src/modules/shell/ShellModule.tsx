@@ -79,7 +79,7 @@ interface IShellModuleState extends IModuleState {
 
 export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModuleState> {
 
-    public static get info(): IModuleInfo {
+    public static override get info(): IModuleInfo {
         return {
             id: ShellModuleId,
             caption: "Shell",
@@ -105,7 +105,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         };
     }
 
-    public static getDerivedStateFromProps(props: IShellModuleProperties,
+    public static override getDerivedStateFromProps(props: IShellModuleProperties,
         state: IShellModuleState): Partial<IShellModuleState> {
 
         const { selectedTab, pendingConnectionProgress } = state;
@@ -126,7 +126,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         return newState;
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("showPage", this.showPage);
         requisitions.register("newSession", this.newSession);
         requisitions.register("openSession", this.openSession);
@@ -139,7 +139,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         }
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         requisitions.unregister("showPage", this.showPage);
         requisitions.unregister("newSession", this.newSession);
         requisitions.unregister("openSession", this.openSession);
@@ -147,7 +147,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         requisitions.unregister("webSessionStarted", this.webSessionStarted);
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         const { pendingSession } = this.state;
 
         if (pendingSession) {
@@ -155,7 +155,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         }
     }
 
-    public render(): ComponentChild {
+    public override render(): ComponentChild {
         const { innerRef } = this.props;
         const { selectedTab, shellTabs, showTabs, progressMessage } = this.state;
 

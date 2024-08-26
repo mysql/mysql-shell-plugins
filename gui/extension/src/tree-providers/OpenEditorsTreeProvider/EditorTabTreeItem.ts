@@ -29,7 +29,7 @@ import { TreeItem, TreeItemCollapsibleState } from "vscode";
 
 export class EditorTabTreeItem extends TreeItem {
 
-    public contextValue = "editorTab";
+    public override contextValue = "editorTab";
 
     public constructor(caption: string) {
         super(caption, TreeItemCollapsibleState.Expanded);

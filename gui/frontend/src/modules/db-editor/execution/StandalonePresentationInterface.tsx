@@ -45,11 +45,11 @@ export class StandalonePresentationInterface extends PresentationInterface {
         this.alwaysShowTab = true;
     }
 
-    protected get resultDivider(): ComponentChild {
+    protected override get resultDivider(): ComponentChild {
         return undefined;
     }
 
-    protected removeRenderTarget(): void {
+    protected override removeRenderTarget(): void {
         super.removeRenderTarget();
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
@@ -59,7 +59,7 @@ export class StandalonePresentationInterface extends PresentationInterface {
         this.host.setState({ showResultPane: false });
     }
 
-    protected updateRenderTarget(height?: number): void {
+    protected override updateRenderTarget(height?: number): void {
         super.updateRenderTarget(height);
 
         if (height !== undefined) {
@@ -72,7 +72,7 @@ export class StandalonePresentationInterface extends PresentationInterface {
         });
     }
 
-    protected defineRenderTarget(): HTMLDivElement {
+    protected override defineRenderTarget(): HTMLDivElement {
         const target = this.target.current;
         if (!target) {
             return document.createElement("div");

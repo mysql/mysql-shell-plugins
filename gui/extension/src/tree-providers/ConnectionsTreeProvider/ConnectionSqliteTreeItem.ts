@@ -31,7 +31,7 @@ import { ConnectionTreeItem } from "./ConnectionTreeItem.js";
 
 export class ConnectionSqliteTreeItem extends ConnectionTreeItem {
 
-    public contextValue = "connectionSqlite";
+    public override contextValue = "connectionSqlite";
 
     public constructor(details: IConnectionDetails, backend: ShellInterfaceSqlEditor) {
         super(details, backend);

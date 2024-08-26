@@ -181,7 +181,7 @@ interface ITemplateItem {
 
 export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
-    public static readonly defaultProps = {
+    public static override readonly defaultProps = {
         detectLinks: false,
         useTabStops: false,
         componentMinWidth: 200,
@@ -355,7 +355,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         return this.scrolling;
     };
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         if (!this.hostRef.current) {
             return;
         }
@@ -514,7 +514,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         });*/
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         if (this.scrollingTimer) {
             clearTimeout(this.scrollingTimer);
             this.scrollingTimer = null;
@@ -546,7 +546,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         this.resizeObserver?.unobserve(this.hostRef.current as Element);
     }
 
-    public componentDidUpdate(prevProps: ICodeEditorProperties): void {
+    public override componentDidUpdate(prevProps: ICodeEditorProperties): void {
         const { initialContent, language, savedState, autoFocus } = this.mergedProps;
 
         const editor = this.backend;

@@ -48,11 +48,11 @@ export class GraphHost extends ComponentBase<IGraphHostProps> {
         this.addHandledProperties("options");
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         this.update();
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         this.update();
     }
 

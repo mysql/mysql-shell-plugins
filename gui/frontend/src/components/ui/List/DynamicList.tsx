@@ -66,7 +66,7 @@ export class DynamicList extends ComponentBase<IDynamicListProperties, IDynamicL
         this.addHandledProperties("height", "rowHeight", "template", "elements");
     }
 
-    public componentDidUpdate(prevProps: IDynamicListProperties): void {
+    public override componentDidUpdate(prevProps: IDynamicListProperties): void {
         const { elements } = this.mergedProps;
 
         // Note: we only do simple checks here. If the data changed in place no re-rendering will happen!

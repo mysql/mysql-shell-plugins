@@ -164,7 +164,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             "onResultPageChange", "onToggleResultPaneViewState", "onSelectTab");
     }
 
-    public static getDerivedStateFromProps(newProps: IResultTabViewProperties,
+    public static override getDerivedStateFromProps(newProps: IResultTabViewProperties,
         oldState: IResultTabViewState): Partial<IResultTabViewState> {
 
         const { currentSet, resultSets } = newProps;

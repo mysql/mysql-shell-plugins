@@ -29,7 +29,7 @@ import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/She
 import { SchemaTreeItem } from "./SchemaTreeItem.js";
 
 export class SchemaSqliteTreeItem extends SchemaTreeItem {
-    public contextValue = "schemaItem";
+    public override contextValue = "schemaItem";
 
     public constructor(
         name: string,
@@ -43,11 +43,11 @@ export class SchemaSqliteTreeItem extends SchemaTreeItem {
             hasChildren, command);
     }
 
-    public get qualifiedName(): string {
+    public override get qualifiedName(): string {
         return `\`${this.name}\``;
     }
 
-    public get dbType(): string {
+    public override get dbType(): string {
         return "schema";
     }
 }

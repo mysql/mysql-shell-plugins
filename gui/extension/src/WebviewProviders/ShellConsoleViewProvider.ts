@@ -77,7 +77,7 @@ export class ShellConsoleViewProvider extends WebviewProvider {
         return this.runCommand("removeSession", session, "newShellConsole");
     }
 
-    protected requisitionsCreated(): void {
+    protected override requisitionsCreated(): void {
         super.requisitionsCreated();
 
         if (this.requisitions) {
@@ -116,7 +116,7 @@ export class ShellConsoleViewProvider extends WebviewProvider {
         });
     };
 
-    protected handleDispose(): void {
+    protected override handleDispose(): void {
         super.handleDispose();
 
         this.openSessions = [];

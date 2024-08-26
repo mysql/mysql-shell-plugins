@@ -45,7 +45,7 @@ interface ICalendarState extends IComponentState {
 
 export class Calendar extends ComponentBase<ICalendarProperties, ICalendarState> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         initialDate: new Date(),
     };
 

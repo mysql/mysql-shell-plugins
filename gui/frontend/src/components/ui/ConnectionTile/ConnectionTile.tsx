@@ -40,7 +40,7 @@ export interface IConnectionTileProperties extends IBrowserTileProperties {
 
 export class ConnectionTile extends BrowserTile<IConnectionTileProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         className: "connectionTile",
     };
 
@@ -50,7 +50,7 @@ export class ConnectionTile extends BrowserTile<IConnectionTileProperties> {
         this.addHandledProperties("details");
     }
 
-    public render(): ComponentChild {
+    public override render(): ComponentChild {
         return super.render();
     }
 

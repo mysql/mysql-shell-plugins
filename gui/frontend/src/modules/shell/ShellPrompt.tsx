@@ -66,17 +66,17 @@ export class ShellPrompt extends ComponentBase<IShellPromptProperties, IShellPro
         };
     }
 
-    public static getDerivedStateFromProps(props: IShellPromptProperties): Partial<IShellPromptState> {
+    public static override getDerivedStateFromProps(props: IShellPromptProperties): Partial<IShellPromptState> {
         return {
             values: props.values,
         };
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("updateShellPrompt", this.updateShellPrompt);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         requisitions.unregister("updateShellPrompt", this.updateShellPrompt);
     }
 
