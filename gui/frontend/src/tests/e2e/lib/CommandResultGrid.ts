@@ -54,16 +54,15 @@ export class CommandResultGrid {
     /**
      * Edits a cell from a result grid
      * @param cells The result grid cells
+     * @param method The method to edit the cells (double-click, keyboard, button)
      * @returns A promise resolving when the new value is set
      */
-    public editCells = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
+    public editCells = async (cells: interfaces.IResultGridCell[], method: string): Promise<void> => {
         await driver.wait(this.result.untilIsEditable(), constants.wait5seconds,
             `The grid for cmd ${this.result.command} is not editable`);
 
-        const performEdit = async (cellRef: interfaces.IResultGridCell): Promise<void> => {
-            let isDate = false;
+        const updateValue = async (cellRef: interfaces.IResultGridCell): Promise<void> => {
 
-            await this.startEditCell(cellRef.rowNumber!, cellRef.columnName);
             const cell = await this.getCell(cellRef.rowNumber!, cellRef.columnName); // avoid stale
             const expectInput = typeof cellRef.value === "string";
 
@@ -85,32 +84,41 @@ export class CommandResultGrid {
                     .findElements(gridLocator.row.cell.dateTimeInput)).length > 0;
 
                 if (!isDateTime) {
-                    isDate = false;
-                    const upDownInput = await cell
-                        .findElement(gridLocator.row.cell.upDownInput).catch(() => {
-                            return undefined;
-                        });
-
-                    if (!upDownInput) {
-                        await this.clearCellInputField(input);
-                        await input.sendKeys(cellRef.value as string);
-                    } else {
-                        await driver.executeScript("arguments[0].value=arguments[1]",
-                            input, cellRef.value as string);
-                    }
+                    await this.clearCellInputField(input);
+                    await input.sendKeys(cellRef.value as string);
                 } else {
-                    isDate = true;
                     await driver.executeScript("arguments[0].value=arguments[1]", input, cellRef.value as string);
                 }
-
-                await this.result.context!
-                    .findElement(locator.notebook.codeEditor.editor.result.toolbar.exists).click();
             } else {
                 await this.setCellBooleanValue(cellRef.rowNumber!, cellRef.columnName,
                     cellRef.value as boolean);
             }
 
             await this.result.loadResult();
+        };
+
+        const saveCellChanges = async (cellRef: interfaces.IResultGridCell, method?: string): Promise<void> => {
+            let isDate = false;
+            const cell = await this.getCell(cellRef.rowNumber!, cellRef.columnName); // avoid stale
+            const isDateTime = (await cell
+                .findElements(gridLocator.row.cell.dateTimeInput)).length > 0;
+
+            if (!isDateTime) {
+                if (method === constants.editButton) {
+                    await driver.actions().keyDown(Key.TAB).keyUp(Key.TAB).perform();
+                } else {
+                    await driver.actions().keyDown(Key.ENTER).keyUp(Key.ENTER).perform();
+                }
+
+            } else {
+                isDate = true;
+                if (method === constants.editButton) {
+                    await driver.actions().keyDown(Key.TAB).keyUp(Key.TAB).perform();
+                } else {
+                    await this.result.context!
+                        .findElement(locator.notebook.codeEditor.editor.result.toolbar.exists).click();
+                }
+            }
 
             if (isDate) {
                 await driver.wait(async () => {
@@ -124,13 +132,23 @@ export class CommandResultGrid {
                 return (await cell.getAttribute("class")).includes("changed");
             }, constants.wait2seconds,
                 `Yellow background does not exist on cell after inserting value '${cellRef.value}'`);
-
         };
 
-        for (const cellRef of cells) {
+        if (method === constants.editButton) {
+            await this.result.toolbar!.edit();
+        }
+
+        for (let i = 0; i <= cells.length - 1; i++) {
             await driver.wait(async () => {
                 try {
-                    await performEdit(cellRef);
+                    await this.startEditCell(cells[i].rowNumber!, cells[i].columnName, method);
+                    await updateValue(cells[i]);
+
+                    if (i === cells.length - 1 && method === constants.editButton) {
+                        await saveCellChanges(cells[i], constants.pressEnter);
+                    } else {
+                        await saveCellChanges(cells[i], method);
+                    }
 
                     return true;
                 } catch (err) {
@@ -140,7 +158,7 @@ export class CommandResultGrid {
                         throw err;
                     }
                 }
-            }, constants.wait10seconds, `The cell on column ${cellRef.columnName} was always stale`);
+            }, constants.wait10seconds, `The cell on column ${cells[i].columnName} was always stale`);
         }
     };
 
@@ -199,7 +217,7 @@ export class CommandResultGrid {
             let isDate = false;
             const refCell = await this.getCell(-1, cell.columnName);
             const expectInput = typeof cell.value === "string";
-            await this.startEditCell(-1, cell.columnName);
+            await this.startEditCell(-1, cell.columnName, constants.doubleClick);
 
             if (expectInput) {
                 let input: WebElement;
@@ -220,18 +238,8 @@ export class CommandResultGrid {
 
                 if (!isDateTime) {
                     isDate = false;
-                    const upDownInput = await refCell
-                        .findElement(gridLocator.row.cell.upDownInput).catch(() => {
-                            return undefined;
-                        });
-
-                    if (!upDownInput) {
-                        await this.clearCellInputField(input);
-                        await input.sendKeys(cell.value as string);
-                    } else {
-                        await driver.executeScript("arguments[0].value=arguments[1]",
-                            input, cell.value as string);
-                    }
+                    await this.clearCellInputField(input);
+                    await input.sendKeys(cell.value as string);
                 } else {
                     isDate = true;
                     await driver.executeScript("arguments[0].value=arguments[1]", input, cell.value as string);
@@ -1291,43 +1299,95 @@ export class CommandResultGrid {
      * @returns A promise resolving when the field is cleared
      */
     private clearCellInputField = async (el: WebElement): Promise<void> => {
-        await driver.wait(async () => {
-            await driver.executeScript("arguments[0].click()", el);
-            if (Os.isMacOs()) {
-                await el.sendKeys(Key.chord(Key.COMMAND, "a"));
-            } else {
-                await el.sendKeys(Key.chord(Key.CONTROL, "a"));
-            }
-            await el.sendKeys(Key.BACK_SPACE);
+        await driver.executeScript("arguments[0].click()", el);
+        if (Os.isMacOs()) {
+            await el.sendKeys(Key.chord(Key.COMMAND, "a"));
+        } else {
+            await el.sendKeys(Key.chord(Key.CONTROL, "a"));
+        }
+        await el.sendKeys(Key.BACK_SPACE);
+    };
 
-            return (await el.getAttribute("value")).length === 0;
-        }, constants.wait5seconds, `${await el.getId()} was not cleaned`);
+    /**
+     * Focus a cell, by pressing the keyboard TAB key
+     * @param rowNumber The row number
+     * @param columnName The column name
+     * @returns A promise resolving when the field is cleared
+     */
+    private focusCell = async (rowNumber: number, columnName: string): Promise<void> => {
+        const rows = await this.content!.findElements(gridLocator.row.exists);
+        const maxTabs = rows.length * Array.from(this.columnsMap!.keys()).length;
+
+        const isFocused = async () => {
+            const cellRef = await this.getCell(rowNumber, columnName);
+            const activeElement = await driver.switchTo().activeElement();
+
+            return ((await cellRef.getText()) === (await activeElement.getText())) ||
+                (this.isEditing(cellRef));
+        };
+
+        for (let i = 0; i <= maxTabs - 1; i++) {
+            if (await isFocused()) {
+                return;
+            } else {
+                await driver.actions().keyDown(Key.TAB).keyUp(Key.TAB).perform();
+            }
+        }
+
+        throw new Error(`Could not focus on cell ${columnName} on row ${rowNumber}`);
+    };
+
+    /**
+     * Checks if a cell is being edited
+     * @param cell The cell
+     * @returns A promise revolving to true if the cell is being edited, false otherwise
+     */
+    private isEditing = async (cell: WebElement): Promise<boolean> => {
+        return (await cell.getAttribute("class")).includes("tabulator-editing");
     };
 
     /**
      * Starts to edit a cell.
      * @param rowNumber The row number
      * @param columnName The column name
+     * @param method The method to edit the cells (double-click, keyboard, button)
      * @returns The table name
      */
-    private startEditCell = async (rowNumber: number, columnName: string): Promise<void> => {
+    private startEditCell = async (rowNumber: number, columnName: string, method: string): Promise<void> => {
+        const doubleClickEvent = "arguments[0].dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));";
         const selectListLocator = locator.notebook.codeEditor.editor.result.grid.row.cell.selectList.exists;
         let cell = await this.getCell(rowNumber, columnName);
 
-        const editingStarted = async (cellRef: WebElement) => {
-            return (await cellRef.getAttribute("class")).includes("tabulator-editing");
-        };
-
         await driver.wait(async () => {
             try {
-                if (await editingStarted(cell)) {
+                if (await this.isEditing(cell)) {
                     return (await cell.findElements(locator.htmlTag.input)).length > 0 ||
                         (await cell.findElements(locator.htmlTag.textArea)).length > 0 ||
                         (await cell.findElements(selectListLocator)).length > 0;
                 } else {
-                    await driver
-                        .executeScript("arguments[0].dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));",
-                            cell);
+                    switch (method) {
+
+                        case constants.doubleClick: {
+                            await driver.executeScript(doubleClickEvent, cell);
+                            break;
+                        }
+
+                        case constants.editButton: {
+                            await this.focusCell(rowNumber, columnName);
+                            break;
+                        }
+
+                        case constants.pressEnter: {
+                            await this.focusCell(rowNumber, columnName);
+                            await driver.actions().keyDown(Key.ENTER).keyUp(Key.ENTER).perform();
+                            break;
+                        }
+
+                        default: {
+                            break;
+                        }
+                    }
+
                 }
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError) &&

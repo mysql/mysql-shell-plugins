@@ -208,6 +208,11 @@ export const mysqlType = "Mysql";
 export const tsType = "scriptTs";
 export const jsType = "scriptJs";
 
+// EDIT RESULT GRIDS
+export const doubleClick = "doubleClick";
+export const editButton = "editButton";
+export const pressEnter = "pressEnter";
+
 // CONTEXT MENUS ITEMS
 export const executeBlock = "Execute Block";
 export const executeBlockAndAdvance = "Execute Block and Advance";

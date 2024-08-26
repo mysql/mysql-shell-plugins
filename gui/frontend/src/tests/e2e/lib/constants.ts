@@ -86,6 +86,11 @@ export const editConnection = "Edit Connection";
 export const dupConnection = "Duplicate Connection";
 export const removeConnection = "Remove Connection";
 
+// EDIT RESULT GRIDS
+export const doubleClick = "doubleClick";
+export const editButton = "editButton";
+export const pressEnter = "pressEnter";
+
 // CELL ICONS
 export const blob = "blob";
 export const geometry = "geometry";
