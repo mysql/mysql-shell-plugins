@@ -233,6 +233,9 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
             if (tooltip === "expand") { // Expand means: use the text of the target element.
                 expand = true;
                 const language = target.getAttribute("data-tooltip-lang");
+                const innerText = target.innerText !== undefined
+                    ? target.innerText
+                    : (target.textContent ?? "");
                 switch (language) {
                     case "json": {
                         // For JSON content, parse it and format it nicely.
@@ -240,14 +243,14 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
                             const json = JsonParser.parseJson(target.innerText.replaceAll("\n", ""));
                             tooltip = JSON.stringify(json, null, 4).substring(0, maxLength);
                         } catch (e) {
-                            tooltip = target.innerText.substring(0, maxLength);
+                            tooltip = innerText.substring(0, maxLength);
                         }
 
                         break;
                     }
 
                     default: {
-                        tooltip = target.innerText.substring(0, maxLength);
+                        tooltip = innerText.substring(0, maxLength);
                     }
                 }
             }
