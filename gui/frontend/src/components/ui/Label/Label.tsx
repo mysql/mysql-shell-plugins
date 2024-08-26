@@ -92,11 +92,11 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
             "innerRef");
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         this.updateComputedOutput();
     }
 
-    public componentDidUpdate(prevProps: ILabelProperties): void {
+    public override componentDidUpdate(prevProps: ILabelProperties): void {
         const { caption, children } = this.mergedProps;
         if (caption !== prevProps.caption || children !== prevProps.children) {
             this.updateComputedOutput();

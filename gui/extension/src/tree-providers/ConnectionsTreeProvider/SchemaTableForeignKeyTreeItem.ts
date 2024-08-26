@@ -27,7 +27,7 @@ import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/She
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
 
 export class SchemaTableForeignKeyTreeItem extends ConnectionsTreeBaseItem {
-    public contextValue = "schemaTableForeignKeyItem";
+    public override contextValue = "schemaTableForeignKeyItem";
 
     public constructor(
         name: string,

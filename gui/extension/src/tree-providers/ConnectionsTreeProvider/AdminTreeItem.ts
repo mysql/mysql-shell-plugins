@@ -27,7 +27,7 @@ import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/She
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
 
 export class AdminTreeItem extends ConnectionsTreeBaseItem {
-    public contextValue = "admin";
+    public override contextValue = "admin";
 
     public constructor(
         name: string,

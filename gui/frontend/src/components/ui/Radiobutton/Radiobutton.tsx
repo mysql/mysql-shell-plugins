@@ -42,7 +42,7 @@ export interface IRadiobuttonProperties extends IComponentProperties {
 
 export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         checkState: CheckState?.Unchecked,
         disabled: false,
         caption: "Radiobutton",
@@ -57,7 +57,7 @@ export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
         this.connectEvents("onClick");
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         // istanbul ignore else
         if (this.inputRef.current) {
             const { checkState } = this.mergedProps;
@@ -96,7 +96,7 @@ export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
         );
     }
 
-    protected handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
+    protected override handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
         const { disabled } = this.mergedProps;
         if (disabled) {
             e.preventDefault();

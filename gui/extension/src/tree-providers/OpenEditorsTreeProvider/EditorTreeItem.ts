@@ -41,7 +41,7 @@ export class EditorTreeItem extends TreeItem {
         [EntityType.LakehouseNavigator, "lakehouseNavigator"],
     ]);
 
-    public contextValue = "editorItem";
+    public override contextValue = "editorItem";
 
     public constructor(private normalCaption: string, private alternativeCaption: string, language: EditorLanguage,
         editorType: EntityType, command: Command) {

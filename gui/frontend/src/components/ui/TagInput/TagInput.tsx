@@ -99,7 +99,7 @@ export class TagInput extends ComponentBase<ITagInputProperties> {
         );
     }
 
-    protected handleDragEvent(type: DragEventType, e: DragEvent): boolean {
+    protected override handleDragEvent(type: DragEventType, e: DragEvent): boolean {
         const element = e.currentTarget as HTMLElement;
         switch (type) {
             case DragEventType.Start: {

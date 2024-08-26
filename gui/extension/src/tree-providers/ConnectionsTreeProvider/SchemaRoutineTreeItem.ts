@@ -30,7 +30,7 @@ import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
 import { MrsDbObjectType } from "../../../../frontend/src/modules/mrs/types.js";
 
 export class SchemaRoutineTreeItem extends ConnectionsTreeBaseItem {
-    public contextValue = "schemaRoutineItem";
+    public override contextValue = "schemaRoutineItem";
 
     public constructor(
         name: string,
@@ -44,15 +44,15 @@ export class SchemaRoutineTreeItem extends ConnectionsTreeBaseItem {
             type === MrsDbObjectType.Procedure ? "schemaRoutine.svg" : "schemaFunction.svg", hasChildren, command);
     }
 
-    public get qualifiedName(): string {
+    public override get qualifiedName(): string {
         return `\`${this.schema}\`.\`${this.name}\``;
     }
 
-    public get dbType(): MrsDbObjectType {
+    public override get dbType(): MrsDbObjectType {
         return this.type;
     }
 
-    protected get createScriptResultIndex(): number {
+    protected override get createScriptResultIndex(): number {
         return 2;
     }
 }

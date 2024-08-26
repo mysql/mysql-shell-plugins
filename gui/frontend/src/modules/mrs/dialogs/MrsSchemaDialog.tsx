@@ -43,7 +43,7 @@ export interface IMrsSchemaDialogData extends IDictionary {
 }
 
 export class MrsSchemaDialog extends AwaitableValueEditDialog {
-    protected get id(): string {
+    protected override get id(): string {
         return "mrsSchemaDialog";
     }
 

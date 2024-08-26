@@ -80,12 +80,12 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
         this.addHandledProperties("showDelay", "style", "maxLength", "cursorWidth", "cursorHeight");
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         document.body.addEventListener("mouseover", this.elementMouseOver, false); // Mouse enter doesn't work here.
         document.body.addEventListener("keyup", this.handleDocumentKeyUp);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         if (this.tooltipTimer) {
             clearTimeout(this.tooltipTimer);
             this.tooltipTimer = null;
@@ -95,7 +95,7 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
         document.body.removeEventListener("mouseover", this.elementMouseOver);
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         const { cursorWidth = 16, cursorHeight = 16 } = this.mergedProps;
         const { tooltip, target, expand, mouse } = this.state;
 

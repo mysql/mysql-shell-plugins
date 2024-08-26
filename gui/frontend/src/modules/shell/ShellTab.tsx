@@ -117,15 +117,15 @@ Execute \\help or \\? for help; \\quit to close the session.`;
     // Timers to serialize asynchronously incoming results.
     private resultTimers = new Map<string, IResultTimer>();
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         this.initialSetup();
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         this.closeDbSession("");
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         this.initialSetup();
     }
 

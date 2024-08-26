@@ -1319,13 +1319,13 @@ class MrsBaseObjectCall<I, P extends IMrsFetchData> {
 export class MrsBaseObjectProcedureCall<I, P extends IMrsFetchData>
     extends MrsBaseObjectCall<IMrsProcedureResultList<I>, P> {
     public constructor(
-        protected schema: MrsBaseSchema,
-        protected requestPath: string,
-        protected params: P) {
+        protected override schema: MrsBaseSchema,
+        protected override requestPath: string,
+        protected override params: P) {
         super(schema, requestPath, params);
     }
 
-    public async fetch(): Promise<IMrsProcedureResultList<I>> {
+    public override async fetch(): Promise<IMrsProcedureResultList<I>> {
         const res = await super.fetch();
 
         return res;
@@ -1334,13 +1334,13 @@ export class MrsBaseObjectProcedureCall<I, P extends IMrsFetchData>
 
 export class MrsBaseObjectFunctionCall<I, P extends IMrsFetchData> extends MrsBaseObjectCall<I, P> {
     public constructor(
-        protected schema: MrsBaseSchema,
-        protected requestPath: string,
-        protected params: P) {
+        protected override schema: MrsBaseSchema,
+        protected override requestPath: string,
+        protected override params: P) {
         super(schema, requestPath, params);
     }
 
-    public async fetch(): Promise<I> {
+    public override async fetch(): Promise<I> {
         const res = await super.fetch() as IMrsFunctionResult<I>;
 
         return res.result;

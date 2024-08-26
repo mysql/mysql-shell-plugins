@@ -33,7 +33,7 @@ export class CatalogSymbol extends ScopedSymbol {
 
 export class SchemaSymbol extends ScopedSymbol {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public async getAllSymbols<T extends BaseSymbol>(t: new (...args: any[]) => T): Promise<T[]> {
+    public override async getAllSymbols<T extends BaseSymbol>(t: new (...args: any[]) => T): Promise<T[]> {
         let existing = await super.getAllSymbols(t, true);
         if (existing.length === 0 && this.symbolTable instanceof DBSymbolTable) {
             const kind = DBSymbolTable.getKindFromSymbol(t);
@@ -47,7 +47,7 @@ export class SchemaSymbol extends ScopedSymbol {
 
 export class TableSymbol extends ScopedSymbol {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public async getAllSymbols<T extends BaseSymbol>(t: new (...args: any[]) => T): Promise<T[]> {
+    public override async getAllSymbols<T extends BaseSymbol>(t: new (...args: any[]) => T): Promise<T[]> {
         let existing = await super.getAllSymbols(t, true);
         if (existing.length === 0 && this.symbolTable instanceof DBSymbolTable) {
             if (t.name === "ColumnSymbol") {
@@ -139,7 +139,7 @@ export class DBSymbolTable extends SymbolTable {
     /**
      * Removes all content in this symbol table.
      */
-    public clear(): void {
+    public override clear(): void {
         this.symbolReferences.clear();
         super.clear();
     }

@@ -53,7 +53,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
      *
      * @returns A promise which resolves when the operation was concluded.
      */
-    public async startSession(id: string): Promise<void> {
+    public override async startSession(id: string): Promise<void> {
         this.moduleSessionLookupId = `sqlEditor.${id}`;
         this.mrs.moduleSessionLookupId = this.moduleSessionLookupId;
 
@@ -74,7 +74,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
      *
      * @returns A promise which resolves when the operation was concluded.
      */
-    public async closeSession(): Promise<void> {
+    public override async closeSession(): Promise<void> {
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
             await MessageScheduler.get.sendRequest({

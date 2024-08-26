@@ -33,7 +33,7 @@ import { ConnectionTreeItem } from "./ConnectionTreeItem.js";
 
 export class ConnectionMySQLTreeItem extends ConnectionTreeItem {
 
-    public contextValue = "connectionMySQL";
+    public override contextValue = "connectionMySQL";
 
     public constructor(details: IConnectionDetails, backend: ShellInterfaceSqlEditor) {
         super(details, backend);

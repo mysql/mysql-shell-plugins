@@ -44,7 +44,7 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
     private createDbObject = false;
     private dialogValues?: IDialogValues;
 
-    protected get id(): string {
+    protected override get id(): string {
         return "mrsDbObjectDialog";
     }
 
@@ -88,7 +88,7 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
             { ...payload, services, schemas, rowOwnershipFields });
     }*/
 
-    protected validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
+    protected override validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {
         const result: IDialogValidations = {
             messages: {},
             requiredContexts: [],

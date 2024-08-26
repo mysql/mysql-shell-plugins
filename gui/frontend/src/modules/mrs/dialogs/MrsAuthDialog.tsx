@@ -68,11 +68,11 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
         };
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("requestMrsAuthentication", this.requestPassword);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         requisitions.unregister("requestMrsAuthentication", this.requestPassword);
     }
 

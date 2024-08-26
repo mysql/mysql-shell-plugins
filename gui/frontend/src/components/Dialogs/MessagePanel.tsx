@@ -56,11 +56,11 @@ export class MessagePanel extends ComponentBase<{}, IMessagePanelState> {
         };
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("showFatalError", this.showFatalError);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         requisitions.unregister("showFatalError", this.showFatalError);
     }
 

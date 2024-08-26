@@ -100,7 +100,7 @@ export class HexEditor extends ComponentBase<IHexEditorProperties, IHexEditorSta
 
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         this.setState({
             standardWidth: this.computeStandardWidth(),
         });

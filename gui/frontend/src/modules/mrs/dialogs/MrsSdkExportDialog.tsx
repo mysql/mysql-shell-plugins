@@ -46,7 +46,7 @@ export interface IMrsSdkAppClass {
 export class MrsSdkExportDialog extends AwaitableValueEditDialog {
     #serviceId = "";
 
-    protected get id(): string {
+    protected override get id(): string {
         return "mrsSdkExportDialog";
     }
 

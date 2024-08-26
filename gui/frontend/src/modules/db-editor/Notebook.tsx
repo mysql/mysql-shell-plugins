@@ -91,7 +91,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
             "readOnly", "showAbout", "extraLibs", "onScriptExecution", "onHelpCommand", "onContextLanguageChange");
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("explorerDoubleClick", this.explorerDoubleClick);
         requisitions.register("editorCaretMoved", this.handleCaretMove);
 
@@ -127,12 +127,12 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         this.updateStatusItems();
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         this.initialSetup();
         this.updateStatusItems();
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         this.#editorLanguageSbEntry.dispose();
         this.#editorIndentSbEntry.dispose();
         this.#editorPositionSbEntry.dispose();

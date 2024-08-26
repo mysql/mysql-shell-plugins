@@ -36,7 +36,7 @@ import { RoutineType, ShellInterfaceDb } from "../../../supplement/ShellInterfac
 import { nextProcessTick } from "../test-helpers.js";
 
 class MockShellInterfaceDb extends ShellInterfaceDb {
-    public async getCatalogObjects(type: string, _filter?: string): Promise<string[]> {
+    public override async getCatalogObjects(type: string, _filter?: string): Promise<string[]> {
         await nextProcessTick();
 
         switch (type) {
@@ -82,7 +82,7 @@ class MockShellInterfaceDb extends ShellInterfaceDb {
         }
     }
 
-    public async getSchemaObjects(schema: string, type: string, routineType?: RoutineType,
+    public override async getSchemaObjects(schema: string, type: string, routineType?: RoutineType,
         _filter?: string): Promise<string[]> {
         await nextProcessTick();
 
@@ -123,7 +123,9 @@ class MockShellInterfaceDb extends ShellInterfaceDb {
         }
     }
 
-    public async getTableObjectNames(schema: string, table: string, type: string, _filter?: string): Promise<string[]> {
+    public override async getTableObjectNames(
+        schema: string, table: string, type: string, _filter?: string,
+    ): Promise<string[]> {
         await nextProcessTick();
         switch (type) {
             case "Column": {

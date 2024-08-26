@@ -65,7 +65,7 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
         this.addHandledProperties("output", "contextId", "showIndexes", "onLabelClick");
     }
 
-    public componentDidUpdate(): void {
+    public override componentDidUpdate(): void {
         const lastChild = this.outputRef.current?.lastElementChild;
 
         /* istanbul ignore next */

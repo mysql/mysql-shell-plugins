@@ -35,7 +35,7 @@ import {
 export class MdsHWClusterDialog extends ValueDialogBase {
     private dialogRef = createRef<ValueEditDialog>();
 
-    public render(): ComponentChild {
+    public override render(): ComponentChild {
         return (
             <ValueEditDialog
                 ref={this.dialogRef}

@@ -45,7 +45,7 @@ export abstract class PythonLexerBase extends Lexer {
         super(input);
     }
 
-    public emit(token?: Token): Token {
+    public override emit(token?: Token): Token {
         if (!token) {
             return super.emit();
         }
@@ -57,7 +57,7 @@ export abstract class PythonLexerBase extends Lexer {
         return token;
     }
 
-    public nextToken(): Token {
+    public override nextToken(): Token {
         // Check if the end-of-file is ahead and there are still some indentations left over.
         if (this.inputStream.LA(1) === PythonLexer.EOF && this.indents.length > 0) {
             const token = this.buffer[this.buffer.length - 1];
@@ -81,9 +81,9 @@ export abstract class PythonLexerBase extends Lexer {
         return super.nextToken();
     }
 
-    public emitToken(token: Token): void;
-    public emitToken(tokenType: number, channel?: number, text?: string): void;
-    public emitToken(tokenOrTokenType: Token | number, channel?: number, text?: string): void {
+    public override emitToken(token: Token): void;
+    public override emitToken(tokenType: number, channel?: number, text?: string): void;
+    public override emitToken(tokenOrTokenType: Token | number, channel?: number, text?: string): void {
         if (typeof tokenOrTokenType !== "number") {
             this.emit(tokenOrTokenType);
 

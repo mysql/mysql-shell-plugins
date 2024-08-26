@@ -74,7 +74,7 @@ export interface IUpDownState extends IComponentState {
 export class UpDown<ValueType extends string | number | bigint>
     extends ComponentBase<IUpDownProperties<ValueType>, IUpDownState> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         textAlignment: TextAlignment.End,
     };
 
@@ -116,7 +116,7 @@ export class UpDown<ValueType extends string | number | bigint>
         this.addHandledProperties("items", "min", "max", "onChange", "initialValue", "textAlignment", "innerRef");
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         // Now that we know the control's height we can update the height of the items.
         if (this.containerRef.current) {
             this.containerRef.current.style.setProperty("--item-height",

@@ -167,7 +167,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         this.addHandledProperties("backend", "toolbarItems");
     }
 
-    public componentDidUpdate(prevProps: IClientConnectionsProperties, _prevState: IComponentState): void {
+    public override componentDidUpdate(prevProps: IClientConnectionsProperties, _prevState: IComponentState): void {
         const { backend } = this.props;
 
         // If we reopen a connection a new backend is created then we need to refresh the page.
@@ -176,14 +176,14 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         }
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         this.refreshTimer = setInterval(() => {
             void this.updateValues();
         }, ClientConnections.sampleInterval);
         requisitions.register("dialogResponse", this.handleDialogResponse);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         if (this.refreshTimer) {
             clearInterval(this.refreshTimer);
             this.refreshTimer = null;

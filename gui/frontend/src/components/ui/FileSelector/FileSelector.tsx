@@ -97,7 +97,7 @@ export interface IFileSelectorProperties extends IComponentProperties {
  */
 export class FileSelector extends ComponentBase<IFileSelectorProperties> {
 
-    public static readonly defaultProps = {
+    public static override readonly defaultProps = {
         canSelectFiles: true,
         canSelectFolder: false,
         canCreateNew: false,
@@ -112,11 +112,11 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
             "onChange", "onConfirm", "onSelect");
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("selectFile", this.selectFile);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         requisitions.unregister("selectFile", this.selectFile);
     }
 

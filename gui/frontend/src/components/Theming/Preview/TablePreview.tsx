@@ -52,7 +52,7 @@ export class TablePreview extends ComponentBase<{}, ITablePreviewState> {
         };
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         void this.ref.current?.table.then((table) => {
             const rows = table?.getRows();
             if (rows && rows.length > 0) {

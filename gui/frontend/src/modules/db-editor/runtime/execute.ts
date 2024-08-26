@@ -32,8 +32,8 @@ export let currentWorker!: PrivateWorker;
 
 export class CodeExecutionError extends Error {
     public constructor(
-        public message: string,
-        public stack: string) {
+        public override message: string,
+        public override stack: string) {
         super(message);
 
         // Set the prototype explicitly.

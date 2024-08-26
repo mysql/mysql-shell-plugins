@@ -155,7 +155,7 @@ export class StatusBar extends ComponentBase<{}, IStatusBarState> {
         };
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         // Clear the timers before unmounting
         if (this.#scheduledTimers.length > 0) {
             this.#scheduledTimers.forEach((timer) => {

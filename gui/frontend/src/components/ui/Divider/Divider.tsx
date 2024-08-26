@@ -40,7 +40,7 @@ interface IDividerProperties extends IComponentProperties {
 
 export class Divider extends ComponentBase<IDividerProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         vertical: false,
         thickness: 4,
     };
@@ -80,7 +80,7 @@ export class Divider extends ComponentBase<IDividerProperties> {
         );
     }
 
-    protected handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
+    protected override handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
         switch (type) {
             case MouseEventType.Enter: {
                 if (this.hoverTimer) {

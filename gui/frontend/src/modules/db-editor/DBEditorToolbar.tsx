@@ -114,7 +114,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
         this.addHandledProperties("toolbarItems", "activeEditor", "heatWaveEnabled", "editors", "language", "backend");
     }
 
-    public componentDidUpdate(oldProps: IDBEditorToolbarProperties): void {
+    public override componentDidUpdate(oldProps: IDBEditorToolbarProperties): void {
         const { activeEditor, editors } = this.props;
         if (activeEditor !== oldProps.activeEditor) {
             const currentEditor = editors.find((state) => {
@@ -139,7 +139,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
         }
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("editorCaretMoved", this.handleCaretMove);
         requisitions.register("editorContextStateChanged", this.contextStateChanged);
         requisitions.register("editorToggleStopExecutionOnError", this.toggleStopExecutionOnError);
@@ -148,7 +148,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
         requisitions.register("settingsChanged", this.settingsChanged);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         if (this.stateChangeTimer) {
             clearTimeout(this.stateChangeTimer);
             this.stateChangeTimer = null;

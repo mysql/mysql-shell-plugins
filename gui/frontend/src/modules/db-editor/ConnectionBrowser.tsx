@@ -33,7 +33,7 @@ import cloneIcon from "../../assets/images/clone.svg";
 import { ComponentChild, createRef } from "preact";
 import { Children } from "preact/compat";
 
-import { appParameters, requisitions } from "../../supplement/Requisitions.js";
+import { requisitions } from "../../supplement/Requisitions.js";
 
 import { MySQLConnectionScheme } from "../../communication/MySQL.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
@@ -89,7 +89,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             "onDropConnection", "onPushSavedConnection");
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("settingsChanged", this.handleSettingsChanged);
         requisitions.register("dbFileDropped", this.dbFileDropped);
         requisitions.register("addNewConnection", this.addNewConnection);
@@ -100,7 +100,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         requisitions.register("dialogResponse", this.dialogResponse);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         requisitions.unregister("settingsChanged", this.handleSettingsChanged);
         requisitions.unregister("dbFileDropped", this.dbFileDropped);
         requisitions.unregister("addNewConnection", this.addNewConnection);

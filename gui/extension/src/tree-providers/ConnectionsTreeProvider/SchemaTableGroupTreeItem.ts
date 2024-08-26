@@ -29,7 +29,7 @@ import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/She
 
 export class TableGroupTreeItem extends ConnectionsTreeBaseItem {
 
-    public contextValue = `schemaTable${String(this.label)}GroupItem`;
+    public override contextValue = `schemaTable${String(this.label)}GroupItem`;
 
     public constructor(
         schema: string,

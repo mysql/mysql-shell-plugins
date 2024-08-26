@@ -144,7 +144,7 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
         };
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         document.addEventListener("keydown", this.handleKeyDown);
         requisitions.register("statusBarButtonClick", this.statusBarButtonClick);
         requisitions.register("showInfo", this.showInfo);
@@ -163,7 +163,7 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
         }
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         this.#statusBarItem?.dispose();
 
         document.removeEventListener("keydown", this.handleKeyDown);

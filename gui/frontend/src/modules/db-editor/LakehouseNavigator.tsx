@@ -275,7 +275,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         this.addHandledProperties("backend", "toolbarItems", "savedState");
     }
 
-    public static getDerivedStateFromProps(props: ILakehouseNavigatorProperties,
+    public static override getDerivedStateFromProps(props: ILakehouseNavigatorProperties,
         state: ILakehouseNavigatorState): Partial<ILakehouseNavigatorState> {
 
         // If no state is yet set, use the saved state as passed in by the props if available
@@ -286,7 +286,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         return {};
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("selectFile", this.selectFile);
 
         void this.updateValues();
@@ -296,7 +296,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         this.updateLakehouseTasksTreeGrid();
     }
 
-    public readonly componentWillUnmount = (): void => {
+    public override readonly componentWillUnmount = (): void => {
         const { onLakehouseNavigatorStateChange } = this.props;
 
         requisitions.unregister("selectFile", this.selectFile);
@@ -318,7 +318,9 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         });
     };
 
-    public componentDidUpdate(prevProps: ILakehouseNavigatorProperties, prevState: ILakehouseNavigatorState): void {
+    public override componentDidUpdate(
+        prevProps: ILakehouseNavigatorProperties, prevState: ILakehouseNavigatorState,
+    ): void {
         const { backend } = this.props;
         const { activeProfile, formats, availableDatabaseSchemas } = this.state;
 

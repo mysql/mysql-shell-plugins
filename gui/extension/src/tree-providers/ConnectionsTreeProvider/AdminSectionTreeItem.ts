@@ -30,7 +30,7 @@ import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/She
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
 
 export class AdminSectionTreeItem extends ConnectionsTreeBaseItem {
-    public contextValue = "adminSection";
+    public override contextValue = "adminSection";
 
     public constructor(
         name: string,

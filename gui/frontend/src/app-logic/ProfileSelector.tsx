@@ -75,7 +75,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
         this.state = { menuItems: [] };
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("profileLoaded", this.profileLoaded);
 
         /*this.#profileSbEntry = StatusBar.createStatusBarItem({
@@ -85,7 +85,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
         });*/
     }
 
-    public componentWillMount(): void {
+    public override componentWillMount(): void {
         this.#profileSbEntry?.dispose();
     }
 

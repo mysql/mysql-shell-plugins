@@ -29,7 +29,7 @@ import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
 import { ShellTask } from "../../../../frontend/src/shell-tasks/ShellTask.js";
 
 export class ShellTaskTreeItem extends TreeItem {
-    public contextValue = "shellTask";
+    public override contextValue = "shellTask";
 
     public constructor(public task: ShellTask, command?: Command) {
         super(`${task.caption} (${task.status}${ShellTaskTreeItem.percentage(task)})`, TreeItemCollapsibleState.None);

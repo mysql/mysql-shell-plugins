@@ -29,7 +29,7 @@ import { convertToPascalCase } from "../../../../frontend/src/utilities/string-h
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
 export class MrsDbObjectTreeItem extends MrsTreeBaseItem {
-    public contextValue = "mrsDbObject";
+    public override contextValue = "mrsDbObject";
 
     public constructor(
         label: string,

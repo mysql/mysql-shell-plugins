@@ -45,7 +45,7 @@ interface IMenuBarState extends IComponentState {
 
 export class MenuBar extends ComponentBase<IMenuBarProperties, IMenuBarState> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         orientation: Orientation.LeftToRight,
     };
 
@@ -108,7 +108,7 @@ export class MenuBar extends ComponentBase<IMenuBarProperties, IMenuBarState> {
         );
     }
 
-    protected handleMouseEvent(type: MouseEventType): boolean {
+    protected override handleMouseEvent(type: MouseEventType): boolean {
         switch (type) {
             case MouseEventType.Leave: {
                 if (this.state.activeMenuId === "") {

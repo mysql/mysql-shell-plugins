@@ -33,7 +33,7 @@ import {
 import { OciBaseTreeItem } from "./OciBaseTreeItem.js";
 
 export class OciComputeInstanceTreeItem extends OciBaseTreeItem {
-    public contextValue = "mdsComputeInstance";
+    public override contextValue = "mdsComputeInstance";
 
     public constructor(
         profile: IMdsProfileData,
@@ -43,7 +43,7 @@ export class OciComputeInstanceTreeItem extends OciBaseTreeItem {
         super(compute.displayName ?? "<unknown>", profile, TreeItemCollapsibleState.None);
     }
 
-    protected get iconName(): string {
+    protected override get iconName(): string {
         return "ociCompute.svg";
     }
 }

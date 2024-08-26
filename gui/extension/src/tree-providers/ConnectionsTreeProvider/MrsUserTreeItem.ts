@@ -28,7 +28,7 @@ import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/She
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
 export class MrsUserTreeItem extends MrsTreeBaseItem {
-    public contextValue = "mrsUser";
+    public override contextValue = "mrsUser";
 
     public constructor(
         label: string,

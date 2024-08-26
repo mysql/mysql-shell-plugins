@@ -84,7 +84,7 @@ export const determineQueryType = (tokenStream: CommonTokenStream): QueryType =>
     // which can contain multiple full SELECT statements) requires full parsing and is thus out of scope here.
     switch (scanner.tokenType) {
         case SQLiteLexer.ALTER_: {
-            if (!scanner.next() || scanner.tokenType === Token.EOF as number) {
+            if (!scanner.next() || scanner.tokenType === Token.EOF) {
                 return QueryType.Ambiguous;
             }
 
@@ -124,7 +124,7 @@ export const determineQueryType = (tokenStream: CommonTokenStream): QueryType =>
         }
 
         case SQLiteLexer.CREATE_: {
-            if (!scanner.next() || scanner.tokenType === Token.EOF as number) {
+            if (!scanner.next() || scanner.tokenType === Token.EOF) {
                 return QueryType.Ambiguous;
             }
 
@@ -170,7 +170,7 @@ export const determineQueryType = (tokenStream: CommonTokenStream): QueryType =>
         }
 
         case SQLiteLexer.DROP_: {
-            if (!scanner.next() || scanner.tokenType === Token.EOF as number) {
+            if (!scanner.next() || scanner.tokenType === Token.EOF) {
                 return QueryType.Ambiguous;
             }
 
@@ -217,12 +217,12 @@ export const determineQueryType = (tokenStream: CommonTokenStream): QueryType =>
 
         case SQLiteLexer.ROLLBACK_: {
             // We assume a transaction statement here unless we exactly know it's about a savepoint.
-            if (!scanner.next() || scanner.tokenType === Token.EOF as number) {
+            if (!scanner.next() || scanner.tokenType === Token.EOF) {
                 return QueryType.RollbackWork;
             }
 
             if (scanner.is(SQLiteLexer.TRANSACTION_)) {
-                if (!scanner.next() || scanner.tokenType === Token.EOF as number) {
+                if (!scanner.next() || scanner.tokenType === Token.EOF) {
                     return QueryType.RollbackWork;
                 }
             }

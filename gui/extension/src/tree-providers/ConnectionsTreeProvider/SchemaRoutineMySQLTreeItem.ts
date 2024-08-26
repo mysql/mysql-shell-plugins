@@ -27,7 +27,7 @@ import { MrsDbObjectType } from "../../../../frontend/src/modules/mrs/types.js";
 import { SchemaRoutineTreeItem } from "./SchemaRoutineTreeItem.js";
 
 export class SchemaRoutineMySQLTreeItem extends SchemaRoutineTreeItem {
-    public contextValue = "schemaRoutineItemMySQL";
+    public override contextValue = "schemaRoutineItemMySQL";
 
     protected get iconName(): string {
         return this.dbType === MrsDbObjectType.Procedure ? "schemaRoutine.svg" : "schemaFunction.svg";

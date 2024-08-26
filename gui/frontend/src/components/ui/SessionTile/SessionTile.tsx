@@ -38,7 +38,7 @@ export interface ISessionTileProperties extends IBrowserTileProperties {
 
 export class SessionTile extends BrowserTile<ISessionTileProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         className: "sessionTile",
     };
 
@@ -48,7 +48,7 @@ export class SessionTile extends BrowserTile<ISessionTileProperties> {
         this.addHandledProperties("details");
     }
 
-    public render(): ComponentChild {
+    public override render(): ComponentChild {
         return super.render();
     }
 

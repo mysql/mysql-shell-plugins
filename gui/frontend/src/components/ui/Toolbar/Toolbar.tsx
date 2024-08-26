@@ -39,7 +39,7 @@ interface IToolbarProperties extends IComponentProperties {
 
 export class Toolbar extends ComponentBase<IToolbarProperties> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         vibrant: false,
         dropShadow: true,
     };

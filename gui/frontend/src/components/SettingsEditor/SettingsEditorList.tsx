@@ -72,15 +72,15 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
         };
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         requisitions.register("settingsChanged", this.handleSettingsChanged);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         requisitions.unregister("settingsChanged", this.handleSettingsChanged);
     }
 
-    public componentDidUpdate(prevProps: ISettingsEditorListProperties): void {
+    public override componentDidUpdate(prevProps: ISettingsEditorListProperties): void {
         const scrollTree = (): void => {
             void this.gridRef.current?.table.then((table) => {
                 const { selectedId } = this.state;

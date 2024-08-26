@@ -140,7 +140,7 @@ export class CommunicationDebugger
         this.environment = new CommunicationDebuggerEnvironment(this.scriptContent);
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         if (MessageScheduler.get.isConnected) {
             this.loadScripts();
         }

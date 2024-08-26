@@ -65,7 +65,7 @@ export class ScopeSelector extends ComponentBase<IScopeSelectorProperties, IScop
         };
     }
 
-    public componentDidUpdate(prevProps: IScopeSelectorProperties): void {
+    public override componentDidUpdate(prevProps: IScopeSelectorProperties): void {
         const { customScopes } = this.props;
         if (customScopes !== prevProps.customScopes) {
             this.setState({ currentCustomScopes: customScopes });

@@ -203,7 +203,9 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         });
     }
 
-    public static getDerivedStateFromProps(newProps: IPerformanceDashboardProperties): IPerformanceDashboardState {
+    public static override getDerivedStateFromProps(
+        newProps: IPerformanceDashboardProperties,
+    ): IPerformanceDashboardState {
         const { graphData } = newProps;
 
         if (graphData.series.size === 0) {
@@ -282,7 +284,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         return { graphData };
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         this.refreshTimer = setInterval(() => {
             const { stopAfter } = this.props;
 
@@ -296,7 +298,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         }, PerformanceDashboard.sampleInterval);
     }
 
-    public componentWillUnmount(): void {
+    public override componentWillUnmount(): void {
         const { onGraphDataChange } = this.props;
         const { graphData } = this.state;
 

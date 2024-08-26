@@ -47,7 +47,7 @@ export class FieldEditor extends AwaitableValueEditDialog {
         DBDataType.Varbinary,
     ]);
 
-    protected get id(): string {
+    protected override get id(): string {
         return "fieldEditor";
     }
 

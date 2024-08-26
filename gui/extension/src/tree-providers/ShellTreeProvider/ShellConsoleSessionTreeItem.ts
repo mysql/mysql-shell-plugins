@@ -27,7 +27,7 @@ import * as path from "path";
 import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
 
 export class ShellConsoleSessionTreeItem extends TreeItem {
-    public contextValue = "session";
+    public override contextValue = "session";
 
     public constructor(caption: string, command?: Command) {
         super(caption, TreeItemCollapsibleState.None);

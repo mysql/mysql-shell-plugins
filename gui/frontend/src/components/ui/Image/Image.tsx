@@ -49,7 +49,7 @@ interface IImageState extends IComponentState {
 
 export class Image extends ComponentBase<IImageProperties, IImageState> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         disabled: false,
     };
 

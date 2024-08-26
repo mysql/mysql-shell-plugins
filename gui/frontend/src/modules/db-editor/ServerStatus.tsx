@@ -127,7 +127,7 @@ interface IServerStatusState extends IComponentState {
 
 export class ServerStatus extends ComponentBase<IServerStatusProperties, IServerStatusState> {
 
-    public static defaultProps = {
+    public static override defaultProps = {
         rowGap: 3,
     };
 
@@ -152,11 +152,11 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
             && process.env.JEST_WORKER_ID === undefined);
     }
 
-    public componentDidMount(): void {
+    public override componentDidMount(): void {
         void this.updateValues();
     }
 
-    public componentDidUpdate(prevProps: IServerStatusProperties, _prevState: IServerStatusState): void {
+    public override componentDidUpdate(prevProps: IServerStatusProperties, _prevState: IServerStatusState): void {
         const { backend } = this.props;
 
         // If we reopen a connection, a new backend is created and we need to refresh the page.

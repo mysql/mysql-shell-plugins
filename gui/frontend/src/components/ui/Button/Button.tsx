@@ -106,7 +106,7 @@ export class Button extends ComponentBase<IButtonProperties> {
         );
     }
 
-    protected handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
+    protected override handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
         switch (type) {
             case MouseEventType.Down: {
                 const { focusOnClick } = this.mergedProps;
@@ -139,7 +139,7 @@ export class Button extends ComponentBase<IButtonProperties> {
         return true;
     }
 
-    protected handleDragEvent(type: DragEventType, e: DragEvent): boolean {
+    protected override handleDragEvent(type: DragEventType, e: DragEvent): boolean {
         const element = e.currentTarget as HTMLElement;
         if (!e.dataTransfer) {
             return true;

@@ -52,7 +52,7 @@ export class DialogContent extends ComponentBase<IDialogContentProperties> {
         this.addHandledProperties("content", "header", "caption", "actions", "onCloseClick");
     }
 
-    public getSnapshotBeforeUpdate(): IComponentSnapshot | null {
+    public override getSnapshotBeforeUpdate(): IComponentSnapshot | null {
         if (this.#contentRef.current) {
             const content = this.#contentRef.current;
 
@@ -64,7 +64,7 @@ export class DialogContent extends ComponentBase<IDialogContentProperties> {
         return null;
     }
 
-    public componentDidUpdate(prevProps: IDialogContentProperties, prevState: never,
+    public override componentDidUpdate(prevProps: IDialogContentProperties, prevState: never,
         snapshot: IComponentSnapshot | null): void {
         if (snapshot !== null && this.#contentRef.current) {
             const content = this.#contentRef.current;

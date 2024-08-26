@@ -29,7 +29,7 @@ import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/She
 import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
 
 export class MrsTreeItem extends ConnectionsTreeBaseItem {
-    public contextValue = "mrs";
+    public override contextValue = "mrs";
 
     public constructor(
         name: string,

@@ -19,6 +19,7 @@
         "noImplicitAny": true,
         "sourceRoot": "src",
         "strictNullChecks": true,
+        "noImplicitOverride": true,
         "lib": [
             "es2022",
             "dom",

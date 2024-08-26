@@ -90,7 +90,7 @@ export class SQLExecutionContext extends ExecutionContext {
     /**
      * Important: since we have no d-tors in JS/TS it is necessary to call `dispose` to clean up the context.
      */
-    public dispose(): void {
+    public override dispose(): void {
         if (this.#validationTimer) {
             clearTimeout(this.#validationTimer);
             this.#validationTimer = null;
@@ -112,7 +112,7 @@ export class SQLExecutionContext extends ExecutionContext {
      *
      * @param changes The original monaco-editor changes to apply.
      */
-    public applyEditorChanges(changes: Monaco.IModelContentChange[]): void {
+    public override applyEditorChanges(changes: Monaco.IModelContentChange[]): void {
         if (this.disposed) {
             return;
         }
@@ -483,7 +483,7 @@ export class SQLExecutionContext extends ExecutionContext {
     /**
      * @returns The model currently assigned to the editor associated with this execution context.
      */
-    public get model(): Monaco.ITextModel | null {
+    public override get model(): Monaco.ITextModel | null {
         return this.presentation.model;
     }
 
@@ -491,7 +491,7 @@ export class SQLExecutionContext extends ExecutionContext {
      * Validates the entire block content by splitting statements (if necessary) and validating each of them.
      * Called when loading the block initially.
      */
-    public validateAll(): void {
+    public override validateAll(): void {
         if (!this.disposed) {
             // Replace the entire statement details list with a single entry covering all text.
             this.pendingValidations.clear();
@@ -514,7 +514,7 @@ export class SQLExecutionContext extends ExecutionContext {
         }
     }
 
-    public selectStatement(index: number): void {
+    public override selectStatement(index: number): void {
         if (index < 0 || index >= this.statementDetails.length) {
             return;
         }
@@ -533,7 +533,7 @@ export class SQLExecutionContext extends ExecutionContext {
      * @param startIndex The first entry index or 0.
      * @param endIndex The last entry index or the total number of detail entries.
      */
-    protected clearDecorations(startIndex?: number, endIndex?: number): void {
+    protected override clearDecorations(startIndex?: number, endIndex?: number): void {
         // No check for the disposed state here. Clearing decorations is part of the shutdown procedure
         // where all values are still valid.
         startIndex = startIndex ?? 0;
@@ -551,7 +551,7 @@ export class SQLExecutionContext extends ExecutionContext {
         }
     }
 
-    protected get statementSpans(): IStatementSpan[] {
+    protected override get statementSpans(): IStatementSpan[] {
         return this.statementDetails;
     }
 

@@ -47,7 +47,7 @@ export interface IMrsUserDialogData extends IDictionary {
 export class MrsUserDialog extends AwaitableValueEditDialog {
     private currentAuthApp: IMrsAuthAppData | null = null;
 
-    protected get id(): string {
+    protected override get id(): string {
         return "mrsUserDialog";
     }
 
