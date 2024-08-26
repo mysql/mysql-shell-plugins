@@ -68,6 +68,7 @@
         "TABLENAME",
         "Tablespace",
         "Tabview",
+        "testid",
         "Theming",
         "topo",
         "topojson",
