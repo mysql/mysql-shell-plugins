@@ -226,6 +226,11 @@ def chat(prompt, **kwargs):
     if status.get("heatwave_support") is False and status.get("local_model_support") is False:
         raise Exception("GenAI support is not available. Please connect to a HeatWave 9.0 instance or higher.")
 
+    # Remove language if not supported
+    if status.get("language_support") is False and "language" in model_options:
+        model_options.pop("language")
+        options["model_options"] = model_options
+
     if status.get("heatwave_support") is True:
         lang_opts = options.pop("language_options", {})
         language = lang_opts.get("language")
