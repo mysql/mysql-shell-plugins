@@ -490,7 +490,7 @@ Execute \\help or \\? for help;`;
                     const { genAiStatus } = this.state;
 
                     document = <LakehouseNavigator backend={savedState.backend} toolbarItems={toolbarItems}
-                        getAiStatus={genAiStatus}
+                        genAiStatus={genAiStatus}
                         savedState={savedState.adminPageStates.lakehouseNavigatorState}
                         onLakehouseNavigatorStateChange={this.handleLakehouseNavigatorStateChange} />;
 

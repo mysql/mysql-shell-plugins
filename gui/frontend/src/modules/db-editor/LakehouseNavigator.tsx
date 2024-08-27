@@ -81,7 +81,7 @@ interface ILakehouseNavigatorProperties extends IComponentProperties {
     /** Top level toolbar items, to be integrated with page specific ones. */
     toolbarItems: IToolbarItems;
 
-    getAiStatus?: IMdsChatStatus;
+    genAiStatus?: IMdsChatStatus;
 
     onLakehouseNavigatorStateChange: (data: Partial<ILakehouseNavigatorSavedState>) => void;
 }
@@ -829,7 +829,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
     private getLoadTabContent = (): ComponentChild => {
         const { activeSchema, task, availableDatabaseSchemas,
             formats, lastTaskScheduleError, newTaskPanelWidth } = this.state;
-        const { getAiStatus } = this.props;
+        const { genAiStatus: getAiStatus } = this.props;
 
         const taskItems = (task?.items !== undefined && task?.items?.length > 0)
             ? task?.items : [];
@@ -2386,8 +2386,10 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
     };
 
     private onStartLoadingTaskClick = async (): Promise<void> => {
-        const { backend } = this.props;
+        const { backend, genAiStatus } = this.props;
         const { task } = this.state;
+
+        const languageSupportEnabled = genAiStatus?.languageSupport === true;
 
         this.setState({ lastTaskScheduleError: undefined });
 
@@ -2403,10 +2405,14 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 params.push(this.getDefaultTaskDescription(task));
             }
 
-            if (task.languageId !== undefined) {
-                params.push(task.languageId);
-            } else {
-                params.push("en");
+            let languageSql = "";
+            if (languageSupportEnabled) {
+                languageSql = "'language', ?, ";
+                if (task.languageId !== undefined) {
+                    params.push(task.languageId);
+                } else {
+                    params.push("en");
+                }
             }
 
             // Add optional parameters if defined by user
@@ -2454,12 +2460,10 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
             try {
                 let taskId = "";
-                await backend.execute(
-                    "CALL sys.vector_store_load(NULL, JSON_OBJECT('schema_name', ?, 'description', ?, " +
-                    "'language', ?, " +
-                    taskNameSql + taskTableName + formatsSql +
-                    `'uris', JSON_ARRAY(${urisSql})))`,
-                    params, undefined, (data) => {
+                const sql = "CALL sys.vector_store_load(NULL, JSON_OBJECT('schema_name', ?, 'description', ?, " +
+                    languageSql + taskNameSql + taskTableName + formatsSql +
+                    `'uris', JSON_ARRAY(${urisSql})))`;
+                await backend.execute(sql, params, undefined, (data) => {
                         if (data.result.rows !== undefined && data.result.rows.length > 0) {
                             taskId = String((data.result.rows[0] as string[])[0]);
                         }

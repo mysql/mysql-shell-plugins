@@ -659,11 +659,6 @@ button {
     margin-bottom: 14px;
 }
 
-div .sourceCode {
-    padding-top: 20px;
-    padding-bottom: 10px;
-}
-
 .icon {
     width: 16px;
     height: 16px;
@@ -674,6 +669,15 @@ div .sourceCode {
     width: 42px;
     height: 42px;
     background-color: var(--text-color-toc);
+}
+
+div.sourceCode {
+    padding-top: 20px;
+    padding-bottom: 10px;
+}
+
+pre.sourceCode, pre.antlr, pre.json {
+    background-color: var(--vscode-textPreformat-background);
 }
 
 .bookIcon {
