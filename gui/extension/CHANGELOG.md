@@ -2,13 +2,10 @@
 
 ## Changes in 1.16.2+9.0.1
 
-### Additions
-
-- 
-
 ### Fixes
 
-- 
+- Fixed an issue that caused LakeHouse Navigator not to scheduled loading tasks for HeatWave instances that do not have multi-language support enabled
+- Fixed the display of source code in the MRS documentation when viewed inside VS Code
 
 ## Changes in 1.16.1+9.0.1
 
