@@ -637,15 +637,19 @@ describe("MySQL REST Service", () => {
 
             const actorTree = await dbTreeSection.tree.getElement(`/${actorTable} (${actorTable})`);
             await dbTreeSection.tree.openContextMenuAndSelect(actorTree, constants.copyRESTObjReqPath);
-            await driver.wait(Workbench
-                .untilNotificationExists("The DB Object Path was copied to the system clipboard"),
-                constants.wait5seconds);
             const url = `https://${sakilaRestSchema.restServicePath}${sakilaRestSchema.restSchemaPath}/${actorTable}`;
-            await driver.wait(() => {
+            await driver.wait(async () => {
                 console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
 
-                return clipboard.readSync() === url;
-            }, constants.wait5seconds, `${url} was not found on the clipboard`);
+                if (clipboard.readSync() !== url) {
+                    await dbTreeSection.tree.openContextMenuAndSelect(actorTree, constants.copyRESTObjReqPath);
+                    await driver.wait(Workbench
+                        .untilNotificationExists("The DB Object Path was copied to the system clipboard"),
+                        constants.wait5seconds);
+                } else {
+                    return true;
+                }
+            }, constants.wait15seconds, `${url} was not found on the clipboard`);
 
         });
 

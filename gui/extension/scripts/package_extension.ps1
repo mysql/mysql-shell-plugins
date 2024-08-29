@@ -99,8 +99,8 @@ if (Test-Path $(Join-Path $extensionFolder "router")) {
 }
 
 Write-host "Copying router..." -NoNewLine
-Copy-Item -Path $(Join-Path $routerLocation "bin") -Destination $(Join-Path $extensionFolder "router") -Recurse
-Copy-Item -Path $(Join-Path $routerLocation "lib") -Destination $(Join-Path $extensionFolder "router") -Recurse
+Copy-Item -Path $(Join-Path $routerLocation "bin") -Destination $(Join-Path $extensionFolder "router" "bin") -Recurse
+Copy-Item -Path $(Join-Path $routerLocation "lib") -Destination $(Join-Path $extensionFolder "router" "lib") -Recurse
 Write-host "DONE"
 
 Write-host "Adding MRS plugin..." -NoNewLine
