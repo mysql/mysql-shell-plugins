@@ -88,7 +88,11 @@ export class CommandResultGrid {
 
                 if (!isDateTime) {
                     await this.clearCellInputField(input);
-                    await input.sendKeys(cellRef.value as string);
+                    if (!isNaN(parseInt(cellRef.value as string, 10))) {
+                        await input.sendKeys(cellRef.value as string); // is a number
+                    } else {
+                        await driver.executeScript("arguments[0].value=arguments[1]", input, cellRef.value as string);
+                    }
                 } else {
                     await driver.executeScript("arguments[0].value=arguments[1]", input, cellRef.value as string);
                 }
