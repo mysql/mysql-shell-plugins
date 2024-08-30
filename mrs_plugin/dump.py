@@ -203,15 +203,11 @@ def load(path, **kwargs):
             if target_object == "service":
                 service = lib.services.get_service(
                     session, service_id=object_id)
-                lib.core.check_request_path(
-                    session, service["host_ctx"] + content["schema"]["request_path"])
                 _, grant = lib.dump.load_schema_dump(
                     session, object_id, content["schema"], reuse_ids)
                 grantList = grantList + grant
             elif target_object == "schema":
                 schema = lib.schemas.get_schema(session, schema_id=object_id)
-                lib.core.check_request_path(session,
-                                            schema["host_ctx"] + schema["request_path"] + content["object"]["request_path"])
                 _, grant = lib.dump.load_object_dump(
                     session, object_id, content["object"], reuse_ids)
                 grantList.append(grant)

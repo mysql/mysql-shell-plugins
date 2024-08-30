@@ -108,6 +108,9 @@ export enum ScriptingApi {
     /** Trigger MRS Add Content Set dialog */
     MrsAddContentSet,
 
+    /** Triggers an explicit update of the MRS SDK cache */
+    MrsRefreshSdkCode,
+
     /** A special API to denote that everything is done in the console worker and the task can be removed. */
     Done,
 }

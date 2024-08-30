@@ -68,6 +68,7 @@ CLONE_SYMBOL:          C L O N E;
 FILE_SYMBOL:           F I L E;
 BINARY_SYMBOL:         B I N A R Y;
 DATA_SYMBOL:           D A T A;
+LOAD_SYMBOL:           L O A D;
 
 // Used for auto merging this grammar and the standard MySQL grammar.
 /* START OF MERGE PART */
@@ -117,6 +118,7 @@ CLASS_SYMBOL:       C L A S S;
 DEVELOPMENT_SYMBOL: D E V E L O P M E N T;
 SCRIPTS_SYMBOL:     S C R I P T S;
 MAPPING_SYMBOL:     M A P P I N G;
+TYPESCRIPT_SYMBOL:  T Y P E S C R I P T;
 
 //----------------- GraphQL --------------------------------------------------------------------------------------------
 

@@ -63,6 +63,7 @@ def test_get_current_service(phone_book):
         "full_service_path": "localhost/test",
         "published": 0,
         "sorted_developers": None,
+        "name": "mrs",
     }
 
 def test_get_current_content_set():
@@ -99,7 +100,8 @@ def test_get_current_schema(phone_book):
         "url_host_id": phone_book["url_host_id"],
         "items_per_page": 20,
         "comments": "test schema",
-        "host_ctx": "localhost/test"
+        "host_ctx": "localhost/test",
+        "schema_type": "DATABASE_SCHEMA",
     }
 
 def test_get_interactive_default():
@@ -150,6 +152,7 @@ def test_validate_service_path(phone_book):
             "full_service_path": "localhost/test",
             "published": 0,
             "sorted_developers": None,
+            "name": "mrs",
         }
 
         assert schema is not None
@@ -166,6 +169,7 @@ def test_validate_service_path(phone_book):
             "comments": "test schema",
             "host_ctx": "localhost/test",
             "url_host_id": phone_book["url_host_id"],
+            "schema_type": "DATABASE_SCHEMA",
         }
 
         assert content_set is None

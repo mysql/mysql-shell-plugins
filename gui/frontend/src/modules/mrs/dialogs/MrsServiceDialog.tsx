@@ -31,6 +31,7 @@ import {
 
 export interface IMrsServiceDialogData extends IDictionary {
     servicePath: string;
+    name: string;
     comments: string;
     hostName: string;
     isCurrent: boolean;
@@ -74,11 +75,16 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
             if (mainSection) {
                 const servicePath = mainSection.values.servicePath.value as string;
                 if (!servicePath) {
-                    result.messages.servicePath = "The service name must not be empty.";
+                    result.messages.servicePath = "The service path must not be empty.";
                 } else if (!servicePath.startsWith("/")) {
                     result.messages.servicePath = "The request path must start with /.";
                 } else if (servicePath.toLowerCase() === "/mrs") {
                     result.messages.servicePath = `The request path \`${servicePath}\` is reserved and cannot be used.`;
+                }
+
+                const name = mainSection.values.name.value as string;
+                if (!name) {
+                    result.messages.name = "The service name must not be empty.";
                 }
             }
             const settingsSection = values.sections.get("settingsSection");
@@ -119,9 +125,16 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                     type: "text",
                     caption: "REST Service Path",
                     value: request.values?.servicePath as string,
-                    horizontalSpan: 6,
+                    horizontalSpan: 3,
                     options: [CommonDialogValueOption.AutoFocus],
-                    description: "The URL context root of this service.",
+                    description: "The URL context root of this service, has to start with / and needs to be unique.",
+                },
+                name: {
+                    type: "text",
+                    caption: "REST Service Name",
+                    value: request.values?.name as string,
+                    horizontalSpan: 3,
+                    description: "The descriptive name of the REST service.",
                 },
                 /*protocols: {
                     type: "set",
@@ -200,6 +213,8 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
             type: "text",
             caption: "Comments",
             value: request.values?.comments as string,
+            multiLine: true,
+            multiLineCount: 3,
             horizontalSpan: 8,
             description: "Comments to describe this REST Service.",
         };
@@ -296,6 +311,7 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
         if (mainSection && settingsSection && optionsSection && authSection) {
             const values: IMrsServiceDialogData = {
                 servicePath: mainSection.values.servicePath.value as string,
+                name: mainSection.values.name.value as string,
                 comments: settingsSection.values.comments.value as string,
                 hostName: settingsSection.values.hostName.value as string,
                 isCurrent: mainSection.values.makeDefault.value as boolean,

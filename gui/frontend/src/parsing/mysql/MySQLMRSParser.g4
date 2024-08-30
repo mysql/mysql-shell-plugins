@@ -5229,6 +5229,7 @@ identifierKeywordsUnambiguous:
         | DEVELOPMENT_SYMBOL
         | SCRIPTS_SYMBOL
         | MAPPING_SYMBOL
+        | TYPESCRIPT_SYMBOL
         | AT_INOUT_SYMBOL
         | AT_IN_SYMBOL
         | AT_OUT_SYMBOL
@@ -5721,6 +5722,7 @@ mrsStatement:
     | alterRestViewStatement
     | alterRestProcedureStatement
     | alterRestFunctionStatement
+    | alterRestContentSetStatement
     | dropRestServiceStatement
     | dropRestSchemaStatement
     | dropRestViewStatement
@@ -5960,9 +5962,7 @@ createRestContentSetStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL
         contentSetRequestPath (
         ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )? (FROM_SYMBOL directoryFilePath)? restContentSetOptions? (
-        AS_SYMBOL SCRIPTS_SYMBOL
-    )?
+    )? (FROM_SYMBOL directoryFilePath)? restContentSetOptions?
 ;
 
 directoryFilePath:
@@ -5975,11 +5975,16 @@ restContentSetOptions: (
         | jsonOptions
         | comments
         | fileIgnoreList
+        | loadScripts
     )+
 ;
 
 fileIgnoreList:
     IGNORE_SYMBOL quotedText
+;
+
+loadScripts:
+    LOAD_SYMBOL TYPESCRIPT_SYMBOL? SCRIPTS_SYMBOL
 ;
 
 // - CREATE REST CONTENT FILE -----------------------------------------------
@@ -6087,10 +6092,9 @@ alterRestSchemaStatement:
 // - ALTER REST VIEW --------------------------------------------------------
 
 alterRestViewStatement:
-    ALTER_SYMBOL REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL? VIEW_SYMBOL
-        viewRequestPath (ON_SYMBOL serviceSchemaSelector)? (
-        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newViewRequestPath
-    )? (
+    ALTER_SYMBOL REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL? VIEW_SYMBOL viewRequestPath (
+        ON_SYMBOL serviceSchemaSelector
+    )? (NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newViewRequestPath)? (
         CLASS_SYMBOL restObjectName graphQlCrudOptions? graphQlObj?
     )? restObjectOptions?
 ;
@@ -6115,6 +6119,16 @@ alterRestFunctionStatement:
     )? (PARAMETERS_SYMBOL restObjectName? graphQlObj)? restFunctionResult* restObjectOptions?
 ;
 
+// - ALTER REST CONTENT SET -------------------------------------------------
+
+alterRestContentSetStatement:
+    ALTER_SYMBOL REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath (
+        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
+    )? (
+        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newContentSetRequestPath
+    )? restContentSetOptions?
+;
+
 // DROP statements ==========================================================
 
 dropRestServiceStatement:
@@ -6128,8 +6142,9 @@ dropRestSchemaStatement:
 ;
 
 dropRestViewStatement:
-    DROP_SYMBOL REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL? VIEW_SYMBOL
-        viewRequestPath (FROM_SYMBOL serviceSchemaSelector)?
+    DROP_SYMBOL REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL? VIEW_SYMBOL viewRequestPath (
+        FROM_SYMBOL serviceSchemaSelector
+    )?
 ;
 
 dropRestProcedureStatement:
@@ -6243,8 +6258,7 @@ showCreateRestSchemaStatement:
 ;
 
 showCreateRestViewStatement:
-    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL?
-        VIEW_SYMBOL viewRequestPath (
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL? VIEW_SYMBOL viewRequestPath (
         (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
     )?
 ;
@@ -6331,6 +6345,10 @@ newFunctionRequestPath:
 ;
 
 contentSetRequestPath:
+    requestPathIdentifier
+;
+
+newContentSetRequestPath:
     requestPathIdentifier
 ;
 

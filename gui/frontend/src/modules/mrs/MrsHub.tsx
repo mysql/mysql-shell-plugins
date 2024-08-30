@@ -185,6 +185,7 @@ export class MrsHub extends ComponentBase {
             values: {
                 serviceId: service?.id ?? 0,
                 servicePath: service?.urlContextRoot ?? "/myService",
+                name: service?.name ?? "MyService",
                 hostName: service?.urlHostName,
                 protocols: service?.urlProtocol ?? ["HTTPS"],
                 isCurrent: !service || service.isCurrent === 1,
@@ -208,6 +209,7 @@ export class MrsHub extends ComponentBase {
         const data = result as IMrsServiceDialogData;
 
         const urlContextRoot = data.servicePath;
+        const name = data.name;
         const protocols = data.protocols;
         const hostName = data.hostName;
         const comments = data.comments;
@@ -224,7 +226,7 @@ export class MrsHub extends ComponentBase {
 
         if (!service) {
             try {
-                const service = await backend.mrs.addService(urlContextRoot, protocols, hostName ?? "", comments,
+                const service = await backend.mrs.addService(urlContextRoot, name, protocols, hostName ?? "", comments,
                     enabled, options, authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
                     metadata, published);
 
@@ -268,6 +270,7 @@ export class MrsHub extends ComponentBase {
                     service.urlHostName,
                     {
                         urlContextRoot,
+                        name,
                         urlProtocol: protocols,
                         urlHostName: hostName,
                         enabled,

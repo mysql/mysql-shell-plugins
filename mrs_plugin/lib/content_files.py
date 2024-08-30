@@ -24,6 +24,8 @@ from mrs_plugin.lib import core, content_sets
 from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
 import os
 import re
+import pathlib
+import datetime
 
 
 def sizeof_fmt(num, suffix="B"):
@@ -69,13 +71,15 @@ def format_content_file_listing(content_files, print_header=True):
 
     return output
 
-def get_content_file(session, content_file_id: bytes | None=None, content_set_id: bytes | None=None,
-                     request_path: str | None=None, include_file_content: bool=False):
+
+def get_content_file(session, content_file_id: bytes | None = None, content_set_id: bytes | None = None,
+                     request_path: str | None = None, include_file_content: bool = False):
     sql = f"""
         SELECT f.id, f.content_set_id, f.request_path,
             f.requires_auth, f.enabled, f.size,
             cs.request_path AS content_set_request_path,
             CONCAT(h.name, se.url_context_root) AS host_ctx,
+            f.options,
             MAX(al.changed_at) as changed_at{", f.content" if include_file_content else ""}
         FROM mysql_rest_service_metadata.content_file f
             LEFT OUTER JOIN mysql_rest_service_metadata.content_set cs
@@ -111,8 +115,8 @@ def get_content_file(session, content_file_id: bytes | None=None, content_set_id
     return result[0] if len(result) == 1 else None
 
 
-def get_content_files(session, content_set_id: bytes, include_enable_state: bool | None=False, include_file_content=False):
-    """Returns all db_objects for the given schema
+def get_content_files(session, content_set_id: bytes, include_enable_state: bool | None = False, include_file_content=False):
+    """Returns all files for the given content set
 
     Args:
         content_set_id: The id of the content_set to list the items from
@@ -121,7 +125,7 @@ def get_content_files(session, content_set_id: bytes, include_enable_state: bool
         session (object): The database session to use
 
     Returns:
-        A list of dicts representing the db_objects of the schema
+        A list of dicts representing the files of the content set
     """
     if not content_set_id:
         raise ValueError("No content set specified.")
@@ -131,6 +135,7 @@ def get_content_files(session, content_set_id: bytes, include_enable_state: bool
             f.requires_auth, f.enabled, f.size,
             cs.request_path AS content_set_request_path,
             CONCAT(h.name, se.url_context_root) AS host_ctx,
+            f.options,
             MAX(al.changed_at) as changed_at{", f.content" if include_file_content else ""}
         FROM mysql_rest_service_metadata.content_file f
             LEFT OUTER JOIN mysql_rest_service_metadata.content_set cs
@@ -166,7 +171,8 @@ def add_content_dir(session, content_set_id, content_dir, requires_auth, ignore_
         for pattern in ignore_list.split(","):
             if pattern.strip().startswith("*"):
                 pattern = f".{pattern}"
-            ignore_patterns.append(pattern.strip().replace("?", ".").replace("\\", "/"))
+            ignore_patterns.append(
+                pattern.strip().replace("?", ".").replace("\\", "/"))
 
     if len(ignore_patterns) > 0:
         full_ignore_pattern = re.compile(
@@ -194,8 +200,13 @@ def add_content_dir(session, content_set_id, content_dir, requires_auth, ignore_
             if send_gui_message is not None:
                 send_gui_message("info", f"Adding file {file} ...")
 
+            options = {
+                "last_modification": datetime.datetime.fromtimestamp(
+                    pathlib.Path(fullname).stat().st_mtime, tz=datetime.timezone.utc).strftime("%F %T.%f")[:-3],
+            }
+
             add_content_file(session, content_set_id,
-                             request_path, requires_auth, options=None, data=data)
+                             request_path, requires_auth, options=options, data=data)
 
     return file_list
 
@@ -229,7 +240,8 @@ def delete_content_file(session, content_file_id):
 
 
 def get_create_statement(session, content_file) -> str:
-    content_set: dict = content_sets.get_content_set(session, content_set_id=content_file["content_set_id"])
+    content_set: dict = content_sets.get_content_set(
+        session, content_set_id=content_file["content_set_id"])
 
     executor = MrsDdlExecutor(
         session=session,

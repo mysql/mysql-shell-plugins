@@ -705,6 +705,16 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         this.setState({ preventConfirm });
     };
 
+    public getDialogValues = (): IDialogValues => {
+        const { values } = this.state;
+
+        return values;
+    };
+
+    public setDialogValues = (values: IDialogValues): void => {
+        this.setState({ values });
+    };
+
     /**
      * Renders all defined sections into groups. A section without a group name renders as single entry into a group.
      *
@@ -1047,6 +1057,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                             className="valueEditor"
                             checkState={value ? CheckState.Checked : CheckState.Unchecked}
                             onChange={this.checkboxChange.bind(this, sectionId)}
+                            disabled={options?.includes(CommonDialogValueOption.Disabled)}
                         />);
 
                         break;

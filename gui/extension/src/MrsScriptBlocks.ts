@@ -30,7 +30,7 @@ import {
     DecorationRangeBehavior, OverviewRulerLane, workspace, TextDocument, TextDocumentChangeEvent, Range,
 } from "vscode";
 import { ShellInterfaceMrs } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceMrs.js";
-import { IMrsSchemaDefinition, IMrsScriptDefinition } from "../../frontend/src/communication/ProtocolMrs.js";
+import { IMrsScriptModuleDefinition, IMrsScriptDefinition } from "../../frontend/src/communication/ProtocolMrs.js";
 
 
 /** Describes a block of code that was sent to the application. */
@@ -40,7 +40,7 @@ export interface IMrsScriptCodeBlock {
 
     type: string;
 
-    schema: IMrsSchemaDefinition;
+    schema: IMrsScriptModuleDefinition;
     script?: IMrsScriptDefinition;
     mtime?: number;
 
@@ -167,8 +167,8 @@ export class MrsScriptBlocks {
                     schema,
                     mtime: fileStats.mtime,
                     type: schema.schemaType,
-                    start: schema.characterStart,
-                    length: schema.characterEnd - schema.characterStart,
+                    start: schema.codePosition.characterStart,
+                    length: schema.codePosition.characterEnd - schema.codePosition.characterStart,
                 };
 
                 // Do we already have this range linked?

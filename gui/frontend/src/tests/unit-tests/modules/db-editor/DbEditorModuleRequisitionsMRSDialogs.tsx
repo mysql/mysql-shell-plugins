@@ -111,6 +111,7 @@ export const testReqShowMrsServiceDialog = async (
         published: 1,
         hostCtx: "test_ctx",
         fullServicePath: "test_ctx",
+        name: "test_name",
         id: serviceID,
         isCurrent: 1,
         urlContextRoot: "root",
@@ -167,6 +168,7 @@ export const testReqShowMrsSchemaDialog = async (
         requestPath: "test",
         requiresAuth: 1,
         serviceId: serviceID,
+        schemaType: "DATABASE_SCHEMA",
         options: {
             schemaName: "MRS_TEST",
         },
@@ -263,6 +265,7 @@ export const testReqShowMrsAuthAppDialog = async (
         published: 1,
         hostCtx: "test",
         fullServicePath: "test_ctx",
+        name: "test_name",
         id: serviceID,
         isCurrent: 1,
         urlContextRoot: "root",

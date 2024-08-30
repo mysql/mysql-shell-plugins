@@ -1,0 +1,15 @@
+{
+  "name": "mrs-scripts-example",
+  "version": "1.0.0",
+  "publisher": "Oracle",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --project .",
+    "run-tests-debug": "js --inspect ./build/tests/index.spec.mjs",
+    "run-tests": "clear && js --dap --dap.Suspend=false ./build/tests/index.spec.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "5.5.3"
+  }
+}

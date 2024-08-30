@@ -1498,6 +1498,10 @@ class Mrs {
     public printSdkCode = () => {{
         mrsPrintSdkCode();
     }}
+
+    public refreshSdkCode = () => {{
+        mrsRefreshSdkCode();
+    }}
 }}
 
 const mrs = new Mrs();

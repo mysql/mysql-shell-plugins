@@ -36,6 +36,8 @@ import shutil
 from pathlib import Path
 
 # TODO (miguel): replace this with the one in interactive module
+
+
 def resolve_content_set_id(**kwargs):
     request_path = kwargs.get("request_path")
     session = kwargs.get("session")
@@ -196,14 +198,7 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
     requires_auth = kwargs.get("requires_auth")
     comments = kwargs.get("comments")
     enabled = kwargs.get("enabled", 1)
-    build_folder = "build/"
-    contains_mrs_scripts = False
-    options = lib.core.convert_json(kwargs.get("options"))
-    if options:
-        options = lib.core.convert_json(options)
-        build_folder = options.get("build_folder", build_folder)
-        contains_mrs_scripts = options.get(
-            "contains_mrs_scripts", contains_mrs_scripts)
+    options = lib.core.convert_json(kwargs.get("options", {}))
     replace_existing = kwargs.get("replace_existing", False)
     ignore_list = kwargs.get("ignore_list")
 
@@ -231,29 +226,6 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
                 message=('Please enter the file path to the directory '
                          'that contains the static content: '))
 
-        if not content_dir:
-            if interactive:
-                raise ValueError('Operation cancelled.')
-            else:
-                raise ValueError('No content directory path given.')
-
-        # Check if the open_api_ui should be downloaded and if so, download it, extract and patch it and
-        # update the content_dir to point to the temporary directory holding it
-        open_api_ui = False
-        if content_dir.lower() == "open-api-ui":
-            open_api_ui = True
-            content_dir = lib.content_sets.prepare_open_api_ui(
-                service=service, request_path=request_path, send_gui_message=send_gui_message)
-
-        # Convert Unix path to Windows
-        content_dir = os.path.abspath(
-            os.path.expanduser(content_dir))
-
-        # If a content_dir has been provided, check if that directory exists
-        if not os.path.isdir(content_dir):
-            raise ValueError(
-                f"The given content directory path '{content_dir}' "
-                "does not exist.")
 
         # Get requires_auth
         if requires_auth is None:
@@ -276,58 +248,24 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
                     lib.core.delete(table="content_set",
                                     where="id=?").exec(session, [content_set.get("id")])
 
-            lib.core.check_request_path(
-                session, service["host_ctx"] + request_path)
-
-            if contains_mrs_scripts:
-                # Reset options->>'$.holdsCurrentMrsScripts' for all existing content_sets
-                lib.core.MrsDbExec("""
-                    UPDATE content_set
-                    SET options=json_set(options, '$.holdsCurrentMrsScripts', false)
-                    WHERE options->>'$.holdsCurrentMrsScripts' IS NOT NULL
-                    """).exec(session)
-                # Set the options->>'$.holdsCurrentMrsScripts' field to true for this new content_set
-                options["holdsCurrentMrsScripts"] = True
-
             # Create the content_set, ensure it is created as "not enabled"
-            content_set_id = lib.content_sets.add_content_set(
+            content_set_id, files_added = lib.content_sets.add_content_set(
                 session, service.get("id"),
                 request_path,
-                int(requires_auth),
+                requires_auth,
                 comments, options,
-                enabled=False)
-
-            file_list = lib.content_files.add_content_dir(
-                session, content_set_id,
-                content_dir, requires_auth,
-                ignore_list,
-                send_gui_message=send_gui_message
-            )
-
-            if contains_mrs_scripts:
-                # Update db_schemas/db_objects based on script definition
-                lib.content_sets.update_scripts_from_content_set(
-                    session=session, content_set_id=content_set_id,
-                    send_gui_message=send_gui_message)
-                enabled = False
-
-            # Enable the content set if requested by the user
-            lib.content_sets.enable_content_set(
-                session=session, content_set_ids=[content_set_id], value=enabled)
-
-            if interactive:
-                print(f"{len(file_list)} files added.")
-
-            # In case the open_api_ui was downloaded, make sure to delete the temporary folder it used
-            if open_api_ui == True:
-                shutil.rmtree(content_dir)
+                enabled=enabled,
+                content_dir=content_dir,
+                service=service,
+                send_gui_message=send_gui_message,
+                ignore_list=ignore_list)
 
         if lib.core.get_interactive_result():
-            return f"\nContent with the id {content_set_id} was added successfully."
+            return f"\nThe REST content set was added successfully."
         else:
             return {
                 "content_set_id": content_set_id,
-                "number_of_files_uploaded": len(file_list)
+                "number_of_files_uploaded": files_added
             }
 
 
@@ -487,8 +425,8 @@ def delete_content_set(**kwargs):
         return f"The content sets have been deleted."
 
 
-@plugin_function('mrs.get.fileMrsScriptsDefinitions', shell=True, cli=True, web=True)
-def get_file_mrs_scripts_definitions(path, **kwargs):
+@plugin_function('mrs.get.fileMrsScriptDefinitions', shell=True, cli=True, web=True)
+def get_file_mrs_script_definitions(path, **kwargs):
     """Returns the MRS Scripts definitions for the given file
 
     Args:
@@ -506,13 +444,13 @@ def get_file_mrs_scripts_definitions(path, **kwargs):
     if language is None:
         raise ValueError("No language given.")
 
-    script_def = lib.content_sets.get_file_mrs_scripts_definitions(
+    script_def = lib.content_sets.get_file_mrs_script_definitions(
         path=path, language=language)
 
     return script_def
 
 
-@plugin_function('mrs.get.folderMrsScriptsLanguage', shell=True, cli=True, web=True)
+@plugin_function('mrs.get.folderMrsScriptLanguage', shell=True, cli=True, web=True)
 def get_folder_mrs_scripts_language(path, **kwargs):
     """Checks if the given path contains MRS Scripts
 
@@ -532,15 +470,17 @@ def get_folder_mrs_scripts_language(path, **kwargs):
     mrs_scripts_language = lib.content_sets.get_folder_mrs_scripts_language(
         path, ignore_list)
 
-    if mysqlsh.globals.shell.options.useWizards:
-        print(f"This folder contains MRS Scripts written in {mrs_scripts_language}."
-              if mrs_scripts_language is not None else "This folder does not contain MRS Scripts.")
+    if lib.core.get_interactive_default():
+        if mrs_scripts_language is not None:
+            print(f"This folder contains MRS Scripts written in {mrs_scripts_language}.")
+        else:
+            print("This folder does not contain MRS Scripts.")
     else:
         return mrs_scripts_language
 
 
-@plugin_function('mrs.get.folderMrsScriptsDefinitions', shell=True, cli=True, web=True)
-def get_folder_mrs_scripts_definitions(path, **kwargs):
+@plugin_function('mrs.get.folderMrsScriptDefinitions', shell=True, cli=True, web=True)
+def get_folder_mrs_script_definitions(path, **kwargs):
     """Returns the MRS Scripts definitions for the given folder
 
     Args:
@@ -550,6 +490,7 @@ def get_folder_mrs_scripts_definitions(path, **kwargs):
     Keyword Args:
         ignore_list (str): The list of file patterns to ignore, separated by comma
         language (str): The language the MRS Scripts are written in
+        send_gui_message (object): The function to send a message to he GUI.
 
     Returns:
         A Dict with the MRS Scripts definitions
@@ -558,21 +499,22 @@ def get_folder_mrs_scripts_definitions(path, **kwargs):
     ignore_list = kwargs.get("ignore_list", "*node_modules/*")
     language = kwargs.get(
         "language", lib.content_sets.get_folder_mrs_scripts_language(path, ignore_list))
+    send_gui_message = kwargs.get("send_gui_message")
 
     if language is None:
         raise ValueError(
             "The given file path does not contain any MRS Scripts.")
 
-    script_def = lib.content_sets.get_folder_mrs_scripts_definitions(
-        path=path, ignore_list=ignore_list, language=language)
+    script_def = lib.content_sets.get_folder_mrs_script_definitions(
+        path=path, ignore_list=ignore_list, language=language, send_gui_message=send_gui_message)
 
-    if mysqlsh.globals.shell.options.useWizards:
+    if lib.core.get_interactive_default():
         print(json.dumps(script_def, indent=4))
     else:
         return script_def
 
 
-@plugin_function('mrs.update.scriptsFromContentSet', shell=True, cli=True, web=True)
+@plugin_function('mrs.update.mrsScriptsFromContentSet', shell=True, cli=True, web=True)
 def update_scripts_from_content_set(**kwargs):
     """Updates db_schemas and db_objects based on script definitions of the content set
 
@@ -581,14 +523,18 @@ def update_scripts_from_content_set(**kwargs):
 
     Keyword Args:
         content_set_id (str): The id of the content_set
-        service_id (str): The id of the service
-        request_path (str): The request_path of the content_set
+        ignore_list (str): The list of file patterns to ignore, separated by comma
+        language (str): The MRS Scripting language used
         session (object): The database session to use.
+        send_gui_message (object): The function to send a message to he GUI.
 
     Returns:
         The result message as string
     """
-    lib.core.convert_ids_to_binary(["content_set_id", "service_id"], kwargs)
+    lib.core.convert_ids_to_binary(["content_set_id"], kwargs)
+
+    language = kwargs.get("language")
+    send_gui_message = kwargs.get("send_gui_message")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
@@ -597,8 +543,11 @@ def update_scripts_from_content_set(**kwargs):
         if len(kwargs['content_set_ids']) >= 1:
             content_set_id = kwargs['content_set_ids'][0]
 
+        with lib.core.MrsDbTransaction(session):
             lib.content_sets.update_scripts_from_content_set(
-                session=session, content_set_id=content_set_id)
+                session=session, content_set_id=content_set_id, language=language,
+                send_gui_message=send_gui_message)
+
 
 @plugin_function('mrs.get.contentSetCreateStatement', shell=True, cli=True, web=True)
 def get_create_statement(**kwargs):

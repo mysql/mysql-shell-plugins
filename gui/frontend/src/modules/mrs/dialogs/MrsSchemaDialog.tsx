@@ -129,7 +129,7 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                         return service.fullServicePath ?? "";
                     }),
                     horizontalSpan: 3,
-                    description: "The path of the REST Service this REST Schema belongs to",
+                    description: "The path of the REST Service this REST Schema belongs to.",
                 },
                 requestPath: {
                     type: "text",
@@ -137,7 +137,7 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                     value: request.values?.requestPath as string,
                     horizontalSpan: 3,
                     options: [CommonDialogValueOption.AutoFocus],
-                    description: "The request path to access the schema, has to start with /",
+                    description: "The request path to access the schema, has to start with / and needs to be unique.",
                 },
                 flagsTitle: {
                     type: "description",

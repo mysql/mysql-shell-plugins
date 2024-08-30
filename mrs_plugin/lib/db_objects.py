@@ -292,12 +292,12 @@ def get_db_objects(session, schema_id: bytes, include_enable_state=None, object_
 def add_db_object(session, schema_id, db_object_name, request_path, db_object_type,
                   enabled, items_per_page, requires_auth, crud_operation_format,
                   comments, media_type, auto_detect_media_type, auth_stored_procedure,
-                  options, objects, metadata=None, db_object_id=None, reuse_ids=False,
+                  options, objects, metadata=None, internal=False, db_object_id=None, reuse_ids=False,
                   row_user_ownership_enforced=None, row_user_ownership_column=None):
     if not isinstance(db_object_name, str):
         raise Exception('Invalid object name.')
 
-    if db_object_type not in ["TABLE", "VIEW", "PROCEDURE", "FUNCTION"]:
+    if db_object_type not in ["TABLE", "VIEW", "PROCEDURE", "FUNCTION", "SCRIPT"]:
         raise ValueError(
             'Invalid db_object_type. Only valid types are TABLE, VIEW, PROCEDURE and FUNCTION.')
 
@@ -307,6 +307,9 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
 
     if row_user_ownership_enforced is None:
         row_user_ownership_enforced = False
+
+    if auto_detect_media_type is None:
+        auto_detect_media_type = False
 
     current_version = core.get_mrs_schema_version(session=session)
     if current_version[0] <= 2:
@@ -318,9 +321,6 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
 
     schema = schemas.get_schema(session=session,
                                 schema_id=schema_id, auto_select_single=True)
-
-    core.check_request_path(
-        session, schema["host_ctx"] + schema["request_path"] + request_path)
 
     if db_object_id is None:
         db_object_id = core.get_sequence_id(session)
@@ -346,6 +346,7 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
         "auto_detect_media_type": int(auto_detect_media_type),
         "auth_stored_procedure": auth_stored_procedure,
         "options": options,
+        "internal": internal,
     }
 
     if current_version[0] >= 3:
@@ -363,10 +364,14 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
                     if db_column is not None:
                         if db_column.get("name") == row_user_ownership_column:
                             obj["row_ownership_field_id"] = field.get("id")
+    else:
+        values.pop("metadata", None)
+        values.pop("internal", None)
 
     core.insert(table="db_object", values=values).exec(session)
 
-    set_objects(session, db_object_id, objects)
+    if db_object_type != "SCRIPT":
+        set_objects(session, db_object_id, objects)
 
     if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
         grant_privileges = ["EXECUTE"]
@@ -376,8 +381,11 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     if not grant_privileges:
         raise ValueError("No valid CRUD Operation specified")
 
-    return db_object_id, database.get_grant_statements(
-        schema["name"], db_object_name, grant_privileges, objects, db_object_type)
+    if db_object_type == "SCRIPT":
+        return db_object_id
+    else:
+        return db_object_id, database.get_grant_statements(
+            schema["name"], db_object_name, grant_privileges, objects, db_object_type)
 
 
 def get_crud_operations(session, db_object_id: bytes):
@@ -633,7 +641,7 @@ def set_object_fields_with_references(session, db_object_id, obj):
 
 
 def calculate_crud_operations(db_object_type, objects=None):
-    if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
+    if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION" or db_object_type == "SCRIPT":
         return ["UPDATE"]
 
     if objects is None:

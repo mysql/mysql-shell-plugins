@@ -25,7 +25,7 @@ import pytest
 
 from tests.conftest import table_contents
 from ... services import *
-from .helpers import ServiceCT, SchemaCT, DbObjectCT, get_default_db_object_init, TableContents
+from .helpers import ServiceCT, SchemaCT, DbObjectCT, get_default_db_object_init, TableContents, string_replace
 from mrs_plugin import lib
 
 service_create_statement = """CREATE REST SERVICE localhost/test
@@ -68,14 +68,21 @@ CREATE OR REPLACE REST VIEW /Contacts
     AUTHENTICATION REQUIRED;
 CREATE OR REPLACE REST CONTENT SET /test_content_set
     ON SERVICE localhost/test
-    COMMENTS "Content Set";
+    COMMENTS "Content Set"
+    OPTIONS {};
 CREATE OR REPLACE REST CONTENT FILE "/readme.txt"
     ON SERVICE localhost/test CONTENT SET /test_content_set
+    OPTIONS {
+        "last_modification": "__README_TXT_LAST_MODIFICATION__"
+    }
     CONTENT 'Line \\'1\\'
 Line "2"
 Line \\\\3\\\\';
 CREATE OR REPLACE REST CONTENT FILE "/somebinaryfile.bin"
     ON SERVICE localhost/test CONTENT SET /test_content_set
+    OPTIONS {
+        "last_modification": "__SOMEBINARYFILE_BIN_LAST_MODIFICATION__"
+    }
     BINARY CONTENT 'AAECAwQFBgc=';"""
 
 def test_add_service(phone_book, table_contents):
@@ -137,6 +144,7 @@ def test_get_services(phone_book, table_contents):
         "full_service_path": "localhost/test",
         "published": 0,
         "sorted_developers": None,
+        "name": "mrs",
     }]
 
 
@@ -170,6 +178,7 @@ def test_get_service(phone_book, table_contents):
         "full_service_path": "localhost/test",
         "published": 0,
         "sorted_developers": None,
+        "name": "mrs",
     }
     assert service_table.snapshot[0] == {
         "comments": "Test service",
@@ -231,6 +240,7 @@ def test_get_service(phone_book, table_contents):
             "full_service_path": "localhost/service2",
             "published": 0,
             "sorted_developers": None,
+            "name": "mrs",
         }
 
 
@@ -261,7 +271,7 @@ def test_change_service(phone_book):
 
         with pytest.raises(Exception) as exc_info:
             set_url_context_root(**args, value="/test")
-        assert str(exc_info.value) == "The request_path localhost/test is already in use."
+        assert str(exc_info.value) == "MySQL Error (1644): ClassicSession.run_sql: The request_path is already used by another entity."
 
         assert set_url_context_root(**args, value="/service3") == True
         service2 = get_service(**args_for_get_service)
@@ -274,18 +284,6 @@ def test_change_service(phone_book):
         assert set_comments(**args, value="Test service updated") == True
         service2 = get_service(**args_for_get_service)
         assert service2["comments"] == "Test service updated"
-
-        value = {
-            "url_host_name": "localhost",
-            "url_context_root": "/test",
-            "url_protocol": ["HTTP"],
-            "comments": "Test service comments",
-            "enabled": False
-        }
-        with pytest.raises(Exception) as exc_info:
-            update_service(**args, value=value)
-        assert str(exc_info.value) == "The request_path localhost/test is already in use."
-
 
         value = {
             "url_context_root": "/service4",
@@ -319,6 +317,7 @@ def test_delete_service(phone_book, table_contents):
         "url_protocol": "HTTP",
         "is_default": False,
         "comments": "no comments",
+        "name": "mrs",
     }
 
     result = add_service(**service_args)
@@ -338,10 +337,15 @@ def test_delete_service(phone_book, table_contents):
 
 
 def test_get_create_statement(phone_book, table_contents):
+    content_file_table: TableContents = table_contents("content_file")
+    expected_service_create_statement = string_replace(service_create_statement, {
+            "__README_TXT_LAST_MODIFICATION__": content_file_table.filter("request_path", "/readme.txt")[0]["options"]["last_modification"],
+            "__SOMEBINARYFILE_BIN_LAST_MODIFICATION__": content_file_table.filter("request_path", "/somebinaryfile.bin")[0]["options"]["last_modification"],
+        })
 
     sql = get_create_statement(service_id=phone_book["service_id"], session=phone_book["session"])
 
-    assert sql == service_create_statement
+    assert sql == expected_service_create_statement
 
 def test_dump_create_statement(phone_book, table_contents):
     home_file = "~/service.dump.sql"
@@ -359,8 +363,14 @@ def test_dump_create_statement(phone_book, table_contents):
 
     assert result == True
 
+    content_file_table: TableContents = table_contents("content_file")
+    expected_service_create_statement = string_replace(service_create_statement, {
+            "__README_TXT_LAST_MODIFICATION__": content_file_table.filter("request_path", "/readme.txt")[0]["options"]["last_modification"],
+            "__SOMEBINARYFILE_BIN_LAST_MODIFICATION__": content_file_table.filter("request_path", "/somebinaryfile.bin")[0]["options"]["last_modification"],
+        })
+
     with open(os.path.expanduser(home_file), "r+") as f:
-        assert f.read() == service_create_statement
+        assert f.read() == expected_service_create_statement
 
     # Test overwrite
     with open(os.path.expanduser(home_file), "a+") as f:
@@ -371,14 +381,14 @@ def test_dump_create_statement(phone_book, table_contents):
 
     with open(os.path.expanduser(home_file), "r") as f:
         contents = f.read()
-        assert contents.startswith(service_create_statement)
+        assert contents.startswith(expected_service_create_statement)
         assert contents.endswith("<=============================>")
 
 
     result = create_function(file_path=home_file, overwrite=True)
 
     with open(os.path.expanduser(home_file), "r") as f:
-        assert f.read() == service_create_statement
+        assert f.read() == expected_service_create_statement
 
     os.remove(os.path.expanduser(home_file))
 
@@ -390,7 +400,7 @@ def test_dump_create_statement(phone_book, table_contents):
 
     assert result == True
     with open(Path.home() / relative_file, "r") as f:
-        assert f.read() == service_create_statement
+        assert f.read() == expected_service_create_statement
 
     # Test absolute path
     if os.path.exists(full_path_file):
@@ -400,7 +410,7 @@ def test_dump_create_statement(phone_book, table_contents):
 
     assert result == True
     with open(full_path_file, "r") as f:
-        assert f.read() == service_create_statement
+        assert f.read() == expected_service_create_statement
 
 
 def test_dump_and_recover(phone_book, table_contents):

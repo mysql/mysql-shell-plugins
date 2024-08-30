@@ -55,6 +55,7 @@ def test_get_service(phone_book, table_contents):
             "full_service_path": "localhost/test",
             "published": 0,
             "sorted_developers": None,
+            "name": "mrs",
 
         }
 
@@ -98,6 +99,7 @@ def test_get_service(phone_book, table_contents):
                 "full_service_path": "localhost/service2",
                 "published": 0,
                 "sorted_developers": None,
+                "name": "mrs",
             }
 
             assert service_table.get("id", service_id) == {

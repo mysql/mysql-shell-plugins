@@ -38,7 +38,7 @@ def test_add_schema(phone_book, table_contents):
     args['schema_name'] = "test_schema_123"
     with pytest.raises(ValueError) as exc_info:
         lib.schemas.add_schema(**args)
-    assert str(exc_info.value) == "The given schema_name 'test_schema_123' does not exists."
+    assert str(exc_info.value) == "The given database schema name 'test_schema_123' does not exists."
 
     schema_table.same_as_snapshot
 

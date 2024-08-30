@@ -1861,7 +1861,7 @@ Execute \\help or \\? for help;`;
                     this.notebookRef.current?.addOrUpdateExtraLib(code, `mrsServiceSdk.d.ts`);
                     this.scriptRef.current?.addOrUpdateExtraLib(code, `mrsServiceSdk.d.ts`);
 
-                    StatusBar.setStatusBarMessage(`MRS MRS Management Classes have been loaded.`, 5000);
+                    StatusBar.setStatusBarMessage(`MRS Management Classes have been loaded.`, 5000);
                 } else {
                     // If MRS is not enabled, just clear the statusbar
                     firstItem.dispose();
@@ -2458,6 +2458,14 @@ Execute \\help or \\? for help;`;
                         }
 
                     }
+
+                    break;
+                }
+
+                case ScriptingApi.MrsRefreshSdkCode: {
+                    this.cachedMrsServiceSdk.schemaMetadataVersion = undefined;
+
+                    await this.updateMrsServiceSdkCache();
 
                     break;
                 }

@@ -896,9 +896,18 @@ class MrsDdlListener(MRSListener):
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
             "request_path": get_text_without_quotes(
                 ctx.contentSetRequestPath().getText()),
-            "directory_file_path": ctx.directoryFilePath().getText() if ctx.directoryFilePath() is not None else None,
-            "content_type": "STATIC" if ctx.SCRIPTS_SYMBOL() is None else "SCRIPTS",
+            "directory_file_path": get_text_without_quotes(
+                ctx.directoryFilePath().getText()) if ctx.directoryFilePath() is not None else None,
+            "content_type": "STATIC",
         }
+
+    def enterFileIgnoreList(self, ctx):
+        self.mrs_object["ignore_file_list"] = ctx.quotedText().getText()
+
+    def enterLoadScripts(self, ctx):
+        self.mrs_object["content_type"] = "SCRIPTS"
+        if ctx.TYPESCRIPT_SYMBOL() is not None:
+            self.mrs_object["language"] = "TypeScript"
 
     def exitCreateRestContentSetStatement(self, ctx):
         self.mrs_ddl_executor.createRestContentSet(self.mrs_object)
@@ -1125,6 +1134,23 @@ class MrsDdlListener(MRSListener):
 
     def exitAlterRestFunctionStatement(self, ctx):
         self.mrs_ddl_executor.alterRestDbObject(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # CREATE REST CONTENT SET
+
+    def enterAlterRestContentSetStatement(self, ctx):
+        self.mrs_object = {
+            "current_operation": "ALTER CONTENT SET",
+            "request_path": get_text_without_quotes(
+                ctx.contentSetRequestPath().getText()),
+            "new_request_path": get_text_without_quotes((
+                ctx.newContentSetRequestPath().requestPathIdentifier().getText()
+                if ctx.newContentSetRequestPath() is not None else None)),
+            "content_type": "STATIC",
+        }
+
+    def exitAlterRestContentSetStatement(self, ctx):
+        self.mrs_ddl_executor.alterRestContentSet(self.mrs_object)
 
     # ==================================================================================================================
     # DROP REST Statements

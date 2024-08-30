@@ -167,7 +167,7 @@ def query_schemas(session, schema_id=None, service_id=None,
             SELECT sc.id, sc.name, sc.service_id, sc.request_path,
                 sc.requires_auth, sc.enabled, sc.items_per_page, sc.comments, se.url_host_id,
                 CONCAT(h.name, se.url_context_root) AS host_ctx,
-                sc.options, sc.metadata
+                sc.options, sc.metadata, sc.schema_type
             FROM `mysql_rest_service_metadata`.db_schema sc
                 LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
                     ON se.id = sc.service_id
@@ -234,7 +234,8 @@ def get_schema(session, schema_id: bytes = None, service_id: bytes = None,
 
 
 def add_schema(session, schema_name, service_id: bytes = None, request_path=None, requires_auth=None,
-               enabled=True, items_per_page=None, comments=None, options=None, metadata=None, schema_id=None):
+               enabled=True, items_per_page=None, comments=None, options=None, metadata=None,
+               schema_type="DATABASE_SCHEMA", internal=False, schema_id=None):
     """Add a schema to the given MRS service
 
     Args:
@@ -247,19 +248,25 @@ def add_schema(session, schema_name, service_id: bytes = None, request_path=None
         items_per_page (int): The number of items returned per page
         comments (str): Comments for the schema
         options (dict): The options for the schema
+        metadata (dict): Metadata of the schema
+        schema_type (str): Either "DATABASE_SCHEMA" or "SCRIPT_MODULE"
         session (object): The database session to use.
 
     Returns:
         The id of the inserted schema
     """
-    # If a schema name has been provided, check if that schema exists
-    row = database.get_schema(session, schema_name)
+    if schema_type == "DATABASE_SCHEMA":
+        # If a schema name has been provided, check if that schema exists
+        row = database.get_schema(session, schema_name)
 
-    if row is None:
+        if row is None:
+            raise ValueError(
+                f"The given database schema name '{schema_name}' does not exists.")
+
+        schema_name = row["SCHEMA_NAME"]
+    elif schema_name is None:
         raise ValueError(
-            f"The given schema_name '{schema_name}' does not exists.")
-
-    schema_name = row["SCHEMA_NAME"]
+            f"No schema name given.")
 
     # Get request_path and default it to '/'
     if request_path is None:
@@ -294,12 +301,16 @@ def add_schema(session, schema_name, service_id: bytes = None, request_path=None
         "items_per_page": items_per_page,
         "comments": comments,
         "options": core.convert_json(options) if options else None,
-        "metadata": core.convert_json(metadata) if metadata else None}
+        "metadata": core.convert_json(metadata) if metadata else None,
+        "schema_type": schema_type,
+        "internal": int(internal)}
 
     # metadata column was only added in 3.0.0
     current_version = core.get_mrs_schema_version(session)
     if current_version[0] <= 2:
         values.pop("metadata", None)
+        values.pop("schema_type", None)
+        values.pop("internal", None)
 
     core.insert(table="db_schema", values=values).exec(session)
 

@@ -25,6 +25,10 @@
             "path": "mrs_plugin/examples/mrs_notes"
         },
         {
+            "name": "MRS Scripts Example",
+            "path": "mrs_plugin/examples/mrs_scripts"
+        },
+        {
             "name": "Shell Plugin Tools",
             "path": "gui/tools"
         }
@@ -35,11 +39,11 @@
         "python.analysis.extraPaths": [
             "/usr/local/mysql-shell/lib/mysqlsh/python-packages/",
             "${workspaceFolder}\\plugins\\rds_plugin",
-            "/usr/local/mysql-shell/lib/mysqlsh/lib/python3.9/site-packages"
+            "/usr/local/mysql-shell/lib/mysqlsh/lib/python3.12/site-packages"
         ],
         "python.autoComplete.extraPaths": [
             "/usr/local/mysql-shell/lib/mysqlsh/python-packages/",
-            "/usr/local/mysql-shell/lib/mysqlsh/lib/python3.9/site-packages",
+            "/usr/local/mysql-shell/lib/mysqlsh/lib/python3.12/site-packages",
             "${workspaceFolder}\\plugins\\rds_plugin"
         ],
         "liveServer.settings.multiRootWorkspaceName": "MySQL REST Service Plugin",
@@ -50,7 +54,8 @@
             "Shell Plugin Tools",
             "MySQL Database Service Plugin",
             "VSCode Extension",
-            "MRS Notes Example"
+            "MRS Notes Example",
+            "MRS Scripts Example"
         ],
         "msg.editor.defaultDbConnection": "Localhost 8.0",
         "git.ignoreLimitWarning": true,

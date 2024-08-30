@@ -359,6 +359,15 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#loadScripts.
+    def enterLoadScripts(self, ctx:MRSParser.LoadScriptsContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#loadScripts.
+    def exitLoadScripts(self, ctx:MRSParser.LoadScriptsContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#createRestContentFileStatement.
     def enterCreateRestContentFileStatement(self, ctx:MRSParser.CreateRestContentFileStatementContext):
         pass
@@ -509,6 +518,15 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#alterRestFunctionStatement.
     def exitAlterRestFunctionStatement(self, ctx:MRSParser.AlterRestFunctionStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#alterRestContentSetStatement.
+    def enterAlterRestContentSetStatement(self, ctx:MRSParser.AlterRestContentSetStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#alterRestContentSetStatement.
+    def exitAlterRestContentSetStatement(self, ctx:MRSParser.AlterRestContentSetStatementContext):
         pass
 
 
@@ -878,6 +896,15 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#contentSetRequestPath.
     def exitContentSetRequestPath(self, ctx:MRSParser.ContentSetRequestPathContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#newContentSetRequestPath.
+    def enterNewContentSetRequestPath(self, ctx:MRSParser.NewContentSetRequestPathContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#newContentSetRequestPath.
+    def exitNewContentSetRequestPath(self, ctx:MRSParser.NewContentSetRequestPathContext):
         pass
 
 
