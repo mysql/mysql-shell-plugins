@@ -330,11 +330,13 @@ def query_services(session, service_id: bytes = None, url_context_root=None, url
 
     having = ""
     if developer_list is not None:
+        def quote(s):
+            return f"'{s}'"
         # Build the sorted_developer string that matches the selected column, use same quoting as MySQL
         developer_list.sort()
         sorted_developers = ",".join(
             dev if re.match("^[A-Za-z0-9_-]*$", dev) else
-            f'\'{re.sub(r"(['\\])", "\\\\\\1", dev, 0, re.MULTILINE)}\'' for dev in developer_list)
+            quote(re.sub(r"(['\\])", "\\\\\\1", dev, 0, re.MULTILINE)) for dev in developer_list)
         having = "\nHAVING h.name = ? AND url_context_root = ? AND sorted_developers = ?"
         params.append(url_host_name)
         params.append(url_context_root)

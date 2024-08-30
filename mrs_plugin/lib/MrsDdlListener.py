@@ -279,9 +279,11 @@ class MrsDdlListener(MRSListener):
     def get_service_sorted_developers(self, developer_list: list):
         sorted_developers = ""
         if developer_list is not None and len(developer_list) > 0:
+            def quote(s):
+                return f"'{s}'"
             developer_list.sort()
             sorted_developers = ",".join(
-                f'\'{re.sub(r"(['\\])", "\\\\\\1", dev, 0, re.MULTILINE)}\'' if not re.match(r'^\w+$', dev) else dev for dev in developer_list) + "@"
+                quote(re.sub(r"(['\\])", "\\\\\\1", dev, 0, re.MULTILINE)) if not re.match(r'^\w+$', dev) else dev for dev in developer_list) + "@"
         return sorted_developers
 
     def get_db_object(self, ctx):
@@ -654,8 +656,7 @@ class MrsDdlListener(MRSListener):
                     break
             else:
                 raise Exception(
-                    f'The table `{db_schema_name}`.`{
-                        db_object_name}` has no reference to '
+                    f'The table `{db_schema_name}`.`{db_object_name}` has no reference to '
                     f'`{self.mrs_object.get("schema_name")}`.`{self.mrs_object.get("name")}`.')
 
     def exitGraphQlPair(self, ctx):
@@ -694,8 +695,7 @@ class MrsDdlListener(MRSListener):
                             reduce_to_field_name = reduce_to_field.get("name")
                         else:
                             raise Exception(
-                                f'Only one column `{
-                                    reduce_to_field_name}` must be defined for a N:1 unnest operation. '
+                                f'Only one column `{reduce_to_field_name}` must be defined for a N:1 unnest operation. '
                                 f'The column `{reduce_to_field.get("name")}` needs to be removed.')
 
                 if obj_reference.get("reduce_to_value_of_field_id") is None:

@@ -560,7 +560,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                     class_name,
                     sdk_language,
                     db_object_crud_ops,
-                    obj_endpoint=f"{service_url}{schema.get("request_path")}/{name}"
+                    obj_endpoint=f"{service_url}{schema.get('request_path')}/{name}"
                     )
 
                 # Do not add obj_interfaces for FUNCTION results
@@ -910,7 +910,7 @@ def generate_type_declaration(
 
         if len(fields) == 0:
             if object_type == "FUNCTION":
-                return f"class I{name}(TypedDict, total={total}):\n{" "*4}pass" + "\n\n"
+                return f"class I{name}(TypedDict, total={total}):\n{' '*4}pass" + "\n\n"
             return f"I{name}: TypeAlias = None\n\n\n"
 
         ordered_parents = [*parents] if override_parents is True else ["TypedDict", *parents]

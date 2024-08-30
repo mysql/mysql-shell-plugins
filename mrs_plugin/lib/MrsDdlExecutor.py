@@ -241,10 +241,12 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def get_service_sorted_developers(self, developer_list: list):
         sorted_developers = ""
         if developer_list is not None and len(developer_list) > 0:
+            def quote(s):
+                return f"'{s}'"
             developer_list.sort()
             sorted_developers = ",".join(
-                f'\'{re.sub(r"(['\\])", "\\\\\\1", dev, 0, re.MULTILINE)}\''
-                if not re.match(r'^\w+$', dev) else dev for dev in developer_list) + "@"
+                quote(re.sub(r"(['\\])", "\\\\\\1", dev, 0, re.MULTILINE))\
+                    if not re.match(r'^\w+$', dev) else dev for dev in developer_list) + "@"
         return sorted_developers
 
     # Check if the current mrs_object includes a schema request_path or if a
@@ -659,8 +661,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     request_path=mrs_object.get("content_set_path"),
                 )
                 if content_set is None:
-                    raise Exception(f"CONTENT SET {mrs_object.get(
-                        "content_set_path")} not found.")
+                    raise Exception(f'CONTENT SET {mrs_object.get("content_set_path")} not found.')
 
                 full_path = self.getFullServicePath(
                     mrs_object=mrs_object,
@@ -1350,8 +1351,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     request_path=mrs_object.get("content_set_path"),
                 )
                 if content_set is None:
-                    raise Exception(f"The REST content set {
-                                    mrs_object.get("content_set_path")} was not found.")
+                    raise Exception(f'The REST content set {mrs_object.get("content_set_path")} was not found.')
 
                 full_path = self.getFullServicePath(
                     mrs_object=mrs_object,
@@ -2022,8 +2022,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             service = lib.services.get_service(self.session, service_id)
             # Build CREATE statement
             stmt = (
-                f"CREATE OR REPLACE REST CONTENT SET {mrs_object.get("request_path")}\n" +
-                f"    ON SERVICE {service.get("full_service_path")}\n"
+                f"CREATE OR REPLACE REST CONTENT SET {mrs_object.get('request_path')}\n" +
+                f"    ON SERVICE {service.get('full_service_path')}\n"
             )
 
             if mrs_object["enabled"] is False or mrs_object["enabled"] == 0:
@@ -2072,9 +2072,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             service = lib.services.get_service(self.session, service_id)
             # Build CREATE statement
             stmt = (
-                f"CREATE OR REPLACE REST CONTENT FILE \"{content_file.get("request_path")}\"\n" +
-                f"    ON SERVICE {service.get("full_service_path")} CONTENT SET {
-                    content_set["request_path"]}\n"
+                f"CREATE OR REPLACE REST CONTENT FILE \"{content_file.get('request_path')}\"\n" +
+                f"    ON SERVICE {service.get('full_service_path')} CONTENT SET {content_set['request_path']}\n"
             )
 
             if content_file["enabled"] is False or content_file["enabled"] == 0:
