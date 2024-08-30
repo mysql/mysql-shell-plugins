@@ -133,6 +133,7 @@ myService.mrsNotes.note.createMany({ data: [note1, note2] });
 | where | object | No | Filtering conditions that apply to specific fields. |
 | select | object | No | Specifies which properties to include in the returned object. |
 | skip  | number | No | Specifies how many records to skip before returning one of the matches. |
+| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
 
 ### Return Type (findFirst)
 
@@ -146,10 +147,11 @@ async function findFirst (args?: IFindOptions<Selectable, Filterable>): Promise<
 }
 
 export interface IFindOptions<Selectable, Filterable> {
-    orderBy?: ColumnOrder<Filterable>,
-    select?: BooleanFieldMapSelect<Selectable> | FieldNameSelect<Selectable>,
-    skip?: number,
-    where?: DataFilter<Filterable>,
+    orderBy?: ColumnOrder<Filterable>;
+    select?: BooleanFieldMapSelect<Selectable> | FieldNameSelect<Selectable>;
+    skip?: number;
+    where?: DataFilter<Filterable>;
+    readOwnWrites?: boolean;
 }
 ```
 
@@ -191,6 +193,7 @@ If no record was found matching the given `where` condition, `undefined` is retu
 |---|---|---|---|
 | where | object | Yes | Wraps all unique columns so that individual records can be selected. |
 | select | object | No | Specifies which properties to include in the returned object. |
+| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
 
 ### Return Type (findUnique)
 
@@ -204,8 +207,9 @@ async function findUnique (args?: IFindUniqueOptions<Selectable, Filterable>): P
 }
 
 interface IFindUniqueOptions<Selectable, Filterable> {
-    select?: BooleanFieldMapSelect<Selectable> | FieldNameSelect<Selectable>,
-    where?: DataFilter<Filterable>,
+    select?: BooleanFieldMapSelect<Selectable> | FieldNameSelect<Selectable>;
+    where?: DataFilter<Filterable>;
+    readOwnWrites?: boolean;
 }
 ```
 
@@ -246,6 +250,7 @@ await myService.mrsNotes.note.findUnique({ where: { id: { $eq: 4 } } });
 | skip  | number | No | How many records to skip before returning one of the matches. |
 | where | object  | No | Filtering conditions that apply to specific fields. |
 | take  | number | No | Maximum number of records to return. |
+| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
 
 ### Return Type (findMany)
 
@@ -266,6 +271,7 @@ interface IFindManyOptions<Item, Filterable, Iterable> {
     skip?: number;
     take?: number;
     where?: DataFilter<Filterable>;
+    readOwnWrites?: boolean;
 }
 ```
 
@@ -298,6 +304,7 @@ await myService.mrsNotes.note.findMany({ where: { id: { $gt: 10 } } });
 | select | object | No | Specifies which properties to include in the returned object. |
 | skip  | number | No | How many records to skip before returning one of the matches. |
 | where | object  | No | Filtering conditions that apply to specific fields. |
+| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
 
 ### Return Type (findAll)
 
@@ -317,6 +324,7 @@ interface IFindAllOptions<Item, Filterable> {
     select?: BooleanFieldMapSelect<Item> | FieldNameSelect<Item>;
     skip?: number;
     where?: DataFilter<Filterable>;
+    readOwnWrites?: boolean;
 }
 ```
 
@@ -346,6 +354,7 @@ await myService.mrsNotes.note.findMany({ progress: (notes) => {
 | Name | Type | Required | Description |
 |---|---|---|---|
 | where | object | Yes | Filtering conditions that apply to specific fields. |
+| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
 
 ### Return Type (delete)
 
@@ -359,11 +368,12 @@ async function delete (args: IDeleteOptions<IMyServiceMrsNotesUserParams>): Prom
 }
 
 interface IDeleteOptions<Filterable> {
-    where?: DataFilter<Filterable>,
+    where?: DataFilter<Filterable>;
+    readOwnWrites?: boolean;
 }
 
 interface IMrsDeleteResult {
-    itemsDeleted: 1,
+    itemsDeleted: 1;
 }
 ```
 
@@ -387,6 +397,7 @@ await myService.mrsNotes.note.delete({ where: { title: { $like: "%foo%" } } });
 | Name | Type | Required | Description |
 |---|---|---|---|
 | where | object | No | Filtering conditions that apply to specific fields. |
+| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
 
 ### Return Type (deleteMany)
 
@@ -400,11 +411,12 @@ async function deleteMany (args: IDeleteOptions<IMyServiceMrsNotesUserParams>): 
 }
 
 interface IDeleteOptions<Filterable> {
-    where?: DataFilter<Filterable>,
+    where?: DataFilter<Filterable>;
+    readOwnWrites: boolean;
 }
 
 interface IMrsDeleteResult {
-    itemsDeleted: number,
+    itemsDeleted: number;
 }
 ```
 

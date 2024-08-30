@@ -1,9 +1,9 @@
 {
-    "serviceId": "Ee8/anlAxz61gdAHsGHR9g==",
+    "serviceId": "Ee9T3g240B6uHLUTPfgl0Q==",
     "sdkLanguage": "TypeScript",
     "serviceUrl": "https://localhost:8444/myService",
     "addAppBaseClass": "MrsBaseAppPreact.ts",
     "dbConnectionUri": "mysqlroot@localhost:3306",
     "header": "// Copyright (c) 2023, 2024, Oracle and/or its affiliates.",
-    "generationDate": "2024-07-26 11:55:57"
+    "generationDate": "2024-09-02 10:41:38"
 }
