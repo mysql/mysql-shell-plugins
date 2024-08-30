@@ -396,28 +396,220 @@ async def validate_url(
     request: MrsBaseObjectQuery | MrsBaseObjectDelete,
     expected_url: str,
     mock_request_class: MagicMock,
+    expected_header: Optional[dict] = None,
+    fictional_response_from_router: Optional[dict] = None,
 ) -> None:
-    """Check final URL is built correctly."""
+    """Check final URL is built correctly.
+
+    fictional_response_from_router (dict | None): `urlopen.read()` is brainwashed to
+        return the provided fictional payload. If `None` is provided,
+        the used payload is `{"_metadata": {"etag": "foo"}}`.
+    """
+    if expected_header is None:
+        expected_header = {}
+    if fictional_response_from_router is None:
+        fictional_response_from_router = {"_metadata": {"etag": "foo"}}
+
     # Let urlopen return whatever 'urlopen_read' is assigned to
-    mock_urlopen.return_value = urlopen_simulator(urlopen_read=None)
+    mock_urlopen.return_value = urlopen_simulator(
+        urlopen_read=fictional_response_from_router
+    )
     mock_create_default_context.return_value = expected_context = (
         ssl.create_default_context()
     )
 
     if isinstance(request, MrsBaseObjectQuery):
-        _ = (
-            await request.fetch()
-        )  # returns None because urlopen was mocked to return None
+        # Returns `fictional_response_from_router` because urlopen was mocked to return it.
+        # The returned data is not important in this case.
+        _ = await request.fetch()
+
         # check urlopen was called once and the url that was built matches the expected
         # mock_urlopen.assert_called_once_with(ANY, context=expected_context)
         mock_request_class.assert_called_with(
-            url=expected_url, headers={}, method="GET"
+            url=expected_url, headers=expected_header, method="GET"
         )
     else:
+        # Returns `fictional_response_from_router` because urlopen was mocked to return it.
+        # The returned data is not important in this case.
         _ = await request.submit()
+
         mock_request_class.assert_called_with(
-            url=expected_url, headers={}, method="DELETE"
+            url=expected_url, headers=expected_header, method="DELETE"
         )
+
+
+####################################################################################
+#                     Test GTID Tracking And Synchronization
+####################################################################################
+@pytest.mark.parametrize(
+    "query, query_url, fictional_response, gtid_epoch_0",
+    [
+        # when `read_own_writes` is defined and set to `True`
+        (
+            {"where": {"an_int": 10}, "read_own_writes": True},
+            "q=%7B%22anInt%22%3A10%2C%22%24asof%22%3A%22gtid_A%22%7D",
+            {"_metadata": {"gtid": "gtid_A"}},
+            "foo",
+        ),
+        (
+            {"where": {"an_int": 37}, "read_own_writes": True},
+            "q=%7B%22anInt%22%3A37%2C%22%24asof%22%3A%22gtid_B%22%7D",
+            {"_metadata": {"gtid": "gtid_B"}},
+            "bar",
+        ),
+        (
+            {"where": {"an_int": 41}, "read_own_writes": True},
+            "q=%7B%22anInt%22%3A41%7D",
+            {"_metadata": {"etag": "#$661&28"}},
+            None,
+        ),
+        (
+            {"where": {"an_int": 76}, "read_own_writes": True},
+            "q=%7B%22anInt%22%3A76%2C%22%24asof%22%3A%22gtid_C%22%7D",
+            {"_metadata": {"gtid": "gtid_C"}},
+            None,
+        ),
+        # when `read_own_writes` is defined and set to `False`
+        (
+            {"where": {"an_int": 10}, "read_own_writes": False},
+            "q=%7B%22anInt%22%3A10%7D",
+            {"_metadata": {"etag": "foo"}},
+            "foo",
+        ),
+        (
+            {"where": {"an_int": 37}, "read_own_writes": False},
+            "q=%7B%22anInt%22%3A37%7D",
+            {"_metadata": {"gtid": "gtid_A"}},
+            "bar",
+        ),
+        (
+            {"where": {"an_int": 41}, "read_own_writes": False},
+            "q=%7B%22anInt%22%3A41%7D",
+            {"_metadata": {"gtid": "gtid_B"}},
+            None,
+        ),
+        # when `read_own_writes` is not defined
+        (
+            {"where": {"an_int": 10}},
+            "q=%7B%22anInt%22%3A10%7D",
+            {"_metadata": {"etag": "foo"}},
+            "foo",
+        ),
+        (
+            {"where": {"an_int": 37}},
+            "q=%7B%22anInt%22%3A37%7D",
+            {"_metadata": {"gtid": "gtid_A"}},
+            "bar",
+        ),
+        (
+            {"where": {"an_int": 41}},
+            "q=%7B%22anInt%22%3A41%7D",
+            {"_metadata": {"gtid": "gtid_B"}},
+            None,
+        ),
+    ],
+)
+async def test_gtid_track_and_sync(
+    mock_urlopen: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    query: dict[str, Any],
+    query_url: str,
+    fictional_response: dict[str, Any],
+    gtid_epoch_0: Optional[str],
+    mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
+):
+    """This test covers the following checks:
+
+    * when `read_own_writes` is not defined, the query filter does not
+    include a `$asof` operator for READ and DELETE HTTP requests.
+
+    * when `read_own_writes` is `False` the query filter does not include
+    a `$asof` operator for READ and DELETE HTTP requests.
+
+    * when a GTID is not available (aka, it's `None`), the query filter
+    does not include a `$asof` operator for READ and DELETE HTTP requests.
+
+    * when a GTID is being tracked and `read_own_writes` is `True`, the query
+    filter includes a `$asof` operator with the tracked GTID for READ and
+    DELETE HTTP requests.
+
+    * when DELETE response include gtid in metadata, the latest GTID is updated.
+
+    * when CREATE response include gtid in metadata, the latest GTID is updated.
+
+    * when UPDATE response include gtid in metadata, the latest GTID is updated.
+    """
+    # dummy data
+    data_create = {"first_name": "Shigeru", "last_name": "Miyamoto"}
+    data_update = Actor(
+        cast(
+            ActorData,
+            ActorDetails(
+                {
+                    "first_name": "Shigeru",
+                    "last_name": "Miyamoto",
+                    "_metadata": {
+                        "etag": "33ED258BECDF269717782F5569C69F88CCCA2DF11936108C68C44100FF063D4D"
+                    },
+                }
+            ),
+        )
+    )
+
+    for cls_ in (MrsBaseObjectCreate, MrsBaseObjectUpdate, MrsBaseObjectDelete):
+        # set latest GTID
+        schema._service._session["gtid"] = gtid_epoch_0
+
+        # ------------------------------- GTID Tracking -------------------------------
+        # Checking CREATE/UPDATE/DELETE HTTP requests
+        if cls_ == MrsBaseObjectCreate:
+            request_path = f"{schema._request_path}/actor"
+            request = cls_[ActorData, ActorDetails](
+                schema=schema, request_path=request_path, data=data_create
+            )
+        elif cls_ == MrsBaseObjectUpdate:
+            prk = cast(str, data_update.get_primary_key_name())
+            request_path = f"{schema._request_path}/actor/{getattr(data_update, prk)}"
+            request = cls_[Actor, ActorDetails](
+                schema=schema, request_path=request_path, data=data_update
+            )
+        elif cls_ == MrsBaseObjectDelete:
+            request = cls_[Obj1Filterable](
+                schema=schema, request_path=request_path, options=query
+            )
+
+        mock_urlopen.return_value = urlopen_simulator(urlopen_read=fictional_response)
+        mock_create_default_context.return_value = ssl.create_default_context()
+
+        _ = await request.submit();
+
+        # ------------------------------- GTID Synchronization -------------------------------
+        # Internally, the tracked gtid should have been updated if new gtid comes
+        # in the response, else, update should have been skipped:
+        #   gtid_epoch_1 = fictional_response["_metadata"].get("gtid", gtid_epoch_0)
+        request_path = f"{schema._request_path}/dbobject"
+        # Checking GET/DELETE HTTP requests
+        for my_cls in (MrsBaseObjectQuery, MrsBaseObjectDelete):
+            if my_cls == MrsBaseObjectQuery:
+                request = my_cls[Obj1Data, Obj1Details](
+                    schema=schema, request_path=request_path, options=query
+                )
+            else:
+                request = my_cls[Obj1Filterable](
+                    schema=schema, request_path=request_path, options=query
+                )
+
+            await validate_url(
+                mock_urlopen=mock_urlopen,
+                urlopen_simulator=urlopen_simulator,
+                mock_create_default_context=mock_create_default_context,
+                request=request,
+                expected_url=f"{request_path}?{query_url}",
+                mock_request_class=mock_request_class,
+                fictional_response_from_router={"field": "value"},
+            )
 
 
 ####################################################################################
@@ -866,7 +1058,7 @@ async def test_where_field_is_equal_with_implicit_filter(
             )
         else:
             request = cls_[Obj1Filterable](
-                schema=schema, request_path=request_path, where=query.get("where")
+                schema=schema, request_path=request_path, options=query
             )
 
         await validate_url(
@@ -905,7 +1097,7 @@ async def test_where_field_is_equal_with_explicit_filter(
             request = cls_[Obj1Filterable](
                 schema=schema,
                 request_path=request_path,
-                where=query.get("where"),
+                options=query,
             )
 
         await validate_url(
@@ -940,7 +1132,7 @@ async def test_where_field_is_null(
             )
         else:
             request = cls_[Obj1Filterable](
-                schema=schema, request_path=request_path, where=query.get("where")
+                schema=schema, request_path=request_path, options=query
             )
 
         await validate_url(
@@ -975,7 +1167,7 @@ async def test_where_field_is_not_null(
             )
         else:
             request = cls_[Obj1Filterable](
-                schema=schema, request_path=request_path, where=query.get("where")
+                schema=schema, request_path=request_path, options=query
             )
 
         await validate_url(
@@ -1409,7 +1601,7 @@ async def test_query_encoder(
     )
 
     assert (
-        json.dumps(obj=request.where, cls=MrsQueryEncoder, separators=(",", ":"))
+        json.dumps(obj=request._where, cls=MrsQueryEncoder, separators=(",", ":"))
         == expected_payload
     )
 

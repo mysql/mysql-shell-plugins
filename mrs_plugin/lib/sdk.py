@@ -82,15 +82,16 @@ SDK_PYTHON_DATACLASS_TEMPLATE_SAVE = '''
 # if we want to rely on `get_primary_key_name()` to get it.
 SDK_PYTHON_DATACLASS_TEMPLATE_DELETE = '''
 
-    async def delete(self) -> None:
+    async def delete(self, read_own_writes: bool = False) -> None:
         """Deletes the resource represented by the data class instance."""
         prk_name = cast(str, self.get_primary_key_name())
         record_id = getattr(self, prk_name)
+        options = {{"where": {{prk_name: f"{{record_id}}"}}, "read_own_writes": read_own_writes}}
 
         _ = await MrsBaseObjectDelete[I{name}Filterable](
             schema=self._schema,
             request_path=f"{{self._request_path}}",
-            where={{prk_name: f"{{record_id}}"}},  # type: ignore[misc]
+            options=cast(DeleteOptions, options),
         ).submit()
 '''
 

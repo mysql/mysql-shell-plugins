@@ -34,6 +34,7 @@ from .mrs_base_classes import (
     MrsBaseObjectUpdate,
     # --- importUpdateOnlyEnd
     # --- importDeleteOnlyStart
+    DeleteOptions,
     MrsBaseObjectDelete,
     # --- importDeleteOnlyEnd
     # --- importReadFunctionOnlyStart
@@ -266,14 +267,26 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
     # --- crudUpdateOnlyEnd
 
     # --- crudDeleteUniqueOnlyStart
-    async def delete(self, where: I${obj_class_name}UniqueFilterable) -> bool:
-        return bool(await self.delete_many(where=cast(I${obj_class_name}Filterable, where)))
+    async def delete(
+        self,
+        **options: Unpack[DeleteOptions[I${obj_class_name}UniqueFilterable]],
+    ) -> bool:
+        return bool(
+            await self.delete_many(
+                **cast(DeleteOptions, options)
+            )
+        )
     # --- crudDeleteUniqueOnlyEnd
 
     # --- crudDeleteOnlyStart
-    async def delete_many(self, where: I${obj_class_name}Filterable) -> int:
+    async def delete_many(
+        self,
+        **options: Unpack[DeleteOptions[I${obj_class_name}Filterable]],
+    ) -> int:
         request = MrsBaseObjectDelete[I${obj_class_name}Filterable](
-            schema=self._schema, request_path=self._request_path, where=where
+            schema=self._schema,
+            request_path=self._request_path,
+            options=options,
         )
 
         response = await request.submit()
