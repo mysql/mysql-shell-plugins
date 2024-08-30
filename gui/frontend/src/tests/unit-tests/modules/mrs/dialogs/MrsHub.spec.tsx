@@ -867,7 +867,8 @@ describe("MrsHub Tests", () => {
             "END");
 
         await backend.mrs.configure();
-        service = await backend.mrs.addService("/myService", ["HTTPS"], "", "", true, {}, "/unit-tests", "", "", "");
+        service = await backend.mrs.addService("/myService", "MyService", ["HTTPS"], "", "", true, {}, "/unit-tests",
+            "", "", "");
 
         const authAppId = await backend.mrs.addAuthApp(service.id, {
             authVendorId: "0x30000000000000000000000000000000",
@@ -1090,7 +1091,8 @@ describe("MrsHub Tests", () => {
             let portals = document.getElementsByClassName("portal");
             expect(portals).toHaveLength(0);
 
-            backend.mrs.addService = async (urlContextRoot: string, urlProtocol: string[], urlHostName: string,
+            backend.mrs.addService = async (urlContextRoot: string, name: string,
+                urlProtocol: string[], urlHostName: string,
                 comments: string, enabled: boolean, options: IShellDictionary | null,
                 authPath: string, authCompletedUrl: string,
                 authCompletedUrlValidation: string, authCompletedPageContent: string,
@@ -1113,6 +1115,7 @@ describe("MrsHub Tests", () => {
                     enableSqlEndpoint: 0,
                     customMetadataSchema: "",
                     metadata,
+                    name,
                 });
             };
 

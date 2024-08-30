@@ -32,7 +32,7 @@ import {
     IShellMrsUpdateUserKwargsValue, IMrsRoleData, IMrsUserRoleData,
     IMrsRouterData, IMrsCurrentServiceMetadata, IMrsTableColumnWithReference, IMrsObjectFieldWithReference,
     IMrsObject, IMrsDbObjectParameterData, IMrsSdkOptions, IMrsAddAuthAppData,
-    IMrsRouterService, IMrsSchemaDefinition,
+    IMrsRouterService, IMrsScriptDefinitions, IMrsScriptModuleDefinition,
 } from "../../communication/ProtocolMrs.js";
 import { MrsDbObjectType } from "../../modules/mrs/types.js";
 import { webSession } from "../WebSession.js";
@@ -95,7 +95,7 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async addService(urlContextRoot: string, urlProtocol: string[], urlHostName: string,
+    public async addService(urlContextRoot: string, name: string, urlProtocol: string[], urlHostName: string,
         comments: string, enabled: boolean, options: IShellDictionary | null,
         authPath: string, authCompletedUrl: string,
         authCompletedUrlValidation: string, authCompletedPageContent: string,
@@ -117,6 +117,7 @@ export class ShellInterfaceMrs {
                     authCompletedUrlValidation,
                     authCompletedPageContent,
                     metadata,
+                    name,
                 },
             },
         }, true, ["options"]);
@@ -1140,9 +1141,9 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async getFileMrsScriptDefinitions(path: string, language: string): Promise<IMrsSchemaDefinition[]> {
+    public async getFileMrsScriptDefinitions(path: string, language?: string): Promise<IMrsScriptModuleDefinition[]> {
         const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIMrs.MrsGetFileMrsScriptsDefinitions,
+            requestType: ShellAPIMrs.MrsGetFileMrsScriptDefinitions,
             parameters: {
                 args: {
                     path,
@@ -1151,6 +1152,43 @@ export class ShellInterfaceMrs {
                     language,
                 },
             },
+        });
+
+        return response.result;
+    }
+
+    public async getFolderMrsScriptLanguage(path: string, ignoreList?: string): Promise<string | undefined> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetFolderMrsScriptLanguage,
+            parameters: {
+                args: {
+                    path,
+                },
+                kwargs: {
+                    ignoreList,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getFolderMrsScriptDefinitions(
+        path: string, language: string, ignoreList?: string,
+        callback?: DataCallback<ShellAPIMrs.MrsGetFolderMrsScriptDefinitions>,
+    ): Promise<IMrsScriptDefinitions | undefined> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetFolderMrsScriptDefinitions,
+            parameters: {
+                args: {
+                    path,
+                },
+                kwargs: {
+                    language,
+                    ignoreList,
+                },
+            },
+            onData: callback,
         });
 
         return response.result;

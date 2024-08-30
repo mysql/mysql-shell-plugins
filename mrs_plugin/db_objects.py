@@ -263,10 +263,6 @@ def add_db_object(**kwargs):
             if not request_path.startswith('/'):
                 raise Exception("The request_path has to start with '/'.")
 
-            # Check if the request_path starts with / and is unique for the schema
-            lib.core.check_request_path(
-                session, schema["host_ctx"] + schema['request_path'] + request_path)
-
             if not crud_operation_format and interactive:
                 crud_operation_format_options = [
                     'FEED',
@@ -578,13 +574,6 @@ def set_request_path(db_object_id=None, request_path=None, **kwargs):
                 print("The request_path was left unchanged.")
                 return
 
-        # Ensure the new request_path is unique
-        schema = lib.schemas.get_schema(
-            schema_id=db_object.get("db_schema_id"),
-            session=session)
-        lib.core.check_request_path(
-            session, schema["host_ctx"] + schema['request_path'] + request_path)
-
         res = lib.core.update(table="db_object", sets="request_path=?",
                               where="id=?"
                               ).exec(session, [request_path, db_object.get("id")])
@@ -787,12 +776,6 @@ def update_db_object(**kwargs):
 
             if not target_schema:
                 raise ValueError("The target schema does not exist.")
-
-            # check for request_path collisions
-            if kwargs["value"].get("request_path"):
-                if db_object["request_path"] != kwargs["value"]["request_path"]:
-                    lib.core.check_request_path(
-                        session, target_schema["host_ctx"] + target_schema['request_path'] + kwargs["value"]["request_path"])
 
             # check if the target object exists in the target schema
             if not lib.database.get_db_object(session, target_schema["name"], target_name, db_object["object_type"]):

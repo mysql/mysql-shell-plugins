@@ -181,16 +181,6 @@ def call_update_schema(**kwargs):
             kwargs["service_id"] = service.get("id")
         kwargs = resolve_schemas(**kwargs)
 
-        # Check for request_path collisions
-        if text_update != "deleted":
-            if kwargs.get("value", {}).get("request_path"):
-                for schema_id, host_ctx in kwargs["schemas"].items():
-                    schema = lib.schemas.get_schema(
-                        session=session, schema_id=schema_id)
-                    if schema["request_path"] != kwargs["value"]["request_path"]:
-                        lib.core.check_request_path(
-                            session, schema["host_ctx"] + kwargs["value"]["request_path"])
-
         with lib.core.MrsDbTransaction(session):
             lib_func(**kwargs)
 
@@ -230,6 +220,8 @@ def add_schema(**kwargs):
         comments (str): Comments for the schema
         options (dict): The options for the schema
         metadata (dict): The metadata settings of the schema
+        schema_type (str): Either 'DATABASE_SCHEMA' or 'SCRIPT_MODULE'
+        internal (bool): Whether the schema is for internal usage
         session (object): The database session to use.
 
     Returns:
@@ -245,7 +237,12 @@ def add_schema(**kwargs):
     comments = kwargs.get("comments")
     options = kwargs.get("options")
     metadata = kwargs.get("metadata")
+    schema_type = kwargs.get("schema_type")
+    internal = kwargs.get("internal", False)
     interactive = lib.core.get_interactive_default()
+
+    if schema_type is None:
+        schema_type = "DATABASE_SCHEMA"
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         service = resolve_service(session, kwargs.get("service_id"))
@@ -293,14 +290,11 @@ def add_schema(**kwargs):
         if options is None and interactive:
             options = lib.core.prompt("Options: ").strip()
 
-        lib.core.check_request_path(
-            session, service["host_ctx"] + request_path)
-
         with lib.core.MrsDbTransaction(session):
             id = lib.schemas.add_schema(schema_name=schema_name, service_id=service["id"],
                                         request_path=request_path, requires_auth=requires_auth, enabled=enabled,
                                         items_per_page=items_per_page, comments=comments, options=options,
-                                        metadata=metadata,
+                                        metadata=metadata, schema_type=schema_type, internal=internal,
                                         session=session)
 
             schema = lib.schemas.get_schema(session=session, schema_id=id)

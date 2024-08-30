@@ -1863,7 +1863,7 @@ exports[`MrsHub Tests MRS Service dialog tests Show MRS Service Dialog (snapshot
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 6;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
         >
           <label
             class="msg label valueTitle"
@@ -1886,7 +1886,35 @@ exports[`MrsHub Tests MRS Service dialog tests Show MRS Service Dialog (snapshot
             class="msg label cellDescription"
             data-tooltip="expand"
           >
-            The URL context root of this service.
+            The URL context root of this service, has to start with / and needs to be unique.
+          </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            REST Service Name
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="name"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The descriptive name of the REST service.
           </label>
         </div>
         <div
@@ -2076,9 +2104,10 @@ exports[`MrsHub Tests MRS Service dialog tests Show MRS Service Dialog (snapshot
                     class="msg container fixedScrollbar inputWithProgress"
                     style="flex-direction: row;"
                   >
-                    <input
+                    <textarea
                       class="msg input valueEditor"
                       id="comments"
+                      rows="3"
                       spellcheck="true"
                       type="text"
                     />

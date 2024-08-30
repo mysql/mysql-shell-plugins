@@ -135,10 +135,6 @@ def add_service(session, url_host_name, service):
         raise Exception(
             f'The REST service path `{path}` is reserved and cannot be used.')
 
-    # Check if another service already uses this request path
-    # core.check_request_path(session, url_host_name +
-    #                         service.get("url_context_root"))
-
     # If there is no id for the given host yet, create a host entry
     if service.get("url_host_id") is None:
         host = core.select(table="url_host",
@@ -281,7 +277,8 @@ def query_services(session, service_id: bytes = None, url_context_root=None, url
                 se.auth_completed_page_content,
                 se.id = ? as is_current,
                 NULL AS in_development,
-                NULL AS sorted_developers
+                NULL AS sorted_developers,
+                se.name
             FROM `mysql_rest_service_metadata`.`service` se
                 LEFT JOIN `mysql_rest_service_metadata`.url_host h
                     ON se.url_host_id = h.id
@@ -303,7 +300,8 @@ def query_services(session, service_id: bytes = None, url_context_root=None, url
                 (SELECT GROUP_CONCAT(IF(item REGEXP '^[A-Za-z0-9_]+$', item, QUOTE(item)) ORDER BY item)
                     FROM JSON_TABLE(
                     se.in_development->>'$.developers', '$[*]' COLUMNS (item text path '$')
-                    ) AS jt) AS sorted_developers
+                    ) AS jt) AS sorted_developers,
+                se.name
             FROM `mysql_rest_service_metadata`.`service` se
                 LEFT JOIN `mysql_rest_service_metadata`.url_host h
                     ON se.url_host_id = h.id

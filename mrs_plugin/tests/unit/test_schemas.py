@@ -69,7 +69,8 @@ def test_get_schemas(phone_book):
                     'metadata': None,
                     'requires_auth': 0,
                     'service_id': phone_book["service_id"],
-                    'url_host_id': schemas[1]["url_host_id"]
+                    'url_host_id': schemas[1]["url_host_id"],
+                    "schema_type": "DATABASE_SCHEMA",
                 }
 
 
@@ -96,7 +97,8 @@ def test_get_schema(phone_book):
         'service_id': phone_book["service_id"],
         'options': None,
         'metadata': None,
-        'url_host_id': phone_book["url_host_id"]
+        'url_host_id': phone_book["url_host_id"],
+        "schema_type": "DATABASE_SCHEMA",
     }
 
 
@@ -173,7 +175,7 @@ def test_change_schema(phone_book, table_contents):
         args['value'] = "/PhoneBook"
         with pytest.raises(Exception) as exc_info:
             result = set_request_path(schema_id=schema_id, **args)
-        assert str(exc_info.value) == "The request_path localhost/test/PhoneBook is already in use."
+        assert str(exc_info.value) == "MySQL Error (1644): ClassicSession.run_sql: The request_path is already used by another entity."
 
         args['value'] = "/test_schema_4"
         result = set_request_path(schema_id=schema_id, **args)

@@ -50,6 +50,8 @@ frontend/src/tests/e2e/selenium
 # Embedded Shell in Extension
 extension/shell
 extension/packaging
+extension/router
+extension/*.vsix
 
 # e2e testing
 frontend/src/tests/e2e/screenshots

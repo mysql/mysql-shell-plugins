@@ -147,3 +147,14 @@ export const mrsEditDbObject = (dbObjectId: string): void => {
         },
     });
 };
+
+export const mrsRefreshSdkCode = (): void => {
+    currentWorker.postMessage?.({
+        taskId: currentWorker.currentTaskId,
+        data: {
+            api: ScriptingApi.MrsRefreshSdkCode,
+            contextId: currentWorker.currentContext,
+            final: true,
+        },
+    });
+};

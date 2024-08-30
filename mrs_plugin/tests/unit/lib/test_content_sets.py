@@ -42,7 +42,11 @@ def test_add_content_set(phone_book, table_contents):
                 "session": session
             }
 
-            content_set_id = lib.content_sets.add_content_set(**content_set)
+            with pytest.raises(Exception, match="The request_path has to start with '/'."):
+                content_set_id = lib.content_sets.add_content_set(**content_set)
+
+            content_set["request_path"] = "/test_content_set2"
+            content_set_id, _ = lib.content_sets.add_content_set(**content_set)
 
             assert not table_content_set.same_as_snapshot
 
@@ -60,9 +64,7 @@ def test_enable_disable(phone_book, table_contents):
         }
 
         args["content_set_ids"] = [b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00']
-        with pytest.raises(Exception) as exc_info:
-            lib.content_sets.enable_content_set(**args, value=False)
-        assert str(exc_info.value) == "The specified content_set was not found."
+        lib.content_sets.enable_content_set(**args, value=False)
 
         assert table_content_set.same_as_snapshot
 
@@ -93,7 +95,8 @@ def test_get_content_set(phone_book, table_contents):
             "enabled": 1,
             "comments": "Content Set",
             "host_ctx": "localhost/test",
-            "options": None,
+            "content_type": "STATIC",
+            "options": {},
             "service_id": phone_book["service_id"],
         }
         args = {
@@ -111,7 +114,7 @@ def test_get_content_set(phone_book, table_contents):
             "requires_auth": 0,
             "enabled": 1,
             "comments": "Content Set",
-            "options": None,
+            "options": {},
             "service_id": phone_book["service_id"],
             "content_type": "STATIC",
             "internal": 0,

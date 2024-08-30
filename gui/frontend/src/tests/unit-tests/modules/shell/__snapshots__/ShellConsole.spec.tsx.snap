@@ -1,7 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`ShellConsole tests Matching snapshot 1`] = `
-<div
-  className="msg editorHost"
-/>
-`;

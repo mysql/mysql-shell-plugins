@@ -89,6 +89,7 @@ MRS_PREFIXES = [
     "USE REST ",
     "SHOW REST ",
     "SHOW CREATE REST ",
+    "CLONE REST ",
 ]
 
 

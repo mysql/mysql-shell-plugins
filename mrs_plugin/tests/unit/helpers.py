@@ -215,15 +215,8 @@ class DbObjectCT():
 class ContentSetCT():
     def __init__(self, session, **kwargs) -> None:
         self._session = session
-        self.content_dir = kwargs.pop("content_dir", None)
-        self._content_set_id = lib.content_sets.add_content_set(session, **kwargs)
-        if self.content_dir:
-            self.file_list = lib.content_files.add_content_dir(
-                    session, self._content_set_id,
-                    self.content_dir, kwargs.get("requires_auth"),
-                    None,
-                    send_gui_message=kwargs.get("send_gui_message")
-                )
+        self._content_set_id, self.file_list_count = lib.content_sets.add_content_set(session, **kwargs)
+
 
     def __enter__(self):
         return self._content_set_id
@@ -504,6 +497,7 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
         "full_service_path": f"localhost{service_context_root}",
         "published": 0,
         "sorted_developers": None,
+        "name": "mrs",
     }
     assert service == expected, f"{service}\n{expected}"
 
@@ -819,3 +813,8 @@ def create_shell_session() -> mysqlsh.globals.session:
     shell = mysqlsh.globals.shell
 
     return shell.connect(f"{connection_data['user']}:{connection_data['password']}@{connection_data['host']}:{connection_data['port']}")
+
+def string_replace(text: str, replacers: dict) -> str:
+    for key, value in replacers.items():
+        text = text.replace(key, value)
+    return text

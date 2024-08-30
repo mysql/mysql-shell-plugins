@@ -168,13 +168,13 @@ export enum ShellAPIMrs {
     /** Delete a content_set of the given service */
     MrsDeleteContentSet = "mrs.delete.content_set",
     /** Returns the MRS Scripts definitions for the given file */
-    MrsGetFileMrsScriptsDefinitions = "mrs.get.file_mrs_scripts_definitions",
+    MrsGetFileMrsScriptDefinitions = "mrs.get.file_mrs_script_definitions",
     /** Checks if the given path contains MRS Scripts */
-    MrsGetFolderMrsScriptsLanguage = "mrs.get.folder_mrs_scripts_language",
+    MrsGetFolderMrsScriptLanguage = "mrs.get.folder_mrs_script_language",
     /** Returns the MRS Scripts definitions for the given folder */
-    MrsGetFolderMrsScriptsDefinitions = "mrs.get.folder_mrs_scripts_definitions",
+    MrsGetFolderMrsScriptDefinitions = "mrs.get.folder_mrs_script_definitions",
     /** Updates db_schemas and db_objects based on script definitions of the content set */
-    MrsUpdateScriptsFromContentSet = "mrs.update.scripts_from_content_set",
+    MrsUpdateMrsScriptsFromContentSet = "mrs.update.mrs_scripts_from_content_set",
     /** Returns the corresponding CREATE REST CONTENT SET SQL statement of the given MRS service object. */
     MrsGetContentSetCreateStatement = "mrs.get.content_set_create_statement",
     /** Stores the corresponding CREATE REST CONTENT SET SQL statement of the given MRS service into a file. */
@@ -248,10 +248,12 @@ export interface IShellMrsAddServiceKwargs {
     authCompletedUrlValidation?: string;
     /** The custom page content to use of the authentication completed page */
     authCompletedPageContent?: string;
-    /** Metadata of the server */
+    /** Metadata of the service */
     metadata?: IShellDictionary;
     /** Whether the new service should be published immediately */
     published?: boolean;
+    /** The name of the service */
+    name?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -388,6 +390,8 @@ export interface IShellMrsUpdateServiceKwargsValue {
     inDevelopment?: IShellDictionary;
     /** Whether the service is published */
     published?: boolean;
+    /** The name of the service */
+    name?: string;
 }
 
 export interface IShellMrsUpdateServiceKwargs {
@@ -520,6 +524,10 @@ export interface IShellMrsAddSchemaKwargs {
     options: IShellDictionary | null;
     /** The metadata settings of the schema */
     metadata?: IShellDictionary;
+    /** Either 'DATABASE_SCHEMA' or 'SCRIPT_MODULE' */
+    schemaType?: string;
+    /** Whether the schema is for internal usage */
+    internal?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -1056,32 +1064,36 @@ export interface IShellMrsDeleteContentSetKwargs {
     moduleSessionId?: string;
 }
 
-export interface IShellMrsGetFileMrsScriptsDefinitionsKwargs {
+export interface IShellMrsGetFileMrsScriptDefinitionsKwargs {
     /** The language the MRS Scripts are written in */
     language?: string;
 }
 
-export interface IShellMrsGetFolderMrsScriptsLanguageKwargs {
+export interface IShellMrsGetFolderMrsScriptLanguageKwargs {
     /** The list of file patterns to ignore, separated by comma */
     ignoreList?: string;
 }
 
-export interface IShellMrsGetFolderMrsScriptsDefinitionsKwargs {
+export interface IShellMrsGetFolderMrsScriptDefinitionsKwargs {
     /** The list of file patterns to ignore, separated by comma */
     ignoreList?: string;
     /** The language the MRS Scripts are written in */
     language?: string;
+    /** The function to send a message to he GUI. */
+    sendGuiMessage?: object;
 }
 
-export interface IShellMrsUpdateScriptsFromContentSetKwargs {
+export interface IShellMrsUpdateMrsScriptsFromContentSetKwargs {
     /** The id of the content_set */
     contentSetId?: string;
-    /** The id of the service */
-    serviceId?: string;
-    /** The request_path of the content_set */
-    requestPath?: string;
+    /** The list of file patterns to ignore, separated by comma */
+    ignoreList?: string;
+    /** The MRS Scripting language used */
+    language?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
+    /** The function to send a message to he GUI. */
+    sendGuiMessage?: object;
 }
 
 export interface IShellMrsGetContentSetCreateStatementKwargs {
@@ -1370,10 +1382,10 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsEnableContentSet]: { kwargs?: IShellMrsEnableContentSetKwargs; };
     [ShellAPIMrs.MrsDisableContentSet]: { kwargs?: IShellMrsDisableContentSetKwargs; };
     [ShellAPIMrs.MrsDeleteContentSet]: { kwargs?: IShellMrsDeleteContentSetKwargs; };
-    [ShellAPIMrs.MrsGetFileMrsScriptsDefinitions]: { args: { path: string; }; kwargs?: IShellMrsGetFileMrsScriptsDefinitionsKwargs; };
-    [ShellAPIMrs.MrsGetFolderMrsScriptsLanguage]: { args: { path: string; }; kwargs?: IShellMrsGetFolderMrsScriptsLanguageKwargs; };
-    [ShellAPIMrs.MrsGetFolderMrsScriptsDefinitions]: { args: { path: string; }; kwargs?: IShellMrsGetFolderMrsScriptsDefinitionsKwargs; };
-    [ShellAPIMrs.MrsUpdateScriptsFromContentSet]: { kwargs?: IShellMrsUpdateScriptsFromContentSetKwargs; };
+    [ShellAPIMrs.MrsGetFileMrsScriptDefinitions]: { args: { path: string; }; kwargs?: IShellMrsGetFileMrsScriptDefinitionsKwargs; };
+    [ShellAPIMrs.MrsGetFolderMrsScriptLanguage]: { args: { path: string; }; kwargs?: IShellMrsGetFolderMrsScriptLanguageKwargs; };
+    [ShellAPIMrs.MrsGetFolderMrsScriptDefinitions]: { args: { path: string; }; kwargs?: IShellMrsGetFolderMrsScriptDefinitionsKwargs; };
+    [ShellAPIMrs.MrsUpdateMrsScriptsFromContentSet]: { kwargs?: IShellMrsUpdateMrsScriptsFromContentSetKwargs; };
     [ShellAPIMrs.MrsGetContentSetCreateStatement]: { kwargs?: IShellMrsGetContentSetCreateStatementKwargs; };
     [ShellAPIMrs.MrsDumpContentSetCreateStatement]: { kwargs?: IShellMrsDumpContentSetCreateStatementKwargs; };
     [ShellAPIMrs.MrsListContentFiles]: { args: { contentSetId: string; }; kwargs?: IShellMrsListContentFilesKwargs; };
@@ -1474,6 +1486,7 @@ export interface IMrsServiceData {
     published: number;
     hostCtx: string;
     fullServicePath?: string;
+    name: string;
     sortedDevelopers?: string;
     id: string;
     isCurrent: number;
@@ -1546,6 +1559,7 @@ export interface IMrsSchemaData {
     serviceId: string;
     options?: IShellDictionary;
     metadata?: string;
+    schemaType: string;
 }
 
 export interface IMrsStatusData {
@@ -1763,31 +1777,68 @@ export interface IMrsScriptParameter {
     type: string;
 }
 
-export interface IMrsScriptDefinition {
-    functionName: string;
-    lineNumber: number;
+export interface IMrsScriptCodePosition {
+    lineNumberStart: number;
     lineNumberEnd: number;
     characterStart: number;
     characterEnd: number;
+}
+
+export interface IMrsScriptFileInfo {
+    fullFileName: string;
+    relativeFileName: string;
+    fileName: string;
+    lastModification: string;
+}
+
+export interface IMrsScriptDefinition {
+    functionName: string;
+    codePosition: IMrsScriptCodePosition;
     parameters: IMrsScriptParameter[];
     returnType: string;
     properties: IMrsScriptProperty[];
 }
 
-export interface IMrsSchemaDefinition {
-    fullFileName: string;
-    relativeFileName: string;
-    fileName: string;
-    lastModification: string;
+export interface IMrsScriptInterfaceProperty {
+    name: string;
+    type: string;
+    optional: boolean;
+    readOnly: boolean;
+    indexSignatureType?: string;
+}
+
+export interface IMrsScriptInterfaceDefinition {
+    fileInfo: IMrsScriptFileInfo;
+    name: string;
+    extends?: string;
+    codePosition: IMrsScriptCodePosition;
+    properties: IMrsScriptInterfaceProperty[];
+}
+
+export interface IMrsScriptModuleDefinition {
+    fileInfo: IMrsScriptFileInfo,
     className: string;
     schemaType: string;
-    lineNumber: number;
-    lineNumberEnd: number;
-    characterStart: number;
-    characterEnd: number;
+    codePosition: IMrsScriptCodePosition;
     properties: IMrsScriptProperty[];
     scripts: IMrsScriptDefinition[];
     triggers: IMrsScriptDefinition[];
+}
+
+export interface IMrsScriptError {
+    message: string;
+    kind?: string;
+    fileInfo: IMrsScriptFileInfo;
+    script?: IMrsScriptDefinition;
+    interface?: IMrsScriptInterfaceDefinition;
+}
+
+export interface IMrsScriptDefinitions {
+    scriptModules: IMrsScriptModuleDefinition[];
+    interfaces: IMrsScriptInterfaceDefinition[];
+    errors: IMrsScriptError[];
+    buildFolder?: string;
+    info?: string;
 }
 
 export interface IProtocolMrsResults {
@@ -1823,10 +1874,10 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsEnableContentSet]: {};
     [ShellAPIMrs.MrsDisableContentSet]: {};
     [ShellAPIMrs.MrsDeleteContentSet]: {};
-    [ShellAPIMrs.MrsGetFolderMrsScriptsLanguage]: { result: string | undefined };
-    [ShellAPIMrs.MrsGetFileMrsScriptsDefinitions]: { result: IMrsSchemaDefinition[] };
-    [ShellAPIMrs.MrsGetFolderMrsScriptsDefinitions]: { result: IDictionary | undefined };
-    [ShellAPIMrs.MrsUpdateScriptsFromContentSet]: {};
+    [ShellAPIMrs.MrsGetFolderMrsScriptLanguage]: { result: string | undefined };
+    [ShellAPIMrs.MrsGetFileMrsScriptDefinitions]: { result: IMrsScriptModuleDefinition[] };
+    [ShellAPIMrs.MrsGetFolderMrsScriptDefinitions]: { result: IMrsScriptDefinitions | undefined };
+    [ShellAPIMrs.MrsUpdateMrsScriptsFromContentSet]: {};
     [ShellAPIMrs.MrsAddDbObject]: { result: string; };
     [ShellAPIMrs.MrsGetDbObject]: { result: IMrsDbObjectData; };
     [ShellAPIMrs.MrsListDbObjects]: { result: IMrsDbObjectData[]; };

@@ -42,7 +42,7 @@ def verify_value_keys(**kwargs):
                        "enabled",  "comments", "options",
                        "auth_path", "auth_completed_url", "auth_completed_url_validation",
                        "auth_completed_page_content", "auth_apps", "metadata",
-                       "in_development", "published"] and key != "delete":
+                       "in_development", "published", "name"] and key != "delete":
             raise Exception(f"Attempting to change an invalid service value.")
 
 
@@ -132,8 +132,6 @@ def resolve_service_ids(**kwargs):
                     raise ValueError(
                         "The url_context_root has to start with '/'.")
 
-                lib.core.check_request_path(session, url_ctx_root)
-
     return kwargs
 
 
@@ -194,18 +192,6 @@ def call_update_service(op_text, **kwargs):
         kwargs["session"] = session
         kwargs = resolve_service_ids(**kwargs)
 
-        for service_id in kwargs["service_ids"]:
-            service = lib.services.get_service(session, service_id=service_id)
-            url_context_root = kwargs["value"].get(
-                "url_context_root", service["url_context_root"])
-            url_host_name = kwargs["value"].get(
-                "url_host_name", service["url_host_name"])
-
-            if (url_host_name != service["url_host_name"]) or \
-                    (url_context_root != service["url_context_root"]):
-                lib.core.check_request_path(
-                    session, url_host_name + url_context_root)
-
         with lib.core.MrsDbTransaction(session):
             lib.services.update_services(**kwargs)
 
@@ -263,8 +249,9 @@ def add_service(**kwargs):
             app redirection URL specified by the /login?onCompletionRedirect parameter
         auth_completed_page_content (str): The custom page content to use of the
             authentication completed page
-        metadata (dict): Metadata of the server
+        metadata (dict): Metadata of the service
         published (bool): Whether the new service should be published immediately
+        name (str): The name of the service
         session (object): The database session to use.
 
     Returns:
@@ -335,6 +322,7 @@ def add_service(**kwargs):
                 "auth_completed_page_content": kwargs.get("auth_completed_page_content"),
                 "metadata": kwargs.get("metadata"),
                 "published": int(kwargs.get("published", False)),
+                "name": kwargs.get("name"),
             })
 
         service = lib.services.get_service(session, service_id)
@@ -675,6 +663,7 @@ def update_service(**kwargs):
         metadata (dict): The metadata of the service
         in_development (dict): The development settings
         published (bool): Whether the service is published
+        name (str): The name of the service
 
     Returns:
         The result message as string
@@ -724,8 +713,14 @@ def get_service_request_path_availability(**kwargs):
             raise Exception("The request_path has to start with '/'.")
 
         try:
+            in_development = service.get("in_development", None)
+            if in_development is None:
+                in_development = {}
+
             lib.core.check_request_path(
-                session, service["host_ctx"] + request_path)
+                session,
+                in_development.get("developers", "")
+                + service["host_ctx"] + request_path)
         except:
             return False
 
@@ -760,11 +755,6 @@ def get_current_service_metadata(**kwargs):
         service = lib.services.get_service(
             session=session, service_id=service_id)
 
-        if service is None:
-            lib.services.set_current_service_id(
-                session=session, service_id=None)
-            return {}
-
         # Lookup the last entry in the audit_log table that affects the service and use that as the
         # version int
         res = session.run_sql(
@@ -773,10 +763,21 @@ def get_current_service_metadata(**kwargs):
             """)
         row = res.fetch_one()
 
+        metadata_version = row.get_field("version") if row is not None else "0"
+        if metadata_version is None:
+            metadata_version = "0"
+
+        if service is None:
+            lib.services.set_current_service_id(
+                session=session, service_id=None)
+            return {
+                "metadata_version": metadata_version
+            }
+
         metadata = {
             "id": lib.core.convert_id_to_string(service.get("id")),
             "host_ctx": service.get("host_ctx"),
-            "metadata_version": row.get_field("version") if row is not None else None
+            "metadata_version": metadata_version
         }
 
         if not lib.core.get_interactive_result():
@@ -972,7 +973,8 @@ def dump_sdk_service_files(**kwargs):
         with open(base_classes_file, 'w') as f:
             f.write(base_classes)
 
-        file_name = file_name_using_language_convention(service_name, sdk_language)
+        file_name = file_name_using_language_convention(
+            service_name, sdk_language)
 
         service_classes = get_sdk_service_classes(
             service_id=serviceId, service_url=mrs_config.get("serviceUrl"),

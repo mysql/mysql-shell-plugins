@@ -70,6 +70,7 @@ export interface IMrsServiceData {
     published: number;
     hostCtx: string;
     fullServicePath?: string;
+    name: string;
     sortedDevelopers?: string;
     id: string;
     isCurrent: number;
@@ -142,6 +143,7 @@ export interface IMrsSchemaData {
     serviceId: string;
     options?: IShellDictionary;
     metadata?: string;
+    schemaType: string;
 }
 
 export interface IMrsStatusData {
@@ -359,31 +361,68 @@ export interface IMrsScriptParameter {
     type: string;
 }
 
-export interface IMrsScriptDefinition {
-    functionName: string;
-    lineNumber: number;
+export interface IMrsScriptCodePosition {
+    lineNumberStart: number;
     lineNumberEnd: number;
     characterStart: number;
     characterEnd: number;
+}
+
+export interface IMrsScriptFileInfo {
+    fullFileName: string;
+    relativeFileName: string;
+    fileName: string;
+    lastModification: string;
+}
+
+export interface IMrsScriptDefinition {
+    functionName: string;
+    codePosition: IMrsScriptCodePosition;
     parameters: IMrsScriptParameter[];
     returnType: string;
     properties: IMrsScriptProperty[];
 }
 
-export interface IMrsSchemaDefinition {
-    fullFileName: string;
-    relativeFileName: string;
-    fileName: string;
-    lastModification: string;
+export interface IMrsScriptInterfaceProperty {
+    name: string;
+    type: string;
+    optional: boolean;
+    readOnly: boolean;
+    indexSignatureType?: string;
+}
+
+export interface IMrsScriptInterfaceDefinition {
+    fileInfo: IMrsScriptFileInfo;
+    name: string;
+    extends?: string;
+    codePosition: IMrsScriptCodePosition;
+    properties: IMrsScriptInterfaceProperty[];
+}
+
+export interface IMrsScriptModuleDefinition {
+    fileInfo: IMrsScriptFileInfo,
     className: string;
     schemaType: string;
-    lineNumber: number;
-    lineNumberEnd: number;
-    characterStart: number;
-    characterEnd: number;
+    codePosition: IMrsScriptCodePosition;
     properties: IMrsScriptProperty[];
     scripts: IMrsScriptDefinition[];
     triggers: IMrsScriptDefinition[];
+}
+
+export interface IMrsScriptError {
+    message: string;
+    kind?: string;
+    fileInfo: IMrsScriptFileInfo;
+    script?: IMrsScriptDefinition;
+    interface?: IMrsScriptInterfaceDefinition;
+}
+
+export interface IMrsScriptDefinitions {
+    scriptModules: IMrsScriptModuleDefinition[];
+    interfaces: IMrsScriptInterfaceDefinition[];
+    errors: IMrsScriptError[];
+    buildFolder?: string;
+    info?: string;
 }
 
 export interface IProtocolMrsResults {
@@ -419,10 +458,10 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsEnableContentSet]: {};
     [ShellAPIMrs.MrsDisableContentSet]: {};
     [ShellAPIMrs.MrsDeleteContentSet]: {};
-    [ShellAPIMrs.MrsGetFolderMrsScriptsLanguage]: { result: string | undefined };
-    [ShellAPIMrs.MrsGetFileMrsScriptsDefinitions]: { result: IMrsSchemaDefinition[] };
-    [ShellAPIMrs.MrsGetFolderMrsScriptsDefinitions]: { result: IDictionary | undefined };
-    [ShellAPIMrs.MrsUpdateScriptsFromContentSet]: {};
+    [ShellAPIMrs.MrsGetFolderMrsScriptLanguage]: { result: string | undefined };
+    [ShellAPIMrs.MrsGetFileMrsScriptDefinitions]: { result: IMrsScriptModuleDefinition[] };
+    [ShellAPIMrs.MrsGetFolderMrsScriptDefinitions]: { result: IMrsScriptDefinitions | undefined };
+    [ShellAPIMrs.MrsUpdateMrsScriptsFromContentSet]: {};
     [ShellAPIMrs.MrsAddDbObject]: { result: string; };
     [ShellAPIMrs.MrsGetDbObject]: { result: IMrsDbObjectData; };
     [ShellAPIMrs.MrsListDbObjects]: { result: IMrsDbObjectData[]; };

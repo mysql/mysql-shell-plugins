@@ -121,7 +121,7 @@ export class RowComponentMock implements RowComponent {
         return false;
     };
 
-    public getData = (): IMrsObjectFieldTreeItem => { return this.row; };
+    public getData = (): IMrsObjectFieldTreeItem => { return this.row!; };
     public getElement = (): HTMLElement => { return this.element; };
     public getPrevRow = (): RowComponent | false => { return this.prevRow; };
     public getNextRow = (): RowComponent | false => { return this.nextRow; };
