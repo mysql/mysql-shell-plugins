@@ -30,6 +30,9 @@ import {
     MrsBaseObjectDelete,
     IDeleteOptions,
     MrsBaseObjectUpdate,
+    ICreateOptions,
+    IMrsDeleteResult,
+    IUpdateOptions,
 } from "../MrsBaseClasses";
 
 // fixtures
@@ -56,12 +59,12 @@ interface ITableMetadata3 {
 const service: MrsBaseService = new MrsBaseService("/foo");
 const schema: MrsBaseSchema = { requestPath: "/bar", service };
 
-const createFetchMock = (response: JsonObject = {}) => {
+const createFetchMock = (response: string = "{}") => {
     vi.stubGlobal("fetch", vi.fn(() => {
         return Promise.resolve({
             ok: true,
             json: () => {
-                return response;
+                return JSON.parse(response);
             },
         });
     }));
@@ -70,7 +73,6 @@ const createFetchMock = (response: JsonObject = {}) => {
 describe("MRS SDK API", () => {
     beforeEach(() => {
         vi.restoreAllMocks();
-        createFetchMock();
     });
 
     describe("when retrieving resources", () => {
@@ -321,7 +323,7 @@ describe("MRS SDK API", () => {
                 }],
             };
 
-            createFetchMock(collectionResponse as JsonObject);
+            createFetchMock(JSON.stringify(collectionResponse));
         });
 
         it("hypermedia options are not part of the JSON representation of an application resource instance",
@@ -519,7 +521,7 @@ describe("MRS SDK API", () => {
                 }],
             };
 
-            createFetchMock(singleResourceResponse as JsonObject);
+            createFetchMock(JSON.stringify(singleResourceResponse));
         });
 
         it("encodes the resource as a JSON string in the request body", async () => {
@@ -586,11 +588,106 @@ describe("MRS SDK API", () => {
             expect(res._metadata).toBeDefined();
             expect(res.links).toBeDefined();
         });
+
+        describe("when the server does not send back a GTID", () => {
+            beforeEach(async () => {
+                const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { str: "qux" }});
+                await query.fetch();
+            });
+
+            it("subsequent GET requests do not include the $asof operator if the application wants read consistency", async () => {
+                const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                    schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                // first call is on beforeEach
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+
+            it("subsequent DELETE requests do not include the $asof operator if the application wants read consistency", async () => {
+                const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                    readOwnWrites: true });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+        });
+
+        describe("when the server sends back a GTID", () => {
+            beforeEach(async () => {
+                const response: MrsResourceObject<ITableMetadata1> = {
+                    id: 1,
+                    str: "qux",
+                    _metadata: {
+                        etag: "XYZ",
+                        gtid: "ABC",
+                    },
+                    links: [{
+                        href: "http://localhost:8444/foo/bar/baz/1",
+                        rel: "self",
+                    }]
+                };
+
+                createFetchMock(JSON.stringify(response));
+
+                const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { str: "qux" }});
+                await query.fetch();
+            });
+
+            it("subsequent GET requests include the GTID if the application wants read consistency", async () => {
+                const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                    schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+
+            it("subsequent GET requests do not include the GTID if the application does not want read consistency", async () => {
+                let query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                    schema, "/baz", { where: { id: 1 } });
+                await query.fetch();
+
+                query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                    schema, "/baz", { where: { id: 1 }, readOwnWrites: false });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                // first call is on beforeEach
+                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+
+            it("subsequent DELETE requests include the GTID if the application wants read consistency", async () => {
+                const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                    readOwnWrites: true });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+
+            it("subsequent DELETE requests do not include the GTID if the application does not want read consistency", async () => {
+                let query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 } });
+                await query.fetch();
+
+                query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                    readOwnWrites: false });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                // first call is on beforeEach
+                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+        });
     });
 
     describe("when updating a resource", () => {
         beforeEach(() => {
-            const singleResourceResponse: MrsResourceObject<ITableMetadata1> = {
+            const response: MrsResourceObject<ITableMetadata1> = {
                 id: 1,
                 str: "qux",
                 _metadata: {
@@ -602,7 +699,7 @@ describe("MRS SDK API", () => {
                 }],
             };
 
-            createFetchMock(singleResourceResponse as JsonObject);
+            createFetchMock(JSON.stringify(response));
         });
 
         it("hypermedia properties are not part of the JSON representation of an application resource instance",
@@ -664,17 +761,108 @@ describe("MRS SDK API", () => {
             expect(res._metadata).toBeDefined();
             expect(res.links).toBeDefined();
         });
+
+        describe("when the server does not send back a GTID", () => {
+            beforeEach(async () => {
+                const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz", {
+                    where: { id: 1 }, data: { id:1, str: "qux" } });
+                await query.fetch();
+            });
+
+            it("subsequent GET requests do not include the $asof operator if the application wants read consistency", async () => {
+                const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                    schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                // first call is on beforeEach
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+
+            it("subsequent DELETE requests do not include the $asof operator if the application wants read consistency", async () => {
+                const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                    readOwnWrites: true });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+        });
+
+        describe("when the server sends back a GTID", () => {
+            beforeEach(async () => {
+                const response: MrsResourceObject<ITableMetadata1> = {
+                    id: 1,
+                    str: "qux",
+                    _metadata: {
+                        etag: "XYZ",
+                        gtid: "ABC"
+                    },
+                    links: [{
+                        href: "http://localhost:8444/foo/bar/baz/1",
+                        rel: "self",
+                    }],
+                };
+
+                createFetchMock(JSON.stringify(response));
+
+                const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz", {
+                    where: { id: 1 }, data: { id:1, str: "qux" } });
+                await query.fetch();
+            });
+
+            it("subsequent GET requests include the GTID if the application wants read consistency", async () => {
+                const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                    schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+
+            it("subsequent GET requests do not include the GTID if the application does not want read consistency", async () => {
+                let query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                    schema, "/baz", { where: { id: 1 } });
+                await query.fetch();
+
+                query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                    schema, "/baz", { where: { id: 1 }, readOwnWrites: false });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                // first call is on beforeEach
+                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+
+            it("subsequent DELETE requests include the GTID if the application wants read consistency", async () => {
+                const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                    readOwnWrites: true });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+
+            it("subsequent DELETE requests do not include the GTID if the application does not want read consistency", async () => {
+                let query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 } });
+                await query.fetch();
+
+                query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                    readOwnWrites: false });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                // first call is on beforeEach
+                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+        });
     });
 
     describe("when deleting resources", () => {
         it("removes all records where a given field is NULL", async () => {
-            const options: IDeleteOptions<{ maybe: number | null }> = {
-                where: {
-                    maybe: null,
-                },
-            };
-
-            const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz", options);
+            const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz", { where: { maybe: null }});
             await query.fetch();
 
             const searchParams = new URLSearchParams({ q: '{"maybe":{"$null":"null"}}' });
@@ -684,21 +872,105 @@ describe("MRS SDK API", () => {
         });
 
         it("removes all records where a given field is not NULL", async () => {
-            const options: IDeleteOptions<{ maybe: number | null }> = {
-                where: {
-                    maybe: {
-                        not: null,
-                    },
-                },
-            };
-
-            const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz", options);
+            const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz", { where: { maybe: {
+                not: null }}});
             await query.fetch();
 
             const searchParams = new URLSearchParams({ q: '{"maybe":{"$notnull":"null"}}' });
             expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.objectContaining({
                 method: "DELETE",
             }));
+        });
+
+        describe("when the server does not send back a GTID", () => {
+            beforeEach(async () => {
+                createFetchMock();
+
+                const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 }})
+                await query.fetch();
+            });
+
+            it("subsequent GET requests do not include the $asof operator if the application wants read consistency", async () => {
+                const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                    schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                // first call is on beforeEach
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+
+            it("subsequent DELETE requests do not include the $asof operator if the application wants read consistency", async () => {
+                const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                    readOwnWrites: true });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+        });
+
+        describe("when the server sends back a GTID", () => {
+            beforeEach(async () => {
+                const response: IMrsDeleteResult = {
+                    itemsDeleted: 1,
+                    _metadata: {
+                        gtid: "ABC"
+                    }
+                };
+
+                createFetchMock(JSON.stringify(response));
+
+                const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 }})
+                await query.fetch();
+            });
+
+            it("subsequent GET requests include the GTID if the application wants read consistency", async () => {
+                const query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                    schema, "/baz", { where: { id: 1 }, readOwnWrites: true });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+
+            it("subsequent GET requests do not include the GTID if the application does not want read consistency", async () => {
+                let query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                    schema, "/baz", { where: { id: 1 } });
+                await query.fetch();
+
+                query = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                    schema, "/baz", { where: { id: 1 }, readOwnWrites: false });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                // first call is on beforeEach
+                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+
+            it("subsequent DELETE requests include the GTID if the application wants read consistency", async () => {
+                const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                    readOwnWrites: true });
+                await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1,"$asof":"ABC"}' });
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+
+            it("subsequent DELETE requests do not include the GTID if the application does not want read consistency", async () => {
+                let query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 } });
+                await query.fetch();
+
+                query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 },
+                    readOwnWrites: false });
+                    await query.fetch();
+
+                const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                // first call is on beforeEach
+                expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+                expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
         });
     });
 });

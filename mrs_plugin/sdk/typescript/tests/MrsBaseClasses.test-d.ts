@@ -307,6 +307,12 @@ describe("MRS SDK base types", () => {
         it("does not allow to set a pagination cursor when there are no eligible fields", () => {
             expectTypeOf<IFindFirstOptions<unknown, unknown>>().not.toHaveProperty("cursor");
         });
+
+        it("allows to enforce read-your-writes consistency", () => {
+            expectTypeOf<IFindFirstOptions<unknown, unknown>>().toHaveProperty("readOwnWrites");
+            expectTypeOf({ readOwnWrites: true }).toMatchTypeOf<IFindFirstOptions<unknown, unknown>>();
+            expectTypeOf({ readOwnWrites: false }).toMatchTypeOf<IFindFirstOptions<unknown, unknown>>();
+        });
     });
 
     describe("IFindManyOptions", () => {
@@ -360,6 +366,12 @@ describe("MRS SDK base types", () => {
 
         it("does not allow to set a pagination cursor when there are no eligible fields", () => {
             expectTypeOf<IFindManyOptions<unknown, unknown>>().not.toHaveProperty("cursor");
+        });
+
+        it("allows to enforce read-your-writes consistency", () => {
+            expectTypeOf<IFindManyOptions<unknown, unknown>>().toHaveProperty("readOwnWrites");
+            expectTypeOf({ readOwnWrites: true }).toMatchTypeOf<IFindManyOptions<unknown, unknown>>();
+            expectTypeOf({ readOwnWrites: false }).toMatchTypeOf<IFindManyOptions<unknown, unknown>>();
         });
     });
 
@@ -418,13 +430,19 @@ describe("MRS SDK base types", () => {
         it("does not allow to set a pagination cursor when there are no eligible fields", () => {
             expectTypeOf<IFindAllOptions<unknown, unknown>>().not.toHaveProperty("cursor");
         });
+
+        it("allows to enforce read-your-writes consistency", () => {
+            expectTypeOf<IFindAllOptions<unknown, unknown>>().toHaveProperty("readOwnWrites");
+            expectTypeOf({ readOwnWrites: true }).toMatchTypeOf<IFindAllOptions<unknown, unknown>>();
+            expectTypeOf({ readOwnWrites: false }).toMatchTypeOf<IFindAllOptions<unknown, unknown>>();
+        });
     });
 
     describe("IFindUniqueOptions", () => {
         it("requires the appropriate option to filter the records in the result set", () => {
-            expectTypeOf<IFindUniqueOptions<unknown, { name: string; }>>().toHaveProperty("where");
-            expectTypeOf<{ where: { name: "foo" } }>().toMatchTypeOf<IFindUniqueOptions<unknown, { name: string; }>>();
-            expectTypeOf<{}>().not.toMatchTypeOf<IFindUniqueOptions<unknown, { name: string; }>>();
+            expectTypeOf<IFindUniqueOptions<unknown, { id: number; }>>().toHaveProperty("where");
+            expectTypeOf<{ where: { id: 1 } }>().toMatchTypeOf<IFindUniqueOptions<unknown, { id: number }>>();
+            expectTypeOf<{}>().not.toMatchTypeOf<IFindUniqueOptions<unknown, { id: number }>>();
         });
 
         it("accepts the appropriate option to select specific fields from the records in the result set", () => {
@@ -450,6 +468,14 @@ describe("MRS SDK base types", () => {
         it("does not allow to set a pagination cursor", () => {
             expectTypeOf<IFindUniqueOptions<unknown, unknown>>().not.toHaveProperty("cursor");
         });
+
+        it("allows to enforce read-your-writes consistency", () => {
+            expectTypeOf<IFindUniqueOptions<unknown, unknown>>().toHaveProperty("readOwnWrites");
+            expectTypeOf({ where: { id: 1 }, readOwnWrites: true })
+                .toMatchTypeOf<IFindUniqueOptions<unknown, { id: number }>>();
+            expectTypeOf({ where: { id: 1 }, readOwnWrites: false })
+                .toMatchTypeOf<IFindUniqueOptions<unknown, { id: number }>>();
+        });
     });
 
     describe("IDeleteOptions", () => {
@@ -467,6 +493,12 @@ describe("MRS SDK base types", () => {
             expectTypeOf({ where: { $or: [{ name: "foo" }, { age: 42 }] } })
                 .not.toMatchTypeOf<IDeleteOptions<{ name: string, age: number }, { many: false }>>();
         })
+
+        it("allows to enforce read-your-writes consistency", () => {
+            expectTypeOf<IDeleteOptions<unknown>>().toHaveProperty("readOwnWrites");
+            expectTypeOf({ where: { id: 1 }, readOwnWrites: true }).toMatchTypeOf<IDeleteOptions<{ id: number }>>();
+            expectTypeOf({ where: { id: 1 }, readOwnWrites: false }).toMatchTypeOf<IDeleteOptions<{ id: number }>>();
+        });
     })
 
     describe("MaybeNull", () => {

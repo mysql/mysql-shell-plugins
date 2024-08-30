@@ -89,6 +89,7 @@ declare const mrsLoginResult: IMrsLoginResult | undefined;
 export class MrsBaseSession {
     public accessToken?: string;
     public authApp?: string;
+    public gtid?: string;
 
     protected loginState: IMrsLoginState = {};
 
@@ -477,6 +478,7 @@ export type IMrsResourceData = {
  */
 export interface IMrsResourceMetadata {
     etag: string;
+    gtid?: string;
 }
 
 /**
@@ -513,6 +515,7 @@ export interface IMrsFunctionResult<C> {
 
 export interface IMrsDeleteResult {
     itemsDeleted: number;
+    _metadata?: Pick<IMrsResourceMetadata, "gtid">,
 }
 
 export type DataFilter<Type> = DelegationFilter<Type> | HighOrderFilter<Type>;
@@ -737,10 +740,11 @@ export interface ICreateOptions<Type> {
 interface IFindCommonOptions<Item> {
     // "select" determines which fields are included in the result set.
     // It supports both an object with boolean toggles to select or ignore specific fields or an array of field names
-    // to include. Nested data mapping fields can be specified using nested objects or with boolean toggles
+    // to include. Nested REST data mapping view fields can be specified using nested objects or with boolean toggles
     // or an array with field names containing the full field path using dot "." notation
     /** Fields to include in the result set. */
     select?: BooleanFieldMapSelect<Item> | FieldNameSelect<Item>;
+    readOwnWrites?: boolean;
 }
 
 /** Options available to find records based on a given filter. */
@@ -850,7 +854,13 @@ export type NestingFieldMap<Type> = Type extends unknown[] ? BooleanFieldMapSele
 // To avoid unwarranted data loss, deleting records from the database always requires a filter.
 // Deleting a single item requires a filter that only matches unique fields.
 export type IDeleteOptions<Type, Options extends { many: boolean } = { many: true }> =
-    Options["many"] extends true ? { where: DataFilter<Type> } : { where: DelegationFilter<Type> };
+    Options["many"] extends true ? {
+        where: DataFilter<Type>,
+        readOwnWrites?: boolean,
+    } : {
+        where: DelegationFilter<Type>,
+        readOwnWrites?: boolean,
+    };
 
 // update*() API
 
@@ -877,8 +887,8 @@ export type UpdateMatch<Type, PrimaryKeys extends Array<keyof Type>> = {
     [ColumnName in keyof Pick<Type, PrimaryKeys[number]>]-?: Type[ColumnName]
 };
 
-export type MrsRequestFilter<Filterable> = DataFilter<Filterable> & {
-    $orderby: ColumnOrder<Filterable> | undefined } | undefined;
+export type MrsRequestFilter<Filterable> = {
+    $orderby?: ColumnOrder<Filterable>, $asof?: string } & { [key: string]: unknown };
 
 class MrsJSON {
     public static stringify = <T>(obj: T): string => {
@@ -1051,7 +1061,7 @@ class MrsSimplifiedCollectionObjectResponse<T> {
  * Creates an object that represents an MRS GET request.
  */
 export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> {
-    private where?: Record<string, object>;
+    private where?: MrsRequestFilter<Filterable>;
     private exclude: string[] = [];
     private include: string[] = [];
     private offset?: number;
@@ -1066,16 +1076,25 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> {
             return;
         }
 
-        const { cursor, orderBy, select, skip, take, where } = options as IFindManyOptions<Item, Filterable, Iterable>
-        & { cursor?: Cursor<Iterable> };
+        const { cursor, orderBy, readOwnWrites, select, skip, take, where } =
+        options as IFindManyOptions<Item, Filterable, Iterable> & { cursor?: Cursor<Iterable> };
 
         if (where !== undefined) {
-            this.where = { ...this.where, ...where };
-            if (orderBy !== undefined) {
-                this.where.$orderby = orderBy;
+            this.where = where;
+        }
+
+        if (orderBy !== undefined) {
+            this.where = this.where || {};
+            this.where.$orderby = orderBy;
+        }
+
+        if (readOwnWrites === true) {
+            const gtid = this.schema.service.session.gtid;
+
+            if (gtid !== undefined) {
+                this.where = this.where || {};
+                this.where.$asof = gtid;
             }
-        } else if (orderBy) {
-            this.where = { $orderby: orderBy };
         }
 
         if (Array.isArray(select)) {
@@ -1241,6 +1260,9 @@ export class MrsBaseObjectCreate<T extends object> {
         });
 
         const responseBody: MrsResourceObject<T> = await response.json();
+        // eslint-disable-next-line no-underscore-dangle
+        this.schema.service.session.gtid = responseBody._metadata.gtid;
+
         const resource = new MrsSimplifiedObjectResponse(responseBody);
 
         return resource.getInstance();
@@ -1257,7 +1279,15 @@ export class MrsBaseObjectDelete<T> {
     public fetch = async (): Promise<IMrsDeleteResult> => {
         const url = new URL("https://example.com");
         url.pathname = `${this.schema.requestPath}${this.requestPath}`;
-        url.searchParams.set("q", MrsJSON.stringify(this.options.where));
+
+        const { where, readOwnWrites } = this.options;
+        const gtid = this.schema.service.session.gtid;
+
+        if (readOwnWrites === true && gtid !== undefined) {
+            url.searchParams.set("q", MrsJSON.stringify({ ...where, $asof: gtid }));
+        } else {
+            url.searchParams.set("q", MrsJSON.stringify(where));
+        }
 
         const response = await this.schema.service.session.doFetch({
             input: `${url.pathname}${url.search}`,
@@ -1266,6 +1296,9 @@ export class MrsBaseObjectDelete<T> {
         });
 
         const responseBody: IMrsDeleteResult = await response.json();
+        // _metadata is only available if a GTID is being tracked in the server
+        // eslint-disable-next-line no-underscore-dangle
+        this.schema.service.session.gtid = responseBody._metadata?.gtid;
 
         return responseBody;
     };
@@ -1289,6 +1322,9 @@ export class MrsBaseObjectUpdate<Item extends object, Filterable, PrimaryKeys ex
         // The REST service returns a single resource, which is an ORDS-compatible object representation decorated with
         // additional fields such as "links" and "_metadata".
         const responseBody = await response.json() as MrsResourceObject<Item>;
+        // eslint-disable-next-line no-underscore-dangle
+        this.schema.service.session.gtid = responseBody._metadata.gtid;
+
         const resource = new MrsSimplifiedObjectResponse(responseBody);
 
         return resource.getInstance();

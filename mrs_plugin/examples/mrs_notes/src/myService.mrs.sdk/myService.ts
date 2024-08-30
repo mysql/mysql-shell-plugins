@@ -32,6 +32,11 @@ import {
 export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
 // --- MySQL Shell for VS Code Extension Remove --- End
 
+const AUTH_APPS = [] as const;
+
+type IMyServiceAuthApp = never;
+
+
 /* -----------------------------------------------------------------------------
  * MRS Schema /mrsNotes
  */
@@ -105,6 +110,7 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
 
         return response;
     };
+
     public findUnique = async (args?: IFindUniqueOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteUniqueParams>): Promise<IMyServiceMrsNotesNote | undefined> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteUniqueParams>(
             this.schema, MyServiceMrsNotesNoteRequest.#requestPath, { ...args, take: 1 });
@@ -122,6 +128,7 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
 
         return response;
     };
+
     public update = async (args: IUpdateOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams, ["id"], { batch: false }>): Promise<IMyServiceMrsNotesNote> => {
         const request = new MrsBaseObjectUpdate<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteParams, ["id"]>(
             this.schema, MyServiceMrsNotesNoteRequest.#requestPath, args);
@@ -141,11 +148,12 @@ export class MyServiceMrsNotesNoteRequest extends MyServiceMrsNotesObjectRequest
 
         return result;
     };
+
     public delete = async (args: IDeleteOptions<IMyServiceMrsNotesNoteUniqueParams, { many: false }>): Promise<IMrsDeleteResult> => {
-        return this.deleteMany(args as IDeleteOptions<IMyServiceMrsNotesNoteParams, { many: true }>);
+        return this.deleteMany(args as IDeleteOptions<IMyServiceMrsNotesNoteParams>);
     };
 
-    public deleteMany = async (args: IDeleteOptions<IMyServiceMrsNotesNoteParams, { many: true }>): Promise<IMrsDeleteResult> => {
+    public deleteMany = async (args: IDeleteOptions<IMyServiceMrsNotesNoteParams>): Promise<IMrsDeleteResult> => {
         const request = new MrsBaseObjectDelete<IMyServiceMrsNotesNoteParams>(this.schema, MyServiceMrsNotesNoteRequest.#requestPath, args);
         const response = await request.fetch();
 
@@ -265,6 +273,7 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
 
         return response;
     };
+
     public findUnique = async (args?: IFindUniqueOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserUniqueParams>): Promise<IMyServiceMrsNotesUser | undefined> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserUniqueParams>(
             this.schema, MyServiceMrsNotesUserRequest.#requestPath, { ...args, take: 1 });
@@ -282,6 +291,7 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
 
         return response;
     };
+
     public update = async (args: IUpdateOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams, ["id"], { batch: false }>): Promise<IMyServiceMrsNotesUser> => {
         const request = new MrsBaseObjectUpdate<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserParams, ["id"]>(
             this.schema, MyServiceMrsNotesUserRequest.#requestPath, args);
@@ -301,11 +311,12 @@ export class MyServiceMrsNotesUserRequest extends MyServiceMrsNotesObjectRequest
 
         return result;
     };
+
     public delete = async (args: IDeleteOptions<IMyServiceMrsNotesUserUniqueParams, { many: false }>): Promise<IMrsDeleteResult> => {
-        return this.deleteMany(args as IDeleteOptions<IMyServiceMrsNotesUserParams, { many: true }>);
+        return this.deleteMany(args as IDeleteOptions<IMyServiceMrsNotesUserParams>);
     };
 
-    public deleteMany = async (args: IDeleteOptions<IMyServiceMrsNotesUserParams, { many: true }>): Promise<IMrsDeleteResult> => {
+    public deleteMany = async (args: IDeleteOptions<IMyServiceMrsNotesUserParams>): Promise<IMrsDeleteResult> => {
         const request = new MrsBaseObjectDelete<IMyServiceMrsNotesUserParams>(this.schema, MyServiceMrsNotesUserRequest.#requestPath, args);
         const response = await request.fetch();
 
@@ -384,6 +395,7 @@ export class MyServiceMrsNotesUserHasNoteRequest extends MyServiceMrsNotesObject
 
         return response;
     };
+
     public findUnique = async (args?: IFindUniqueOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteUniqueParams>): Promise<IMyServiceMrsNotesUserHasNote | undefined> => {
         const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteUniqueParams>(
             this.schema, MyServiceMrsNotesUserHasNoteRequest.#requestPath, { ...args, take: 1 });
@@ -401,6 +413,8 @@ export class MyServiceMrsNotesUserHasNoteRequest extends MyServiceMrsNotesObject
 
         return response;
     };
+
+
 
 
 }
@@ -485,6 +499,9 @@ export class MyServiceMrsNotesNotesAllRequest extends MyServiceMrsNotesObjectReq
 
         return response;
     };
+
+
+
 
 
 }
@@ -587,6 +604,9 @@ export class MyServiceMrsNotesNotesServedRequest extends MyServiceMrsNotesObject
     };
 
 
+
+
+
 }
 
 export type IMyServiceMrsNotesNotesServedData = {
@@ -615,6 +635,8 @@ export class MyServiceMrsNotesNoteAcceptShareParamsRequest extends MyServiceMrsN
 
     #hasMore = true;
 
+
+
     public call = async (noteAcceptShareParams: IMyServiceMrsNotesNoteAcceptShareParams): Promise<IMrsProcedureResultList<IMrsProcedureResult>> => {
         const request = new MrsBaseObjectProcedureCall<IMrsProcedureResult, IMyServiceMrsNotesNoteAcceptShareParams>(
             this.schema, MyServiceMrsNotesNoteAcceptShareParamsRequest.#requestPath, noteAcceptShareParams);
@@ -622,6 +644,7 @@ export class MyServiceMrsNotesNoteAcceptShareParamsRequest extends MyServiceMrsN
 
         return response;
     };
+
 
 
 }
@@ -643,6 +666,8 @@ export class MyServiceMrsNotesNoteDeleteParamsRequest extends MyServiceMrsNotesO
 
     #hasMore = true;
 
+
+
     public call = async (noteDeleteParams: IMyServiceMrsNotesNoteDeleteParams): Promise<IMrsProcedureResultList<IMrsProcedureResult>> => {
         const request = new MrsBaseObjectProcedureCall<IMrsProcedureResult, IMyServiceMrsNotesNoteDeleteParams>(
             this.schema, MyServiceMrsNotesNoteDeleteParamsRequest.#requestPath, noteDeleteParams);
@@ -650,6 +675,7 @@ export class MyServiceMrsNotesNoteDeleteParamsRequest extends MyServiceMrsNotesO
 
         return response;
     };
+
 
 
 }
@@ -671,6 +697,8 @@ export class MyServiceMrsNotesNoteShareRequest extends MyServiceMrsNotesObjectRe
 
     #hasMore = true;
 
+
+
     public call = async (noteShareParams: IMyServiceMrsNotesNoteShareParams): Promise<IMrsProcedureResultList<IMyServiceMrsNotesNoteShareMeta>> => {
         const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteShareMeta, IMyServiceMrsNotesNoteShareParams>(
             this.schema, MyServiceMrsNotesNoteShareRequest.#requestPath, noteShareParams);
@@ -678,6 +706,7 @@ export class MyServiceMrsNotesNoteShareRequest extends MyServiceMrsNotesObjectRe
 
         return response;
     };
+
 
 
 }
@@ -717,6 +746,8 @@ export class MyServiceMrsNotesNoteUpdateParamsRequest extends MyServiceMrsNotesO
 
     #hasMore = true;
 
+
+
     public call = async (noteUpdateParams: IMyServiceMrsNotesNoteUpdateParams): Promise<IMrsProcedureResultList<IMrsProcedureResult>> => {
         const request = new MrsBaseObjectProcedureCall<IMrsProcedureResult, IMyServiceMrsNotesNoteUpdateParams>(
             this.schema, MyServiceMrsNotesNoteUpdateParamsRequest.#requestPath, noteUpdateParams);
@@ -724,6 +755,7 @@ export class MyServiceMrsNotesNoteUpdateParamsRequest extends MyServiceMrsNotesO
 
         return response;
     };
+
 
 
 }
