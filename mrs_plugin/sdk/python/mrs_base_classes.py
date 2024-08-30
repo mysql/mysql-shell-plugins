@@ -203,10 +203,11 @@ class MrsResourceLink(TypedDict):
     href: str
 
 
-class MrsResourceMetadata(TypedDict):
+class MrsResourceMetadata(TypedDict, total=False):
     """Available keys for the `_metadata` field."""
 
     etag: str
+    gtid: str
 
 
 class IMrsResourceDetails(TypedDict):
@@ -227,10 +228,11 @@ class IMrsResourceCollectionData(TypedDict):
     links: list[MrsResourceLink]
 
 
-class IMrsDeleteResponse(TypedDict):
+class IMrsDeleteResponse(TypedDict, total=False):
     """Response got by a delete operation"""
 
-    items_deleted: int
+    items_deleted: Required[int]
+    _metadata: MrsResourceMetadata
 
 
 class IMrsFunctionResponse(Generic[FuncResult], TypedDict):
@@ -247,6 +249,7 @@ class AuthenticateOptions(Generic[AuthAppName], TypedDict):
 
 class MrsBaseSession(TypedDict):
     access_token: str
+    gtid: Optional[str]
 
 
 class IMrsAuthenticationAccessTokenResponse(TypedDict):
@@ -336,6 +339,24 @@ class HighOrderOperator(Generic[Filterable], TypedDict, total=False):
     OR: list[Union[Filterable, HighOrderOperator[Filterable]]]
 
 
+class DeleteOptions(
+    Generic[Filterable],
+    TypedDict,
+    total=False,
+):
+    """Options supported by `delete()` and `delete_many()`.
+
+    where (dict): Query filter.
+    read_own_writes (bool): A switch; when ON, the filter attribute `asof` is
+        specified and set as per the tracked `GTID`, and
+        when OFF, the attribute isn't included as part of
+        the query filter (a.k.a. `where`).
+    """
+
+    where: Required[Filterable]
+    read_own_writes: bool
+
+
 class FindOptionsBase(
     Generic[Selectable, DataField, NestedField],
     TypedDict,
@@ -344,6 +365,7 @@ class FindOptionsBase(
     """`Find*Options` base type."""
 
     select: list[DataField | NestedField] | Selectable
+    read_own_writes: bool
 
 
 class FindUniqueOptions(
@@ -371,6 +393,10 @@ class FindUniqueOptions(
         # Equality
         where={"actor_id": 3} or {"actor_id": {"equals": 3}}
         ```
+    read_own_writes (bool): A switch; when ON, the filter attribute `asof` is
+        specified and set as per the tracked `GTID`, and
+        when OFF, the attribute isn't included as part of
+        the query filter (a.k.a. `where`).
     """
 
     where: Required[Filterable]
@@ -441,6 +467,10 @@ class FindFirstOptions(
                 where={"first_name": "PENELOPE"}, cursor={"actor_id": cursor}
             )
         ```
+    read_own_writes (bool): A switch; when ON, the filter attribute `asof` is
+        specified and set as per the tracked `GTID`, and
+        when OFF, the attribute isn't included as part of
+        the query filter (a.k.a. `where`).
     """
 
     where: Filterable
@@ -632,6 +662,7 @@ class MrsQueryEncoder(json.JSONEncoder):
         "not": "$notnull",
         "ne": "$ne",
         "orderBy": "$orderby",
+        "asof": "$asof",
     }
 
     def encode(self, o: Any) -> str:
@@ -676,7 +707,7 @@ class MrsBaseService:
         """Constructor."""
         self._service_url: str = service_url
         self._auth_path: Optional[str] = auth_path
-        self._session: MrsBaseSession = {"access_token": ""}
+        self._session: MrsBaseSession = {"access_token": "", "gtid": None}
 
 
 class MrsBaseSchema:
@@ -787,12 +818,13 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
         """
         self._schema: MrsBaseSchema = schema
         self.request_path: str = request_path
-        self.where: Optional[dict] = None
+        self._where: Optional[dict] = None
         self.exclude: list[str] = []
         self.include: list[str] = []
         self.offset: Optional[int] = None
         self.limit: Optional[int] = None
         self.cursor: Optional[dict] = None
+        self._read_own_writes: bool = False
 
         if options is None:
             return
@@ -805,9 +837,9 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
         if where:
             if order_by:
                 where.update({"order_by": order_by})
-            self.where = where
-        elif order_by:
-            self.where = {"order_by": order_by}
+            self._where = where
+        else:
+            self._where = {"order_by": order_by} if order_by else {}
 
         select = all_available_options.get("select")
 
@@ -823,11 +855,15 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
 
         self.cursor = all_available_options.get("cursor")
         if self.cursor is not None:
-            if self.where is None:
-                self.where = {}
-            self.where.update(
+            self._where.update(
                 {key: {"gt": value} for key, value in self.cursor.items()}
             )
+
+        self._read_own_writes = all_available_options.get("read_own_writes", False)
+        if self._read_own_writes is True:
+            gtid = self._schema._service._session["gtid"]
+            if gtid is not None:
+                self._where.update({"asof": gtid})
 
     async def fetch(self) -> IMrsResourceCollectionData:
         """Fetch a result set (page). The page size is as `take` if specified,
@@ -846,9 +882,9 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
         """
         query: dict[str, object] = {}
 
-        if self.where:
+        if self._where:
             query["q"] = json.dumps(
-                obj=self.where, cls=MrsQueryEncoder, separators=(",", ":")
+                obj=self._where, cls=MrsQueryEncoder, separators=(",", ":")
             )
 
         if len(self.exclude) > 0:
@@ -1023,10 +1059,18 @@ class MrsBaseObjectCreate(Generic[Data, DataDetails]):
         context = ssl.create_default_context()
         response = await asyncio.to_thread(urlopen, req, context=context)
 
-        return cast(
+        table_record = cast(
             DataDetails,
             json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys),
         )
+
+        # track the latest GTID
+        try:
+            self._schema._service._session["gtid"] = table_record["_metadata"]["gtid"]
+        except KeyError:
+            pass
+
+        return table_record
 
 
 class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
@@ -1068,7 +1112,12 @@ class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
         """
         try:
             etag = self._data.__dict__["_metadata"]["etag"]
-        except TypeError:
+        except (KeyError, TypeError):
+            # `KeyError` means that key "etag" doesn't exist.
+
+            # `TypeError` means that "_metadata" is None. This is expected when
+            # data flows from the user app to the router because users won't
+            # include metadata information as part of the data payload.
             etag = ""
 
         headers = {"If-Match": etag}
@@ -1086,17 +1135,28 @@ class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
         context = ssl.create_default_context()
         response = await asyncio.to_thread(urlopen, req, context=context)
 
-        return cast(
+        table_record = cast(
             DataDetails,
             json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys),
         )
+
+        # track the latest GTID
+        try:
+            self._schema._service._session["gtid"] = table_record["_metadata"]["gtid"]
+        except KeyError:
+            pass
+
+        return table_record
 
 
 class MrsBaseObjectDelete(Generic[Filterable]):
     """Implements the core logic utilized by the `delete*` commands."""
 
     def __init__(
-        self, schema: MrsBaseSchema, request_path: str, where: Filterable
+        self,
+        schema: MrsBaseSchema,
+        request_path: str,
+        options: DeleteOptions,
     ) -> None:
         """Constructor.
 
@@ -1104,14 +1164,19 @@ class MrsBaseObjectDelete(Generic[Filterable]):
         of this instance.
 
         Args:
-            schema: instance of the corresponding MRS schema
+            schema: instance of the corresponding MRS schema.
             request_path: the base endpoint to the resource (database table).
-            options: See FindManyOptions, FindFirstOptions and FindUniqueOptions
-                    to know more about the options.
+            options: See `DeleteOptions` to know more about the options.
+
         """
         self._schema: MrsBaseSchema = schema
         self._request_path: str = request_path
-        self._where: dict = cast(dict, where)
+        self._where: dict = cast(dict, options["where"])
+
+        if options.get("read_own_writes", False) is True:
+            gtid = self._schema._service._session["gtid"]
+            if gtid is not None:
+                self._where.update({"asof": gtid})
 
     async def submit(self) -> IMrsDeleteResponse:
         """Submit the request to the Router to delete a record
@@ -1149,7 +1214,19 @@ class MrsBaseObjectDelete(Generic[Filterable]):
         context = ssl.create_default_context()
         response = await asyncio.to_thread(urlopen, req, context=context)
 
-        return json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys)
+        delete_response = json.loads(
+            response.read(), object_hook=MrsJSONDataDecoder.convert_keys
+        )
+
+        # track the latest GTID
+        try:
+            self._schema._service._session["gtid"] = delete_response["_metadata"][
+                "gtid"
+            ]
+        except KeyError:
+            pass
+
+        return delete_response
 
 
 class MrsAuthenticate(Generic[AuthAppName]):
