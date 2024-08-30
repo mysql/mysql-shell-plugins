@@ -330,9 +330,10 @@ export class Workbench {
      * @returns A promise resolving when the notifications are expanded
      */
     public static expandNotifications = async (): Promise<void> => {
+        await Misc.switchBackToTopFrame();
+        await driver.sleep(500);
         const notifications = await new extWorkbench().getNotifications();
         for (const notification of notifications) {
-            await driver.actions().move({ origin: notification }).perform();
             await notification.expand();
         }
     };
