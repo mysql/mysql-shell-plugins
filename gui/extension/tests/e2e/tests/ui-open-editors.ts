@@ -231,6 +231,22 @@ describe("OPEN EDITORS", () => {
         await (await openEditorsTreeSection.tree.getElement("Session 1")).click();
         await driver.wait(new E2EShellConsole().untilIsOpened(), constants.wait15seconds,
             "Shell Console was not loaded");
+        await Workbench.closeEditor(constants.mysqlShellConsoles);
+    });
+
+    it("Open multiple shell sessions", async () => {
+
+        const openedSessions: number[] = [];
+
+        for (let i = 1; i <= 3; i++) {
+            const treeDBConnections = await openEditorsTreeSection.tree.getElement(constants.dbConnectionsLabel);
+            await openEditorsTreeSection.tree.openContextMenuAndSelect(treeDBConnections,
+                constants.openNewShellConsole);
+            await driver.wait(new E2EShellConsole().untilIsOpened(), constants.wait15seconds,
+                "Shell Console was not loaded");
+            await driver.wait(openEditorsTreeSection.tree.untilExists(`Session ${i}`), constants.wait5seconds);
+            openedSessions.push(i);
+        }
 
     });
 
