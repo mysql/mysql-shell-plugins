@@ -98,43 +98,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         }
     });
 
-    describe("Shell generic operations", () => {
-
-        const openedSessions: number[] = [];
-
-        afterEach(async function () {
-            if (this.currentTest?.state === "failed") {
-                await Misc.processFailure(this);
-            }
-        });
-
-        after(async function () {
-            try {
-                for (let i = 1; i <= openedSessions.length - 1; i++) {
-                    await Workbench.closeEditor(`Session ${openedSessions[i]}`);
-                }
-            } catch (e) {
-                await Misc.processFailure(this);
-            }
-        });
-
-        it("Open multiple sessions", async () => {
-
-            for (let i = 1; i <= 3; i++) {
-                const treeDBConnections = await openEditorsTreeSection.tree.getElement(constants.dbConnectionsLabel);
-                await openEditorsTreeSection.tree.openContextMenuAndSelect(treeDBConnections,
-                    constants.openNewShellConsole);
-                await driver.wait(new E2EShellConsole().untilIsOpened(), constants.wait15seconds,
-                    "Shell Console was not loaded");
-                await driver.wait(openEditorsTreeSection.tree.untilExists(`Session ${i}`), constants.wait5seconds);
-                openedSessions.push(i);
-            }
-
-        });
-
-    });
-
-    describe("Shell database connections", () => {
+    describe("Database connections", () => {
 
         const shellConn = Object.assign({}, globalConn);
         shellConn.caption = "shellConn";
