@@ -30,8 +30,7 @@ def get_router_ids(session, seen_within=None):
     """
 
     if seen_within:
-        sql += f"WHERE last_check_in > CURRENT_TIMESTAMP - INTERVAL {
-            seen_within} SECOND"
+        sql += f"WHERE last_check_in > CURRENT_TIMESTAMP - INTERVAL {seen_within} SECOND"
 
     return core.MrsDbExec(sql).exec(session).items
 
