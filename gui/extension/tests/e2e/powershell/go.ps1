@@ -120,6 +120,10 @@ try {
             $env:MYSQLSH_GUI_CUSTOM_PORT = 3340
             break
         }
+        "result-grids" {
+            $env:MYSQLSH_GUI_CUSTOM_PORT = 3341
+            break
+        }
         default {
             Throw "Unknown test suite: $env:TEST_SUITE"
         }

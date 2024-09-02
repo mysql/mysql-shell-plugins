@@ -135,7 +135,7 @@ export class E2ECodeEditor {
                 if (e instanceof error.ElementNotInteractableError) {
                     await this.scrollDown();
                     const editorLines = await driver.findElements(locator.notebook.codeEditor.editor.currentLine);
-                    await editorLines[editorLines.length - 1].click();
+                    await driver.executeScript("arguments[0].click()", editorLines[editorLines.length - 1]);
                 } else if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }

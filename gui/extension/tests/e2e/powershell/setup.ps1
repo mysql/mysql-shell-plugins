@@ -29,7 +29,7 @@ $basePath = Join-Path $PSScriptRoot ".."
 Set-Location $basePath
 $basePath = Get-Location
 $env:WORKSPACE = Resolve-Path(Join-Path $basePath ".." ".." ".." "..")
-$testSuites = @("db", "notebook", "oci", "shell", "rest", "open-editors")
+$testSuites = @("db", "notebook", "oci", "shell", "rest", "open-editors", "result-grids")
 
 try {
     $err = 0

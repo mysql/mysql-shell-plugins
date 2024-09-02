@@ -30,7 +30,7 @@ Set-Location $basePath
 $basePath = Get-Location
 $env:WORKSPACE = Resolve-Path(Join-Path $basePath ".." ".." ".." "..")
 $vsCodeVersion = "1.83.1"
-$testSuites = @("db", "notebook", "oci", "shell", "rest", "open-editors")
+$testSuites = @("db", "notebook", "oci", "shell", "rest", "open-editors", "result-grids")
 
 if (!$env:VSIX_PATH){
     Throw "Please define the VSIX_PATH"
