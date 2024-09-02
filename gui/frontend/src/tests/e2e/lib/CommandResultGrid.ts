@@ -101,8 +101,10 @@ export class CommandResultGrid {
             await this.result.loadResult();
         };
 
-        const saveCellChanges = async (cellRef: interfaces.IResultGridCell, method?: string): Promise<void> => {
+        const saveCellChanges = async (cellRef: interfaces.IResultGridCell
+            , method?: string): Promise<void> => {
             let isDate = false;
+
             const cell = await this.getCell(cellRef.rowNumber!, cellRef.columnName); // avoid stale
             const isDateTime = (await cell
                 .findElements(gridLocator.row.cell.dateTimeInput)).length > 0;
@@ -140,29 +142,58 @@ export class CommandResultGrid {
 
         if (method === constants.editButton) {
             await this.result.toolbar!.edit();
-        }
 
-        for (let i = 0; i <= cells.length - 1; i++) {
-            await driver.wait(async () => {
-                try {
-                    await this.startEditCell(cells[i].rowNumber!, cells[i].columnName, method);
-                    await updateValue(cells[i]);
+            for (let i = 0; i <= cells.length - 1; i++) {
+                await driver.wait(async () => {
+                    try {
+                        const cell = await this.getCell(cells[i].rowNumber!, cells[i].columnName); // avoid stale
 
-                    if (i === cells.length - 1 && method === constants.editButton) {
-                        await saveCellChanges(cells[i], constants.pressEnter);
-                    } else {
-                        await saveCellChanges(cells[i], method);
+                        if (await this.isEditing(cell)) {
+                            await updateValue(cells[i]);
+
+                            if (i === cells.length - 1) {
+                                await saveCellChanges(cells[i], constants.pressEnter);
+                            } else {
+                                await saveCellChanges(cells[i], method);
+                            }
+
+                        } else {
+                            await driver.actions().keyDown(Key.TAB).keyUp(Key.TAB).perform();
+                        }
+
+                        return true;
+                    } catch (err) {
+                        if (err instanceof error.StaleElementReferenceError) {
+                            await driver.actions().sendKeys(Key.ESCAPE).perform();
+                        } else {
+                            throw err;
+                        }
                     }
+                }, constants.wait10seconds, `The cell on column ${cells[i].columnName} was always stale`);
+            }
+        } else {
+            for (let i = 0; i <= cells.length - 1; i++) {
+                await driver.wait(async () => {
+                    try {
+                        await this.startEditCell(cells[i].rowNumber!, cells[i].columnName, method);
+                        await updateValue(cells[i]);
 
-                    return true;
-                } catch (err) {
-                    if (err instanceof error.StaleElementReferenceError) {
-                        await driver.actions().sendKeys(Key.ESCAPE).perform();
-                    } else {
-                        throw err;
+                        if (i === cells.length - 1 && method === constants.editButton) {
+                            await saveCellChanges(cells[i], constants.pressEnter);
+                        } else {
+                            await saveCellChanges(cells[i], method);
+                        }
+
+                        return true;
+                    } catch (err) {
+                        if (err instanceof error.StaleElementReferenceError) {
+                            await driver.actions().sendKeys(Key.ESCAPE).perform();
+                        } else {
+                            throw err;
+                        }
                     }
-                }
-            }, constants.wait10seconds, `The cell on column ${cells[i].columnName} was always stale`);
+                }, constants.wait10seconds, `The cell on column ${cells[i].columnName} was always stale`);
+            }
         }
     };
 
@@ -1190,6 +1221,23 @@ export class CommandResultGrid {
     };
 
     /**
+     * Starts the focus on the result grid by pressing keys (CMD/META + ALT + ENTER)
+     * @returns A promise resolving when the first result grid cell is focused
+     */
+    public startFocus = async (): Promise<void> => {
+        await driver.wait(async () => {
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+            await driver.executeScript("arguments[0].click()", textArea);
+            await textArea.sendKeys(Key.chord(Key.ALT, Key.UP));
+            await driver.sleep(150);
+            const activeElement = await driver.switchTo().activeElement();
+
+            return (await activeElement.getAttribute("class")).includes("tabulator-cell") &&
+                (await activeElement.getAttribute("tabulator-field")).includes("0");
+        }, constants.wait10seconds, `Could not start the focus on result grid for cmd ${this.result.command}`);
+    };
+
+    /**
      * Gets a cell of a result grid
      * @param gridRow The row number. If the row number is -1, the function returns the last added row
      * @param gridColumn The column
@@ -1322,12 +1370,18 @@ export class CommandResultGrid {
         const rows = await this.content!.findElements(gridLocator.row.exists);
         const maxTabs = rows.length * Array.from(this.columnsMap!.keys()).length;
 
+        let activeElement: WebElement | undefined;
         const isFocused = async () => {
-            const cellRef = await this.getCell(rowNumber, columnName);
-            const activeElement = await driver.switchTo().activeElement();
+            await driver.wait(async () => {
+                activeElement = await driver.switchTo().activeElement();
 
-            return ((await cellRef.getText()) === (await activeElement.getText())) ||
-                (this.isEditing(cellRef));
+                return (await activeElement.getAttribute("class")).includes("tabulator-cell");
+            }, constants.wait3seconds, `The focused element should be result grid cell`);
+
+            const refCell = await this.getCell(rowNumber, columnName);
+
+            return (await refCell.getAttribute("tabulator-field")) ===
+                (await activeElement!.getAttribute("tabulator-field"));
         };
 
         for (let i = 0; i <= maxTabs - 1; i++) {
@@ -1360,9 +1414,9 @@ export class CommandResultGrid {
     private startEditCell = async (rowNumber: number, columnName: string, method: string): Promise<void> => {
         const doubleClickEvent = "arguments[0].dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));";
         const selectListLocator = locator.notebook.codeEditor.editor.result.grid.row.cell.selectList.exists;
-        let cell = await this.getCell(rowNumber, columnName);
 
         await driver.wait(async () => {
+            let cell = await this.getCell(rowNumber, columnName);
             try {
                 if (await this.isEditing(cell)) {
                     return (await cell.findElements(locator.htmlTag.input)).length > 0 ||
@@ -1373,11 +1427,6 @@ export class CommandResultGrid {
 
                         case constants.doubleClick: {
                             await driver.executeScript(doubleClickEvent, cell);
-                            break;
-                        }
-
-                        case constants.editButton: {
-                            await this.focusCell(rowNumber, columnName);
                             break;
                         }
 
@@ -1401,7 +1450,7 @@ export class CommandResultGrid {
                     cell = await this.getCell(rowNumber, columnName);
                 }
             }
-        }, constants.wait5seconds, `Could not start editing cell on column ${columnName}`);
+        }, constants.wait10seconds, `Could not start editing cell on column ${columnName}`);
     };
 
     /**

@@ -100,9 +100,9 @@ DROP TABLE IF EXISTS `all_data_types_ints`;
     `test_mediumint` mediumint DEFAULT NULL,
     `test_integer` int DEFAULT NULL,
     `test_bigint` bigint DEFAULT '8888',
-    `test_decimal` decimal(10,2) DEFAULT NULL,
+    `test_decimal` decimal(10,5) DEFAULT NULL,
     `test_float` float DEFAULT NULL,
-    `test_double` double(10,2) DEFAULT NULL,
+    `test_double` double(10,5) DEFAULT NULL,
     `test_boolean` tinyint(1) DEFAULT NULL,
     PRIMARY KEY (`id`)
   ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

@@ -39,6 +39,7 @@ export const shellServers = new Map([
     ["sessions.spec.ts", 2],
     ["shell_connections.spec.ts", 2],
     ["notifications.spec.ts", 2],
+    ["result-grids.spec.ts", 1],
 ]);
 
 export class Misc {

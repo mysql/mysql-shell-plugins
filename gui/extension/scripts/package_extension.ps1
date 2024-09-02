@@ -116,8 +116,8 @@ Copy-Item -Path $guiPluginBackend -Destination $(Join-Path $extensionFolder "she
 Write-host "DONE"
 
 Write-host "Adding GUI plugin frontend ..." -NoNewLine 
-New-Item -Path $(Join-path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin" "core" "webroot") -ItemType "directory"
-Copy-Item -Path "$guiPluginBuild/*" -Destination $(Join-path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin" "core" "webroot") -Recurse
+New-Item -Path $(Join-path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin" "core" "webroot") -ItemType "directory" -Force
+Copy-Item -Path "$guiPluginBuild/*" -Destination $(Join-path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin" "core" "webroot") -Recurse -Force
 Write-host "DONE"
 
 # BUILD EXTENSION
