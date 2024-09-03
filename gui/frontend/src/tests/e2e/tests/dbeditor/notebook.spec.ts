@@ -76,8 +76,9 @@ describe("Notebook", () => {
 
             await driver.executeScript("arguments[0].click()", await driver.findElement(locator.sqlEditorPage.icon));
             await DatabaseConnectionOverview.createDataBaseConnection(globalConn);
-            await driver.executeScript("arguments[0].click();",
-                await DatabaseConnectionOverview.getConnection(globalConn.caption!));
+            const dbConnection = await DatabaseConnectionOverview.getConnection(globalConn.caption!);
+            await driver.actions().move({ origin: dbConnection }).perform();
+            await driver.executeScript("arguments[0].click()", dbConnection);
             await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait10seconds);
             await notebook.codeEditor.loadCommandResults();
         } catch (e) {

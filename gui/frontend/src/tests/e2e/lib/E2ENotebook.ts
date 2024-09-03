@@ -46,7 +46,7 @@ export class E2ENotebook {
     public codeEditor = new E2ECodeEditor(this);
 
     /**
-     * Waits until the MDS connection is opened
+     * Waits until the DB connection is opened
      * @param connection The database connection
      * @returns A promise resolving when the MDS connection is opened
      */

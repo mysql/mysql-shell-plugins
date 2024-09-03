@@ -25,7 +25,7 @@
 
 import { WebElement, until, Key, Condition, error, Button, Origin } from "vscode-extension-tester";
 import clipboard from "clipboardy";
-import { driver } from "../Misc";
+import { driver, Misc } from "../Misc";
 import * as constants from "../constants";
 import * as interfaces from "../interfaces";
 import * as locator from "../locators";
@@ -1238,6 +1238,10 @@ export class CommandResultGrid {
      * @returns A promise resolving when the first result grid cell is focused
      */
     public startFocus = async (): Promise<void> => {
+        if (!(await Misc.insideIframe())) {
+            await Misc.switchToFrame();
+        }
+
         await driver.wait(async () => {
             const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await driver.executeScript("arguments[0].click()", textArea);

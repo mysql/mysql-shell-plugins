@@ -75,8 +75,9 @@ export class E2ENotebook {
             const existsGenericDialog = (await driver.findElements(locator.genericDialog.exists)).length > 0;
             const existsEditor = (await driver.findElements(locator.notebook.codeEditor.textArea)).length > 0;
             const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
+            const contentHost = (await driver.findElements(locator.mysqlAdministration.exists)).length > 0;
 
-            return existsNotebook || existsEditor || existsGenericDialog;
+            return existsNotebook || existsEditor || existsGenericDialog || contentHost;
         });
     };
 
