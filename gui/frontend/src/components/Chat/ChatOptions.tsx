@@ -376,7 +376,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                             expanded: modelSection.expanded ?? true,
                             initialSize: modelSection.size ?? 76,
                             dimmed: false,
-                            content: [ // cspell:ignore qwen
+                            content: [
                                 <Container className="scopeMultiItemColumn" orientation={Orientation.TopDown}
                                     mainAlignment={ContentAlignment.Start} crossAlignment={ContentAlignment.Stretch}>
                                     <Container className="scopeLabeledItem" orientation={Orientation.LeftToRight}>
@@ -387,7 +387,6 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                                             <DropdownItem id="default" caption="Default" />
                                             <DropdownItem id="llama3-8b-instruct-v1" caption="Llama 3" />
                                             <DropdownItem id="mistral-7b-instruct-v1" caption="Mistral" />
-                                            <DropdownItem id="qwen2-7b-instruct-v1" caption="Qwen 2" />
                                             <DropdownItem id="cohere.command-r-plus" caption="OCI GenAI - Cohere +" />
                                             <DropdownItem id="cohere.command-r-16k" caption="OCI GenAI - Cohere" />
                                             <DropdownItem id="meta.llama-3-70b-instruct"

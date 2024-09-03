@@ -438,7 +438,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             "links": detectLinks,
             "colorDecorators": true,
             "contextmenu": model?.editorMode !== CodeEditorMode.Terminal,
-            "suggest": suggest ?? { preview: true },
+            "suggest": suggest ?? { preview: false },
             "inlineSuggest": { enabled: true },
             "quickSuggestions": true,
             "emptySelectionClipboard": false,
