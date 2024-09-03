@@ -589,6 +589,20 @@ describe("RESULT GRIDS", () => {
             await driver.wait(Workbench.untilNotificationExists("Changes committed successfully", true),
                 constants.wait2seconds);
 
+            await Misc.switchToFrame();
+            await result.grid.startFocus();
+
+            await result.grid.editCells([
+                { rowNumber: 0, columnName: "int_field", value: "25" },
+            ], constants.pressEnter);
+
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+            await textArea.sendKeys(Key.chord(refKey, Key.ALT, Key.ESCAPE));
+
+            const confirmDialog = await driver.wait(Workbench.untilConfirmationDialogExists("for rollback"),
+                constants.wait2seconds);
+            await confirmDialog.findElement(locator.confirmDialog.accept).click();
+
         });
 
         it("Edit a result grid using the Start Editing button", async () => {

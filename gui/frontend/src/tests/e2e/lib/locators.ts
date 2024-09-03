@@ -137,8 +137,6 @@ export const dbConnectionOverview = {
     closeHeader: By.id("closeButton"),
 };
 
-// NOTEBOOK
-
 // ADMINISTRATION
 export const serverStatusHeadings = By.css(".grid .heading label");
 export const clientConnections = {
@@ -176,7 +174,7 @@ export const shellConsole = {
 
 // NOTEBOOK
 export const notebook = {
-    exists: By.id("contentHost"),
+    exists: By.id("notebookHost"),
     toolbar: {
         exists: By.id("dbEditorToolbar"),
         button: {

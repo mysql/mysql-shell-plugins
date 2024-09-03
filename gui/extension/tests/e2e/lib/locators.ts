@@ -96,7 +96,7 @@ export const passwordDialog = {
 };
 
 export const notebook = {
-    exists: By.id("contentHost"),
+    exists: By.id("notebookHost"),
     codeEditor: {
         exists: By.className("codeEditor"),
         textArea: By.css("textarea"),
@@ -583,6 +583,7 @@ export const dbConnectionOverview = {
 };
 
 export const mysqlAdministration = {
+    exists: By.id("contentHost"),
     title: By.css("#header h1"),
     section: By.css("#statusBoxHost .heading > label"),
     clientConnections: {

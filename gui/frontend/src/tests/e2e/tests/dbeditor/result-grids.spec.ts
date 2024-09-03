@@ -41,16 +41,16 @@ const url = Misc.getUrl(basename(filename));
 
 const globalConn: interfaces.IDBConnection = {
     dbType: "MySQL",
-    caption: `connNotebooks`,
+    caption: `connResultGrids`,
     description: "Local connection",
     basic: {
         hostname: String(process.env.DBHOSTNAME),
         protocol: "mysql",
-        username: "dbuser2",
+        username: "dbuser3",
         port: parseInt(process.env.DBPORT!, 10),
         portX: parseInt(process.env.DBPORTX!, 10),
         schema: "sakila",
-        password: "dbuser2",
+        password: "dbuser3",
     },
 };
 
@@ -75,8 +75,9 @@ describe("Result grids", () => {
 
             await driver.executeScript("arguments[0].click()", await driver.findElement(locator.sqlEditorPage.icon));
             await DatabaseConnectionOverview.createDataBaseConnection(globalConn);
-            await driver.executeScript("arguments[0].click();",
-                await DatabaseConnectionOverview.getConnection(globalConn.caption!));
+            const dbConnection = await DatabaseConnectionOverview.getConnection(globalConn.caption!);
+            await driver.actions().move({ origin: dbConnection }).perform();
+            await driver.executeScript("arguments[0].click()", dbConnection);
             await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait10seconds);
             await notebook.codeEditor.loadCommandResults();
         } catch (e) {
@@ -108,7 +109,7 @@ describe("Result grids", () => {
 
         it("Result grid context menu - Capitalize, Convert to lower, upper case and mark for deletion", async () => {
             try {
-                const result = await notebook.codeEditor.execute("select * from sakila.result_sets;");
+                const result = await notebook.codeEditor.execute("select * from sakila.result_sets;", true);
                 expect(result.toolbar!.status).toMatch(/OK/);
                 const rowNumber = 0;
                 const rowColumn = "text_field";
