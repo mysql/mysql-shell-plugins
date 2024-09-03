@@ -2,13 +2,9 @@
 
 ## Changes in 1.16.3+9.0.1
 
-### Additions
-
-- 
-
 ### Fixes
 
-- 
+- Fixed GenAI model list
 
 ## Changes in 1.16.2+9.0.1
 
