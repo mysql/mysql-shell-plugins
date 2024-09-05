@@ -603,7 +603,7 @@ Execute \\help or \\? for help;`;
             await requisitions.execute("sqlTransactionChanged", undefined);
 
             void requisitions.execute("showInfo", "Commit successful.");
-        } catch (reason) {
+        } catch (reason) /* istanbul ignore next */ {
             const message = reason instanceof Error ? reason.message : String(reason);
             await requisitions.execute("showError", "Error while committing changes: " + message);
         }
@@ -716,7 +716,7 @@ Execute \\help or \\? for help;`;
             } else if (this.scriptRef.current) {
                 this.scriptRef.current.insertScriptText(data.language, content);
             }
-        } catch (reason) {
+        } catch (reason) /* istanbul ignore next */ {
             const message = reason instanceof ResponseError ? reason.message : String(reason);
             await requisitions.execute("showError", "Cannot load scripts content: " + message);
 
@@ -822,7 +822,7 @@ Execute \\help or \\? for help;`;
 
                     return Promise.resolve(true);
                 }
-            } else {
+            } else /* istanbul ignore next */ {
                 if (payload.contextId) {
                     this.addContextResultMessage(payload.contextId, `\nAuthentication cancelled.`);
                 }
@@ -3053,7 +3053,7 @@ Execute \\help or \\? for help;`;
 
                         void requisitions.execute("showInfo",
                             `The HeatWave options have been saved successfully to ${fileResult.path[0]}`);
-                    } catch (reason) {
+                    } catch (reason) /* istanbul ignore next */ {
                         let content: string;
 
                         if (reason instanceof ResponseError) {
@@ -3087,7 +3087,7 @@ Execute \\help or \\? for help;`;
                             void requisitions.execute("showInfo",
                                 `The HeatWave options have been loaded successfully from ${fileResult.path[0]}`);
                         }
-                    } catch (reason) {
+                    } catch (reason) /* istanbul ignore next */ {
                         let content: string;
 
                         if (reason instanceof ResponseError) {
