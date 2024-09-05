@@ -849,8 +849,7 @@ def match_typescript_script_types_to_interface_list(interfaces_def, mrs_script_d
                     errors.append({
                         "kind": "TypeError",
                         "message":
-                            f"Unknown datatype `{param_type}` used for script parameter `{
-                                parameter["name"]}`.",
+                            f'Unknown datatype `{param_type}` used for script parameter `{parameter["name"]}`.',
                         "script": script,
                         "file_info": script_module["file_info"],
                     })
@@ -868,8 +867,7 @@ def match_typescript_script_types_to_interface_list(interfaces_def, mrs_script_d
                 errors.append({
                     "kind": "TypeError",
                     "message":
-                        f"Unknown datatype `{property_type}` used for interface property `{
-                            property["name"]}`.",
+                        f'Unknown datatype `{property_type}` used for interface property `{property["name"]}`.',
                     "interface": interface,
                     "file_info": interface["file_info"],
                 })
@@ -1067,8 +1065,7 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
                 if core.is_text(content_file["content"]):
                     code = content_file["content"].decode()
                 else:
-                    raise ValueError(f"The content of file {
-                        fullname} is binary data, not text.")
+                    raise ValueError(f"The content of file {fullname} is binary data, not text.")
 
                 # Clear TypeScript comments and strings for regex matching
                 code_cleared = blank_quoted_js_strings(
@@ -1274,8 +1271,7 @@ def prepare_open_api_ui(service, request_path, send_gui_message=None) -> str:
         f'url: "{service["url_context_root"]}/open-api-catalog/"')
 
     # Patch UI to redirect to MRS authentication
-    redirect_url = f'/?service={service["url_context_root"]
-                                }&redirectUrl={service["url_context_root"]+request_path}/'
+    redirect_url = f'/?service={service["url_context_root"]}&redirectUrl={service["url_context_root"]+request_path}/'
     authorize_btn_on_click = f'()=>{{window.location.href="{redirect_url}";}}'
     update_file_content_via_regex(
         os.path.join(swagger_ui_path, "swagger-ui-bundle.js"),

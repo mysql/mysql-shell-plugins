@@ -25,7 +25,8 @@ from mysqlsh.plugin_manager import plugin_function
 from mrs_plugin import lib
 from .interactive import resolve_auth_app
 
-@plugin_function('mrs.list.users', shell=True, cli=True, web=True)
+
+@plugin_function("mrs.list.users", shell=True, cli=True, web=True)
 def get_users(**kwargs):
     """Get users configured within a service and/or auth_app
 
@@ -47,12 +48,16 @@ def get_users(**kwargs):
     if auth_app_id is None and service_id is None:
         raise Exception("Either the auth_app_id or the service_id is required.")
 
-    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+    with lib.core.MrsDbSession(
+        exception_handler=lib.core.print_exception, **kwargs
+    ) as session:
         users = None
-        return lib.users.get_users(session, auth_app_id=auth_app_id, service_id=service_id)
+        return lib.users.get_users(
+            session, auth_app_id=auth_app_id, service_id=service_id
+        )
 
 
-@plugin_function('mrs.get.user', shell=True, cli=True, web=True)
+@plugin_function("mrs.get.user", shell=True, cli=True, web=True)
 def get_user(**kwargs):
     """Get user
 
@@ -70,12 +75,13 @@ def get_user(**kwargs):
 
     user_id = kwargs.get("user_id")
 
-    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+    with lib.core.MrsDbSession(
+        exception_handler=lib.core.print_exception, **kwargs
+    ) as session:
         return lib.users.get_user(session, user_id)
 
 
-
-@plugin_function('mrs.add.user', shell=True, cli=True, web=True)
+@plugin_function("mrs.add.user", shell=True, cli=True, web=True)
 def add_user(**kwargs):
     """Update user
 
@@ -114,41 +120,61 @@ def add_user(**kwargs):
 
     user_roles = kwargs.get("user_roles")
 
-    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+    with lib.core.MrsDbSession(
+        exception_handler=lib.core.print_exception, **kwargs
+    ) as session:
         with lib.core.MrsDbTransaction(session):
-            user_id = lib.users.add_user(session=session, auth_app_id=auth_app_id, name=name,
-                email=email, vendor_user_id=vendor_user_id, login_permitted=login_permitted,
-                mapped_user_id=mapped_user_id, app_options=app_options, auth_string=auth_string)
+            user_id = lib.users.add_user(
+                session=session,
+                auth_app_id=auth_app_id,
+                name=name,
+                email=email,
+                vendor_user_id=vendor_user_id,
+                login_permitted=login_permitted,
+                mapped_user_id=mapped_user_id,
+                app_options=app_options,
+                auth_string=auth_string,
+            )
 
             if user_roles is None:
                 user_roles = []
 
-            user_roles = [{
-                "user_id": user_id,
-                "role_id": lib.core.id_to_binary(user_role["role_id"], "user_role_id"),
-                "comments": None,
-            }
-            for user_role in user_roles]
+            user_roles = [
+                {
+                    "user_id": user_id,
+                    "role_id": lib.core.id_to_binary(
+                        user_role["role_id"], "user_role_id"
+                    ),
+                    "comments": None,
+                }
+                for user_role in user_roles
+            ]
 
             auth_app = lib.auth_apps.get_auth_app(session, auth_app_id)
             default_role_id = auth_app["default_role_id"]
 
             # Add the default role to the user if specified
-            user_role_filter = list(filter(lambda role: role['role_id'] == default_role_id, user_roles))
+            user_role_filter = list(
+                filter(lambda role: role["role_id"] == default_role_id, user_roles)
+            )
             if default_role_id and not user_role_filter:
-                user_roles.append({
-                    "user_id": user_id,
-                    "role_id": default_role_id,
-                    "comments": "Default role.",
-                })
+                user_roles.append(
+                    {
+                        "user_id": user_id,
+                        "role_id": default_role_id,
+                        "comments": "Default role.",
+                    }
+                )
 
             for role in user_roles:
-                lib.users.add_user_role(session, role["user_id"], role["role_id"], role["comments"])
+                lib.users.add_user_role(
+                    session, role["user_id"], role["role_id"], role["comments"]
+                )
 
             return lib.users.get_user(session, user_id)
 
 
-@plugin_function('mrs.delete.user', shell=True, cli=True, web=True)
+@plugin_function("mrs.delete.user", shell=True, cli=True, web=True)
 def delete_user(user_id=None, session=None):
     """Delete user
 
@@ -164,11 +190,14 @@ def delete_user(user_id=None, session=None):
     if not user_id:
         raise Exception("The user_id is required to perform this operation.")
 
-    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, session=session) as session:
+    with lib.core.MrsDbSession(
+        exception_handler=lib.core.print_exception, session=session
+    ) as session:
         with lib.core.MrsDbTransaction(session):
             lib.users.delete_user_by_id(session, user_id)
 
-@plugin_function('mrs.update.user', shell=True, cli=True, web=True)
+
+@plugin_function("mrs.update.user", shell=True, cli=True, web=True)
 def update_user(**kwargs):
     """Update user
 
@@ -217,21 +246,27 @@ def update_user(**kwargs):
     if "auth_string" in value and "auth_app_id" not in value:
         raise RuntimeError("The auth_app_id is required to set the auth_string.")
 
-    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+    with lib.core.MrsDbSession(
+        exception_handler=lib.core.print_exception, **kwargs
+    ) as session:
         with lib.core.MrsDbTransaction(session):
-            if value.keys():
-                lib.users.update_user(session, user_id, value)
+            if value:
+                lib.users.update_user(
+                    session,
+                    user_id=user_id,
+                    value=value,
+                )
 
             if user_roles is not None:
                 lib.users.delete_user_roles(session, user_id)
 
                 for role in user_roles:
-                    lib.users.add_user_role(session, user_id, role["role_id"], role["comments"])
+                    lib.users.add_user_role(
+                        session, user_id, role["role_id"], role["comments"]
+                    )
 
 
-
-
-@plugin_function('mrs.list.userRoles', shell=True, cli=True, web=True)
+@plugin_function("mrs.list.userRoles", shell=True, cli=True, web=True)
 def get_user_roles(user_id=None, session=None):
     """Get all user roles
 
@@ -249,7 +284,7 @@ def get_user_roles(user_id=None, session=None):
         return lib.users.get_user_roles(session, user_id)
 
 
-@plugin_function('mrs.add.userRole', shell=True, cli=True, web=True)
+@plugin_function("mrs.add.userRole", shell=True, cli=True, web=True)
 def add_user_role(user_id=None, role_id=None, comments=None, session=None):
     """Add a user role
 
@@ -272,7 +307,7 @@ def add_user_role(user_id=None, role_id=None, comments=None, session=None):
             lib.users.add_user_role(session, user_id, role_id, comments)
 
 
-@plugin_function('mrs.delete.userRoles', shell=True, cli=True, web=True)
+@plugin_function("mrs.delete.userRoles", shell=True, cli=True, web=True)
 def delete_user_roles(user_id=None, role_id=None, session=None):
     """Delete all user roles or a single one if the role id is also specified
 
