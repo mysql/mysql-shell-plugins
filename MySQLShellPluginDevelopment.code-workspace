@@ -1,3 +1,4 @@
+// cSpell:ignore dbaeumer pylance antlr4 debugpy orta
 {
     "folders": [
         {
@@ -47,7 +48,7 @@
             "${workspaceFolder}\\plugins\\rds_plugin"
         ],
         "liveServer.settings.multiRootWorkspaceName": "MySQL REST Service Plugin",
-        "jest.autoRun": "off",
+        "jest.runMode": "on-demand",
         "jest.disabledWorkspaceFolders": [
             "MySQL REST Service Plugin",
             "Shell GUI Backend",
@@ -71,7 +72,7 @@
         "configurations": [
             {
                 "name": "Python: Attach to Port",
-                "type": "python",
+                "type": "debugpy",
                 "request": "attach",
                 "connect": {
                     "host": "localhost",
@@ -80,7 +81,7 @@
             },
             {
                 "name": "Python: Attach using Process Id",
-                "type": "python",
+                "type": "debugpy",
                 "request": "attach",
                 "processId": "${command:pickProcess}"
             }
@@ -91,7 +92,6 @@
         "tasks": []
     },
     "extensions": {
-        // cSpell:ignore dbaeumer pylance
         "recommendations": [
             "streetsidesoftware.code-spell-checker",
             "dbaeumer.vscode-eslint",
