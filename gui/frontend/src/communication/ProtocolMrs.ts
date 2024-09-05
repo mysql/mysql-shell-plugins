@@ -213,8 +213,14 @@ export enum ShellAPIMrs {
     MrsDeleteUserRoles = "mrs.delete.user_roles",
     /** List the roles for the specified service */
     MrsListRoles = "mrs.list.roles",
+    /** Get a role by id or its caption. */
+    MrsGetRole = "mrs.get.role",
     /** Add a new role */
     MrsAddRole = "mrs.add.role",
+    /** Add a privilege to a role. */
+    MrsAddRolePrivilege = "mrs.add.role_privilege",
+    /** Delete a privilege from a role. */
+    MrsDeleteRolePrivilege = "mrs.delete.role_privilege",
     /** List all router ids */
     MrsListRouterIds = "mrs.list.router_ids",
     /** List all configured routers */
@@ -1296,6 +1302,24 @@ export interface IShellMrsAddRoleKwargs {
     moduleSessionId?: string;
 }
 
+export interface IShellMrsAddRolePrivilegeKwargs {
+    /** The service path or pattern to grant privileges on. */
+    servicePath?: string;
+    /** The schema path or pattern to grant privileges on. */
+    schemaPath?: string;
+    /** The object path or pattern to grant privileges on. */
+    objectPath?: string;
+}
+
+export interface IShellMrsDeleteRolePrivilegeKwargs {
+    /** The service path or pattern to revoke privileges from. */
+    service?: string;
+    /** The schema path or pattern to revoke privileges from. */
+    schema?: string;
+    /** The object path or pattern to revoke privileges from. */
+    object?: string;
+}
+
 export interface IShellMrsRunScriptKwargs {
     /** The path of the script to run */
     path?: string;
@@ -1405,7 +1429,10 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsAddUserRole]: { args: { userId?: string; roleId?: string; comments?: string; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsDeleteUserRoles]: { args: { userId?: string; roleId?: string; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsListRoles]: { args: { serviceId?: string; moduleSessionId?: string; }; };
+    [ShellAPIMrs.MrsGetRole]: { args: { roleId?: string; moduleSessionId?: string; specificToServiceId?: string; caption?: string; }; };
     [ShellAPIMrs.MrsAddRole]: { args: { caption: string; }; kwargs?: IShellMrsAddRoleKwargs; };
+    [ShellAPIMrs.MrsAddRolePrivilege]: { args: { roleId?: string; moduleSessionId?: string; operations?: unknown[]; }; kwargs?: IShellMrsAddRolePrivilegeKwargs; };
+    [ShellAPIMrs.MrsDeleteRolePrivilege]: { args: { roleId?: string; moduleSessionId?: string; operations?: unknown[]; }; kwargs?: IShellMrsDeleteRolePrivilegeKwargs; };
     [ShellAPIMrs.MrsListRouterIds]: { args: { seenWithin?: number; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsListRouters]: { args: { activeWhenSeenWithin?: number; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsDeleteRouter]: { args: { routerId?: number; moduleSessionId?: string; }; };
@@ -1916,6 +1943,9 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddUserRole]: {};
     [ShellAPIMrs.MrsDeleteUserRoles]: {};
     [ShellAPIMrs.MrsAddRole]: {};
+    [ShellAPIMrs.MrsGetRole]: { result: IMrsRoleData; };
+    [ShellAPIMrs.MrsAddRolePrivilege]: {};
+    [ShellAPIMrs.MrsDeleteRolePrivilege]: {};
     [ShellAPIMrs.MrsListRouterIds]: { result: number[]; };
     [ShellAPIMrs.MrsListRouters]: { result: IMrsRouterData[]; };
     [ShellAPIMrs.MrsDeleteRouter]: {};

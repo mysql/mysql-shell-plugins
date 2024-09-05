@@ -467,6 +467,69 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#userOptions.
+    def enterUserOptions(self, ctx:MRSParser.UserOptionsContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#userOptions.
+    def exitUserOptions(self, ctx:MRSParser.UserOptionsContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#appOptions.
+    def enterAppOptions(self, ctx:MRSParser.AppOptionsContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#appOptions.
+    def exitAppOptions(self, ctx:MRSParser.AppOptionsContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#accountLock.
+    def enterAccountLock(self, ctx:MRSParser.AccountLockContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#accountLock.
+    def exitAccountLock(self, ctx:MRSParser.AccountLockContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#createRestRoleStatement.
+    def enterCreateRestRoleStatement(self, ctx:MRSParser.CreateRestRoleStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#createRestRoleStatement.
+    def exitCreateRestRoleStatement(self, ctx:MRSParser.CreateRestRoleStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#restRoleOptions.
+    def enterRestRoleOptions(self, ctx:MRSParser.RestRoleOptionsContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#restRoleOptions.
+    def exitRestRoleOptions(self, ctx:MRSParser.RestRoleOptionsContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#parentRoleName.
+    def enterParentRoleName(self, ctx:MRSParser.ParentRoleNameContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#parentRoleName.
+    def exitParentRoleName(self, ctx:MRSParser.ParentRoleNameContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#roleName.
+    def enterRoleName(self, ctx:MRSParser.RoleNameContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#roleName.
+    def exitRoleName(self, ctx:MRSParser.RoleNameContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#cloneRestServiceStatement.
     def enterCloneRestServiceStatement(self, ctx:MRSParser.CloneRestServiceStatementContext):
         pass
@@ -527,6 +590,15 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#alterRestContentSetStatement.
     def exitAlterRestContentSetStatement(self, ctx:MRSParser.AlterRestContentSetStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#alterRestUserStatement.
+    def enterAlterRestUserStatement(self, ctx:MRSParser.AlterRestUserStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#alterRestUserStatement.
+    def exitAlterRestUserStatement(self, ctx:MRSParser.AlterRestUserStatementContext):
         pass
 
 
@@ -608,6 +680,69 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#dropRestUserStatement.
     def exitDropRestUserStatement(self, ctx:MRSParser.DropRestUserStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#dropRestRoleStatement.
+    def enterDropRestRoleStatement(self, ctx:MRSParser.DropRestRoleStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#dropRestRoleStatement.
+    def exitDropRestRoleStatement(self, ctx:MRSParser.DropRestRoleStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#grantRestPrivilegeStatement.
+    def enterGrantRestPrivilegeStatement(self, ctx:MRSParser.GrantRestPrivilegeStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#grantRestPrivilegeStatement.
+    def exitGrantRestPrivilegeStatement(self, ctx:MRSParser.GrantRestPrivilegeStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#privilegeList.
+    def enterPrivilegeList(self, ctx:MRSParser.PrivilegeListContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#privilegeList.
+    def exitPrivilegeList(self, ctx:MRSParser.PrivilegeListContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#privilegeName.
+    def enterPrivilegeName(self, ctx:MRSParser.PrivilegeNameContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#privilegeName.
+    def exitPrivilegeName(self, ctx:MRSParser.PrivilegeNameContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#grantRestRoleStatement.
+    def enterGrantRestRoleStatement(self, ctx:MRSParser.GrantRestRoleStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#grantRestRoleStatement.
+    def exitGrantRestRoleStatement(self, ctx:MRSParser.GrantRestRoleStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#revokeRestPrivilegeStatement.
+    def enterRevokeRestPrivilegeStatement(self, ctx:MRSParser.RevokeRestPrivilegeStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#revokeRestPrivilegeStatement.
+    def exitRevokeRestPrivilegeStatement(self, ctx:MRSParser.RevokeRestPrivilegeStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#revokeRestRoleStatement.
+    def enterRevokeRestRoleStatement(self, ctx:MRSParser.RevokeRestRoleStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#revokeRestRoleStatement.
+    def exitRevokeRestRoleStatement(self, ctx:MRSParser.RevokeRestRoleStatementContext):
         pass
 
 
@@ -707,6 +842,24 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#showRestAuthAppsStatement.
     def exitShowRestAuthAppsStatement(self, ctx:MRSParser.ShowRestAuthAppsStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#showRestRolesStatement.
+    def enterShowRestRolesStatement(self, ctx:MRSParser.ShowRestRolesStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#showRestRolesStatement.
+    def exitShowRestRolesStatement(self, ctx:MRSParser.ShowRestRolesStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#showRestGrantsStatement.
+    def enterShowRestGrantsStatement(self, ctx:MRSParser.ShowRestGrantsStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#showRestGrantsStatement.
+    def exitShowRestGrantsStatement(self, ctx:MRSParser.ShowRestGrantsStatementContext):
         pass
 
 
@@ -851,6 +1004,15 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#restResultName.
     def exitRestResultName(self, ctx:MRSParser.RestResultNameContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#objectRequestPath.
+    def enterObjectRequestPath(self, ctx:MRSParser.ObjectRequestPathContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#objectRequestPath.
+    def exitObjectRequestPath(self, ctx:MRSParser.ObjectRequestPathContext):
         pass
 
 

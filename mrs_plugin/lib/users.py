@@ -30,6 +30,7 @@ import os
 MRS_VENDOR_ID = bytes.fromhex("30000000000000000000000000000000")
 STORED_PASSWORD_STRING = "[Stored Password]"
 
+
 def password_requires_cypher(session, auth_app_id):
     auth_app = auth_apps.get_auth_app(session, auth_app_id)
 
@@ -38,26 +39,36 @@ def password_requires_cypher(session, auth_app_id):
 
     return auth_app["auth_vendor_id"] == MRS_VENDOR_ID
 
+
 def cypher_auth_string(auth_string) -> bytes:
-        iterations = 5000
-        salt = os.urandom(20)
-        hash = hashlib.pbkdf2_hmac('sha256', auth_string.encode(), salt, iterations)
-        client_key = hmac.HMAC(hash, b"Client Key", digestmod=hashlib.sha256).digest()
+    iterations = 5000
+    salt = os.urandom(20)
+    hash = hashlib.pbkdf2_hmac("sha256", auth_string.encode(), salt, iterations)
+    client_key = hmac.HMAC(hash, b"Client Key", digestmod=hashlib.sha256).digest()
 
-        m = hashlib.sha256()
-        m.update(client_key)
-        stored_key = m.digest()
+    m = hashlib.sha256()
+    m.update(client_key)
+    stored_key = m.digest()
 
-        parts = [
-            "A",
-            f"{int(iterations/1000):03}",
-            base64.b64encode(salt).decode(),
-            base64.b64encode(stored_key).decode()
-        ]
+    parts = [
+        "A",
+        f"{int(iterations/1000):03}",
+        base64.b64encode(salt).decode(),
+        base64.b64encode(stored_key).decode(),
+    ]
 
-        return '$' + '$'.join(parts)
+    return "$" + "$".join(parts)
 
-def get_users(session, service_id=None, auth_app_id=None, user_id=None, mask_password=True, user_name=None):
+
+def get_users(
+    session,
+    service_id=None,
+    auth_app_id=None,
+    auth_app_name=None,
+    user_id=None,
+    mask_password=True,
+    user_name=None,
+):
     # Get current version of metadata schema
     current_version = core.get_mrs_schema_version(session)
 
@@ -72,7 +83,8 @@ def get_users(session, service_id=None, auth_app_id=None, user_id=None, mask_pas
             SELECT  user.id, user.auth_app_id, user.name, user.email,
                     user.vendor_user_id, user.login_permitted,
                     user.mapped_user_id, user.app_options,
-                    {f'"{STORED_PASSWORD_STRING}" as auth_string' if mask_password else "user.auth_string"}
+                    {f'"{STORED_PASSWORD_STRING}" as auth_string' if mask_password else "user.auth_string"},
+                    app.name auth_app_name                    
                 FROM `mysql_rest_service_metadata`.`mrs_user` as user
                 JOIN `mysql_rest_service_metadata`.`auth_app` as app
                     ON app.id = user.auth_app_id
@@ -90,7 +102,8 @@ def get_users(session, service_id=None, auth_app_id=None, user_id=None, mask_pas
             SELECT  user.id, user.auth_app_id, user.name, user.email,
                     user.vendor_user_id, user.login_permitted,
                     user.mapped_user_id, user.app_options,
-                    {f'"{STORED_PASSWORD_STRING}" as auth_string' if mask_password else "user.auth_string"}
+                    {f'"{STORED_PASSWORD_STRING}" as auth_string' if mask_password else "user.auth_string"},
+                    app.name auth_app_name
                 FROM `mysql_rest_service_metadata`.`mrs_user` as user
                 JOIN `mysql_rest_service_metadata`.`auth_app` as app
                     ON app.id = user.auth_app_id
@@ -100,6 +113,9 @@ def get_users(session, service_id=None, auth_app_id=None, user_id=None, mask_pas
         if auth_app_id:
             wheres.append("user.auth_app_id = ?")
             params.append(auth_app_id)
+        if auth_app_name:
+            wheres.append("app.name = ?")
+            params.append(auth_app_name)
         if service_id:
             wheres.append("sa.service_id = ?")
             params.append(service_id)
@@ -107,8 +123,6 @@ def get_users(session, service_id=None, auth_app_id=None, user_id=None, mask_pas
     if user_name:
         wheres.append("user.name = ?")
         params.append(user_name)
-    if len(wheres) == 0:
-        return []
 
     sql += core._generate_where(wheres)
 
@@ -116,27 +130,57 @@ def get_users(session, service_id=None, auth_app_id=None, user_id=None, mask_pas
 
 
 def get_users_by_service(session, service_id, mask_password=True):
-    return get_users(session, service_id=service_id)
+    return get_users(session, service_id=service_id, mask_password=mask_password)
 
 
 def get_users_by_auth_app(session, auth_app_id, mask_password=True):
-    return get_users(session, auth_app_id=auth_app_id)
+    return get_users(session, auth_app_id=auth_app_id, mask_password=mask_password)
 
 
-def get_user(session, user_id, mask_password=True):
-    result = get_users(session, user_id=user_id)
+def get_user(
+    session,
+    user_id=None,
+    user_name=None,
+    service_id=None,
+    auth_app_id=None,
+    auth_app_name=None,
+    mask_password=True,
+):
+    result = get_users(
+        session,
+        user_id=user_id,
+        service_id=service_id,
+        user_name=user_name,
+        auth_app_id=auth_app_id,
+        auth_app_name=auth_app_name,
+        mask_password=mask_password,
+    )
     if not result:
         return None
     return result[0]
 
 
-def add_user(session, auth_app_id, name, email, vendor_user_id, login_permitted,
-    mapped_user_id, app_options, auth_string):
+def add_user(
+    session,
+    auth_app_id,
+    name,
+    email,
+    vendor_user_id,
+    login_permitted,
+    mapped_user_id,
+    app_options,
+    auth_string,
+):
 
     if password_requires_cypher(session, auth_app_id):
         if not auth_string:
             raise RuntimeError("The authentication string is required for this app")
         auth_string = cypher_auth_string(auth_string)
+    else:
+        if auth_string is not None:
+            raise ValueError(
+                "Password changing not supported for this authentication method"
+            )
 
     sql = """
         INSERT INTO `mysql_rest_service_metadata`.`mrs_user`
@@ -147,8 +191,17 @@ def add_user(session, auth_app_id, name, email, vendor_user_id, login_permitted,
     """
 
     id = core.get_sequence_id(session)
-    params = [id, auth_app_id, name, email, vendor_user_id,
-        login_permitted, mapped_user_id, app_options, auth_string]
+    params = [
+        id,
+        auth_app_id,
+        name,
+        email,
+        vendor_user_id,
+        login_permitted,
+        mapped_user_id,
+        app_options,
+        auth_string,
+    ]
 
     if not core.MrsDbExec(sql, params).exec(session).success:
         raise RuntimeError("Failed to insert the new user.")
@@ -191,6 +244,10 @@ def update_user(session, user_id, value: dict):
     if value.get("auth_string"):
         if password_requires_cypher(session, value["auth_app_id"]):
             value["auth_string"] = cypher_auth_string(value["auth_string"])
+        else:
+            raise ValueError(
+                "Password change not supported for the authentication method"
+            )
 
     sets = []
     params = []
@@ -209,13 +266,19 @@ def update_user(session, user_id, value: dict):
 
     core.MrsDbExec(sql, params).exec(session)
 
+
 def get_user_roles(session, user_id):
     sql = """
-    SELECT *
-    FROM `mysql_rest_service_metadata`.`mrs_user_has_role`
-    WHERE user_id = ?
+    SELECT ur.user_id, ur.role_id, r.caption, ur.comments,
+        r.derived_from_role_id, pr.caption derived_from_role_caption,
+        r.specific_to_service_id,
+        r.caption, r.description, r.options
+    FROM `mysql_rest_service_metadata`.`mrs_user_has_role` ur
+    JOIN `mysql_rest_service_metadata`.`mrs_role` r ON ur.role_id = r.id
+    LEFT JOIN `mysql_rest_service_metadata`.mrs_role pr
+            ON r.derived_from_role_id = pr.id
+    WHERE ur.user_id = (_binary ?)
     """
-
     return core.MrsDbExec(sql, [user_id]).exec(session).items
 
 
@@ -243,3 +306,7 @@ def delete_user_roles(session, user_id, role_id=None):
     sql += core._generate_where(wheres)
 
     core.MrsDbExec(sql, params).exec(session)
+
+
+def format_grant_statement(user: dict, user_role: dict) -> str:
+    return f"""GRANT REST ROLE {core.quote_str(user_role.get("caption"))} TO {core.quote_str(user.get("name"))}@{core.quote_str(user.get("auth_app_name"))}"""
