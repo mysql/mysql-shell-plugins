@@ -26,7 +26,7 @@ import mrs_plugin.lib as lib
 import mysqlsh
 
 
-@plugin_function('mrs.run.script', shell=True, cli=True, web=True)
+@plugin_function("mrs.run.script", shell=True, cli=True, web=True)
 def run_mrs_script(mrs_script=None, **kwargs):
     """Run the given MRS script
 
@@ -58,11 +58,15 @@ def run_mrs_script(mrs_script=None, **kwargs):
                     result = res.get("result")
                     if result and len(result) > 0:
                         print(lib.core.format_result(result))
-                    if res.get("affectedItemsCount") is None and res.get("message") is not None:
+                    if (
+                        res.get("affectedItemsCount") is None
+                        and res.get("message") is not None
+                    ):
                         print(res.get("message"))
                     elif res.get("affectedItemsCount") is not None:
                         print(
-                            f'{res.get("affectedItemsCount")} row{"s" if res.get("affectedItemsCount") > 1 else ""} affected.')
+                            f'{res.get("affectedItemsCount")} row{"s" if res.get("affectedItemsCount") > 1 else ""} affected.'
+                        )
                 else:
                     print(f'ERROR: {res.get("message")}')
 
@@ -89,6 +93,8 @@ MRS_PREFIXES = [
     "USE REST ",
     "SHOW REST ",
     "SHOW CREATE REST ",
+    "GRANT REST ",
+    "REVOKE REST ",
     "CLONE REST ",
 ]
 
@@ -103,17 +109,18 @@ def get_shell_result(mrs_result):
         if item in mrs_result:
             shell_result[target_item] = mrs_result[item]
 
-    if mrs_result['type'] == 'success':
-        set_data('message', 'info')
-        set_data('result', 'data')
-        set_data('affectedItemsCount')
-        set_data('executionTime')
-        set_data('autoIncrementValue')
-        set_data('warnings')
+    if mrs_result["type"] == "success":
+        set_data("message", "info")
+        set_data("result", "data")
+        set_data("affectedItemsCount")
+        set_data("executionTime")
+        set_data("autoIncrementValue")
+        set_data("warnings")
+        set_data("columns")
     else:
-        set_data('message', 'error')
-        set_data('code')
-        set_data('sqlstate')
+        set_data("message", "error")
+        set_data("code")
+        set_data("sqlstate")
 
     return shell_result
 
@@ -127,9 +134,9 @@ def mrs_sql_handler(session, sql):
 
         state_data = mrs_sql_handler.state[session.connection_id]
 
-        results = []
         results = lib.script.run_mrs_script(
-            sql, **{"session": session, "state_data": state_data})
+            sql, **{"session": session, "state_data": state_data}
+        )
 
         shell_results = [get_shell_result(result) for result in results]
 

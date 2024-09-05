@@ -51,7 +51,6 @@ def run_mrs_script(mrs_script=None, **kwargs):
     Returns:
         The schema_id of the created schema when not in interactive mode
     """
-
     path = kwargs.get("path")
     current_service_id = kwargs.get("current_service_id")
     current_service = kwargs.get("current_service")
@@ -114,10 +113,9 @@ def run_mrs_script(mrs_script=None, **kwargs):
                 current_service_host=current_service_host,
                 current_schema_id=current_schema_id,
                 current_schema=current_schema,
-                state_data=state_data)
-            listener = MrsDdlListener(
-                mrs_ddl_executor=executor,
-                session=session)
+                state_data=state_data,
+            )
+            listener = MrsDdlListener(mrs_ddl_executor=executor, session=session)
             walker = antlr4.ParseTreeWalker()
             try:
                 walker.walk(listener, tree)
@@ -127,9 +125,10 @@ def run_mrs_script(mrs_script=None, **kwargs):
                     {
                         "statementIndex": len(executor.results) + 1,
                         "type": "error",
-                        "message": f'{e}',
-                        "operation": executor.current_operation
-                    })
+                        "message": f"{e}",
+                        "operation": executor.current_operation,
+                    }
+                )
                 # For debugging, re-raise the exception
                 raise
 

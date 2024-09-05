@@ -1116,6 +1116,10 @@ DEVELOPMENT_SYMBOL: D E V E L O P M E N T;
 SCRIPTS_SYMBOL:     S C R I P T S;
 MAPPING_SYMBOL:     M A P P I N G;
 TYPESCRIPT_SYMBOL:  T Y P E S C R I P T;
+ROLES_SYMBOL:       R O L E S;
+EXTENDS_SYMBOL:     E X T E N D S;
+OBJECT_SYMBOL:      O B J E C T;
+HIERARCHY_SYMBOL:   H I E R A R C H Y;
 
 //----------------- GraphQL --------------------------------------------------------------------------------------------
 

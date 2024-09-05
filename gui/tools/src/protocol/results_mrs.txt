@@ -500,6 +500,9 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddUserRole]: {};
     [ShellAPIMrs.MrsDeleteUserRoles]: {};
     [ShellAPIMrs.MrsAddRole]: {};
+    [ShellAPIMrs.MrsGetRole]: { result: IMrsRoleData; };
+    [ShellAPIMrs.MrsAddRolePrivilege]: {};
+    [ShellAPIMrs.MrsDeleteRolePrivilege]: {};
     [ShellAPIMrs.MrsListRouterIds]: { result: number[]; };
     [ShellAPIMrs.MrsListRouters]: { result: IMrsRouterData[]; };
     [ShellAPIMrs.MrsDeleteRouter]: {};
