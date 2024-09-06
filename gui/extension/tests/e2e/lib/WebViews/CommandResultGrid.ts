@@ -1431,9 +1431,9 @@ export class CommandResultGrid {
     private startEditCell = async (rowNumber: number, columnName: string, method: string): Promise<void> => {
         const doubleClickEvent = "arguments[0].dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));";
         const selectListLocator = locator.notebook.codeEditor.editor.result.grid.row.cell.selectList.exists;
-        let cell = await this.getCell(rowNumber, columnName);
 
         await driver.wait(async () => {
+            const cell = await this.getCell(rowNumber, columnName);
             try {
                 if (await this.isEditing(cell)) {
                     return (await cell.findElements(locator.htmlTag.input)).length > 0 ||
@@ -1463,8 +1463,6 @@ export class CommandResultGrid {
                 if (!(e instanceof error.StaleElementReferenceError) &&
                     !(e instanceof error.ElementNotInteractableError)) {
                     throw e;
-                } else {
-                    cell = await this.getCell(rowNumber, columnName);
                 }
             }
         }, constants.wait5seconds, `Could not start editing cell on column ${columnName}`);

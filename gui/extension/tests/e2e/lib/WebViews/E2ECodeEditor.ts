@@ -70,11 +70,13 @@ export class E2ECodeEditor {
         await driver.wait(async () => {
             try {
                 const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
-                this.resultIds = await Promise.all(results.map(async (item: WebElement) => {
-                    return (await item.getAttribute("monaco-view-zone")).match(/(\d+)/)[1];
-                }));
+                if (results.length > 0) {
+                    this.resultIds = await Promise.all(results.map(async (item: WebElement) => {
+                        return (await item.getAttribute("monaco-view-zone")).match(/(\d+)/)[1];
+                    }));
 
-                return true;
+                    return true;
+                }
             } catch (e) {
                 if (!(errors.isStaleError(e as Error))) {
                     throw e;
