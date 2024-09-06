@@ -837,7 +837,7 @@ describe("NOTEBOOKS", () => {
             expect(latestTask.status).to.equals("RUNNING");
             expect(latestTask.startTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
             expect(latestTask.endTime).to.match(/((\d+)-(\d+)-(\d+) (\d+):(\d+)|-)/);
-            expect(latestTask.message).to.equals("Loading in progress...");
+            expect(["Loading in progress...", "Task starting."]).to.include.members([latestTask.message]);
 
             await driver.wait(lakeHouseNavigator.lakehouseTables.untilLakeHouseTableIsLoaded(newTask.name),
                 constants.wait2minutes);

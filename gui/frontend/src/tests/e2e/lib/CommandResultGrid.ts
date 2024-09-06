@@ -1416,7 +1416,7 @@ export class CommandResultGrid {
         const selectListLocator = locator.notebook.codeEditor.editor.result.grid.row.cell.selectList.exists;
 
         await driver.wait(async () => {
-            let cell = await this.getCell(rowNumber, columnName);
+            const cell = await this.getCell(rowNumber, columnName);
             try {
                 if (await this.isEditing(cell)) {
                     return (await cell.findElements(locator.htmlTag.input)).length > 0 ||
@@ -1446,8 +1446,6 @@ export class CommandResultGrid {
                 if (!(e instanceof error.StaleElementReferenceError) &&
                     !(e instanceof error.ElementNotInteractableError)) {
                     throw e;
-                } else {
-                    cell = await this.getCell(rowNumber, columnName);
                 }
             }
         }, constants.wait10seconds, `Could not start editing cell on column ${columnName}`);

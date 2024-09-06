@@ -713,6 +713,7 @@ export const lakeHouseNavigator = {
                 },
             },
             refresh: By.css(".panelToolbar .refreshBtn"),
+            scroll: By.css(".objectStorageBrowser .tabulator-tableholder"),
             objectStorageItem: {
                 item: {
                     exists: By.css(".tabulator-row-odd, .tabulator-row-even"),

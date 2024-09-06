@@ -170,12 +170,18 @@ export class ObjectStorageBrowser {
 
         const objStorageItem = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
             .objectStorageItem.item;
+        const scrollTable = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.scroll;
 
         for (let i = 0; i <= path.length - 1; i++) {
             await driver.wait(async () => {
                 try {
+                    if (i === path.length - 1) {
+                        await driver.executeScript("arguments[0].scrollBy(0, 200)",
+                            await driver.findElement(scrollTable));
+                    }
                     let item = await this.getItem(path[i], String(i));
-                    await item.findElement(objStorageItem.treeToggle).click();
+                    await driver.executeScript("arguments[0].click()",
+                        await item.findElement(objStorageItem.treeToggle));
                     await driver.wait(this.untilItemsAreLoaded(), constants.wait5seconds,
                         ` ${path[i + 1]} to be loaded`);
                     item = await this.getItem(path[i], String(i));
