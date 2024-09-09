@@ -21,24 +21,25 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import pathlib
-import mysqlsh
-import sqlite3
-import re
-from gui_plugin.core.dbms import DbSessionFactory
-from os import makedirs, getcwd, chdir
-from datetime import date
-from shutil import copyfile
-from os import path, listdir, rename, remove
-import os
-import stat
-import gui_plugin.core.Logger as logger
-from gui_plugin.core.lib.Version import Version
 import contextlib
+import os
+import pathlib
+import re
+import sqlite3
+import stat
+from datetime import date
+from os import chdir, getcwd, listdir, makedirs, path, remove, rename
+
+import mysqlsh
+
+import gui_plugin.core.Logger as logger
 from gui_plugin.core import Error
+from gui_plugin.core.dbms import DbSessionFactory
+from gui_plugin.core.lib.Version import Version
 
 # Refers to the schema version supported by this version of the code
 CURRENT_DB_VERSION = Version((0, 0, 16))
+# Do not change it, it was dropped in 0.0.16 and that is valid value
 DROPPED_VERSION_IN_NAME_DB_VERSION = Version((0, 0, 16))
 OLDEST_SUPPORTED_DB_VERSION = Version((0, 0, 11))
 DEFAULT_CONFIG = {
@@ -72,8 +73,10 @@ class BackendDbManager():
         db.close()
 
     def ensure_database_exists(self):
-        if not self.current_database_exist() and not self.check_for_previous_version_and_upgrade():
+        if not self.current_database_exist():
             self.initialize_db()
+        else:
+            self.check_for_previous_version_and_upgrade()
 
     def check_if_logs_need_rotation(self, db):
         sql_message = "SELECT COUNT(sent) FROM `gui_log`.`message` WHERE date(sent) < date('now');"
@@ -121,13 +124,13 @@ class BackendSqliteDbManager(BackendDbManager):
                 'plugin_data', 'gui_plugin')
 
         self.current_dir = getcwd()
-        db_log_file = path.join(self.db_dir, f'mysqlsh_gui_backend_log.sqlite3')
+        db_log_file = path.join(self.db_dir, 'mysqlsh_gui_backend_log.sqlite3')
 
         super().__init__(log_rotation=log_rotation,
                          session_uuid=session_uuid,
                          connection_options=connection_options if connection_options is not None else {
                              "database_name": "main",
-                             "db_file": path.join(self.db_dir, f'mysqlsh_gui_backend.sqlite3'),
+                             "db_file": path.join(self.db_dir, 'mysqlsh_gui_backend.sqlite3'),
                              "attach": [
                                  {
                                      "database_name": "gui_log",
@@ -136,7 +139,7 @@ class BackendSqliteDbManager(BackendDbManager):
                          })
 
     def open_database(self):
-        session_id = f"BackendDB-" + \
+        session_id = "BackendDB-" + \
             "anonymous" if self._session_uuid is None else self._session_uuid
         return DbSessionFactory.create("Sqlite", session_id, False, self._connection_options,
                                        None, True, None, None, None, None, None)
@@ -163,8 +166,11 @@ class BackendSqliteDbManager(BackendDbManager):
         if installed_version == (0, 0, 0):
             return False
 
+        if installed_version == CURRENT_DB_VERSION:
+            return True
+
         if installed_version > CURRENT_DB_VERSION:
-            raise Exception(f'Cannot downgrade database from '  # pragma: no cover
+            raise Exception(f'Cannot downgrade database from '
                             f'schema {installed_version} to {CURRENT_DB_VERSION}')
 
         script_dir = path.join(path.dirname(__file__), 'db_schema')
@@ -190,9 +196,11 @@ class BackendSqliteDbManager(BackendDbManager):
                 self.rename_db_file(
                     f'{installed_db_file}.backup', f'{installed_db_file}.backup.old')
             self.backup_db(installed_db_file, f'{installed_db_file}.backup')
-            logger.info(
-                f"Copying {installed_db_file}.backup to {final_db_file}")
-            copyfile(f'{installed_db_file}.backup', final_db_file)
+
+            if final_db_file != installed_db_file:
+                logger.info(
+                    f"Copying {installed_db_file}.backup to {final_db_file}")
+                self.rename_db_file(f'{installed_db_file}', final_db_file)
 
             if installed_version < DROPPED_VERSION_IN_NAME_DB_VERSION:
                 installed_db_log_file = f'mysqlsh_gui_backend_log_{installed_version}.sqlite3'
@@ -207,9 +215,11 @@ class BackendSqliteDbManager(BackendDbManager):
                     f'{installed_db_log_file}.backup', f'{installed_db_log_file}.backup.old')
             self.backup_db(installed_db_log_file,
                            f'{installed_db_log_file}.backup')
-            logger.info(
-                f"Copying {installed_db_log_file}.backup to {final_db_log_file}")
-            copyfile(f'{installed_db_log_file}.backup', final_db_log_file)
+
+            if final_db_log_file != installed_db_log_file:
+                logger.info(
+                    f"Copying {installed_db_log_file}.backup to {final_db_log_file}")
+                self.rename_db_file(f'{installed_db_log_file}', final_db_log_file)
 
             try:
                 logger.debug2("Start upgrading database")
@@ -217,17 +227,17 @@ class BackendSqliteDbManager(BackendDbManager):
                 conn.execute("VACUUM")
                 cursor = conn.cursor()
                 for script in upgrade_scripts:
-                    with open(path.join(script_dir, script), 'r') as sql_file:
+                    with open(path.join(script_dir, script), 'r', encoding='utf-8') as sql_file:
                         sql = sql_file.read()
                     logger.info(f"Executing upgrade script: {script}")
                     logger.debug3(f"SQL: {sql}")
                     cursor.executescript(sql)
                 conn.commit()
                 conn.close()
-                logger.info(f"Database successfully upgraded")
+                logger.info("Database successfully upgraded")
             except Exception as e:
                 logger.error(
-                    f"Error occurred during database upgrade, rolling back database")
+                    "Error occurred during database upgrade, rolling back database")
                 logger.exception(e)
                 conn.rollback()
                 conn.close()
@@ -270,18 +280,19 @@ class BackendSqliteDbManager(BackendDbManager):
 
     def initialize_db(self):
         sql_file_path = path.join(path.dirname(__file__), 'db_schema',
-                                  f'mysqlsh_gui_backend.sqlite.sql')
+                                  'mysqlsh_gui_backend.sqlite.sql')
         logger.debug2(
             f"Starting initializing database:\n\tdatabase file:{self._connection_options['db_file']}\n\tsql_file:{sql_file_path}")
 
         try:
+            makedirs(self.db_dir, exist_ok=True)
             db_file = self._connection_options["db_file"]
             conn = sqlite3.connect(db_file)
             os.chmod(db_file, stat.S_IRUSR | stat.S_IWUSR)
             cursor = conn.cursor()
 
             # Do a fresh initialization of the database
-            with open(sql_file_path, 'r') as sql_file:
+            with open(sql_file_path, 'r', encoding='UTF-8') as sql_file:
                 sql = sql_file.read()
 
             # Because we don't know the full path in the script,
@@ -446,19 +457,15 @@ class BackendSqliteDbManager(BackendDbManager):
                     version_to_upgrade = version[1]
 
         if version_to_upgrade != to_version and not upgrade_file_found:
-            raise Exception(f'No upgrade file found to go from database '  # pragma: no cover
+            raise Exception(f'No upgrade file found to go from database '
                             f'schema {version_to_upgrade} to {to_version}')
 
         return upgrade_scripts
 
     def backup_db(self, src, dst):
-        source = sqlite3.connect(src)
-        dest = sqlite3.connect(dst)
-        os.chmod(dst, stat.S_IRUSR | stat.S_IWUSR)
-        source.backup(dest)
-        source.close()
-        dest.close()
-        self.remove_wal_and_shm_files(src)
+        with sqlite3.connect(src) as source, sqlite3.connect(dst) as dest:
+            os.chmod(dst, stat.S_IRUSR | stat.S_IWUSR)
+            source.backup(dest)
 
     def remove_wal_and_shm_files(self, file):
         with contextlib.suppress(FileNotFoundError):
