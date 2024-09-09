@@ -512,15 +512,6 @@ exports[`MrsHub Tests MRS Content Set dialog tests Show MRS Content Set Dialog (
               spellcheck="true"
               type="text"
             />
-            <div
-              caption="..."
-              class="msg button"
-              id="directoryBtn"
-              role="button"
-              tabindex="0"
-            >
-              ...
-            </div>
           </div>
           <label
             class="msg label cellDescription"

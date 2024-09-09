@@ -29,6 +29,13 @@ import re
 import json
 import pathlib
 import datetime
+from urllib.request import urlopen
+import tempfile
+import zipfile
+import ssl
+import shutil
+
+OPENAPI_UI_URL = "http://github.com/swagger-api/swagger-ui/archive/refs/tags/v5.17.14.zip"
 
 # The regex below require that all comments and strings have been blanked before
 
@@ -181,7 +188,7 @@ def query_content_sets(session, content_set_id: bytes = None, service_id: bytes 
     return core.MrsDbExec(sql, params).exec(session).items
 
 
-def get_content_set(session, service_id: bytes | None=None, request_path=None, content_set_id: bytes | None=None) -> dict | None:
+def get_content_set(session, service_id: bytes | None = None, request_path=None, content_set_id: bytes | None = None) -> dict | None:
     """Gets a specific MRS content_set
 
     Args:
@@ -645,9 +652,85 @@ def get_create_statement(session, content_set) -> str:
 
     result = [executor.results[0]['result'][0]['CREATE REST CONTENT SET']]
 
-    content_set_files = content_files.get_content_files(session, content_set["id"], None, False)
+    content_set_files = content_files.get_content_files(
+        session, content_set["id"], None, False)
 
     for service_content_file in content_set_files:
-        result.append(content_files.get_create_statement(session, service_content_file))
+        result.append(content_files.get_create_statement(
+            session, service_content_file))
 
     return "\n".join(result)
+
+
+def update_file_content_via_regex(file_path, reg_ex, substitute):
+    # Open file and get content
+    with open(file_path, 'r' ) as f:
+        content = f.read()
+
+    # Get new content
+    new_content = re.sub(reg_ex, substitute, content, 0, re.MULTILINE)
+
+    # Save to file
+    with open(file_path, 'w' ) as f:
+        f.write(new_content)
+
+
+def prepare_open_api_ui(service, request_path, send_gui_message=None) -> str:
+    # Get tempdir
+    temp_dir = tempfile.gettempdir()
+
+    # Download SwaggerUI
+    if send_gui_message is not None:
+        send_gui_message("info", "Downloading OpenAPI UI package ...")
+    ssl._create_default_https_context = ssl._create_unverified_context
+    swagger_ui_zip_path = os.path.join(temp_dir, "swagger-ui.zip")
+    with urlopen(OPENAPI_UI_URL) as zip_web_file:
+        with open(swagger_ui_zip_path, 'wb') as zip_disk_file:
+            zip_disk_file.write(zip_web_file.read())
+
+    # Extract zip
+    if send_gui_message is not None:
+        send_gui_message("info", "Extracting package ...")
+    swagger_ui_path = os.path.join(temp_dir, "swagger-ui")
+    if not os.path.exists(swagger_ui_path):
+        os.makedirs(swagger_ui_path)
+    else:
+        shutil.rmtree(swagger_ui_path)
+        os.makedirs(swagger_ui_path)
+
+    with zipfile.ZipFile(swagger_ui_zip_path, 'r') as zip_ref:
+        for zip_info in zip_ref.infolist():
+            if (not zip_info.is_dir()
+                and os.sep + "dist" + os.sep in zip_info.filename
+                and not os.path.basename(zip_info.filename).startswith(".")
+                and not os.path.basename(zip_info.filename).endswith(".map")
+                and not "-es-" in os.path.basename(zip_info.filename)):
+                zip_info.filename = os.path.basename(zip_info.filename)
+                zip_ref.extract(zip_info, swagger_ui_path)
+
+    # Delete zip file
+    pathlib.Path.unlink(swagger_ui_zip_path)
+
+    # Update the config file
+    if send_gui_message is not None:
+        send_gui_message("info", "Customizing files ...")
+    update_file_content_via_regex(
+        os.path.join(swagger_ui_path, "swagger-initializer.js"),
+        r"(url: \".*?\")",
+        f'url: "{service["url_context_root"]}/open-api-catalog/"')
+
+    # Patch UI to redirect to MRS authentication
+    redirect_url = f'/?service={service["url_context_root"]}&redirectUrl={service["url_context_root"]+request_path}/'
+    authorize_btn_on_click = f'()=>{{window.location.href="{redirect_url}";}}'
+    update_file_content_via_regex(
+        os.path.join(swagger_ui_path, "swagger-ui-bundle.js"),
+        r'("btn authorize unlocked",onClick:i})',
+        f'"btn authorize unlocked",onClick:{authorize_btn_on_click}}}')
+
+    # cspell:ignore topbar
+    update_file_content_via_regex(
+        os.path.join(swagger_ui_path, "swagger-ui.css"),
+        r"(\.swagger-ui \.topbar a{align-items:center;color:#fff;display:flex;)",
+        '.swagger-ui .topbar a{align-items:center;color:#fff;display:none;')
+
+    return swagger_ui_path
