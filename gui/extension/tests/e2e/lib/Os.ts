@@ -398,13 +398,16 @@ export class Os {
             }
 
             return clipboardData;
-        } else {
+        } else if (clipboardData.length > 0) {
             for (const replacer of replacers) {
                 clipboardData[0] = clipboardData[0].replace(replacer, "").trim();
             }
 
             return clipboardData[0];
+        } else {
+            return "";
         }
     };
-
 }
+
+
