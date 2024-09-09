@@ -237,6 +237,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
     describe("DB System", () => {
 
+        let existsInQueue = false;
+
         before(async function () {
             try {
                 await ociTreeSection.tree.expandElement(ociTree, constants.wait5seconds * 5);
@@ -251,10 +253,19 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.processFailure(this);
             }
 
+            if (existsInQueue) {
+                await TestQueue.pop(this.currentTest.title);
+                existsInQueue = false;
+            }
+
             await Workbench.closeAllEditors();
         });
 
-        it("View DB System Information", async () => {
+        it("View DB System Information", async function () {
+
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             const treeDbSystem = await ociTreeSection.tree.getOciElementByType(constants.dbSystemType);
             await ociTreeSection.tree.openContextMenuAndSelect(treeDbSystem, constants.viewDBSystemInfo);
@@ -532,6 +543,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
     describe("Compute Instance", () => {
 
+        let existsInQueue = false;
+
         before(async function () {
             try {
                 await ociTreeSection.tree.expandElement(ociTree, constants.wait25seconds);
@@ -547,10 +560,19 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.processFailure(this);
             }
 
+            if (existsInQueue) {
+                await TestQueue.pop(this.currentTest.title);
+                existsInQueue = false;
+            }
+
             await Workbench.closeAllEditors();
         });
 
-        it("View Compute Instance Information", async () => {
+        it("View Compute Instance Information", async function () {
+
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             const treeComputeInstance = await ociTreeSection.tree.getOciElementByType(constants.ociComputeType);
             const computeName = await treeComputeInstance.getLabel();

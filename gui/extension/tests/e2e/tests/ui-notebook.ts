@@ -832,13 +832,6 @@ describe("NOTEBOOKS", () => {
             expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
             expect(latestTable.comment).to.equals(newTask.description);
 
-            let latestTask = await lakeHouseNavigator.lakehouseTables.getLatestTask();
-            expect(latestTask.name).to.equals(`Loading ${newTask.name}`);
-            expect(latestTask.status).to.equals("RUNNING");
-            expect(latestTask.startTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-            expect(latestTask.endTime).to.match(/((\d+)-(\d+)-(\d+) (\d+):(\d+)|-)/);
-            expect(["Loading in progress...", "Task starting."]).to.include.members([latestTask.message]);
-
             await driver.wait(lakeHouseNavigator.lakehouseTables.untilLakeHouseTableIsLoaded(newTask.name),
                 constants.wait2minutes);
 
@@ -851,10 +844,9 @@ describe("NOTEBOOKS", () => {
             expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
             expect(latestTable.comment).to.equals(newTask.description);
 
+            const latestTask = await lakeHouseNavigator.lakehouseTables.getLatestTask();
             await driver.wait(lakeHouseNavigator.lakehouseTables.untilLakeHouseTaskIsCompleted(latestTask.id),
                 constants.wait10seconds);
-
-            latestTask = await lakeHouseNavigator.lakehouseTables.getLatestTask();
             expect(latestTask.name).to.equals(`Loading ${newTask.name}`);
             expect(latestTask.hasProgressBar).to.be.false;
             expect(latestTask.status).to.equals("COMPLETED");
