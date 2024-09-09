@@ -756,7 +756,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Add New Authentication App", async () => {
+        it("Add New REST Authentication App", async () => {
 
             let treeRandomService = await dbTreeSection.tree.getElement(
                 `${globalService.settings.hostNameFilter}${globalService.servicePath}`);

@@ -192,7 +192,7 @@ def add_content_dir(session, content_set_id, content_dir, requires_auth, ignore_
                 request_path = request_path.replace("\\", "/")
 
             if send_gui_message is not None:
-                send_gui_message("data", {"info": f"Adding file {file} ..."})
+                send_gui_message("info", f"Adding file {file} ...")
 
             add_content_file(session, content_set_id,
                              request_path, requires_auth, options=None, data=data)

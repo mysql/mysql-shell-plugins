@@ -6,7 +6,8 @@
         "update-mrs-parser": "scripts/generate_mrs_parser.sh",
         "fix-rrd-svg-files": "scripts/fix_rrd_svg_files.sh",
         "update-html-docs": "scripts/generate_html_docs.sh",
-        "run-grammar-test": "scripts/run_grammar_test.sh"
+        "run-grammar-test": "scripts/run_grammar_test.sh",
+        "prepare-root-items": "scripts/prepare_default_static_content.sh"
     },
     "publisher": "Oracle",
     "devDependencies": {

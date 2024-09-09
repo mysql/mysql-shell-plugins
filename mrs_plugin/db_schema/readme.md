@@ -35,6 +35,24 @@ Instead of having to manually adjust the triggers for every change to the metada
 
 Install the `./scripts/Audit_Log_Triggers_grt.py` script in `~/Library/Application Support/MySQL/Workbench/modules/Audit_Log_Triggers_grt.py` and in `~/Library/Application Support/MySQL/Workbench/scripts/` on MacOS. Use the corresponding paths on Linux and Windows.
 
+## Generating the defaultStaticContent for config.data
+
+In order to serve a welcome landing page when the root URI of a MySQL Router configured for MRS is accessed (e.g. https://localhost:8440), a list of static files are defined in the `defaultStaticContent` section of the configuration JSON options as well as the `directoryIndexDirective` is set to `index.html`.
+
+These static files are stored in the `./default_static_content/` directory.
+
+Whenever changes are made to any of those files, the `config` table default inserts in the MySQL Workbench model need to be updated with JSON data containing the minified and Base64-encoded content of those static files.
+
+The script `../scripts/prepare_default_static_content.sh` and the corresponding NPM SCRIPTS entry can be used to generate a `./default_static_content/config.data.json` file that can be then used to populate the `config.data` column in the MySQL Workbench model. In addition, a `./default_static_content/insert.sql` script is generated that can be executed against a MySQL Server already configured for MRS. The latter is useful to test any modifications to the static files.
+
+Please note, that the `../scripts/prepare_default_static_content.sh` script requires the installation of the following dependencies.
+
+```sh
+$ sudo npm install html-minifier-terser -g
+$ brew install gettext
+$ brew link --force gettext
+```
+
 ## Process to update the MRS Metadata Schema
 
 1. Open the `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema.mwb` file in MySQL Workbench, make the required changes to the model.

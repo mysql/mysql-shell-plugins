@@ -600,8 +600,8 @@
                   "skipped": false
                 },
                 {
-                  "title": "Add New Authentication App",
-                  "fullTitle": "MySQL REST Service Service Context Menus Add New Authentication App",
+                  "title": "Add New REST Authentication App",
+                  "fullTitle": "MySQL REST Service Service Context Menus Add New REST Authentication App",
                   "timedOut": false,
                   "duration": 6184,
                   "state": "passed",

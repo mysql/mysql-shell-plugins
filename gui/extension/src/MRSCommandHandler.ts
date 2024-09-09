@@ -449,6 +449,35 @@ export class MRSCommandHandler {
                 }
             }));
 
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.openContentSetRequestPath",
+            async (entry?: ICdmRestDbObjectEntry) => {
+                if (!entry) {
+                    void window.showErrorMessage(`No tree item given when calling msg.mrs.openContentSetRequestPath`);
+
+                    return;
+                }
+
+                try {
+                    const item = entry.treeItem;
+                    if (item.value) {
+                        const o = item.value;
+                        const port = getRouterPortForConnection(entry.treeItem.connectionId);
+                        let url = (o.hostCtx ?? "") + o.requestPath + "/";
+
+                        if (url.startsWith("/")) {
+                            url = `https://localhost:${port}${url}`;
+                        } else {
+                            url = `https://${url}`;
+                        }
+
+                        await env.openExternal(Uri.parse(url));
+                    }
+
+                } catch (reason) {
+                    void window.showErrorMessage(
+                        `An error occurred while opening the REST Content Set request path. ${String(reason)}`);
+                }
+            }));
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateContentFileSql",
             async (entry?: ICdmRestDbObjectEntry) => {
@@ -474,7 +503,8 @@ export class MRSCommandHandler {
                     });
 
                 } catch (reason) {
-                    void window.showErrorMessage(`Error getting the SQL for this REST Content File`);
+                    void window.showErrorMessage(
+                        `Error getting the SQL for this REST Content File.  ${String(reason)}`);
                 }
             }));
 
@@ -724,9 +754,69 @@ export class MRSCommandHandler {
                         }
                     }
                 } catch (reason) {
-                    void window.showErrorMessage(`Error adding a new MRS Authentication App: ${String(reason)}`);
+                    void window.showErrorMessage(`Error while adding a new MRS Authentication App: ${String(reason)}`);
                 }
             }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.addContentSet",
+            (entry?: ICdmRestServiceEntry) => {
+                try {
+                    if (entry) {
+                        const item = entry.treeItem;
+                        if (item.connectionId) {
+                            const connectionId = String(item.connectionId);
+                            const provider = this.#host.currentProvider;
+                            if (provider) {
+                                void provider.runCommand("job", [
+                                    { requestType: "showModule", parameter: DBEditorModuleId },
+                                    {
+                                        requestType: "showPage", parameter: {
+                                            module: DBEditorModuleId, page: connectionId,
+                                        },
+                                    },
+                                    {
+                                        requestType: "showMrsContentSetDialog", parameter: {
+                                        },
+                                    },
+                                ], "newConnection");
+                            }
+                        }
+                    }
+                } catch (reason) {
+                    void window.showErrorMessage(`Error while adding a new MRS Content Set: ${String(reason)}`);
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.addOpenApiUiContentSet",
+            (entry?: ICdmRestServiceEntry) => {
+                try {
+                    if (entry) {
+                        const item = entry.treeItem;
+                        if (item.connectionId) {
+                            const connectionId = String(item.connectionId);
+                            const provider = this.#host.currentProvider;
+                            if (provider) {
+                                void provider.runCommand("job", [
+                                    { requestType: "showModule", parameter: DBEditorModuleId },
+                                    {
+                                        requestType: "showPage", parameter: {
+                                            module: DBEditorModuleId, page: connectionId,
+                                        },
+                                    },
+                                    {
+                                        requestType: "showMrsContentSetDialog", parameter: {
+                                            directory: "open-api-ui",
+                                        },
+                                    },
+                                ], "newConnection");
+                            }
+                        }
+                    }
+                } catch (reason) {
+                    void window.showErrorMessage(`Error while adding a the OpenAPI UI: ${String(reason)}`);
+                }
+            }));
+
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.deleteAuthApp",
             async (entry?: ICdmRestAuthAppEntry) => {

@@ -705,7 +705,15 @@
             },
             {
                 "command": "msg.mrs.addAuthApp",
-                "title": "Add New Authentication App"
+                "title": "Add New REST Authentication App"
+            },
+            {
+                "command": "msg.mrs.addContentSet",
+                "title": "Add New REST Content Set"
+            },
+            {
+                "command": "msg.mrs.addOpenApiUiContentSet",
+                "title": "Deploy OpenAPI Web UI"
             },
             {
                 "command": "msg.mrs.setCurrentService",
@@ -780,12 +788,16 @@
                 "title": "Open REST Object Request Path in Web Browser"
             },
             {
+                "command": "msg.mrs.openContentSetRequestPath",
+                "title": "Open Content Set Request Path in Web Browser"
+            },
+            {
                 "command": "msg.mrs.openContentFileRequestPath",
                 "title": "Open Content File Request Path in Web Browser"
             },
             {
                 "command": "msg.mrs.deleteContentSet",
-                "title": "Delete REST Static Content Set"
+                "title": "Delete REST Content Set"
             },
             {
                 "command": "msg.mrs.addFolderAsContentSet",
@@ -1428,6 +1440,16 @@
                     "group": "3_msg@1"
                 },
                 {
+                    "command": "msg.mrs.addContentSet",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "4_msg@1"
+                },
+                {
+                    "command": "msg.mrs.addOpenApiUiContentSet",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "4_msg@2"
+                },
+                {
                     "command": "msg.mrs.deleteService",
                     "when": "view == msg.connections && viewItem == mrsService",
                     "group": "8_msg@1"
@@ -1528,9 +1550,14 @@
                     "group": "1_msg@2"
                 },
                 {
-                    "command": "msg.mrs.deleteContentSet",
+                    "command": "msg.mrs.openContentSetRequestPath",
                     "when": "viewItem == mrsContentSet",
                     "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mrs.deleteContentSet",
+                    "when": "viewItem == mrsContentSet",
+                    "group": "3_msg@1"
                 },
                 {
                     "command": "msg.mrs.exportCreateContentFileSql",

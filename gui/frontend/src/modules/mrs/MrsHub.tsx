@@ -584,6 +584,10 @@ export class MrsHub extends ComponentBase {
                     } else {
                         requestPath = directory.substring(directory.lastIndexOf("/"));
                     }
+
+                    if (!requestPath.startsWith("/")) {
+                        requestPath = "/" + requestPath;
+                    }
                 } else {
                     requestPath = "/content";
                 }

@@ -32,6 +32,8 @@ from .interactive import resolve_service, resolve_content_set, resolve_overwrite
 import os
 import mysqlsh
 import json
+import shutil
+from pathlib import Path
 
 # TODO (miguel): replace this with the one in interactive module
 def resolve_content_set_id(**kwargs):
@@ -235,6 +237,14 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
             else:
                 raise ValueError('No content directory path given.')
 
+        # Check if the open_api_ui should be downloaded and if so, download it, extract and patch it and
+        # update the content_dir to point to the temporary directory holding it
+        open_api_ui = False
+        if content_dir.lower() == "open-api-ui":
+            open_api_ui = True
+            content_dir = lib.content_sets.prepare_open_api_ui(
+                service=service, request_path=request_path, send_gui_message=send_gui_message)
+
         # Convert Unix path to Windows
         content_dir = os.path.abspath(
             os.path.expanduser(content_dir))
@@ -307,6 +317,10 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
 
             if interactive:
                 print(f"{len(file_list)} files added.")
+
+            # In case the open_api_ui was downloaded, make sure to delete the temporary folder it used
+            if open_api_ui == True:
+                shutil.rmtree(content_dir)
 
         if lib.core.get_interactive_result():
             return f"\nContent with the id {content_set_id} was added successfully."
