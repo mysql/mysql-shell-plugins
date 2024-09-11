@@ -25,34 +25,49 @@
 
 /* eslint-disable dot-notation */
 
-import { createRef, options } from "preact";
+import { createRef } from "preact";
 
-import { mount, shallow } from "enzyme";
+import { mount } from "enzyme";
+import { CellComponent, RowComponent } from "tabulator-tables";
+import { DataCallback } from "../../../../../communication/MessageScheduler.js";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../../communication/MySQL.js";
 import { IShellDictionary } from "../../../../../communication/Protocol.js";
 import {
+    IMrsAddAuthAppData,
     IMrsAddContentSetData,
     IMrsAuthAppData,
-    IMrsAddAuthAppData,
-    IMrsServiceData,
-    IMrsUserRoleData,
-    IShellMrsUpdateDbObjectKwargsValue,
     IMrsDbObjectData,
-    IMrsTableColumnWithReference,
     IMrsDbObjectParameterData,
     IMrsObject,
     IMrsObjectFieldWithReference,
-    IMrsSchemaData,
+    IMrsObjectReference,
+    IMrsServiceData,
+    IMrsTableColumnWithReference,
+    IMrsUserRoleData,
+    IShellMrsUpdateDbObjectKwargsValue,
     ShellAPIMrs,
 } from "../../../../../communication/ProtocolMrs.js";
 import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
-import { IMrsDbObjectEditRequest, requisitions } from "../../../../../supplement/Requisitions.js";
+import {
+    IMrsObjectFieldEditorData,
+    IMrsObjectFieldTreeItem,
+    MrsObjectFieldEditor,
+    MrsObjectFieldTreeEntryType,
+} from "../../../../../modules/mrs/dialogs/MrsObjectFieldEditor.js";
+import {
+    MrsDbObjectType,
+    MrsObjectKind,
+    MrsSdkLanguage,
+} from "../../../../../modules/mrs/types.js";
+import { IMrsDbObjectEditRequest } from "../../../../../supplement/Requisitions.js";
 import { ShellInterface } from "../../../../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType, IConnectionDetails } from "../../../../../supplement/ShellInterface/index.js";
 import { webSession } from "../../../../../supplement/WebSession.js";
 import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
 import { KeyboardKeys, sleep, uuidBinary16Base64 } from "../../../../../utilities/helpers.js";
+import { MockCellComponent } from "../../../__mocks__/CellComponentMock.js";
+import { RowComponentMock } from "../../../__mocks__/RowComponentMock.js";
 import {
     DialogHelper,
     JestReactWrapper,
@@ -61,22 +76,6 @@ import {
     sendKeyPress,
     setupShellForTests,
 } from "../../../test-helpers.js";
-import {
-    MrsDbObjectType,
-    MrsObjectKind,
-    MrsSdkLanguage,
-} from "../../../../../modules/mrs/types.js";
-import {
-    IMrsObjectFieldEditorData,
-    IMrsObjectFieldTreeItem,
-    MrsObjectFieldEditor,
-    MrsObjectFieldTreeEntryType,
-} from "../../../../../modules/mrs/dialogs/MrsObjectFieldEditor.js";
-import { CellComponent, RowComponent } from "tabulator-tables";
-import { RowComponentMock } from "../../../__mocks__/RowComponentMock.js";
-import { MockCellComponent } from "../../../__mocks__/CellComponentMock.js";
-import { DataCallback } from "../../../../../communication/MessageScheduler.js";
-import { Dropdown } from "../../../../../components/ui/Dropdown/Dropdown.js";
 
 describe("MrsHub Tests", () => {
     let host: JestReactWrapper;
@@ -538,11 +537,11 @@ describe("MrsHub Tests", () => {
     };
 
     const createFieldEditorMountValuesEmptyData = (): IMrsObjectFieldEditorData => {
-        return Object.assign({}, {
+        return {
             servicePath: "",
             dbSchemaName: "",
             dbSchemaPath: "",
-            dbObject: {},
+            dbObject: {} as IMrsDbObjectData,
             crudOperations: [],
             createDbObject: false,
             defaultMrsObjectName: "",
@@ -550,7 +549,7 @@ describe("MrsHub Tests", () => {
             showSdkOptions: MrsSdkLanguage.TypeScript,
             currentMrsObjectId: "",
             currentTreeItems: [],
-        });
+        };
     };
 
     const createFieldEditorMountValuesData = (): IMrsObjectFieldEditorData => {
@@ -609,22 +608,14 @@ describe("MrsHub Tests", () => {
                     fields: [{
                         id: "",
                         objectId: "",
-                        // representsReferenceId?: string,
                         parentReferenceId: "",
                         name: "Field",
                         position: 0,
-                        // dbColumn?: IMrsTableColumn,
                         enabled: true,
                         allowFiltering: true,
                         allowSorting: true,
                         noCheck: true,
                         noUpdate: false,
-                        // sdkOptions?: IMrsObjectFieldSdkOptions,
-                        // comments?: string,
-                        // objectReference?: IMrsObjectReference,
-                        // lev?: number,
-                        // caption?: string,
-                        // storedDbColumn?: IMrsTableColumn,
                     }],//IMrsObjectFieldWithReference[]
                     storedFields: [], //IMrsObjectFieldWithReference[]
                 }, {
@@ -644,8 +635,6 @@ describe("MrsHub Tests", () => {
                     fields: [{
                         id: "field_1",
                         objectId: "",
-                        // representsReferenceId?: string,
-                        // parentReferenceId: "",
                         name: "field_1 name",
                         position: 0,
                         dbColumn: {
@@ -665,31 +654,6 @@ describe("MrsHub Tests", () => {
                         allowSorting: true,
                         noCheck: true,
                         noUpdate: false,
-                        // sdkOptions?: IMrsObjectFieldSdkOptions,
-                        // comments?: string,
-                        // objectReference: {
-                        //     id: "",
-                        //     reduceToValueOfFieldId: "field_1",
-                        //     referenceMapping: {
-                        //         kind: "",
-                        //         constraint: "",
-                        //         toMany: true,
-                        //         referencedSchema: "",
-                        //         referencedTable: "",
-                        //         columnMapping: [], //IMrsColumnMapping[]
-                        //     }, // IMrsTableReference,
-                        //     options: {
-                        //         dualityViewInsert: true,
-                        //     },
-                        //     // unnest: true,
-                        //     // crudOperations: ["READ", "UPDATE", "CREATE", "DELETE"],
-                        //     // sdkOptions?: IMrsObjectReferenceSdkOptions,
-                        //     // comments?: string,
-                        //     // }, //IMrsObjectReference,
-                        //     // lev?: number,
-                        //     // caption?: string,
-                        //     // storedDbColumn?: IMrsTableColumn,
-                        // },
                     }, {
                         id: "field_2",
                         objectId: "",
@@ -714,8 +678,6 @@ describe("MrsHub Tests", () => {
                         allowSorting: true,
                         noCheck: true,
                         noUpdate: false,
-                        // sdkOptions?: IMrsObjectFieldSdkOptions,
-                        // comments?: string,
                         objectReference: {
                             id: "",
                             reduceToValueOfFieldId: "field_1",
@@ -729,12 +691,7 @@ describe("MrsHub Tests", () => {
                             }, // IMrsTableReference,
                             unnest: true,
                             crudOperations: ["READ", "UPDATE", "CREATE", "DELETE"],
-                            // sdkOptions?: IMrsObjectReferenceSdkOptions,
-                            // comments?: string,
                         }, //IMrsObjectReference,
-                        // lev?: number,
-                        // caption?: string,
-                        // storedDbColumn?: IMrsTableColumn,
                     }],//IMrsObjectFieldWithReference[]
                     storedFields: [], //IMrsObjectFieldWithReference[]
                 },
@@ -748,13 +705,9 @@ describe("MrsHub Tests", () => {
                 firstItem: false,
                 lastItem: false,
 
-                // unnested?: IMrsObjectFieldUnnested; // Set if this field is an unnested copy
-
                 field: {
                     id: "new_field",
                     objectId: "",
-                    // representsReferenceId?: "",
-                    // parentReferenceId?: "",
                     name: "specificFieldName",
                     position: 0,
                     dbColumn: {
@@ -774,48 +727,23 @@ describe("MrsHub Tests", () => {
                     allowSorting: false,
                     noCheck: false,
                     noUpdate: false,
-                    // objectReference: {},
-                    // sdkOptions?: IMrsObjectFieldSdkOptions,
-                    // comments?: "",
-                    // objectReference?: IMrsObjectReference,
-                    // lev?: number,
-                    // caption?: "",
-                    // storedDbColumn?: IMrsTableColumn,
                 },
 
-                // parent?: IMrsObjectFieldTreeItem;
                 children: [{
                     type: MrsObjectFieldTreeEntryType.Field,
                     expanded: true,
                     expandedOnce: true,
-                    // firstItem?: true,
-                    // lastItem?: true,
-
-                    // unnested?: IMrsObjectFieldUnnested; // Set if this field is an unnested copy
-
                     field: {
                         id: "",
                         objectId: "",
-                        // representsReferenceId?: "",
-                        // parentReferenceId?: "",
                         name: "",
                         position: 1,
-                        // dbColumn?: IMrsTableColumn,
                         enabled: true,
                         allowFiltering: true,
                         allowSorting: true,
                         noCheck: true,
                         noUpdate: true,
-                        // sdkOptions?: IMrsObjectFieldSdkOptions,
-                        // comments?: "",
-                        // objectReference?: IMrsObjectReference,
-                        // lev?: 1,
-                        // caption?: "",
-                        // storedDbColumn?: IMrsTableColumn,
                     },
-
-                    // parent?: IMrsObjectFieldTreeItem;
-                    // children?: IMrsObjectFieldTreeItem[];
                 }],
             }], // IMrsObjectFieldTreeItem[]
         }) as IMrsObjectFieldEditorData;  // IMrsObjectFieldEditorData
@@ -854,8 +782,6 @@ describe("MrsHub Tests", () => {
         return [{
             id: "",
             objectId: "",
-            // representsReferenceId?: "",
-            // parentReferenceId?: "",
             name: "field_1",
             position: 0,
             dbColumn: {
@@ -865,10 +791,6 @@ describe("MrsHub Tests", () => {
                 isPrimary: true,
                 isUnique: true,
                 isGenerated: true,
-                // idGeneration?: "",
-                // comment?: "",
-                // in?: true,
-                // out?: true,
             }, //IMrsTableColumn,
             enabled: true,
             allowFiltering: true,
@@ -879,8 +801,7 @@ describe("MrsHub Tests", () => {
             comments: "some comments",
             objectReference: {
                 id: "",
-                // reduceToValueOfFieldId?: string,
-                // rowOwnershipFieldId?: string,
+                unnest: true,
                 referenceMapping: {
                     kind: "",
                     constraint: "",
@@ -891,25 +812,7 @@ describe("MrsHub Tests", () => {
                         base: "",
                         ref: "",
                     }], //IMrsTableReference,
-                    unnest: true,
-                    // options?: IMrsObjectOptions,
-                    // sdkOptions?: IMrsObjectReferenceSdkOptions,
-                    // comments?: string,
                 }, //IMrsObjectReference,
-                // lev?: 0,
-                // caption?: "",
-                storedDbColumn: {
-                    name: "param_1",
-                    datatype: "",
-                    notNull: true,
-                    isPrimary: true,
-                    isUnique: true,
-                    isGenerated: true,
-                    // idGeneration?: "",
-                    // comment?: "",
-                    // in?: true,
-                    // out?: true,
-                }, //IMrsTableColumn,
             },
         }];
     };
@@ -1003,7 +906,6 @@ describe("MrsHub Tests", () => {
                                 isUnique: false,
                                 name: "id",
                                 notNull: true,
-                                // srid:null,
                             },
                             enabled: true,
                             allowFiltering: true,
@@ -1059,7 +961,7 @@ describe("MrsHub Tests", () => {
 
 
         newDbObjectId = uuidBinary16Base64();
-        const dbObjectResult2 = await backend.mrs.addDbObject("actor_count",
+        await backend.mrs.addDbObject("actor_count",
             MrsDbObjectType.Procedure, false, "/actor_count", true,
             "FEED", false, false, null, null, schemaId,
             undefined, "<this is a comment>", undefined, undefined, null,
@@ -1085,7 +987,6 @@ describe("MrsHub Tests", () => {
                                 isUnique: false,
                                 name: "id",
                                 notNull: true,
-                                // srid:null,
                             },
                             enabled: true,
                             allowFiltering: true,
@@ -1796,7 +1697,8 @@ describe("MrsHub Tests", () => {
 
                 // cell 3
                 expect(gridCells[2].children[0].textContent).toBe("Comments");
-                expect(gridCells[2].children[1].firstElementChild?.value).toBe("<this is a comment>");
+                const commentsInput = gridCells[2].children[1].firstElementChild as HTMLInputElement;
+                expect(commentsInput?.value).toBe("<this is a comment>");
 
                 // cell 4
                 expect(gridCells[3].children[0].textContent).toBe("Media Type");
@@ -1838,12 +1740,14 @@ describe("MrsHub Tests", () => {
 
                 //  cell 1
                 expect(gridCells[0].children[0].textContent).toBe("Options");
-                expect(gridCells[0].children[1].firstElementChild?.value).toBe("");
+                let element = gridCells[0].children[1].firstElementChild as HTMLInputElement;
+                expect(element?.value).toBe("");
                 expect(gridCells[0].children[2].textContent).toBe("Additional options in JSON format");
 
                 //  cell 2
                 expect(gridCells[1].children[0].textContent).toBe("Metadata");
-                expect(gridCells[1].children[1].firstElementChild?.value).toBe("null");
+                element = gridCells[1].children[1].firstElementChild as HTMLInputElement;
+                expect(element?.value).toBe("null");
                 expect(gridCells[1].children[2].textContent).toBe("Metadata settings in JSON format");
             }
 
@@ -1896,8 +1800,6 @@ describe("MrsHub Tests", () => {
                             comments: undefined,
                             fields: [
                                 {
-                                    // id: the returned id
-                                    // objectId: the returned objectId
                                     representsReferenceId: undefined,
                                     parentReferenceId: undefined,
                                     name: "actorId",
@@ -1928,8 +1830,6 @@ describe("MrsHub Tests", () => {
                                     objectReference: undefined,
                                 },
                                 {
-                                    // id: the returned id
-                                    // objectId: the returned objectId
                                     representsReferenceId: undefined,
                                     parentReferenceId: undefined,
                                     name: "firstName",
@@ -1960,8 +1860,6 @@ describe("MrsHub Tests", () => {
                                     objectReference: undefined,
                                 },
                                 {
-                                    // id: the returned id
-                                    // objectId: the returned objectId
                                     representsReferenceId: undefined,
                                     parentReferenceId: undefined,
                                     name: "lastName",
@@ -1992,8 +1890,6 @@ describe("MrsHub Tests", () => {
                                     objectReference: undefined,
                                 },
                                 {
-                                    // id: the returned id
-                                    // objectId: the returned objectId
                                     representsReferenceId: undefined,
                                     parentReferenceId: undefined,
                                     name: "lastUpdate",
@@ -2048,24 +1944,15 @@ describe("MrsHub Tests", () => {
             portals = document.getElementsByClassName("portal");
             expect(portals).toHaveLength(1);
 
-            const [dataMappingTab, settingsTab, authorizationsTab, optionsTab]
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const [dataMappingTab, _settingsTab, _authorizationsTab, _optionsTab]
                 = dialogHelper.getTabItems(["Data Mapping", "Settings", "Authorization", "Options"]);
 
             dataMappingTab.click();
             await nextRunLoop();
 
-            const table = dialogHelper.searchChild({
-                class: "tabulator-table",
-            });
-            const cells = dialogHelper.searchChildren({
-                class: "tabulator-row tabulator-row-odd firstItem tabulator-tree-level-0",
-            });
-
             await dialogHelper.clickButton({ class: "msg button imageOnly sqlPreviewBtn" });
 
-            const sqlText = dialogHelper.searchChild({
-                class: "view-lines monaco-mouse-cursor-text",
-            });
             const sqlTextLines = dialogHelper.searchChildren({
                 class: "view-line",
             });
@@ -2123,7 +2010,6 @@ describe("MrsHub Tests", () => {
                     options: null,
                     objects: [
                         {
-                            // id: the returned id
                             dbObjectId,
                             name: "MyServiceMrsTestActor",
                             position: 0,
@@ -2136,8 +2022,6 @@ describe("MrsHub Tests", () => {
                             comments: undefined,
                             fields: [
                                 {
-                                    // id: the returned id
-                                    // objectId: the returned objectId
                                     representsReferenceId: undefined,
                                     parentReferenceId: undefined,
                                     name: "actorId",
@@ -2168,8 +2052,6 @@ describe("MrsHub Tests", () => {
                                     objectReference: undefined,
                                 },
                                 {
-                                    // id: the returned id
-                                    // objectId: the returned objectId
                                     representsReferenceId: undefined,
                                     parentReferenceId: undefined,
                                     name: "firstName",
@@ -2200,8 +2082,6 @@ describe("MrsHub Tests", () => {
                                     objectReference: undefined,
                                 },
                                 {
-                                    // id: the returned id
-                                    // objectId: the returned objectId
                                     representsReferenceId: undefined,
                                     parentReferenceId: undefined,
                                     name: "lastName",
@@ -2232,8 +2112,6 @@ describe("MrsHub Tests", () => {
                                     objectReference: undefined,
                                 },
                                 {
-                                    // id: the returned id
-                                    // objectId: the returned objectId
                                     representsReferenceId: undefined,
                                     parentReferenceId: undefined,
                                     name: "lastUpdate",
@@ -2321,7 +2199,7 @@ describe("MrsHub Tests", () => {
             const mountResult = await doMount();
 
             mountResult.backend.mrs.getDbFunctionReturnType =
-                async (dbObjectName: string, dbSchemaName: string): Promise<string> => {
+                async (_dbObjectName: string, _dbSchemaName: string): Promise<string> => {
                     return Promise.resolve("__RETURN_TYPE__");
                 };
 
@@ -2360,18 +2238,6 @@ describe("MrsHub Tests", () => {
 
             const mountResult = await doMount();
 
-            // const fieldEditor: MrsObjectFieldEditor = mountResult.fieldEditor;
-
-            // portals = document.getElementsByClassName("portal");
-
-            // expect(portals).toHaveLength(1);
-
-            // await dialogHelper.setInputText("name", "New Name");
-            // await dialogHelper.clickOk();
-
-            // dialogHelper.verifyErrors();
-
-            // await promise;
             mountResult.fieldEditorMount.unmount();
 
             portals = document.getElementsByClassName("portal");
@@ -2380,7 +2246,7 @@ describe("MrsHub Tests", () => {
 
         it("MrsObjectFieldEditor init tests", async () => {
             backend.mrs.getDbFunctionReturnType =
-                async (dbObjectName: string, dbSchemaName: string): Promise<string> => {
+                async (_dbObjectName: string, _dbSchemaName: string): Promise<string> => {
                     return Promise.resolve("__RETURN_TYPE__");
                 };
 
@@ -2528,11 +2394,11 @@ describe("MrsHub Tests", () => {
 
                 fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
 
-                cellData.field.objectReference.referenceMapping.kind = "n:1";
+                cellData.field.objectReference!.referenceMapping.kind = "n:1";
 
                 fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
 
-                cellData.field.objectReference.referenceMapping.kind = "1:1";
+                cellData.field.objectReference!.referenceMapping.kind = "1:1";
 
                 fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
 
@@ -2556,15 +2422,15 @@ describe("MrsHub Tests", () => {
             // eslint-disable-next-line no-lone-blocks
             {
                 //  test for different dbObject types
-                mountResult.values.dbObject.objectType = MrsDbObjectType.View;
+                (mountResult.values.dbObject as IMrsDbObjectData).objectType = MrsDbObjectType.View;
 
                 fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
 
-                mountResult.values.dbObject.objectType = MrsDbObjectType.Procedure;
+                (mountResult.values.dbObject as IMrsDbObjectData).objectType = MrsDbObjectType.Procedure;
 
                 fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
 
-                mountResult.values.dbObject.objectType = MrsDbObjectType.Function;
+                (mountResult.values.dbObject as IMrsDbObjectData).objectType = MrsDbObjectType.Function;
 
                 fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
             }
@@ -2602,7 +2468,7 @@ describe("MrsHub Tests", () => {
 
         });
 
-        it("MrsObjectFieldEditor.handleCellEdited tests", async () => {
+        it("MrsObjectFieldEditor.handleCellEdited tests", () => {
             const handleDbObjectChange = () => { };
             const handleGetCurrentDbObject = (): IMrsDbObjectData => {
                 return createDbObjectData();
@@ -2735,8 +2601,8 @@ describe("MrsHub Tests", () => {
             const fieldEditor: MrsObjectFieldEditor = mountResult.fieldEditor;
             const treeItem = createTreeItemData();
 
-            const tempObjectReference: object = treeItem.field.objectReference;
-            delete tempObjectReference["reduceToValueOfFieldId" as keyof object];
+            const tempObjectReference = treeItem.field.objectReference;
+            delete tempObjectReference!["reduceToValueOfFieldId" as keyof object];
 
             // eslint-disable-next-line no-lone-blocks
             {
@@ -2751,17 +2617,16 @@ describe("MrsHub Tests", () => {
 
                 await fieldEditor["performIconClick"](treeItem, 0, "DELETE"); // ActionIconName.Crud
 
-                const optionsBackup = mountResult.values.mrsObjects[1].options;
-                mountResult.values.mrsObjects[1].options = undefined;
-                const treeItemOptionsBackup = treeItem.field.objectReference.options;
-                treeItem.field.objectReference.options = undefined;
+                const optionsBackup = (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].options;
+                (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].options = undefined;
+                treeItem.field.objectReference!.options = undefined;
 
                 await fieldEditor["performIconClick"](treeItem, 0, "DELETE"); // ActionIconName.Crud
 
                 treeItem.field.representsReferenceId = undefined;
 
                 await fieldEditor["performIconClick"](treeItem, 0, "DELETE"); // ActionIconName.Crud
-                mountResult.values.mrsObjects[1].options = optionsBackup;
+                (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].options = optionsBackup;
                 treeItem.field.representsReferenceId = "";
             }
 
@@ -2778,12 +2643,12 @@ describe("MrsHub Tests", () => {
 
             // eslint-disable-next-line no-lone-blocks
             {
-                treeItem.field.objectReference.options = undefined;
+                treeItem.field.objectReference!.options = undefined;
 
                 await fieldEditor["performIconClick"](treeItem, 6, ""); // ActionIconName.Check
 
                 treeItem.field.dbColumn = undefined;
-                mountResult.values.mrsObjects[1].options = undefined;
+                (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].options = undefined;
 
                 await fieldEditor["performIconClick"](treeItem, 6, ""); // ActionIconName.Check
             }
@@ -2791,7 +2656,7 @@ describe("MrsHub Tests", () => {
             await fieldEditor["performIconClick"](treeItem, 7, ""); // ActionIconName.CheckAll
 
             treeItem.expanded = true;
-            const tempField: object = treeItem.children[0].field;
+            const tempField: object = treeItem.children![0].field;
 
             delete tempField["objectReference" as keyof object];
 
@@ -2815,16 +2680,15 @@ describe("MrsHub Tests", () => {
 
             const cell = createCellData();
 
-            mountResult.values.currentTreeItems[0].field.enabled = false;
-            // values.currentTreeItems[0].field.objectReference = {};
+            (mountResult.values as IMrsObjectFieldEditorData).currentTreeItems[0].field.enabled = false;
 
             fieldEditor["treeGridToggleEnableState"](new Event("treeGridToggleEnableState_Event"),
                 new MockCellComponent(cell));
 
-            mountResult.values.currentTreeItems[0].field.enabled = true;
-            mountResult.values.currentTreeItems[0].field.objectReference = {
+            (mountResult.values as IMrsObjectFieldEditorData).currentTreeItems[0].field.enabled = true;
+            (mountResult.values as IMrsObjectFieldEditorData).currentTreeItems[0].field.objectReference = {
                 reduceToValueOfFieldId: "",
-            };
+            } as IMrsObjectReference;
 
             fieldEditor["treeGridToggleEnableState"](new Event("treeGridToggleEnableState_Event"),
                 new MockCellComponent(cell));
@@ -2840,7 +2704,7 @@ describe("MrsHub Tests", () => {
 
             fieldEditor["handleRowExpanded"](row);
 
-            (row as RowComponentMock).row.field.objectReference!.unnest = true;
+            (row as RowComponentMock).row!.field.objectReference!.unnest = true;
 
             fieldEditor["handleRowExpanded"](row);
         });
@@ -2864,7 +2728,7 @@ describe("MrsHub Tests", () => {
 
             fieldEditor["isRowExpanded"](row);
 
-            (row as RowComponentMock).row.expanded = true;
+            (row as RowComponentMock).row!.expanded = true;
 
             fieldEditor["isRowExpanded"](row);
         });
@@ -2889,10 +2753,6 @@ describe("MrsHub Tests", () => {
                 name: "",
                 position: 0,
                 kind: MrsObjectKind.Parameters,
-                // sdkOptions?: IMrsObjectSdkOptions,
-                // comments?: string,
-                // fields?: IMrsObjectFieldWithReference[],
-                // storedFields?: IMrsObjectFieldWithReference[],
             };
 
             await fieldEditor["setCurrentMrsObject"](undefined);
@@ -2918,7 +2778,7 @@ describe("MrsHub Tests", () => {
             const mountResult = await doMount(createFieldEditorMountValuesEmptyData());
             const fieldEditor: MrsObjectFieldEditor = mountResult.fieldEditor;
 
-            const host = document.createElement("div");
+            document.createElement("div");
 
             expect(fieldEditor["getJsonDatatype"]("tinyint(1) ")).toBe("boolean");
             expect(fieldEditor["getJsonDatatype"]("bit(1) ")).toBe("boolean");
@@ -2994,10 +2854,6 @@ describe("MrsHub Tests", () => {
                 name: "",
                 position: 0,
                 kind: MrsObjectKind.Parameters,
-                // sdkOptions?: IMrsObjectSdkOptions,
-                // comments?: string,
-                // fields?: IMrsObjectFieldWithReference[],
-                // storedFields?: IMrsObjectFieldWithReference[],
             }; //currentObject
 
 
@@ -3012,7 +2868,6 @@ describe("MrsHub Tests", () => {
             );
 
             const storedFields = createStoredFields();
-            // storedFields[0].dbColumn.name = "actor_id";
 
             await fieldEditor["addColumnsAsFields"](
                 "actor",
@@ -3023,8 +2878,6 @@ describe("MrsHub Tests", () => {
                 [], //parentTreeItemList
                 [], //referredTreeItemsToLoad
             );
-
-            columnWithReference.referenceMapping = undefined;
 
             await fieldEditor["addColumnsAsFields"](
                 "actor",
@@ -3041,8 +2894,11 @@ describe("MrsHub Tests", () => {
             const mountResult = await doMount(createFieldEditorMountValuesEmptyData());
             const fieldEditor: MrsObjectFieldEditor = mountResult.fieldEditor;
 
-            mountResult.backend.mrs.getDbObjectParameters = (dbObjectName?: string,
-                dbSchemaName?: string, dbObjectId?: string, dbType?: string): Promise<IMrsDbObjectParameterData[]> => {
+            mountResult.backend.mrs.getDbObjectParameters = (_dbObjectName?: string,
+                _dbSchemaName?: string,
+                _dbObjectId?: string,
+                _dbType?: string,
+            ): Promise<IMrsDbObjectParameterData[]> => {
                 return Promise.resolve([{
                     id: "",
                     position: 0,
@@ -3058,10 +2914,6 @@ describe("MrsHub Tests", () => {
                 name: "",
                 position: 0,
                 kind: MrsObjectKind.Parameters,
-                // sdkOptions?: IMrsObjectSdkOptions,
-                // comments?: string,
-                // fields?: IMrsObjectFieldWithReference[],
-                // storedFields?: IMrsObjectFieldWithReference[],
             }; //currentObject
 
 
@@ -3149,11 +3001,11 @@ describe("MrsHub Tests", () => {
 
             fieldEditor["updateDbObjectCrudOperations"]();
 
-            mountResult.values.mrsObjects[1].fields[0].options = {
+            (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].options = {
                 dualityViewUpdate: false,
             };
-            mountResult.values.mrsObjects[1].options.dualityViewUpdate = false;
-            mountResult.values.mrsObjects[1].fields[0].objectReference = {
+            (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].options!.dualityViewUpdate = false;
+            (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].fields![0].objectReference = {
                 id: "",
                 reduceToValueOfFieldId: "field_1",
                 referenceMapping: {
@@ -3167,19 +3019,12 @@ describe("MrsHub Tests", () => {
                 options: {
                     dualityViewInsert: true,
                 },
-                // unnest: true,
-                // crudOperations: ["READ", "UPDATE", "CREATE", "DELETE"],
-                // sdkOptions?: IMrsObjectReferenceSdkOptions,
-                // comments?: string,
-                // }, //IMrsObjectReference,
-                // lev?: number,
-                // caption?: string,
-                // storedDbColumn?: IMrsTableColumn,
+                unnest: true,
             };
 
             fieldEditor["updateDbObjectCrudOperations"]();
 
-            mountResult.values.dbObject.objectType = MrsDbObjectType.Function;
+            (mountResult.values.dbObject as IMrsDbObjectData).objectType = MrsDbObjectType.Function;
 
             fieldEditor["updateDbObjectCrudOperations"]();
         });
