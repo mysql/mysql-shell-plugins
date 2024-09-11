@@ -23,9 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { screen, waitFor } from "@testing-library/preact";
 import { CommonWrapper, ReactWrapper } from "enzyme";
 import { ComponentChild } from "preact";
-import { screen, waitFor } from "@testing-library/preact";
 
 import { range } from "d3";
 
@@ -38,7 +38,6 @@ import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { webSession } from "../../supplement/WebSession.js";
 import { LogLevel, MySQLShellLauncher } from "../../utilities/MySQLShellLauncher.js";
-import { uuidBinary16Base64 } from "../../utilities/helpers.js";
 
 export const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipisci elit, " +
     "sed eiusmod tempor incidunt ut labore et dolore magna aliqua.";
@@ -633,7 +632,7 @@ export class DialogHelper {
     private id: string;
     private title: string;
 
-    public constructor(id: string, title: string, docRoot: Document = document) {
+    public constructor(id: string, title = "", docRoot: Document = document) {
         this.id = id;
         this.docRoot = docRoot;
         this.title = title;
