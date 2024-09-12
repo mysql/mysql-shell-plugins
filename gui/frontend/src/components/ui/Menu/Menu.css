@@ -57,11 +57,11 @@
 }
 
 .msg.popup.menu .menuItem.disabled {
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
 }
 
 .msg.popup.menu .menuItem.separator.disabled {
-    background-color: var(--text-dimmedForeground);
+    background-color: var(--disabledForeground);
 }
 
 .msg.popup.menu .menuItem.submenu::after {
@@ -111,7 +111,7 @@
 
 .msg.popup.menubar {
     display: flex;
-    background-color: var(--menubar-background);
+    background-color: var(--menu-background);
     font-size: 11pt;
 }
 

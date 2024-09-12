@@ -26,7 +26,7 @@
 .msg#previewRoot {
     flex: 1 1 auto;
     margin-left: 20px;
-    border-left: 2px dashed var(--text-dimmedForeground);
+    border-left: 2px dashed var(--disabledForeground);
     padding-left: 20px;
 }
 
@@ -87,8 +87,8 @@
     font-weight: 200;
 
     margin-bottom: 20px;
-    border-bottom: 1px dotted var(--text-dimmedForeground);
-    color: var(--text-dimmedForeground);
+    border-bottom: 1px dotted var(--disabledForeground);
+    color: var(--disabledForeground);
 
     white-space: nowrap;
     min-height: 36px;
@@ -103,7 +103,7 @@
     position: relative;
     margin: 0 0 6px 0;
 
-    border-bottom: 2px solid var(--text-dimmedForeground);
+    border-bottom: 2px solid var(--disabledForeground);
 }
 
 .msg.themeEditor .title::after,
@@ -114,7 +114,7 @@
 
     position: relative;
     margin: 0 0 6px 11px;
-    border-bottom: 2px solid var(--text-dimmedForeground);
+    border-bottom: 2px solid var(--disabledForeground);
 }
 
 .msg#previewRoot #dialogHost {

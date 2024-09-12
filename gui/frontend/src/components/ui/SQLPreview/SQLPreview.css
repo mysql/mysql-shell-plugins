@@ -35,7 +35,7 @@
 }
 
 .msg.sqlPreviewHost .sqlPreviewItem:not(:last-child):not(+.error) {
-    border-bottom: 1px solid var(--resultView-gridColor);
+    border-bottom: 1px solid var(--tree-tableColumnsBorder);
 }
 
 .msg.sqlPreviewHost .sqlPreviewItem {
@@ -50,7 +50,7 @@
 .msg.sqlPreviewHost .error {
     padding: 2px 8px;
     background: transparent;
-    border-bottom: 1px solid var(--resultView-gridColor);
+    border-bottom: 1px solid var(--tree-tableColumnsBorder);
 }
 
 .msg.sqlPreviewHost .label > span {

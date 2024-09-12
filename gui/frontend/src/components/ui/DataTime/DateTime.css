@@ -30,5 +30,5 @@
 }
 
 .msg.dateTime:disabled {
-    background-color: var(--button-dimmedBackground);
+    background-color: var(--button-secondaryHoverBackground);
 }

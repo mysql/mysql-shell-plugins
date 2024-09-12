@@ -66,7 +66,7 @@
 
 .msg.dialog.valueEditDialog #dialogDescription {
     font-size: 0.95em;
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
 }
 
 .msg.dialog.valueEditDialog .dialogDescriptionCell {
@@ -77,7 +77,7 @@
 
 .msg.valueEditDialog .valueTitle {
     font-size: 0.95em;
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
     padding-bottom: 2px;
 
     white-space: pre-line;
@@ -99,7 +99,7 @@
 .msg.dialog.valueEditDialog .valueDescription {
     flex: 1 1 auto;
     white-space: normal;
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
 }
 
 .msg.dialog.valueEditDialog .gridCell .description {

@@ -15,11 +15,6 @@
                 "preview": true
             },
             {
-                "name": "hotForeground",
-                "description": "Standard hover foreground color",
-                "preview": false
-            },
-            {
                 "name": "background",
                 "description": "Standard background color",
                 "preview": true
@@ -84,28 +79,6 @@
         ]
     },
     {
-        "name": "#Popup Colors",
-        "description": "Popup Colors",
-        "preview": true,
-        "children": [
-            {
-                "name": "popup.border",
-                "description": "Border color",
-                "preview": true
-            },
-            {
-                "name": "popup.background",
-                "description": "Background color",
-                "preview": true
-            },
-            {
-                "name": "popup.foreground",
-                "description": "Default foreground color",
-                "preview": true
-            }
-        ]
-    },
-    {
         "name": "#Text Colors",
         "description": "Text Colors (except code editors)",
         "preview": true,
@@ -149,11 +122,6 @@
                 "name": "text.captionForeground",
                 "description": "Caption foreground color",
                 "preview": true
-            },
-            {
-                "name": "text.dimmedForeground",
-                "description": "Dimmed/disabled text foreground color",
-                "preview": true
             }
         ]
     },
@@ -175,16 +143,6 @@
             {
                 "name": "button.hoverBackground",
                 "description": "Hover background color",
-                "preview": true
-            },
-            {
-                "name": "button.dimmedBackground",
-                "description": "Dimmed background color",
-                "preview": true
-            },
-            {
-                "name": "button.pressedBackground",
-                "description": "Pressed background color",
                 "preview": true
             },
             {
@@ -220,11 +178,6 @@
                 "preview": true
             },
             {
-                "name": "dropdown.hoverBackground",
-                "description": "Hover background color",
-                "preview": true
-            },
-            {
                 "name": "dropdown.listBackground",
                 "description": "List background color",
                 "preview": true
@@ -249,11 +202,6 @@
             {
                 "name": "input.background",
                 "description": "Background color",
-                "preview": true
-            },
-            {
-                "name": "input.hoverBackground",
-                "description": "Hover background color",
                 "preview": true
             },
             {
@@ -485,24 +433,9 @@
                 "preview": true
             },
             {
-                "name": "list.gridColor",
-                "description": "Grid lines color",
-                "preview": true
-            },
-            {
                 "name": "list.sortIndicatorForeground",
                 "description": "Sort indicator foreground color",
                 "preview": true
-            },
-            {
-                "name": "list.columnResizerForeground",
-                "description": "Column resizer line foreground color",
-                "preview": true
-            },
-            {
-                "name": "list.emptyBackground",
-                "description": "Empty list background color",
-                "preview": false
             }
         ]
     },
@@ -514,11 +447,6 @@
             {
                 "name": "activityBar.background",
                 "description": "Background color",
-                "preview": true
-            },
-            {
-                "name": "activityBar.dropBackground",
-                "description": "Drop background feedback color for items",
                 "preview": true
             },
             {
@@ -612,11 +540,6 @@
                 "name": "sideBar.dropBackground",
                 "description": "Item hover background color",
                 "preview": true
-            },
-            {
-                "name": "sideBar.markerBackground",
-                "description": "Background color for a marked item",
-                "preview": true
             }
         ]
     },
@@ -704,11 +627,6 @@
                 "name": "tab.unfocusedActiveBorderTop",
                 "description": "Outer border for the active tab in an inactive editor group",
                 "preview": false
-            },
-            {
-                "name": "tab.dropBackground",
-                "description": "Tab item drop background color",
-                "preview": true
             },
             {
                 "name": "tab.inactiveBackground",
@@ -994,16 +912,6 @@
                     {
                         "name": "editorWhitespace.foreground",
                         "description": "Whitespace characters foreground color",
-                        "preview": true
-                    },
-                    {
-                        "name": "editorIndentGuide.background",
-                        "description": "Indentation guides normal background",
-                        "preview": true
-                    },
-                    {
-                        "name": "editorIndentGuide.activeBackground",
-                        "description": "Indentation guides active background color",
                         "preview": true
                     },
                     {
@@ -1599,11 +1507,6 @@
                         "preview": true
                     },
                     {
-                        "name": "resultView.gridColor",
-                        "description": "Result View grid color",
-                        "preview": true
-                    },
-                    {
                         "name": "resultStatus.background",
                         "description": "Status background color",
                         "preview": true
@@ -1739,11 +1642,6 @@
                 "preview": false
             },
             {
-                "name": "panel.dropBackground",
-                "description": "Drop feedback background color",
-                "preview": false
-            },
-            {
                 "name": "panelTitle.activeBorder",
                 "description": "Active title border color",
                 "preview": false
@@ -1761,11 +1659,6 @@
             {
                 "name": "panelInput.border",
                 "description": "Input box border color",
-                "preview": false
-            },
-            {
-                "name": "imagePreview.border",
-                "description": "Border color for image in image preview",
                 "preview": false
             }
         ]
@@ -1988,11 +1881,6 @@
         "description": "Menu Colors",
         "preview": true,
         "children": [
-            {
-                "name": "menubar.background",
-                "description": "Menu Bar background color",
-                "preview": true
-            },
             {
                 "name": "menubar.selectionForeground",
                 "description": "Menu Bar selection foreground color",
@@ -2296,16 +2184,6 @@
             {
                 "name": "welcomePage.background",
                 "description": "Background color",
-                "preview": false
-            },
-            {
-                "name": "welcomePage.buttonBackground",
-                "description": "Button background color",
-                "preview": false
-            },
-            {
-                "name": "welcomePage.buttonHoverBackground",
-                "description": "Button hover background color",
                 "preview": false
             },
             {

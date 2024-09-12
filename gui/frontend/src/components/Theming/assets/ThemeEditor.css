@@ -108,7 +108,7 @@
 
 .msg.themeEditor .tabulator-tree-level-0.expanded {
     font-weight: 800;
-    border-image: linear-gradient(to right, var(--text-dimmedForeground), transparent);
+    border-image: linear-gradient(to right, var(--disabledForeground), transparent);
     border-image-slice: 1;
     border-image-width: 0 0 1 0;
 }

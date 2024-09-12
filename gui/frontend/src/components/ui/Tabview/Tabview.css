@@ -66,7 +66,7 @@
 
 .msg.tabview .tabArea > .tabItem.dropTarget,
 .msg.tabview .tabArea.dropTarget {
-    background-color: var(--tab-dropBackground);
+    background-color: var(--tab-unfocusedHoverBackground);
 }
 
 .msg.tabview .tabArea.stretched > .tabItem {
@@ -109,7 +109,7 @@
 }
 
 .msg.tabview .tabArea > .tabItem.active {
-    background-color: var(--button-pressedBackground);
+    background-color: var(--button-hoverBackground);
     transition: background-color ease 250ms;
 }
 

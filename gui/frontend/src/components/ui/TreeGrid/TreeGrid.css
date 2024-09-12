@@ -62,7 +62,7 @@
 .msg.treeGrid.tabulator .tabulator-header .tabulator-col {
     padding: 0 9px 0 10px;
 
-    border-right: 1px solid var(--list-gridColor);
+    border-right: 1px solid var(--tree-tableColumnsBorder);
     background-color: var(--list-headerBackground);
 }
 
@@ -149,16 +149,16 @@
 .msg.treeGrid.tabulator .tabulator-header .tabulator-frozen.tabulator-frozen-left {
     padding-left: var(--handleWidth);
 
-    border-right: 2px solid var(--list-gridColor);
+    border-right: 2px solid var(--tree-tableColumnsBorder);
 }
 
 .msg.treeGrid.tabulator .tabulator-header .tabulator-frozen.tabulator-frozen-right {
-    border-left: 2px solid var(--list-gridColor);
+    border-left: 2px solid var(--tree-tableColumnsBorder);
 }
 
 .msg.treeGrid.tabulator .tabulator-header .tabulator-calcs-holder {
     border-top: 2px solid var(--headerSeparatorColor);
-    border-bottom: 1px solid var(--list-gridColor);
+    border-bottom: 1px solid var(--tree-tableColumnsBorder);
     background: lighten(var(--list-headerBackground), 5%) !important;
 }
 
@@ -281,8 +281,8 @@
 }
 
 .msg.treeGrid.tabulator .tabulator-row.tabulator-moving {
-    border-top: 1px solid var(--list-gridColor);
-    border-bottom: 1px solid var(--list-gridColor);
+    border-top: 1px solid var(--tree-tableColumnsBorder);
+    border-bottom: 1px solid var(--tree-tableColumnsBorder);
 
     z-index: 15;
 }
@@ -290,8 +290,8 @@
 .msg.treeGrid.tabulator .tabulator-row .tabulator-responsive-collapse {
     padding: 5px;
 
-    border-top: 1px solid var(--list-gridColor);
-    border-bottom: 1px solid var(--list-gridColor);
+    border-top: 1px solid var(--tree-tableColumnsBorder);
+    border-bottom: 1px solid var(--tree-tableColumnsBorder);
 }
 
 /* cell element */
@@ -312,11 +312,11 @@
 }
 
 .msg.treeGrid.tabulator.verticalGrid .tabulator-row .tabulator-cell {
-    border-right: 1px solid var(--list-gridColor);
+    border-right: 1px solid var(--tree-tableColumnsBorder);
 }
 
 .msg.treeGrid.tabulator.horizontalGrid .tabulator-row {
-    border-bottom: 1px solid var(--list-gridColor);
+    border-bottom: 1px solid var(--tree-tableColumnsBorder);
 }
 
 .msg.treeGrid.tabulator .tabulator-row .tabulator-cell.tabulator-editing input,

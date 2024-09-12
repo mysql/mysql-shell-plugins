@@ -89,7 +89,7 @@
 }
 
 .msg.dropdown:hover {
-    background-color: var(--dropdown-hoverBackground);
+    background-color: var(--list-activeSelectionBackground);
 }
 
 .msg.dropdown:not(.multiSelect) > .label {
@@ -150,7 +150,7 @@
 }
 
 .msg.dropdownList > .dropdownItem[disabled=true] .icon {
-    background-color: var(--button-dimmedBackground);
+    background-color: var(--button-secondaryHoverBackground);
 }
 
 .msg.dropdownList > .dropdownItem > .checkbox {

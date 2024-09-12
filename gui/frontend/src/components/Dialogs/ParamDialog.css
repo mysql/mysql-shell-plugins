@@ -42,7 +42,7 @@
 
 .msg.dialog.paramDialog .grid .left {
     justify-content: flex-end;
-    color: var(--text-dimmedForeground)
+    color: var(--disabledForeground)
 }
 
 .msg.dialog.paramDialog .grid .right {

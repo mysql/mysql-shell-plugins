@@ -83,7 +83,7 @@
 }
 
 .msg .label[disabled] {
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
 }
 
 .msg.resultText.error,

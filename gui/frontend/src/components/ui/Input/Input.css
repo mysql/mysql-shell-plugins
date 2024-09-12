@@ -34,11 +34,11 @@
 }
 
 .msg.input:disabled {
-    background-color: var(--button-dimmedBackground);
+    background-color: var(--button-secondaryHoverBackground);
 }
 
 .msg.input:hover:not(:disabled) {
-    background-color: var(--input-hoverBackground);
+    background-color: var(--inputOption-hoverBackground);
 }
 
 .msg.input::placeholder {

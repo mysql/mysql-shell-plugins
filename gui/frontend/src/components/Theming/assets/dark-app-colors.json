@@ -1,0 +1,19 @@
+{
+    "browserTile.activeBackground": "#123E54",
+    "browserTile.activeBorder": "#2D9BD2",
+    "browserTile.activeForeground": "#CCCCCC",
+    "browserTile.background": "#123F54",
+    "browserTile.border": "#2A93C6",
+    "browserTile.foreground": "#CCCCCC",
+    "browserTile.hoverBackground": "#1B5E7F",
+    "browserTileSecondary.activeBackground": "#2C2C2C",
+    "browserTileSecondary.activeBorder": "#3D3D3D",
+    "browserTileSecondary.activeForeground": "#CCCCCC",
+    "browserTileSecondary.background": "#2E2E2E",
+    "browserTileSecondary.border": "#444444",
+    "browserTileSecondary.foreground": "#CCCCCC",
+    "button.defaultBackground": "#1177BB",
+    "button.defaultForeground": "#FFFFFF",
+    "list.sortIndicatorForeground": "#0D66A2",
+    "text.captionForeground": "#DFDFDF"
+}

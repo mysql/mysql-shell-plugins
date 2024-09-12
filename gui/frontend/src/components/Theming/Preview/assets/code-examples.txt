@@ -351,11 +351,6 @@ GROUP BY currency_code$$
                 "preview": true
             },
             {
-                "name": "hotForeground",
-                "description": "Standard hover foreground color",
-                "preview": true
-            },
-            {
                 "name": "background",
                 "description": "Standard background color",
                 "preview": true

@@ -44,7 +44,7 @@
 .msg.jsonView .blockInner {
     display: block;
     padding-left: 22px;
-    border-left: 1px dotted var(--text-dimmedForeground);
+    border-left: 1px dotted var(--disabledForeground);
     margin-left: 3px;
     margin-top: 3px;
 
@@ -93,8 +93,8 @@
     display: block;
     width: 0.5em;
     height: 0.5em;
-    border-right: 1px solid var(--text-dimmedForeground);
-    border-bottom: 1px solid var(--text-dimmedForeground);
+    border-right: 1px solid var(--disabledForeground);
+    border-bottom: 1px solid var(--disabledForeground);
     transform: translate(1px, -2px) rotate(45deg);
     transition: transform 125ms linear;
 }

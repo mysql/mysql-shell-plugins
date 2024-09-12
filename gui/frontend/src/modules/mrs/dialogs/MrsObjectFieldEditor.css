@@ -79,7 +79,7 @@ body[theme=light] {
 
 .mrsObjectFieldEditor .settings .label {
     padding-right: 5px;
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
 }
 
 .mrsObjectFieldEditor .settings .button:not(.imageOnly) {

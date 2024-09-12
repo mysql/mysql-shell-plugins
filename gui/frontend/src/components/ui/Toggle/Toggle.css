@@ -45,7 +45,7 @@ label.msg.toggle {
 }
 
 label.msg.toggle[disabled] {
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
 }
 
 /* The toggle background. */

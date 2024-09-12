@@ -106,7 +106,7 @@
 .msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row.tabulator-selected:hover .tabulator-cell {
     background-color: var(--list-inactiveSelectionBackground);
     color: var(--foreground);
-    border: 1px solid var(--list-gridColor);
+    border: 1px solid var(--tree-tableColumnsBorder);
 }
 
 .msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row.tabulator-selectable:hover .tabulator-cell {

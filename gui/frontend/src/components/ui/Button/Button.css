@@ -53,11 +53,11 @@
 }
 
 .msg.button:not(.disabled):active {
-    background-color: var(--button-pressedBackground);
+    background-color: var(--button-hoverBackground);
 }
 
 .msg.button.disabled {
-    background-color: var(--button-dimmedBackground);
+    background-color: var(--button-secondaryHoverBackground);
 }
 
 .msg.button.round {

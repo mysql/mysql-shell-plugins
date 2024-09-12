@@ -217,11 +217,11 @@ describe("Main pages", () => {
             await settingsTreeRows[0].click();
             await ThemeEditor.selectAppColorTheme("Default Dark");
             let color = String((await Misc.getBackgroundColor(driver))).trim();
-            expect(color).toBe("#2C2C2C");
+            expect(color).toBe("#181818");
             await settingsTreeRows[0].click();
             await ThemeEditor.selectAppColorTheme("Default Light");
             color = String((await Misc.getBackgroundColor(driver))).trim();
-            expect(color).toBe("#FFFFFF");
+            expect(color).toBe("#f8f8f8");
         } catch (e) {
             testFailed = true;
             throw e;

@@ -108,7 +108,7 @@
 
 .msg.resultHost .resultView .tabulator .tabulator-header .tabulator-col {
     background: transparent;
-    border-right-color: var(--resultView-gridColor);
+    border-right-color: var(--tree-tableColumnsBorder);
 }
 
 .msg.resultHost .resultView .tabulator .tabulator-header .tabulator-col .tabulator-col-title {
@@ -141,11 +141,11 @@
 }
 
 .msg.resultHost .resultView .tabulator.verticalGrid .tabulator-row .tabulator-cell {
-    border-right: 1px solid var(--resultView-gridColor);
+    border-right: 1px solid var(--tree-tableColumnsBorder);
 }
 
 .msg.resultHost .resultView .tabulator.horizontalGrid .tabulator-row {
-    border-bottom: 1px solid var(--resultView-gridColor);
+    border-bottom: 1px solid var(--tree-tableColumnsBorder);
 }
 
 .msg.resultHost .resultView .tabulator .tabulator-row .tabulator-cell .iconHost {

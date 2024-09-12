@@ -41,7 +41,6 @@
 }
 
 .msg.activityBar.dropTarget {
-    background-color: var(--activityBar-dropBackground);
     border-color: var(--activityBar-dropBorder);
 
     transition: background-color 0.25, border-color 0.25;
@@ -68,7 +67,7 @@
 
 .msg.activityBar .activityBarItem > .icon {
     margin: 4px 0 4px 0;
-    background-color: var(--activityBar-foreground);
+    background-color: var(--activityBar-inactiveForeground);
 
     width: 40px;
     height: 40px;
@@ -89,19 +88,18 @@
 }
 
 .msg.activityBar .activityBarItem.active {
-    background-color: var(--activityBar-activeBackground);
     border-left: 2px solid var(--activityBar-activeBorder);
 }
 
 .msg.activityBar .activityBarItem:hover > .icon,
 .msg.activityBar .activityBarItem.active > .icon {
-    background-color: var(--list-hoverForeground);
+    background-color: var(--activityBar-foreground);
 }
 
 .msg.activityBar .activityBarItem:hover > .codicon,
 .msg.activityBar .activityBarItem.active > .codicon {
     background-color: inherit;
-    color: var(--list-hoverForeground);
+    color: var(--activityBar-foreground);
 }
 
 .msg.activityBar .activityBarItem:hover > .label,
