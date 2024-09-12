@@ -1,0 +1,12 @@
+{
+    "editorPrompt.primary.js": "#ffe100",
+    "editorPrompt.primary.py": "#3776AB",
+    "editorPrompt.primary.sql": "#db8f00",
+    "editorPrompt.primary.text": "#009738",
+    "editorPrompt.primary.ts": "#529BBA",
+    "editorPrompt.secondary.js": "#ffe100",
+    "editorPrompt.secondary.py": "#3776AB",
+    "editorPrompt.secondary.sql": "#db8f00",
+    "editorPrompt.secondary.text": "#009738",
+    "editorPrompt.secondary.ts": "#529BBA"
+}

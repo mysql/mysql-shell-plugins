@@ -1,0 +1,82 @@
+{
+    "background": "$activityBar.background",
+    "editorZone.foreground": "$editor.foreground",
+    "resultZone.foreground": "$editor.foreground",
+    "tag.background": "$badge.background",
+    "tag.foreground": "$badge.foreground",
+    "tooltip.background": "$dropdown.background",
+    "tooltip.border": "$dropdown.border",
+    "tooltip.foreground": "$dropdown.foreground",
+    "editorZone.background": {
+        "baseColorKey": "activityBar.background",
+        "colorAdjustment": {
+            "dark": {
+                "lightness": {"absolute": -1.5}
+            },
+            "light": {
+                "lightness": {"absolute": -5}
+            }
+        }
+    },
+    "editorPrompt.result": "$editorZone.background",
+    "list.headerBackground": "$list.hoverBackground",
+    "menu.blurredBackground": {
+        "baseColorKey": "menu.background",
+        "colorAdjustment": {
+            "dark": {
+                "alpha": {"relative": -0.4}
+            },
+            "light": {
+                "alpha": {"absolute": -0.4}
+            }
+        }
+    },
+    "progressBar.track": "$editorZone.background",
+    "resultView.headerBackground": {
+        "baseColorKey": "activityBar.background",
+        "colorAdjustment": {
+            "dark": {
+                "lightness": {"absolute": -5}
+            },
+            "light": {
+                "lightness": {"absolute": -3}
+            }
+        }
+    },
+    "resultView.headerForeground": {
+        "baseColorKey": "editor.foreground",
+        "colorAdjustment": {
+            "dark": {
+                "lightness": {"relative": -0.3}
+            },
+            "light": {
+                "lightness": {"absolute": 30}
+            }
+        }
+    },
+    "resultStatus.background": "$resultView.headerBackground",
+    "resultStatus.foreground": "$resultView.headerForeground",
+    "window.background": {
+        "baseColorKey": "editor.background",
+        "colorAdjustment": {
+            "dark": {
+                "lightness": {"absolute": -2}
+            },
+            "light": {
+                "lightness": {"absolute": -1}
+            }
+        }
+    },
+    "window.headerBackground": {
+        "baseColorKey": "editor.background",
+        "colorAdjustment": {
+            "dark": {
+                "lightness": {"absolute": -4}
+            },
+            "light": {
+                "lightness": {"absolute": -5}
+            }
+        }
+    },
+    "window.footerBackground": "$window.background"
+}

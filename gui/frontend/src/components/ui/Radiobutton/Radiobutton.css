@@ -61,7 +61,7 @@
 }
 
 .msg.radioButton.disabled > .checkMark {
-    background-color: var(--button-dimmedBackground);
+    background-color: var(--button-secondaryHoverBackground);
     transition: background-color 0.25s
 }
 
@@ -70,7 +70,7 @@
 }
 
 .msg.radioButton.disabled {
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
 }
 
 /* Hide the default HTML input UI. */

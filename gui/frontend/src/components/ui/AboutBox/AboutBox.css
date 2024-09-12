@@ -40,7 +40,7 @@
 
 .msg.aboutBox .grid .left {
     justify-content: flex-end;
-    color: var(--text-dimmedForeground)
+    color: var(--disabledForeground)
 }
 
 .msg.aboutBox .grid .right {
@@ -123,7 +123,7 @@
 
 .msg.aboutBox .divider {
     width: 60%;
-    background-color: var(--list-gridColor);
+    background-color: var(--tree-tableColumnsBorder);
     --thickness: 1px !important;
 }
 

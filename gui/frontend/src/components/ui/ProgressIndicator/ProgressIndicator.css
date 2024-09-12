@@ -43,7 +43,7 @@
 }
 
 .msg.progressIndicatorHost .linearBackground {
-    background: var(--button-background);
+    background: var(--progressBar-track);
     justify-content: flex-start;
     border-radius: 100px;
     align-items: center;

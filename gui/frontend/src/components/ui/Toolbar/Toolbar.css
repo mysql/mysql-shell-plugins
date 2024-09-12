@@ -97,7 +97,7 @@
 }
 
 .msg.toolbar .button.disabled > .icon {
-    background-color: var(--button-dimmedBackground) !important;
+    background-color: var(--button-secondaryHoverBackground) !important;
 }
 
 .msg.toolbar .divider {

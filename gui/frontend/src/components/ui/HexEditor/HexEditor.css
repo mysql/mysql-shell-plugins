@@ -43,7 +43,7 @@
 
 .msg.hexEditor.grouping1 #main > span:nth-child(8n) {
     padding-right: 4px;
-    border-right: 1px solid var(--text-dimmedForeground);
+    border-right: 1px solid var(--disabledForeground);
 }
 
 .msg.hexEditor #main > span:nth-child(2n) {

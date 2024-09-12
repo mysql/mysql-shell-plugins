@@ -75,7 +75,7 @@
 }
 
 .msg.searchContainer .button:disabled {
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
 }
 
 .msg.searchContainer .button:hover {

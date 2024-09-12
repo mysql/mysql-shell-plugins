@@ -125,7 +125,7 @@
     font-size: 11pt;
     font-weight: 200;
     line-height: 12pt;
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
 
     text-align: center;
 }

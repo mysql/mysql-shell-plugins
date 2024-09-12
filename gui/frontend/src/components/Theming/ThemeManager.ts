@@ -25,15 +25,19 @@
 
 import colorDescriptions from "./assets/color-descriptions.json";
 import defaultDark from "./assets/default-dark-color-theme.json";
+import darkAppColors from "./assets/dark-app-colors.json";
 import defaultLight from "./assets/default-light-color-theme.json";
+import lightAppColors from "./assets/light-app-colors.json";
+import languagesColors from "./assets/languages-colors.json";
 
 import Color from "color";
+import { ColorManipulator } from "../../utilities/ColorManipulator.js";
 
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { IDictionary } from "../../app-logic/Types.js";
 
-interface IColors {
+export interface IColors {
     [key: string]: string;
 }
 
@@ -61,9 +65,11 @@ export interface IThemeObject {
     tokenColors?: ITokenEntry[];
 }
 
+export type ThemeType = "dark" | "light";
+
 /** This is how we store a theme object, loaded from a file (including our defaults). */
 interface IThemeDefinition {
-    type: "dark" | "light";
+    type: ThemeType;
     css: string;
     json: IThemeObject;
 }
@@ -74,7 +80,7 @@ export interface IThemeChangeData {
     /** Same as `name`, but safe as a name in the DOM. */
     safeName: string;
 
-    type: "dark" | "light";
+    type: ThemeType;
     values: IThemeObject;
 }
 
@@ -82,6 +88,7 @@ export interface IThemeChangeData {
 export class ThemeManager {
 
     private static instance: ThemeManager;
+    private colorManipulator = new ColorManipulator();
 
     private themeDefinitions: Map<string, IThemeDefinition> = new Map();
     private themeStyleElement?: HTMLStyleElement;
@@ -134,7 +141,7 @@ export class ThemeManager {
         return this.themeDefinitions.get(this.currentTheme)?.json;
     }
 
-    public get activeThemeType(): "dark" | "light" | undefined {
+    public get activeThemeType(): ThemeType | undefined {
         const definitions = this.themeDefinitions.get(this.currentTheme);
         if (definitions) {
             return definitions.type;
@@ -250,7 +257,7 @@ export class ThemeManager {
      * @returns The id of the loaded theme.
      */
     public loadThemeDetails(values: IThemeObject, consolidate = false): string {
-        let type: "dark" | "light";
+        let type: ThemeType;
         if (values.type) {
             type = values.type === "dark" ? "dark" : "light";
         } else {
@@ -262,15 +269,21 @@ export class ThemeManager {
             }
         }
 
+        const themeHasColors = !!values.colors;
+        const appColors: IColors = type === "dark" ? darkAppColors : lightAppColors;
+        values.colors = themeHasColors
+            ? { ...languagesColors, ...appColors, ...values.colors }
+            : { ...languagesColors, ...appColors };
+
         // Note: the term "active" means a state where the application is the current front most one.
         //       Don't confuse that with the CSS "active" notation, which is used for elements on which the mouse is
         //       currently pressed (or a tap on mobile devices). For the latter we use the term "pressed" as in
-        //       "button.pressedBackground".
+        //       "button.hoverBackground".
         // Note: settings for a tab container are held in "editorGroup.*" and "editorGroupHeader.*" values.
         //       All "tab.*" values are meant for tab items.
         // Note: Dialogs + Popups use the "window.*" settings.
         let css = ":root {\n";
-        if (!values.colors) {
+        if (!themeHasColors) {
             // If no component colors are defined then copy over the ones from the default.
             // This is independent of the consolidation flag, as it ensure we have a `colors` at all.
             if (type === "dark") {
@@ -279,6 +292,11 @@ export class ThemeManager {
                 values.colors = { ...defaultLight.colors };
             }
         }
+
+        const adjustedColors = this.colorManipulator.getAdjustedColors(
+            values.colors, this.colorManipulator.colorAdjustments, type,
+        );
+        values.colors = { ...adjustedColors, ...values.colors };
 
         Object.keys(values.colors).forEach((key: string): void => {
             css += "\t" + this.themeValueNameToCssVariable(key) + ": " + values.colors![key] + ";\n";
@@ -509,8 +527,6 @@ export class ThemeManager {
         // 3. Step: try to fill empty values with useful defaults.
         // First some individual values, then all the rest.
         this.setDefaultValue(colors, "background", "button.background");
-        this.setDefaultValue(colors, "list.gridColor", "list.hoverForeground");
-        this.setDefaultValue(colors, "list.columnResizerForeground", "list.hoverForeground");
 
         this.matchAndAssignDefault(/.*background$/i, colors, colors.background);
         this.matchAndAssignDefault(/.*foreground$/i, colors, colors.foreground);
@@ -522,11 +538,6 @@ export class ThemeManager {
                 // cSpell: disable-next-line
                 colors[key] = "orangered";
             }
-        }
-
-        // 5. Step: assign initial values for non - VS Code colors we use and don't match any of the above patterns.
-        if (!colors["list.gridColor"]) {
-            colors["list.gridColor"] = colors["tree.indentGuidesStroke"];
         }
     }
 

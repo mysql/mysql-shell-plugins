@@ -34,11 +34,11 @@
 
     margin: 0;
     padding: 8px;
-    border: 2px solid var(--popup-border);
+    border: 2px solid var(--dropdown-border);
     border-radius: 0.5rem;
 
-    background: var(--popup-background);
-    color: var(--popup-foreground);
+    background: var(--dropdown-background);
+    color: var(--dropdown-foreground);
     box-shadow: 0 2px 4px 0 var(--widget-shadow), 0 2px 10px 0 var(--widget-shadow);
 
     z-index: 100;
@@ -88,80 +88,80 @@
     bottom: -16px;
     left: 1em;
 
-    border-color: var(--popup-border) transparent transparent transparent;
+    border-color: var(--dropdown-border) transparent transparent transparent;
 }
 
 .msg.popup.top::before {
     bottom: -16px;
 
-    border-color: var(--popup-border) transparent transparent transparent;
+    border-color: var(--dropdown-border) transparent transparent transparent;
 }
 
 .msg.popup.top-end::before {
     bottom: -16px;
     right: 1em;
 
-    border-color: var(--popup-border) transparent transparent transparent;
+    border-color: var(--dropdown-border) transparent transparent transparent;
 }
 
 .msg.popup.left-start::before {
     right: -16px;
     top: 1em;
 
-    border-color: transparent transparent transparent var(--popup-border);
+    border-color: transparent transparent transparent var(--dropdown-border);
 }
 
 .msg.popup.left::before {
     right: -16px;
     top: calc(50% - 8px);
 
-    border-color: transparent transparent transparent var(--popup-border);
+    border-color: transparent transparent transparent var(--dropdown-border);
 }
 
 .msg.popup.left-end::before {
     right: -16px;
     top: 1em;
 
-    border-color: transparent transparent transparent var(--popup-border);
+    border-color: transparent transparent transparent var(--dropdown-border);
 }
 
 .msg.popup.right-start::before {
     left: -16px;
     top: 1em;
 
-    border-color: transparent var(--popup-border) transparent transparent;
+    border-color: transparent var(--dropdown-border) transparent transparent;
 }
 
 .msg.popup.right::before {
     left: -16px;
     top: calc(50% - 8px);
 
-    border-color: transparent var(--popup-border) transparent transparent;
+    border-color: transparent var(--dropdown-border) transparent transparent;
 }
 
 .msg.popup.right-end::before {
     left: -16px;
     top: 1em;
 
-    border-color: transparent var(--popup-border) transparent transparent;
+    border-color: transparent var(--dropdown-border) transparent transparent;
 }
 
 .msg.popup.bottom-start::before {
     top: -16px;
     left: 1em;
 
-    border-color: transparent transparent var(--popup-border) transparent;
+    border-color: transparent transparent var(--dropdown-border) transparent;
 }
 
 .msg.popup.bottom::before {
     top: -16px;
 
-    border-color: transparent transparent var(--popup-border) transparent;
+    border-color: transparent transparent var(--dropdown-border) transparent;
 }
 
 .msg.popup.bottom-end::before {
     top: -16px;
     right: 1em;
 
-    border-color: transparent transparent var(--popup-border) transparent;
+    border-color: transparent transparent var(--dropdown-border) transparent;
 }

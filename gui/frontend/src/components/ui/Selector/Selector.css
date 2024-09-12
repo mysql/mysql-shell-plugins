@@ -67,7 +67,7 @@
 }
 
 .msg.selector .selectorItem:active {
-    background-color: var(--button-pressedBackground);
+    background-color: var(--button-hoverBackground);
     transition: background-color ease 250ms;
 }
 

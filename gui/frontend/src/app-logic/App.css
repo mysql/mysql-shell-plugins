@@ -115,7 +115,7 @@ pre {
     margin-top: 80px;
     font-size: 10px;
     font-weight: 100;
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
 }
 
 html.themeSwitch,

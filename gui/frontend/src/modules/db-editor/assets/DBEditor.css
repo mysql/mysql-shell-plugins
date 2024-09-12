@@ -38,8 +38,6 @@
 
 .msg.connectionTabHost .scriptingExplorer .marked {
     font-weight: 900;
-    border-left: 3px solid var(--sideBar-markerBackground);
-    color: var(--sideBar-markerBackground);
 }
 
 .msg.connectionTabHost .scriptingExplorer .tabulator-tableholder {
@@ -139,7 +137,7 @@
 }
 
 .msg#connectionEditor #progressMessageId {
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
     font-size: 12px;
     display: flex;
     align-items: center;
@@ -247,7 +245,7 @@
 .msg.serverStatus .grid .left {
     margin-left: auto;
     padding-left: 16px;
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
 }
 
 .msg.serverStatus .heading {
@@ -280,7 +278,7 @@
 
 .msg.serverStatus .divider,
 .msg.clientConnections .divider {
-    background-color: var(--list-gridColor);
+    background-color: var(--tree-tableColumnsBorder);
     --thickness: 1px !important;
 }
 
@@ -323,7 +321,7 @@
 }
 
 .msg #dashboardGrid .separated {
-    border-right: 1px dashed var(--list-gridColor);
+    border-right: 1px dashed var(--tree-tableColumnsBorder);
 }
 
 .msg #dashboardGrid .title .label:nth-of-type(1) {
@@ -380,7 +378,7 @@
 }
 
 .msg #dashboardGrid .nameValuePair .nameLabel {
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
     margin-right: 8px;
 }
 
@@ -455,7 +453,7 @@
 
 .msg.clientConnections .grid .left {
     justify-content: flex-end;
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
 }
 
 .msg.clientConnections .grid .right {

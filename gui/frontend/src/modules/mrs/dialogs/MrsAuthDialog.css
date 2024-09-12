@@ -43,7 +43,7 @@
 
 .msg.dialog.mrsAuthDialog .grid .left {
     justify-content: flex-end;
-    color: var(--text-dimmedForeground)
+    color: var(--disabledForeground)
 }
 
 .msg.dialog.mrsAuthDialog .grid .right {

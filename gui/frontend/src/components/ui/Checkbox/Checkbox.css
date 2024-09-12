@@ -59,13 +59,13 @@
 }
 
 .msg.checkbox.disabled .checkMark {
-    color: var(--text-dimmedForeground);
-    background-color: var(--button-dimmedBackground);
+    color: var(--disabledForeground);
+    background-color: var(--button-secondaryHoverBackground);
     transition: background-color 0.25s
 }
 
 .msg.checkbox.disabled {
-    color: var(--text-dimmedForeground);
+    color: var(--disabledForeground);
 }
 
 .msg.checkbox .checkMark::before {
@@ -89,7 +89,7 @@
 }
 
 .msg.checkbox.checked.disabled .checkMark::after {
-    border-color: var(--text-dimmedForeground);
+    border-color: var(--disabledForeground);
 }
 
 /* This is the indicator for the checked state. */
