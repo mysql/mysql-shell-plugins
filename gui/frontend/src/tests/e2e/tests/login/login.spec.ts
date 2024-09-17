@@ -35,19 +35,14 @@ describe("Login", () => {
     let testFailed = false;
 
     beforeAll(async () => {
-        await loadDriver();
-        await driver.wait(async () => {
-            try {
-                await Misc.waitForHomePage(String(process.env.SHELL_UI_MU_HOSTNAME), true);
-
-                return true;
-            } catch (e) {
-                await driver.navigate().refresh();
-            }
-        }, constants.wait20seconds, "Login page was not loaded").catch(async (e) => {
+        try {
+            await loadDriver();
+            await driver.get(String(process.env.SHELL_UI_MU_HOSTNAME));
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+        } catch (e) {
             await Misc.storeScreenShot("beforeAll_Login");
             throw e;
-        });
+        }
     });
 
     afterEach(async () => {

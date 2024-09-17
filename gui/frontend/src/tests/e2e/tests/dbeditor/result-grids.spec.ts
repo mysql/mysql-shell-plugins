@@ -63,16 +63,8 @@ describe("Result grids", () => {
     beforeAll(async () => {
         try {
             await loadDriver();
-            await driver.wait(async () => {
-                try {
-                    await Misc.waitForHomePage(url);
-
-                    return true;
-                } catch (e) {
-                    await driver.navigate().refresh();
-                }
-            }, constants.wait20seconds, "Home Page was not loaded");
-
+            await driver.get(url);
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
             await driver.executeScript("arguments[0].click()", await driver.findElement(locator.sqlEditorPage.icon));
             await DatabaseConnectionOverview.createDataBaseConnection(globalConn);
             const dbConnection = await DatabaseConnectionOverview.getConnection(globalConn.caption!);

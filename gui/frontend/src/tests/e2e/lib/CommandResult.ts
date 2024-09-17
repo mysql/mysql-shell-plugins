@@ -259,7 +259,6 @@ export class CommandResult implements interfaces.ICommandResult {
                 const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
                 if (results.length > 0) {
                     const id = await results[results.length - 1].getAttribute("monaco-view-zone");
-                    console.warn(`[DEBUG] Last result id found: ${id}`);
                     this.id = id.match(/\d+/)![0];
 
                     return results[results.length - 1];

@@ -45,6 +45,7 @@ const sessionsFile = fs.readFileSync(join(baseDir, "tests", "shell", "sessions.s
 const guiConsoleFile = fs.readFileSync(join(baseDir, "tests", "shell", "guiconsole.spec.ts"));
 const shellConnectionsFile = fs.readFileSync(join(baseDir, "tests", "shell", "shell_connections.spec.ts"));
 const loginFile = fs.readFileSync(join(baseDir, "tests", "login", "login.spec.ts"));
+const notificationsFile = fs.readFileSync(join(baseDir, "tests", "main", "notifications.spec.ts"));
 
 if (fs.existsSync(join(baseDir, "screenshots"))) {
     const files = fs.readdirSync(join(baseDir, "screenshots"));
@@ -108,6 +109,9 @@ for (let i = 0; i <= refDivs.length - 1; i++) {
                 break;
             case "Scripts":
                 codeLines = scriptsFile.toString().split("\n");
+                break;
+            case "Notifications":
+                codeLines = notificationsFile.toString().split("\n");
                 break;
             default:
                 break;

@@ -61,20 +61,14 @@ describe("Notifications", () => {
     let testFailed = false;
 
     beforeAll(async () => {
-        await loadDriver();
-        await driver.wait(async () => {
-            try {
-                await Misc.waitForHomePage(url);
-
-                return true;
-            } catch (e) {
-                await driver.navigate().refresh();
-            }
-        }, constants.wait20seconds, "Home page was not loaded")
-            .catch(async (e) => {
-                await Misc.storeScreenShot("beforeAll_Notifications");
-                throw e;
-            });
+        try {
+            await loadDriver();
+            await driver.get(url);
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+        } catch (e) {
+            await Misc.storeScreenShot("beforeAll_Notifications");
+            throw e;
+        }
     });
 
     afterEach(async () => {
@@ -93,7 +87,7 @@ describe("Notifications", () => {
     it("Verify Info notification", async () => {
 
         try {
-            await driver.findElement(locator.settingsPage.icon).click();
+            await driver.wait(until.elementLocated(locator.settingsPage.icon), constants.wait5seconds).click();
             const infoNotificationTrigger = await driver.wait(until
                 .elementLocated(locator.settingsPage.settingsList.invisibleCharacters),
                 constants.wait5seconds, "Invisible characters checkbox wat not found");
@@ -168,8 +162,11 @@ describe("Notifications", () => {
                 }, constants.wait5seconds, `Number of notifications did not changed`);
             }
 
+            await driver.wait(async () => {
+                return (await Misc.getToastNotifications()).length === 3;
+            }, constants.wait5seconds, "Number of notifications should be 3");
+
             const notifications = await Misc.getToastNotifications();
-            expect(notifications.length).toBe(3);
 
             for (const notification of notifications) {
                 await notification.close();
@@ -203,6 +200,13 @@ describe("Notifications", () => {
             expect(((await notificationsCenter!.getNotifications()).length)).toBe(0);
             await notificationsCenter?.hide();
             expect((await driver.findElements(locator.notificationsCenter.isOpened)).length).toBe(0);
+            await new E2EToastNotification().create(undefined, 500)
+                .then(async (el: E2EToastNotification) => {
+                    await el.close();
+                    await driver.wait(el.untilIsClosed(), constants.wait5seconds, "The notification was not closed");
+                }).catch(() => {
+                    // continue
+                });
         } catch (e) {
             testFailed = true;
             throw e;
@@ -213,12 +217,18 @@ describe("Notifications", () => {
     it("Verify Notifications center - Title and items", async () => {
 
         try {
+            const existingNotifications = await Misc.getToastNotifications();
+            for (const notification of existingNotifications) {
+                await notification.close();
+                await driver.wait(notification.untilIsClosed(), constants.wait5seconds,
+                    "Existing notification was not closed");
+            }
             const notificationsCenter = await new E2ENotificationsCenter().open();
             expect(await notificationsCenter?.getTitle()).toMatch(/NO.*NOTIFICATIONS/);
             const infoNotificationTrigger = await driver.wait(until
                 .elementLocated(locator.settingsPage.settingsList.invisibleCharacters),
                 constants.wait5seconds, "Invisible characters checkbox wat not found");
-            await infoNotificationTrigger.click();
+            await driver.executeScript("arguments[0].click()", infoNotificationTrigger);
             await driver.wait(notificationsCenter!.untilNotificationsExists(), constants.wait5seconds);
             const notifications = await notificationsCenter!.getNotifications();
             expect(notifications.length).toBe(1);

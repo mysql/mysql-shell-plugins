@@ -52,7 +52,8 @@ export class E2EGuiConsole {
             }
         } else {
             await driver.executeScript("arguments[0].click()",
-                await driver.findElement(locator.shellPage.sessions.newSession));
+                await driver.wait(until.elementLocated(locator.shellPage.sessions.newSession),
+                    constants.wait5seconds, "New session button was not found"));
 
             await driver.wait(
                 until.elementLocated(locator.shellSession.exists),

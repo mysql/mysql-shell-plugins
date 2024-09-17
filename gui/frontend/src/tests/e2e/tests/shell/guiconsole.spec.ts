@@ -24,11 +24,11 @@
  */
 import { basename } from "path";
 import { Misc } from "../../lib/misc.js";
-import * as locator from "../../lib/locators.js";
 import { driver, loadDriver } from "../../lib/driver.js";
 import * as constants from "../../lib/constants.js";
 import { Os } from "../../lib/os.js";
 import { E2EGuiConsole } from "../../lib/E2EGuiConsole.js";
+import * as locator from "../../lib/locators.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -40,15 +40,8 @@ describe("GUI Console", () => {
     beforeAll(async () => {
         try {
             await loadDriver();
-            await driver.wait(async () => {
-                try {
-                    await Misc.waitForHomePage(url);
-
-                    return true;
-                } catch (e) {
-                    await driver.navigate().refresh();
-                }
-            }, constants.wait20seconds, "Home Page was not loaded");
+            await driver.get(url);
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
             await driver.findElement(locator.shellPage.icon).click();
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_GuiConsole");

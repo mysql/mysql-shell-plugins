@@ -63,17 +63,10 @@ describe("Database Connections", () => {
     beforeAll(async () => {
         try {
             await loadDriver();
-            await driver.wait(async () => {
-                try {
-                    await Misc.waitForHomePage(url);
-
-                    return true;
-                } catch (e) {
-                    await driver.navigate().refresh();
-                }
-            }, constants.wait20seconds, "Home Page was not loaded");
-
-            await driver.findElement(locator.sqlEditorPage.icon).click();
+            await driver.get(url);
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+            await driver.executeScript("arguments[0].click()",
+                await driver.wait(until.elementLocated(locator.sqlEditorPage.icon)), constants.wait5seconds);
             await DatabaseConnectionOverview.createDataBaseConnection(globalConn);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_DBConnections");
@@ -429,17 +422,15 @@ describe("Database Connections - headless off", () => {
     beforeAll(async () => {
         try {
             await loadDriver(false);
-            await driver.wait(async () => {
-                try {
-                    await Misc.waitForHomePage(url);
+            await driver.get(url);
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+            await driver.executeScript("arguments[0].click()",
+                await driver.wait(until.elementLocated(locator.sqlEditorPage.icon)), constants.wait5seconds);
+            const closeHeader = await driver.findElements(locator.dbConnectionOverview.closeHeader);
 
-                    return true;
-                } catch (e) {
-                    await driver.navigate().refresh();
-                }
-            }, constants.wait20seconds, "Home Page was not loaded");
-
-            await driver.findElement(locator.sqlEditorPage.icon).click();
+            if (closeHeader.length > 0) {
+                await closeHeader[0].click();
+            }
             await DatabaseConnectionOverview.createDataBaseConnection(globalConn);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_DBConnections");
