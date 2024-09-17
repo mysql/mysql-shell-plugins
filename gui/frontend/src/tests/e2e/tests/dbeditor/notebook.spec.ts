@@ -64,17 +64,10 @@ describe("Notebook", () => {
     beforeAll(async () => {
         try {
             await loadDriver();
-            await driver.wait(async () => {
-                try {
-                    await Misc.waitForHomePage(url);
-
-                    return true;
-                } catch (e) {
-                    await driver.navigate().refresh();
-                }
-            }, constants.wait20seconds, "Home Page was not loaded");
-
-            await driver.executeScript("arguments[0].click()", await driver.findElement(locator.sqlEditorPage.icon));
+            await driver.get(url);
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+            await driver.executeScript("arguments[0].click()",
+                await driver.wait(until.elementLocated(locator.sqlEditorPage.icon)), constants.wait5seconds);
             await DatabaseConnectionOverview.createDataBaseConnection(globalConn);
             const dbConnection = await DatabaseConnectionOverview.getConnection(globalConn.caption!);
             await driver.actions().move({ origin: dbConnection }).perform();
@@ -395,6 +388,7 @@ describe("Notebook", () => {
         try {
 
             await notebook.explorer.toggleSection(constants.openEditors, false);
+            await notebook.explorer.toggleSection(constants.mysqlAdministration, false);
             await notebook.explorer.toggleSection(constants.scripts, false);
             const sakila = await notebook.explorer.getSchemasTreeElement("sakila", constants.schemaType);
             expect(
@@ -681,17 +675,12 @@ describe("Notebook headless off", () => {
     beforeAll(async () => {
         try {
             await loadDriver(false);
-            await driver.wait(async () => {
-                try {
-                    await Misc.waitForHomePage(url);
+            await driver.get(url);
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
 
-                    return true;
-                } catch (e) {
-                    await driver.navigate().refresh();
-                }
-            }, constants.wait20seconds, "Home Page was not loaded");
+            await driver.executeScript("arguments[0].click()",
+                await driver.wait(until.elementLocated(locator.sqlEditorPage.icon)), constants.wait5seconds);
 
-            await driver.executeScript("arguments[0].click()", await driver.findElement(locator.sqlEditorPage.icon));
             await DatabaseConnectionOverview.createDataBaseConnection(anotherConnection);
             await driver.executeScript("arguments[0].click();",
                 await DatabaseConnectionOverview.getConnection(anotherConnection.caption!));

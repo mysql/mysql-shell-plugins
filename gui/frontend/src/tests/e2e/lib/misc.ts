@@ -22,7 +22,7 @@
  */
 
 import { mkdir, writeFile } from "fs/promises";
-import { until, WebDriver, error, Condition, WebElement } from "selenium-webdriver";
+import { WebDriver, error, Condition, WebElement } from "selenium-webdriver";
 import * as constants from "../lib/constants.js";
 import { driver } from "../lib/driver.js";
 import * as locator from "../lib/locators.js";
@@ -65,18 +65,24 @@ export class Misc {
 
     /**
      * Waits until the homepage loads
-     * @param url URL of the page
-     * @param loginPage True if the home page is expected to be the login page, false otherwise
      * @returns A promise resolving when the page is loaded
      */
-    public static waitForHomePage = async (url: string, loginPage = false): Promise<void> => {
-        await driver.get(url);
+    public static untilHomePageIsLoaded = (): Condition<boolean> => {
+        return new Condition("for home page to be loaded", async () => {
 
-        if (loginPage) {
-            await driver.wait(until.elementLocated(locator.loginPage.sakilaLogo), 10000, "Sakila logo was not found");
-        } else {
-            await driver.wait(until.elementLocated(locator.mainActivityBar), 10000, "Activity bar was not found");
-        }
+            const pageTitleExists = (await driver.findElements(locator.pageIsLoaded)).length > 0;
+            const sakilaLogoExists = (await driver.findElements(locator.loginPage.sakilaLogo)).length > 0;
+
+            if (pageTitleExists || sakilaLogoExists) {
+                return true;
+            } else {
+                await driver.navigate().refresh();
+                await driver.sleep(3000);
+
+                return false;
+            }
+        });
+
     };
 
     /**

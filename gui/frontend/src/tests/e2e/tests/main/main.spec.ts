@@ -40,20 +40,14 @@ describe("Main pages", () => {
     let testFailed = false;
 
     beforeAll(async () => {
-        await loadDriver();
-        await driver.wait(async () => {
-            try {
-                await Misc.waitForHomePage(url);
-
-                return true;
-            } catch (e) {
-                await driver.navigate().refresh();
-            }
-        }, constants.wait20seconds, "Home page was not loaded")
-            .catch(async (e) => {
-                await Misc.storeScreenShot("beforeAll_Main");
-                throw e;
-            });
+        try {
+            await loadDriver();
+            await driver.get(url);
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+        } catch (e) {
+            await Misc.storeScreenShot("beforeAll_Main");
+            throw e;
+        }
     });
 
     afterEach(async () => {

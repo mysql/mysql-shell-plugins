@@ -104,5 +104,9 @@ export const loadDriver = async (useHeadless?: boolean): Promise<void> => {
             .build();
     }
 
-    await driver.manage().setTimeouts({ implicit: 0 });
+    if (headless === "0") {
+        await driver.manage().window().maximize();
+    }
+
+    await driver.manage().setTimeouts({ implicit: 0, pageLoad: 15000 });
 };
