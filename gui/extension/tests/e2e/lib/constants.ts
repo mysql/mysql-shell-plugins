@@ -119,6 +119,7 @@ export const removeConnection = "Remove Connection";
 // MISC
 export const openEditorsDBNotebook = "DB Notebook";
 export const dbConnectionsLabel = "DB Connection Overview";
+export const lakehouseNavigator = "Lakehouse Navigator";
 export const serverStatus = "Server Status";
 export const clientConns = "Client Connections";
 export const perfDash = "Performance Dashboard";
