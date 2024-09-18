@@ -1141,7 +1141,7 @@ describe("MrsHub Tests", () => {
 
             await dialogHelper.setInputText("servicePath", "");
             await dialogHelper.clickOk();
-            dialogHelper.verifyErrors(["The service name must not be empty."]);
+            dialogHelper.verifyErrors(["The service path must not be empty."]);
 
             await dialogHelper.setInputText("servicePath", "/mrs");
             await dialogHelper.clickOk();
@@ -1153,7 +1153,6 @@ describe("MrsHub Tests", () => {
 
             await dialogHelper.setInputText("servicePath", "/myService2");
 
-            await dialogHelper.setInputText("comments", "some comments");
             await dialogHelper.setInputText("hostName", "localhost");
 
             await dialogHelper.clickOk();
