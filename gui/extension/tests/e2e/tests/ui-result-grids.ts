@@ -1049,7 +1049,7 @@ describe("RESULT GRIDS", () => {
         it("Edit a result grid and rollback", async () => {
             const modifiedText = "56";
             await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("select * from sakila.all_data_types;");
+            const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_ints;");
             expect(result.toolbar.status).to.match(/OK/);
             await result.grid.editCells(
                 [{
@@ -1336,10 +1336,11 @@ describe("RESULT GRIDS", () => {
             await notebook.toolbar.selectEditor(new RegExp(constants.openEditorsDBNotebook), globalConn.caption);
             await driver.wait(anotherConnNotebook.untilIsOpened(anotherConn), constants.wait5seconds);
             await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("select * from sakila.all_data_types where test_id = 1;",
-                undefined,
-                (parseInt(notebook.codeEditor.resultIds[notebook.codeEditor.resultIds.length - 1],
-                    10) - 2) as unknown as string);
+            const result = await notebook.codeEditor
+                .execute("select * from sakila.all_data_types_ints where id = 1;",
+                    undefined,
+                    (parseInt(notebook.codeEditor.resultIds[notebook.codeEditor.resultIds.length - 1],
+                        10) - 2) as unknown as string);
             expect(result.toolbar.status).to.match(/OK/);
             const cellsToEdit: interfaces.IResultGridCell[] = [
                 {

@@ -38,7 +38,6 @@ import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import * as errors from "../lib/errors";
 import { E2ECodeEditorWidget } from "../lib/WebViews/E2ECodeEditorWidget";
-import { LakeHouseNavigator } from "../lib/WebViews/lakehouseNavigator/lakeHouseNavigator";
 import { HeatWaveProfileEditor } from "../lib/WebViews/lakehouseNavigator/heatWaveProfileEditor";
 import { TestQueue } from "../lib/TestQueue";
 
@@ -710,7 +709,7 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    describe("Lakehouse Navigator", () => {
+    describe("HeatWave Chat", () => {
 
         const heatWaveConn: interfaces.IDBConnection = {
             dbType: "MySQL",
@@ -732,7 +731,6 @@ describe("NOTEBOOKS", () => {
         };
 
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
-        const lakeHouseNavigator = new LakeHouseNavigator();
         const cookbookFile = "cookbook.pdf";
         const notebook = new E2ENotebook();
 
@@ -757,111 +755,8 @@ describe("NOTEBOOKS", () => {
             }
         });
 
-        after(async function () {
-            try {
-                await lakeHouseNavigator.toolbar.selectEditor(new RegExp(constants.lakeHouseNavigatorEditor),
-                    "lakehouseNavigator");
-                await lakeHouseNavigator.selectTab(constants.lakeHouseTablesTab);
-                await lakeHouseNavigator.lakehouseTables.deleteLakeHouseTable(newTask.name);
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
+        it("Execute a query", async () => {
 
-        it("Upload data to object storage", async () => {
-
-            await Workbench.toggleSideBar(false);
-            await (await notebook.toolbar.getButton(constants.openLakeHouseNavigator)).click();
-            await driver.wait(lakeHouseNavigator.untilIsOpened(), constants.wait5seconds);
-            await lakeHouseNavigator.overview.clickUploadFiles();
-            await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.selectOciProfile("HEATWAVE");
-            await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
-            await driver.wait(lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
-                constants.wait15seconds);
-            await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
-                .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
-            await (await lakeHouseNavigator.uploadToObjectStorage.getFilesForUploadButton(constants.addFiles)).click();
-            await lakeHouseNavigator.uploadToObjectStorage.setFilesForUploadFilePath(join(process.cwd(), cookbookFile));
-            await driver.wait(lakeHouseNavigator.uploadToObjectStorage.untilExistsFileForUploadFile(cookbookFile),
-                constants.wait10seconds);
-            await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.checkItem("upload");
-            await (await lakeHouseNavigator.uploadToObjectStorage.getFilesForUploadButton(constants.startFileUpload))
-                .click();
-            await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
-            await driver.wait(lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
-                constants.wait10seconds);
-            expect(await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.existsItem(cookbookFile))
-                .to.be.true;
-            await driver.wait(Workbench.untilNotificationExists("The files have been uploaded successfully"),
-                constants.wait20seconds);
-
-        });
-
-        it("Load into Lakehouse", async () => {
-
-            await lakeHouseNavigator.selectTab(constants.loadIntoLakeHouseTab);
-            await driver.wait(lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.untilItemsAreLoaded(),
-                constants.wait10seconds);
-            expect(await lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.existsItem(cookbookFile),
-                `'${cookbookFile}' was not found`).to.be.true;
-            await lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.checkItem(cookbookFile);
-            await driver.wait(lakeHouseNavigator.loadIntoLakehouse.untilExistsLoadingTask(cookbookFile),
-                constants.wait5seconds);
-            await lakeHouseNavigator.loadIntoLakehouse.setNewLoadingTask(newTask);
-            await lakeHouseNavigator.loadIntoLakehouse.startLoadingTask();
-
-        });
-
-        it("Lakehouse Tables", async () => {
-
-            await driver.wait(lakeHouseNavigator.lakehouseTables.untilIsOpened(), constants.wait15seconds);
-            expect(await lakeHouseNavigator.lakehouseTables.getDatabaseSchemas())
-                .to.contain(newTask.targetDatabaseSchema);
-            await driver.wait(lakeHouseNavigator.lakehouseTables.untilExistsLakeHouseTable(newTask.name),
-                constants.wait10seconds);
-            await driver.wait(lakeHouseNavigator.lakehouseTables.untilLakeHouseTableIsLoading(newTask.name),
-                constants.wait25seconds);
-
-            let latestTable = await lakeHouseNavigator.lakehouseTables.getLakehouseTable(newTask.name);
-            expect(latestTable.hasProgressBar).to.be.true;
-            expect(latestTable.loaded).to.match(/(\d+)%/);
-            expect(latestTable.hasLoadingSpinner).to.be.true;
-            expect(latestTable.rows).to.equals("-");
-            expect(latestTable.size).to.equals("-");
-            expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-            expect(latestTable.comment).to.equals(newTask.description);
-
-            await driver.wait(lakeHouseNavigator.lakehouseTables.untilLakeHouseTableIsLoaded(newTask.name),
-                constants.wait2minutes);
-
-            latestTable = await lakeHouseNavigator.lakehouseTables.getLakehouseTable(newTask.name);
-            expect(latestTable.hasProgressBar).to.be.false;
-            expect(latestTable.loaded).to.equals("Yes");
-            expect(latestTable.hasLoadingSpinner).to.be.false;
-            expect(latestTable.rows).to.match(/(\d+)/);
-            expect(latestTable.size).to.match(/(\d+).(\d+) KB/);
-            expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-            expect(latestTable.comment).to.equals(newTask.description);
-
-            const latestTask = await lakeHouseNavigator.lakehouseTables.getLatestTask();
-            await driver.wait(lakeHouseNavigator.lakehouseTables.untilLakeHouseTaskIsCompleted(latestTask.id),
-                constants.wait10seconds);
-            expect(latestTask.name).to.equals(`Loading ${newTask.name}`);
-            expect(latestTask.hasProgressBar).to.be.false;
-            expect(latestTask.status).to.equals("COMPLETED");
-            expect(latestTask.startTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-            expect(latestTask.endTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-            expect(latestTask.message).to.equals("Task completed.");
-
-        });
-
-        it("HeatWave Chat", async () => {
-
-            await lakeHouseNavigator.toolbar
-                .selectEditor(new RegExp(constants.openEditorsDBNotebook), heatWaveConn.caption);
-            await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
-                constants.wait3seconds);
             const query = "How do I cook some waffles?";
             await Workbench.toggleSideBar(false);
             await (await notebook.toolbar.getButton(constants.showChatOptions)).click();

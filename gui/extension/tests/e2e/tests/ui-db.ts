@@ -47,6 +47,7 @@ import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
 import { Script } from "../lib/WebViews/Script";
 import { Toolbar } from "../lib/WebViews/Toolbar";
 import { TestQueue } from "../lib/TestQueue";
+import { LakeHouseNavigator } from "../lib/WebViews/lakehouseNavigator/lakeHouseNavigator";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -881,6 +882,164 @@ describe("DATABASE CONNECTIONS", () => {
             expect(listItems, errors.missingTitle("Network Status")).to.include("Network Status");
             expect(listItems, errors.missingTitle("MySQL Status")).to.include("MySQL Status");
             expect(listItems, errors.missingTitle("InnoDB Status")).to.include("InnoDB Status");
+
+        });
+
+        describe("Lakehouse Navigator", () => {
+
+            const heatWaveConn: interfaces.IDBConnection = {
+                dbType: "MySQL",
+                caption: "e2eHeatWave Connection",
+                description: "Local connection",
+                basic: {
+                    hostname: String(process.env.HWHOSTNAME),
+                    username: String(process.env.HWUSERNAME),
+                    schema: "e2e_tests",
+                    password: String(process.env.HWPASSWORD),
+                },
+            };
+
+            const newTask: interfaces.INewLoadingTask = {
+                name: "another_cookbook",
+                description: "How do cook properly",
+                targetDatabaseSchema: "e2e_tests",
+                formats: "PDF (Portable Document Format Files)",
+            };
+
+            const lakeHouseNavigator = new LakeHouseNavigator();
+            const fileToUpload = "another_cookbook.pdf";
+
+            before(async function () {
+
+                try {
+                    await dbTreeSection.clickToolbarButton(constants.collapseAll);
+                    await dbTreeSection.createDatabaseConnection(heatWaveConn);
+                    const treeConn = await dbTreeSection.tree.getElement(heatWaveConn.caption);
+                    await dbTreeSection.tree.expandDatabaseConnection(treeConn,
+                        (heatWaveConn.basic as interfaces.IConnBasicMySQL).password);
+                    const treeMySQLAdmin = await dbTreeSection.tree.getElement(constants.mysqlAdmin);
+                    await treeMySQLAdmin.expand();
+                    await (await dbTreeSection.tree.getElement(constants.lakehouseNavigator)).click();
+                    expect(await Workbench.getOpenEditorTitles(), errors.tabIsNotOpened(constants.lakehouseNavigator))
+                        .to.include(constants.lakehouseNavigator);
+                    await driver.wait(new E2ENotebook().untilIsOpened(heatWaveConn), constants.wait15seconds);
+                    await Workbench.toggleSideBar(false);
+                } catch (e) {
+                    await Misc.processFailure(this);
+                    throw e;
+                }
+
+            });
+
+            afterEach(async function () {
+                if (this.currentTest.state === "failed") {
+                    await Misc.processFailure(this);
+                }
+            });
+
+            after(async function () {
+                try {
+                    await Workbench.toggleSideBar(true);
+                    await (await dbTreeSection.tree.getElement((heatWaveConn.basic as interfaces.IConnBasicMySQL)
+                        .schema)).expand();
+                    await (await dbTreeSection.tree.getElement("Tables")).expand();
+                    const treeTestTable = await dbTreeSection.tree.getElement(newTask.name);
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeTestTable, constants.dropTable);
+                    await Workbench.pushDialogButton(`Drop ${newTask.name}`);
+                    await Workbench.getNotification(`The object ${newTask.name} has been dropped successfully.`);
+                    await driver.wait(dbTreeSection.tree.untilDoesNotExist(newTask.name), constants.wait5seconds);
+                    await Workbench.closeAllEditors();
+                } catch (e) {
+                    await Misc.processFailure(this);
+                    throw e;
+                }
+            });
+
+            it("Upload data to object storage", async () => {
+
+                await lakeHouseNavigator.overview.clickUploadFiles();
+                await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.selectOciProfile("HEATWAVE");
+                await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
+                await driver.wait(lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
+                    constants.wait15seconds);
+                await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
+                    .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
+                await (await lakeHouseNavigator.uploadToObjectStorage.getFilesForUploadButton(constants.addFiles))
+                    .click();
+                await lakeHouseNavigator.uploadToObjectStorage.setFilesForUploadFilePath(join(process.cwd(),
+                    fileToUpload));
+                await driver.wait(lakeHouseNavigator.uploadToObjectStorage.untilExistsFileForUploadFile(fileToUpload),
+                    constants.wait10seconds);
+                await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.checkItem("upload");
+                await (await lakeHouseNavigator.uploadToObjectStorage
+                    .getFilesForUploadButton(constants.startFileUpload)).click();
+                await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
+                await driver.wait(lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
+                    constants.wait10seconds);
+                expect(await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.existsItem(fileToUpload))
+                    .to.be.true;
+                await driver.wait(Workbench.untilNotificationExists("The files have been uploaded successfully"),
+                    constants.wait20seconds);
+
+            });
+
+            it("Load into Lakehouse", async () => {
+
+                await lakeHouseNavigator.selectTab(constants.loadIntoLakeHouseTab);
+                await driver.wait(lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.untilItemsAreLoaded(),
+                    constants.wait10seconds);
+                expect(await lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.existsItem(fileToUpload),
+                    `'${fileToUpload}' was not found`).to.be.true;
+                await lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.checkItem(fileToUpload);
+                await driver.wait(lakeHouseNavigator.loadIntoLakehouse.untilExistsLoadingTask(fileToUpload),
+                    constants.wait5seconds);
+                await lakeHouseNavigator.loadIntoLakehouse.setNewLoadingTask(newTask);
+                await lakeHouseNavigator.loadIntoLakehouse.startLoadingTask();
+
+            });
+
+            it("Lakehouse Tables", async () => {
+
+                await driver.wait(lakeHouseNavigator.lakehouseTables.untilIsOpened(), constants.wait15seconds);
+                expect(await lakeHouseNavigator.lakehouseTables.getDatabaseSchemas())
+                    .to.contain(newTask.targetDatabaseSchema);
+                await driver.wait(lakeHouseNavigator.lakehouseTables.untilExistsLakeHouseTable(newTask.name),
+                    constants.wait10seconds);
+                await driver.wait(lakeHouseNavigator.lakehouseTables.untilLakeHouseTableIsLoading(newTask.name),
+                    constants.wait1minute);
+
+                let latestTable = await lakeHouseNavigator.lakehouseTables.getLakehouseTable(newTask.name);
+                expect(latestTable.hasProgressBar).to.be.true;
+                expect(latestTable.loaded).to.match(/(\d+)%/);
+                expect(latestTable.hasLoadingSpinner).to.be.true;
+                expect(latestTable.rows).to.equals("-");
+                expect(latestTable.size).to.equals("-");
+                expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+                expect(latestTable.comment).to.equals(newTask.description);
+
+                await driver.wait(lakeHouseNavigator.lakehouseTables.untilLakeHouseTableIsLoaded(newTask.name),
+                    constants.wait2minutes);
+
+                latestTable = await lakeHouseNavigator.lakehouseTables.getLakehouseTable(newTask.name);
+                expect(latestTable.hasProgressBar).to.be.false;
+                expect(latestTable.loaded).to.equals("Yes");
+                expect(latestTable.hasLoadingSpinner).to.be.false;
+                expect(latestTable.rows).to.match(/(\d+)/);
+                expect(latestTable.size).to.match(/(\d+).(\d+) KB/);
+                expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+                expect(latestTable.comment).to.equals(newTask.description);
+
+                const latestTask = await lakeHouseNavigator.lakehouseTables.getLatestTask();
+                await driver.wait(lakeHouseNavigator.lakehouseTables.untilLakeHouseTaskIsCompleted(latestTask.id),
+                    constants.wait10seconds);
+                expect(latestTask.name).to.equals(`Loading ${newTask.name}`);
+                expect(latestTask.hasProgressBar).to.be.false;
+                expect(latestTask.status).to.equals("COMPLETED");
+                expect(latestTask.startTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+                expect(latestTask.endTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+                expect(latestTask.message).to.equals("Task completed.");
+
+            });
 
         });
 
