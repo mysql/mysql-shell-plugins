@@ -1650,6 +1650,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     isGenerated: false,
                     isPrimary: false,
                     isUnique: false,
+                    charset: param.charset,
+                    collation: param.collation,
                 },
                 storedDbColumn: storedField?.dbColumn,
                 enabled: storedField?.enabled ?? true,
