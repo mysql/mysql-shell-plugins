@@ -1455,6 +1455,8 @@ export interface IMrsDbObjectParameterData {
     name: string;
     mode: string;
     datatype: string;
+    charset?: string;
+    collation?: string;
 }
 
 export interface IMrsDbObjectData extends IDictionary {
@@ -1681,6 +1683,8 @@ export interface IMrsTableColumn {
     out?: boolean;
     isArray?: boolean;
     readOnly?: boolean;
+    charset?: string;
+    collation?: string;
 }
 
 export interface IMrsColumnMapping {

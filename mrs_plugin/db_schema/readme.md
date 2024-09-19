@@ -56,16 +56,19 @@ $ brew link --force gettext
 ## Process to update the MRS Metadata Schema
 
 1. Open the `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema.mwb` file in MySQL Workbench, make the required changes to the model.
-2. If a metadata schema table was changed that is included in the audit log triggers, select `Scripting > Run Script File > Audit_Log_Triggers_grt.py` to regenerate the embedded `Audit Log Triggers` SQL script.
-3. Update the VIEW mrs_user_schema_version following the semantic versioning scheme if needed.
+2. If there are changes to a table tracked in the audit log (check the existing `TRIGGER`s), select `Scripting > Run Script File > Audit_Log_Triggers_grt.py` to re-generate the embedded `Audit Log Triggers` SQL script.
+3. Update the `mrs_user_schema_version` VIEW following the semantic versioning scheme if needed.
 4. Update the SQL Script `4. Create Schema Version VIEW` and set the version of the `schema_version` VIEW to the new version using the semantic versioning scheme and apply changes.
 5. Save the model.
 6. Select `File > Export > Forward Engineer SQL CREATE Script...` and store in `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema_x.y.z.sql`.
-7. Open the file in a text editor and replace and append the contents of the following SQL Scripts (available on Workbench) in this order:
-   1. Replace the generated file header including the creation of the mysql_rest_service_metadata with `0. Script Header Replacement`
-   2. Append `1. Additional SQL` at the end of the file
-   3. Append `Audit Log Triggers` at the end of the file
-   4. Append `3. Create Roles` at the end of the file
-   5. Append `4. Create Schema Version VIEW` at the end of the file
+7. Using the `SQL Scripts` available in the Workbench model, update the exported file as follows:
+   1. Replace the header (including the schema creation statements) with the contents of `0. Script Header Replacement`
+   2. Append the contents of the following scripts (in this specific order) to the file:
+      1. `1. Additional SQL`
+      2. `Audit Log Triggers`
+      3. `3. Create Roles`
+      4. `4. Create Schema Version VIEW`
 8. Copy `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema_x.y.z.sql` to `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema.sql`
 9. Create a `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema_a.b.c_to_x.y.z.sql` file and write all the ALTER statements required to get the latest metadata schema version a.b.c to the new state of x.y.z.
+
+In order for the changes to be picked up by the plugin when the Shell GUI Extension runs, the `DB_VERSION` constant in the `mrs_plugin/lib/general.py` file should also specify the new version numbers.

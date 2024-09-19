@@ -138,7 +138,9 @@ def get_db_object_parameters(session, db_schema_name, db_object_name, db_type):
         SELECT @id:=@id-1 AS id, @id * -1 AS position,
             PARAMETER_NAME AS name,
             PARAMETER_MODE AS mode,
-            DTD_IDENTIFIER AS datatype
+            DTD_IDENTIFIER AS datatype,
+            CHARACTER_SET_NAME as charset,
+            COLLATION_NAME as collation
         FROM `INFORMATION_SCHEMA`.`PARAMETERS`, (SELECT @id:=0) as init
         WHERE SPECIFIC_SCHEMA = ?
             AND SPECIFIC_NAME = ?

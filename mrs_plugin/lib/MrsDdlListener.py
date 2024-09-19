@@ -889,6 +889,8 @@ class MrsDdlListener(MRSListener):
                     "is_generated": False,
                     "is_primary": False,
                     "is_unique": False,
+                    "charset": param.get("charset"),
+                    "collation": param.get("collation"),
                 },
                 # If explicit PARAMETERS are given, add the fields not enabled and enable only the given fields
                 "enabled": ctx.PARAMETERS_SYMBOL() is None,
@@ -972,6 +974,8 @@ class MrsDdlListener(MRSListener):
                     "is_generated": False,
                     "is_primary": False,
                     "is_unique": False,
+                    "charset": param.get("charset"),
+                    "collation": param.get("collation"),
                 },
                 # If explicit PARAMETERS are given, add the fields not enabled and enable only the given fields
                 "enabled": ctx.PARAMETERS_SYMBOL() is None,
