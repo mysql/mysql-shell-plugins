@@ -85,7 +85,7 @@ export interface IShellTabPersistentState extends IShellPromptValues {
     lastCommand?: string;
 }
 
-interface IShellTabProperties extends IComponentProperties {
+export interface IShellTabProperties extends IComponentProperties {
     savedState: IShellTabPersistentState;
 
     onQuit: (id: string) => void;
