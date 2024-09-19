@@ -248,7 +248,6 @@ def add_db_object(**kwargs):
                     raise ValueError(
                         f"The {db_object_type} named '{db_object_name}' "
                         f"does not exists in database schema {schema.get('name')}.")
-                db_object_name = db_object["OBJECT_NAME"]
 
             # Get request_path
             if not request_path:
