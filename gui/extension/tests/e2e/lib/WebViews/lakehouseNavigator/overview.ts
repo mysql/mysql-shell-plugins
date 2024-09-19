@@ -60,7 +60,7 @@ export class Overview {
         await Misc.switchBackToTopFrame();
         await Misc.switchToFrame();
 
-        await driver.findElement(locator.lakeHouseNavigator.overview.uploadFiles).click();
+        await driver.findElement(locator.lakeHouseNavigator.overview.startLoad).click();
     };
 
     /**

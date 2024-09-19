@@ -102,7 +102,21 @@ describe("Result grids", () => {
         it("Result grid context menu - Capitalize, Convert to lower, upper case and mark for deletion", async () => {
             try {
                 await notebook.codeEditor.clean();
-                const result = await notebook.codeEditor.execute("select * from sakila.result_sets;", true);
+
+                // AVOID FLAKY FAILURE, SOMETIMES THE FIRST QUERY DOES NOT RETURN ANY RESULTS
+                let result: interfaces.ICommandResult;
+                await driver.wait(async () => {
+                    try {
+                        result = await notebook.codeEditor.execute("select * from sakila.result_sets;", true);
+
+                        return true;
+                    } catch (e) {
+                        await notebook.codeEditor.clean();
+                    }
+                }, constants.wait10seconds, "Query did not generated any result after 10secs");
+                // ----------------
+
+                result = result!;
                 expect(result.toolbar!.status).toMatch(/OK/);
                 const rowNumber = 0;
                 const rowColumn = "text_field";

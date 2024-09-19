@@ -505,10 +505,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               }
             >
               <Label
+                data-testid="threadsConnected"
                 key="threadConnectedLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="threadsConnected"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -516,10 +518,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="threadsRunning"
                 key="threadRunningLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="threadsRunning"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -527,10 +531,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="threadsCreated"
                 key="threadsCreatedLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="threadsCreated"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -538,10 +544,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="threadsCached"
                 key="threadsCachedLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="threadsCached"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -549,10 +557,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="rejected"
                 key="rejectedLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="rejected"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -560,10 +570,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="totalConnections"
                 key="totalConnectionsLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="totalConnections"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -571,10 +583,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="connectionsLimit"
                 key="connectionsLimitLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="connectionsLimit"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -582,10 +596,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="abortedClients"
                 key="abortedClientsLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="abortedClients"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -593,10 +609,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="abortedConnections"
                 key="abortedConnectionsLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="abortedConnections"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -604,10 +622,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="errors"
                 key="errorsLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="errors"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -1185,10 +1205,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
               }
             >
               <Label
+                data-testid="threadsConnected"
                 key="threadConnectedLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="threadsConnected"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -1196,10 +1218,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="threadsRunning"
                 key="threadRunningLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="threadsRunning"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -1207,10 +1231,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="threadsCreated"
                 key="threadsCreatedLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="threadsCreated"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -1218,10 +1244,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="threadsCached"
                 key="threadsCachedLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="threadsCached"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -1229,10 +1257,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="rejected"
                 key="rejectedLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="rejected"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -1240,10 +1270,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="totalConnections"
                 key="totalConnectionsLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="totalConnections"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -1251,10 +1283,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="connectionsLimit"
                 key="connectionsLimitLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="connectionsLimit"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -1262,10 +1296,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="abortedClients"
                 key="abortedClientsLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="abortedClients"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -1273,10 +1309,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="abortedConnections"
                 key="abortedConnectionsLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="abortedConnections"
                   data-tooltip="expand"
                   style={{}}
                 >
@@ -1284,10 +1322,12 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 </label>
               </Label>
               <Label
+                data-testid="errors"
                 key="errorsLabel"
               >
                 <label
                   className="msg label"
+                  data-testid="errors"
                   data-tooltip="expand"
                   style={{}}
                 >

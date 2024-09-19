@@ -51,8 +51,7 @@ export class E2EShellConsole {
             await Misc.switchBackToTopFrame();
             await Misc.switchToFrame();
 
-            const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
-            if (existsPasswordDialog) {
+            if (await PasswordDialog.exists()) {
                 await PasswordDialog.setCredentials(connection);
             }
 

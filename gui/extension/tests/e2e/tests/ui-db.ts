@@ -48,6 +48,7 @@ import { Script } from "../lib/WebViews/Script";
 import { Toolbar } from "../lib/WebViews/Toolbar";
 import { TestQueue } from "../lib/TestQueue";
 import { LakeHouseNavigator } from "../lib/WebViews/lakehouseNavigator/lakeHouseNavigator";
+import { E2EServerStatus } from "../lib/WebViews/E2EServerStatus";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -808,20 +809,45 @@ describe("DATABASE CONNECTIONS", () => {
             await (await dbTreeSection.tree.getElement(constants.serverStatus)).click();
             expect(await Workbench.getOpenEditorTitles(), errors.tabIsNotOpened(constants.dbDefaultEditor))
                 .to.include(constants.dbDefaultEditor);
-            await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait15seconds);
+
+            const serverStatus = new E2EServerStatus();
+            await driver.wait(serverStatus.untilIsOpened(globalConn), constants.wait15seconds);
             expect((await toolbar.getCurrentEditor()).label,
                 `The current editor name should be ${constants.serverStatus}`)
                 .to.equals(constants.serverStatus);
-            const sections = await driver.findElements(locator.mysqlAdministration.section);
-            const headings = [];
-            for (const section of sections) {
-                headings.push(await section.getText());
-            }
-            expect(headings, errors.missingTitle("Main Settings")).to.include("Main Settings");
-            expect(headings, errors.missingTitle("Server Directories")).to.include("Server Directories");
-            expect(headings, errors.missingTitle("Server Features")).to.include("Server Features");
-            expect(headings, errors.missingTitle("Server SSL")).to.include("Server SSL");
-            expect(headings, errors.missingTitle("Server Authentication")).to.include("Server Authentication");
+
+            await serverStatus.create();
+            expect(serverStatus.host).to.not.equals("");
+            expect(serverStatus.socket).to.match(/\.sock/);
+            expect(serverStatus.port).to.match(/(\d+)/);
+            expect(serverStatus.version).to.match(/(\d+).(\d+).(\d+)/);
+            expect(serverStatus.compiledFor).to.not.equals("");
+            expect(serverStatus.configurationFile).to.not.equals("");
+            expect(serverStatus.runningSince).to.match(/(\d+) (day|days), (\d+) (hour|hours), (\d+) (minute|minutes)/);
+            expect(serverStatus.baseDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
+            expect(serverStatus.dataDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
+            expect(serverStatus.pluginsDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
+            expect(serverStatus.tempDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
+            expect(serverStatus.errorLog.checked).to.be;
+            expect(serverStatus.errorLog.path).to.match(/((?:[^\\/]*\/)*)(.*)/);
+            expect(typeof serverStatus.generalLog.checked).to.equals("boolean");
+            expect(serverStatus.generalLog.path).to.not.equals("");
+            expect(typeof serverStatus.slowQueryLog.checked).to.equals("boolean");
+            expect(serverStatus.slowQueryLog.path).to.not.equals("");
+            expect(typeof serverStatus.performanceSchema).to.equals("boolean");
+            expect(typeof serverStatus.threadPool).to.equals("boolean");
+            expect(serverStatus.memCachedPlugin).to.not.equals("");
+            expect(serverStatus.semiSyncRepPlugin).to.not.equals("");
+            expect(typeof serverStatus.pamAuthentication).to.equals("boolean");
+            expect(typeof serverStatus.passwordValidation).to.equals("boolean");
+            expect(typeof serverStatus.auditLog).to.equals("boolean");
+            expect(serverStatus.firewall).to.not.equals("");
+            expect(serverStatus.firewallTrace).to.not.equals("");
+            expect(serverStatus.sslCa).to.match(/.pem/);
+            expect(serverStatus.sslCert).to.match(/.pem/);
+            expect(serverStatus.sslKey).to.match(/.pem/);
+            expect(serverStatus.privateKey).to.equals("private_key.pem");
+            expect(serverStatus.publicKey).to.equals("public_key.pem");
 
         });
 
@@ -922,19 +948,13 @@ describe("DATABASE CONNECTIONS", () => {
                     await (await dbTreeSection.tree.getElement(constants.lakehouseNavigator)).click();
                     expect(await Workbench.getOpenEditorTitles(), errors.tabIsNotOpened(constants.lakehouseNavigator))
                         .to.include(constants.lakehouseNavigator);
-                    await driver.wait(new E2ENotebook().untilIsOpened(heatWaveConn), constants.wait15seconds);
+                    await driver.wait(new LakeHouseNavigator().untilIsOpened(heatWaveConn), constants.wait15seconds);
                     await Workbench.toggleSideBar(false);
                 } catch (e) {
                     await Misc.processFailure(this);
                     throw e;
                 }
 
-            });
-
-            afterEach(async function () {
-                if (this.currentTest.state === "failed") {
-                    await Misc.processFailure(this);
-                }
             });
 
             after(async function () {
@@ -956,6 +976,12 @@ describe("DATABASE CONNECTIONS", () => {
             });
 
             it("Upload data to object storage", async () => {
+
+                await driver.wait(lakeHouseNavigator.overview.isOpened(), constants.wait3seconds);
+                await driver.wait(new Condition(`for editor to be ${constants.lakeHouseNavigatorEditor}`, async () => {
+                    return (await lakeHouseNavigator.toolbar.getCurrentEditor()).label ===
+                        constants.lakeHouseNavigatorEditor;
+                }), constants.wait3seconds);
 
                 await lakeHouseNavigator.overview.clickUploadFiles();
                 await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.selectOciProfile("HEATWAVE");
@@ -988,6 +1014,8 @@ describe("DATABASE CONNECTIONS", () => {
                 await lakeHouseNavigator.selectTab(constants.loadIntoLakeHouseTab);
                 await driver.wait(lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.untilItemsAreLoaded(),
                     constants.wait10seconds);
+                await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
+                    .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
                 expect(await lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.existsItem(fileToUpload),
                     `'${fileToUpload}' was not found`).to.be.true;
                 await lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.checkItem(fileToUpload);
@@ -1310,7 +1338,6 @@ describe("DATABASE CONNECTIONS", () => {
             const sakilaItem = await dbTreeSection.tree.getElement(
                 (globalConn.basic as interfaces.IConnBasicMySQL).schema);
             await dbTreeSection.tree.openContextMenuAndSelect(sakilaItem, constants.loadDataToHW);
-            await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait15seconds);
             await DatabaseConnectionDialog.setDataToHeatWave();
             await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Workbench.getNotification("The data load to the HeatWave cluster operation has finished");

@@ -244,28 +244,28 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                 </GridCell>
 
                 <GridCell key="cell5" className="left">Host:</GridCell>
-                <GridCell key="cell6">{serverStatus.host ?? "none"}</GridCell>
+                <GridCell key="cell6" data-testid="host">{serverStatus.host ?? "none"}</GridCell>
 
                 <GridCell key="cell7" className="left">Socket:</GridCell>
-                <GridCell key="cell8">{serverStatus.socket ?? "none"}</GridCell>
+                <GridCell key="cell8" data-testid="socket">{serverStatus.socket ?? "none"}</GridCell>
 
                 <GridCell key="cell9" className="left">Port:</GridCell>
-                <GridCell key="cell10">{serverStatus.port ?? "none"}</GridCell>
+                <GridCell key="cell10" data-testid="port">{serverStatus.port ?? "none"}</GridCell>
 
                 <GridCell key="cell11" className="left">Version:</GridCell>
-                <GridCell key="cell12">
+                <GridCell key="cell12" data-testid="version">
                     {serverStatus.version ?? "none"}
                 </GridCell>
                 <GridCell key="cell13" className="left">Compiled For:</GridCell>
-                <GridCell key="cell14">
+                <GridCell key="cell14" data-testid="compiledFor">
                     {serverStatus.compiledFor ?? "none"}
                 </GridCell>
                 <GridCell key="cell15" className="left">Configuration File:</GridCell>
-                <GridCell key="cell16">
+                <GridCell key="cell16" data-testid="configFile">
                     {serverStatus.configFile ?? "none"}
                 </GridCell>
                 <GridCell key="cell17" className="left">Running Since:</GridCell>
-                <GridCell key="cell18">
+                <GridCell key="cell18" data-testid="runningSince">
                     {serverStatus?.runningSince ?? "none"}
                 </GridCell>
             </Grid>
@@ -290,44 +290,44 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                 </GridCell>
 
                 <GridCell key="cell18" className="left">Performance Schema:</GridCell>
-                <GridCell key="cell19">
+                <GridCell key="cell19" data-testid="performanceSchema">
                     {this.drawBoolean(serverFeatures.performanceSchema)}
                     {serverFeatures.performanceSchema}
                 </GridCell>
 
                 <GridCell key="cell20" className="left">Thread Pool:</GridCell>
-                <GridCell key="cell21">
+                <GridCell key="cell21" data-testid="threadPool">
                     {this.drawBoolean(serverFeatures.threadPool)}
                     {serverFeatures.threadPool}
                 </GridCell>
 
                 <GridCell key="cell22" className="left">Memcached Plugin:</GridCell>
-                <GridCell key="cell23">{serverFeatures.memCachePlugin ?? "none"}</GridCell>
+                <GridCell key="cell23" data-testid="memCached">{serverFeatures.memCachePlugin ?? "none"}</GridCell>
 
                 <GridCell key="cell24" className="left">Semisync Replication Plugin:</GridCell>
-                <GridCell key="cell25">{serverFeatures.semisync ?? "none"}</GridCell>
+                <GridCell key="cell25" data-testid="semiSyncPlugin">{serverFeatures.semisync ?? "none"}</GridCell>
 
                 {this.authenticationOutput()}
 
                 <GridCell key="cell28" className="left">Password Validation:</GridCell>
-                <GridCell key="cell29">
+                <GridCell key="cell29" data-testid="passwordValidation">
                     {this.drawBoolean(serverFeatures.passwordValidation)}
                     {serverFeatures.passwordValidationValue}
                 </GridCell>
 
                 <GridCell key="cell30" className="left">Audit Log:</GridCell>
-                <GridCell key="cell31">
+                <GridCell key="cell31" data-testid="auditLog">
                     {this.drawBoolean(serverFeatures.auditLog)}
                     {serverFeatures.auditLogValue}
                 </GridCell>
 
                 <GridCell key="cell32" className="left">Firewall:</GridCell>
-                <GridCell key="cell33">
+                <GridCell key="cell33" data-testid="firewall">
                     {serverFeatures?.firewall ?? "none"}
                 </GridCell>
 
                 <GridCell key="cell34" className="left">Firewall Trace:</GridCell>
-                <GridCell key="cell35">
+                <GridCell key="cell35" data-testid="firewallTrace">
                     {serverFeatures?.firewallTrace ?? "none"}
                 </GridCell>
             </Grid>
@@ -340,14 +340,14 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
         if (this.showWindowsAuth) {
             return <>
                 <GridCell key="cell90" className="left">Windows Authentication:</GridCell>
-                <GridCell key="cell91">
+                <GridCell key="cell91" data-testid="windowsAuth">
                     {this.drawBoolean(serverFeatures.windowsAuth)}
                 </GridCell>
             </>;
         } else {
             return <>
                 <GridCell key="cell90" className="left">PAM Authentication:</GridCell>
-                <GridCell key="cell91">
+                <GridCell key="cell91" data-testid="pamAuth">
                     {this.drawBoolean(serverFeatures.pamAuth)}
                 </GridCell>
             </>;
@@ -371,33 +371,33 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                     <Divider />
                 </GridCell>
                 <GridCell key="cell38" className="left">Base Directory:</GridCell>
-                <GridCell key="cell39">
+                <GridCell key="cell39" data-testid="baseDir">
                     {serverDirectories.baseDirectory}
                 </GridCell>
                 <GridCell key="cell40" className="left">Data Directory:</GridCell>
-                <GridCell key="cell41">
+                <GridCell key="cell41" data-testid="dataDir">
                     {serverDirectories.dataDirectory}
                 </GridCell>
                 <GridCell key="cell42" className="left">Plugins directory:</GridCell>
-                <GridCell key="cell43">
+                <GridCell key="cell43" data-testid="pluginsDir">
                     {serverDirectories.pluginDirectory}
                 </GridCell>
                 <GridCell key="cell44" className="left">Tmp Directory:</GridCell>
-                <GridCell key="cell45">
+                <GridCell key="cell45" data-testid="tmpDir">
                     {serverDirectories.tmpDirectory}
                 </GridCell>
                 <GridCell key="cell48" className="left">Error Log:</GridCell>
-                <GridCell key="cell49">
+                <GridCell key="cell49" data-testid="errorLog">
                     {this.drawBoolean(serverDirectories.errorLog)}
                     {serverDirectories.errorLogValue}
                 </GridCell>
                 <GridCell key="cell50" className="left">General Log:</GridCell>
-                <GridCell key="cell51">
+                <GridCell key="cell51" data-testid="generalLog">
                     {this.drawBoolean(serverDirectories.generalLog)}
                     {serverDirectories.generalLogFile}
                 </GridCell>
                 <GridCell key="cell52" className="left">Slow Query Log:</GridCell>
-                <GridCell key="cell53">
+                <GridCell key="cell53" data-testid="slowQueryLog">
                     {this.drawBoolean(serverDirectories.slowQueryLog)}
                     {serverDirectories.slowQueryLogValue}
                 </GridCell>
@@ -422,10 +422,10 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                 </GridCell>
 
                 <GridCell key="cell56" className="left">SHA256 Private Key:</GridCell>
-                <GridCell key="cell57">{serverAuthentication.privateKeyPath}</GridCell>
+                <GridCell key="cell57" data-testid="privateKey">{serverAuthentication.privateKeyPath}</GridCell>
 
                 <GridCell key="cell58" className="left">SHA256 Public Key:</GridCell>
-                <GridCell key="cell59">{serverAuthentication.publicKeyPath}</GridCell>
+                <GridCell key="cell59" data-testid="publicKey">{serverAuthentication.publicKeyPath}</GridCell>
             </Grid>);
     };
 
@@ -476,19 +476,19 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                     <Divider />
                 </GridCell>
                 <GridCell key="cell72" className="left">SSL CA:</GridCell>
-                <GridCell key="cell73">{serverSsl.sslCa}</GridCell>
+                <GridCell key="cell73" data-testid="sslCa">{serverSsl.sslCa}</GridCell>
                 <GridCell key="cell74" className="left">SSL CA Path:</GridCell>
-                <GridCell key="cell75">{serverSsl.sslCaPath}</GridCell>
+                <GridCell key="cell75" data-testid="sslCaPath">{serverSsl.sslCaPath}</GridCell>
                 <GridCell key="cell76" className="left">SSL Cert:</GridCell>
-                <GridCell key="cell77">{serverSsl.sslCert}</GridCell>
+                <GridCell key="cell77" data-testid="sslCert">{serverSsl.sslCert}</GridCell>
                 <GridCell key="cell78" className="left">SSL Cipher:</GridCell>
-                <GridCell key="cell79">{serverSsl.sslCipher}</GridCell>
+                <GridCell key="cell79" data-testid="sslCipher">{serverSsl.sslCipher}</GridCell>
                 <GridCell key="cell80" className="left">SSL CRL:</GridCell>
-                <GridCell key="cell81">{serverSsl.sslClr}</GridCell>
+                <GridCell key="cell81" data-testid="sslCrl">{serverSsl.sslClr}</GridCell>
                 <GridCell key="cell82" className="left">SSL CRL Path:</GridCell>
-                <GridCell key="cell83">{serverSsl.sslClrPath}</GridCell>
+                <GridCell key="cell83" data-testid="sslCrlPath">{serverSsl.sslClrPath}</GridCell>
                 <GridCell key="cell84" className="left">SSL Key:</GridCell>
-                <GridCell key="cell85">{serverSsl.sslKey}</GridCell>
+                <GridCell key="cell85" data-testid="sslKey">{serverSsl.sslKey}</GridCell>
             </Grid>
         );
     };
