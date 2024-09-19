@@ -32,6 +32,8 @@ import { UploadToObjectStorage } from "./uploadToObjectStorage";
 import { LoadIntoLakehouse } from "./loadIntoLakeHouse";
 import { LakehouseTables } from "./lakehouseTables";
 import { Toolbar } from "../Toolbar";
+import { PasswordDialog } from "../Dialogs/PasswordDialog";
+import * as interfaces from "../../interfaces";
 
 /**
  * This class aggregates the functions that perform password dialog related operations
@@ -49,23 +51,38 @@ export class LakeHouseNavigator {
     public lakehouseTables = new LakehouseTables();
 
     /**
-     * Verifies if the Lakehouse Navigator is opened
-     * @returns A promise resolving with true if the Lakehouse Navigator is opened, false otherwise
+     * Verifies if the Lakehouse Navigator page is opened and fully loaded
+     * @param connection The DB Connection
+     * @returns A condition resolving to true if the page is loaded, false otherwise
      */
-    public isOpened = async (): Promise<boolean> => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
+    public untilIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
+        return new Condition(`for Lakehouse Navigator to be opened`, async () => {
+            await Misc.switchBackToTopFrame();
+            await Misc.switchToFrame();
 
-        return (await this.toolbar.getCurrentEditor()).label === constants.lakeHouseNavigatorEditor;
-    };
+            const isOpened = async (): Promise<boolean> => {
+                return (await driver.findElements(locator.lakeHouseNavigator.exists)).length > 0;
+            };
 
-    /**
-     * Verifies if the Overview tab is selected
-     * @returns A condition resolving to true if the tab is selected, false otherwise
-     */
-    public untilIsOpened = (): Condition<boolean> => {
-        return new Condition(` for Lakehouse Navigator to be opened`, async () => {
-            return this.isOpened();
+            if (await PasswordDialog.exists()) {
+                await PasswordDialog.setCredentials(connection);
+
+                return driver.wait(async () => {
+                    return isOpened();
+                }, constants.wait10seconds)
+                    .catch(async () => {
+                        const existsErrorDialog = (await driver.findElements(locator.errorDialog.exists)).length > 0;
+                        if (existsErrorDialog) {
+                            const errorDialog = await driver.findElement(locator.errorDialog.exists);
+                            const errorMsg = await errorDialog.findElement(locator.errorDialog.message);
+                            throw new Error(await errorMsg.getText());
+                        } else {
+                            throw new Error("Unknown error");
+                        }
+                    });
+            } else {
+                return isOpened();
+            }
         });
     };
 

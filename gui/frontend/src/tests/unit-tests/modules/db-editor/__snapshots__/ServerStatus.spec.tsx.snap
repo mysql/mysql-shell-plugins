@@ -325,15 +325,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="host"
                     key="cell6"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="host"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="host"
                         style={
                           {
                             "alignItems": undefined,
@@ -372,15 +375,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="socket"
                     key="cell8"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="socket"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="socket"
                         style={
                           {
                             "alignItems": undefined,
@@ -419,15 +425,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="port"
                     key="cell10"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="port"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="port"
                         style={
                           {
                             "alignItems": undefined,
@@ -466,15 +475,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="version"
                     key="cell12"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="version"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="version"
                         style={
                           {
                             "alignItems": undefined,
@@ -513,15 +525,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="compiledFor"
                     key="cell14"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="compiledFor"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="compiledFor"
                         style={
                           {
                             "alignItems": undefined,
@@ -560,15 +575,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="configFile"
                     key="cell16"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="configFile"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="configFile"
                         style={
                           {
                             "alignItems": undefined,
@@ -607,15 +625,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="runningSince"
                     key="cell18"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="runningSince"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="runningSince"
                         style={
                           {
                             "alignItems": undefined,
@@ -763,15 +784,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="baseDir"
                     key="cell39"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="baseDir"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="baseDir"
                         style={
                           {
                             "alignItems": undefined,
@@ -808,15 +832,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="dataDir"
                     key="cell41"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="dataDir"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="dataDir"
                         style={
                           {
                             "alignItems": undefined,
@@ -853,15 +880,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="pluginsDir"
                     key="cell43"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="pluginsDir"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="pluginsDir"
                         style={
                           {
                             "alignItems": undefined,
@@ -898,15 +928,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="tmpDir"
                     key="cell45"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="tmpDir"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="tmpDir"
                         style={
                           {
                             "alignItems": undefined,
@@ -943,15 +976,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="errorLog"
                     key="cell49"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="errorLog"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="errorLog"
                         style={
                           {
                             "alignItems": undefined,
@@ -1011,15 +1047,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="generalLog"
                     key="cell51"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="generalLog"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="generalLog"
                         style={
                           {
                             "alignItems": undefined,
@@ -1079,15 +1118,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="slowQueryLog"
                     key="cell53"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="slowQueryLog"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="slowQueryLog"
                         style={
                           {
                             "alignItems": undefined,
@@ -1256,15 +1298,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="performanceSchema"
                     key="cell19"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="performanceSchema"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="performanceSchema"
                         style={
                           {
                             "alignItems": undefined,
@@ -1324,15 +1369,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="threadPool"
                     key="cell21"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="threadPool"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="threadPool"
                         style={
                           {
                             "alignItems": undefined,
@@ -1392,15 +1440,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="memCached"
                     key="cell23"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="memCached"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="memCached"
                         style={
                           {
                             "alignItems": undefined,
@@ -1439,15 +1490,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="semiSyncPlugin"
                     key="cell25"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="semiSyncPlugin"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="semiSyncPlugin"
                         style={
                           {
                             "alignItems": undefined,
@@ -1486,15 +1540,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="pamAuth"
                     key="cell91"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="pamAuth"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="pamAuth"
                         style={
                           {
                             "alignItems": undefined,
@@ -1554,15 +1611,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="passwordValidation"
                     key="cell29"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="passwordValidation"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="passwordValidation"
                         style={
                           {
                             "alignItems": undefined,
@@ -1622,15 +1682,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="auditLog"
                     key="cell31"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="auditLog"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="auditLog"
                         style={
                           {
                             "alignItems": undefined,
@@ -1690,15 +1753,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="firewall"
                     key="cell33"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="firewall"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="firewall"
                         style={
                           {
                             "alignItems": undefined,
@@ -1737,15 +1803,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="firewallTrace"
                     key="cell35"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="firewallTrace"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="firewallTrace"
                         style={
                           {
                             "alignItems": undefined,
@@ -1893,15 +1962,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="sslCa"
                     key="cell73"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="sslCa"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="sslCa"
                         style={
                           {
                             "alignItems": undefined,
@@ -1938,15 +2010,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="sslCaPath"
                     key="cell75"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="sslCaPath"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="sslCaPath"
                         style={
                           {
                             "alignItems": undefined,
@@ -1983,15 +2058,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="sslCert"
                     key="cell77"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="sslCert"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="sslCert"
                         style={
                           {
                             "alignItems": undefined,
@@ -2028,15 +2106,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="sslCipher"
                     key="cell79"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="sslCipher"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="sslCipher"
                         style={
                           {
                             "alignItems": undefined,
@@ -2073,15 +2154,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="sslCrl"
                     key="cell81"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="sslCrl"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="sslCrl"
                         style={
                           {
                             "alignItems": undefined,
@@ -2118,15 +2202,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="sslCrlPath"
                     key="cell83"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="sslCrlPath"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="sslCrlPath"
                         style={
                           {
                             "alignItems": undefined,
@@ -2163,15 +2250,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="sslKey"
                     key="cell85"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="sslKey"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="sslKey"
                         style={
                           {
                             "alignItems": undefined,
@@ -2317,15 +2407,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="privateKey"
                     key="cell57"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="privateKey"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="privateKey"
                         style={
                           {
                             "alignItems": undefined,
@@ -2362,15 +2455,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="publicKey"
                     key="cell59"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="publicKey"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="publicKey"
                         style={
                           {
                             "alignItems": undefined,
@@ -2718,15 +2814,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="host"
                     key="cell6"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="host"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="host"
                         style={
                           {
                             "alignItems": undefined,
@@ -2765,15 +2864,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="socket"
                     key="cell8"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="socket"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="socket"
                         style={
                           {
                             "alignItems": undefined,
@@ -2812,15 +2914,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="port"
                     key="cell10"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="port"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="port"
                         style={
                           {
                             "alignItems": undefined,
@@ -2859,15 +2964,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="version"
                     key="cell12"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="version"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="version"
                         style={
                           {
                             "alignItems": undefined,
@@ -2906,15 +3014,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="compiledFor"
                     key="cell14"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="compiledFor"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="compiledFor"
                         style={
                           {
                             "alignItems": undefined,
@@ -2953,15 +3064,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="configFile"
                     key="cell16"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="configFile"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="configFile"
                         style={
                           {
                             "alignItems": undefined,
@@ -3000,15 +3114,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="runningSince"
                     key="cell18"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="runningSince"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="runningSince"
                         style={
                           {
                             "alignItems": undefined,
@@ -3156,15 +3273,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="baseDir"
                     key="cell39"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="baseDir"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="baseDir"
                         style={
                           {
                             "alignItems": undefined,
@@ -3201,15 +3321,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="dataDir"
                     key="cell41"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="dataDir"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="dataDir"
                         style={
                           {
                             "alignItems": undefined,
@@ -3246,15 +3369,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="pluginsDir"
                     key="cell43"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="pluginsDir"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="pluginsDir"
                         style={
                           {
                             "alignItems": undefined,
@@ -3291,15 +3417,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="tmpDir"
                     key="cell45"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="tmpDir"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="tmpDir"
                         style={
                           {
                             "alignItems": undefined,
@@ -3336,15 +3465,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="errorLog"
                     key="cell49"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="errorLog"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="errorLog"
                         style={
                           {
                             "alignItems": undefined,
@@ -3404,15 +3536,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="generalLog"
                     key="cell51"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="generalLog"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="generalLog"
                         style={
                           {
                             "alignItems": undefined,
@@ -3472,15 +3607,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="slowQueryLog"
                     key="cell53"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="slowQueryLog"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="slowQueryLog"
                         style={
                           {
                             "alignItems": undefined,
@@ -3649,15 +3787,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="performanceSchema"
                     key="cell19"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="performanceSchema"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="performanceSchema"
                         style={
                           {
                             "alignItems": undefined,
@@ -3717,15 +3858,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="threadPool"
                     key="cell21"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="threadPool"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="threadPool"
                         style={
                           {
                             "alignItems": undefined,
@@ -3785,15 +3929,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="memCached"
                     key="cell23"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="memCached"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="memCached"
                         style={
                           {
                             "alignItems": undefined,
@@ -3832,15 +3979,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="semiSyncPlugin"
                     key="cell25"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="semiSyncPlugin"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="semiSyncPlugin"
                         style={
                           {
                             "alignItems": undefined,
@@ -3879,15 +4029,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="pamAuth"
                     key="cell91"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="pamAuth"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="pamAuth"
                         style={
                           {
                             "alignItems": undefined,
@@ -3947,15 +4100,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="passwordValidation"
                     key="cell29"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="passwordValidation"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="passwordValidation"
                         style={
                           {
                             "alignItems": undefined,
@@ -4015,15 +4171,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="auditLog"
                     key="cell31"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="auditLog"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="auditLog"
                         style={
                           {
                             "alignItems": undefined,
@@ -4083,15 +4242,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="firewall"
                     key="cell33"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="firewall"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="firewall"
                         style={
                           {
                             "alignItems": undefined,
@@ -4130,15 +4292,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="firewallTrace"
                     key="cell35"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="firewallTrace"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="firewallTrace"
                         style={
                           {
                             "alignItems": undefined,
@@ -4286,15 +4451,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="sslCa"
                     key="cell73"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="sslCa"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="sslCa"
                         style={
                           {
                             "alignItems": undefined,
@@ -4331,15 +4499,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="sslCaPath"
                     key="cell75"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="sslCaPath"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="sslCaPath"
                         style={
                           {
                             "alignItems": undefined,
@@ -4376,15 +4547,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="sslCert"
                     key="cell77"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="sslCert"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="sslCert"
                         style={
                           {
                             "alignItems": undefined,
@@ -4421,15 +4595,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="sslCipher"
                     key="cell79"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="sslCipher"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="sslCipher"
                         style={
                           {
                             "alignItems": undefined,
@@ -4466,15 +4643,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="sslCrl"
                     key="cell81"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="sslCrl"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="sslCrl"
                         style={
                           {
                             "alignItems": undefined,
@@ -4511,15 +4691,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="sslCrlPath"
                     key="cell83"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="sslCrlPath"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="sslCrlPath"
                         style={
                           {
                             "alignItems": undefined,
@@ -4556,15 +4739,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="sslKey"
                     key="cell85"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="sslKey"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="sslKey"
                         style={
                           {
                             "alignItems": undefined,
@@ -4710,15 +4896,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="privateKey"
                     key="cell57"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="privateKey"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="privateKey"
                         style={
                           {
                             "alignItems": undefined,
@@ -4755,15 +4944,18 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                     </Container>
                   </GridCell>
                   <GridCell
+                    data-testid="publicKey"
                     key="cell59"
                   >
                     <Container
                       className="msg gridCell"
+                      data-testid="publicKey"
                       orientation="row"
                       style={{}}
                     >
                       <div
                         className="msg container fixedScrollbar gridCell"
+                        data-testid="publicKey"
                         style={
                           {
                             "alignItems": undefined,

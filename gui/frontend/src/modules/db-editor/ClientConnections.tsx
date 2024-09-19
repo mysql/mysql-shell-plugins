@@ -401,16 +401,25 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         const { globalStatus } = this.state;
 
         return [
-            <Label key="threadConnectedLabel">Threads Connected: {globalStatus.threadConnected}</Label>,
-            <Label key="threadRunningLabel">Threads Running: {globalStatus.threadRunning}</Label>,
-            <Label key="threadsCreatedLabel">Threads Created: {globalStatus.threadsCreated}</Label>,
-            <Label key="threadsCachedLabel">Threads Cached: {globalStatus.threadsCached}</Label>,
-            <Label key="rejectedLabel">Rejected (over limit): {globalStatus.rejected}</Label>,
-            <Label key="totalConnectionsLabel">Total Connections: {globalStatus.totalConnections}</Label>,
-            <Label key="connectionsLimitLabel">Connection Limit: {globalStatus.connectionLimit}</Label>,
-            <Label key="abortedClientsLabel">Aborted Clients: {globalStatus.abortedClients}</Label>,
-            <Label key="abortedConnectionsLabel">Aborted Connections: {globalStatus.abortedConnections}</Label>,
-            <Label key="errorsLabel">Errors: {globalStatus.errors}</Label>,
+            <Label data-testid="threadsConnected" key="threadConnectedLabel">
+                Threads Connected: {globalStatus.threadConnected}</Label>,
+            <Label data-testid="threadsRunning" key="threadRunningLabel">
+                Threads Running: {globalStatus.threadRunning}</Label>,
+            <Label data-testid="threadsCreated" key="threadsCreatedLabel">
+                Threads Created: {globalStatus.threadsCreated}</Label>,
+            <Label data-testid="threadsCached" key="threadsCachedLabel">
+                Threads Cached: {globalStatus.threadsCached}</Label>,
+            <Label data-testid="rejected" key="rejectedLabel">
+                Rejected (over limit): {globalStatus.rejected}</Label>,
+            <Label data-testid="totalConnections" key="totalConnectionsLabel">
+                Total Connections: {globalStatus.totalConnections}</Label>,
+            <Label data-testid="connectionsLimit" key="connectionsLimitLabel">
+                Connection Limit: {globalStatus.connectionLimit}</Label>,
+            <Label data-testid="abortedClients" key="abortedClientsLabel">
+                Aborted Clients: {globalStatus.abortedClients}</Label>,
+            <Label data-testid="abortedConnections" key="abortedConnectionsLabel">
+                Aborted Connections: {globalStatus.abortedConnections}</Label>,
+            <Label data-testid="errors" key="errorsLabel">Errors: {globalStatus.errors}</Label>,
         ];
     };
 

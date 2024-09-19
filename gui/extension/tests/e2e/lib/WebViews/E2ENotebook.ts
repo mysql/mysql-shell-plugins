@@ -42,47 +42,48 @@ export class E2ENotebook {
     public codeEditor = new E2ECodeEditor(this);
 
     /**
-     * Waits until the MDS connection is opened
+     * Verifies if the Notebook is opened and fully loaded
      * @param connection The database connection
-     * @returns A promise resolving when the MDS connection is opened
+     * @returns A condition resolving to true if the page is opened, false otherwise
      */
     public untilIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
         return new Condition(`for connection ${connection.caption} to be opened`, async () => {
             await Misc.switchBackToTopFrame();
             await Misc.switchToFrame();
 
-            const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
             const existsFingerPrintDialog = (await driver.findElements(locator.confirmDialog.exists)).length > 0;
 
             if (existsFingerPrintDialog) {
                 await driver.findElement(locator.confirmDialog.accept).click();
             }
 
-            if (existsPasswordDialog) {
+            const isOpened = async (): Promise<boolean> => {
+                const existsScript = (await driver.findElements(locator.notebook.codeEditor.editor.host))
+                    .length > 0;
+                const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
+
+                return existsScript || existsNotebook;
+            };
+
+            if (await PasswordDialog.exists()) {
                 await PasswordDialog.setCredentials(connection);
-                await driver.wait(this.untilDbConnectionIsSuccessful(), constants.wait10seconds).catch(async () => {
-                    const existsErrorDialog = (await driver.findElements(locator.errorDialog.exists)).length > 0;
-                    if (existsErrorDialog) {
-                        const errorDialog = await driver.findElement(locator.errorDialog.exists);
-                        const errorMsg = await errorDialog.findElement(locator.errorDialog.message);
-                        throw new Error(await errorMsg.getText());
-                    } else {
-                        throw new Error("Unknown error");
-                    }
-                });
+
+                return driver.wait(async () => {
+                    return isOpened();
+                }, constants.wait10seconds)
+                    .catch(async () => {
+                        const existsErrorDialog = (await driver.findElements(locator.errorDialog.exists)).length > 0;
+                        if (existsErrorDialog) {
+                            const errorDialog = await driver.findElement(locator.errorDialog.exists);
+                            const errorMsg = await errorDialog.findElement(locator.errorDialog.message);
+                            throw new Error(await errorMsg.getText());
+                        } else {
+                            throw new Error("Unknown error");
+                        }
+                    });
+            } else {
+                return isOpened();
             }
-
-            const existsGenericDialog = (await driver.findElements(locator.genericDialog.exists)).length > 0;
-            const existsEditor = (await driver.findElements(locator.notebook.codeEditor.textArea)).length > 0;
-            const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
-            const existsContentHost = (await driver.findElements(locator.mysqlAdministration.exists)).length > 0;
-            const existsLakehouseNavigator = (await driver.findElements(locator.lakeHouseNavigator.exists)).length > 0;
-
-            return existsNotebook ||
-                existsEditor ||
-                existsGenericDialog ||
-                existsContentHost ||
-                existsLakehouseNavigator;
         });
     };
 
@@ -121,20 +122,6 @@ export class E2ENotebook {
         }, constants.wait5seconds, "No SQL commands were found on the notebook");
 
         return commands.toString().match(regex) !== null;
-    };
-
-    /**
-     * Waits until the database connection is successful
-     * @returns A promise resolving when the database connection is successful
-     */
-    private untilDbConnectionIsSuccessful = (): Condition<boolean> => {
-        return new Condition("for DB Connection is successful", async () => {
-            const editorSelectorExists = (await driver.findElements(locator.notebook.toolbar.editorSelector.exists))
-                .length > 0;
-            const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
-
-            return editorSelectorExists || existsNotebook;
-        });
     };
 
 }

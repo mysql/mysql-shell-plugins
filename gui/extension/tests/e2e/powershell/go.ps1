@@ -43,7 +43,17 @@ try {
     function extensionWasNotLoaded(){
         $path = Join-Path $workspace "resultsExt-$env:TEST_SUITE.log"
         if (Test-Path $path) {
-            return $null -ne (Get-Content -Path $path | Select-String -Pattern "Extension was not loaded successfully" | % { $_.Matches.Groups[0].Value })
+            $extensionNotLoaded = $null -ne (Get-Content -Path $path | Select-String -Pattern "Extension was not loaded successfully" | % { $_.Matches.Groups[0].Value })
+            $webDriverError = $null -ne (Get-Content -Path $path | Select-String -Pattern "WebDriverError: unknown error: DevToolsActivePort" | % { $_.Matches.Groups[0].Value })
+            
+            if ($extensionNotLoaded -eq $true){
+                writeMsg "[ERR] Extension was not loaded. Trying again..."
+            }
+            if ($webDriverError -eq $true){
+                writeMsg "[ERR] Webdriver error. Trying again..."
+            }
+            
+            return $extensionNotLoaded -or $webDriverError
         } else {
             return $false
         }
@@ -194,7 +204,6 @@ try {
     $result = runTests $testResources
     if ($result -ne 0) {
         if (extensionWasNotLoaded) {
-            writeMsg "Extension was not loaded. Trying again..."
             $result = runTests $testResources
         }
     }

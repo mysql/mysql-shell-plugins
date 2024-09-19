@@ -35,6 +35,14 @@ import { credentialHelperOk } from "../../Workbench";
 export class PasswordDialog {
 
     /**
+     * Verifies if the Open MySQL Connection dialog is displayed
+     * @returns A promise resolving to true if the dialog is displayed, false otherwise
+     */
+    public static exists = async (): Promise<boolean> => {
+        return (await driver.findElements(locator.passwordDialog.exists)).length > 0;
+    };
+
+    /**
      * Sets the database credentials on the password dialog
      * @param data The credentials
      * @param timeout The max number of time the function should wait until the connection is successful

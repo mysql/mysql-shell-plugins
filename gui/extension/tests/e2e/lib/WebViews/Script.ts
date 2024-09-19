@@ -54,8 +54,7 @@ export class Script {
             await Misc.switchBackToTopFrame();
             await Misc.switchToFrame();
 
-            const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
-            if (existsPasswordDialog) {
+            if (await PasswordDialog.exists()) {
                 await PasswordDialog.setCredentials(connection);
                 await driver.wait(async () => {
                     const editorSelectorExists = (await driver.findElements(editorSelectorLocator))
