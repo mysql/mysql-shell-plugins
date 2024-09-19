@@ -785,11 +785,17 @@ def get_db_object_privileges(session, schema_name, db_object_name):
             AND TABLE_NAME = '{db_object_name}'
         """).exec(session).items
 
+    # The Db and Routine_name column values are identifier names, which on mysql.* tables are bound to some
+    # case-sensitivity constraints (https://dev.mysql.com/doc/refman/8.4/en/identifier-case-sensitivity.html).
+    # In order to allow the tests to use case sensitive Procedure names, we must ensure the lookup works around these
+    # constraints on every platform, regardless of the value of the `lower_case_table_names` system variable.
+    # One way to do that is by using case-insensitive pattern matching with REGEXP_LIKE (
+    # https://dev.mysql.com/doc/refman/8.4/en/pattern-matching.html).
     grants2 = lib.core.MrsDbExec(f"""
         SELECT PROC_PRIV
         FROM mysql.procs_priv
-        WHERE DB = '{schema_name}'
-            AND ROUTINE_NAME = '{db_object_name}'
+        WHERE REGEXP_LIKE(DB, '{schema_name}', 'i')
+            AND REGEXP_LIKE(ROUTINE_NAME, '{db_object_name}', 'i')
         """).exec(session).items
 
     if grants2:
