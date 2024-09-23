@@ -316,7 +316,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                            self.current_service_host if self.current_service_host is not None else "") +
             mrs_object.get("url_context_root",
                            self.current_service if self.current_service is not None else "") +
-            mrs_object.get("request_path",
+            mrs_object.get("schema_request_path",
                            self.current_schema if self.current_schema is not None else "") +
             request_path
         )
