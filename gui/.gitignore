@@ -68,5 +68,5 @@ extension/tests/e2e/output
 frontend/coverage
 frontend/src/tests/unit-tests/shell-test
 
-
-
+# MRS SDK resources
+frontend/src/modules/mrs/sdk

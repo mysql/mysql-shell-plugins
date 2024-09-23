@@ -26,8 +26,26 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import type { Config } from "jest";
+import { link, mkdir, rm } from "node:fs/promises";
+import { resolve } from "node:path";
 
-// eslint-disable-next-line @typescript-eslint/require-await
+const SDK_RESOURE_TARGET_DIR = resolve(__dirname, "..", "modules", "mrs", "sdk");
+
+const teardownMrsSdkResources = async () => {
+    await rm(SDK_RESOURE_TARGET_DIR, { force: true, recursive: true });
+};
+
+const setupMrsSdkResources = async () => {
+    await mkdir(SDK_RESOURE_TARGET_DIR, { recursive: true });
+
+    const source = resolve(__dirname, "..", "..", "..", "..", "mrs_plugin", "sdk", "typescript", "MrsBaseClasses.ts");
+    const target = resolve(SDK_RESOURE_TARGET_DIR, "MrsBaseClasses.ts");
+
+    await link(source, target);
+};
+
 module.exports = async (_globalConfig: unknown, _projectConfig: Config) => {
+    await teardownMrsSdkResources();
+    await setupMrsSdkResources();
     process.chdir("./src/tests/unit-tests");
 };

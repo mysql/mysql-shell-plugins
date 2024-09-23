@@ -25,10 +25,18 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
+import { rm } from "node:fs/promises";
+import { resolve } from "node:path";
+
 export { };
 
-// eslint-disable-next-line @typescript-eslint/require-await
+const teardownMrsSdkResources = async () => {
+    const targetDir = resolve(__dirname, "..", "modules", "mrs", "sdk");
+    await rm(targetDir, { force: true, recursive: true });
+};
+
 module.exports = async (_globalConfig: unknown, projectConfig: unknown) => {
     // @ts-ignore
     process.chdir(projectConfig.cwd as string);
+    await teardownMrsSdkResources();
 };
