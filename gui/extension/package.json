@@ -524,8 +524,20 @@
                 "title": "Drop View..."
             },
             {
-                "command": "msg.createRoutine",
-                "title": "Create Stored Routine..."
+                "command": "msg.createProcedure",
+                "title": "Create Stored Procedure..."
+            },
+            {
+                "command": "msg.createFunction",
+                "title": "Create Stored Function..."
+            },
+            {
+                "command": "msg.createFunctionJs",
+                "title": "Create Stored JavaScript Function..."
+            },
+            {
+                "command": "msg.editRoutine",
+                "title": "Edit Stored Routine..."
             },
             {
                 "command": "msg.dropRoutine",
@@ -1260,6 +1272,21 @@
                     "group": "5_msg@1"
                 },
                 {
+                    "command": "msg.createProcedure",
+                    "when": "view == msg.connections && viewItem == RoutinesGroupItem && !showsModalDialog",
+                    "group": "5_msg@2"
+                },
+                {
+                    "command": "msg.createFunction",
+                    "when": "view == msg.connections && viewItem == RoutinesGroupItem && !showsModalDialog",
+                    "group": "5_msg@3"
+                },
+                {
+                    "command": "msg.createFunctionJs",
+                    "when": "view == msg.connections && viewItem == RoutinesGroupItem && !showsModalDialog",
+                    "group": "6_msg@1"
+                },
+                {
                     "command": "msg.dropSchema",
                     "when": "view == msg.connections && viewItem =~ /^schemaItem.*/ && !showsModalDialog",
                     "group": "9_msg@2"
@@ -1273,6 +1300,11 @@
                     "command": "msg.dropView",
                     "when": "view == msg.connections && viewItem =~ /^schemaViewItem.*/",
                     "group": "9_msg@2"
+                },
+                {
+                    "command": "msg.editRoutine",
+                    "when": "view == msg.connections && viewItem =~ /^schemaRoutineItem.*/",
+                    "group": "2_msg@1"
                 },
                 {
                     "command": "msg.dropRoutine",

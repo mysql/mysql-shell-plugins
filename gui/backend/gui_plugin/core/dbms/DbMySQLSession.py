@@ -351,6 +351,9 @@ class DbMysqlSession(DbSession):
         if common.MySQLData.HEATWAVE_AVAILABLE in self.data:
             ret_val["heat_wave_available"] = self.data[common.MySQLData.HEATWAVE_AVAILABLE]
 
+        if common.MySQLData.MLE_AVAILABLE in self.data:
+            ret_val["mle_available"] = self.data[common.MySQLData.MLE_AVAILABLE]
+
         return ret_val
 
     @property

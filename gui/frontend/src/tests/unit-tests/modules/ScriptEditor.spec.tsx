@@ -67,6 +67,7 @@ describe("Script editor tests", (): void => {
             }],
             activeEntry: "1",
             heatWaveEnabled: false,
+            mleEnabled: false,
             connectionId: -1,
         };
 

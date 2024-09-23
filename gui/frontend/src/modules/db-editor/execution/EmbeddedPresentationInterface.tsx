@@ -53,10 +53,8 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     // Listener for content changes in the render target.
     private resizeObserver?: ResizeObserver;
 
-    public constructor(private editor: Partial<Monaco.IStandaloneCodeEditor> | undefined,
-        private isScrolling: () => boolean,
-        language: EditorLanguage) {
-        super(editor, language);
+    public constructor(private isScrolling: () => boolean, language: EditorLanguage) {
+        super(language);
     }
 
     public override dispose(): void {
@@ -77,7 +75,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         }
     }
 
-    public override activate(editor: Partial<Monaco.IStandaloneCodeEditor>, cachedHeight: number | undefined): void {
+    public override activate(editor: Monaco.IStandaloneCodeEditor, cachedHeight?: number): void {
         super.activate(editor, cachedHeight);
 
         this.updateMarginDecorations();
@@ -295,13 +293,13 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
 
         renderTarget.addEventListener("keydown", (e) => {
             if (e.altKey && e.key === KeyboardKeys.ArrowUp) {
-                this.editor?.setPosition?.({ lineNumber: this.startLine, column: 1 });
-                this.editor?.focus?.();
+                this.backend?.setPosition?.({ lineNumber: this.startLine, column: 1 });
+                this.backend?.focus?.();
 
                 e.stopPropagation();
             } else if (e.altKey && e.key === KeyboardKeys.ArrowDown) {
-                this.editor?.setPosition?.({ lineNumber: this.endLine + 1, column: 1 });
-                this.editor?.focus?.();
+                this.backend?.setPosition?.({ lineNumber: this.endLine + 1, column: 1 });
+                this.backend?.focus?.();
 
                 e.stopPropagation();
             }
