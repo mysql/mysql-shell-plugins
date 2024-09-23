@@ -244,9 +244,9 @@
     height: 100%;
 }
 
-.msg .resultText.actionLabel:not(.error, .warning),
-.zoneHost .resultText:not(.error, .warning) {
-    background-color: var(--editorZone-background);
+.msg .resultText.actionLabel:not(.error, .warning, .success),
+.zoneHost .resultText:not(.error, .warning, .success) {
+    /* background-color: var(--editorZone-background); */
     color: var(--resultZone-foreground);
     white-space: pre-wrap;
     cursor: text;
@@ -265,6 +265,16 @@
 .zoneHost .resultText.text.warning {
     white-space: pre-wrap;
     flex: 1;
+}
+
+.msg .actionRow {
+    display: flex;
+    gap: 2px;
+    flex-direction: row;
+}
+
+.msg .actionOutput .actionRow > .label > .span {
+    padding-left: 2px;
 }
 
 .msg.resultHost .resultText > .label {
@@ -380,8 +390,10 @@
 }
 
 .msg.connectionTabHost .resultHost .actionOutput {
-    padding: 4px;
+    padding: 2px;
     flex: 1;
+    gap: 2px;
+    background-color: color-mix(in srgb, var(--tab-activeBackground) 75%, var(--editorZone-background));
 }
 
 .msg.connectionTabHost .renderTarget .actionOutput .actionLabel.clickable:hover,
@@ -403,6 +415,7 @@
     font-family: var(--msg-monospace-font-family);
 }
 
+.msg.connectionTabHost .resultHost .copyButton,
 .zoneHost > .renderTarget > .resultHost .copyButton,
 .zoneHost > .renderTarget > .outputHost .copyButton {
     display: none;
@@ -418,6 +431,7 @@
     z-index: 1;
 }
 
+.msg.connectionTabHost .resultHost:hover .copyButton,
 .zoneHost > .renderTarget > .resultHost:hover .copyButton,
 .zoneHost > .renderTarget > .outputHost:hover .copyButton {
     display: block;

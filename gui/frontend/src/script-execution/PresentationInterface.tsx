@@ -121,13 +121,12 @@ export class PresentationInterface {
     private resultRef = createRef<ResultTabView>();
 
     /**
-     * Represents the full code editor of which this presentation is a part of.
+     * Represents the full code editor of which this presentation is a part of. Only set when the
+     * presentation is active.
      */
-    // Using a partial backend here to allow for testing without a full editor.
-    #backend?: Partial<Monaco.IStandaloneCodeEditor>;
+    #backend?: Monaco.IStandaloneCodeEditor;
 
-    public constructor(editor: Partial<Monaco.IStandaloneCodeEditor> | undefined, public language: EditorLanguage) {
-        this.#backend = editor;
+    public constructor(public language: EditorLanguage) {
         this.prepareRenderTarget();
 
         requisitions.register("sqlUpdateColumnInfo", this.updateColumnInfo);
@@ -166,7 +165,7 @@ export class PresentationInterface {
      * @param backend The editor backend to which this presentation is attached.
      * @param _cachedHeight Unused. Will be set when data is added.
      */
-    public activate(backend: Partial<Monaco.IStandaloneCodeEditor>, _cachedHeight?: number): void {
+    public activate(backend: Monaco.IStandaloneCodeEditor, _cachedHeight?: number): void {
         this.#backend = backend;
         this.prepareRenderTarget();
     }
@@ -180,7 +179,7 @@ export class PresentationInterface {
         return this.resultRef.current?.canClose() ?? Promise.resolve(true);
     }
 
-    public get backend(): Partial<Monaco.IStandaloneCodeEditor> | undefined {
+    public get backend(): Monaco.IStandaloneCodeEditor | undefined {
         return this.#backend;
     }
 
@@ -398,7 +397,15 @@ export class PresentationInterface {
             this.waitTimer = null;
         }
 
+        if (data.type === "resultSets") {
+            // Empty results in sets are shown as text. This is already covered in the output field.
+            // So simply filter out empty result sets.
+            data.sets = data.sets.filter((set) => {
+                return set.data.rows.length > 0;
+            });
+        }
         this.resultData = data;
+
         this.renderResults(presentationOptions);
     }
 
@@ -419,64 +426,21 @@ export class PresentationInterface {
     public async addResultData(data: IExecutionResult, dataOptions: IResponseDataOptions,
         presentationOptions?: IPresentationOptions): Promise<void> {
 
-        /**
-         * Called for result set data, which is empty (no rows, only execution info is set).
-         *
-         * @param data The empty result set. Add it's execution info as plain text to whatever is visible currently.
-         */
-        const addEmptyResultSetAsText = (data: IResultSetRows): void => {
-            if (!this.resultData || this.resultData.type === "graphData") {
-                // No result data yet or (incompatible) graph data. Convert the execution info to text data.
-                this.resultData = {
-                    type: "text",
-                    text: [{
-                        type: data.executionInfo?.type ?? MessageType.Info,
-                        index: dataOptions.index,
-                        resultId: dataOptions.resultId,
-                        content: data.executionInfo?.text ?? "",
-                        subIndex: dataOptions.subIndex,
-                    }],
-                };
-            } else if (this.resultData.type === "text") {
-                if (!this.resultData.text) {
-                    this.resultData.text = [];
-                }
-
-                this.resultData.text.push({
-                    type: data.executionInfo?.type ?? MessageType.Info,
-                    index: dataOptions.index,
-                    resultId: dataOptions.resultId,
-                    content: data.executionInfo?.text ?? "",
-                    subIndex: dataOptions.subIndex,
-                });
-            } else if (this.resultData.type !== "chat" && this.resultData.type !== "about") {
-                if (!this.resultData.output) {
-                    this.resultData.output = [];
-                }
-
-                this.resultData.output.push({
-                    type: data.executionInfo?.type ?? MessageType.Info,
-                    index: dataOptions.index,
-                    resultId: dataOptions.resultId,
-                    content: data.executionInfo?.text ?? "",
-                    subIndex: dataOptions.subIndex,
-                });
-            }
-        };
-
         // If this is the first result we receive, switch to the loading state.
-        if (this.waitTimer || this.loadingState === LoadingState.Waiting) {
+        const isBusy = this.loadingState === LoadingState.Loading || this.loadingState === LoadingState.Waiting;
+        if (this.waitTimer || isBusy) {
             if (this.waitTimer) {
                 clearTimeout(this.waitTimer);
                 this.waitTimer = null;
             }
 
+            // Execution is finished if either we have execution info (and no result data so far) or we got
+            // a chat result with an answer.
             if (!this.resultData && "executionInfo" in data) {
-                // If there's no result data yet and the new one is finished then we can go into idle state.
                 this.changeLoadingState(LoadingState.Idle);
-            } else if (data.type === "chat" &&  "answer" in data && data.answer !== "")  {
+            } else if (data.type === "chat" && "answer" in data && data.answer !== "") {
                 this.changeLoadingState(LoadingState.Idle);
-            } else  if (data.type !== "chat") {
+            } else if (data.type !== "chat") {
                 this.changeLoadingState(LoadingState.Loading);
             }
         }
@@ -519,6 +483,9 @@ export class PresentationInterface {
                         this.resultData.text.push(...data.text);
                         if (data.executionInfo) {
                             this.resultData.executionInfo = data.executionInfo;
+
+                            // We got execution info, so we can return into idle state.
+                            this.changeLoadingState(LoadingState.Idle);
                         }
                     }
                 }
@@ -529,7 +496,7 @@ export class PresentationInterface {
             case "resultSetRows": {
                 if (!this.resultData) {
                     if (data.rows.length === 0) {
-                        addEmptyResultSetAsText(data);
+                        this.addEmptyResultSetAsText(data, dataOptions);
                     } else {
                         this.resultData = {
                             type: "resultSets",
@@ -602,7 +569,7 @@ export class PresentationInterface {
                             } else {
                                 // No existing result set tab found - create it.
                                 if (data.rows.length === 0) {
-                                    addEmptyResultSetAsText(data);
+                                    this.addEmptyResultSetAsText(data, dataOptions);
                                 } else {
                                     this.resultData.sets.push({
                                         type: "resultSet",
@@ -623,7 +590,7 @@ export class PresentationInterface {
 
                         case "text": {
                             if (data.rows.length === 0) {
-                                addEmptyResultSetAsText(data);
+                                this.addEmptyResultSetAsText(data, dataOptions);
                             } else {
                                 // Move the text over to the output tab of the new result set data.
                                 this.resultData = {
@@ -915,6 +882,52 @@ export class PresentationInterface {
     }
 
     /**
+     * Called for result set data, which is empty (no rows, only execution info is set).
+     *
+     * @param data The empty result set. Add it's execution info as plain text to whatever is visible currently.
+     * @param dataOptions Additional information for the result data.
+     */
+    private addEmptyResultSetAsText(data: IResultSetRows, dataOptions: IResponseDataOptions): void {
+        if (!this.resultData || this.resultData.type === "graphData") {
+            // No result data yet or (incompatible) graph data. Convert the execution info to text data.
+            this.resultData = {
+                type: "text",
+                text: [{
+                    type: data.executionInfo?.type ?? MessageType.Info,
+                    index: dataOptions.index,
+                    resultId: dataOptions.resultId,
+                    content: data.executionInfo?.text ?? "",
+                    subIndex: dataOptions.subIndex,
+                }],
+            };
+        } else if (this.resultData.type === "text") {
+            if (!this.resultData.text) {
+                this.resultData.text = [];
+            }
+
+            this.resultData.text.push({
+                type: data.executionInfo?.type ?? MessageType.Info,
+                index: dataOptions.index,
+                resultId: dataOptions.resultId,
+                content: data.executionInfo?.text ?? "",
+                subIndex: dataOptions.subIndex,
+            });
+        } else if (this.resultData.type !== "chat" && this.resultData.type !== "about") {
+            if (!this.resultData.output) {
+                this.resultData.output = [];
+            }
+
+            this.resultData.output.push({
+                type: data.executionInfo?.type ?? MessageType.Info,
+                index: dataOptions.index,
+                resultId: dataOptions.resultId,
+                content: data.executionInfo?.text ?? "",
+                subIndex: dataOptions.subIndex,
+            });
+        }
+    }
+
+    /**
      * Creates or updates the embedded result rendering.
      *
      * @param options Controls the result area presentation after adding the new data.
@@ -1083,11 +1096,13 @@ export class PresentationInterface {
     };
 
     private changeLoadingState = (newState: LoadingState): void => {
-        this.loadingState = newState;
-        this.updateMarginDecorations();
+        if (this.loadingState !== newState) {
+            this.loadingState = newState;
+            this.updateMarginDecorations();
 
-        if (this.context) {
-            void requisitions.execute("editorContextStateChanged", this.context.id);
+            if (this.context) {
+                void requisitions.execute("editorContextStateChanged", this.context.id);
+            }
         }
     };
 

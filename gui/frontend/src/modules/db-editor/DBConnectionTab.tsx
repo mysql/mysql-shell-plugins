@@ -95,6 +95,7 @@ export interface ISavedEditorState {
     editors: IOpenEditorState[];
     activeEntry: string;
     heatWaveEnabled: boolean;
+    mleEnabled: boolean;
 }
 
 export interface IOpenEditorState extends IEntityBase {
@@ -1049,18 +1050,37 @@ Execute \\help or \\? for help;`;
      * @param options Content and details for script execution.
      */
     private runSQLCode = async (context: SQLExecutionContext, options: IScriptExecutionOptions): Promise<void> => {
+        const { savedState } = this.props;
+        const { backend } = this.state;
+
         let pageSize = Settings.get("sql.limitRowCount", 1000);
         if (pageSize < 1 || pageSize > 100000) {
             pageSize = 1000;
         }
 
         await context.clearResult();
+        if (savedState.mleEnabled) {
+            // Reset MLE console log
+            void await backend?.execute("SELECT mle_session_reset()");
+        }
+
+        let statementCount = 0;
+        let errorCount = 0;
+        const startTime = Date.now();
+
         if (options.source) {
             const sql = (await context.getStatementAtPosition(options.source))?.text;
 
             await this.executeQuery(context, 0, 0, pageSize, options, sql ?? "");
         } else {
             const statements = await context.getExecutableStatements();
+
+            // Count all statements that actually hold SQL to execute (ignoring statements only containing whitespace)
+            const nonEmptyStatements = statements.filter((statement) => {
+                return statement.text.trim() !== "";
+            });
+            statementCount = nonEmptyStatements.length;
+
             while (true) {
                 // Allow toggling the stop-on-error during execution.
                 const stopOnErrors = Settings.get("editor.stopOnErrors", true);
@@ -1073,11 +1093,70 @@ Execute \\help or \\? for help;`;
                     await this.executeQuery(context, statement.index, 0, pageSize,
                         options, statement.text);
                 } catch (e) {
+                    errorCount += 1;
                     if (stopOnErrors) {
                         break;
                     } // Else ignore the error and continue.
                 }
+
             }
+        }
+
+        // If MLE is enabled, collect all console.log() output and all errors.
+        if (savedState.mleEnabled) {
+            const consoleLog = await backend?.execute(
+                `SELECT mle_session_state("stdout")`);
+            if (consoleLog && consoleLog.rows && consoleLog.rows.length > 0
+                && (consoleLog.rows[0] as string[])[0] !== "") {
+                for (const row of consoleLog.rows) {
+                    const outString = String((row as string[])[0]);
+                    void await context.addResultData({
+                        type: "text",
+                        text: [{
+                            type: MessageType.Info,
+                            index: -1,
+                            content: outString.trim() + "\n",
+                            language: "json",
+                        }],
+                    }, { resultId: "" });
+                }
+            }
+            const stackTrace = await backend?.execute(
+                `SELECT mle_session_state("stack_trace")`);
+            if (stackTrace && stackTrace.rows && stackTrace.rows.length > 0
+                && (stackTrace.rows[0] as string[])[0] !== "") {
+                for (const row of stackTrace.rows) {
+                    const outString = String((row as string[])[0]);
+                    void await context.addResultData({
+                        type: "text",
+                        text: [{
+                            type: MessageType.Error,
+                            index: -1,
+                            content: outString.replace("<js> ", "Exception Stack Trace: ").trim() + "\n",
+                            language: "ini",
+                        }],
+                    }, { resultId: "" });
+                }
+            }
+        }
+
+        const activeEditor = this.findActiveEditor();
+        if (activeEditor?.type === EntityType.Script && statementCount > 1) {
+            const duration = formatTime((Date.now() - startTime) / 1000);
+            const infoStr = errorCount > 0
+                ? `, ${errorCount} error${errorCount > 1 ? "s" : ""} occurred.`
+                : " successfully.";
+            const symbol = errorCount > 0 ? "✕" : "✓";
+            this.addTimedResult(context, {
+                type: "text",
+                text: [{
+                    type: (errorCount > 0) ? MessageType.Error : MessageType.Success,
+                    index: -1,
+                    content: `${symbol} SQL Script execution completed in ${duration}. ` +
+                        `${statementCount} statement${statementCount > 1 ? "s" : ""} executed${infoStr}`,
+                    language: "ansi",
+                }],
+            }, { resultId: "" });
         }
     };
 
@@ -1194,6 +1273,7 @@ Execute \\help or \\? for help;`;
         if (options.queryType === QueryType.Call) {
             subIndex = 0;
         }
+        let exceptionThrown;
 
         try {
             // Prepare the execution (storage, UI).
@@ -1365,6 +1445,8 @@ Execute \\help or \\? for help;`;
 
             this.handleDependentTasks(options);
         } catch (reason) {
+            exceptionThrown = reason;
+
             const resultTimer = this.resultTimers.get(resultId);
             if (resultTimer) {
                 await clearIntervalAsync(resultTimer.timer);
@@ -1466,6 +1548,10 @@ Execute \\help or \\? for help;`;
 
                 default:
             }
+        }
+
+        if (exceptionThrown !== undefined) {
+            throw new Error(String(exceptionThrown));
         }
     };
 

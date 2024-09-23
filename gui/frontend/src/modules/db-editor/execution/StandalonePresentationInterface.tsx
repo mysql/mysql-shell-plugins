@@ -28,21 +28,33 @@ import { ComponentChild } from "preact";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
 import { EditorLanguage } from "../../../supplement/index.js";
 import { ScriptEditor } from "../ScriptEditor.js";
-import { Monaco } from "../../../components/ui/CodeEditor/index.js";
 
 /** Handling of UI related tasks in a code editor for standalone contexts. */
 export class StandalonePresentationInterface extends PresentationInterface {
 
-    private resizeObserver?: ResizeObserver;
+    #resizeObserver?: ResizeObserver;
 
-    public constructor(
-        private host: ScriptEditor,
-        editor: Partial<Monaco.IStandaloneCodeEditor>,
-        language: EditorLanguage,
-        private target: preact.RefObject<HTMLDivElement>) {
-        super(editor, language);
+    // We don't create a render target like in the normal presentation interface, but instead use
+    // what's rendered by the hosting editor.
+    #target?: preact.RefObject<HTMLDivElement>;
+
+    #host?: ScriptEditor;
+
+    public constructor(language: EditorLanguage) {
+        super(language);
 
         this.alwaysShowTab = true;
+    }
+
+    /**
+     * Used to set the target component we render in.
+     *
+     * @param target The target component reference.
+     * @param host The hosting editor.
+     */
+    public onMount(target: preact.RefObject<HTMLDivElement>, host: ScriptEditor): void {
+        this.#target = target;
+        this.#host = host;
     }
 
     protected override get resultDivider(): ComponentChild {
@@ -51,12 +63,12 @@ export class StandalonePresentationInterface extends PresentationInterface {
 
     protected override removeRenderTarget(): void {
         super.removeRenderTarget();
-        if (this.resizeObserver) {
-            this.resizeObserver.disconnect();
-            this.resizeObserver = undefined;
+        if (this.#resizeObserver) {
+            this.#resizeObserver.disconnect();
+            this.#resizeObserver = undefined;
         }
 
-        this.host.setState({ showResultPane: false });
+        this.#host?.setState({ showResultPane: false });
     }
 
     protected override updateRenderTarget(height?: number): void {
@@ -66,21 +78,21 @@ export class StandalonePresentationInterface extends PresentationInterface {
             this.currentHeight = height;
         }
 
-        this.host.setState({
+        this.#host?.setState({
             showResultPane: true,
             maximizeResultPane: this.maximizedResult ?? false,
         });
     }
 
     protected override defineRenderTarget(): HTMLDivElement {
-        const target = this.target.current;
+        const target = this.#target?.current;
         if (!target) {
             return document.createElement("div");
         }
 
         // istanbul ignore next
         if (typeof ResizeObserver !== "undefined") {
-            this.resizeObserver = new ResizeObserver((entries) => {
+            this.#resizeObserver = new ResizeObserver((entries) => {
                 const last = entries.pop();
                 if (last && !this.currentHeight) {
                     const maxAutoHeight = PresentationInterface.maxAutoHeight[this.resultData?.type ?? "text"];
@@ -91,15 +103,15 @@ export class StandalonePresentationInterface extends PresentationInterface {
                     this.currentHeight = height;
                 }
             });
-            this.resizeObserver.observe(target);
+            this.#resizeObserver.observe(target);
         }
 
-        this.host.setState({
+        this.#host?.setState({
             showResultPane: true,
             maximizeResultPane: this.maximizedResult ?? false,
         });
 
-        return this.target.current!;
+        return this.#target!.current!;
     }
 
     protected override get hideTabs(): "always" | "single" | "never" {

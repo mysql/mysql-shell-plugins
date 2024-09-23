@@ -66,17 +66,24 @@ class HeatWaveCheckTask(DbSessionSetupTask):
             # Since check was explicitly disabled, mark it as unavailable
             self.define_data(
                 common.MySQLData.HEATWAVE_AVAILABLE, False)
+            self.define_data(
+                common.MySQLData.MLE_AVAILABLE, False)
 
     def on_connected(self):
         if not self._skip_hw_check:
+            # Check if HeatWave is available
             result = self.execute("""
                 SELECT TABLE_NAME FROM `information_schema`.`TABLES`
                     WHERE TABLE_SCHEMA = 'performance_schema'
                         AND TABLE_NAME = 'rpd_nodes'
                 """).fetch_all()
-
             self.define_data(
                 common.MySQLData.HEATWAVE_AVAILABLE, len(result) == 1)
+
+            # Check if MLE is available
+            result = self.execute("SHOW STATUS LIKE 'mle_status'").fetch_all()
+            self.define_data(
+                common.MySQLData.MLE_AVAILABLE, len(result) > 0)
 
 
 class BastionHandlerTask(DbSessionSetupTask):

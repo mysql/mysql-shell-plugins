@@ -49,7 +49,7 @@ describe("ScriptingLanguageServices Tests", () => {
             jsModel.setValue("");
         }
 
-        const jsContext = jsModel.executionContexts!.addContext(new PresentationInterface(undefined, "javascript"));
+        const jsContext = jsModel.executionContexts!.addContext(new PresentationInterface("javascript"));
 
         const result = await services.getCodeCompletionItems(jsContext, { lineNumber: 1, column: 1 });
         expect(result).toBeDefined();

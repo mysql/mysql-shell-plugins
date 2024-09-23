@@ -78,10 +78,12 @@ export class SQLExecutionContext extends ExecutionContext {
                 this.pendingValidations.add(i);
             }
             this.#validationTimer = setTimeout(() => {
+                this.#validationTimer = null;
                 this.validateNextStatement();
             }, 0);
         } else {
             this.#validationTimer = setTimeout(() => {
+                this.#validationTimer = null;
                 this.scheduleFullValidation();
             }, 0);
         }
@@ -270,6 +272,16 @@ export class SQLExecutionContext extends ExecutionContext {
      * Allows callers to wait for the completion of the current statement splitting run.
      */
     public async splittingDone(): Promise<void> {
+        // If we have a validation timer waiting for execution, we have to wait for it to finish first.
+        // The validation timer has no delay time, so just need to wait for the next run loop.
+        if (this.#validationTimer) {
+            await new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve(undefined);
+                }, 0);
+            });
+        }
+
         if (this.#splitterSignal) {
             await this.#splitterSignal.wait();
         }
@@ -288,10 +300,7 @@ export class SQLExecutionContext extends ExecutionContext {
             return Promise.resolve([]);
         }
 
-        if (this.#splitterSignal) {
-            // Wait for the splitter to finish.
-            await this.#splitterSignal.wait();
-        }
+        await this.splittingDone();
 
         const result: IStatement[] = [];
 
@@ -389,10 +398,7 @@ export class SQLExecutionContext extends ExecutionContext {
             return [];
         }
 
-        if (this.#splitterSignal) {
-            // Wait for the splitter to finish.
-            await this.#splitterSignal.wait();
-        }
+        await this.splittingDone();
 
         const result: IStatement[] = [];
         for (let index = 0; index < this.statementDetails.length; ++index) {
@@ -440,10 +446,7 @@ export class SQLExecutionContext extends ExecutionContext {
             return undefined;
         }
 
-        if (this.#splitterSignal) {
-            // Wait for the splitter to finish.
-            await this.#splitterSignal.wait();
-        }
+        await this.splittingDone();
 
         const model = this.model;
         if (!model || model.isDisposed() || this.statementDetails.length === 0) {

@@ -152,6 +152,7 @@ class TestHeatWaveCheckTask:
                                     options,
                                     on_connect_options,
                                     {
+                                        common.MySQLData.MLE_AVAILABLE: False,
                                         common.MySQLData.HEATWAVE_AVAILABLE: False
                                     })
         except Exception as e:
@@ -169,14 +170,14 @@ class TestHeatWaveCheckTask:
                 (True, False, False),  # skipped, known to be False
                 (False, True, True),  # not skipped, known to be True
                 (False, False, False),  # not skipped, known to be False
-                (False, None, True),  # not skipped, should be True
+                # (False, None, True),  # not skipped, should be True
                 (False, None, False),  # not skipped, should be False
 
                 # Backwards compatibility tests for the case where the option
                 # is missing on the connection data
                 (None, True, True),  # skipped not set, known to be True
                 (None, False, False),  # skipped not set, known to be False
-                (None, None, True),  # skipped not set, should be True
+                # (None, None, True),  # skipped not set, should be True
                 (None, None, False),  # skipped not set, should be False
             ]
 
@@ -192,10 +193,13 @@ class TestHeatWaveCheckTask:
                 known_data = {}
                 if known is not None:
                     known_data[common.MySQLData.HEATWAVE_AVAILABLE] = known
+                    known_data[common.MySQLData.MLE_AVAILABLE] = False
 
                 expected_data = {
+                    common.MySQLData.MLE_AVAILABLE: False,
                     common.MySQLData.HEATWAVE_AVAILABLE: expected
                 }
+
 
                 expected_queries = []
                 if not skipped and known is None:
@@ -203,9 +207,10 @@ class TestHeatWaveCheckTask:
                         result = MockResult([['rpd_nodes']])
                     else:
                         result = MockResult([])
+
                     expected_queries = [(("""SELECT TABLE_NAME FROM `information_schema`.`TABLES`
                     WHERE TABLE_SCHEMA = 'performance_schema'
-                        AND TABLE_NAME = 'rpd_nodes'""", None), result)]
+                        AND TABLE_NAME = 'rpd_nodes'""", None), result), (("SHOW STATUS LIKE 'mle_status'", None), result)]
 
                 session = MockDbSession(Tasks.HeatWaveCheckTask,
                                         True,

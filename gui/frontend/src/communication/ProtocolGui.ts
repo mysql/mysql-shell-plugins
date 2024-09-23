@@ -440,6 +440,7 @@ export interface IOpenConnectionData {
         version?: string;
         edition?: string;
         heatWaveAvailable?: boolean;
+        mleAvailable?: boolean;
     };
 }
 

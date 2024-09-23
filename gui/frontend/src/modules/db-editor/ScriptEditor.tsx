@@ -84,7 +84,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     private editorRef = createRef<CodeEditor>();
     private resultRef = createRef<HTMLDivElement>();
 
-    private presentationInterface?: PresentationInterface;
+    #presentationInterface?: StandalonePresentationInterface;
 
     #editorLanguageSbEntry!: IStatusBarItem;
     #editorEolSbEntry!: IStatusBarItem;
@@ -154,10 +154,12 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         });
 
         this.updateStatusItems();
+        this.updatePresentationInterface();
     }
 
     public override componentDidUpdate(): void {
         this.updateStatusItems();
+        this.updatePresentationInterface();
     }
 
     public override componentWillUnmount(): void {
@@ -176,9 +178,9 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         const { showResultPane, maximizeResultPane } = this.state;
 
         const className = this.getEffectiveClassNames(["standaloneScriptHost"]);
-        const resultPaneHeight = this.presentationInterface?.currentHeight ?? 300;
+        const resultPaneHeight = this.#presentationInterface?.currentHeight ?? 300;
 
-        const activeEditorState = this.getActiveEditorState();
+        const activeEditorState = this.activeEditorState;
         const language = activeEditorState.state?.model.getLanguageId() ?? "";
 
         let toolbar;
@@ -430,7 +432,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
 
     private updateStatusItems = (): void => {
         if (this.editorRef.current) {
-            const activeEditor = this.getActiveEditorState();
+            const activeEditor = this.activeEditorState;
             const editorState = activeEditor.state;
             if (editorState) {
                 const position = editorState.viewState?.cursorState[0].position;
@@ -451,23 +453,23 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     };
 
     private createPresentation = (editor: CodeEditor, language: EditorLanguage): PresentationInterface => {
-        this.presentationInterface = new StandalonePresentationInterface(this, editor.backend!, language,
-            this.resultRef);
+        this.#presentationInterface = new StandalonePresentationInterface(language);
+        this.#presentationInterface.activate(editor.backend!);
 
-        return this.presentationInterface;
+        return this.#presentationInterface;
     };
 
     private handlePaneResized = (info: ISplitterPaneSizeInfo[]): void => {
         info.forEach((value) => {
-            if (value.id === "resultPane" && this.presentationInterface) {
-                this.presentationInterface.currentHeight = value.currentSize;
+            if (value.id === "resultPane" && this.#presentationInterface) {
+                this.#presentationInterface.currentHeight = value.currentSize;
             }
         });
 
     };
 
     private toggleMaximizeResultPane = (): void => {
-        this.presentationInterface?.toggleResultPane();
+        this.#presentationInterface?.toggleResultPane();
     };
 
     private closeEditor = (): void => {
@@ -483,7 +485,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
      *
      * @returns The active editor state.
      */
-    private getActiveEditorState(): IOpenEditorState {
+    private get activeEditorState(): IOpenEditorState {
         const { savedState } = this.props;
 
         let activeEditor = savedState.editors.find(
@@ -502,7 +504,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     private handleEditorLoad = (): void => {
         const { lastId } = this.state;
 
-        const activeEditor = this.getActiveEditorState();
+        const activeEditor = this.activeEditorState;
         const editorState = activeEditor.state;
         if (editorState) {
             const model = editorState.model;
@@ -518,7 +520,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     private handleEditorSave = (): void => {
         const { lastId } = this.state;
 
-        const activeEditor = this.getActiveEditorState();
+        const activeEditor = this.activeEditorState;
         const editorState = activeEditor.state;
         if (editorState) {
             const model = editorState.model;
@@ -532,4 +534,14 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         }
     };
 
+    private updatePresentationInterface(): void {
+        const activeEditor = this.activeEditorState;
+        const contexts = activeEditor.state?.model.executionContexts;
+        if (contexts && contexts.count > 0) {
+            // In the script editor there's always a single context.
+            const context = contexts.contextAt(0);
+            this.#presentationInterface = context!.presentation as StandalonePresentationInterface;
+            this.#presentationInterface.onMount(this.resultRef, this);
+        }
+    }
 }

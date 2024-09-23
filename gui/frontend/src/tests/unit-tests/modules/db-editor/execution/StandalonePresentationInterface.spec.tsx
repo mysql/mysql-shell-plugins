@@ -66,6 +66,7 @@ describe("Standalone presentation interface tests", (): void => {
             }],
             activeEntry: "1",
             heatWaveEnabled: false,
+            mleEnabled: false,
             connectionId: -1,
         };
 

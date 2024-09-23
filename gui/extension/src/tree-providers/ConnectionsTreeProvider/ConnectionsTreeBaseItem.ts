@@ -55,39 +55,56 @@ export class ConnectionsTreeBaseItem extends TreeItem {
         });
     }
 
-    public copyCreateScriptToClipboard(withDelimiter = false, withDrop = false): void {
-        this.backend.execute(`show create ${this.dbType} ${this.qualifiedName}`).then((data) => {
-            if (data) {
-                if (data.rows && data.rows.length > 0) {
-                    const firstRow = data.rows[0] as string[];
-                    const index = this.createScriptResultIndex;
-                    if (firstRow.length > index) {
-                        let stmt = firstRow[index];
-                        if (withDelimiter) {
-                            if (withDrop) {
-                                // The SHOW CREATE PROCEDURE / FUNCTION statements do not return the fully qualified
-                                // name including the schema, just the name of the procedure / functions with backticks
-                                let name = Array.from(stmt.matchAll(/PROCEDURE `(.*?)`/gm), (m) => { return m[1]; });
-                                if (name.length > 0) {
-                                    stmt = `DROP PROCEDURE \`${name[0]}\`$$\n${stmt}`;
-                                } else {
-                                    name = Array.from(stmt.matchAll(/FUNCTION `(.*?)`/gm), (m) => { return m[1]; });
-                                    if (name.length) {
-                                        stmt = `DROP FUNCTION \`${name[0]}\`$$\n${stmt}`;
-                                    }
-                                }
+    public async getCreateSqlScript(withDelimiter = false, withDrop = false): Promise<string> {
+        let sql = "";
+
+        const data = await this.backend.execute(`show create ${this.dbType} ${this.qualifiedName}`);
+        if (data) {
+            if (data.rows && data.rows.length > 0) {
+                const firstRow = data.rows[0] as string[];
+                const index = this.createScriptResultIndex;
+                if (firstRow.length > index) {
+                    sql = firstRow[index];
+                    // The SHOW CREATE PROCEDURE / FUNCTION statements do not return the fully qualified
+                    // name including the schema, just the name of the procedure / functions with backticks
+                    sql = sql.replaceAll(
+                        /PROCEDURE `(.*?)`/gm,
+                        `PROCEDURE \`${this.schema}\`.\`${this.name}\``);
+                    sql = sql.replaceAll(
+                        /FUNCTION `(.*?)`/gm,
+                        `FUNCTION \`${this.schema}\`.\`${this.name}\``);
+                    if (withDelimiter) {
+                        if (withDrop) {
+                            const name = Array.from(sql.matchAll(/PROCEDURE `(.*?)`/gm), (m) => { return m[1]; });
+                            if (name.length > 0) {
+                                sql = `DROP PROCEDURE \`${this.schema}\`.\`${this.name}\`%%\n${sql}`;
+                            } else {
+                                sql = `DROP FUNCTION \`${this.schema}\`.\`${this.name}\`%%\n${sql}`;
                             }
-                            stmt = `DELIMITER $$\n${stmt}$$\nDELIMITER ;`;
                         }
-                        void env.clipboard.writeText(stmt).then(() => {
-                            showMessageWithTimeout("The create script was copied to the system clipboard");
-                        });
+                        sql = `DELIMITER %%\n${sql}%%\nDELIMITER ;`;
                     }
                 }
             }
-        }).catch((event) => {
-            void window.showErrorMessage("Error while getting create script: " + (event.message as string));
-        });
+        }
+
+        if (sql === "") {
+            throw new Error("Failed to get CREATE statement.");
+        }
+
+        return sql;
+    }
+
+    public async copyCreateScriptToClipboard(withDelimiter = false, withDrop = false): Promise<void> {
+        try {
+            const sql = await this.getCreateSqlScript(withDelimiter, withDrop);
+
+            void env.clipboard.writeText(sql).then(() => {
+                showMessageWithTimeout("The create script was copied to the system clipboard");
+            });
+        } catch (error) {
+            void window.showErrorMessage("Error while getting create script: " + String(error));
+        }
     }
 
     public dropItem(): void {

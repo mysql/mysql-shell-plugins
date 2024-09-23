@@ -216,7 +216,9 @@ export class ExecutionContext implements IExecutionContext {
     public deactivate(): void {
         this.#frozen = true;
         this.presentation.resultIds.forEach((value) => {
-            this.#cachedResultIds.add(value);
+            if (value) {
+                this.#cachedResultIds.add(value);
+            }
         });
         this.#cachedHeight = this.presentation.cachedHeight;
         this.clearDecorations();
@@ -247,17 +249,24 @@ export class ExecutionContext implements IExecutionContext {
      *
      * @param editor The editor to associate with this context.
      */
-    public activate(editor: Partial<Monaco.IStandaloneCodeEditor>): void {
+    public activate(editor: Monaco.IStandaloneCodeEditor): void {
         this.#frozen = false;
         this.presentation.activate(editor, this.#cachedHeight);
 
         if (this.#cachedResultIds.size > 0) {
             // Convert result data references back to result data. Result set data is loaded from
             // the application DB, if possible.
+            // Keep previously generated output text.
             void this.loadResultSets().then((sets) => {
+                let output;
+                if (this.presentation.resultData?.type === "resultSets") {
+                    output = this.presentation.resultData.output;
+                }
+
                 const result: IResultSets = {
                     type: "resultSets",
                     sets,
+                    output,
                 };
 
                 result.sets = sets;
@@ -268,8 +277,11 @@ export class ExecutionContext implements IExecutionContext {
                     currentSet: this.#cachedSetIndex,
                 });
             });
+
         } else if (this.presentation.resultData) {
-            this.presentation.setResult(this.presentation.resultData);
+            setTimeout(() => {
+                this.presentation.setResult(this.presentation.resultData!);
+            }, 0);
         }
     }
 

@@ -50,6 +50,7 @@ import {
     CdmSchemaGroupMember,
     ConnectionsTreeDataModelEntry, ICdmConnectionEntry, ICdmRestDbObjectEntry, ICdmRoutineEntry, ICdmSchemaEntry,
     ICdmTableEntry, ICdmTriggerEntry, ICdmEventEntry,
+    ICdmSchemaGroupEntry,
 } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel.js";
 import {
     ConnectionsTreeDataProvider,
@@ -341,6 +342,39 @@ export class DBEditorCommandHandler {
             }
         }));
 
+        context.subscriptions.push(commands.registerCommand("msg.createProcedure", (entry?: ICdmSchemaGroupEntry) => {
+            if (entry) {
+                void this.addNewSqlScript(
+                    entry.parent.parent.treeItem.details.id, "msg.createProcedure",
+                    entry.parent.treeItem.name, "New Procedure", "my_procedure");
+            }
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.createFunction", (entry?: ICdmSchemaGroupEntry) => {
+            if (entry) {
+                void this.addNewSqlScript(
+                    entry.parent.parent.treeItem.details.id, "msg.createFunction",
+                    entry.parent.treeItem.name, "New Function", "my_function");
+            }
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.createFunctionJs", (entry?: ICdmSchemaGroupEntry) => {
+            if (entry) {
+                void this.addNewSqlScript(
+                    entry.parent.parent.treeItem.details.id, "msg.createFunctionJs",
+                    entry.parent.treeItem.name, "New Function", "my_function");
+            }
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.editRoutine", async (entry?: ICdmRoutineEntry) => {
+            if (entry) {
+                const sql = await entry.treeItem.getCreateSqlScript(true, true);
+
+                void this.addNewSqlScript(entry.parent.parent.parent.treeItem.details.id, "msg.editRoutine",
+                    entry.parent.parent.treeItem.name, "Edit Routine", sql);
+            }
+        }));
+
         context.subscriptions.push(commands.registerCommand("msg.dropSchema", (entry?: ICdmSchemaEntry) => {
             entry?.treeItem.dropItem();
         }));
@@ -387,21 +421,21 @@ export class DBEditorCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.copyCreateScriptToClipboard",
             (entry?: ConnectionsTreeDataModelEntry) => {
                 if (entry && entry.treeItem instanceof ConnectionsTreeBaseItem) {
-                    entry.treeItem.copyCreateScriptToClipboard();
+                    void entry.treeItem.copyCreateScriptToClipboard();
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.copyCreateScriptWithDelimitersToClipboard",
             (entry?: ConnectionsTreeDataModelEntry) => {
                 if (entry && entry.treeItem instanceof ConnectionsTreeBaseItem) {
-                    entry.treeItem.copyCreateScriptToClipboard(true);
+                    void entry.treeItem.copyCreateScriptToClipboard(true);
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.copyDropCreateScriptWithDelimitersToClipboard",
             (entry?: ConnectionsTreeDataModelEntry) => {
                 if (entry && entry.treeItem instanceof ConnectionsTreeBaseItem) {
-                    entry.treeItem.copyCreateScriptToClipboard(true, true);
+                    void entry.treeItem.copyCreateScriptToClipboard(true, true);
                 }
             }));
 
@@ -643,6 +677,85 @@ export class DBEditorCommandHandler {
                     { dbObject: entry.treeItem.value, createObject: false });
             }
         }));
+    }
+
+    public async addNewSqlScript(connectionId: number, command: string, schemaName: string,
+        scriptName: string, placeHolder: string): Promise<void> {
+
+        let name: string | undefined = "";
+        let sql = "";
+        // If the commands is a create command, get the name of the new routine
+        if (command.startsWith("msg.create")) {
+            name = await window.showInputBox({
+                title: `New Routine on Schema \`${schemaName}\``,
+                placeHolder,
+                prompt: "Please enter a name for the new routine:",
+                value: "",
+            });
+
+            if (name === undefined) {
+                return;
+            }
+            if (name === "") {
+                name = placeHolder;
+            }
+        }
+
+        switch (command) {
+            case "msg.createProcedure": {
+                sql = `DELIMITER %%\nDROP PROCEDURE IF EXISTS \`${schemaName}\`.\`${name}\`%%\n`
+                    + `/* Add or remove procedure IN/OUT/INOUT parameters as needed. */\n`
+                    + `CREATE PROCEDURE \`${schemaName}\`.\`${name}\`(IN arg1 INTEGER, OUT arg2 INTEGER)\n`
+                    + `SQL SECURITY DEFINER\nNOT DETERMINISTIC\nBEGIN\n`
+                    + `    /* Insert the procedure code here. */\n    SET arg2 = arg1 * 2;\n`
+                    + `END%%\nDELIMITER ;\n\n`
+                    + `CALL \`${schemaName}\`.\`${name}\`(1, @arg2);\nSELECT @arg2;`;
+                break;
+            }
+
+            case "msg.createFunction": {
+                sql = `DELIMITER %%\nDROP FUNCTION IF EXISTS \`${schemaName}\`.\`${name}\`%%\n`
+                    + `/* Add or remove function parameters as needed. */\n`
+                    + `CREATE FUNCTION \`${schemaName}\`.\`${name}\`(arg1 INTEGER)\nRETURNS INTEGER\n`
+                    + `SQL SECURITY DEFINER\nDETERMINISTIC\nBEGIN\n`
+                    + `    /* Insert the function code here. */\n    return arg1;\nEND%%\nDELIMITER ;`
+                    + `\n\nSELECT \`${schemaName}\`.\`${name}\`(1);`;
+                break;
+            }
+
+            case "msg.createFunctionJs": {
+                sql = `DELIMITER %%\n`
+                    + `DROP FUNCTION IF EXISTS \`${schemaName}\`.\`${name}\`%%\n`
+                    + `/* Add or remove function parameters as needed. */\n`
+                    + `CREATE FUNCTION \`${schemaName}\`.\`${name}\`(arg1 INTEGER)\n`
+                    + `RETURNS INTEGER\n`
+                    + `SQL SECURITY DEFINER\n`
+                    + `DETERMINISTIC LANGUAGE JAVASCRIPT\nAS $js$\n`
+                    + `    /* Insert the function code here. */\n`
+                    + `    console.log("Hello World!");\n\n`
+                    + `    console.log('{"info": "This is MLE."}');\n`
+                    + `    /* throw("Custom Error"); */\n\n`
+                    + `    return arg1;\n`
+                    + `$js$%%\n`
+                    + `DELIMITER ;\n\n`
+                    + `SELECT \`${schemaName}\`.\`${name}\`(1);`;
+                break;
+            }
+
+            case "msg.editRoutine": {
+                sql = placeHolder;
+                break;
+            }
+
+            default:
+        }
+
+        const provider = this.#host.currentProvider ?? this.#host.newProvider;
+        if (provider) {
+            this.createNewScriptEditor(
+                provider, scriptName, sql, "mysql", connectionId,
+            );
+        }
     }
 
     /**
@@ -931,19 +1044,43 @@ export class DBEditorCommandHandler {
         return Promise.resolve(true);
     };
 
+    private createNewScriptEditor = (
+        dbProvider: DBConnectionViewProvider, name: string, content: string, language: string,
+        connectionId: number, uri?: Uri): void => {
+        // A new script.
+        const request: IScriptRequest = {
+            scriptId: uuid(),
+            name,
+            content,
+            language: language as EditorLanguage,
+        };
+
+        let scripts = this.#openScripts.get(dbProvider);
+        if (!scripts) {
+            scripts = new Map();
+            this.#openScripts.set(dbProvider, scripts);
+        }
+        if (uri) {
+            scripts.set(request.scriptId, uri);
+        }
+
+        void dbProvider.editScript(String(connectionId), request);
+    };
+
     private createNewEditor = (params: {
         provider?: IWebviewProvider,
         language: string,
         entry?: IEditorConnectionEntry,
         content?: string;
+        connectionId?: number;
     }): Promise<boolean> => {
         return new Promise((resolve) => {
-            let connectionId = -1;
+            let connectionId = params.connectionId ?? -1;
             let provider: IWebviewProvider | undefined;
             if (params.entry?.parent?.provider) {
                 connectionId = params.entry.connectionId;
                 provider = params.entry.parent.provider;
-            } else {
+            } else if (connectionId === -1) {
                 provider = this.#host.currentProvider;
                 if (provider) {
                     connectionId = this.#openEditorsTreeDataProvider.currentConnectionId(provider) ?? -1;
@@ -962,7 +1099,7 @@ export class DBEditorCommandHandler {
                     const dbProvider = (params.provider
                         ? params.provider
                         : provider) as DBConnectionViewProvider;
-                    if (provider) {
+                    if (dbProvider) {
                         const name = basename(document.fileName);
                         if (params.language === "msg") {
                             // A new notebook.
@@ -970,25 +1107,12 @@ export class DBEditorCommandHandler {
                                 page: String(connectionId),
                                 language: params.language,
                                 content: params.content,
-
                             });
                         } else {
-                            // A new script.
-                            const request: IScriptRequest = {
-                                scriptId: uuid(),
-                                name,
-                                content: document.getText(),
-                                language: params.language as EditorLanguage,
-                            };
-
-                            let scripts = this.#openScripts.get(dbProvider);
-                            if (!scripts) {
-                                scripts = new Map();
-                                this.#openScripts.set(dbProvider, scripts);
-                            }
-                            scripts.set(request.scriptId, document.uri);
-
-                            void dbProvider.editScript(String(connectionId), request);
+                            // A new script
+                            this.createNewScriptEditor(
+                                dbProvider, name, document.getText(), params.language as EditorLanguage,
+                                connectionId, document.uri);
                         }
                     }
 

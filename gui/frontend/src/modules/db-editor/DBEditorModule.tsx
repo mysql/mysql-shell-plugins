@@ -1392,6 +1392,7 @@ EXAMPLES
             const serverVersion = info.version ? parseVersion(info.version) : Settings.get("editor.dbVersion", 80024);
             const serverEdition = info.edition ?? "";
             const heatWaveEnabled = info.heatWaveAvailable ?? false;
+            const mleEnabled = info.mleAvailable ?? false;
 
             const entryId = uuid();
             const useNotebook = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
@@ -1449,6 +1450,7 @@ EXAMPLES
                 serverEdition,
                 sqlMode,
                 heatWaveEnabled,
+                mleEnabled,
 
                 explorerWidth: -1,
 

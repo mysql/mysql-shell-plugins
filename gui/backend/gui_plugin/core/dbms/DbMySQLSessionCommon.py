@@ -30,3 +30,4 @@ class MySQLData(enum.Enum):
     SQL_MODE = 3
     HEATWAVE_AVAILABLE = 4
     BASTION_SESSION = 5
+    MLE_AVAILABLE = 6

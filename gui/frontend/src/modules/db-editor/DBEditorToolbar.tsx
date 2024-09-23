@@ -140,12 +140,18 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
     }
 
     public override componentDidMount(): void {
+        const { language } = this.props;
+
         requisitions.register("editorCaretMoved", this.handleCaretMove);
         requisitions.register("editorContextStateChanged", this.contextStateChanged);
         requisitions.register("editorToggleStopExecutionOnError", this.toggleStopExecutionOnError);
         requisitions.register("editorToggleAutoCommit", this.toggleAutoCommit);
         requisitions.register("sqlTransactionEnded", this.transactionEnded);
         requisitions.register("settingsChanged", this.settingsChanged);
+
+        this.setState({
+            canExecuteSubparts: language === "mysql" || language === "sql",
+        });
     }
 
     public override componentWillUnmount(): void {

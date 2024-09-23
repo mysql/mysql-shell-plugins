@@ -106,6 +106,12 @@
     color: var(--foreground);
 }
 
+.msg.resultText.success,
+.msg.label.success {
+    padding: 0 4px;
+    color: var(--terminal-ansiGreen);
+}
+
 .msg.resultText.interactive,
 .msg.resultText.interactive {
     background-color: hsla(224, 58%, 50%, 0.1);
