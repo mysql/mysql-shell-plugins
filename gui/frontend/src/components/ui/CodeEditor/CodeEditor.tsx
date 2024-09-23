@@ -801,7 +801,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     }
 
     public setExecutionBlockLanguageAndText(context: ExecutionContext, text: string,
-        language: string, placeCursorAtStart=false): void {
+        language: string, placeCursorAtStart = false): void {
 
         if (isEditorLanguage(language)) {
             this.switchCurrentLanguage(language, false);
@@ -810,7 +810,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         const editor = this.backend;
         const model = this.model;
         if (editor && model) {
-            const endColumn = this.model.getLineMaxColumn(context.endLine);
+            const endColumn = model.getLineMaxColumn(context.endLine);
             // Replace the current ExecutionContext text
             const range = {
                 startLineNumber: context.startLine,
@@ -823,7 +823,13 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 if (placeCursorAtStart) {
                     return [new Selection(context.startLine, 1, context.startLine, 1)];
                 } else {
-                    return [new Selection(context.endLine, endColumn, context.endLine, endColumn)];
+                    // Make sure to place the cursor at the new ending line number, based on the line count
+                    // of the new statement
+                    const numberOfLines = text.split("\n").length;
+                    const endColumn = model.getLineMaxColumn(context.startLine + numberOfLines);
+
+                    return [new Selection(context.startLine + numberOfLines, endColumn,
+                        context.startLine + numberOfLines, endColumn)];
                 }
             });
         }

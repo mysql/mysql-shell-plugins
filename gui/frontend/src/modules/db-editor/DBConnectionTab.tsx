@@ -137,6 +137,8 @@ export interface IDBConnectionTabPersistentState extends ISavedEditorState {
     chatOptionsState: IChatOptionsState;
     executionHistory: ISqlEditorHistoryEntry[];
     currentExecutionHistoryIndex: number;
+    executionHistoryUnsavedCode?: string;
+    executionHistoryUnsavedCodeLanguage?: string;
 }
 
 /** Selecting an item requires different data, depending on the type of the item. */
