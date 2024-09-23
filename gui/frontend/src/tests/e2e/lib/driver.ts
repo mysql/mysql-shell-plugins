@@ -87,7 +87,7 @@ export const loadDriver = async (useHeadless?: boolean): Promise<void> => {
     }
 
     if (headless === "1") {
-        options.headless().windowSize({ width: 1024, height: 768 });
+        options.headless().windowSize({ width: 1300, height: 768 });
     }
 
     if (process.env.CHROMEDRIVER_PATH) {

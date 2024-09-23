@@ -128,59 +128,55 @@ try {
     ForEach ($testSuite in $testSuites) {
         $path = Join-Path $env:TEST_RESOURCES_PATH "test-resources-$($testSuite)"
         if (!(Test-Path -Path $path)) {
-            writeMsg "Creating folder $path ..." "-NoNewLine"
             New-Item -ItemType "directory" -Path $path
-            writeMsg "DONE"
+            writeMsg "[OK] Created folder $path"
         }
 
-        writeMsg "Checking if VSCode exists at $path ..." "-NoNewLine"
         $item = Get-ChildItem -Path $path -Filter "*VSCode*"
         if ($item.length -gt 0) {
-            writeMsg "it does."
+            writeMsg "[OK] Found VSCode at $path"
         } else {
-            writeMsg "not found. Installing it on version $env:VSCODE_VERSION..." "-NoNewLine"
+            writeMsg "[INFO] VSCode not found. Installing it on version $env:VSCODE_VERSION" "-NoNewLine"
             installVsCode $path $env:VSCODE_VERSION
         }
     }
     # Wait for it all to complete
     Get-Job | Wait-Job
-    writeMsg "DONE"
+    writeMsg "[OK] VSCode checked"
 
     # CHECK VSCODE VERSION
-    writeMsg "Checking VSCode version..." "-NoNewLine"
     ForEach ($testSuite in $testSuites) {
         $path = Join-Path $env:TEST_RESOURCES_PATH "test-resources-$($testSuite)"
         $version = getVSCodeVersion $path
         if ($version -ne $env:VSCODE_VERSION) {
-            writeMsg "'$version', requested version is '$env:VSCODE_VERSION'. Updating on $path" "-NoNewLine"
+            writeMsg "[INFO] '$version', requested version is '$env:VSCODE_VERSION'. Updating on $path" "-NoNewLine"
             installVsCode $path $env:VSCODE_VERSION
         } else {
-            writeMsg "$version. OK"
+            writeMsg "[OK] VSCode version: $version. OK"
         }
     }
     # Wait for it all to complete
     Get-Job | Wait-Job
-    writeMsg "DONE"
+    writeMsg "[OK] VSCode version checked"
 
     # CHECK CHROMEDRIVER
     ForEach ($testSuite in $testSuites) {
         $path = Join-Path $env:TEST_RESOURCES_PATH "test-resources-$($testSuite)"
         $chromedriver = Join-Path $path "chromedriver*"
-        writeMsg "Checking if Chromedriver exists at $path ..." "-NoNewLine"
+        writeMsg "[INFO] Checking if Chromedriver exists at $path ..." "-NoNewLine"
         if (!(Test-Path -Path $chromedriver)) {
-            writeMsg "Not found. Start installing Chromedriver at $path..." "-NoNewLine"
+            writeMsg "[INFO] Chromedriver not found. Start installing Chromedriver at $path..." "-NoNewLine"
             installChromedriver $path $env:VSCODE_VERSION
         } else {
-            writeMsg "It does! Skipping installation."
+            writeMsg "[OK] Chromedriver found at $path"
         }
     }
     # Wait for it all to complete
     Get-Job | Wait-Job
-    writeMsg "DONE"
+    writeMsg "[OK] Chromedriver checked"
 
     # DOWNLOAD EXTENSION
     if (!$env:VSIX_PATH) {
-        writeMsg "Trying to download from PB2..."
         $bundles = (Invoke-WebRequest -NoProxy -Uri $env:PB2_LINK).content
         $bundles = $bundles | ConvertFrom-Json
 
@@ -208,14 +204,13 @@ try {
 
         if ($extension){
             $extension | ForEach-Object {
-                writeMsg "Downloading the extension ..." "-NoNewline"
                 $dest = Join-Path $env:WORKSPACE "$env:EXTENSION_BRANCH-$env:EXTENSION_PUSH_ID.vsix"
                 Invoke-WebRequest -NoProxy -Uri $_.url -OutFile $dest
-                writeMsg "DONE"
+                writeMsg "[OK] Downloaded the extension"
                 }
             }
         else{
-            writeMsg "Could not download the MySQL Shell for VS Code extension. You can download it manually and then set the VSIX_PATH env variable"
+            writeMsg "[ERR] Could not download the MySQL Shell for VS Code extension. You can download it manually and then set the VSIX_PATH env variable"
             exit 1
         }
     } else {
@@ -225,7 +220,6 @@ try {
     # INSTALL VSIX
     $testResources = Join-Path $env:TEST_RESOURCES_PATH "test-resources-$($testSuites[0])"
     $firstExtLocation = Join-Path $env:WORKSPACE "ext-$($testSuites[0])"
-    writeMsg "Start installing the extension for first test suite..." "-NoNewLine"
 
     if (Test-Path $firstExtLocation) {
         Remove-Item $firstExtLocation -Force -Recurse
@@ -233,9 +227,8 @@ try {
     
     New-Item -Path $firstExtLocation -ItemType "directory"
     npm run e2e-tests-install-vsix -- -s $testResources -e $firstExtLocation -f $dest
-    writeMsg "DONE installing the extension at $firstExtLocation"
+    writeMsg "[OK] DONE installing the extension at $firstExtLocation"
 
-    writeMsg "Copying the extension for the rest of the suites ... "
     for ($i = 1; $i -le $testSuites.Length - 1; $i++) {
         $extLocation = Join-Path $env:WORKSPACE "ext-$($testSuites[$i])"
         Start-Job -Name "copy-extension" -ScriptBlock {
@@ -248,7 +241,7 @@ try {
     }
 
     Get-Job | Wait-Job
-    writeMsg "DONE"
+    writeMsg "[OK] Copied the extension to all test suites"
 
     $refExt = Join-Path $env:WORKSPACE "ext-$($testSuites[0])"
     $extFolder = Get-ChildItem -Path $refExt -Filter "*oracle*"
@@ -257,22 +250,20 @@ try {
     # CHECK WEB CERTIFICATES
     if ($isLinux) {
         # RE INSTALL WEB CERTIFICATES
-        writeMsg "Re-installing web certificates..." "-NoNewLine"
         $removeWebCerts = "$shell --js -e `"gui.core.removeShellWebCertificate()`""
+        writeMsg "[OK] Web Certificates were removed"
         Invoke-Expression $removeWebCerts
         $installWebCerts = "$shell --js -e `"gui.core.installShellWebCertificate()`""
         Invoke-Expression $installWebCerts
-        writeMsg "DONE"
+        writeMsg "[OK] Web Certificates were installed"
     }
 
     # RUN SQL CONFIGURATIONS FOR TESTS
-    writeMsg "Running SQL configurations for tests..." "-NoNewLine"
     $runConfig = "$shell -u $env:DBUSERNAME -p$env:DBPASSWORD -h localhost --file sql/setup.sql"
     Invoke-Expression $runConfig
-    writeMsg "DONE"
+    writeMsg "[OK] SQL scripts were executed successfully"
 
     # CHECK CONFIG FOLDERS AND WEB CERTIFICATES
-    writeMsg "Checking config folders..." "-NoNewLine"
     if($isWindows){
         $targetWebCerts = Join-Path $env:APPDATA "MySQL" "mysqlsh-gui" "plugin_data" "gui_plugin" "web_certs"
     } elseif($isLinux){
@@ -283,38 +274,34 @@ try {
         $config = Join-Path $env:TEST_RESOURCES_PATH "mysqlsh-$testSuite"
         if (!(Test-Path $config)) {
             New-Item -ItemType "directory" -Path $config
-            writeMsg "Created $config"
+            writeMsg "[OK] Created $config"
             $mysqlsh = Join-Path $config "mysqlsh.log"
             New-Item -ItemType "file" -Path $mysqlsh
-            writeMsg "Created $mysqlsh"
+            writeMsg "[OK] Created $mysqlsh"
             $guiPlugin = Join-Path $config "plugin_data" "gui_plugin"
             New-Item -ItemType "directory" -Path $guiPlugin
-            writeMsg "Created $guiPlugin"
-            writeMsg "Creating symlink for web certificates for $config ..." "-NoNewLine"
+            writeMsg "[OK] Created $guiPlugin"
             $link = Join-Path $config "plugin_data" "gui_plugin" "web_certs"
             if ($isWindows){
                 New-Item -ItemType Junction -Path $link -Target $targetWebCerts
             } else {
                 New-Item -ItemType SymbolicLink -Path $link -Target $targetWebCerts
             }
-            writeMsg "DONE"
+            writeMsg "[OK] Created symlink for web certificates for $config ..."
         } else {
             if ($isLinux) {
                 $webCerts = Join-Path $config "plugin_data" "gui_plugin" "web_certs"
                 $destination = Join-Path $config "plugin_data" "gui_plugin"
-                writeMsg "Copying web certs to $destination ..." "-NoNewLine"
                 Remove-Item -Path $webCerts -Force -Recurse
                 Copy-Item -Path $targetWebCerts -Destination $destination -Force -Recurse
-                writeMsg "DONE"
+                writeMsg "[OK] Copyed web certificates to $destination"
             }
         }
     }
-    writeMsg "DONE"
 
     # TSC TO TEST FILES
-    writeMsg "TSC..." "-NoNewLine"
     Start-Process -FilePath "npm" -ArgumentList "run", "e2e-tests-tsc" -Wait -PassThru -RedirectStandardOutput "$env:WORKSPACE\env.log" -RedirectStandardError "$env:WORKSPACE\envErr.log"
-    writeMsg "DONE"
+    writeMsg "[OK] TSC OK"
 
 }
 catch {

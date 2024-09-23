@@ -101,6 +101,7 @@ describe("Result grids", () => {
 
         it("Result grid context menu - Capitalize, Convert to lower, upper case and mark for deletion", async () => {
             try {
+                await notebook.codeEditor.clean();
                 const result = await notebook.codeEditor.execute("select * from sakila.result_sets;", true);
                 expect(result.toolbar!.status).toMatch(/OK/);
                 const rowNumber = 0;
