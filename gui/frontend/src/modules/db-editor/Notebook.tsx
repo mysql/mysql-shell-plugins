@@ -204,7 +204,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
 
         const canGoBackInHistory =
             savedState.currentExecutionHistoryIndex < savedState.executionHistory.length;
-        const canGoForwardInHistory = savedState.currentExecutionHistoryIndex > 1;
+        const canGoForwardInHistory = savedState.currentExecutionHistoryIndex > 0;
 
         toolbarItems.navigation.push(
             <Divider key="historyDivider" vertical={true} thickness={1} />,
@@ -540,8 +540,21 @@ export class Notebook extends ComponentBase<INotebookProperties> {
             if (this.editorRef.current) {
                 const currentBlock = this.editorRef.current.currentBlock;
                 if (currentBlock) {
-                    this.editorRef.current.setExecutionBlockLanguageAndText(
-                        currentBlock, historyEntry.code, historyEntry.languageId);
+                    // Store the unsaved current block code before moving back in history
+                    if (savedState.currentExecutionHistoryIndex === 0 && backwards) {
+                        savedState.executionHistoryUnsavedCode = currentBlock.code;
+                        savedState.executionHistoryUnsavedCodeLanguage = currentBlock.language;
+                    }
+
+                    // Restore unsaved current block code when the user moves forward to the current statement again
+                    if (savedState.currentExecutionHistoryIndex === 1 && !backwards) {
+                        this.editorRef.current.setExecutionBlockLanguageAndText(
+                            currentBlock, savedState.executionHistoryUnsavedCode ?? "",
+                            savedState.executionHistoryUnsavedCodeLanguage ?? "sql");
+                    } else {
+                        this.editorRef.current.setExecutionBlockLanguageAndText(
+                            currentBlock, historyEntry.code, historyEntry.languageId);
+                    }
                 }
 
                 this.editorRef.current.focus();
