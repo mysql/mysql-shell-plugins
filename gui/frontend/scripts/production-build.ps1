@@ -27,6 +27,13 @@ antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/mys
 antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/SQLite/generated src/parsing/SQLite/*.g4
 antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/python/generated src/parsing/python/*.g4
 
+# Include required MRS plugin resources as part of the frontend build
+$target_dir = "$PSScriptRoot\..\src\modules\mrs\sdk"
+New-Item -ItemType Directory -Path $target_dir -Force
+$source = Resolve-Path "$PSScriptRoot\..\..\..\mrs_plugin\sdk\typescript\MrsBaseClasses.ts"
+$target = "$target_dir\MrsBaseClasses.ts"
+New-Item -Path $target -ItemType HardLink -Value $source -Force
+
 SET NODE_OPTIONS=--max-old-space-size=16000
 SET SOURCE_MAPS=$1
 node_modules/.bin/vite build

@@ -40,6 +40,14 @@ if [[ $source -nt $target ]]; then
   printf "\n"
 fi
 
+# Include required MRS plugin resources as part of the frontend build
+cwd=`dirname $0`
+target_dir=$cwd/../src/modules/mrs/sdk
+mkdir -p $target_dir
+source=`realpath $cwd/../../../mrs_plugin/sdk/typescript/MrsBaseClasses.ts`
+target=$target_dir/MrsBaseClasses.ts
+ln -nsf $source $target
+
 # We need lots of RAM when building with source maps. Without them 8GB are enough.
 export NODE_OPTIONS="--max-old-space-size=16000"
 SOURCE_MAPS=$1 node_modules/.bin/vite build

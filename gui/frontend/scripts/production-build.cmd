@@ -27,6 +27,14 @@ antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/mys
 antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/SQLite/generated src/parsing/SQLite/*.g4
 antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/python/generated src/parsing/python/*.g4
 
-SET NODE_OPTIONS=--max-old-space-size=16000
-SET SOURCE_MAPS=$1
+rem Include required MRS plugin resources as part of the frontend build
+set cwd="%~dp0"
+set target_dir="%cwd%..\src\modules\mrs\sdk"
+if not exist %target_dir% (md %target_dir%)
+set source="%cwd%..\..\..\mrs_plugin\sdk\typescript\MrsBaseClasses.ts"
+set target="%target_dir%\MrsBaseClasses.ts"
+if not exist %target% (mklink /h %target% %source%)
+
+set NODE_OPTIONS=--max-old-space-size=16000
+set SOURCE_MAPS=$1
 node_modules/.bin/vite build
