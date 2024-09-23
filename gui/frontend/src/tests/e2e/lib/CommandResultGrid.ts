@@ -612,11 +612,14 @@ export class CommandResultGrid {
                         return false;
                     });
             } catch (e) {
+                console.log(e);
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "The cell or the context menu were always stale");
+        }, constants.wait5seconds,
+            // eslint-disable-next-line max-len
+            `Clicking on Item ${contextMenuItem}/${subContextMenuItem ? subContextMenuItem : ""} did not generate any outcome`);
     };
 
     /**

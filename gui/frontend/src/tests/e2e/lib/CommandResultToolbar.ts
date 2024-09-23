@@ -130,7 +130,8 @@ export class CommandResultToolbar implements interfaces.ICommandResultToolbar {
      */
     public rollbackChanges = async (): Promise<void> => {
         await this.result!.context!.findElement(toolbarLocator.rollbackButton).click();
-        const confirmDialog = await driver.wait(Misc.untilConfirmationDialogExists("for rollback"));
+        const confirmDialog = await driver.wait(Misc.untilConfirmationDialogExists("for rollback"),
+            constants.wait5seconds, "Confirmation dialog was not found");
         await confirmDialog!.findElement(locator.confirmDialog.accept).click();
     };
 

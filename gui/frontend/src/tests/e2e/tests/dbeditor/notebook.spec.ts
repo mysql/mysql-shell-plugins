@@ -576,40 +576,6 @@ describe("Notebook", () => {
         }
     });
 
-    it("Save the notebook", async () => {
-        const outDir = process.env.USERPROFILE ?? process.env.HOME;
-        let notebookFile = "";
-        try {
-            await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("SELECT VERSION();");
-            expect(result.toolbar!.status).toMatch(/1 record retrieved/);
-            await (await notebook.toolbar.getButton(constants.saveNotebook))!.click();
-            await driver.wait(async () => {
-                const files = await fs.readdir(String(outDir));
-                for (const file of files) {
-                    if (file.includes(".mysql-notebook")) {
-                        notebookFile = join(String(outDir), file);
-                        try {
-                            const file = await fs.readFile(notebookFile);
-                            JSON.parse(file.toString());
-
-                            return true;
-                        } catch (e) {
-                            // continue
-                        }
-                    }
-                }
-            }, constants.wait10seconds, `No file with extension '.mysql-notebook' was found at ${outDir}`);
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        } finally {
-            await fs.unlink(notebookFile).catch(() => {
-                // continue
-            });
-        }
-    });
-
     it("Schema autocomplete context menu", async () => {
         try {
             await notebook.codeEditor.languageSwitch("\\sql ", true);
@@ -650,61 +616,6 @@ describe("Notebook", () => {
         }
     });
 
-});
-
-describe("Notebook headless off", () => {
-
-    let testFailed = false;
-    const anotherConnection: interfaces.IDBConnection = {
-        dbType: "MySQL",
-        caption: `no headless`,
-        description: "Local connection",
-        basic: {
-            hostname: String(process.env.DBHOSTNAME),
-            protocol: "mysql",
-            username: "dbuser2",
-            port: parseInt(process.env.DBPORT!, 10),
-            portX: parseInt(process.env.DBPORTX!, 10),
-            schema: "sakila",
-            password: "dbuser2",
-        },
-    };
-
-    const notebook = new E2ENotebook();
-
-    beforeAll(async () => {
-        try {
-            await loadDriver(false);
-            await driver.get(url);
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
-
-            await driver.executeScript("arguments[0].click()",
-                await driver.wait(until.elementLocated(locator.sqlEditorPage.icon)), constants.wait5seconds);
-
-            await DatabaseConnectionOverview.createDataBaseConnection(anotherConnection);
-            await driver.executeScript("arguments[0].click();",
-                await DatabaseConnectionOverview.getConnection(anotherConnection.caption!));
-            await driver.wait(new E2ENotebook().untilIsOpened(anotherConnection), constants.wait10seconds);
-            await notebook.codeEditor.loadCommandResults();
-        } catch (e) {
-            await Misc.storeScreenShot("beforeAll_Notebook");
-            throw e;
-        }
-    });
-
-    afterEach(async () => {
-        if (testFailed) {
-            testFailed = false;
-            await Misc.storeScreenShot();
-        }
-    });
-
-    afterAll(async () => {
-        await Os.writeFELogs(basename(__filename), driver.manage().logs());
-        await driver.close();
-        await driver.quit();
-    });
-
     it("Copy to clipboard button", async () => {
         try {
             await notebook.codeEditor.clean();
@@ -725,6 +636,7 @@ describe("Notebook headless off", () => {
     it("Result grid context menu - Copy single row", async () => {
         try {
             await notebook.codeEditor.clean();
+            await notebook.codeEditor.languageSwitch("\\sql ");
             const result = await notebook.codeEditor.execute("select * from sakila.actor limit 1;");
             expect(result.toolbar!.status).toMatch(/OK/);
 
@@ -895,7 +807,7 @@ describe("Notebook headless off", () => {
         }
     });
 
-    it("Result grid context menu - Copy field, copy field unquoted, set field to null", async () => {
+    it("Result grid context menu - Copy field, copy field unquoted", async () => {
         try {
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("select * from sakila.result_sets;");
@@ -905,7 +817,6 @@ describe("Notebook headless off", () => {
             const allColumns = Array.from(result.grid!.columnsMap!.keys());
 
             for (let i = 1; i <= allColumns.length - 1; i++) {
-
                 await driver.wait(async () => {
                     const copy = await result.grid!.copyField(row, String(allColumns[i]));
                     const clip = await Os.readClipboard();
@@ -928,9 +839,119 @@ describe("Notebook headless off", () => {
                     }
                 }, constants.wait10seconds, "Copy field unquoted failed");
 
+            }
+
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+});
+
+// TESTS THAT NEED TO RUN ON HEADLESS MODE
+describe("Notebook headless on", () => {
+
+    let testFailed = false;
+    const anotherConnection: interfaces.IDBConnection = {
+        dbType: "MySQL",
+        caption: `headless on`,
+        description: "Local connection",
+        basic: {
+            hostname: String(process.env.DBHOSTNAME),
+            protocol: "mysql",
+            username: "dbuser2",
+            port: parseInt(process.env.DBPORT!, 10),
+            portX: parseInt(process.env.DBPORTX!, 10),
+            schema: "sakila",
+            password: "dbuser2",
+        },
+    };
+
+    const notebook = new E2ENotebook();
+
+    beforeAll(async () => {
+        try {
+            await loadDriver(true);
+            await driver.get(url);
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+
+            await driver.executeScript("arguments[0].click()",
+                await driver.wait(until.elementLocated(locator.sqlEditorPage.icon)), constants.wait5seconds);
+
+            await DatabaseConnectionOverview.createDataBaseConnection(anotherConnection);
+            await driver.executeScript("arguments[0].click();",
+                await DatabaseConnectionOverview.getConnection(anotherConnection.caption!));
+            await driver.wait(new E2ENotebook().untilIsOpened(anotherConnection), constants.wait10seconds);
+            await notebook.codeEditor.loadCommandResults();
+        } catch (e) {
+            await Misc.storeScreenShot("beforeAll_Notebook");
+            throw e;
+        }
+    });
+
+    afterEach(async () => {
+        if (testFailed) {
+            testFailed = false;
+            await Misc.storeScreenShot();
+        }
+    });
+
+    afterAll(async () => {
+        await Os.writeFELogs(basename(__filename), driver.manage().logs());
+        await driver.close();
+        await driver.quit();
+    });
+
+    it("Save the notebook", async () => {
+        const outDir = process.env.USERPROFILE ?? process.env.HOME;
+        let notebookFile = "";
+        try {
+            await notebook.codeEditor.clean();
+            const result = await notebook.codeEditor.execute("SELECT VERSION();");
+            expect(result.toolbar!.status).toMatch(/1 record retrieved/);
+            await (await notebook.toolbar.getButton(constants.saveNotebook))!.click();
+            await driver.wait(async () => {
+                const files = await fs.readdir(String(outDir));
+                for (const file of files) {
+                    if (file.includes(".mysql-notebook")) {
+                        notebookFile = join(String(outDir), file);
+                        try {
+                            const file = await fs.readFile(notebookFile);
+                            JSON.parse(file.toString());
+
+                            return true;
+                        } catch (e) {
+                            // continue
+                        }
+                    }
+                }
+            }, constants.wait5seconds, `No file with extension '.mysql-notebook' was found at ${outDir}`);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        } finally {
+            await fs.unlink(notebookFile).catch(() => {
+                // continue
+            });
+        }
+    });
+
+    it("Result grid context menu - Set field to null", async () => {
+        try {
+            await notebook.codeEditor.clean();
+            const result = await notebook.codeEditor.execute("select * from sakila.result_sets;");
+            expect(result.toolbar!.status).toMatch(/OK/);
+
+            const row = 0;
+            const allColumns = Array.from(result.grid!.columnsMap!.keys());
+
+            for (let i = 1; i <= allColumns.length - 1; i++) {
+
                 await result.grid!.openCellContextMenuAndSelect(row, String(allColumns[i]),
                     constants.resultGridContextMenu.setFieldToNull);
                 expect(await result.grid!.getCellValue(row, String(allColumns[i]))).toBe(constants.isNull);
+
             }
 
             await result.toolbar!.rollbackChanges();
@@ -939,4 +960,5 @@ describe("Notebook headless off", () => {
             throw e;
         }
     });
+
 });
