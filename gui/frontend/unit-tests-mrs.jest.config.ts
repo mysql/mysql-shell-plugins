@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -59,7 +59,7 @@ const config: Config = {
     ],
 
     // The directory where Jest should output its coverage files
-    coverageDirectory: "coverage/coverage-generic",
+    coverageDirectory: "coverage/coverage-mrs",
 
     // An array of regexp pattern strings used to skip coverage collection
     // coveragePathIgnorePatterns: [
@@ -79,7 +79,6 @@ const config: Config = {
 
     // The configuration minimum threshold enforcement for coverage results
     // is now made by nyc (check .nycrc file)
-
 
     // A path to a custom dependency extractor
     // dependencyExtractor: undefined,
@@ -211,13 +210,12 @@ const config: Config = {
 
     // The glob patterns Jest uses to detect test files
     testMatch: [
-        "**/tests/unit-tests/**/*.spec.[jt]s?(x)"
+        "<rootDir>/src/tests/unit-tests/modules/mrs/**/*.spec.[jt]s?(x)",
     ],
+
 
     // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
     testPathIgnorePatterns: [
-        "src/tests/unit-tests/modules/mrs",
-        // "[/\\\\]tests/unit-tests/mrs[/\\\\].+\\.(js|jsx|mjs|cjs|ts|tsx)$",
         //"[/\\\\]node_modules[/\\\\].+\\.(js|jsx|mjs|cjs|ts|tsx)$",
         //"^.+\\.module\\.(css|sass|scss)$",
     ],

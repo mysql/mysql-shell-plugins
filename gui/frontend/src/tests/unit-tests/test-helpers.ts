@@ -804,6 +804,220 @@ export class DialogHelper {
     }
 }
 
-// export const generateId = (): string => {
-//     const id = uuidBinary16Base64();
-// }
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../communication/MySQL.js";
+import { DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
+import { uuidBinary16Base64 } from "../../utilities/helpers.js";
+import { MrsDbObjectType, MrsObjectKind } from "../../modules/mrs/types.js";
+import { IMrsAuthAppData, IMrsServiceData } from "../../communication/ProtocolMrs.js";
+
+export const createBackend = async (): Promise<ShellInterfaceSqlEditor> => {
+    const credentials = getDbCredentials();
+
+    const options: IMySQLConnectionOptions = {
+        scheme: MySQLConnectionScheme.MySQL,
+        user: credentials.userName,
+        password: credentials.password,
+        host: credentials.host,
+        port: credentials.port,
+    };
+
+    const testConnection: IConnectionDetails = {
+        id: -1,
+        dbType: DBType.MySQL,
+        caption: "ShellInterfaceDb Test Connection 1",
+        description: "ShellInterfaceDb Test Connection",
+        options,
+    };
+
+    testConnection.id = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
+        testConnection, "unit-tests") ?? -1;
+    expect(testConnection.id).toBeGreaterThan(-1);
+
+    const backend = new ShellInterfaceSqlEditor();
+    await backend.startSession("mrsHubTests");
+    await backend.openConnection(testConnection.id);
+
+    return Promise.resolve(backend);
+};
+
+export interface IRecreateMrsDataResult {
+    service: IMrsServiceData,
+    authApp: IMrsAuthAppData,
+};
+
+export const recreateMrsData = async (): Promise<IRecreateMrsDataResult> => {
+    const backend = await createBackend();
+
+    // Some preparation for the tests.
+    await backend.execute("DROP DATABASE IF EXISTS mysql_rest_service_metadata");
+    await backend.execute("DROP DATABASE IF EXISTS MRS_TEST");
+    await backend.execute("CREATE DATABASE MRS_TEST");
+    await backend.execute("CREATE TABLE MRS_TEST.actor (actor_id INT NOT NULL, first_name VARCHAR(45) NOT NULL, " +
+        "last_name VARCHAR(45) NOT NULL, last_update TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY " +
+        "(actor_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci");
+    await backend.execute("CREATE PROCEDURE MRS_TEST.actor_count (IN var1 CHAR(3), OUT actors INT)\n" +
+        "BEGIN\n" +
+        "   SELECT COUNT(*) + var1 INTO actors FROM MRS_TEST.actor;\n" +
+        "END");
+
+    await backend.mrs.configure();
+    const service = await backend.mrs.addService("/myService", "MyService", ["HTTPS"], "", "", true, {}, "/unit-tests",
+        "", "", "");
+
+    const authAppId = await backend.mrs.addAuthApp(service.id, {
+        authVendorId: "0x30000000000000000000000000000000",
+        name: "MRS",
+        serviceId: service.id,
+        enabled: true,
+        limitToRegisteredUsers: false,
+        defaultRoleId: "0x31000000000000000000000000000000",
+    }, []);
+    const authApp = await backend.mrs.getAuthApp(authAppId.authAppId);
+    const schemaId = await backend.mrs.addSchema(service.id, "MRS_TEST", "/mrs-test", false, null, null);
+
+    let newDbObjectId = uuidBinary16Base64();
+    const dbObjectResult = await backend.mrs.addDbObject("actor", MrsDbObjectType.Table, false, "/actor", true,
+        "FEED", false, false, null, null, schemaId,
+        undefined, "<this is a comment>", undefined, undefined, null,
+        [
+            {
+                id: newDbObjectId,
+                dbObjectId: "",
+                name: "MyServiceAnalogPhoneBookAddresses",
+                position: 0,
+                kind: MrsObjectKind.Result,
+                fields: [
+                    {
+                        id: uuidBinary16Base64(),
+                        objectId: newDbObjectId,
+                        name: "id",
+                        position: 1,
+                        dbColumn: {
+                            comment: "<comment for column 'id'>",
+                            datatype: "int",
+                            idGeneration: "",
+                            isGenerated: false,
+                            isPrimary: true,
+                            isUnique: false,
+                            name: "id",
+                            notNull: true,
+                        },
+                        enabled: true,
+                        allowFiltering: true,
+                        allowSorting: true,
+                        noCheck: false,
+                        noUpdate: false,
+                    },
+                    {
+                        id: uuidBinary16Base64(),
+                        objectId: newDbObjectId,
+                        name: "addressLine",
+                        position: 2,
+                        dbColumn: {
+                            comment: "<comment for column 'addressLine'>",
+                            datatype: "varchar(256)",
+                            idGeneration: "",
+                            isGenerated: false,
+                            isPrimary: false,
+                            isUnique: false,
+                            name: "address_line",
+                            notNull: false,
+                        },
+                        enabled: true,
+                        allowFiltering: true,
+                        allowSorting: false,
+                        noCheck: false,
+                        noUpdate: false,
+                    },
+                    {
+                        id: uuidBinary16Base64(),
+                        objectId: newDbObjectId,
+                        name: "city",
+                        position: 3,
+                        dbColumn: {
+                            comment: "<comment for column 'city'>",
+                            datatype: "varchar(128)",
+                            idGeneration: "",
+                            isGenerated: false,
+                            isPrimary: false,
+                            isUnique: false,
+                            name: "city",
+                            notNull: false,
+                        },
+                        enabled: true,
+                        allowFiltering: true,
+                        allowSorting: false,
+                        noCheck: false,
+                        noUpdate: false,
+                    },
+                ],
+            },
+        ]);
+
+
+    newDbObjectId = uuidBinary16Base64();
+    await backend.mrs.addDbObject("actor_count",
+        MrsDbObjectType.Procedure, false, "/actor_count", true,
+        "FEED", false, false, null, null, schemaId,
+        undefined, "<this is a comment>", undefined, undefined, null,
+        [
+            {
+                id: newDbObjectId,
+                dbObjectId: "",
+                name: "MyServiceAnalogPhoneBookAddresses",
+                position: 0,
+                kind: MrsObjectKind.Result,
+                fields: [
+                    {
+                        id: uuidBinary16Base64(),
+                        objectId: newDbObjectId,
+                        name: "id",
+                        position: 1,
+                        dbColumn: {
+                            comment: "<comment for column 'id'>",
+                            datatype: "int",
+                            idGeneration: "",
+                            isGenerated: false,
+                            isPrimary: true,
+                            isUnique: false,
+                            name: "id",
+                            notNull: true,
+                        },
+                        enabled: true,
+                        allowFiltering: true,
+                        allowSorting: true,
+                        noCheck: false,
+                        noUpdate: false,
+                    },
+                    {
+                        id: uuidBinary16Base64(),
+                        objectId: newDbObjectId,
+                        name: "addressLine",
+                        position: 2,
+                        dbColumn: {
+                            comment: "<comment for column 'addressLine'>",
+                            datatype: "varchar(256)",
+                            idGeneration: "",
+                            isGenerated: false,
+                            isPrimary: false,
+                            isUnique: false,
+                            name: "address_line",
+                            notNull: false,
+                        },
+                        enabled: true,
+                        allowFiltering: true,
+                        allowSorting: false,
+                        noCheck: false,
+                        noUpdate: false,
+                    },
+                ],
+            },
+        ]);
+    await backend.mrs.getDbObject(dbObjectResult);
+
+    return Promise.resolve({
+        service,
+        authApp,
+    });
+};
