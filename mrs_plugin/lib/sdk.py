@@ -373,7 +373,7 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
         service.get("url_context_root"))
 
     enabled_crud_ops = None
-    required_datatypes = None
+    required_datatypes = set()
     requires_auth = False
 
     for loop in schema_loops:
@@ -393,7 +393,7 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
 
                 schema_template_with_obj_filled = code.get("template")
                 enabled_crud_ops = code.get("enabled_crud_ops")
-                required_datatypes = code.get("required_datatypes")
+                required_datatypes |= {x for x in code.get("required_datatypes") if x not in required_datatypes}
 
                 if requires_auth is False:
                     requires_auth |= code.get("requires_auth")
@@ -420,7 +420,7 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
 
         template = template.replace(loop.group(), filled_temp)
 
-    return {"template": template, "enabled_crud_ops": enabled_crud_ops, "required_datatypes": required_datatypes, "requires_auth": requires_auth}
+    return {"template": template, "enabled_crud_ops": enabled_crud_ops, "required_datatypes": list(required_datatypes), "requires_auth": requires_auth}
 
 
 def get_mrs_object_sdk_language_options(sdk_options, sdk_language):
@@ -695,23 +695,30 @@ def get_datatype_mapping(db_datatype, sdk_language):
             return "int"
         if db_datatype.startswith(("decimal", "numeric", "float", "double")):
             return "float"
+        if db_datatype.startswith("json"):
+            return "JsonValue"
         return "str"
 
     return "unknown"
 
 
 def get_enhanced_datatype_mapping(db_datatype, sdk_language):
+    enhanced_map = {
+        "Python": {
+            "bool": "BoolField",
+            "int": "IntField",
+            "float": "FloatField",
+            "str": "StringField",
+        }
+    }
     if sdk_language == "TypeScript":
         # In TypeScript, the fields of type ${DatabaseObject} are the same as type ${DatabaseObject}Params
         return get_datatype_mapping(db_datatype, sdk_language)
     if sdk_language == "Python":
-        if db_datatype.startswith(("tinyint(1)", "bit(1)")):
-            return "BoolField"
-        if db_datatype.startswith(("tinyint", "smallint", "mediumint", "int", "bigint")):
-            return "IntField"
-        if db_datatype.startswith(("decimal", "numeric", "float", "double")):
-            return "FloatField"
-        return "StringField"
+        # If `py_datatype` not in the list of types to be enhanced,
+        # then we assume it shouldn't be enhanced and returned it as it is.
+        py_datatype = get_datatype_mapping(db_datatype, sdk_language)
+        return enhanced_map[sdk_language].get(py_datatype, py_datatype)
 
     return "unknown"
 
