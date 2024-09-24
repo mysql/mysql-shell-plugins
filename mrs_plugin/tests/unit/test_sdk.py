@@ -68,169 +68,58 @@ def test_get_interface_datatype():
 
 
 def test_get_datatype_mapping():
-    args = {
-        "db_datatype": "tinyint(1)",
-        "sdk_language": "TypeScript"
+    datatype_map = {
+        "TypeScript": {
+            ("tinyint(1)", "bit(1)"): "boolean",
+            (
+                "tinyint",
+                "smallint",
+                "mediumint",
+                "int",
+                "decimal",
+                "numeric",
+                "float",
+                "double",
+            ): "number",
+            ("json",): "JsonValue",
+            ("GEOMETRY",): "Geometry",
+            ("GEOMETRYCOLLECTION",): "GeometryCollection",
+            ("POINT",): "Point",
+            ("MULTIPOINT",): "MultiPoint",
+            ("LINESTRING",): "LineString",
+            ("MULTILINESTRING",): "MultiLineString",
+            ("POLYGON",): "Polygon",
+            ("MULTIPOLYGON",): "MultiPolygon",
+            ("varchar",): "string",
+        },
+        "Python": {
+            ("tinyint(1)", "bit(1)"): "bool",
+            (
+                "tinyint",
+                "smallint",
+                "mediumint",
+                "int",
+            ): "int",
+            (
+                "decimal",
+                "numeric",
+                "float",
+                "double",
+            ): "float",
+            ("json",): "JsonValue",
+            ("varchar",): "str",
+        },
+        "Unknown": {
+            ("varchar",): "unknown",
+        }
     }
 
-    type = get_datatype_mapping(**args)
-    assert type == "boolean"
-
-    args["db_datatype"] = "bit(1)"
-
-    type = get_datatype_mapping(**args)
-    assert type == "boolean"
-
-    args["db_datatype"] = "tinyint"
-
-    type = get_datatype_mapping(**args)
-    assert type == "number"
-
-    args["db_datatype"] = "smallint"
-
-    type = get_datatype_mapping(**args)
-    assert type == "number"
-
-    args["db_datatype"] = "mediumint"
-
-    type = get_datatype_mapping(**args)
-    assert type == "number"
-
-    args["db_datatype"] = "int"
-
-    type = get_datatype_mapping(**args)
-    assert type == "number"
-
-    args["db_datatype"] = "decimal"
-
-    type = get_datatype_mapping(**args)
-    assert type == "number"
-
-    args["db_datatype"] = "numeric"
-
-    type = get_datatype_mapping(**args)
-    assert type == "number"
-
-    args["db_datatype"] = "float"
-
-    type = get_datatype_mapping(**args)
-    assert type == "number"
-
-    args["db_datatype"] = "double"
-
-    type = get_datatype_mapping(**args)
-    assert type == "number"
-
-    args["db_datatype"] = "json"
-
-    type = get_datatype_mapping(**args)
-    assert type == "JsonValue"
-
-    args["db_datatype"] = "GEOMETRY"
-
-    type = get_datatype_mapping(**args)
-    assert type == "Geometry"
-
-    args["db_datatype"] = "GEOMETRYCOLLECTION"
-
-    type = get_datatype_mapping(**args)
-    assert type == "GeometryCollection"
-
-    args["db_datatype"] = "POINT"
-
-    type = get_datatype_mapping(**args)
-    assert type == "Point"
-
-    args["db_datatype"] = "MULTIPOINT"
-
-    type = get_datatype_mapping(**args)
-    assert type == "MultiPoint"
-
-    args["db_datatype"] = "LINESTRING"
-
-    type = get_datatype_mapping(**args)
-    assert type == "LineString"
-
-    args["db_datatype"] = "MULTILINESTRING"
-
-    type = get_datatype_mapping(**args)
-    assert type == "MultiLineString"
-
-    args["db_datatype"] = "POLYGON"
-
-    type = get_datatype_mapping(**args)
-    assert type == "Polygon"
-
-    args["db_datatype"] = "MULTIPOLYGON"
-
-    type = get_datatype_mapping(**args)
-    assert type == "MultiPolygon"
-
-    args["db_datatype"] = "varchar"
-
-    type = get_datatype_mapping(**args)
-    assert type == "string"
-
-    args["sdk_language"] = "Python"
-    args["db_datatype"] = "tinyint(1)"
-
-    type = get_datatype_mapping(**args)
-    assert type == "bool"
-
-    args["db_datatype"] = "bit(1)"
-
-    type = get_datatype_mapping(**args)
-    assert type == "bool"
-
-    args["db_datatype"] = "tinyint"
-
-    type = get_datatype_mapping(**args)
-    assert type == "int"
-
-    args["db_datatype"] = "smallint"
-
-    type = get_datatype_mapping(**args)
-    assert type == "int"
-
-    args["db_datatype"] = "mediumint"
-
-    type = get_datatype_mapping(**args)
-    assert type == "int"
-
-    args["db_datatype"] = "int"
-
-    type = get_datatype_mapping(**args)
-    assert type == "int"
-
-    args["db_datatype"] = "decimal"
-
-    type = get_datatype_mapping(**args)
-    assert type == "float"
-
-    args["db_datatype"] = "numeric"
-
-    type = get_datatype_mapping(**args)
-    assert type == "float"
-
-    args["db_datatype"] = "float"
-
-    type = get_datatype_mapping(**args)
-    assert type == "float"
-
-    args["db_datatype"] = "double"
-
-    type = get_datatype_mapping(**args)
-    assert type == "float"
-
-    args["db_datatype"] = "varchar"
-
-    type = get_datatype_mapping(**args)
-    assert type == "str"
-
-    args["sdk_language"] = "Unknown"
-
-    type = get_datatype_mapping(**args)
-    assert type == "unknown"
+    for sdk_language, db_to_sdk_language_datatype_map in datatype_map.items():
+        for db_datatypes, expected_sdk_language_datatype in db_to_sdk_language_datatype_map.items():
+            for db_datatype in db_datatypes:
+                assert expected_sdk_language_datatype == get_datatype_mapping(
+                    db_datatype, sdk_language
+                )
 
 
 def test_datatype_is_primitive():

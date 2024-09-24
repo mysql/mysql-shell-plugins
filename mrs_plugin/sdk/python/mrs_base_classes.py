@@ -162,6 +162,10 @@ class AuthAppNotFoundError(MrsError):
 #                                 Custom Types
 ####################################################################################
 # pylint: disable=too-few-public-methods
+JsonPrimitive = bool | float | int | str | None
+JsonObject = Mapping[str, "JsonValue"]
+JsonArray = list["JsonValue"]
+JsonValue = JsonPrimitive | JsonObject | JsonArray
 
 UndefinedField = UndefinedDataClassField()
 
