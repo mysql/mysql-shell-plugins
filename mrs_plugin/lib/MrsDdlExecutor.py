@@ -154,7 +154,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             service = lib.services.get_current_service(self.session)
             if service is not None:
                 self.state_data['current_service_id'] = service.get("id")
-                self.state_data['current_service'] = service.get("host_ctx")
+                self.state_data['current_service'] = service.get("url_context_root")
+                self.state_data["current_service_host"] = service.get("url_host_name")
 
     @property
     def current_service_id(self):
@@ -184,6 +185,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
     @property
     def current_service_host(self):
+        self.lookup_current_service()
         return self.state_data.get('current_service_host')
 
     @current_service_host.setter
