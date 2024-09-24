@@ -70,3 +70,8 @@ frontend/src/tests/unit-tests/shell-test
 
 # MRS SDK resources
 frontend/src/modules/mrs/sdk
+
+# istambul coverage tool
+.nyc_output
+coverage-generic
+coverage-mrs

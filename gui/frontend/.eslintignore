@@ -1,5 +1,6 @@
 src/app-wrapper/
 unit-tests.jest.config.ts
+unit-tests-mrs.jest.config.ts
 src/tests/cssTransform.cjs
 src/tests/fileTransform.cjs
 e2e.jest.config.ts
