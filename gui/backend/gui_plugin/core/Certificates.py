@@ -75,9 +75,6 @@ def install_shell_web_certificate(**kwargs):
     Returns:
        True if successfully installed
     """
-    # Avoid the backtrace to be generated for this plugin function
-    sys.tracebacklimit = 0
-
     replace_existing = kwargs.get("replace_existing")
     keychain = kwargs.get("keychain", True)
 
@@ -109,7 +106,4 @@ def remove_shell_web_certificate():
     Returns:
        True if successfully removed
     """
-    # Avoid the backtrace to be generated for this plugin function
-    sys.tracebacklimit = 0
-
     return certs.management.remove()
