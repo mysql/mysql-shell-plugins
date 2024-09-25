@@ -169,6 +169,10 @@ class RequestHandler(Thread):
             if hasattr(self._thread_context, "completion_event"):
                 self._thread_context.completion_event.wait()
         except Exception as e:
+            # dump stack trace to raw stderr
+            import traceback
+            import sys
+            sys.real_stderr.write(traceback.format_exc())
             result = Response.exception(e)
         finally:
             if self._lock_session:

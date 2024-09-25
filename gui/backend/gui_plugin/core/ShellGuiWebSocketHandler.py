@@ -538,9 +538,6 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             self.send_response_message('ERROR', error_msg, request_id)
 
     def execute_command_request(self, json_msg):
-        # There's no reason to include the stack trace on the error messages for the FE
-        sys.tracebacklimit = 0
-
         request_id = json_msg.get('request_id')
         try:
             cmd = json_msg.get('command')

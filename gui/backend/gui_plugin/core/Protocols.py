@@ -23,6 +23,7 @@
 
 import json
 import sqlite3
+import traceback
 
 import mysqlsh
 
@@ -74,6 +75,16 @@ class Response:
             return Response.error(e.msg, args, {
                 "source": e.source,
                 "code": e.code
+            })
+        elif isinstance(e, Exception):
+            lines = traceback.format_exception_only(e)
+            if len(lines) > 1:
+                msg = lines[0].strip()+"\n"+lines[-1].strip()
+            else:
+                msg = str(e)
+            return Response.error(msg, args, {
+                "source": "MSG",
+                "code": SYSTEM_GENERIC_ERROR
             })
         else:
             return Response.error(str(e), args, {
