@@ -23,14 +23,13 @@
 
 import pytest
 
-from ...users import *
+from ... users import *
 from ... import lib
-from .helpers import UserCT, get_default_user_init
+from . helpers import UserCT, get_default_user_init
 
 import hashlib
 import hmac
 import base64
-
 
 def test_add_users(phone_book, table_contents):
     users_table = table_contents("mrs_user")
@@ -45,17 +44,17 @@ def test_add_users(phone_book, table_contents):
         "app_options": {},
         "auth_string": None,
         "session": phone_book["session"],
-        "user_roles": [],
+        "user_roles": [
+            ]
     }
 
-    assert users_has_role_table.filter("user_id", phone_book["mrs_user1"]) == [
-        {
-            "user_id": phone_book["mrs_user1"],
-            "role_id": lib.auth_apps.DEFAULT_ROLE_ID,
-            "comments": "Default role.",
-            "options": None,
-        }
-    ]
+
+    assert users_has_role_table.filter("user_id", phone_book["mrs_user1"]) == [{
+        "user_id": phone_book["mrs_user1"],
+        "role_id": lib.auth_apps.DEFAULT_ROLE_ID,
+        "comments": "Default role.",
+        "options": None,
+    }]
 
     user = None
 
@@ -72,7 +71,7 @@ def test_add_users(phone_book, table_contents):
     assert users_table.count == users_table.snapshot.count + 1
     assert users_has_role_table.count == users_has_role_table.snapshot.count + 1
 
-    user_auth_string = users_table.items[1]["auth_string"]
+    user_auth_string  = users_table.items[1]["auth_string"]
     assert user_auth_string.startswith("$A$005")
 
     salt_base64 = user_auth_string.split("$")[3]
@@ -80,9 +79,7 @@ def test_add_users(phone_book, table_contents):
     salt = base64.b64decode(salt_base64)
     iterations = 5000
 
-    hash = hashlib.pbkdf2_hmac(
-        "sha256", user_init["auth_string"].encode(), salt, iterations
-    )
+    hash = hashlib.pbkdf2_hmac('sha256', user_init["auth_string"].encode(), salt, iterations)
     client_key = hmac.HMAC(hash, b"Client Key", digestmod=hashlib.sha256).digest()
 
     m = hashlib.sha256()
@@ -93,10 +90,10 @@ def test_add_users(phone_book, table_contents):
         "A",
         f"{int(iterations/1000):03}",
         base64.b64encode(salt).decode(),
-        base64.b64encode(stored_key).decode(),
+        base64.b64encode(stored_key).decode()
     ]
 
-    test_auth_string = "$" + "$".join(parts)
+    test_auth_string = '$' + '$'.join(parts)
     assert test_auth_string == user_auth_string
 
     delete_user(session=phone_book["session"], user_id=user["id"])
@@ -109,22 +106,18 @@ def test_get_users(phone_book, table_contents):
     auth_app_id = phone_book["auth_app_id"]
     users_table = table_contents("mrs_user")
 
-    users = get_users(
-        session=phone_book["session"], auth_app_id=phone_book["auth_app_id"]
-    )
+    users = get_users(session=phone_book["session"], auth_app_id=phone_book["auth_app_id"])
     assert users is not None
-    assert len(users) == 1  # 1 inserted auth the auth_app
+    assert len(users) == 1 # 1 inserted auth the auth_app
 
     for user in users:
         assert user["auth_string"] == lib.users.STORED_PASSWORD_STRING
 
     user_init = get_default_user_init(auth_app_id)
     with UserCT(session, **user_init) as user_id:
-        users = get_users(
-            session=phone_book["session"], service_id=phone_book["service_id"]
-        )
+        users = get_users(session=phone_book["session"], service_id=phone_book["service_id"])
         assert users is not None
-        assert len(users) == 2  # 1 added user + 1 inserted auth the auth_app
+        assert len(users) == 2 # 1 added user + 1 inserted auth the auth_app
 
         for user in users:
             assert user["auth_string"] == lib.users.STORED_PASSWORD_STRING
@@ -143,8 +136,10 @@ def test_edit_users(phone_book, table_contents):
 
         user_update = {
             "user_id": user_id,
-            "value": {"email": "user2@anotherhost.com"},
-            "session": session,
+            "value": {
+                "email": "user2@anotherhost.com"
+            },
+            "session": session
         }
 
         update_user(**user_update)
@@ -156,8 +151,10 @@ def test_edit_users(phone_book, table_contents):
 
         user_update = {
             "user_id": user_id,
-            "value": {"auth_string": lib.users.STORED_PASSWORD_STRING},
-            "session": session,
+            "value": {
+                "auth_string": lib.users.STORED_PASSWORD_STRING
+            },
+            "session": session
         }
 
         update_user(**user_update)
@@ -166,8 +163,10 @@ def test_edit_users(phone_book, table_contents):
 
         user_update = {
             "user_id": user_id,
-            "value": {"auth_string": "somotherpassword"},
-            "session": session,
+            "value": {
+                "auth_string": "somotherpassword"
+            },
+            "session": session
         }
 
         with pytest.raises(RuntimeError) as exp:
@@ -181,16 +180,16 @@ def test_edit_users(phone_book, table_contents):
             "value": {
                 "auth_app_id": lib.core.convert_id_to_string(user["auth_app_id"])
             },
-            "session": session,
+            "session": session
         }
 
         new_values = {
-            "name": "new user1 name",
-            "email": "newuser1@host.com",
-            "vendor_user_id": "new vendor user1 id",
-            "login_permitted": False,
-            "mapped_user_id": "new mapped user1",
-            "app_options": {"name": "new app options name for user1"},
+                "name": "new user1 name",
+                "email": "newuser1@host.com",
+                "vendor_user_id": "new vendor user1 id",
+                "login_permitted": False,
+                "mapped_user_id": "new mapped user1",
+                "app_options": { "name": "new app options name for user1" },
         }
 
         users_table.take_snapshot()
@@ -198,7 +197,12 @@ def test_edit_users(phone_book, table_contents):
         original_record = users_table.snapshot[1]
 
         for key, value in new_values.items():
-            user_update = {"user_id": user_id, "value": {}, "session": session}
+            user_update = {
+                "user_id": user_id,
+                "value": {
+                },
+                "session": session
+            }
             user_update["value"][key] = value
             original_record[key] = value
 
@@ -206,11 +210,13 @@ def test_edit_users(phone_book, table_contents):
 
             assert users_table.items[1] == original_record
 
+
         user_update = {
             "user_id": user_id,
-            "value": {},
+            "value": {
+            },
             "user_roles": None,
-            "session": session,
+            "session": session
         }
 
         # Update setting user_roles to None
@@ -229,13 +235,11 @@ def test_edit_users(phone_book, table_contents):
 
         # Update setting user_roles to the previous roles
         for role in roles:
-            user_update["user_roles"].append(
-                {
-                    "user_id": lib.core.convert_id_to_string(role["user_id"]),
-                    "role_id": lib.core.convert_id_to_string(role["role_id"]),
-                    "comments": role["comments"],
-                }
-            )
+            user_update["user_roles"].append({
+                "user_id": lib.core.convert_id_to_string(role["user_id"]),
+                "role_id": lib.core.convert_id_to_string(role["role_id"]),
+                "comments": role["comments"],
+            })
 
         update_user(**user_update)
         roles4 = get_user_roles(user_id)
@@ -245,27 +249,26 @@ def test_edit_users(phone_book, table_contents):
 
         user_update = {
             "user_id": user_id,
-            "value": {"name": "User 1"},
-            "session": session,
+            "value": {
+                "name": "User 1"
+            },
+            "session": session
         }
         with pytest.raises(Exception) as exp:
             update_user(**user_update)
-        assert (
-            str(exp.value)
-            == "MySQL Error (1644): ClassicSession.run_sql: This name has already been used."
-        )
+        assert str(exp.value) == "MySQL Error (1644): ClassicSession.run_sql: This name has already been used."
 
         user_update = {
             "user_id": user_id,
-            "value": {"email": "user1@host.com"},
-            "session": session,
+            "value": {
+                "email": "user1@host.com"
+            },
+            "session": session
         }
         with pytest.raises(Exception) as exp:
             update_user(**user_update)
-        assert (
-            str(exp.value)
-            == "MySQL Error (1644): ClassicSession.run_sql: This email has already been used."
-        )
+        assert str(exp.value) == "MySQL Error (1644): ClassicSession.run_sql: This email has already been used."
+
 
 
 def test_user_roles(phone_book, table_contents):
@@ -278,61 +281,33 @@ def test_user_roles(phone_book, table_contents):
 
         assert roles == []
 
-        add_user_role(
-            user_id,
-            phone_book["roles"]["Full Access"],
-            "Default role.",
-            phone_book["session"],
-        )
+        add_user_role(user_id, phone_book["roles"]["Full Access"], "Default role.", phone_book["session"])
         roles = get_user_roles(user_id)
 
         assert roles == [
             {
-                "caption": "Full Access",
-                "comments": "Default role.",
-                "derived_from_role_caption": None,
-                "derived_from_role_id": None,
-                "description": "Full access to all db_objects",
                 "user_id": user_id,
                 "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
-                "specific_to_service_id": None,
+                "comments": "Default role.",
                 "options": None,
-            },
+            }
         ]
 
-        add_user_role(
-            user_id,
-            phone_book["roles"]["Process Admin"],
-            "Added as process admin",
-            phone_book["session"],
-        )
+        add_user_role(user_id, phone_book["roles"]["Process Admin"], "Added as process admin", phone_book["session"])
 
         roles = get_user_roles(user_id)
-        for r in roles:
-            r["derived_from_role_id"] = None
-            r["specific_to_service_id"] = None
 
         assert roles == [
             {
                 "user_id": user_id,
                 "role_id": phone_book["roles"]["Process Admin"],
-                "caption": "Process Admin",
                 "comments": "Added as process admin",
-                "derived_from_role_caption": "Maintenance Admin",
-                "derived_from_role_id": None,
-                "description": "Process administrator.",
-                "options": {},
-                "specific_to_service_id": None,
+                "options": None,
             },
             {
-                "caption": "Full Access",
-                "comments": "Default role.",
-                "derived_from_role_caption": None,
-                "derived_from_role_id": None,
-                "description": "Full access to all db_objects",
                 "user_id": user_id,
                 "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
-                "specific_to_service_id": None,
+                "comments": "Default role.",
                 "options": None,
             },
         ]
@@ -343,25 +318,15 @@ def test_user_roles(phone_book, table_contents):
 
         assert roles == []
 
-        add_user_role(
-            user_id,
-            phone_book["roles"]["Full Access"],
-            "Default role.",
-            phone_book["session"],
-        )
+        add_user_role(user_id, phone_book["roles"]["Full Access"], "Default role.", phone_book["session"])
 
         roles = get_user_roles(user_id)
 
         assert roles == [
             {
-                "caption": "Full Access",
-                "comments": "Default role.",
-                "derived_from_role_caption": None,
-                "derived_from_role_id": None,
-                "description": "Full access to all db_objects",
                 "user_id": user_id,
                 "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
-                "specific_to_service_id": None,
+                "comments": "Default role.",
                 "options": None,
-            },
+            }
         ]
