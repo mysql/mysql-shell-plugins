@@ -52,9 +52,6 @@ CREATE OR REPLACE REST SERVICE localhost/myTestService
         "position": 1
     };
 
-CREATE OR REPLACE REST SERVICE localhost/myService;
-
-
 SHOW CREATE REST SERVICE localhost/myTestService;
 
 ALTER REST SERVICE localhost/myTestService
@@ -313,64 +310,6 @@ SHOW REST SCHEMAS;
 CREATE REST AUTH APP "MRS" ON SERVICE localhost/myTestService VENDOR MRS;
 
 CREATE REST USER "mike"@"MRS" IDENTIFIED BY "1234";
-CREATE REST USER "mike2"@"MRS" IDENTIFIED BY "543243";
-CREATE REST USER "boss"@"MRS" IDENTIFIED BY "secret" ACCOUNT LOCK OPTIONS {
-    "email": "boss@example.com",
-    "vendor_user_id": "vendor",
-    "mapped_user_id": "vendorboss123",
-    "other_option": false
-} APP OPTIONS {"myoption": 12345};
-
-ALTER REST USER "mike"@"MRS" IDENTIFIED BY "5678";
-
-ALTER REST USER "mike"@"MRS" OPTIONS {
-    "email": "mike@example.com",
-    "vendor_user_id": "vendor2",
-    "mapped_user_id": "vendormike123"
-} APP OPTIONS {
-    "anything": [32]
-};
-
-select * from mysql_rest_service_metadata.mrs_user;
-
-CREATE OR REPLACE REST ROLE "role1";
-CREATE OR REPLACE REST ROLE "role2" EXTENDS "role1";
--- should cascade and drop role1 and role2
--- DROP REST ROLE "role1";
-
--- CREATE REST ROLE "role1";
--- CREATE REST ROLE "role2" EXTENDS "role1";
-
-CREATE REST ROLE "role3" EXTENDS "role1" ON SERVICE localhost/myTestService COMMENTS "A comment here" OPTIONS {"option1":1, "option2": false, "option3": [1, "bla", null]};
-
-CREATE REST ROLE "myrole" ON SERVICE localhost/myService;
-
-GRANT REST CREATE, READ, UPDATE, DELETE ON SERVICE localhost/myTestService SCHEMA /sakila TO "role1";
-GRANT REST CREATE, READ, UPDATE, DELETE ON SERVICE localhost/myTestService SCHEMA /sakila OBJECT /country TO "role2";
-GRANT REST UPDATE ON SERVICE localhost/myTestService SCHEMA /sakila OBJECT /filmInStock TO "role1";
-GRANT REST READ ON SCHEMA /sakila OBJECT /actor TO "role2";
-
-GRANT REST ROLE "role1" TO "mike"@"MRS" COMMENTS "Hello World!?";
-
-SHOW REST GRANTS FOR "role1";
-SHOW REST GRANTS FOR "role2";
-
-SHOW REST ROLES FOR "mike"@"MRS";
-
-REVOKE REST ROLE "role1" FROM "mike"@"MRS";
-
-SHOW REST ROLES FOR "mike"@"MRS";
-
-REVOKE REST CREATE ON SERVICE localhost/myTestService SCHEMA /sakila FROM "role1";
-
-SHOW REST GRANTS FOR "role1";
-
-SHOW REST ROLES;
-SHOW REST ROLES ON SERVICE localhost/myTestService;
-
-DROP REST ROLE "role3";
-DROP REST ROLE "role2";
-DROP REST ROLE "role1";
 
 DROP REST USER "mike"@"MRS";
 

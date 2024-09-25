@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under the terms of the
  * GNU General Public License, version 2.0, as published by the Free Software Foundation.
- * 
+ *
  * This program is designed to work with certain software (including but not limited to OpenSSL)
  * that is licensed under separate terms, as designated in a particular file or component or in
  * included license documentation. The authors of MySQL hereby grant you an additional permission to
@@ -11,33 +11,10 @@
  * included with MySQL. This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License, version 2.0, for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with this program; if
  * not, write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA
- */
-
-/*
- // TODO:
- 
- - fix so that grammar is compatible to MySQL grammar
- 
- - inconsistent whether quotes are required or optional
- 
- - fix what's an identifier and what's a string, fix quoting
- 
- - support for NO_BACKSLASH_ESCAPES and ANSI_QUOTES
- 
- - in MySQL user and role can be quoted as root@MRS and `root`@`MRS` too
- 
- - metadata is case sensitive... very inconvenient for SHOW and GRANT commands. also unlikely that
- allowing usernames and auth_apps by case only is a good idea
- 
- - should be COMMENT 'xxx' instead of COMMENTS 'xxx'
- 
- - errors should include an error code
- 
- - ON|FROM SERVICE vs ON SERVICE inconsistencies
  */
 
 // $antlr-format alignTrailingComments on, columnLimit 100, minEmptyLines 1, maxEmptyLinesToKeep 1, reflowComments off
@@ -67,7 +44,6 @@ mrsStatement:
     | createRestContentSetStatement
     | createRestContentFileStatement
     | createRestAuthAppStatement
-    | createRestRoleStatement
     | createRestUserStatement
     | cloneRestServiceStatement
     | alterRestServiceStatement
@@ -76,7 +52,6 @@ mrsStatement:
     | alterRestProcedureStatement
     | alterRestFunctionStatement
     | alterRestContentSetStatement
-    | alterRestUserStatement
     | dropRestServiceStatement
     | dropRestSchemaStatement
     | dropRestViewStatement
@@ -86,11 +61,6 @@ mrsStatement:
     | dropRestContentFileStatement
     | dropRestAuthAppStatement
     | dropRestUserStatement
-    | dropRestRoleStatement
-    | grantRestRoleStatement
-    | grantRestPrivilegeStatement
-    | revokeRestPrivilegeStatement
-    | revokeRestRoleStatement
     | useStatement
     | showRestMetadataStatusStatement
     | showRestServicesStatement
@@ -101,8 +71,6 @@ mrsStatement:
     | showRestContentSetsStatement
     | showRestContentFilesStatement
     | showRestAuthAppsStatement
-    | showRestRolesStatement
-    | showRestGrantsStatement
     | showCreateRestServiceStatement
     | showCreateRestSchemaStatement
     | showCreateRestViewStatement
@@ -408,7 +376,9 @@ defaultRole:
 
 createRestUserStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL
-        authAppName (IDENTIFIED_SYMBOL BY_SYMBOL userPassword)? userOptions?
+        authAppName (
+        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
+    )? IDENTIFIED_SYMBOL BY_SYMBOL userPassword
 ;
 
 userName:
@@ -416,36 +386,6 @@ userName:
 ;
 
 userPassword:
-    quotedText
-;
-
-userOptions: (accountLock | appOptions | jsonOptions)+
-;
-
-appOptions:
-    APP_SYMBOL OPTIONS_SYMBOL jsonValue
-;
-
-accountLock:
-    ACCOUNT_SYMBOL LOCK_SYMBOL
-    | ACCOUNT_SYMBOL UNLOCK_SYMBOL
-;
-
-// - CREATE REST ROLE -------------------------------------------------------
-createRestRoleStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL ROLE_SYMBOL roleName (
-        EXTENDS_SYMBOL parentRoleName
-    )? (ON_SYMBOL (ANY_SYMBOL SERVICE_SYMBOL | SERVICE_SYMBOL? serviceRequestPath))? restRoleOptions?
-;
-
-restRoleOptions: (jsonOptions | comments)+
-;
-
-parentRoleName:
-    quotedText
-;
-
-roleName:
     quotedText
 ;
 
@@ -518,14 +458,6 @@ alterRestContentSetStatement:
     )? restContentSetOptions?
 ;
 
-// - ALTER REST USER -------------------------------------------------------
-
-alterRestUserStatement:
-    ALTER_SYMBOL REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName (
-        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )? IDENTIFIED_SYMBOL BY_SYMBOL userPassword userOptions?
-;
-
 // DROP statements ==========================================================
 
 dropRestServiceStatement:
@@ -575,52 +507,9 @@ dropRestAuthAppStatement:
 ;
 
 dropRestUserStatement:
-    DROP_SYMBOL REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName
-;
-
-dropRestRoleStatement:
-    DROP_SYMBOL REST_SYMBOL ROLE_SYMBOL roleName
-;
-
-// GRANT statements ===========================================================
-
-grantRestPrivilegeStatement:
-    GRANT_SYMBOL REST_SYMBOL privilegeList (
-        ON_SYMBOL serviceSchemaSelector (
-            OBJECT_SYMBOL objectRequestPath
-        )?
-    )? TO_SYMBOL roleName
-;
-
-privilegeList:
-    privilegeName
-    | privilegeName COMMA_SYMBOL privilegeList
-;
-
-privilegeName:
-    CREATE_SYMBOL
-    | READ_SYMBOL
-    | UPDATE_SYMBOL
-    | DELETE_SYMBOL
-;
-
-grantRestRoleStatement:
-    GRANT_SYMBOL REST_SYMBOL ROLE_SYMBOL roleName TO_SYMBOL userName AT_SIGN_SYMBOL authAppName
-        comments?
-;
-
-// REVOKE statements ===========================================================
-
-revokeRestPrivilegeStatement:
-    REVOKE_SYMBOL REST_SYMBOL privilegeList (
-        ON_SYMBOL serviceSchemaSelector (
-            OBJECT_SYMBOL objectRequestPath
-        )?
-    )? FROM_SYMBOL roleName
-;
-
-revokeRestRoleStatement:
-    REVOKE_SYMBOL REST_SYMBOL ROLE_SYMBOL roleName FROM_SYMBOL userName AT_SIGN_SYMBOL authAppName
+    DROP_SYMBOL REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName (
+        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
+    )?
 ;
 
 // USE statements ===========================================================
@@ -685,16 +574,6 @@ showRestAuthAppsStatement:
     SHOW_SYMBOL REST_SYMBOL AUTH_SYMBOL APPS_SYMBOL (
         (ON_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
     )?
-;
-
-showRestRolesStatement:
-    SHOW_SYMBOL REST_SYMBOL ROLES_SYMBOL (
-        (ON_SYMBOL | FROM_SYMBOL) (ANY_SYMBOL SERVICE_SYMBOL | SERVICE_SYMBOL? serviceRequestPath)
-    )? (FOR_SYMBOL userName? AT_SIGN_SYMBOL authAppName)?
-;
-
-showRestGrantsStatement:
-    SHOW_SYMBOL REST_SYMBOL GRANTS_SYMBOL FOR_SYMBOL roleName
 ;
 
 showCreateRestServiceStatement:
@@ -776,10 +655,6 @@ restObjectName:
 
 restResultName:
     identifier
-;
-
-objectRequestPath:
-    requestPathIdentifier
 ;
 
 procedureRequestPath:

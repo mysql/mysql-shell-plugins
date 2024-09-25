@@ -69,14 +69,6 @@ FILE_SYMBOL:           F I L E;
 BINARY_SYMBOL:         B I N A R Y;
 DATA_SYMBOL:           D A T A;
 LOAD_SYMBOL:           L O A D;
-GRANT_SYMBOL:          G R A N T;
-READ_SYMBOL:           R E A D;
-DELETE_SYMBOL:         D E L E T E;
-GROUP_SYMBOL:          G R O U P;
-REVOKE_SYMBOL:         R E V O K E;
-ACCOUNT_SYMBOL:        A C C O U N T;
-LOCK_SYMBOL:           L O C K;
-UNLOCK_SYMBOL:         U N L O C K;
 
 // Used for auto merging this grammar and the standard MySQL grammar.
 /* START OF MERGE PART */
@@ -127,14 +119,6 @@ DEVELOPMENT_SYMBOL: D E V E L O P M E N T;
 SCRIPTS_SYMBOL:     S C R I P T S;
 MAPPING_SYMBOL:     M A P P I N G;
 TYPESCRIPT_SYMBOL:  T Y P E S C R I P T;
-ROLES_SYMBOL:       R O L E S;
-EXTENDS_SYMBOL:     E X T E N D S;
-GRANTS_SYMBOL:      G R A N T S;
-FOR_SYMBOL:         F O R;
-OBJECT_SYMBOL:      O B J E C T;
-HIERARCHY_SYMBOL:   H I E R A R C H Y;
-LEVEL_SYMBOL:       L E V E L;
-ANY_SYMBOL:         A N Y;
 
 //----------------- GraphQL --------------------------------------------------------------------------------------------
 

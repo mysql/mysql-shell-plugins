@@ -21,8 +21,11 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+class MrsDdlExecutorInterface():
 
-class MrsDdlExecutorInterface:
+    def __init__(self, session):
+        raise NotImplementedError()
+
     @property
     def current_service_id(self):
         raise NotImplementedError()
@@ -61,16 +64,13 @@ class MrsDdlExecutorInterface:
     def alterRestService(self, mrs_object: dict):
         raise NotImplementedError()
 
-    def alterRestUserStatement(self, mrs_object: dict):
+    def alterRestSchema(self, mrs_object: dict):
         raise NotImplementedError()
 
     def alterRestDbObject(self, mrs_object: dict):
         raise NotImplementedError()
 
     def alterRestContentSet(self, mrs_object: dict):
-        raise NotImplementedError()
-
-    def alterRestSchema(self, mrs_object: dict):
         raise NotImplementedError()
 
     def dropRestService(self, mrs_object: dict):
@@ -92,21 +92,6 @@ class MrsDdlExecutorInterface:
         raise NotImplementedError()
 
     def dropRestUser(self, mrs_object: dict):
-        raise NotImplementedError()
-
-    def dropRestRoleStatement(self, mrs_object: dict):
-        raise NotImplementedError()
-
-    def grantRestRoleStatement(self, mrs_object: dict):
-        raise NotImplementedError()
-
-    def grantRestPrivilegeStatement(self, mrs_object: dict):
-        raise NotImplementedError()
-
-    def revokeRestPrivilegeStatement(self, mrs_object: dict):
-        raise NotImplementedError()
-
-    def revokeRestRoleStatement(self, mrs_object: dict):
         raise NotImplementedError()
 
     def use(self, mrs_object):
@@ -149,10 +134,4 @@ class MrsDdlExecutorInterface:
         raise NotImplementedError()
 
     def showCreateRestAuthApp(self, mrs_object: dict):
-        raise NotImplementedError()
-
-    def showRestRolesStatement(self, mrs_object: dict):
-        raise NotImplementedError()
-
-    def showRestGrantsStatement(self, mrs_object: dict):
         raise NotImplementedError()

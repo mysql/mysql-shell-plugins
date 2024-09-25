@@ -34,18 +34,16 @@ from enum import IntEnum
 import threading
 import base64
 
-MRS_METADATA_LOCK_ERROR = "Failed to acquire MRS metadata lock. Please ensure no other metadata update is running, then try again."
+MRS_METADATA_LOCK_ERROR = \
+    "Failed to acquire MRS metadata lock. Please ensure no other metadata update is running, then try again."
 
 
 class ConfigFile:
     def __init__(self) -> None:
         self._settings = {}
 
-        self._filename = os.path.abspath(
-            mysqlsh.plugin_manager.general.get_shell_user_dir(
-                "plugin_data", "mrs_plugin", "config.json"
-            )
-        )
+        self._filename = os.path.abspath(mysqlsh.plugin_manager.general.get_shell_user_dir(
+            'plugin_data', 'mrs_plugin', "config.json"))
         try:
             with open(self._filename, "r") as f:
                 self._settings = json.load(f)
@@ -87,7 +85,7 @@ class Validations:
         if value is None:
             return
 
-        if not isinstance(value, str) or not value.startswith("/"):
+        if not isinstance(value, str) or not value.startswith('/'):
             raise Exception("The request_path has to start with '/'.")
 
 
@@ -107,9 +105,7 @@ def get_local_config():
 
 
 def script_path(*suffixes):
-    return os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), *suffixes
-    )
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), *suffixes)
 
 
 def print_exception(exc_type, exc_value, exc_traceback):
@@ -119,12 +115,8 @@ def print_exception(exc_type, exc_value, exc_traceback):
     if mysqlsh.globals.shell.options.verbose <= 1:
         print(f"{exc_value}")
     else:
-        exc_str = "".join(
-            [
-                s.replace("\\n", "\n")
-                for s in traceback.format_exception(exc_type, exc_value, exc_traceback)
-            ]
-        )
+        exc_str = "".join([s.replace("\\n", "\n") for s in traceback.format_exception(
+            exc_type, exc_value, exc_traceback)])
         print(exc_str)
 
     return True
@@ -151,36 +143,35 @@ def validate_service_path(session, path):
     all_services = services.get_services(session)
     for item in all_services:
         host_ctx = item.get("host_ctx")
-        if host_ctx == path[: len(host_ctx)]:
+        if host_ctx == path[:len(host_ctx)]:
             service = item
             if len(path) > len(host_ctx):
-                sub_path = path[len(host_ctx) :]
+                sub_path = path[len(host_ctx):]
 
                 db_schemas = schemas.get_schemas(
-                    service_id=service.get("id"), session=session
-                )
+                    service_id=service.get("id"), session=session)
 
                 if db_schemas:
                     for item in db_schemas:
                         request_path = item.get("request_path")
-                        if request_path == sub_path[: len(request_path)]:
+                        if request_path == sub_path[:len(request_path)]:
                             schema = item
                             break
 
                 if not schema:
                     content_sets_local = content_sets.get_content_sets(
-                        service_id=service.get("id"), session=session
-                    )
+                        service_id=service.get("id"), session=session)
 
                     if content_sets_local:
                         for item in content_sets_local:
                             request_path = item.get("request_path")
-                            if request_path == sub_path[: len(request_path)]:
+                            if request_path == sub_path[:len(request_path)]:
                                 content_set = item
                             break
 
                 if not schema and not content_set:
-                    raise ValueError(f"The given schema or content set was not found.")
+                    raise ValueError(
+                        f"The given schema or content set was not found.")
             break
 
     if not service:
@@ -189,16 +180,9 @@ def validate_service_path(session, path):
     return service, schema, content_set
 
 
-def set_current_objects(
-    service_id: bytes = None,
-    service=None,
-    schema_id: bytes = None,
-    schema=None,
-    content_set_id: bytes = None,
-    content_set=None,
-    db_object_id: bytes = None,
-    db_object=None,
-):
+def set_current_objects(service_id: bytes = None, service=None, schema_id: bytes = None,
+                        schema=None, content_set_id: bytes = None, content_set=None,
+                        db_object_id: bytes = None, db_object=None):
     """Sets the current objects to the given ones
 
     Note that if no service or no schema or no db_object are specified,
@@ -223,36 +207,38 @@ def set_current_objects(
     mrs_config = get_current_config()
 
     if service_id:
-        mrs_config["current_service_id"] = service_id
+        mrs_config['current_service_id'] = service_id
     if service:
-        mrs_config["current_service_id"] = service.get("id")
+        mrs_config['current_service_id'] = service.get("id")
     # If current_service_id is current set but not passed in, clear it
-    if mrs_config.get("current_service_id") and not (service_id or service):
-        mrs_config["current_service_id"] = None
+    if mrs_config.get('current_service_id') and not (service_id or service):
+        mrs_config['current_service_id'] = None
 
     if schema_id:
-        mrs_config["current_schema_id"] = schema_id
+        mrs_config['current_schema_id'] = schema_id
     if schema:
-        mrs_config["current_schema_id"] = schema.get("id")
+        mrs_config['current_schema_id'] = schema.get("id")
     # If current_schema_id is current set but not passed in, clear it
-    if mrs_config.get("current_schema_id") and not (schema_id or schema):
-        mrs_config["current_schema_id"] = None
+    if mrs_config.get('current_schema_id') and not (schema_id or schema):
+        mrs_config['current_schema_id'] = None
 
     if db_object_id:
-        mrs_config["current_db_object_id"] = db_object_id
+        mrs_config['current_db_object_id'] = db_object_id
     if db_object:
-        mrs_config["current_db_object_id"] = db_object.get("id")
+        mrs_config['current_db_object_id'] = db_object.get("id")
     # If current_db_object_id is current set but not passed in, clear it
-    if mrs_config.get("current_db_object_id") and not (db_object_id or db_object):
-        mrs_config["current_db_object_id"] = None
+    if mrs_config.get('current_db_object_id') and not (db_object_id or
+                                                       db_object):
+        mrs_config['current_db_object_id'] = None
 
     if content_set_id:
-        mrs_config["current_content_set_id"] = content_set_id
+        mrs_config['current_content_set_id'] = content_set_id
     if content_set:
-        mrs_config["current_content_set_id"] = content_set.get("id")
+        mrs_config['current_content_set_id'] = content_set.get("id")
     # If current_db_object_id is current set but not passed in, clear it
-    if mrs_config.get("current_content_set_id") and not (content_set_id or content_set):
-        mrs_config["current_content_set_id"] = None
+    if mrs_config.get('current_content_set_id') and not (content_set_id or
+                                                         content_set):
+        mrs_config['current_content_set_id'] = None
 
 
 def get_interactive_default():
@@ -263,7 +249,7 @@ def get_interactive_default():
     """
     if mysqlsh.globals.shell.options.useWizards:
         ct = threading.current_thread()
-        if ct.__class__.__name__ == "_MainThread":
+        if ct.__class__.__name__ == '_MainThread':
             return True
     return False
 
@@ -294,50 +280,29 @@ def get_current_session(session=None):
         raise Exception(
             "MySQL session not specified. Please either pass a session "
             "object when calling the function or open a database "
-            "connection in the MySQL Shell first."
-        )
+            "connection in the MySQL Shell first.")
 
     return session
 
 
 def get_mrs_schema_version(session):
-    row = (
-        select(
-            table="schema_version",
-            cols=[
-                "major",
-                "minor",
-                "patch",
-                "CONCAT(major, '.', minor, '.', patch) AS version",
-            ],
-        )
-        .exec(session)
-        .first
-    )
+    row = select(table="schema_version", cols=["major", "minor", "patch", "CONCAT(major, '.', minor, '.', patch) AS version"]
+                 ).exec(session).first
 
     if not row:
-        raise Exception("Unable to fetch MRS metadata database schema version.")
+        raise Exception(
+            "Unable to fetch MRS metadata database schema version.")
 
     return [row["major"], row["minor"], row["patch"]]
 
 
-def get_mrs_schema_version_int(session):
-    row = get_mrs_schema_version(session)
-    return row[0] * 10000 + row[1] * 100 + row[2]
-
-
 def mrs_metadata_schema_exists(session):
-    row = (
-        MrsDbExec(
-            """
+    row = MrsDbExec("""
         SELECT COUNT(*) AS schema_exists
         FROM INFORMATION_SCHEMA.SCHEMATA
         WHERE SCHEMA_NAME = 'mysql_rest_service_metadata'
-    """
-        )
-        .exec(session)
-        .first
-    )
+    """).exec(session).first
+
     return row["schema_exists"]
 
 
@@ -358,7 +323,7 @@ def update_mrs_metadata_schema(session, current_db_version_str):
     if interactive:
         print("Updating MRS metadata schema...")
 
-    script_dir_path = script_path("db_schema")
+    script_dir_path = script_path('db_schema')
 
     version_to_update = current_db_version_str
 
@@ -367,11 +332,8 @@ def update_mrs_metadata_schema(session, current_db_version_str):
 
     mrs_lock = 0
     try:
-        mrs_lock = (
-            MrsDbExec('SELECT GET_LOCK("MRS_METADATA_LOCK", 1) AS mrs_lock')
-            .exec(session)
-            .first["mrs_lock"]
-        )
+        mrs_lock = MrsDbExec('SELECT GET_LOCK("MRS_METADATA_LOCK", 1) AS mrs_lock').exec(
+            session).first["mrs_lock"]
         if mrs_lock == 0:
             raise Exception(MRS_METADATA_LOCK_ERROR)
 
@@ -382,9 +344,8 @@ def update_mrs_metadata_schema(session, current_db_version_str):
 
             for f in os.listdir(script_dir_path):
                 m = re.match(
-                    r"mrs_metadata_schema_(\d+\.\d+\.\d+)_to_" r"(\d+\.\d+\.\d+)\.sql",
-                    f,
-                )
+                    r'mrs_metadata_schema_(\d+\.\d+\.\d+)_to_'
+                    r'(\d+\.\d+\.\d+)\.sql', f)
                 if m:
                     g = m.groups()
 
@@ -395,16 +356,13 @@ def update_mrs_metadata_schema(session, current_db_version_str):
                         upgrade_file_found = True
 
                         try:
-                            with open(
-                                os.path.join(script_dir_path, f), "r"
-                            ) as sql_file:
+                            with open(os.path.join(script_dir_path, f),
+                                      'r') as sql_file:
                                 sql_script = sql_file.read()
 
                             if interactive:
-                                print(
-                                    f"Update from version {update_from_version} "
-                                    f"to version {update_to_version} ..."
-                                )
+                                print(f"Update from version {update_from_version} "
+                                      f"to version {update_to_version} ...")
 
                             for cmd in mysqlsh.mysql.split_script(sql_script):
                                 current_cmd = cmd.strip()
@@ -418,21 +376,16 @@ def update_mrs_metadata_schema(session, current_db_version_str):
                                 print(f"Failed to updated {f}: {e}")
                             raise Exception(
                                 "The MRS metadata database schema could not "
-                                f"be updated.\n{current_cmd}\n{e}"
-                            )
+                                f"be updated.\n{current_cmd}\n{e}")
 
             if general.DB_VERSION_STR != version_to_update and not upgrade_file_found:
-                raise Exception(
-                    "The file to update the metadata "
-                    f"schema from version {version_to_update} to "
-                    f"version {general.DB_VERSION_STR} was not found."
-                )
+                raise Exception("The file to update the metadata "
+                                f"schema from version {version_to_update} to "
+                                f"version {general.DB_VERSION_STR} was not found.")
             else:
                 if interactive:
-                    print(
-                        f"The MRS metadata schema was successfully update "
-                        f"to version {general.DB_VERSION_STR}."
-                    )
+                    print(f"The MRS metadata schema was successfully update "
+                          f"to version {general.DB_VERSION_STR}.")
     finally:
         if mrs_lock == 1:
             MrsDbExec('SELECT RELEASE_LOCK("MRS_METADATA_LOCK")').exec(session)
@@ -452,11 +405,12 @@ def create_mrs_metadata_schema(session, drop_existing=False):
     """
     latest_version_val = [0, 0, 0]
 
-    script_dir = sql_file_path = script_path("db_schema")
+    script_dir = sql_file_path = script_path('db_schema')
 
     # find the latest version of the database file available
     for f in os.listdir(script_dir):
-        m = re.match(r"mrs_metadata_schema_(\d+)\.(\d+)\.(\d+)\.sql", f)
+        m = re.match(
+            r'mrs_metadata_schema_(\d+)\.(\d+)\.(\d+)\.sql', f)
         if m:
             g = [int(group) for group in m.groups()]
             if g > latest_version_val or latest_version_val == [0, 0, 0]:
@@ -469,8 +423,7 @@ def create_mrs_metadata_schema(session, drop_existing=False):
         latest_version_val = general.DB_VERSION
 
     sql_file_path = script_path(
-        "db_schema", f'mrs_metadata_schema_{".".join(map(str, latest_version_val))}.sql'
-    )
+        'db_schema', f'mrs_metadata_schema_{".".join(map(str, latest_version_val))}.sql')
 
     with open(sql_file_path) as f:
         sql_script = f.read()
@@ -480,16 +433,14 @@ def create_mrs_metadata_schema(session, drop_existing=False):
     mrs_lock = 0
     try:
         # Acquire MRS_METADATA_LOCK
-        mrs_lock = (
-            MrsDbExec('SELECT GET_LOCK("MRS_METADATA_LOCK", 1) AS mrs_lock')
-            .exec(session)
-            .first["mrs_lock"]
-        )
+        mrs_lock = MrsDbExec('SELECT GET_LOCK("MRS_METADATA_LOCK", 1) AS mrs_lock').exec(
+            session).first["mrs_lock"]
         if mrs_lock == 0:
             raise Exception(MRS_METADATA_LOCK_ERROR)
 
         if drop_existing:
-            session.run_sql("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`")
+            session.run_sql(
+                "DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`")
 
         # Execute all commands
         current_cmd = ""
@@ -500,24 +451,18 @@ def create_mrs_metadata_schema(session, drop_existing=False):
                     session.run_sql(current_cmd)
         except mysqlsh.DBError as e:
             # On exception, drop the schema and re-raise
-            session.run_sql("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`")
-            raise Exception(
-                f"Failed to create the MRS metadata schema.\n" f"{current_cmd}\n{e}"
-            )
+            session.run_sql(
+                "DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`")
+            raise Exception(f"Failed to create the MRS metadata schema.\n"
+                            f"{current_cmd}\n{e}")
     finally:
         if mrs_lock == 1:
             MrsDbExec('SELECT RELEASE_LOCK("MRS_METADATA_LOCK")').exec(session)
 
 
-def prompt_for_list_item(
-    item_list,
-    prompt_caption,
-    prompt_default_value="",
-    item_name_property=None,
-    given_value=None,
-    print_list=False,
-    allow_multi_select=False,
-):
+def prompt_for_list_item(item_list, prompt_caption, prompt_default_value='',
+                         item_name_property=None, given_value=None,
+                         print_list=False, allow_multi_select=False):
     """Lets the use choose and item from a list
 
     When prompted, the user can either provide the index of the item or the
@@ -581,22 +526,18 @@ def prompt_for_list_item(
     # Let the user choose from the list
     while len(selected_items) == 0:
         # Prompt the user for specifying an item
-        prompt = (
-            mysqlsh.globals.shell.prompt(
-                prompt_caption, {"defaultValue": prompt_default_value}
-            )
-            .strip()
-            .lower()
-        )
+        prompt = mysqlsh.globals.shell.prompt(
+            prompt_caption, {'defaultValue': prompt_default_value}
+        ).strip().lower()
 
-        if prompt == "":
+        if prompt == '':
             return None
         # If the user typed '*', return full list
         if allow_multi_select and prompt == "*":
             return item_list
 
         if allow_multi_select:
-            prompt_items = prompt.split(",")
+            prompt_items = prompt.split(',')
         else:
             prompt_items = [prompt]
 
@@ -631,7 +572,7 @@ def prompt_for_list_item(
                         selected_items.append(selected_item)
 
         except (ValueError, IndexError):
-            msg = f"The item {prompt} was not found. Please try again"
+            msg = f'The item {prompt} was not found. Please try again'
             if prompt_default_value == "":
                 msg += " or leave empty to cancel the operation.\n"
             else:
@@ -681,7 +622,7 @@ def get_sql_result_as_dict_list(res, binary_formatter=None):
             # is started in with --json or not.
             col_type = col.get_type().data
             if col_type == "BIT" and col.get_length() == 1:
-                item[col_name] = field_val == 1
+                item[col_name] = (field_val == 1)
             elif col_type == "SET":
                 item[col_name] = field_val.split(",") if field_val else []
             elif col_type == "JSON":
@@ -709,11 +650,11 @@ def get_current_config(mrs_config=None):
     """
     if mrs_config is None:
         # Check if global object 'mrs_config' has already been registered
-        if "mrs_config" in dir(mysqlsh.globals):
-            mrs_config = getattr(mysqlsh.globals, "mrs_config")
+        if 'mrs_config' in dir(mysqlsh.globals):
+            mrs_config = getattr(mysqlsh.globals, 'mrs_config')
         else:
             mrs_config = {}
-            setattr(mysqlsh.globals, "mrs_config", mrs_config)
+            setattr(mysqlsh.globals, 'mrs_config', mrs_config)
 
     return mrs_config
 
@@ -754,8 +695,7 @@ def check_request_path(session, request_path):
 
     # Check if the request_path already exists for another db_object of that
     # schema
-    res = session.run_sql(
-        """
+    res = session.run_sql("""
         SELECT CONCAT(COALESCE(se.in_development->>'$.developers', ''), h.name,
             se.url_context_root) as full_request_path
         FROM `mysql_rest_service_metadata`.service se
@@ -794,43 +734,37 @@ def check_request_path(session, request_path):
                 ON se.url_host_id = h.id
         WHERE CONCAT(h.name, se.url_context_root,
                 co.request_path) = ?
-        """,
-        [request_path, request_path, request_path, request_path],
-    )
+        """, [request_path, request_path, request_path, request_path])
 
     row = res.fetch_one()
 
     if row and row.get_field("full_request_path") != "":
-        raise Exception(f"The request_path {request_path} is already " "in use.")
+        raise Exception(f"The request_path {request_path} is already "
+                        "in use.")
 
 
 def check_mrs_object_name(session, db_schema_id, obj_id, obj_name):
-    """Checks if the given mrs object name is valid and unique"""
-    res = session.run_sql(
-        """
+    """Checks if the given mrs object name is valid and unique
+    """
+    res = session.run_sql("""
             SELECT o.name
             FROM mysql_rest_service_metadata.object o LEFT JOIN
                 mysql_rest_service_metadata.db_object dbo ON
                 o.db_object_id = dbo.id
             WHERE dbo.db_schema_id = ? AND UPPER(o.name) = UPPER(?) AND o.id <> ?
-        """,
-        [
-            id_to_binary(db_schema_id, "db_schema_id"),
-            obj_name,
-            id_to_binary(obj_id, "object.id"),
-        ],
-    )
+        """, [id_to_binary(db_schema_id, "db_schema_id"), obj_name,
+              id_to_binary(obj_id, "object.id")])
 
     row = res.fetch_one()
 
     if row and row.get_field("name") != "":
-        raise Exception(
-            f"The object name {obj_name} is already " "in use on this REST schema."
-        )
+        raise Exception(f'The object name {obj_name} is already '
+                        "in use on this REST schema.")
 
 
 def check_mrs_object_names(session, db_schema_id, objects):
-    """Checks if the given mrs object names are valid and unique"""
+    """Checks if the given mrs object names are valid and unique
+    """
     if objects is None:
         return
 
@@ -838,14 +772,10 @@ def check_mrs_object_names(session, db_schema_id, objects):
     for obj in objects:
         if obj.get("name") in assigned_names:
             raise Exception(
-                f'The object name {obj.get("name")} has been used more than once.'
-            )
+                f'The object name {obj.get("name")} has been used more than once.')
         check_mrs_object_name(
-            session=session,
-            db_schema_id=db_schema_id,
-            obj_id=obj.get("id"),
-            obj_name=obj.get("name"),
-        )
+            session=session, db_schema_id=db_schema_id,
+            obj_id=obj.get("id"), obj_name=obj.get("name"))
         assigned_names.append(obj.get("name"))
 
 
@@ -864,7 +794,7 @@ def convert_json(value) -> dict:
         value_str = value_str.replace("']", '"]')
         value_str = value_str.replace("': ", '": ')
         value_str = value_str.replace(", '", ', "')
-        value_str = value_str.replace(": b'", ': "')
+        value_str = value_str.replace(": b\'", ': "')
     return json.loads(value_str)
 
 
@@ -878,7 +808,8 @@ def id_to_binary(id: str, context: str, allowNone=False):
             try:
                 result = bytes.fromhex(id[2:])
             except Exception:
-                raise RuntimeError(f"Invalid hexadecimal string for {context}.")
+                raise RuntimeError(
+                    f"Invalid hexadecimal string for {context}.")
         else:
             try:
                 result = base64.b64decode(id, validate=True)
@@ -919,17 +850,17 @@ def _generate_where(where):
 
 
 def _generate_table(table):
-    if "." in table:
+    if '.' in table:
         return table
     return f"`mysql_rest_service_metadata`.`{table}`"
 
 
 def _generate_qualified_name(name):
-    if "." in name:
+    if '.' in name:
         return name
     parts = name.split("(")
     result = f"`mysql_rest_service_metadata`.`{parts[0]}`"
-    if len(parts) == 2:  # it's a function call so add the parameters
+    if len(parts) == 2:     # it's a function call so add the parameters
         result = f"{result}({parts[1]}"
 
     return result
@@ -958,13 +889,13 @@ class MrsDbExec:
         self._params = self._params + params
         try:
             # convert lists and dicts to store in the database
-            self._params = [self._convert_to_database(param) for param in self._params]
+            self._params = [self._convert_to_database(
+                param) for param in self._params]
 
             self._result = session.run_sql(self._sql, self._params)
         except Exception as e:
             mysqlsh.globals.shell.log(
-                LogLevel.WARNING.name, f"[{e}\nsql: {self._sql}\nparams: {self._params}"
-            )
+                LogLevel.WARNING.name, f"[{e}\nsql: {self._sql}\nparams: {self._params}")
             raise
         return self
 
@@ -977,7 +908,8 @@ class MrsDbExec:
 
     @property
     def first(self):
-        result = get_sql_result_as_dict_list(self._result, self._binary_formatter)
+        result = get_sql_result_as_dict_list(
+            self._result, self._binary_formatter)
         if not result:
             return None
         return result[0]
@@ -995,13 +927,11 @@ class MrsDbExec:
         return self._result.get_affected_items_count()
 
 
-def select(
-    table: str, cols=["*"], where=[], order=None, binary_formatter=None
-) -> MrsDbExec:
+def select(table: str, cols=['*'], where=[], order=None, binary_formatter=None) -> MrsDbExec:
     if not isinstance(cols, str):
-        cols = ",".join(cols)
+        cols = ','.join(cols)
     if order is not None and not isinstance(order, str):
-        order = ",".join(order)
+        order = ','.join(order)
     sql = f"""
         SELECT {cols}
         FROM {_generate_table(table)}
@@ -1015,7 +945,7 @@ def select(
 def update(table: str, sets, where=[]) -> MrsDbExec:
     params = []
     if isinstance(sets, list):
-        sets = ",".join(sets)
+        sets = ','.join(sets)
     elif isinstance(sets, dict):
         params = [value for value in sets.values()]
         sets = ",".join([f"{key}=?" for key in sets.keys()])
@@ -1042,10 +972,10 @@ def insert(table, values={}):
     cols = []
     if isinstance(values, list):
         cols = ",".join(values)
-        place_holders = ",".join(["?" for val in values])
+        place_holders = ','.join(["?" for val in values])
     elif isinstance(values, dict):
-        cols = ",".join([str(col) for col in values.keys()])
-        place_holders = ",".join(["?" for val in values.values()])
+        cols = ','.join([str(col) for col in values.keys()])
+        place_holders = ','.join(["?" for val in values.values()])
         params = [val for val in values.values()]
 
     sql = f"""
@@ -1058,54 +988,21 @@ def insert(table, values={}):
 
 
 def get_sequence_id(session):
-    return (
-        MrsDbExec(f"SELECT {_generate_qualified_name('get_sequence_id()')} as id")
-        .exec(session)
-        .first["id"]
-    )
-
-
-class MrsSessionWrapper:
-    def __init__(self, session):
-        self._session = session
-        try:
-            self._md_version = get_mrs_schema_version_int(session)
-        except:
-            self._md_version = None
-
-    def run_sql(self, *params):
-        return self._session.run_sql(*params)
-
-    def get_uri(self):
-        return self._session.get_uri()
-
-    @property
-    def session(self):
-        return self._session
-
-    @property
-    def connection_id(self):
-        return self._session.connection_id
-
-    @property
-    def md_version(self):
-        return self._md_version
+    return MrsDbExec(f"SELECT {_generate_qualified_name('get_sequence_id()')} as id").exec(session).first["id"]
 
 
 class MrsDbSession:
     def __init__(self, **kwargs) -> None:
-        self._session = MrsSessionWrapper(get_current_session(kwargs.get("session")))
+        self._session = get_current_session(kwargs.get("session"))
         self._exception_handler = kwargs.get("exception_handler")
         check_version = kwargs.get("check_version", True)
         if mrs_metadata_schema_exists(self._session) and check_version:
             current_db_version = get_mrs_schema_version(self._session)
             if current_db_version[0] < 2:
-                raise Exception(
-                    "This MySQL Shell version requires a new major version of the MRS metadata schema, "
-                    f"{general.DB_VERSION_STR}. The currently deployed schema version is "
-                    f"{'%d.%d.%d' % tuple(current_db_version)}. Please downgrade the MySQL Shell version "
-                    "or drop the MRS metadata schema and run `mrs.configure()`."
-                )
+                raise Exception("This MySQL Shell version requires a new major version of the MRS metadata schema, "
+                                f"{general.DB_VERSION_STR}. The currently deployed schema version is "
+                                f"{'%d.%d.%d' % tuple(current_db_version)}. Please downgrade the MySQL Shell version "
+                                "or drop the MRS metadata schema and run `mrs.configure()`.")
 
     def __enter__(self):
         return self._session
@@ -1148,16 +1045,14 @@ def create_identification_conditions(id, name, id_context, name_col):
     conditions = {}
 
     if id is not None:
-        conditions["id"] = id
+        conditions['id'] = id
     if name is not None:
         conditions[name_col] = name
 
     return conditions
 
 
-def identify_target_object(
-    session, service_conditions, schema_conditions, object_conditions
-):
+def identify_target_object(session, service_conditions, schema_conditions, object_conditions):
     """
     Uses the given identification conditions for service, schema and object to uniquely
     identify a specific object, either service, schema or object.
@@ -1186,7 +1081,7 @@ def identify_target_object(
     if schema_conditions or object_conditions:
         tables.append("mysql_rest_service_metadata.db_schema sc")
         if service_conditions:
-            conditions.append("sc.service_id = se.id")
+            conditions.append('sc.service_id = se.id')
         target_object = "schema"
         id_field = "sc.id"
 
@@ -1194,7 +1089,7 @@ def identify_target_object(
     if object_conditions:
         tables.append("mysql_rest_service_metadata.db_object ob")
         if service_conditions or schema_conditions:
-            conditions.append("ob.db_schema_id = sc.id")
+            conditions.append('ob.db_schema_id = sc.id')
         target_object = "object"
         id_field = "ob.id"
 
@@ -1226,8 +1121,7 @@ def identify_target_object(
 
     if len(rows) != 1:
         raise RuntimeError(
-            f"Unable to identify a unique {target_object} for the operation."
-        )
+            f"Unable to identify a unique {target_object} for the operation.")
 
     return target_object, rows[0][0]
 
@@ -1238,7 +1132,7 @@ def get_session_uri(session):
     else:
         uri = session.session.get_uri()
 
-    uri = uri.split("?")[0]
+    uri = uri.split('?')[0]
 
     return uri
 
@@ -1250,12 +1144,12 @@ def uppercase_first_char(s):
 
 
 def convert_path_to_camel_case(path):
-    if path.startswith("/"):
+    if (path.startswith("/")):
         path = path[1:]
-    parts = path.replace("/", "_").split("_")
-    s = parts[0] + "".join(uppercase_first_char(x) for x in parts[1:])
+    parts = path.replace("/", "_").split('_')
+    s = parts[0] + ''.join(uppercase_first_char(x) for x in parts[1:])
     # Only return alphanumeric characters
-    return "".join(e for e in s if e.isalnum())
+    return ''.join(e for e in s if e.isalnum())
 
 
 def convert_path_to_pascal_case(path):
@@ -1269,59 +1163,16 @@ def convert_snake_to_camel_case(snake_str):
 
 
 def convert_to_snake_case(str):
-    return re.sub(r"(?<!^)(?=[A-Z])", "_", str).lower()
+    return re.sub(r'(?<!^)(?=[A-Z])', '_', str).lower()
 
 
 def unquote(name):
-    # TODO- remove this, it doesn't work
     if name.startswith("`"):
         return name.strip("`")
-    elif name.startswith('"'):
-        return name.strip('"')
+    elif name.startswith("\""):
+        return name.strip("\"")
 
     return name
-
-
-def escape_str(s):
-    return s.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
-
-
-def quote_str(s):
-    return '"' + escape_str(s) + '"'
-
-
-def unescape_str(s):
-    return s.replace("\\'", "'").replace('\\"', '"').replace("\\\\", "\\")
-
-
-def unquote_str(s):
-    if (s.startswith("'") and s.endswith("'")) or (
-        s.startswith('"') and s.endswith('"')
-    ):
-        return unescape_str(s[1:-1])
-    return s
-
-
-def quote_ident(s):
-    return mysqlsh.mysql.quote_identifier(s)
-
-
-def unquote_ident(s):
-    return mysqlsh.mysql.unquote_identifier(s)
-
-
-def escape_wildcards(text: str) -> str:
-    "escape * and ? wildcards with \\"
-    return text.replace("\\", "\\\\").replace("*", "\\*").replace("?", "\\?")
-
-
-def unescape_wildcards(text: str) -> str:
-    return text.replace("\\*", "*").replace("\\?", "?").replace("\\\\", "\\")
-
-
-def contains_wildcards(text: str) -> str:
-    stripped = text.replace("\\\\", "").replace("\\?", "").replace("\\*", "")
-    return "?" in stripped or "*" in stripped
 
 
 def format_result(result):
