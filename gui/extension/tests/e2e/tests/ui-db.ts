@@ -49,6 +49,7 @@ import { Toolbar } from "../lib/WebViews/Toolbar";
 import { TestQueue } from "../lib/TestQueue";
 import { LakeHouseNavigator } from "../lib/WebViews/lakehouseNavigator/lakeHouseNavigator";
 import { E2EServerStatus } from "../lib/WebViews/E2EServerStatus";
+import { E2EClientConnections } from "../lib/WebViews/E2EClientConnections";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -807,9 +808,6 @@ describe("DATABASE CONNECTIONS", () => {
         it("Server Status", async () => {
 
             await (await dbTreeSection.tree.getElement(constants.serverStatus)).click();
-            expect(await Workbench.getOpenEditorTitles(), errors.tabIsNotOpened(constants.dbDefaultEditor))
-                .to.include(constants.dbDefaultEditor);
-
             const serverStatus = new E2EServerStatus();
             await driver.wait(serverStatus.untilIsOpened(globalConn), constants.wait15seconds);
             expect((await toolbar.getCurrentEditor()).label,
@@ -853,37 +851,25 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Client Connections", async () => {
 
-            const clientConn = await dbTreeSection.tree.getElement(constants.clientConns);
-            await clientConn.click();
-            await driver.wait(Workbench.untilTabIsOpened(`${constants.clientConns} (${globalConn.caption})`),
-                constants.wait5seconds);
-            await driver.wait(async () => {
-                return (await toolbar.getCurrentEditor()).label === constants.clientConns;
-            }, constants.wait5seconds, "Clients Connections editor was not selected");
-            const properties = await driver.findElements(locator.mysqlAdministration.clientConnections.properties);
-            const props = [];
-            for (const item of properties) {
-                props.push(await item.getAttribute("innerHTML"));
-            }
+            await (await dbTreeSection.tree.getElement(constants.clientConns)).click();
+            const clientConnections = new E2EClientConnections();
+            await driver.wait(clientConnections.untilIsOpened(globalConn), constants.wait15seconds);
+            expect((await toolbar.getCurrentEditor()).label,
+                `The current editor name should be ${constants.clientConns}`)
+                .to.equals(constants.clientConns);
 
-            const test = props.join(",");
-            expect(test, errors.missingTitle("Threads Connected")).to.include("Threads Connected");
-            expect(test, errors.missingTitle("Threads Running")).to.include("Threads Running");
-            expect(test, errors.missingTitle("Threads Created")).to.include("Threads Created");
-            expect(test, errors.missingTitle("Threads Cached")).to.include("Threads Cached");
-            expect(test, errors.missingTitle("Rejected (over limit)")).to.include("Rejected (over limit)");
-            expect(test, errors.missingTitle("Total Connections")).to.include("Total Connections");
-            expect(test, errors.missingTitle("Connection Limit")).to.include("Connection Limit");
-            expect(test, errors.missingTitle("Aborted Clients")).to.include("Aborted Clients");
-            expect(test, errors.missingTitle("Aborted Connections")).to.include("Aborted Connections");
-            expect(test, errors.missingTitle("Errors")).to.include("Errors");
-            await driver.wait(async () => {
-                const list = await driver.findElement(locator.mysqlAdministration.clientConnections.connectionsList);
-                const rows = await list.findElements(locator.mysqlAdministration.clientConnections.tableRow);
-
-                return rows.length > 0;
-            }, constants.wait5seconds, "Connections list is empty");
-
+            await clientConnections.create();
+            expect(clientConnections.threadsConnected).to.match(/Threads Connected: (\d+)/);
+            expect(clientConnections.threadsRunning).to.match(/Threads Running: (\d+)/);
+            expect(clientConnections.threadsCreated).to.match(/Threads Created: (\d+)/);
+            expect(clientConnections.rejected).to.match(/Rejected \(over limit\):/);
+            expect(clientConnections.totalConnections).to.match(/Total Connections: (\d+)/);
+            expect(clientConnections.connectionLimit).to.match(/Connection Limit: (\d+)/);
+            expect(clientConnections.abortedClients).to.match(/Aborted Clients: (\d+)/);
+            expect(clientConnections.abortedConnections).to.match(/Aborted Connections: (\d+)/);
+            expect(clientConnections.errors).to.match(/Errors: (\d+)/);
+            expect((await clientConnections.connectionsList
+                .findElements(locator.mysqlAdministration.clientConnections.tableRow)).length).to.be.greaterThan(0);
         });
 
         it("Performance Dashboard", async () => {
