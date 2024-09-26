@@ -61,9 +61,10 @@ describe("Database Connections", () => {
     const notebook = new E2ENotebook();
 
     beforeAll(async () => {
+        await loadDriver();
+        await driver.get(url);
+
         try {
-            await loadDriver();
-            await driver.get(url);
             await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
             await driver.executeScript("arguments[0].click()",
                 await driver.wait(until.elementLocated(locator.sqlEditorPage.icon)), constants.wait5seconds);

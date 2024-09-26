@@ -75,11 +75,11 @@ describe("Sessions", () => {
     let session: E2EShellSession;
 
     beforeAll(async () => {
-        try {
-            await loadDriver();
-            await driver.get(url);
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+        await loadDriver();
+        await driver.get(url);
 
+        try {
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
             await driver.findElement(locator.shellPage.icon).click();
             await guiConsole.openSession();
             session = guiConsole.sessions[0];

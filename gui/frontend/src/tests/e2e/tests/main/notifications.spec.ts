@@ -61,14 +61,14 @@ describe("Notifications", () => {
     let testFailed = false;
 
     beforeAll(async () => {
-        try {
-            await loadDriver();
-            await driver.get(url);
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
-        } catch (e) {
-            await Misc.storeScreenShot("beforeAll_Notifications");
-            throw e;
-        }
+        await loadDriver();
+        await driver.get(url);
+
+        await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded")
+            .catch(async (e) => {
+                await Misc.storeScreenShot("beforeAll_Notifications");
+                throw e;
+            });
     });
 
     afterEach(async () => {
