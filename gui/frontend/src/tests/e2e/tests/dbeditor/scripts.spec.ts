@@ -59,11 +59,11 @@ describe("Scripts", () => {
     const notebook = new E2ENotebook();
 
     beforeAll(async () => {
-        try {
-            await loadDriver();
-            await driver.get(url);
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+        await loadDriver();
+        await driver.get(url);
 
+        try {
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
             await driver.findElement(locator.sqlEditorPage.icon).click();
             await DatabaseConnectionOverview.createDataBaseConnection(globalConn);
             await driver.executeScript("arguments[0].click();",

@@ -40,13 +40,6 @@ export const loadDriver = async (useHeadless?: boolean): Promise<void> => {
     logging.installConsoleHandler();
 
     const options = new Options();
-    options.addArguments("--no-sandbox");
-    options.addArguments("--disable-dev-shm-usage");
-    options.addArguments("--disable-gpu");
-    options.addArguments("--disable-infobars");
-    options.addArguments("--disable-features=NetworkService");
-    options.addArguments("--disable-features=VizDisplayCompositor");
-
     options.setUserPreferences({
         download: {
             // eslint-disable-next-line @typescript-eslint/naming-convention

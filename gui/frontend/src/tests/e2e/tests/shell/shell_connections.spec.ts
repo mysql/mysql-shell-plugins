@@ -76,9 +76,10 @@ describe("MySQL Shell Connections", () => {
     }
 
     beforeAll(async () => {
+        await loadDriver();
+        await driver.get(url);
+
         try {
-            await loadDriver();
-            await driver.get(url);
             await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
             await driver.findElement(locator.shellPage.icon).click();
             await guiConsole.openSession();
