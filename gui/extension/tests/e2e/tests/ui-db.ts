@@ -50,6 +50,7 @@ import { TestQueue } from "../lib/TestQueue";
 import { LakeHouseNavigator } from "../lib/WebViews/lakehouseNavigator/lakeHouseNavigator";
 import { E2EServerStatus } from "../lib/WebViews/E2EServerStatus";
 import { E2EClientConnections } from "../lib/WebViews/E2EClientConnections";
+import { E2EPerformanceDashboard } from "../lib/WebViews/E2EPerformanceDashboard";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -874,26 +875,46 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Performance Dashboard", async () => {
 
-            const perfDash = await dbTreeSection.tree.getElement(constants.perfDash);
-            await perfDash.click();
-            await driver.wait(Workbench.untilTabIsOpened(`${constants.perfDash} (${globalConn.caption})`),
-                constants.wait5seconds);
-            await driver.wait(async () => {
-                return (await toolbar.getCurrentEditor()).label === constants.perfDash;
-            }, constants.wait5seconds, "Performance Dashboard editor was not selected");
+            await (await dbTreeSection.tree.getElement(constants.perfDash)).click();
+            const performanceDashboard = new E2EPerformanceDashboard();
+            await driver.wait(performanceDashboard.untilIsOpened(globalConn), constants.wait15seconds);
+            expect((await toolbar.getCurrentEditor()).label,
+                `The current editor name should be ${constants.perfDash}`)
+                .to.equals(constants.perfDash);
 
-            const grid = await driver.findElement(locator.mysqlAdministration.performanceDashboard.dashboardGrid);
-            const gridItems = await grid.findElements(locator.mysqlAdministration.performanceDashboard.gridItems);
-            const listItems = [];
-
-            for (const item of gridItems) {
-                const label = await item.findElement(locator.htmlTag.label);
-                listItems.push(await label.getAttribute("innerHTML"));
-            }
-
-            expect(listItems, errors.missingTitle("Network Status")).to.include("Network Status");
-            expect(listItems, errors.missingTitle("MySQL Status")).to.include("MySQL Status");
-            expect(listItems, errors.missingTitle("InnoDB Status")).to.include("InnoDB Status");
+            await performanceDashboard.create();
+            expect(performanceDashboard.networkStatus.incomingNetworkTrafficGraph).to.exist;
+            expect(performanceDashboard.networkStatus.incomingData).to.match(/(\d+) B\/s/);
+            expect(performanceDashboard.networkStatus.outgoingNetworkTrafficGraph).to.exist;
+            expect(performanceDashboard.networkStatus.outgoingData).to.match(/(\d+) B\/s/);
+            expect(performanceDashboard.mysqlStatus.tableCacheGraph).to.exist;
+            expect(performanceDashboard.mysqlStatus.threadsGraph).to.exist;
+            expect(performanceDashboard.mysqlStatus.openObjectsGraph).to.exist;
+            expect(performanceDashboard.mysqlStatus.cacheEfficiency).to.match(/(\d+)%/);
+            expect(performanceDashboard.mysqlStatus.totalOpenedTables).to.match(/(\d+)/);
+            expect(performanceDashboard.mysqlStatus.totalTransactions).to.match(/(\d+)/);
+            expect(performanceDashboard.mysqlStatus.sqlStatementsExecutedGraph).to.exist;
+            expect(performanceDashboard.mysqlStatus.totalStatements).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.mysqlStatus.select).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.mysqlStatus.insert).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.mysqlStatus.update).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.mysqlStatus.delete).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.mysqlStatus.create).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.mysqlStatus.alter).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.mysqlStatus.drop).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.innoDBStatus.innoDBBufferPoolGraph).to.exist;
+            expect(performanceDashboard.innoDBStatus.checkpointAgeGraph).to.exist;
+            expect(performanceDashboard.innoDBStatus.diskReadRatioGraph).to.exist;
+            expect(performanceDashboard.innoDBStatus.readRequests).to.match(/(\d+) pages\/s/);
+            expect(performanceDashboard.innoDBStatus.writeRequests).to.match(/(\d+) pages\/s/);
+            expect(performanceDashboard.innoDBStatus.diskReads).to.match(/(\d+) #\/s/);
+            expect(performanceDashboard.innoDBStatus.innoDBDiskWritesGraph).to.exist;
+            expect(performanceDashboard.innoDBStatus.logDataWritten).to.match(/(\d+) B\/s/);
+            expect(performanceDashboard.innoDBStatus.logWrites).to.match(/(\d+) #\/s/);
+            expect(performanceDashboard.innoDBStatus.writing).to.match(/(\d+) B\/s/);
+            expect(performanceDashboard.innoDBStatus.innoDBDiskReadsGraph).to.exist;
+            expect(performanceDashboard.innoDBStatus.bufferWrites).to.match(/(\d+) B\/s/);
+            expect(performanceDashboard.innoDBStatus.reading).to.match(/(\d+) B\/s/);
 
         });
 

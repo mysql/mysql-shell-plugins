@@ -29,7 +29,7 @@ import * as interfaces from "../interfaces";
 import * as constants from "../constants";
 
 /**
- * This class represents the code editor widget and all its related functions
+ * This class represents the Client Connections page and all its related functions
  */
 export class E2EClientConnections {
 

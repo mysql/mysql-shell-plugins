@@ -971,7 +971,8 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         return (
             <Container className="nameValuePair" data-tooltip={tooltip} >
                 <Label className="nameLabel ellipsis" data-tooltip="inherit">{name}</Label>
-                <Label className="valueLabel ellipsis" data-tooltip="inherit">{value}</Label>
+                <Label className="valueLabel ellipsis" data-tooltip="inherit">
+                    {value}</Label>
                 {marker}
             </Container>
         );
