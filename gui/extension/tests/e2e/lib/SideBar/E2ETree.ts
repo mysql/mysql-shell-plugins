@@ -135,7 +135,7 @@ export class E2ETree {
                 await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
             }
 
-            return this.existsElement(element);
+            return this.elementExists(element);
         });
     };
 
@@ -159,7 +159,7 @@ export class E2ETree {
                 await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
             }
 
-            return !(await this.existsElement(element));
+            return !(await this.elementExists(element));
         });
     };
 
@@ -394,7 +394,7 @@ export class E2ETree {
         await dialog.findElement(locator.confirmDialog.accept).click();
         await Misc.switchBackToTopFrame();
         if (verifyDelete === true) {
-            await driver.wait(this.existsElement(name), constants.wait5seconds);
+            await driver.wait(this.elementExists(name), constants.wait5seconds);
         }
     };
 
@@ -586,7 +586,7 @@ export class E2ETree {
      * @param element The element
      * @returns A promise resolving with true if the element exists, false otherwise
      */
-    private existsElement = async (element: string | RegExp): Promise<boolean> => {
+    public elementExists = async (element: string | RegExp): Promise<boolean> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }

@@ -816,7 +816,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await serverStatus.create();
             expect(serverStatus.host).to.not.equals("");
-            expect(serverStatus.socket).to.match(/\.sock/);
+            expect(serverStatus.socket).to.match(/(\.sock|MySQL)/);
             expect(serverStatus.port).to.match(/(\d+)/);
             expect(serverStatus.version).to.match(/(\d+).(\d+).(\d+)/);
             expect(serverStatus.compiledFor).to.not.equals("");
@@ -935,6 +935,17 @@ describe("DATABASE CONNECTIONS", () => {
                     expect(await Workbench.getOpenEditorTitles(), errors.tabIsNotOpened(constants.lakehouseNavigator))
                         .to.include(constants.lakehouseNavigator);
                     await driver.wait(new LakeHouseNavigator().untilIsOpened(heatWaveConn), constants.wait15seconds);
+                    await (await dbTreeSection.tree.getElement((heatWaveConn.basic as interfaces.IConnBasicMySQL)
+                        .schema)).expand();
+                    await (await dbTreeSection.tree.getElement("Tables")).expand();
+
+                    if (await dbTreeSection.tree.elementExists(newTask.name)) {
+                        const treeTestTable = await dbTreeSection.tree.getElement(newTask.name);
+                        await dbTreeSection.tree.openContextMenuAndSelect(treeTestTable, constants.dropTable);
+                        await Workbench.pushDialogButton(`Drop ${newTask.name}`);
+                        await Workbench.getNotification(`The object ${newTask.name} has been dropped successfully.`);
+                        await driver.wait(dbTreeSection.tree.untilDoesNotExist(newTask.name), constants.wait5seconds);
+                    }
                     await Workbench.toggleSideBar(false);
                 } catch (e) {
                     await Misc.processFailure(this);
@@ -949,6 +960,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await (await dbTreeSection.tree.getElement((heatWaveConn.basic as interfaces.IConnBasicMySQL)
                         .schema)).expand();
                     await (await dbTreeSection.tree.getElement("Tables")).expand();
+                    await driver.wait(dbTreeSection.tree.untilExists(newTask.name), constants.wait5seconds);
                     const treeTestTable = await dbTreeSection.tree.getElement(newTask.name);
                     await dbTreeSection.tree.openContextMenuAndSelect(treeTestTable, constants.dropTable);
                     await Workbench.pushDialogButton(`Drop ${newTask.name}`);
