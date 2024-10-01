@@ -4,11 +4,11 @@
 
 ### Additions
 
-- 
+-
 
 ### Fixes
 
-- 
+- BUG#36893025 Directive `importReadOnly` doesn't import read-resources when at least one table object has no READ permissions
 
 ## Changes in 1.16.4+9.0.1
 
