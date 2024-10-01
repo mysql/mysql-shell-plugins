@@ -220,7 +220,9 @@ import {
     foo,
 } from "somewhere";\n"""
 
-    res = substitute_imports_in_template(template, [], {"foo"}, "TypeScript")
+    res = substitute_imports_in_template(
+        template=template, required_datatypes={"foo"}, sdk_language="TypeScript"
+    )
     got = res.get("template")
 
     assert got == want
@@ -230,7 +232,39 @@ import {
     foo,
 } from "somewhere";\n"""
 
-    res = substitute_imports_in_template(template, [], {"foo","bar"}, "TypeScript")
+    res = substitute_imports_in_template(
+        template=template, required_datatypes={"foo", "bar"}, sdk_language="TypeScript"
+    )
+    got = res.get("template")
+
+    assert got == want
+
+    template = """// --- importLoopStart
+import {
+    // --- importCreateOnlyStart
+    foo,
+    bar,
+    // --- importCreateOnlyEnd
+    // --- importUpdateOnlyStart
+    baz,
+    // --- importUpdateOnlyEnd
+    // --- importReadOnlyStart
+    qux,
+    // --- importReadOnlyEnd
+} from "somewhere";
+// --- importLoopEnd\n"""
+
+    want = """import {
+    foo,
+    bar,
+    qux,
+} from "somewhere";\n"""
+
+    res = substitute_imports_in_template(
+        template=template,
+        enabled_crud_ops={"Read", "Create"},
+        sdk_language="TypeScript",
+    )
     got = res.get("template")
 
     assert got == want
@@ -628,4 +662,3 @@ def test_generate_sequence_constant():
 
     constant = generate_sequence_constant("Foo", ["Bar", "Baz"], "Python")
     assert constant == 'Foo: Sequence = ["Bar", "Baz"]\n\n'
-

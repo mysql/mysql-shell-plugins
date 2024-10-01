@@ -213,25 +213,35 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
     return template
 
 
-def substitute_imports_in_template(template, enabled_crud_ops, required_datatypes, sdk_language, requires_auth: bool = False):
+def substitute_imports_in_template(
+    template,
+    sdk_language,
+    enabled_crud_ops: set[str] = set(),
+    required_datatypes: set[str] = set(),
+    requires_auth: bool = False,
+):
     delimiter = language_comment_delimiter(sdk_language)
     import_loops = re.finditer(
         f"^[^\\S\r\n]*?{delimiter} --- importLoopStart\n\\s*(^[\\S\\s]*?)^\\s*?{delimiter} --- importLoopEnd\n",
-        template, flags=re.DOTALL | re.MULTILINE)
+        template,
+        flags=re.DOTALL | re.MULTILINE,
+    )
 
     ops = [
-        "Create", "Read", "Update",
-        "Delete", "UpdateProcedure",
-        "ReadUnique", "ReadFunction",
-        "Authenticate"
+        "Create",
+        "Read",
+        "Update",
+        "Delete",
+        "UpdateProcedure",
+        "ReadUnique",
+        "ReadFunction",
+        "Authenticate",
     ]
-    enabled_ops = set(enabled_crud_ops) if enabled_crud_ops else set()
+
+    enabled_ops = enabled_crud_ops if enabled_crud_ops else set()
 
     if requires_auth:
         enabled_ops.add("Authenticate")
-
-    if required_datatypes is None:
-        required_datatypes = []
 
     for loop in import_loops:
         import_template = loop.group(1)
@@ -246,31 +256,42 @@ def substitute_imports_in_template(template, enabled_crud_ops, required_datatype
             separator = f",\n{indent}"
             # the first and last datatypes should also follow the same rules and they should be sorted alphabetically,
             # mostly for testing purposes, but it is always good to be deterministic
-            datatypes_block = f'{indent}{separator.join(sorted(required_datatypes))},\n'
+            datatypes_block = f"{indent}{separator.join(sorted(required_datatypes))},\n"
 
-        import_template = re.sub(f"^[^\\S\r\n]*?{delimiter} --- importRequiredDatatypesOnlyStart.*?" +
-                                 f"^\\s*?{delimiter} --- importRequiredDatatypesOnlyEnd\n",
-                                 datatypes_block, import_template, flags=re.DOTALL | re.MULTILINE)
+        import_template = re.sub(
+            f"^[^\\S\r\n]*?{delimiter} --- importRequiredDatatypesOnlyStart.*?"
+            + f"^\\s*?{delimiter} --- importRequiredDatatypesOnlyEnd\n",
+            datatypes_block,
+            import_template,
+            flags=re.DOTALL | re.MULTILINE,
+        )
 
         for op in ops:
             # Find all "import{crud_op}OnlyStart / End" blocks
             op_loops = re.finditer(
                 f"^[^\\S\r\n]*?{delimiter} --- import{op}OnlyStart\n\\s*(^[\\S\\s]*?)^\\s*?{delimiter} --- import{op}OnlyEnd\n",
-                import_template, flags=re.DOTALL | re.MULTILINE)
+                import_template,
+                flags=re.DOTALL | re.MULTILINE,
+            )
 
             for op_loop in op_loops:
                 # If the `CRUD + Auth` operation is enabled for any DB Object, keep the identified code block
                 if op in enabled_ops:
                     import_template = import_template.replace(
-                        op_loop.group(), op_loop.group(1))
+                        op_loop.group(), op_loop.group(1)
+                    )
                 else:
                     # Delete the identified code block otherwise
-                    import_template = import_template.replace(
-                        op_loop.group(), "")
+                    # This cannot happen, because the block is gone for the next db object
+                    import_template = import_template.replace(op_loop.group(), "")
 
         template = template.replace(loop.group(), import_template)
 
-    return {"template": template, "enabled_crud_ops": enabled_crud_ops, "required_datatypes": required_datatypes}
+    return {
+        "template": template,
+        "enabled_crud_ops": enabled_crud_ops,
+        "required_datatypes": required_datatypes,
+    }
 
 
 def substitute_service_in_template(service, template, sdk_language, session, service_url):
@@ -372,7 +393,7 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
     service_class_name = lib.core.convert_path_to_pascal_case(
         service.get("url_context_root"))
 
-    enabled_crud_ops = None
+    enabled_crud_ops = set()
     required_datatypes = set()
     requires_auth = False
 
@@ -392,7 +413,7 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
                 )
 
                 schema_template_with_obj_filled = code.get("template")
-                enabled_crud_ops = code.get("enabled_crud_ops")
+                enabled_crud_ops |= {x for x in code.get("enabled_crud_ops") if x not in enabled_crud_ops}
                 required_datatypes |= {x for x in code.get("required_datatypes") if x not in required_datatypes}
 
                 if requires_auth is False:
@@ -420,7 +441,7 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
 
         template = template.replace(loop.group(), filled_temp)
 
-    return {"template": template, "enabled_crud_ops": enabled_crud_ops, "required_datatypes": list(required_datatypes), "requires_auth": requires_auth}
+    return {"template": template, "enabled_crud_ops": enabled_crud_ops, "required_datatypes": required_datatypes, "requires_auth": requires_auth}
 
 
 def get_mrs_object_sdk_language_options(sdk_options, sdk_language):
@@ -459,8 +480,8 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
     crud_ops = ["Create", "Read", "Update",
                 "Delete", "DeleteUnique", "UpdateProcedure", "ReadUnique", "ReadFunction"]
 
-    enabled_crud_ops = []
-    required_datatypes = []
+    enabled_crud_ops = set()
+    required_datatypes = set()
     requires_auth = False
 
     for loop in object_loops:
@@ -522,12 +543,12 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                             # need to add one.
                             if (db_not_null is False and sdk_language == "TypeScript" and
                                 db_obj.get("object_type") != "PROCEDURE" and db_obj.get("object_type") != "FUNCTION"):
-                                required_datatypes.append("MaybeNull")
+                                required_datatypes.add("MaybeNull")
 
                             client_datatype = get_enhanced_datatype_mapping(db_datatype, sdk_language)
 
                             if not datatype_is_primitive(client_datatype, sdk_language):
-                                required_datatypes.append(client_datatype)
+                                required_datatypes.add(client_datatype)
 
                 # Get sdk_language specific options
                 sdk_lang_options = get_mrs_object_sdk_language_options(
@@ -645,7 +666,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                     # If the CRUD operation is enabled for this DB Object, keep the identified code block
                     # if crud_op is "Update" and there is no primary key, update commands should not be available
                     if crud_op.upper() in db_object_crud_ops and (crud_op != "Update" or len(obj_pk_list) > 0):
-                        enabled_crud_ops.append(crud_op)
+                        enabled_crud_ops.add(crud_op)
                         obj_template = obj_template.replace(
                             crud_loop.group(), crud_loop.group(1))
                     else:
@@ -658,7 +679,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
         template = template.replace(loop.group(), filled_temp)
 
-    return {"template": template, "enabled_crud_ops": frozenset(enabled_crud_ops), "required_datatypes": set(required_datatypes), "requires_auth": requires_auth}
+    return {"template": template, "enabled_crud_ops": enabled_crud_ops, "required_datatypes": required_datatypes, "requires_auth": requires_auth}
 
 
 def get_datatype_mapping(db_datatype, sdk_language):
@@ -1358,7 +1379,6 @@ def generate_interfaces(
 
 
     return "".join(obj_interfaces), out_params_interface_fields
-
 
 
 # For now, this function is not used for ${DatabaseObject}Params type declarations
