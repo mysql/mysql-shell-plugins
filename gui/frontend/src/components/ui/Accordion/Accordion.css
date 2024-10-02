@@ -74,10 +74,6 @@
     border-top: 1px solid var(--sideBarSectionHeader-border);
 }
 
-.msg.accordion .splitHost > .section:first-of-type > .title {
-    border-top: none !important;
-}
-
 .msg.accordion .splitHost > .section > .title .label {
     font-size: 0.75rem;
     font-weight: 700;

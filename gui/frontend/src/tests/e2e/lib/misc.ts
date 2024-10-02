@@ -22,7 +22,7 @@
  */
 
 import { mkdir, writeFile } from "fs/promises";
-import { WebDriver, error, Condition, WebElement } from "selenium-webdriver";
+import { WebDriver, error, Condition, WebElement, until } from "selenium-webdriver";
 import * as constants from "../lib/constants.js";
 import { driver } from "../lib/driver.js";
 import * as locator from "../lib/locators.js";
@@ -30,6 +30,7 @@ import { E2EToastNotification } from "./E2EToastNotification.js";
 
 export const feLog = "fe.log";
 export const shellServers = new Map([
+    ["token.spec.ts", 2],
     ["admin.spec.ts", 0],
     ["db_connection_overview.spec.ts", 1],
     ["notebook.spec.ts", 1],
@@ -69,22 +70,31 @@ export class Misc {
      */
     public static untilHomePageIsLoaded = (): Condition<boolean> => {
         return new Condition("for home page to be loaded", async () => {
+            const url = await driver.getCurrentUrl();
 
-            const pageTitleExists = (await driver.findElements(locator.pageIsLoaded)).length > 0;
-            const sakilaLogoExists = (await driver.findElements(locator.loginPage.sakilaLogo)).length > 0;
+            if (url.includes("token")) {
+                return driver.wait(until.elementLocated(locator.pageIsLoaded), constants.wait3seconds)
+                    .then(() => {
+                        return true;
+                    }).catch(async () => {
+                        await driver.navigate().refresh();
+                        await driver.sleep(3000);
 
-            if (pageTitleExists || sakilaLogoExists) {
-                return true;
+                        return false;
+                    });
             } else {
-                await driver.navigate().refresh();
-                await driver.sleep(3000);
+                return driver.wait(until.elementLocated(locator.loginPage.sakilaLogo), constants.wait3seconds)
+                    .then(() => {
+                        return true;
+                    }).catch(async () => {
+                        await driver.navigate().refresh();
+                        await driver.sleep(3000);
 
-                return false;
+                        return false;
+                    });
             }
         });
-
     };
-
     /**
      * Returns the background color of the page
      * @param driver The webdriver

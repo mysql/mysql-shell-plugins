@@ -88,10 +88,6 @@
     min-height: 18px;
 }
 
-.msg.dropdown:hover {
-    background-color: var(--list-activeSelectionBackground);
-}
-
 .msg.dropdown:not(.multiSelect) > .label {
     display: inline-block;
     appearance: none;
@@ -180,8 +176,9 @@
 
 .msg.dropdownList > .dropdownItem:focus,
 .msg.dropdownList > .dropdownItem.selected {
-    background-color: var(--list-activeSelectionBackground);
-    color: var(--foreground);
+    background-color: var(--editorActionList-focusBackground);
+    color: var(--editorActionList-focusForeground);
+    border: 1px dotted var(--contrastActiveBorder);
 }
 
 .msg.dropdownList > .dropdownDivider {

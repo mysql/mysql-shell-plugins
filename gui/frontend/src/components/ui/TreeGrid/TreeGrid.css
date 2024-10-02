@@ -277,7 +277,7 @@
 .msg.treeGrid.tabulator .tabulator-row.tabulator-selected:hover .tabulator-cell {
     background-color: var(--list-activeSelectionBackground);
     cursor: pointer;
-    filter: brightness(110%);
+    filter: brightness(90%);
 }
 
 .msg.treeGrid.tabulator .tabulator-row.tabulator-moving {
@@ -446,8 +446,8 @@
     width: 0.5em;
     height: 0.5em;
 
-    border-right: 1px solid var(--sideBarSectionHeader-foreground);
-    border-bottom: 1px solid var(--sideBarSectionHeader-foreground);
+    border-right: 1px solid var(--icon-foreground);
+    border-bottom: 1px solid var(--icon-foreground);
 
     transform: rotate(-45deg);
     transition: transform 0.25s

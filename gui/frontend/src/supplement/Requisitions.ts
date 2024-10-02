@@ -543,7 +543,6 @@ export interface IRequestTypeMap {
     "refreshMrsServiceSdk": SimpleCallback;
 
     "showAbout": SimpleCallback;
-    "showThemeEditor": SimpleCallback;
     "showPreferences": SimpleCallback;
     "showModule": (module: string) => Promise<boolean>;
     "showPage": (data: { module: string; page: string; noEditor?: boolean; }) => Promise<boolean>;

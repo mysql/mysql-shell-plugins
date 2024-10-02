@@ -31,7 +31,6 @@ import * as locator from "../../lib/locators.js";
 import { driver, loadDriver } from "../../lib/driver.js";
 import * as constants from "../../lib/constants.js";
 import { Os } from "../../lib/os.js";
-import { E2EToastNotification } from "../../lib/E2EToastNotification.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -159,10 +158,6 @@ describe("Main pages", () => {
             expect(
                 await settingsValueList.findElement(locator.settingsPage.settingsList.currentTheme),
             ).toBeDefined();
-            expect(
-                await settingsValueList.findElement(
-                    locator.settingsPage.settingsList.openThemeEditorButton),
-            ).toBeDefined();
 
             //click code editor
             await settingsTreeRows[1].click();
@@ -215,13 +210,13 @@ describe("Main pages", () => {
 
             //change background color
             await settingsTreeRows[0].click();
-            await ThemeEditor.selectAppColorTheme("Default Dark");
+            await ThemeEditor.selectAppColorTheme("Dark Modern");
             let color = String((await Misc.getBackgroundColor(driver))).trim();
-            expect(color).toBe("#181818");
+            expect(color).toBe("#1f1f1f");
             await settingsTreeRows[0].click();
-            await ThemeEditor.selectAppColorTheme("Default Light");
+            await ThemeEditor.selectAppColorTheme("Light Modern");
             color = String((await Misc.getBackgroundColor(driver))).trim();
-            expect(color).toBe("#f8f8f8");
+            expect(color).toBe("#ffffff");
         } catch (e) {
             testFailed = true;
             throw e;
@@ -273,98 +268,6 @@ describe("Main pages", () => {
                 new RegExp(/(\d+).(\d+).(\d+)/g),
             );
             expect((await driver.findElements(locator.aboutPage.copyright)).length).toBe(1);
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Verify Theme Editor page", async () => {
-        try {
-            if ((await driver.findElements(locator.themeEditorPage.tab)).length === 0) {
-                await driver.findElement(locator.settingsPage.icon).click();
-            }
-            await driver.findElement(locator.themeEditorPage.tab).click();
-            expect(
-                await driver.findElement(locator.themeEditorPage.themeEditorTitle).getText(),
-            ).toBe("THEME EDITOR");
-            expect(
-                (await driver.findElements(locator.themeEditorPage.themeSelectorArea.exists)).length,
-            ).toBe(1);
-            const themeEditorLabels = await driver.findElements(locator.themeEditorPage.themeSelectorArea.sectionTitle);
-            expect(await themeEditorLabels[0].getText()).toBe("Theme");
-            expect(await themeEditorLabels[2].getText()).toBe("Color Pad");
-            expect((await driver.findElements(locator.themeEditorPage.themeSelectorArea.colorPad.exists))
-                .length).toBe(1);
-            expect((await driver.findElements(locator.themeEditorPage.themeEditorTabs.syntaxColors)).length).toBe(1);
-            expect((await driver.findElements(locator.themeEditorPage.themeEditorTabs.uiColors)).length).toBe(1);
-            expect(await driver.findElement(locator.themeEditorPage.themePreview.title).getText()).toBe(
-                "THEME PREVIEW",
-            );
-            const themePreviewLabels = await driver.findElements(locator.themeEditorPage.themePreview.section);
-            expect(await themePreviewLabels[0].getText()).toBe("Base Colors");
-            expect(await themePreviewLabels[1].getText()).toBe("Window / Dialog");
-            expect(await themePreviewLabels[2].getText()).toBe("Plain Text / Label");
-            expect(await themePreviewLabels[3].getText()).toBe("Button");
-            expect(await themePreviewLabels[4].getText()).toBe("Toggle");
-            expect(await themePreviewLabels[5].getText()).toBe("Dropdown");
-            expect(await themePreviewLabels[6].getText()).toBe("Input");
-            expect(await themePreviewLabels[7].getText()).toBe("Tag List");
-            expect(await themePreviewLabels[8].getText()).toBe("Progress Indicator");
-            expect(await themePreviewLabels[9].getText()).toBe("Grid / Table");
-            expect(await themePreviewLabels[10].getText()).toBe("Activity Bar + Side Bar");
-            expect(await themePreviewLabels[11].getText()).toBe("Tabview");
-            expect(await themePreviewLabels[12].getText()).toBe("JSON View");
-            expect(await themePreviewLabels[13].getText()).toBe("Code Editor");
-            expect(await themePreviewLabels[14].getText()).toBe("Browser Tiles");
-            expect(await themePreviewLabels[15].getText()).toBe("Title Bar");
-            expect(await themePreviewLabels[16].getText()).toBe("Menu + Menubar");
-            expect(await themePreviewLabels[17].getText()).toBe("Terminal Colors");
-            expect(await themePreviewLabels[18].getText()).toBe("ANSI Escapes Output Rendering");
-            expect(await themePreviewLabels[19].getText()).toBe("Breadcrumb");
-            expect(await themePreviewLabels[20].getText()).toBe("Symbols");
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Invalid token", async () => {
-        try {
-            const url = Misc.getUrl(basename(__filename));
-            await driver.get(`${String(url)}xpto`);
-
-            const notification = await new E2EToastNotification().create();
-            expect(notification.type).toBe("error");
-
-            let regex = "Could not establish a connection to the backend.";
-            regex += " Make sure you use valid user credentials and the MySQL Shell is running.";
-            regex += " Trying to reconnect in (\\d+) seconds.";
-
-            expect(notification.message).toMatch(new RegExp(regex));
-            await notification.close();
-            await driver.wait(notification.untilIsClosed(), constants.wait5seconds);
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("No token", async () => {
-        try {
-            const url = Misc.getUrl(basename(__filename));
-            await driver.get(String(url).replace(String(process.env.TOKEN), ""));
-
-            const notification = await new E2EToastNotification().create();
-            expect(notification.type).toBe("error");
-
-            let regex = "Could not establish a connection to the backend.";
-            regex += " Make sure you use valid user credentials and the MySQL Shell is running.";
-            regex += " Trying to reconnect in (\\d+) seconds.";
-
-            expect(notification.message).toMatch(new RegExp(regex));
-            await notification.close();
-            await driver.wait(notification.untilIsClosed(), constants.wait5seconds);
         } catch (e) {
             testFailed = true;
             throw e;

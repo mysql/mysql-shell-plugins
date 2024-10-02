@@ -233,19 +233,10 @@ export const registerSettings = (): void => {
     registerSetting(
         "theming.themes",
         "Registered Themes",
-        "Themes can be edited in the Theme Editor.",
-        "action",
-        "Click to Open the Theme Editor",
-        false,
-        { action: "showThemeEditor" },
-    );
-    registerSetting(
-        "theming.colorPadColors",
-        "Color Pad Colors",
-        "",
+        "Theme can be selected or edited directly in User Settings JSON -> workbench.colorCustomizations",
         "list",
         [],
-        false,
+        true,
     );
 
     //registerSettingCategory("general", "General", "Settings that do not fit in the more specialized sections.");

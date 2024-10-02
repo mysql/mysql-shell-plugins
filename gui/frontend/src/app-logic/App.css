@@ -40,7 +40,6 @@
 }
 
 :root {
-    --msg-standard-font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     --msg-monospace-font-family: 'SourceCodePro+Powerline+Awesome+MySQL', monospace;
 }
 
@@ -60,8 +59,8 @@ body {
     background-color: transparent;
 
     font-family: var(--msg-standard-font-family);
-    font-weight: 400;
-    /*font-size: 15px;*/
+    font-weight: var(--msg-standard-font-weight);
+    font-size: var(--msg-standard-font-size);
 
     user-select: none;
 }
