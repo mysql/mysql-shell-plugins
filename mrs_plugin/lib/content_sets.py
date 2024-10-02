@@ -956,6 +956,13 @@ def get_mrs_script_definitions_from_code_file_list(code_files, language, send_gu
     return mrs_script_def
 
 
+def is_common_build_folder(dir):
+    if dir.lower() == "build" or dir.lower() == "output" or dir.lower() == "out" or dir.lower() == "web":
+        return True
+
+    return False
+
+
 def get_code_files_from_folder(path, ignore_list, language):
     full_ignore_pattern = convert_ignore_list_to_regex_pattern(ignore_list)
     path = os.path.expanduser(path)
@@ -967,7 +974,7 @@ def get_code_files_from_folder(path, ignore_list, language):
         # Check if there is a build directory with a common name in the root dir
         if path == root:
             for dir in dirs:
-                if dir.lower() == "build" or dir.lower() == "output" or dir.lower() == "out" or dir.lower() == "web":
+                if is_common_build_folder(dir):
                     build_folder = dir
 
         for file in files:
@@ -1053,6 +1060,14 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
             include_enable_state=True, include_file_content=True)
 
         for content_file in files:
+            dirs = pathlib.Path(content_file["request_path"])
+
+            if len(dirs.parts) > 0:
+                if is_common_build_folder(dirs.parts[0]):
+                    build_folder = dirs.parts[0]
+                elif len(dirs.parts) > 1 and is_common_build_folder(dirs.parts[1]):
+                    build_folder = dirs.parts[1]
+
             fullname = "." + \
                 content_file["content_set_request_path"] + \
                 content_file["request_path"]
@@ -1107,7 +1122,17 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
 
     # print(json.dumps(script_def, indent=4))
 
+    script_module_files = []
     for script_module in script_def["script_modules"]:
+        # Add script_module_files information for this module
+        file_to_load = "/" + build_folder + script_module["file_info"]["relative_file_name"]
+        if language == "TypeScript":
+            file_to_load = file_to_load.replace(".mts", ".mjs")
+        script_module_files.append({
+            "file_info": script_module["file_info"],
+            "file_to_load": file_to_load
+        })
+
         properties = script_module["properties"]
         request_path = get_mrs_script_property(
             properties, "requestPath", "/" + script_module["class_name"])
@@ -1186,6 +1211,16 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
             print(f"{trigger["function_name"]=}")
         # for interface in script_def["interfaces"]:
         #     print(f"{interface["name"]=}")
+
+    # Add the list of MRS script files to load
+    options = content_set["options"]
+    options["script_module_files"] = script_module_files
+
+    core.update(
+        table="content_set",
+        sets={"options": options},
+        where=["id=?"]
+    ).exec(session, [content_set_id])
 
     return script_def
 
