@@ -1,5 +1,6 @@
 {
-    "background": "$activityBar.background",
+    "background": "$editor.background",
+    "selection.background": "$editor.selectionBackground",
     "editorZone.foreground": "$editor.foreground",
     "resultZone.foreground": "$editor.foreground",
     "tag.background": "$badge.background",
@@ -8,13 +9,13 @@
     "tooltip.border": "$dropdown.border",
     "tooltip.foreground": "$dropdown.foreground",
     "editorZone.background": {
-        "baseColorKey": "activityBar.background",
+        "baseColorKey": "editor.background",
         "colorAdjustment": {
             "dark": {
-                "lightness": {"absolute": -1.5}
+                "lightness": {"absolute": -4}
             },
             "light": {
-                "lightness": {"absolute": -5}
+                "lightness": {"absolute": -8}
             }
         }
     },
@@ -33,13 +34,13 @@
     },
     "progressBar.track": "$editorZone.background",
     "resultView.headerBackground": {
-        "baseColorKey": "activityBar.background",
+        "baseColorKey": "editor.background",
         "colorAdjustment": {
             "dark": {
-                "lightness": {"absolute": -5}
+                "lightness": {"absolute": 2}
             },
             "light": {
-                "lightness": {"absolute": -3}
+                "lightness": {"absolute": -4}
             }
         }
     },
@@ -56,6 +57,9 @@
     },
     "resultStatus.background": "$resultView.headerBackground",
     "resultStatus.foreground": "$resultView.headerForeground",
+    "input.border": "$settings.textInputBorder",
+    "window.activeBorder": "$dropdown.border",
+    "window.inactiveBorder": "$dropdown.border",
     "window.background": {
         "baseColorKey": "editor.background",
         "colorAdjustment": {

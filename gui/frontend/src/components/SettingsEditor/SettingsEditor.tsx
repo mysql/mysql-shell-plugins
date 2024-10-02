@@ -30,9 +30,7 @@ import { ComponentChild, createRef, render } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
 import { IDictionary } from "../../app-logic/Types.js";
-import { requisitions } from "../../supplement/Requisitions.js";
 import { ISettingCategory, settingCategories } from "../../supplement/Settings/SettingsRegistry.js";
-import { ThemeEditor } from "../Theming/ThemeEditor.js";
 import { AboutBox } from "../ui/AboutBox/AboutBox.js";
 import { CheckState, Checkbox, ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
 import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase.js";
@@ -87,16 +85,10 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
         };
     }
 
-    public override componentDidMount(): void {
-        requisitions.register("showThemeEditor", this.showThemeEditor);
-    }
-
     public override componentWillUnmount(): void {
         if (this.filterTimer) {
             clearTimeout(this.filterTimer);
         }
-
-        requisitions.unregister("showThemeEditor", this.showThemeEditor);
     }
 
     public override componentDidUpdate(prevProps: ISettingsEditorProperties): void {
@@ -117,12 +109,6 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
             caption: "Settings",
             id: "settings",
             content: this.renderSettings(),
-        },
-        {
-            icon: settingsIcon,
-            caption: "Theme Editor",
-            id: "themeEditor",
-            content: <ThemeEditor />,
         },
         {
             icon: settingsIcon,
@@ -213,12 +199,6 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
                 </Container>
             </Container>
         );
-    };
-
-    private showThemeEditor = (): Promise<boolean> => {
-        return new Promise((resolve) => {
-            this.setState({ selectedTab: "themeEditor" }, () => { resolve(true); });
-        });
     };
 
     private handleSelectTab = (id: string): void => {

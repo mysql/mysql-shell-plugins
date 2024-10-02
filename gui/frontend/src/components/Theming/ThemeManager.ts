@@ -23,19 +23,33 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import colorDescriptions from "./assets/color-descriptions.json";
-import defaultDark from "./assets/default-dark-color-theme.json";
+import darkModern from "./assets/dark-modern-color-theme.json";
 import darkAppColors from "./assets/dark-app-colors.json";
-import defaultLight from "./assets/default-light-color-theme.json";
+import lightModern from "./assets/light-modern-color-theme.json";
 import lightAppColors from "./assets/light-app-colors.json";
 import languagesColors from "./assets/languages-colors.json";
+
+import darkAbyss from "./assets/themes/dark-abyss-color-theme.json";
+import darkHc from "./assets/themes/dark-hc-color-theme.json";
+import darkKimbie from "./assets/themes/dark-kimbie-color-theme.json";
+import darkMonokai from "./assets/themes/dark-monokai-color-theme.json";
+import darkMonokaiDimmed from "./assets/themes/dark-monokai-dimmed-color-theme.json";
+import darkPlus from "./assets/themes/dark-plus-color-theme.json";
+import darkRed from "./assets/themes/dark-red-color-theme.json";
+import darkSolarized from "./assets/themes/dark-solarized-color-theme.json";
+import darkTomorrowNightBlue from "./assets/themes/dark-tomorrow-night-blue-color-theme.json";
+import darkVs from "./assets/themes/dark-vs-color-theme.json";
+import lightHc from "./assets/themes/light-hc-color-theme.json";
+import lightPlus from "./assets/themes/light-plus-color-theme.json";
+import lightQuiet from "./assets/themes/light-quiet-color-theme.json";
+import lightSolarized from "./assets/themes/light-solarized-color-theme.json";
+import lightVs from "./assets/themes/light-vs-color-theme.json";
 
 import Color from "color";
 import { ColorManipulator } from "../../utilities/ColorManipulator.js";
 
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { appParameters, requisitions } from "../../supplement/Requisitions.js";
-import { IDictionary } from "../../app-logic/Types.js";
 
 export interface IColors {
     [key: string]: string;
@@ -51,12 +65,24 @@ export interface ITokenEntry {
     };
 }
 
+interface IFont {
+    fontFamily?: string;
+    fontSize?: string;
+    fontWeight?: string;
+    editorFontFamily?: string;
+    editorFontSize?: string;
+    editorFontWeight?: string;
+}
+
+interface IHostThemeData { css: string; themeClass: string; }
+
 /** This is the structure of a VS Code theme file. */
 export interface IThemeObject {
     name: string;
     type?: string;
     include?: string;
     colors?: IColors;
+    font?: IFont;
 
     /** Old style specification. */
     settings?: ITokenEntry[];
@@ -104,8 +130,29 @@ export class ThemeManager {
     #useHostTheme = false;
 
     private constructor() {
-        this.loadThemeDetails(defaultDark);
-        this.loadThemeDetails(defaultLight);
+        const themes = [
+            darkModern,
+            darkAbyss,
+            darkHc,
+            darkKimbie,
+            darkMonokai,
+            darkMonokaiDimmed,
+            darkPlus,
+            darkRed,
+            darkSolarized,
+            darkTomorrowNightBlue,
+            darkVs,
+
+            lightModern,
+            lightHc,
+            lightPlus,
+            lightQuiet,
+            lightSolarized,
+            lightVs,
+        ];
+        themes.forEach((th) => {
+            this.loadThemeDetails(th);
+        });
 
         // Create an HTML element to hold our current theme values.
         this.themeStyleElement = document.createElement("style");
@@ -221,42 +268,7 @@ export class ThemeManager {
         return undefined;
     }
 
-    /**
-     * Reads out the current value from our theme variables and stores them in the theme definition.
-     */
-    public saveTheme(): void {
-        const styleNode = this.themeStyleNode;
-        const definitions = this.themeDefinitions.get(this.currentTheme);
-        if (definitions) {
-            const colors = definitions.json.colors || {};
-
-            this.iterateColorDescription(colorDescriptions, (key: string, value: string): void => {
-                if (key === "name" && !value.startsWith("#")) {
-                    const variable = this.themeValueNameToCssVariable(value);
-                    const color = new Color(styleNode.getPropertyValue(variable).trim());
-                    colors[value] = color.hexa();
-                }
-            });
-
-            // Finally re-create the CSS definition for this theme.
-            this.loadThemeDetails(definitions.json);
-
-            definitions.json.colors = colors;
-        }
-
-        this.updateSettings();
-        this.sendChangeNotification(this.currentTheme);
-    }
-
-    /**
-     * Converts the given values object into a CSS theme definition and stores it for later use.
-     *
-     * @param values An object with theme values.
-     * @param consolidate If true then set default values for missing entries (used when loading a theme from disk).
-     *
-     * @returns The id of the loaded theme.
-     */
-    public loadThemeDetails(values: IThemeObject, consolidate = false): string {
+    public guessThemeType(values: IThemeObject): ThemeType {
         let type: ThemeType;
         if (values.type) {
             type = values.type === "dark" ? "dark" : "light";
@@ -268,6 +280,19 @@ export class ThemeManager {
                 type = "light";
             }
         }
+
+        return type;
+    }
+
+    /**
+     * Converts the given values object into a CSS theme definition and stores it for later use.
+     *
+     * @param values An object with theme values.
+     *
+     * @returns The id of the loaded theme.
+     */
+    public loadThemeDetails(values: IThemeObject): string {
+        const type = this.guessThemeType(values);
 
         const themeHasColors = !!values.colors;
         const appColors: IColors = type === "dark" ? darkAppColors : lightAppColors;
@@ -287,9 +312,9 @@ export class ThemeManager {
             // If no component colors are defined then copy over the ones from the default.
             // This is independent of the consolidation flag, as it ensure we have a `colors` at all.
             if (type === "dark") {
-                values.colors = { ...defaultDark.colors };
+                values.colors = { ...darkModern.colors };
             } else {
-                values.colors = { ...defaultLight.colors };
+                values.colors = { ...lightModern.colors };
             }
         }
 
@@ -297,10 +322,10 @@ export class ThemeManager {
             values.colors, this.colorManipulator.colorAdjustments, type,
         );
         values.colors = { ...adjustedColors, ...values.colors };
+        const fontVariables = this.getFontVariables(values.font);
 
-        Object.keys(values.colors).forEach((key: string): void => {
-            css += "\t" + this.themeValueNameToCssVariable(key) + ": " + values.colors![key] + ";\n";
-        });
+        css += this.stylesToString(fontVariables);
+        css += this.stylesToString(values.colors);
 
         css += "}\n";
 
@@ -323,16 +348,8 @@ export class ThemeManager {
                 throw new Error("This theme contains references to local files, which cannot be loaded automatically.");
             }
 
-            if (consolidate) {
-                this.uiColorSanityCheck(values.colors);
-            }
-
             if (!values.tokenColors) {
                 values.tokenColors = [];
-            }
-
-            if (consolidate) {
-                this.tokenColorSanityCheck(values.tokenColors);
             }
 
             this.themeDefinitions.set(values.name, { type, css, json: values });
@@ -352,27 +369,112 @@ export class ThemeManager {
         return "--" + name.replace(/\./g, "-");
     }
 
-    public duplicateCurrentTheme(newName: string): boolean {
-        const data = this.themeDefinitions.get(this.currentTheme);
-        if (data) {
-            data.json.name = newName;
-            this.themeDefinitions.set(newName, { ...data });
-        }
-
-        this.updateSettings();
-
-        return false;
+    public stylesToString(styles: {[key: string]: string}): string {
+        return Object.entries(styles)
+            .map(([key, value]) => {
+                return `\t${this.themeValueNameToCssVariable(key)}: ${value};\n`;
+            })
+            .join("");
     }
 
-    public removeCurrentTheme(): void {
-        this.themeDefinitions.delete(this.currentTheme);
-        if (this.themeDefinitions.size > 0) {
-            this.updating = true;
-            this.activeTheme = this.themeDefinitions.keys().next().value;
-            this.updating = false;
+    public parseHostTheme(data: IHostThemeData): IThemeObject {
+        const name = data.themeClass;
+        const type = this.guessThemeType({ name });
+        const tokenColors = type === "dark" ? darkModern.tokenColors : lightModern.tokenColors;
+        const theme: IThemeObject = {
+            name,
+            type,
+            tokenColors,
+        };
+        const trim = (value: string) => {
+            return value.trim();
+        };
+
+        const styles = data.css.split(";").map(trim).filter(Boolean);
+
+        const fontProperties = [
+            "font-size",
+            "font-family",
+            "font-weight",
+        ];
+
+        const colors: IColors = {};
+        styles.forEach((style) => {
+            const [property, value] = style.split(":").map(trim);
+            if (!property || !value) {
+                return;
+            }
+
+            let transformedKey = property.replace(/--(vscode-)?/, "");
+
+            const isFontProperty = fontProperties.find((i) => {
+                return transformedKey.includes(i);
+            });
+            if (isFontProperty) {
+                this.setFont(theme, transformedKey, value);
+
+                return;
+            }
+
+            transformedKey = transformedKey.replaceAll("-", ".");
+            if (!this.isValidColor(value)) {
+                return;
+            }
+            colors[transformedKey] = value;
+        });
+
+        theme.colors = colors;
+
+        return theme;
+    }
+
+    public getFontVariables(font?: IFont): {[key: string]: string} {
+        if (!font) {
+            font = {};
         }
 
-        this.updateSettings();
+        const fontVariables: {[key: string]: string} = {};
+
+        fontVariables["msg-standard-font-family"] = font.fontFamily ?? "'Helvetica Neue', Helvetica, Arial, sans-serif";
+        fontVariables["msg-standard-font-weight"] = font.fontWeight ?? "400";
+        fontVariables["msg-monospace-font-family"] = font.editorFontFamily
+            ?? "'SourceCodePro+Powerline+Awesome+MySQL', monospace";
+
+        font.fontSize && (fontVariables["msg-standard-font-size"] = font.fontSize);
+        font.editorFontSize && (fontVariables["msg-monospace-font-size"] = font.editorFontSize);
+        font.editorFontWeight && (fontVariables["msg-monospace-font-weight"] = font.editorFontWeight);
+
+        return fontVariables;
+    }
+
+    public isValidColor(color: string): boolean {
+        try {
+            new Color(color);
+        } catch (e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private setFont(theme: IThemeObject, property: string, value: string): void {
+        if (!theme.font) {
+            theme.font = {};
+        }
+
+        if (property.match(/^font-size$/)) {
+            theme.font.fontSize = value;
+        } else if (property.match(/^font-family$/)) {
+            theme.font.fontFamily = value;
+        } else if (property.match(/^font-weight$/)) {
+            theme.font.fontWeight = value;
+        } else if (property.match(/^editor-font-size$/)) {
+            theme.font.editorFontSize = value;
+        } else if (property.match(/^editor-font-family$/)) {
+            theme.font.editorFontFamily = value;
+        } else if (property.match(/^editor-font-weight$/)) {
+            theme.font.editorFontWeight = value;
+        }
     }
 
     /**
@@ -428,40 +530,15 @@ export class ThemeManager {
      *
      * @returns A promise that always resolve to true.
      */
-    private hostThemeChange = (data: { css: string; themeClass: string; }): Promise<boolean> => {
-        // For the time being we load our light or dark default themes for host theme changes.
-        // TODO: enable host theme values here.
-
+    private hostThemeChange = (data: IHostThemeData): Promise<boolean> => {
         // From now on we ignore the theme from the profile.
         this.#useHostTheme = true;
 
-        switch (data.themeClass) {
-            case "vscode-dark":
-            case "vscode-high-contrast": {
-                document.body.setAttribute("theme", "dark");
-                this.loadTheme("Default Dark");
-                this.storeThemeName("Default Dark");
-                this.sendChangeNotification(this.currentTheme);
+        this.themeDefinitions.delete(data.themeClass);
 
-                break;
-            }
-
-            case "vscode-light":
-            case "vscode-high-contrast-light": {
-                document.body.setAttribute("theme", "light");
-                this.loadTheme("Default Light");
-                this.storeThemeName("Default Light");
-                this.sendChangeNotification(this.currentTheme);
-
-                break;
-            }
-
-            default: {
-                this.storeThemeName("Auto");
-
-                break;
-            }
-        }
+        const theme = this.parseHostTheme(data);
+        this.loadThemeDetails(theme);
+        this.switchTheme(data.themeClass);
 
         return Promise.resolve(true);
     };
@@ -475,9 +552,9 @@ export class ThemeManager {
         if (this.currentTheme === "Auto") {
             let actualTheme = "";
             if (event.matches) {
-                actualTheme = "Default Light";
+                actualTheme = "Light Modern";
             } else {
-                actualTheme = "Default Dark";
+                actualTheme = "Dark Modern";
             }
             this.loadTheme(actualTheme);
 
@@ -504,130 +581,6 @@ export class ThemeManager {
     }
 
     /**
-     * Checks all given colors for validity and assigns a signal color to those that are not.
-     * For background, foreground and border colors we try to find a useful value if they have not been assigned.
-     * Finally we also assign meaningful default colors for entries that don't exist in VS Code color themes,
-     * but are used by us.
-     *
-     * @param colors A list of colors to check.
-     */
-    private uiColorSanityCheck(colors: IColors): void {
-        // 1. Step: add empty entries which don't exist but are in the color definitions.
-        this.iterateColorDescription(colorDescriptions, (key: string, value: string): void => {
-            if (key === "name" && !value.startsWith("#") && !colors[value]) {
-                colors[value] = "";
-            }
-        });
-
-        // 2. Step: color validation.
-        for (const [key, value] of Object.entries(colors)) {
-            colors[key] = this.checkColor(value);
-        }
-
-        // 3. Step: try to fill empty values with useful defaults.
-        // First some individual values, then all the rest.
-        this.setDefaultValue(colors, "background", "button.background");
-
-        this.matchAndAssignDefault(/.*background$/i, colors, colors.background);
-        this.matchAndAssignDefault(/.*foreground$/i, colors, colors.foreground);
-        this.matchAndAssignDefault(/.*border$/i, colors, colors["button.border"]);
-
-        // 4. Step: assign a signal color to all still empty values.
-        for (const [key, value] of Object.entries(colors)) {
-            if (value.length === 0) {
-                // cSpell: disable-next-line
-                colors[key] = "orangered";
-            }
-        }
-    }
-
-    /**
-     * Does a similar check like `uiColorSanityCheck`, but for token colors in a theme (and much simpler).
-     * We don't fill in any empty values, however, and we cannot check that specific values exist.
-     * But at least a token entry array is created if none exists.
-     *
-     * @param entries A list of token entries for which the color values are to be checked.
-     */
-    private tokenColorSanityCheck(entries: ITokenEntry[]): void {
-        entries.forEach((value) => {
-            if (value.settings.foreground) {
-                value.settings.foreground = this.checkColor(value.settings.foreground);
-            }
-
-            if (value.settings.background) {
-                value.settings.background = this.checkColor(value.settings.background);
-            }
-        });
-    }
-
-    /**
-     * Checks if the given color string is a valid CSS color and returns it if so.
-     * If not a default, signal color is returned instead.
-     *
-     * @param color The color to check.
-     *
-     * @returns The same color string (but trimmed) or a signal color, if the given color could not be parsed.
-     */
-    private checkColor(color: string): string {
-        let colorString = color.trim();
-        if (colorString.length > 0) {
-            try {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const t = new Color(colorString);
-            } catch (e) {
-                // cSpell: disable-next-line
-                colorString = "orangered";
-            }
-        }
-
-        return colorString;
-    }
-
-    private matchAndAssignDefault(pattern: RegExp, colors: IColors, defaultValue: string): void {
-        if (!defaultValue || defaultValue.length === 0) {
-            // The preferred default value is empty, so search one that is not.
-            // Use the color descriptions to find a default value, as they are sorted by importance.
-            defaultValue = "";
-            this.iterateColorDescription(colorDescriptions, (key: string, value: string): void => {
-                if (key === "name" && defaultValue.length === 0 && key.match(pattern) && colors[value].length > 0) {
-                    defaultValue = colors[value];
-                }
-            });
-        }
-
-        if (defaultValue.length > 0) {
-            for (const [key, value] of Object.entries(colors)) {
-                if (key.match(pattern) && value.length === 0) {
-                    colors[key] = defaultValue;
-                }
-            }
-        }
-    }
-
-    private setDefaultValue(colors: IColors, target: string, defaultEntry: string): void {
-        if (!colors[target]) {
-            colors[target] = colors[defaultEntry];
-        }
-    }
-
-    private iterateColorDescription = (source: IDictionary[] | IDictionary, callback: (key: string,
-        value: string) => void): void => {
-        if (Array.isArray(source)) {
-            source.forEach((element): void => {
-                this.iterateColorDescription(element, callback);
-            });
-        } else if (typeof source === "object") {
-            for (const [key, value] of Object.entries(source as object)) {
-                if (typeof value === "string") {
-                    callback(key, value);
-                } else {
-                    this.iterateColorDescription(value as IDictionary[], callback);
-                }
-            }
-        }
-    };
-
-    /**
      * Writes all theme definitions and the current theme back to the settings.
      */
     private updateSettings(): void {
@@ -638,7 +591,7 @@ export class ThemeManager {
         this.updating = true;
         const themes: IThemeObject[] = [];
         this.themeDefinitions.forEach((definition: IThemeDefinition, key: string) => {
-            if (key !== "Default Dark" && key !== "Default Light") {
+            if (key !== "Dark Modern" && key !== "Light Modern") {
                 themes.push(definition.json);
             }
         });
@@ -654,9 +607,9 @@ export class ThemeManager {
         let actualTheme = theme;
         if (theme === "Auto") { // Auto means: follow the OS, not the host (if we are embedded).
             if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-                actualTheme = "Default Light";
+                actualTheme = "Light Modern";
             } else {
-                actualTheme = "Default Dark";
+                actualTheme = "Dark Modern";
             }
             this.loadTheme(actualTheme);
 

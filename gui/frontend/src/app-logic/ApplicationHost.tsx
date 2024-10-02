@@ -35,12 +35,12 @@ import { SettingsEditor } from "../components/SettingsEditor/SettingsEditor.js";
 import { ModuleRegistry } from "../modules/ModuleRegistry.js";
 import { DialogHost } from "./DialogHost.js";
 
-import { CommunicationDebugger } from "../components/CommunicationDebugger/CommunicationDebugger.js";
 import { ActivityBar } from "../components/ui/ActivityBar/ActivityBar.js";
 import { ActivityBarItem, IActivityBarItemProperties } from "../components/ui/ActivityBar/ActivityBarItem.js";
 import { ComponentBase, IComponentProperties } from "../components/ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../components/ui/Container/Container.js";
 import { ISplitterPaneSizeInfo, SplitContainer } from "../components/ui/SplitContainer/SplitContainer.js";
+import { CommunicationDebugger } from "../components/CommunicationDebugger/CommunicationDebugger.js";
 
 interface IApplicationHostProperties extends IComponentProperties {
     toggleOptions: () => void;

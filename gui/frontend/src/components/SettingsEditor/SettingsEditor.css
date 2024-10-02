@@ -104,13 +104,13 @@
 
 .msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row.tabulator-selected .tabulator-cell,
 .msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row.tabulator-selected:hover .tabulator-cell {
-    background-color: var(--list-inactiveSelectionBackground);
+    background-color: var(--settings-focusedRowBackground);
     color: var(--foreground);
-    border: 1px solid var(--tree-tableColumnsBorder);
+    border: 1px solid var(--settings-focusedRowBorder);
 }
 
 .msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row.tabulator-selectable:hover .tabulator-cell {
-    background-color: var(--list-headerBackground);
+    background-color: var(--settings-rowHoverBackground);
 }
 
 .msg.settingsEditor #settingsValueList .settingsListCell {
@@ -131,12 +131,12 @@
     flex: 0 0 20px;
     font-size: 1.7em;
 
-    color: var(--list-activeSelectionForeground);
+    color: var(--settings-headerForeground);
 }
 
 .msg.settingsEditor #settingsValueList .settingValueName {
     flex: 0 0 18px;
-    color: var(--list-activeSelectionForeground);
+    color: var(--settings-headerForeground);
     padding-bottom: 4px;
 }
 
@@ -173,4 +173,8 @@
 .msg.settingsEditor #settingsValueList .settingValue.dropdown {
     margin-left: 0;
     max-width: 300px;
+}
+
+#theming\.currentThemePopup .popup.dropdownList {
+    max-height: none;
 }

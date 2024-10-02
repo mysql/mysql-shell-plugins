@@ -303,7 +303,7 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
                             let description = "3rd party Theme";
                             if (theme === "Auto") {
                                 description = "Pseudo theme to match the current system theme";
-                            } else if (theme === "Default Dark" || theme === "Default Light") {
+                            } else if (theme === "Dark Modern" || theme === "Light Modern") {
                                 description = "Built-in Theme";
                             }
 

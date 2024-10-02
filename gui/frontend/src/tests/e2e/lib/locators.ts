@@ -630,8 +630,6 @@ export const aboutPage = {
 };
 
 export const themeEditorPage = {
-    tab: By.id("themeEditor"),
-    themeEditorTitle: By.css(".themeEditor > label"),
     themeSelectorArea: {
         exists: By.id("themeSelectorContainer"),
         sectionTitle: By.css("#themeSelectorContainer .gridCell label"),
@@ -642,18 +640,6 @@ export const themeEditorPage = {
         selector: By.id("theming.currentTheme"),
         selectorList: By.className("dropdownList"),
         colorPopup: By.className("colorPopup"),
-    },
-    themeEditorTabs: {
-        container: By.id("themeTabview"),
-        syntaxColors: By.id("syntaxColors"),
-        uiColors: By.id("uiColors"),
-        scroll: By.className("tabulator-tableholder"),
-        tabElements: By.css(".tabulator-tableholder .tabulator-selectable"),
-        toggleElement: By.className("treeToggle"),
-    },
-    themePreview: {
-        title: By.id("previewTitle"),
-        section: By.css("#previewRoot p"),
     },
 };
 
@@ -734,4 +720,6 @@ export const notificationsCenter = {
         },
     },
 };
+
+export const pageIsLoading = By.className("circleBackground");
 
