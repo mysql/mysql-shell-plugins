@@ -37,10 +37,10 @@ import json
 # update's execution path will be added where defined values are handled.
 SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_CREATE = '''
         if record_id is UndefinedField:
-            request = MrsBaseObjectCreate[I{name}DataCreate, I{name}Details](
+            request = MrsBaseObjectCreate[INew{name}, I{name}Details](
                 schema=self._schema,
                 request_path=self._request_path,
-                data=cast(I{name}DataCreate, asdict(self)),
+                data=cast(INew{name}, asdict(self)),
             )
             return self.__load_fields(cast(I{name}Data, await request.submit()))
 '''
@@ -344,8 +344,10 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
         ]
 
         service_class_name = lib.core.convert_path_to_pascal_case(service.get("url_context_root"))
-        service_level_constants += generate_sequence_constant(name="AUTH_APPS", values=service_auth_apps,
-                                                            sdk_language=sdk_language)
+        if sdk_language != "TypeScript":
+            # Until the authentication workflow is updated on TypeScript, we should not generate the constant.
+            service_level_constants += generate_sequence_constant(name="AUTH_APPS", values=service_auth_apps,
+                                                                sdk_language=sdk_language)
 
         if len(service_auth_apps) > 0:
             service_level_type_definitions += generate_enum(
@@ -768,7 +770,14 @@ def get_procedure_datatype_mapping(sp_datatype, sdk_language):
     return "unknown"
 
 
-def get_interface_datatype(field, sdk_language, class_name="", reference_class_name_postfix="", enhanced_fields=False):
+def get_interface_datatype(
+    field,
+    sdk_language,
+    class_name="",
+    reference_class_name_postfix="",
+    enhanced_fields=False,
+    nullable=True,
+):
     db_column_info = field.get("db_column")
     if db_column_info:
         db_datatype = db_column_info.get("datatype")
@@ -780,7 +789,7 @@ def get_interface_datatype(field, sdk_language, class_name="", reference_class_n
         else:
             client_datatype = get_enhanced_datatype_mapping(db_datatype, sdk_language)
 
-        if db_not_null is True:
+        if not nullable or db_not_null is True:
             return client_datatype
 
         return maybe_null(client_datatype, sdk_language)
@@ -822,7 +831,7 @@ def field_is_unique(field):
     return False
 
 
-def field_is_required(field):
+def field_is_nullable(field):
     if field.get("lev") != 1:
         return False
 
@@ -831,10 +840,38 @@ def field_is_required(field):
     if db_column_info is None:
         return False
 
-    not_null = db_column_info.get("not_null")
-    id_generation = db_column_info.get("id_generation")
+    if db_column_info.get("not_null"):
+        return False
 
-    if not_null and id_generation is None:
+    return True
+
+
+def field_has_row_ownership(field, obj):
+    field_id = field.get("id")
+    row_ownership_field_id = obj.get("row_ownership_field_id")
+
+    return row_ownership_field_id is not None and field_id == row_ownership_field_id
+
+
+def field_is_required(field, obj):
+    if field.get("lev") != 1:
+        return False
+
+    db_column_info = field.get("db_column")
+
+    if db_column_info is None:
+        return False
+
+    # if a field can be NULL it is, by definition, optional
+    not_null = db_column_info.get("not_null")
+    # if a field is a primary key with AUTO_INCREMENt, it is optional
+    id_generation = db_column_info.get("id_generation")
+    # if a field has a default column value, it is optional
+    column_default = db_column_info.get("column_default")
+    # if a field is maps to row ownership column, it should also be optional
+    has_row_ownership = field_has_row_ownership(field, obj)
+
+    if not_null and id_generation is None and column_default is None and not has_row_ownership:
         return True
 
     return False
@@ -908,68 +945,68 @@ def generate_type_declaration(
     parents=[],
     fields={},
     sdk_language="TypeScript",
-    override_parents=False,
-    apply_convention=True,
-    required_fields=False,
+    ignore_base_types=False,
     non_mandatory_fields: Set[str] = set(),  # Users may or not specify them
-    object_type: Optional[str] = None,
 ):
-    field_block = [
-        generate_type_declaration_field(
-            name,
-            value,
-            sdk_language,
-            apply_convention=apply_convention,
-            required_fields=required_fields,
-            non_mandatory=(name in non_mandatory_fields),
-        )
-        for name, value in fields.items()
-    ]
-
+    if len(fields) == 0:
+        return ""
     if sdk_language == "TypeScript":
-        if override_parents:
-            intersection_block = '' if len(parents) == 0 else f" & {'& '.join(parents)}"
-            return (f"export type I{name} = {{\n" +
-                    "".join(field_block) +
-                    f"}}{intersection_block};\n\n")
-        inheritance_block = ' ' if len(parents) == 0 else f" extends {', '.join(parents)} "
-        return (f"export interface I{name}{inheritance_block}{{\n" +
-            "".join(field_block) +
-            "}\n\n")
+        field_block = [
+            generate_type_declaration_field(
+                name,
+                value,
+                sdk_language,
+                non_mandatory=(name in non_mandatory_fields),
+            )
+            for name, value in fields.items()
+        ]
+        if len(parents) > 0:
+            # To avoid issues with optional fields, we always use type intersection to represent inheritance.
+            intersection_block = f" & {' & '.join(parents)}"
+            return (
+                f"export type I{name} = {{\n"
+                + "".join(field_block)
+                + f"}}{intersection_block};\n\n"
+            )
+        # To follow the internal convention, we use interfaces for every other case.
+        return f"export interface I{name} {{\n" + "".join(field_block) + "}\n\n"
     if sdk_language == "Python":
-        total = "True" if object_type == "FUNCTION" else "False"
-
-        if len(fields) == 0:
-            if object_type == "FUNCTION":
-                return f"class I{name}(TypedDict, total={total}):\n{' '*4}pass" + "\n\n"
-            return f"I{name}: TypeAlias = None\n\n\n"
-
-        ordered_parents = [*parents] if override_parents is True else ["TypedDict", *parents]
-        # TODO: remove hack to ignore IMrsMetadata once it is not needed for TypeScript
-        parents_without_legacy_class = [parent for parent in ordered_parents if parent != "IMrsFetchData"]
-        if not required_fields:
-            inheritance_block = f"({', '.join(parents_without_legacy_class)}, total={total})"
+        field_block = [
+            generate_type_declaration_field(
+                name,
+                value,
+                sdk_language,
+                non_mandatory=(
+                    name in non_mandatory_fields
+                    and len(non_mandatory_fields) != len(fields)
+                ),
+            )
+            for name, value in fields.items()
+        ]
+        ordered_parents = (
+            [*parents] if ignore_base_types is True else ["TypedDict", *parents]
+        )
+        if len(non_mandatory_fields) == len(fields):
+            inheritance_block = f"({', '.join(ordered_parents)}, total=False)"
         else:
-            inheritance_block = f"({', '.join(parents_without_legacy_class)})"
+            inheritance_block = f"({', '.join(ordered_parents)})"
         param_block = "".join(field_block) if len(field_block) > 0 else "    pass\n"
-        return (f"class I{name}{inheritance_block}:\n" +
-            param_block +
-            "\n\n")
+        return f"class I{name}{inheritance_block}:\n" + param_block + "\n\n"
 
 
 def generate_type_declaration_field(
-    name, value, sdk_language, apply_convention=True, required_fields=False, non_mandatory=False
+    name, value, sdk_language, non_mandatory=False
 ):
     indent = " " * 4
 
     if sdk_language == "TypeScript":
-        field_name_part = f"{indent}{name}" if required_fields else f"{indent}{name}?"
+        field_name_part = f"{indent}{name}?" if non_mandatory else f"{indent}{name}"
         if isinstance(value, list):
             return f"{field_name_part}: {value[0]}[],\n"
         return f"{field_name_part}: {value},\n"
 
     if sdk_language == "Python":
-        name_in_convention = lib.core.convert_to_snake_case(name) if apply_convention else name
+        name_in_convention = lib.core.convert_to_snake_case(name)
         if isinstance(value, list):
             hint = f"NotRequired[list[{value[0]}]]" if non_mandatory is True else f"list[{value[0]}]"
         else:
@@ -987,7 +1024,7 @@ def generate_data_class(
 ):
     if sdk_language == "TypeScript":
         return generate_type_declaration(
-            name=name, fields=fields, sdk_language=sdk_language
+            name=name, fields=fields, sdk_language=sdk_language, non_mandatory_fields=set(fields)
         )
     if sdk_language == "Python":
         field_type_block = [
@@ -1081,7 +1118,7 @@ def generate_selectable(name, fields, sdk_language):
         return ""
     if sdk_language == "Python":
         return generate_type_declaration(name=f"{name}Selectable", fields={ field: "bool" for field in fields },
-                                         sdk_language=sdk_language)
+                                         sdk_language=sdk_language, non_mandatory_fields=set(fields))
 
 
 def generate_sortable(name, fields, sdk_language):
@@ -1089,7 +1126,7 @@ def generate_sortable(name, fields, sdk_language):
         return ""
     if sdk_language == "Python":
         return generate_type_declaration(name=f"{name}Sortable", fields={ field: "Order" for field in fields },
-                                         sdk_language=sdk_language)
+                                         sdk_language=sdk_language, non_mandatory_fields=set(fields))
 
 
 def generate_union(name, types, sdk_language):
@@ -1115,16 +1152,13 @@ def generate_interfaces(
     db_object_crud_ops: list[str],
     obj_endpoint: Optional[str] = None
 ):
-    obj_interfaces = []
+    obj_interfaces: list[str] = []
     interface_fields = {}
     param_interface_fields = {}
     out_params_interface_fields = {}
     obj_unique_fields = {}
     obj_cursor_fields = {}
     has_nested_fields = False
-    obj_non_mandatory_fields = set(
-        [field.get("name") for field in fields if field_is_required(field) is False]
-    )
     obj_primary_key = get_primary_key(fields)
 
     # Aux vars
@@ -1151,6 +1185,7 @@ def generate_interfaces(
                         # If this field represents an OUT parameter of a SP, add it to the
                         # out_params_interface_fields list
                         if obj.get("kind") == "PARAMETERS" and db_column.get("out"):
+                            datatype = get_interface_datatype(field, sdk_language, class_name)
                             out_params_interface_fields.update({ field.get("name"): datatype })
                         else:
                             # Don't add SP params to result interfaces (OUT params are added to their own list)
@@ -1164,7 +1199,7 @@ def generate_interfaces(
                                  db_obj.get("object_type") != "FUNCTION")
                                     or obj.get("kind") == "PARAMETERS"):
                                 datatype = get_interface_datatype(field=field, sdk_language=sdk_language,
-                                                                  class_name=class_name, enhanced_fields=enhanced_fields)
+                                                                  class_name=class_name, enhanced_fields=enhanced_fields, nullable=True)
                                 param_interface_fields.update({ field.get("name"): datatype })
 
                     # Call recursive interface generation
@@ -1201,184 +1236,190 @@ def generate_interfaces(
                     # NOTE: the notion of "unique parameters" doesn't apply to functions and procedures
                     if unique_fields_apply and field_is_unique(field):
                         datatype = get_interface_datatype(field=field, sdk_language=sdk_language,
-                                                          class_name=class_name, enhanced_fields=enhanced_fields)
+                                                          class_name=class_name, enhanced_fields=enhanced_fields, nullable=False)
                         obj_unique_fields.update({ field.get("name"): datatype })
 
             # Build list of columns which can potentially be used for cursor-based pagination.
             if field_can_be_cursor(field):
                 datatype = get_interface_datatype(field=field, sdk_language=sdk_language,
-                                                  class_name=class_name, enhanced_fields=enhanced_fields)
+                                                  class_name=class_name, enhanced_fields=enhanced_fields, nullable=False)
                 obj_cursor_fields.update({ field.get("name"): datatype })
 
-    if len(interface_fields) > 0:
-        # In Python,`{class_name}Details` is similar to `{class_name}Data`
-        # however the former includes all the data details; fields, hypermedia,
-        # and metadata information since it's for internal use. That's why it
-        # inherits from  IMrsResourceDetails .
-        # The latter one is what it is expected to be provided to the
-        # corresponding data class at construction time, and it does not
-        # include hypermedia and metadata information since it's for external
-        # (public) use. That's why it inherits from  TypedDict.
+    if db_obj.get("object_type") not in (
+        "PROCEDURE",
+        "FUNCTION",
+    ):
+        # The object is a TABLE or a VIEW
+        obj_non_mandatory_fields = set(
+            [
+                field.get("name")
+                for field in fields
+                # exclude fields that are out of range (e.g. on different nesting levels)
+                if field.get("name") in interface_fields.keys()
+                and field_is_required(field, obj) is False
+            ]
+        )
 
-        # * Currently, the notion of `{class_name}Details` does not exist in TypeScript.
-        # * Currently, the notion of `{class_name}Data` exists in TypeScript but it
-        #   includes hypermedia and metadata information.
-        # TODO: change the TypeScript code gen to follow a construct similar to Python.
-
-        if sdk_language == "Python":
-            # Create the `Details` data type construct
+        if sdk_language != "TypeScript":
+            # These type declarations are not needed for TypeScript because it uses a Proxy to replace the interface
+            # and not a wrapper class. This might change in the future.
             obj_interfaces.append(
                 generate_type_declaration(
                     name=f"{class_name}Details",
                     parents=["IMrsResourceDetails"],
                     fields=interface_fields,
                     sdk_language=sdk_language,
-                    override_parents=True,
-                    apply_convention=True,
-                    required_fields=True
+                    ignore_base_types=True,
                 )
             )
 
-        # In some languages such as Python, the order in which types are declared is relevant,
-        # in those cases, declaring custom types that use other custom types should be deferred.
-        # The base type (corresponding to "class_name") should be declared first.
-        construct_override_parents = False
-        construct_parents = []
-        construct_required_fields = True
-        apply_convention = True
-        if sdk_language == "TypeScript":
-            construct_override_parents = True
-            construct_parents.extend(["IMrsResourceData"])
-            construct_required_fields = False
-            apply_convention = False
+            obj_interfaces.append(
+                generate_type_declaration(
+                    name=f"{class_name}Data",
+                    fields=interface_fields,
+                    sdk_language=sdk_language,
+                    non_mandatory_fields=obj_non_mandatory_fields,
+                )
+            )
+
+        if "CREATE" in db_object_crud_ops:
+            obj_interfaces.append(
+                generate_type_declaration(
+                    name=f"New{class_name}",
+                    fields=interface_fields,
+                    sdk_language=sdk_language,
+                    non_mandatory_fields=obj_non_mandatory_fields,
+                )
+            )
+
+        if "UPDATE" in db_object_crud_ops:
+            # TODO: No partial update is supported yet. Once it is, the
+            # `non-mandatory_fields` argument should not change.
+            # This way, users can know what fields are required and which ones aren't.
+            # However, even when replacing an entire resource, it should be possible to
+            # unset nullable fields.
+            nullable_fields = [
+                field.get("name")
+                for field in fields
+                if field_is_nullable(field) or field_has_row_ownership(field, obj)
+            ]
+            obj_interfaces.append(
+                generate_type_declaration(
+                    name=f"Update{class_name}",
+                    fields=interface_fields,
+                    sdk_language=sdk_language,
+                    non_mandatory_fields=set(nullable_fields),
+                )
+            )
 
         obj_interfaces.append(
-            generate_type_declaration(
-                name=f"{class_name}Data",
-                parents=construct_parents,
+            generate_data_class(
+                name=class_name,
                 fields=interface_fields,
                 sdk_language=sdk_language,
-                override_parents=construct_override_parents,
-                apply_convention=apply_convention,
-                required_fields=construct_required_fields,
-                non_mandatory_fields=obj_non_mandatory_fields
+                db_object_crud_ops=db_object_crud_ops,
+                obj_endpoint=obj_endpoint,
+                obj_primary_key=obj_primary_key,
             )
         )
 
-        # Only applies to Python
-        if sdk_language == "Python":
-            obj_interfaces.append(
-                generate_type_declaration(
-                    name=f"{class_name}DataCreate",
-                    parents=construct_parents,
-                    fields=interface_fields,
-                    sdk_language=sdk_language,
-                    override_parents=construct_override_parents,
-                    apply_convention=apply_convention,
-                    required_fields=construct_required_fields,
-                    non_mandatory_fields=obj_non_mandatory_fields
-                )
+        obj_interfaces.append(
+            generate_field_enum(
+                name=class_name, fields=interface_fields, sdk_language=sdk_language
             )
-
-            # TODO: No partial update is supported yet, once it is,
-            # `non-mandatory fields` argument should be specified as well.
-            # This way, users can know what fields are required and which ones aren't.
-            obj_interfaces.append(
-                generate_type_declaration(
-                    name=f"{class_name}DataUpdate",
-                    parents=construct_parents,
-                    fields=interface_fields,
-                    sdk_language=sdk_language,
-                    override_parents=construct_override_parents,
-                    apply_convention=apply_convention,
-                    required_fields=construct_required_fields,
-                )
-            )
-
-        obj_interfaces.append(generate_data_class(name=class_name, fields=interface_fields,
-                                                    sdk_language=sdk_language,
-                                                    db_object_crud_ops=db_object_crud_ops,
-                                                    obj_endpoint=obj_endpoint,
-                                                    obj_primary_key=obj_primary_key
-                                                    ))
-
-        if db_obj.get("object_type") == "PROCEDURE" or db_obj.get("object_type") == "FUNCTION":
-            if obj.get("kind") != "PARAMETERS":
-                result_fields = { "type": generate_literal_type([class_name], sdk_language),
-                                 "items": [f"I{class_name}"] }
-                obj_interfaces.append(generate_type_declaration(name=f"{class_name}Result", fields=result_fields,
-                                                                sdk_language=sdk_language, required_fields=True))
-
-        obj_interfaces.append(generate_field_enum(name=class_name, fields=interface_fields,
-                                                  sdk_language=sdk_language))
+        )
 
         if not has_nested_fields:
             # This creates a type alias for something like None, which ensures there is always a default
             # value for *{class_name}NestedField and saves us from using conditionals in the template.
-            obj_interfaces.append(generate_field_enum(name=f"{class_name}Nested", sdk_language=sdk_language))
-
-        obj_interfaces.append(generate_selectable(class_name, interface_fields, sdk_language))
-        obj_interfaces.append(generate_sortable(class_name, interface_fields, sdk_language))
-
-    if len(param_interface_fields) > 0 or obj.get("kind") == "PARAMETERS":
-        construct_fields = {}
-        construct_name = f"{class_name}"
-        construct_parents = ["IMrsFetchData"]
-        construct_override_parents = False
-
-        if len(param_interface_fields) > 0:
-            construct_fields = param_interface_fields
-
-        if obj.get("kind") != "PARAMETERS":
-            construct_name = f"{class_name}Params"
-            if sdk_language == "Python":
-                construct_name = f"{class_name}Filterable"
-                construct_parents.extend(["Generic[Filterable]", "HighOrderOperator[Filterable]"])
-                construct_override_parents = True
+            obj_interfaces.append(
+                generate_field_enum(
+                    name=f"{class_name}Nested", sdk_language=sdk_language
+                )
+            )
 
         obj_interfaces.append(
+            generate_selectable(class_name, interface_fields, sdk_language)
+        )
+        obj_interfaces.append(
+            generate_sortable(class_name, interface_fields, sdk_language)
+        )
+
+        construct_parents = [] if sdk_language != "Python" else ["Generic[Filterable]", "HighOrderOperator[Filterable]"]
+        obj_interfaces.append(
             generate_type_declaration(
-                name=construct_name,
+                name=f"{class_name}Filterable",
                 parents=construct_parents,
-                fields=construct_fields,
+                fields=param_interface_fields,
                 sdk_language=sdk_language,
-                override_parents=construct_override_parents,
-                object_type=db_obj.get("object_type")
+                ignore_base_types=True,
+                non_mandatory_fields=set(param_interface_fields)
             )
         )
 
-    if len(out_params_interface_fields) > 0:
-        out_result_fields = { "type": f"I{class_name}Out", "items": [f"I{class_name}Out"] }
-        obj_interfaces.append(generate_type_declaration(name=f"{class_name}OutResult", fields=out_result_fields,
-                                                        sdk_language=sdk_language))
-
-        obj_interfaces.append(generate_type_declaration(name=f"{class_name}Out", fields=out_params_interface_fields,
-                                                        sdk_language=sdk_language))
-
-    if len(obj_unique_fields) > 0:
-        construct_name = f"{class_name}UniqueParams"
-        construct_parents = []
-        if sdk_language == "Python":
-            construct_name = f"{class_name}UniqueFilterable"
-
         obj_interfaces.append(
             generate_type_declaration(
-                name=construct_name,
+                name=f"{class_name}UniqueFilterable",
                 fields=obj_unique_fields,
                 sdk_language=sdk_language,
-                parents=construct_parents
+                non_mandatory_fields=set(obj_unique_fields)
             )
         )
 
-    if len(obj_cursor_fields) > 0:
-        obj_interfaces.append(generate_type_declaration(name=f"{class_name}Cursors", fields=obj_cursor_fields,
-                                                        sdk_language=sdk_language))
-    # To avoid conditional logic in the template, we should generate a void type declaration for database objects that
-    # do not contain any field eligible to be a cursor. Functions and Procedures should also be ignored.
-    elif (db_obj.get("object_type") != "PROCEDURE" and db_obj.get("object_type") != "FUNCTION"
-          and obj.get("kind") != "PARAMETERS"):
-        obj_interfaces.append(generate_type_declaration_placeholder(f"{class_name}Cursors", sdk_language))
+        # To avoid conditional logic in the template, we should generate a void type declaration for tables and views that
+        # do not contain any field eligible to be a cursor.
+        if len(obj_cursor_fields) > 0:
+            obj_interfaces.append(generate_type_declaration(name=f"{class_name}Cursors", fields=obj_cursor_fields,
+                                                        sdk_language=sdk_language, non_mandatory_fields=set(obj_cursor_fields)))
+        else:
+            obj_interfaces.append(generate_type_declaration_placeholder(f"{class_name}Cursors", sdk_language))
 
+    # FUNCTIONS and PROCEDURES
+    elif obj.get("kind") == "RESULT":
+        if len(interface_fields) > 0:
+            result_fields = {
+                "type": generate_literal_type([class_name], sdk_language),
+                "items": [f"I{class_name}"],
+            }
+            obj_interfaces.append(
+                generate_type_declaration(
+                    name=f"{class_name}Result",
+                    fields=result_fields,
+                    sdk_language=sdk_language,
+                )
+            )
+
+        # TODO: Currently, items of a result set from a PROCEDURE or FUNCTION use a general "return type" placeholder.
+        # I{class_name} is the name of that type.
+        obj_interfaces.append(
+            generate_type_declaration(
+                name=class_name,
+                fields=interface_fields,
+                sdk_language=sdk_language,
+                non_mandatory_fields=set(interface_fields)
+            )
+        )
+
+    else: # kind = "PARAMETERS"
+        # Type definition for the set of IN Parameters.
+        obj_interfaces.append(
+            generate_type_declaration(
+                name=class_name,
+                fields=param_interface_fields,
+                sdk_language=sdk_language,
+                non_mandatory_fields=set(param_interface_fields)
+            )
+        )
+
+        # TODO: Currently, out parameters and result sets are mixed in the JSON response, this needs to change.
+        if len(out_params_interface_fields) > 0:
+            out_result_fields = { "type": f"I{class_name}Out", "items": [f"I{class_name}Out"] }
+            obj_interfaces.append(generate_type_declaration(name=f"{class_name}OutResult", fields=out_result_fields,
+                                                            sdk_language=sdk_language))
+
+        # Type definition for the set of INOUT/OUT Parameters.
+        obj_interfaces.append(generate_type_declaration(name=f"{class_name}Out", fields=out_params_interface_fields,
+                                                        sdk_language=sdk_language))
 
     return "".join(obj_interfaces), out_params_interface_fields
 

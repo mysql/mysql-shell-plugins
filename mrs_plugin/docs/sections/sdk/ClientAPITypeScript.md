@@ -442,7 +442,6 @@ await myService.mrsNotes.note.deleteMany({ where: { shared: true } });
 | Name | Type | Required | Description |
 |---|---|---|---|
 | data | object | Yes | Set of fields and corresponding values to update. |
-| where | object | Yes | Matching identifier or primary key. |
 
 ### Return Type (update)
 
@@ -451,18 +450,11 @@ A JSON object representing the up-to-date record.
 ### Reference (update)
 
 ```TypeScript
-async function update (args: IUpdateOptions<Data, Filterable, ["id"], { batch: false }>): Promise<Data> {
+async function update (args: IUpdateOptions<UpdatableFields>): Promise<Data> {
     // ...
 }
 
-interface IUpdateOptions<Data, Filterable, PrimaryKeys extends Array<string & keyof Filterable>, Config> {
-    data: Data,
-    where: Config extends IBatchConfig ? Array<UpdateMatch<Filterable, PrimaryKeys>> : UpdateMatch<Filterable, PrimaryKeys>
-}
-
-interface IBatchConfig {
-    batch: true
-}
+type IUpdateOptions<Type> = ICreateOptions<Type>;
 ```
 
 ### Example (update)
@@ -474,7 +466,7 @@ import { MyService } from './myService.mrs.sdk/myService';
 const myService = new MyService();
 
 // update the note with id is 1 using a plain object
-await myService.mrsNotes.note.update({ where: { id: 1 }, data: { title: 'bar' } } );
+await myService.mrsNotes.note.update({ data: { id: 1, title: 'bar' } });
 
 // using a custom class instance
 class Note implements IMyServiceMrsNotesNote {
@@ -482,10 +474,11 @@ class Note implements IMyServiceMrsNotesNote {
 }
 
 const note = new Note();
+note.id = 1
 note.shared = false;
 
 // update the note with id 1
-await myService.mrsNotes.note.update({ where: { id: 1 }, data: note });
+await myService.mrsNotes.note.update({ data: note });
 ```
 
 ## updateMany
@@ -497,7 +490,6 @@ await myService.mrsNotes.note.update({ where: { id: 1 }, data: note });
 | Name | Type | Required | Description |
 |---|---|---|---|
 | data | object | Yes | Set of fields and corresponding values to update. |
-| where | object | Yes | Matching identifier or primary key. |
 
 ### Return Type (updateMany)
 
@@ -506,18 +498,11 @@ An array of JSON objects representing the up-to-date records.
 ### Reference (updateMany)
 
 ```TypeScript
-async function updateMany (args: IUpdateOptions<Data, Filterable, ["id"], { batch: true }>): Promise<Data[]> {
+async function updateMany (args: IUpdateOptions<UpdatableFields[]>): Promise<Data[]> {
     // ...
 }
 
-interface IUpdateOptions<Data, Filterable, PrimaryKeys extends Array<string & keyof Filterable>, Config> {
-    data: Data,
-    where: Config extends IBatchConfig ? Array<UpdateMatch<Filterable, PrimaryKeys>> : UpdateMatch<Filterable, PrimaryKeys>
-}
-
-interface IBatchConfig {
-    batch: true
-}
+type IUpdateOptions<Type> = ICreateOptions<Type>;
 ```
 
 ### Example (updateMany)
@@ -529,16 +514,21 @@ import { MyService } from './myService.mrs.sdk/myService';
 const myService = new MyService();
 
 // update the notes with id 1 and 2 using a plain object
-await myService.mrsNotes.note.update({ where: [{ id: 1 }, { id: 2 }], data: { title: 'bar' } });
+await myService.mrsNotes.note.update({ data: [{ id: 1, title: 'bar' }, { id: 2, title: 'bar' }] });
 
 // using a custom class instance
 class Note implements IMyServiceMrsNotesNote {
     // ...
 }
 
-const note = new Note();
+const note1 = new Note();
+note.id = 1;
 note.shared = false;
 
-// update the note with id 1 and 2
-await myService.mrsNotes.note.update({ where: [{ id: 1 }, { id: 2 }], data: note });
+const note2 = new Note();
+note.id = 2;
+note.shared = false;
+
+// update the notes with id 1 and 2
+await myService.mrsNotes.note.update({ data: [note1, note2] });
 ```

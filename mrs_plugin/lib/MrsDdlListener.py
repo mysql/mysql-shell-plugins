@@ -882,7 +882,8 @@ class MrsDdlListener(MRSListener):
                     "in": "IN" in param.get("mode"),
                     "out": "OUT" in param.get("mode"),
                     "datatype": param.get("datatype"),
-                    "not_null": True,
+                    # PROCEDURE IN/INOUT/OUT parameters are nullable by nature
+                    "not_null": False,
                     "is_generated": False,
                     "is_primary": False,
                     "is_unique": False,
@@ -964,7 +965,8 @@ class MrsDdlListener(MRSListener):
                     "in": "IN" in param.get("mode"),
                     "out": "OUT" in param.get("mode"),
                     "datatype": param.get("datatype"),
-                    "not_null": True,
+                    # FUNCTION parameters are nullable by nature
+                    "not_null": False,
                     "is_generated": False,
                     "is_primary": False,
                     "is_unique": False,

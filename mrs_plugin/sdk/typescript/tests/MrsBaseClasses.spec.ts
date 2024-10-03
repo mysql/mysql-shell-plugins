@@ -526,7 +526,7 @@ describe("MRS SDK API", () => {
 
         it("encodes the resource as a JSON string in the request body", async () => {
             const data = { id: 1, str: "qux" };
-            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data });
+            const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data });
             await query.fetch();
 
             expect(fetch).toHaveBeenCalledWith("/foo/bar/baz", expect.objectContaining({
@@ -537,21 +537,21 @@ describe("MRS SDK API", () => {
 
         it("hypermedia properties are not part of the JSON representation of an application resource instance",
                 async () => {
-            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { id: 1, str: "qux" } });
+            const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1, str: "qux" } });
             const res = await query.fetch();
 
             expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
         });
 
         it("hypermedia properties are not enumerable in an application resource instance", async () => {
-            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { id: 1, str: "qux" } });
+            const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1, str: "qux" } });
             const res = await query.fetch();
 
             expect(Object.keys(res)).toEqual(["id", "str"]);
         });
 
         it("hypermedia properties are not iterable in an application resource instance", async () => {
-            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { id: 1, str: "qux" } });
+            const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1, str: "qux" } });
             const res = await query.fetch();
 
             expect("_metadata" in res).toBeFalsy();
@@ -559,7 +559,7 @@ describe("MRS SDK API", () => {
         });
 
         it("hypermedia properties are not writable in an application resource instance", async () => {
-            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { id: 1, str: "qux" } });
+            const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1, str: "qux" } });
             const res = await query.fetch();
 
             // eslint-disable-next-line no-underscore-dangle
@@ -569,7 +569,7 @@ describe("MRS SDK API", () => {
         });
 
         it("hypermedia properties are not removable from an application resource instance", async () => {
-            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { id: 1, str: "qux" } });
+            const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1, str: "qux" } });
             const res = await query.fetch() as Omit<MrsResourceObject<ITableMetadata1>, "_metadata" | "links">;
 
             // eslint-disable-next-line no-underscore-dangle
@@ -579,7 +579,7 @@ describe("MRS SDK API", () => {
 
         it("hypermedia and database object fields are directly accessible in an application resource instance",
                 async () => {
-            const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { id: 1, str: "qux" } });
+            const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1, str: "qux" } });
             const res = await query.fetch();
 
             expect(res.id).toEqual(1);
@@ -591,7 +591,7 @@ describe("MRS SDK API", () => {
 
         describe("when the server does not send back a GTID", () => {
             beforeEach(async () => {
-                const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { str: "qux" }});
+                const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { str: "qux" }});
                 await query.fetch();
             });
 
@@ -632,7 +632,7 @@ describe("MRS SDK API", () => {
 
                 createFetchMock(JSON.stringify(response));
 
-                const query = new MrsBaseObjectCreate<ITableMetadata1>(schema, "/baz", { data: { str: "qux" }});
+                const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { str: "qux" }});
                 await query.fetch();
             });
 
@@ -704,24 +704,24 @@ describe("MRS SDK API", () => {
 
         it("hypermedia properties are not part of the JSON representation of an application resource instance",
                 async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz",
-                { where: { id: 1 }, data: { id: 1, str: "qux" } });
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
+                { data: { id: 1, str: "qux" } }, ["id"]);
             const res = await query.fetch();
 
             expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
         });
 
         it("hypermedia properties are not enumerable in an application resource instance", async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz",
-                { where: { id: 1 }, data: { id: 1, str: "qux" } });
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
+                { data: { id: 1, str: "qux" } }, ["id"]);
             const res = await query.fetch();
 
             expect(Object.keys(res)).toEqual(["id", "str"]);
         });
 
         it("hypermedia properties are not iterable in an application resource instance", async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz",
-                { where: { id: 1 }, data: { id: 1, str: "qux" } });
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
+                { data: { id: 1, str: "qux" } }, ["id"]);
             const res = await query.fetch();
 
             expect("_metadata" in res).toBeFalsy();
@@ -729,8 +729,8 @@ describe("MRS SDK API", () => {
         });
 
         it("hypermedia properties are not writable in an application resource instance", async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz",
-                { where: { id: 1 }, data: { id: 1, str: "qux" } });
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
+                { data: { id: 1, str: "qux" } }, ["id"]);
             const res = await query.fetch();
 
             // eslint-disable-next-line no-underscore-dangle
@@ -740,8 +740,8 @@ describe("MRS SDK API", () => {
         });
 
         it("hypermedia properties are not removable from an application resource instance", async () => {
-            const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz",
-                { where: { id: 1 }, data: { id: 1, str: "qux" } });
+            const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
+                { data: { id: 1, str: "qux" } }, ["id"]);
             const res = await query.fetch() as Omit<MrsResourceObject<ITableMetadata1>, "_metadata" | "links">;
 
             // eslint-disable-next-line no-underscore-dangle
@@ -751,8 +751,8 @@ describe("MRS SDK API", () => {
 
         it("hypermedia and database object fields are directly accessible in an application resource instance",
                 async () => {
-                    const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz",
-                        { where: { id: 1 }, data: { id: 1, str: "qux" } });
+                    const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
+                        { data: { id: 1, str: "qux" } }, ["id"]);
             const res = await query.fetch();
 
             expect(res.id).toEqual(1);
@@ -764,8 +764,8 @@ describe("MRS SDK API", () => {
 
         describe("when the server does not send back a GTID", () => {
             beforeEach(async () => {
-                const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz", {
-                    where: { id: 1 }, data: { id:1, str: "qux" } });
+                const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz", {
+                    data: { id:1, str: "qux" } }, ["id"]);
                 await query.fetch();
             });
 
@@ -806,8 +806,8 @@ describe("MRS SDK API", () => {
 
                 createFetchMock(JSON.stringify(response));
 
-                const query = new MrsBaseObjectUpdate<ITableMetadata1, ITableMetadata1, ["id"]>(schema, "/baz", {
-                    where: { id: 1 }, data: { id:1, str: "qux" } });
+                const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz", {
+                    data: { id:1, str: "qux" } }, ["id"]);
                 await query.fetch();
             });
 

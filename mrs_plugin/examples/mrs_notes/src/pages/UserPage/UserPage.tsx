@@ -63,22 +63,22 @@ export default class UserPage extends Component<IUserPageProps, IUserPageState> 
      */
     private readonly submitUserUpdate = async (): Promise<void> => {
         const { showError, updateUser, myService } = this.props;
-        const { nickname, email } = this.state;
+        const { nickname = "", email = "" } = this.state;
 
         try {
-            // This is weird.
             const user = await myService.mrsNotes.user.findFirst();
 
             if (typeof user === "undefined" || (nickname === user.nickname && email === user.email)) {
                 return;
             }
 
-            // if a user instance exists, it contains an id, so we can safely cast
-            await myService.mrsNotes.user.update({ where: { id: user.id as string }, data: { email, nickname } });
+            // If a user instance exists, it contains an id, because we didn't filter the result fields, so we can
+            // safely cast it to a string.
+            await myService.mrsNotes.user.update({ data: { id: String(user.id), email, nickname } });
 
             // Update the app user
-            user.nickname = nickname ?? "";
-            user.email = email ?? "";
+            user.nickname = nickname;
+            user.email = email;
             updateUser(user);
 
             // Indicate that the user info has been updated

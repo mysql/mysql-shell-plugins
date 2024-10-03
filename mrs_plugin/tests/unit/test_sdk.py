@@ -30,7 +30,8 @@ def test_get_interface_datatype():
         "field": {
             "name": "field"
         },
-        "sdk_language": "TypeScript"
+        "sdk_language": "TypeScript",
+        "nullable": True,
     }
 
     type = get_interface_datatype(**args)
@@ -60,6 +61,10 @@ def test_get_interface_datatype():
     args["sdk_language"] = "Python"
     type = get_interface_datatype(**args)
     assert type == "Optional[int]"
+
+    args["nullable"] = False
+    type = get_interface_datatype(**args)
+    assert type == "int"
 
     args["sdk_language"] = "Unknown"
 
@@ -348,8 +353,7 @@ def test_generate_function_interface():
         db_obj, obj, fields, class_name, "Python", db_object_crud_ops, obj_endpoint
     )
 
-
-    want = """class IMyServiceSakilaSumFuncResult(TypedDict, total=True):
+    want = """class IMyServiceSakilaSumFuncResult(TypedDict, total=False):
     b: int
     a: int
     """
@@ -359,21 +363,42 @@ def test_generate_function_interface():
 
 def test_generate_interfaces():
     class_name = "Foo"
-    db_obj = { "object_type": "TABLE" }
+    db_obj = {"object_type": "TABLE"}
     obj = {}
     fields = []
-    want = "type IFooCursors = never;\n\n"
-    db_object_crud_ops = ["CREATE", "READ", "UPDATE", "DELETE"]
+    db_object_crud_ops = ["READ"]
 
-    got, _ = generate_interfaces(db_obj, obj, fields, class_name, "TypeScript", db_object_crud_ops)
+    db_column = {
+        "datatype": "varchar(3)",
+        "not_null": True,
+        "id_generation": "auto_inc",
+    }
+    fields = [{"lev": 1, "enabled": True, "db_column": db_column, "name": "bar"}]
+
+    want = """export interface IFoo {
+    bar?: string,
+}
+
+export interface IFooCursors {
+    bar?: string,
+}
+
+"""
+
+    got, _ = generate_interfaces(
+        db_obj, obj, fields, class_name, "TypeScript", db_object_crud_ops
+    )
 
     assert got == want
 
-    db_column = { "datatype": "varchar(3)", "not_null": True, "id_generation": "auto_inc"}
-    fields = [{ "lev": 1, "enabled": True, "db_column": db_column, "name": "bar" }]
-    want = """export type IFooData = {
+    db_object_crud_ops = ["CREATE", "READ", "UPDATE", "DELETE"]
+    want = """export interface INewFoo {
     bar?: string,
-} & IMrsResourceData;
+}
+
+export interface IUpdateFoo {
+    bar: string,
+}
 
 export interface IFoo {
     bar?: string,
@@ -385,7 +410,9 @@ export interface IFooCursors {
 
 """
 
-    got, _ = generate_interfaces(db_obj, obj, fields, class_name, "TypeScript", db_object_crud_ops)
+    got, _ = generate_interfaces(
+        db_obj, obj, fields, class_name, "TypeScript", db_object_crud_ops
+    )
 
     assert got == want
 
@@ -399,23 +426,27 @@ export interface IFooCursors {
         create_snippet=create_snippet,
         update_snippet=update_snippet,
     )
-    delete_method = SDK_PYTHON_DATACLASS_TEMPLATE_DELETE.format(name=class_name) if obj_primary_key else ""
+    delete_method = (
+        SDK_PYTHON_DATACLASS_TEMPLATE_DELETE.format(name=class_name)
+        if obj_primary_key
+        else ""
+    )
     if save_method and delete_method:
-        delete_method = " "*4 + delete_method.lstrip()
+        delete_method = " " * 4 + delete_method.lstrip()
 
-    want = '''class I{name}Details(IMrsResourceDetails):
+    want = """class I{name}Details(IMrsResourceDetails):
     bar: str
 
 
-class I{name}Data(TypedDict):
-    bar: NotRequired[str]
+class I{name}Data(TypedDict, total=False):
+    bar: str
 
 
-class I{name}DataCreate(TypedDict):
-    bar: NotRequired[str]
+class INew{name}(TypedDict, total=False):
+    bar: str
 
 
-class I{name}DataUpdate(TypedDict):
+class IUpdate{name}(TypedDict):
     bar: str
 
 
@@ -442,18 +473,20 @@ class I{name}Cursors(TypedDict, total=False):
     bar: StringField
 
 
-'''.format(
-    name=class_name,
-    sdk_python_dataclass=SDK_PYTHON_DATACLASS_TEMPLATE.format(
+""".format(
         name=class_name,
-        join_field_block=join_field_block,
-        obj_endpoint=obj_endpoint,
-        join_assignment_block=join_assignment_block,
-        primary_key_name=(None if obj_primary_key is None else f'"{obj_primary_key}"'),
-        save_method=save_method,
-        delete_method=delete_method,
-    ).rstrip()
-)
+        sdk_python_dataclass=SDK_PYTHON_DATACLASS_TEMPLATE.format(
+            name=class_name,
+            join_field_block=join_field_block,
+            obj_endpoint=obj_endpoint,
+            join_assignment_block=join_assignment_block,
+            primary_key_name=(
+                None if obj_primary_key is None else f'"{obj_primary_key}"'
+            ),
+            save_method=save_method,
+            delete_method=delete_method,
+        ).rstrip(),
+    )
 
     got, _ = generate_interfaces(
         db_obj,
@@ -462,8 +495,8 @@ class I{name}Cursors(TypedDict, total=False):
         class_name,
         "Python",
         db_object_crud_ops,
-        obj_endpoint=obj_endpoint
-        )
+        obj_endpoint=obj_endpoint,
+    )
 
     assert got == want
 
@@ -492,23 +525,36 @@ def test_generate_field_enum():
 
 
 def test_generate_type_declaration_field():
-    type_declaration_field = generate_type_declaration_field("foo", "bar", "TypeScript")
+    type_declaration_field = generate_type_declaration_field(name="foo", value="bar", sdk_language="TypeScript")
+    assert type_declaration_field == "    foo: bar,\n"
+
+    type_declaration_field = generate_type_declaration_field(name="foo", value="bar", sdk_language="TypeScript", non_mandatory=True)
     assert type_declaration_field == "    foo?: bar,\n"
 
-    type_declaration_field = generate_type_declaration_field("foo", "bar", "Python")
+    type_declaration_field = generate_type_declaration_field(name="foo", value="bar", sdk_language="Python")
     assert type_declaration_field == "    foo: bar\n"
 
-    type_declaration_field = generate_type_declaration_field("foo", ["bar"], "TypeScript")
+    type_declaration_field = generate_type_declaration_field(name="foo", value="bar", sdk_language="Python", non_mandatory=True)
+    assert type_declaration_field == "    foo: NotRequired[bar]\n"
+
+    type_declaration_field = generate_type_declaration_field(name="foo", value=["bar"], sdk_language="TypeScript")
+    assert type_declaration_field == "    foo: bar[],\n"
+
+    type_declaration_field = generate_type_declaration_field(name="foo", value=["bar"], sdk_language="TypeScript", non_mandatory=True)
     assert type_declaration_field == "    foo?: bar[],\n"
 
-    type_declaration_field = generate_type_declaration_field("foo", ["bar"], "Python")
+    type_declaration_field = generate_type_declaration_field(name="foo", value=["bar"], sdk_language="Python")
     assert type_declaration_field == "    foo: list[bar]\n"
 
-    type_declaration_field = generate_type_declaration_field("fooBar", "baz", "Python")
+    type_declaration_field = generate_type_declaration_field(name="foo", value=["bar"], sdk_language="Python", non_mandatory=True)
+    assert type_declaration_field == "    foo: NotRequired[list[bar]]\n"
+
+    # test that the language convention is being applied
+    type_declaration_field = generate_type_declaration_field(name="fooBar", value="baz", sdk_language="Python")
     assert type_declaration_field == "    foo_bar: baz\n"
 
-    type_declaration_field = generate_type_declaration_field("fooBar", "baz", "Python", False)
-    assert type_declaration_field == "    fooBar: baz\n"
+    type_declaration_field = generate_type_declaration_field(name="fooBar", value="baz", sdk_language="Python", non_mandatory=True)
+    assert type_declaration_field == "    foo_bar: NotRequired[baz]\n"
 
 
 def test_generate_type_declaration_placeholder():
@@ -521,32 +567,133 @@ def test_generate_type_declaration_placeholder():
 
 def test_generate_type_declaration():
     type_declaration = generate_type_declaration("Foo")
-    assert type_declaration == "export interface IFoo {\n}\n\n"
+    assert type_declaration == ""
 
     type_declaration = generate_type_declaration("Foo", ["Bar", "Baz"])
-    assert type_declaration == "export interface IFoo extends Bar, Baz {\n}\n\n"
+    assert type_declaration == ""
 
-    type_declaration = generate_type_declaration("Foo", ["Bar", "Baz"], {"qux":"quux"})
-    assert type_declaration == ("export interface IFoo extends Bar, Baz {\n" +
-                                "    qux?: quux,\n" +
-                                "}\n\n")
+    type_declaration = generate_type_declaration("Foo", ["Bar", "Baz"], {"qux": "quux"})
+    assert type_declaration == (
+        """export type IFoo = {
+    qux: quux,
+} & Bar & Baz;
 
-    type_declaration = generate_type_declaration(name="Foo", parents=["Bar", "Baz"], sdk_language="Python")
-    assert type_declaration == ("IFoo: TypeAlias = None\n\n\n")
+"""
+    )
 
-    type_declaration = generate_type_declaration("Foo", ["Bar", "Baz"], {"qux":"quux"}, "Python")
-    assert type_declaration == ("class IFoo(TypedDict, Bar, Baz, total=False):\n" +
-                                "    qux: quux\n\n\n")
+    type_declaration = generate_type_declaration(
+        "Foo", ["Bar", "Baz"], {"qux": "quux"}, "Python"
+    )
+    assert type_declaration == (
+        """class IFoo(TypedDict, Bar, Baz):
+    qux: quux
+
+
+"""
+    )
+
+    type_declaration = generate_type_declaration(
+        name="Foo", fields={"bar": "baz", "qux": "quux"}, sdk_language="Python", non_mandatory_fields={"qux"}
+    )
+    assert type_declaration == (
+        """class IFoo(TypedDict):
+    bar: baz
+    qux: NotRequired[quux]
+
+
+"""
+    )
+
+    type_declaration = generate_type_declaration(
+        name="Foo",
+        parents=["Bar", "Baz"],
+        fields={"qux": "quux"},
+        ignore_base_types=True,
+        sdk_language="Python",
+    )
+    assert type_declaration == (
+        """class IFoo(Bar, Baz):
+    qux: quux
+
+
+"""
+    )
+
+    fields = {"qux": "quux"}
+    type_declaration = generate_type_declaration(
+        name="Foo", fields=fields, non_mandatory_fields=set(fields)
+    )
+    assert type_declaration == (
+        """export interface IFoo {
+    qux?: quux,
+}
+
+"""
+    )
+
+    type_declaration = generate_type_declaration(
+        name="Foo",
+        fields=fields,
+    )
+    assert type_declaration == (
+        """export interface IFoo {
+    qux: quux,
+}
+
+"""
+    )
+
+    type_declaration = generate_type_declaration(
+        name="Foo",
+        fields=fields,
+        non_mandatory_fields=set(fields),
+        sdk_language="Python",
+    )
+    assert type_declaration == (
+        """class IFoo(TypedDict, total=False):
+    qux: quux
+
+
+"""
+    )
+
+    fields.update({"corge": "grault"})
+    type_declaration = generate_type_declaration(
+        name="Foo",
+        fields=fields,
+        sdk_language="Python",
+    )
+    assert type_declaration == (
+        """class IFoo(TypedDict):
+    qux: quux
+    corge: grault
+
+
+"""
+    )
+
+    type_declaration = generate_type_declaration(
+        name="Foo", fields=fields, non_mandatory_fields={"qux"}, sdk_language="Python"
+    )
+    assert type_declaration == (
+        """class IFoo(TypedDict):
+    qux: NotRequired[quux]
+    corge: grault
+
+
+"""
+    )
 
 
 def test_generate_data_class():
 
     # TypeScript
+    fields = {"foo": "baz", "bar": "qux"}
     data_class = generate_data_class(
-        "Foobar", {"foo": "baz", "bar": "qux"}, "TypeScript", ["CREATE", "READ", "UPDATE", "DELETE"]
+        "Foobar", fields, "TypeScript", ["CREATE", "READ", "UPDATE", "DELETE"]
     )
     assert data_class == generate_type_declaration(
-        name="Foobar", fields={"foo": "baz", "bar": "qux"}, sdk_language="TypeScript"
+        name="Foobar", fields=fields, sdk_language="TypeScript", non_mandatory_fields=set(fields)
     )
 
     # Python
@@ -662,3 +809,31 @@ def test_generate_sequence_constant():
 
     constant = generate_sequence_constant("Foo", ["Bar", "Baz"], "Python")
     assert constant == 'Foo: Sequence = ["Bar", "Baz"]\n\n'
+
+
+def test_field_is_required():
+    obj = { "row_ownership_field_id": None }
+    field = { "id": 42, "lev": 1, "db_column": { "not_null": True, "id_generation": None, "column_default": None } }
+    is_required = field_is_required(field, obj)
+    assert is_required == True
+
+    field["db_column"]["not_null"] = False
+    is_required = field_is_required(field, obj)
+    assert is_required == False
+
+    field["db_column"]["not_null"] = True
+    field["db_column"]["id_generation"] = "auto_inc"
+    is_required = field_is_required(field, obj)
+    assert is_required == False
+
+    field["db_column"]["not_null"] = True
+    field["db_column"]["id_generation"] = None
+    field["db_column"]["column_default"] = "CURRENT_TIMESTAMP"
+    is_required = field_is_required(field, obj)
+    assert is_required == False
+
+    obj["row_ownership_field_id"] = 42
+    field["db_column"]["id_generation"] = None
+    field["db_column"]["column_default"] = None
+    is_required = field_is_required(field, obj)
+    assert is_required == False

@@ -1631,7 +1631,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     in: param.mode.includes("IN"),
                     out: param.mode.includes("OUT"),
                     datatype: param.datatype,
-                    notNull: true,
+                    // FUNCTION and PROCEDURE input parameters are nullable by nature
+                    notNull: false,
                     isGenerated: false,
                     isPrimary: false,
                     isUnique: false,

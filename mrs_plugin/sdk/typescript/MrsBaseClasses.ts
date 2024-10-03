@@ -31,14 +31,10 @@ export class NotFoundError extends Error {
     }
 }
 
-export interface IMrsFetchData {
-    [key: string]: unknown,
-}
-
-export interface IMrsFetchInput {
+export interface IFetchInput<T> {
     errorMsg?: string;
     method?: string;
-    body?: object | IMrsFetchData;
+    body?: T;
     input: string;
     timeout?: number;
 }
@@ -121,8 +117,8 @@ export class MrsBaseSession {
      *
      * @returns The response object
      */
-    public doFetch = async (input: string | IMrsFetchInput, errorMsg?: string,
-        method?: string, body?: object | IMrsFetchData | JsonObject, autoResponseCheck = true,
+    public doFetch = async <T>(input: string | IFetchInput<T>, errorMsg?: string,
+        method?: string, body?: T, autoResponseCheck = true,
         timeout?: number): Promise<Response> => {
         // Check if parameters are passed as named parameters and if so, assign them
         if (typeof input === "object" && input !== null) {
@@ -457,9 +453,9 @@ export type IMrsResourceCollectionData<C> = {
 /**
  * A single MRS resource object is represented by JSON object returned by the MySQL Router, which includes the
  * corresponding fields and values alongside additional hypermedia-related properties.
- * @see IMrsResourceData
+ * @see IMrsResourceDetails
  */
-export type MrsResourceObject<T> = T & IMrsResourceData;
+export type MrsResourceObject<T> = T & IMrsResourceDetails;
 
 /**
  * A resource object is always represented as JSON and can include specific hypermedia properties such as a potential
@@ -468,7 +464,7 @@ export type MrsResourceObject<T> = T & IMrsResourceData;
  * @see IMrsResourceMetadata
  * @see JsonObject
  */
-export type IMrsResourceData = {
+export type IMrsResourceDetails = {
     links: IMrsLink[];
     _metadata: IMrsResourceMetadata;
 } & JsonObject;
@@ -501,7 +497,7 @@ export interface IMrsProcedureResultColumns {
 
 export interface IMrsProcedureResult {
     type: string;
-    items: IMrsFetchData;
+    items: JsonObject;
     _metadata: IMrsProcedureResultColumn[];
 }
 
@@ -865,27 +861,8 @@ export type IDeleteOptions<Type, Options extends { many: boolean } = { many: tru
 // update*() API
 
 // To avoid unwarranted data loss, updating a record in the database always requires a filter that operates only
-// using the values of primary key columns. These need columns are identified by a list containing the corresponding
-// column names. Additionally, batch updates can be enabled using a specific option.
-// For single updates, each primary key should match a specific value. Each match is specified in a plain JavaScript
-// object.
-// For batch updates, each primary key can match more than one value. Those matches are specified in a list of one or
-// more plain JavaScript objects.
-export interface IUpdateOptions<Item, Filterable, PrimaryKeys extends Array<keyof Filterable>, Config={}>
-    extends ICreateOptions<Item> {
-    where: Config extends IBatchConfig ? Array<UpdateMatch<Filterable, PrimaryKeys>>
-        : UpdateMatch<Filterable, PrimaryKeys>;
-}
-
-// Specific options for batch updates.
-export interface IBatchConfig {
-    batch: true;
-}
-
-// Each matcher should only allow to specify values for the names of primary key columns.
-export type UpdateMatch<Type, PrimaryKeys extends Array<keyof Type>> = {
-    [ColumnName in keyof Pick<Type, PrimaryKeys[number]>]-?: Type[ColumnName]
-};
+// using the values of primary key or other unique columns.
+export type IUpdateOptions<Type> = ICreateOptions<Type>;
 
 export type MrsRequestFilter<Filterable> = {
     $orderby?: ColumnOrder<Filterable>, $asof?: string } & { [key: string]: unknown };
@@ -1165,7 +1142,7 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> {
      * page.
      *
      * @param progress An optional callback function that is called for each page that is fetched.
-     * @returns A list of typed IMrsResourceData
+     * @returns A list of typed IMrsResourceDetails
      */
     public fetchAll = async (progress?: (items: Item[]) => Promise<void>):
     Promise<IMrsResourceCollectionData<Item>> => {
@@ -1244,14 +1221,14 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> {
     };
 }
 
-export class MrsBaseObjectCreate<T extends object> {
+export class MrsBaseObjectCreate<Input, Output> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected options: ICreateOptions<T>) {
+        protected options: ICreateOptions<Input>) {
     }
 
-    public fetch = async (): Promise<MrsResourceObject<T>> => {
+    public fetch = async (): Promise<MrsResourceObject<Output>> => {
         const response = await this.schema.service.session.doFetch({
             input: `${this.schema.requestPath}${this.requestPath}`,
             method: "POST",
@@ -1259,7 +1236,7 @@ export class MrsBaseObjectCreate<T extends object> {
             errorMsg: "Failed to create item.",
         });
 
-        const responseBody: MrsResourceObject<T> = await response.json();
+        const responseBody: MrsResourceObject<Output> = await response.json();
         // eslint-disable-next-line no-underscore-dangle
         this.schema.service.session.gtid = responseBody._metadata.gtid;
 
@@ -1304,16 +1281,25 @@ export class MrsBaseObjectDelete<T> {
     };
 }
 
-export class MrsBaseObjectUpdate<Item extends object, Filterable, PrimaryKeys extends Array<keyof Filterable>> {
+export class MrsBaseObjectUpdate<Input, ResourceIdFieldNames extends string[], Output> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected options: IUpdateOptions<Item, Filterable, PrimaryKeys>) {
+        protected options: IUpdateOptions<Input>,
+        protected primaryKeys: ResourceIdFieldNames) {
     }
 
-    public fetch = async (): Promise<MrsResourceObject<Item>> => {
+    public fetch = async (): Promise<MrsResourceObject<Output>> => {
+        const resourceIdComponents: Array<Input[Extract<keyof Input, string>]> = [];
+
+        for (const x in this.options.data) {
+            if (this.primaryKeys.indexOf(x) > -1) {
+                resourceIdComponents.push(this.options.data[x]);
+            }
+        }
+
         const response = await this.schema.service.session.doFetch({
-            input: `${this.schema.requestPath}${this.requestPath}/${Object.values(this.options.where).join(",")}`,
+            input: `${this.schema.requestPath}${this.requestPath}/${resourceIdComponents.join(",")}`,
             method: "PUT",
             body: this.options.data,
             errorMsg: "Failed to update item.",
@@ -1321,7 +1307,7 @@ export class MrsBaseObjectUpdate<Item extends object, Filterable, PrimaryKeys ex
 
         // The REST service returns a single resource, which is an ORDS-compatible object representation decorated with
         // additional fields such as "links" and "_metadata".
-        const responseBody = await response.json() as MrsResourceObject<Item>;
+        const responseBody = await response.json() as MrsResourceObject<Output>;
         // eslint-disable-next-line no-underscore-dangle
         this.schema.service.session.gtid = responseBody._metadata.gtid;
 
@@ -1331,14 +1317,14 @@ export class MrsBaseObjectUpdate<Item extends object, Filterable, PrimaryKeys ex
     };
 }
 
-class MrsBaseObjectCall<I, P extends IMrsFetchData> {
+class MrsBaseObjectCall<Input, Output> {
     protected constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected params: P) {
+        protected params: Input) {
     }
 
-    protected async fetch(): Promise<I> {
+    protected async fetch(): Promise<Output> {
         const input = `${this.schema.requestPath}${this.requestPath}`;
 
         const res = await this.schema.service.session.doFetch({
@@ -1348,36 +1334,36 @@ class MrsBaseObjectCall<I, P extends IMrsFetchData> {
             errorMsg: "Failed to call item.",
         });
 
-        return await res.json() as I;
+        return await res.json() as Output;
     }
 }
 
-export class MrsBaseObjectProcedureCall<I, P extends IMrsFetchData>
-    extends MrsBaseObjectCall<IMrsProcedureResultList<I>, P> {
+export class MrsBaseObjectProcedureCall<Input, Output>
+    extends MrsBaseObjectCall<Input, IMrsProcedureResultList<Output>> {
     public constructor(
         protected override schema: MrsBaseSchema,
         protected override requestPath: string,
-        protected override params: P) {
+        protected override params: Input) {
         super(schema, requestPath, params);
     }
 
-    public override async fetch(): Promise<IMrsProcedureResultList<I>> {
+    public override async fetch(): Promise<IMrsProcedureResultList<Output>> {
         const res = await super.fetch();
 
         return res;
     }
 }
 
-export class MrsBaseObjectFunctionCall<I, P extends IMrsFetchData> extends MrsBaseObjectCall<I, P> {
+export class MrsBaseObjectFunctionCall<Input, Output> extends MrsBaseObjectCall<Input, Output> {
     public constructor(
         protected override schema: MrsBaseSchema,
         protected override requestPath: string,
-        protected override params: P) {
+        protected override params: Input) {
         super(schema, requestPath, params);
     }
 
-    public override async fetch(): Promise<I> {
-        const res = await super.fetch() as IMrsFunctionResult<I>;
+    public override async fetch(): Promise<Output> {
+        const res = await super.fetch() as IMrsFunctionResult<Output>;
 
         return res.result;
     }
