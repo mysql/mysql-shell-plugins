@@ -2,11 +2,10 @@
 
 /* eslint-disable max-len */
 /* eslint-disable max-classes-per-file */
+/* eslint-disable no-multiple-empty-lines */
 
 // --- importLoopStart
 import {
-    IMrsFetchData,
-    IMrsResourceData,
     MrsBaseService,
     MrsBaseSchema,
     // --- importRequiredDatatypesOnlyStart
@@ -71,17 +70,19 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     static readonly #schemaRequestPath = "${schema_request_path}";
     static readonly #requestPath = "${obj_request_path}";
 
+    // --- crudReadOnlyStart
     #hasMore = true;
+    // --- crudReadOnlyEnd
 
     // --- crudCreateOnlyStart
-    public create = async (args: ICreateOptions<I${obj_class_name}>): Promise<I${obj_class_name}> => {
-        const request = new MrsBaseObjectCreate<I${obj_class_name}>(this.schema, ${obj_class_name}Request.#requestPath, args);
+    public create = async (args: ICreateOptions<INew${obj_class_name}>): Promise<I${obj_class_name}> => {
+        const request = new MrsBaseObjectCreate<INew${obj_class_name}, I${obj_class_name}>(this.schema, ${obj_class_name}Request.#requestPath, args);
         const response = await request.fetch();
 
         return response;
     };
 
-    public createMany = async (args: ICreateOptions<I${obj_class_name}[]>): Promise<I${obj_class_name}[]> => {
+    public createMany = async (args: ICreateOptions<INew${obj_class_name}[]>): Promise<I${obj_class_name}[]> => {
         const result: I${obj_class_name}[] = [];
 
         for (const item of args.data) {
@@ -93,17 +94,18 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return result;
     };
     // --- crudCreateOnlyEnd
+
     // --- crudReadOnlyStart
-    public findAll = async (args?: IFindAllOptions<I${obj_class_name}, I${obj_class_name}Params, I${obj_class_name}Cursors>): Promise<I${obj_class_name}[]> => {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
+    public findAll = async (args?: IFindAllOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name}[]> => {
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable>(
             this.schema, ${obj_class_name}Request.#requestPath, { ...args, take: 25 });
         const response = await request.fetchAll(args?.progress);
 
         return response.items;
     };
 
-    public findMany = async ({ iterator = true, ...args }: IFindManyOptions<I${obj_class_name}, I${obj_class_name}Params, I${obj_class_name}Cursors>): Promise<I${obj_class_name}[]> => {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params, I${obj_class_name}Cursors>(
+    public findMany = async ({ iterator = true, ...args }: IFindManyOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name}[]> => {
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>(
             this.schema, ${obj_class_name}Request.#requestPath, args);
 
         if (!this.#hasMore && iterator) {
@@ -121,8 +123,8 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return response.items;
     };
 
-    public findFirst = async (args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Params, I${obj_class_name}Cursors>): Promise<I${obj_class_name} | undefined> => {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Params>(
+    public findFirst = async (args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name} | undefined> => {
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable>(
             this.schema, ${obj_class_name}Request.#requestPath, { ...args, take: 1 });
         const response = await request.fetchOne();
 
@@ -131,15 +133,15 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     // --- crudReadOnlyEnd
 
     // --- crudReadUniqueOnlyStart
-    public findUnique = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueParams>): Promise<I${obj_class_name} | undefined> => {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}UniqueParams>(
+    public findUnique = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueFilterable>): Promise<I${obj_class_name} | undefined> => {
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}UniqueFilterable>(
             this.schema, ${obj_class_name}Request.#requestPath, { ...args, take: 1 });
         const response = await request.fetchOne();
 
         return response;
     };
 
-    public findUniqueOrThrow = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueParams>): Promise<I${obj_class_name}> => {
+    public findUniqueOrThrow = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueFilterable>): Promise<I${obj_class_name}> => {
         const response = await this.findUnique(args);
 
         if (response === undefined) {
@@ -151,19 +153,19 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     // --- crudReadUniqueOnlyEnd
 
     // --- crudUpdateOnlyStart
-    public update = async (args: IUpdateOptions<I${obj_class_name}, I${obj_class_name}Params, [${obj_quoted_pk_list}], { batch: false }>): Promise<I${obj_class_name}> => {
-        const request = new MrsBaseObjectUpdate<I${obj_class_name}, I${obj_class_name}Params, [${obj_quoted_pk_list}]>(
-            this.schema, ${obj_class_name}Request.#requestPath, args);
+    public update = async (args: IUpdateOptions<IUpdate${obj_class_name}>): Promise<I${obj_class_name}> => {
+        const request = new MrsBaseObjectUpdate<IUpdate${obj_class_name}, [${obj_quoted_pk_list}], I${obj_class_name}>(
+            this.schema, ${obj_class_name}Request.#requestPath, args, [${obj_quoted_pk_list}]);
         const response = await request.fetch();
 
         return response;
     };
 
-    public updateMany = async (args: IUpdateOptions<I${obj_class_name}[], I${obj_class_name}Params, [${obj_quoted_pk_list}], { batch: true }>): Promise<I${obj_class_name}[]> => {
+    public updateMany = async (args: IUpdateOptions<IUpdate${obj_class_name}[]>): Promise<I${obj_class_name}[]> => {
         const result: I${obj_class_name}[] = [];
 
-        for (let i = 0; i < args.where.length; ++i) {
-            const response = await this.update({ where: args.where[i], data: args.data[i] });
+        for (const item of args.data) {
+            const response = await this.update({ data: item });
 
             result.push(response);
         }
@@ -171,9 +173,25 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
         return result;
     };
     // --- crudUpdateOnlyEnd
+
+    // --- crudDeleteUniqueOnlyStart
+    public delete = async (args: IDeleteOptions<I${obj_class_name}UniqueFilterable, { many: false }>): Promise<IMrsDeleteResult> => {
+        return this.deleteMany(args as IDeleteOptions<I${obj_class_name}Filterable>);
+    };
+    // --- crudDeleteUniqueOnlyEnd
+
+    // --- crudDeleteOnlyStart
+    public deleteMany = async (args: IDeleteOptions<I${obj_class_name}Filterable>): Promise<IMrsDeleteResult> => {
+        const request = new MrsBaseObjectDelete<I${obj_class_name}Filterable>(this.schema, ${obj_class_name}Request.#requestPath, args);
+        const response = await request.fetch();
+
+        return response;
+    };
+    // --- crudDeleteOnlyEnd
+
     // --- crudUpdateProcedureOnlyStart
     public call = async (${obj_name}Params: I${obj_param_interface}): Promise<IMrsProcedureResultList<${obj_meta_interface}>> => {
-        const request = new MrsBaseObjectProcedureCall<${obj_meta_interface}, I${obj_param_interface}>(
+        const request = new MrsBaseObjectProcedureCall<I${obj_param_interface}, ${obj_meta_interface}>(
             this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}Params);
         const response = await request.fetch();
 
@@ -182,28 +200,13 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     // --- crudUpdateProcedureOnlyEnd
     // --- crudReadFunctionOnlyStart
     public call = async (${obj_name}Params: I${obj_param_interface}): Promise<${obj_function_result_datatype}> => {
-        const request = new MrsBaseObjectFunctionCall<${obj_function_result_datatype}, I${obj_param_interface}>(
+        const request = new MrsBaseObjectFunctionCall<I${obj_param_interface}, ${obj_function_result_datatype}>(
             this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}Params);
         const response = await request.fetch();
 
         return response;
     };
     // --- crudReadFunctionOnlyEnd
-
-    // --- crudDeleteUniqueOnlyStart
-    public delete = async (args: IDeleteOptions<I${obj_class_name}UniqueParams, { many: false }>): Promise<IMrsDeleteResult> => {
-        return this.deleteMany(args as IDeleteOptions<I${obj_class_name}Params>);
-    };
-    // --- crudDeleteUniqueOnlyEnd
-
-    // --- crudDeleteOnlyStart
-    public deleteMany = async (args: IDeleteOptions<I${obj_class_name}Params>): Promise<IMrsDeleteResult> => {
-        const request = new MrsBaseObjectDelete<I${obj_class_name}Params>(this.schema, ${obj_class_name}Request.#requestPath, args);
-        const response = await request.fetch();
-
-        return response;
-    };
-    // --- crudDeleteOnlyEnd
 
 // --- MySQL Shell for VS Code Extension Only --- Begin
     public edit = (): void => {

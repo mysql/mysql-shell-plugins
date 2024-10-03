@@ -1,20 +1,23 @@
 {
     "type": "mrsSchema",
     "version": {
-        "major": 2,
+        "major": 3,
         "minor": 0,
-        "patch": 2
+        "patch": 1
     },
     "schema": {
         "id": "0x11ee19d0bd9c0e2cb2b3300999e6b4d2",
-        "service_id": "0x11ee016bd1a17fa6809e6e50456a4620",
+        "service_id": "0x11ef870db4a2963c974a8e9c66299d96",
         "name": "mrs_notes",
+        "schema_type": "DATABASE_SCHEMA",
         "request_path": "/mrsNotes",
         "requires_auth": 0,
         "enabled": 1,
+        "internal": 0,
         "items_per_page": 25,
         "comments": "",
         "options": null,
+        "metadata": null,
         "objects": [
             {
                 "id": "0x11ee19d0c30aff12b2b3300999e6b4d2",
@@ -22,6 +25,7 @@
                 "name": "note",
                 "request_path": "/note",
                 "enabled": 1,
+                "internal": 0,
                 "object_type": "TABLE",
                 "crud_operations": [
                     "CREATE",
@@ -35,11 +39,10 @@
                 "auto_detect_media_type": 0,
                 "requires_auth": 1,
                 "auth_stored_procedure": "",
-                "row_user_ownership_enforced": 1,
-                "row_user_ownership_column": "user_id",
                 "options": null,
                 "details": null,
                 "comments": "",
+                "metadata": null,
                 "objects": [
                     {
                         "id": "0xd1a7141ea72f40e1c59ee1a705617d44",
@@ -47,6 +50,12 @@
                         "name": "MyServiceMrsNotesNote",
                         "kind": "RESULT",
                         "position": 0,
+                        "row_ownership_field_id": "0x895fe49e73dd4fbcf9a6f3c5f80b3295",
+                        "options": {
+                            "duality_view_delete": true,
+                            "duality_view_insert": true,
+                            "duality_view_update": true
+                        },
                         "fields": [
                             {
                                 "position": 1001,
@@ -60,9 +69,10 @@
                                 "allow_sorting": false,
                                 "no_check": false,
                                 "no_update": false,
+                                "options": null,
                                 "object_reference": {
                                     "unnest": false,
-                                    "crud_operations": "READ",
+                                    "options": null,
                                     "reference_mapping": {
                                         "kind": "1:n",
                                         "to_many": true,
@@ -76,6 +86,7 @@
                                         "referenced_table": "user_has_note",
                                         "referenced_schema": "mrs_notes"
                                     },
+                                    "row_ownership_field_id": null,
                                     "id": "0xf0a85894e6264d6acd4e1e45e9374ef7"
                                 }
                             },
@@ -86,19 +97,22 @@
                                 "name": "title",
                                 "db_column": {
                                     "name": "title",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "varchar(255)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 1,
@@ -107,19 +121,22 @@
                                 "name": "id",
                                 "db_column": {
                                     "name": "id",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "int unsigned",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": true,
                                     "is_generated": false,
-                                    "id_generation": "auto_inc"
+                                    "id_generation": "auto_inc",
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": true,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 5,
@@ -128,19 +145,22 @@
                                 "name": "lastUpdate",
                                 "db_column": {
                                     "name": "last_update",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "datetime",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "CURRENT_TIMESTAMP"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 102,
@@ -154,9 +174,10 @@
                                 "allow_sorting": false,
                                 "no_check": false,
                                 "no_update": false,
+                                "options": null,
                                 "object_reference": {
                                     "unnest": false,
-                                    "crud_operations": "READ",
+                                    "options": null,
                                     "reference_mapping": {
                                         "kind": "n:1",
                                         "to_many": false,
@@ -170,6 +191,7 @@
                                         "referenced_table": "user",
                                         "referenced_schema": "mrs_notes"
                                     },
+                                    "row_ownership_field_id": null,
                                     "id": "0xd78f8c1c4fcc48f997567449904deba1"
                                 }
                             },
@@ -180,19 +202,22 @@
                                 "name": "pinned",
                                 "db_column": {
                                     "name": "pinned",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "bit(1)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "b'0'"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 2,
@@ -201,19 +226,22 @@
                                 "name": "userId",
                                 "db_column": {
                                     "name": "user_id",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "binary(16)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 8,
@@ -222,19 +250,22 @@
                                 "name": "shared",
                                 "db_column": {
                                     "name": "shared",
+                                    "srid": null,
                                     "comment": "The shared column is automatically updated by AFTER INSERT / DELETE triggers on user_has_note.",
                                     "datatype": "bit(1)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "b'0'"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 10,
@@ -243,19 +274,22 @@
                                 "name": "tags",
                                 "db_column": {
                                     "name": "tags",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "json",
                                     "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 4,
@@ -264,19 +298,22 @@
                                 "name": "createDate",
                                 "db_column": {
                                     "name": "create_date",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "datetime",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "CURRENT_TIMESTAMP"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 7,
@@ -285,19 +322,22 @@
                                 "name": "lockedDown",
                                 "db_column": {
                                     "name": "locked_down",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "bit(1)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "b'0'"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 9,
@@ -306,19 +346,22 @@
                                 "name": "content",
                                 "db_column": {
                                     "name": "content",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "varchar(2000)",
                                     "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             }
                         ]
                     }
@@ -330,6 +373,7 @@
                 "name": "user",
                 "request_path": "/user",
                 "enabled": 1,
+                "internal": 0,
                 "object_type": "TABLE",
                 "crud_operations": [
                     "CREATE",
@@ -343,11 +387,10 @@
                 "auto_detect_media_type": 0,
                 "requires_auth": 1,
                 "auth_stored_procedure": "",
-                "row_user_ownership_enforced": 1,
-                "row_user_ownership_column": "id",
                 "options": null,
                 "details": null,
                 "comments": "",
+                "metadata": null,
                 "objects": [
                     {
                         "id": "0x32c360d2f4ee40e2a0c707efea4da9c5",
@@ -355,6 +398,12 @@
                         "name": "MyServiceMrsNotesUser",
                         "kind": "RESULT",
                         "position": 0,
+                        "row_ownership_field_id": "0x74e68c5364b34bc0c84e68121e6df635",
+                        "options": {
+                            "duality_view_delete": true,
+                            "duality_view_insert": true,
+                            "duality_view_update": true
+                        },
                         "fields": [
                             {
                                 "position": 1,
@@ -363,19 +412,22 @@
                                 "name": "id",
                                 "db_column": {
                                     "name": "id",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "binary(16)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": true,
                                     "is_generated": false,
-                                    "id_generation": "rev_uuid"
+                                    "id_generation": "rev_uuid",
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": true,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 1002,
@@ -389,9 +441,10 @@
                                 "allow_sorting": false,
                                 "no_check": false,
                                 "no_update": false,
+                                "options": null,
                                 "object_reference": {
                                     "unnest": false,
-                                    "crud_operations": "READ",
+                                    "options": null,
                                     "reference_mapping": {
                                         "kind": "1:n",
                                         "to_many": true,
@@ -405,6 +458,7 @@
                                         "referenced_table": "note",
                                         "referenced_schema": "mrs_notes"
                                     },
+                                    "row_ownership_field_id": null,
                                     "id": "0x117ba6f9459341aea9484342ab902b24"
                                 }
                             },
@@ -415,19 +469,22 @@
                                 "name": "email",
                                 "db_column": {
                                     "name": "email",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "varchar(255)",
                                     "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 2,
@@ -436,19 +493,22 @@
                                 "name": "nickname",
                                 "db_column": {
                                     "name": "nickname",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "varchar(255)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 1002,
@@ -462,9 +522,10 @@
                                 "allow_sorting": false,
                                 "no_check": false,
                                 "no_update": false,
+                                "options": null,
                                 "object_reference": {
                                     "unnest": false,
-                                    "crud_operations": "READ",
+                                    "options": null,
                                     "reference_mapping": {
                                         "kind": "1:n",
                                         "to_many": true,
@@ -478,6 +539,7 @@
                                         "referenced_table": "user_has_note",
                                         "referenced_schema": "mrs_notes"
                                     },
+                                    "row_ownership_field_id": null,
                                     "id": "0x309471b34ecf4925b80675749f0d006c"
                                 }
                             }
@@ -491,6 +553,7 @@
                 "name": "user_has_note",
                 "request_path": "/userHasNote",
                 "enabled": 1,
+                "internal": 0,
                 "object_type": "TABLE",
                 "crud_operations": [
                     "READ"
@@ -501,11 +564,10 @@
                 "auto_detect_media_type": 0,
                 "requires_auth": 1,
                 "auth_stored_procedure": "",
-                "row_user_ownership_enforced": 1,
-                "row_user_ownership_column": "user_id",
                 "options": null,
                 "details": null,
                 "comments": "",
+                "metadata": null,
                 "objects": [
                     {
                         "id": "0x1d8e681bfdd04a32d3b466efd7d86833",
@@ -513,6 +575,8 @@
                         "name": "MyServiceMrsNotesUserHasNote",
                         "kind": "RESULT",
                         "position": 0,
+                        "row_ownership_field_id": "0x2f4bad79138d42dc8fff94c66343c015",
+                        "options": {},
                         "fields": [
                             {
                                 "position": 4,
@@ -521,19 +585,22 @@
                                 "name": "canShare",
                                 "db_column": {
                                     "name": "can_share",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "bit(1)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "b'0'"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 3,
@@ -542,19 +609,22 @@
                                 "name": "viewOnly",
                                 "db_column": {
                                     "name": "view_only",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "bit(1)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "b'0'"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 5,
@@ -563,19 +633,22 @@
                                 "name": "invitationKey",
                                 "db_column": {
                                     "name": "invitation_key",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "char(64)",
                                     "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 2,
@@ -584,19 +657,22 @@
                                 "name": "userId",
                                 "db_column": {
                                     "name": "user_id",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "binary(16)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": true,
                                     "is_generated": false,
-                                    "id_generation": "rev_uuid"
+                                    "id_generation": "rev_uuid",
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": true,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 102,
@@ -610,9 +686,10 @@
                                 "allow_sorting": false,
                                 "no_check": false,
                                 "no_update": false,
+                                "options": null,
                                 "object_reference": {
                                     "unnest": false,
-                                    "crud_operations": "READ",
+                                    "options": null,
                                     "reference_mapping": {
                                         "kind": "n:1",
                                         "to_many": false,
@@ -626,6 +703,7 @@
                                         "referenced_table": "user",
                                         "referenced_schema": "mrs_notes"
                                     },
+                                    "row_ownership_field_id": null,
                                     "id": "0x0e3293ea653d4bbaec70fb50ee13ddd2"
                                 }
                             },
@@ -636,19 +714,22 @@
                                 "name": "invitationAccepted",
                                 "db_column": {
                                     "name": "invitation_accepted",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "bit(1)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "b'0'"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 1,
@@ -657,19 +738,22 @@
                                 "name": "noteId",
                                 "db_column": {
                                     "name": "note_id",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "int unsigned",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": true,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": true,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 101,
@@ -683,9 +767,10 @@
                                 "allow_sorting": false,
                                 "no_check": false,
                                 "no_update": false,
+                                "options": null,
                                 "object_reference": {
                                     "unnest": false,
-                                    "crud_operations": "READ",
+                                    "options": null,
                                     "reference_mapping": {
                                         "kind": "n:1",
                                         "to_many": false,
@@ -699,6 +784,7 @@
                                         "referenced_table": "note",
                                         "referenced_schema": "mrs_notes"
                                     },
+                                    "row_ownership_field_id": null,
                                     "id": "0xea3dd8b832544251917be21528c62b0c"
                                 }
                             }
@@ -712,6 +798,7 @@
                 "name": "notes_all",
                 "request_path": "/notesAll",
                 "enabled": 1,
+                "internal": 0,
                 "object_type": "VIEW",
                 "crud_operations": [
                     "READ"
@@ -722,11 +809,10 @@
                 "auto_detect_media_type": 0,
                 "requires_auth": 1,
                 "auth_stored_procedure": "",
-                "row_user_ownership_enforced": 1,
-                "row_user_ownership_column": "user_id",
                 "options": null,
                 "details": null,
                 "comments": "",
+                "metadata": null,
                 "objects": [
                     {
                         "id": "0x935342161c33451adfe1f21eac7d6784",
@@ -734,6 +820,8 @@
                         "name": "MyServiceMrsNotesNotesAll",
                         "kind": "RESULT",
                         "position": 0,
+                        "row_ownership_field_id": "0xd9705faef8844defadd2e2e7983127a4",
+                        "options": {},
                         "fields": [
                             {
                                 "position": 4,
@@ -742,19 +830,22 @@
                                 "name": "lastUpdate",
                                 "db_column": {
                                     "name": "last_update",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "datetime",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "CURRENT_TIMESTAMP"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 3,
@@ -763,19 +854,22 @@
                                 "name": "createDate",
                                 "db_column": {
                                     "name": "create_date",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "datetime",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "CURRENT_TIMESTAMP"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 8,
@@ -784,19 +878,22 @@
                                 "name": "content",
                                 "db_column": {
                                     "name": "content",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "varchar(2000)",
                                     "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 13,
@@ -805,19 +902,22 @@
                                 "name": "contentBeginning",
                                 "db_column": {
                                     "name": "content_beginning",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "mediumtext",
                                     "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 12,
@@ -826,19 +926,22 @@
                                 "name": "ownNote",
                                 "db_column": {
                                     "name": "own_note",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "int",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "0"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 11,
@@ -847,19 +950,22 @@
                                 "name": "viewOnly",
                                 "db_column": {
                                     "name": "view_only",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "bit(1)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "b'0'"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 6,
@@ -868,19 +974,22 @@
                                 "name": "lockedDown",
                                 "db_column": {
                                     "name": "locked_down",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "bit(1)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "b'0'"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 1,
@@ -889,19 +998,22 @@
                                 "name": "id",
                                 "db_column": {
                                     "name": "id",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "int unsigned",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "0"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 5,
@@ -910,19 +1022,22 @@
                                 "name": "pinned",
                                 "db_column": {
                                     "name": "pinned",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "bit(1)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "b'0'"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 2,
@@ -931,19 +1046,22 @@
                                 "name": "title",
                                 "db_column": {
                                     "name": "title",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "varchar(255)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 9,
@@ -952,19 +1070,22 @@
                                 "name": "tags",
                                 "db_column": {
                                     "name": "tags",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "json",
                                     "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 7,
@@ -973,19 +1094,22 @@
                                 "name": "shared",
                                 "db_column": {
                                     "name": "shared",
+                                    "srid": null,
                                     "comment": "The shared column is automatically updated by AFTER INSERT / DELETE triggers on user_has_note.",
                                     "datatype": "bit(1)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": "b'0'"
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 10,
@@ -994,19 +1118,22 @@
                                 "name": "userId",
                                 "db_column": {
                                     "name": "user_id",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "binary(16)",
                                     "not_null": true,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             }
                         ]
                     }
@@ -1018,6 +1145,7 @@
                 "name": "notes_served",
                 "request_path": "/notesServed",
                 "enabled": 1,
+                "internal": 0,
                 "object_type": "VIEW",
                 "crud_operations": [
                     "READ"
@@ -1028,11 +1156,10 @@
                 "auto_detect_media_type": 0,
                 "requires_auth": 0,
                 "auth_stored_procedure": "",
-                "row_user_ownership_enforced": 0,
-                "row_user_ownership_column": null,
                 "options": null,
                 "details": null,
                 "comments": "",
+                "metadata": null,
                 "objects": [
                     {
                         "id": "0x53a44f5fecc24249c6dea09b2f1918b6",
@@ -1040,6 +1167,8 @@
                         "name": "MyServiceMrsNotesNotesServed",
                         "kind": "RESULT",
                         "position": 0,
+                        "row_ownership_field_id": null,
+                        "options": {},
                         "fields": [
                             {
                                 "position": 1,
@@ -1048,19 +1177,22 @@
                                 "name": "notesServed",
                                 "db_column": {
                                     "name": "notes_served",
+                                    "srid": null,
                                     "comment": "",
                                     "datatype": "int unsigned",
                                     "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false,
-                                    "id_generation": null
+                                    "id_generation": null,
+                                    "column_default": null
                                 },
                                 "enabled": true,
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             }
                         ]
                     }
@@ -1072,6 +1204,7 @@
                 "name": "note_accept_share",
                 "request_path": "/noteAcceptShare",
                 "enabled": 1,
+                "internal": 0,
                 "object_type": "PROCEDURE",
                 "crud_operations": [
                     "UPDATE"
@@ -1082,11 +1215,10 @@
                 "auto_detect_media_type": 0,
                 "requires_auth": 1,
                 "auth_stored_procedure": "",
-                "row_user_ownership_enforced": 1,
-                "row_user_ownership_column": "user_id",
                 "options": null,
                 "details": null,
                 "comments": "",
+                "metadata": null,
                 "objects": [
                     {
                         "id": "0x408bf076a45143828b78c09663a2182e",
@@ -1094,6 +1226,8 @@
                         "name": "MyServiceMrsNotesNoteAcceptShareParams",
                         "kind": "PARAMETERS",
                         "position": 0,
+                        "row_ownership_field_id": "0x1423182386034473a4ec037a69bf7439",
+                        "options": null,
                         "fields": [
                             {
                                 "position": 1,
@@ -1105,7 +1239,7 @@
                                     "out": false,
                                     "name": "user_id",
                                     "datatype": "binary(16)",
-                                    "not_null": true,
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1114,7 +1248,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 2,
@@ -1126,7 +1261,7 @@
                                     "out": false,
                                     "name": "invitation_key",
                                     "datatype": "char(64)",
-                                    "not_null": true,
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1135,7 +1270,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             }
                         ]
                     }
@@ -1147,6 +1283,7 @@
                 "name": "note_delete",
                 "request_path": "/noteDelete",
                 "enabled": 1,
+                "internal": 0,
                 "object_type": "PROCEDURE",
                 "crud_operations": [
                     "UPDATE"
@@ -1157,11 +1294,10 @@
                 "auto_detect_media_type": 0,
                 "requires_auth": 1,
                 "auth_stored_procedure": "",
-                "row_user_ownership_enforced": 1,
-                "row_user_ownership_column": "user_id",
                 "options": null,
                 "details": null,
                 "comments": "",
+                "metadata": null,
                 "objects": [
                     {
                         "id": "0x910d98167fa640de816092292d749de8",
@@ -1169,6 +1305,8 @@
                         "name": "MyServiceMrsNotesNoteDeleteParams",
                         "kind": "PARAMETERS",
                         "position": 0,
+                        "row_ownership_field_id": "0x21b2a06305794bb5b761ce7c6f84c9bf",
+                        "options": null,
                         "fields": [
                             {
                                 "position": 2,
@@ -1180,7 +1318,7 @@
                                     "out": false,
                                     "name": "user_id",
                                     "datatype": "binary(16)",
-                                    "not_null": true,
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1189,7 +1327,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 1,
@@ -1201,7 +1340,7 @@
                                     "out": false,
                                     "name": "note_id",
                                     "datatype": "int",
-                                    "not_null": true,
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1210,7 +1349,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             }
                         ]
                     }
@@ -1222,6 +1362,7 @@
                 "name": "note_share",
                 "request_path": "/noteShare",
                 "enabled": 1,
+                "internal": 0,
                 "object_type": "PROCEDURE",
                 "crud_operations": [
                     "UPDATE"
@@ -1232,11 +1373,10 @@
                 "auto_detect_media_type": 0,
                 "requires_auth": 1,
                 "auth_stored_procedure": "",
-                "row_user_ownership_enforced": 1,
-                "row_user_ownership_column": "user_id",
                 "options": null,
                 "details": null,
                 "comments": "",
+                "metadata": null,
                 "objects": [
                     {
                         "id": "0x6d9eb30de2d34082859ca7948f4d7491",
@@ -1244,6 +1384,8 @@
                         "name": "MyServiceMrsNotesNoteShare",
                         "kind": "RESULT",
                         "position": 1,
+                        "row_ownership_field_id": null,
+                        "options": null,
                         "fields": [
                             {
                                 "position": 2,
@@ -1262,7 +1404,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             }
                         ]
                     },
@@ -1272,6 +1415,8 @@
                         "name": "MyServiceMrsNotesNoteShareParams",
                         "kind": "PARAMETERS",
                         "position": 0,
+                        "row_ownership_field_id": "0x7093293234154dedb91f0073be7b4f65",
+                        "options": null,
                         "fields": [
                             {
                                 "position": 4,
@@ -1282,8 +1427,8 @@
                                     "in": true,
                                     "out": false,
                                     "name": "view_only",
-                                    "datatype": "bit(1)",
-                                    "not_null": true,
+                                    "datatype": "tinyint(1)",
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1292,7 +1437,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 1,
@@ -1304,7 +1450,7 @@
                                     "out": false,
                                     "name": "user_id",
                                     "datatype": "binary(16)",
-                                    "not_null": true,
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1313,7 +1459,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 3,
@@ -1325,7 +1472,7 @@
                                     "out": false,
                                     "name": "email",
                                     "datatype": "varchar(255)",
-                                    "not_null": true,
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1334,7 +1481,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 2,
@@ -1346,7 +1494,7 @@
                                     "out": false,
                                     "name": "note_id",
                                     "datatype": "int",
-                                    "not_null": true,
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1355,7 +1503,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 5,
@@ -1366,8 +1515,8 @@
                                     "in": true,
                                     "out": false,
                                     "name": "can_share",
-                                    "datatype": "bit(1)",
-                                    "not_null": true,
+                                    "datatype": "tinyint(1)",
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1376,7 +1525,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             }
                         ]
                     }
@@ -1388,6 +1538,7 @@
                 "name": "note_update",
                 "request_path": "/noteUpdate",
                 "enabled": 1,
+                "internal": 0,
                 "object_type": "PROCEDURE",
                 "crud_operations": [
                     "UPDATE"
@@ -1398,11 +1549,10 @@
                 "auto_detect_media_type": 0,
                 "requires_auth": 1,
                 "auth_stored_procedure": "",
-                "row_user_ownership_enforced": 1,
-                "row_user_ownership_column": "user_id",
                 "options": null,
                 "details": null,
                 "comments": "",
+                "metadata": null,
                 "objects": [
                     {
                         "id": "0xc070482abf33485bc066b9452176020f",
@@ -1410,6 +1560,8 @@
                         "name": "MyServiceMrsNotesNoteUpdateParams",
                         "kind": "PARAMETERS",
                         "position": 0,
+                        "row_ownership_field_id": "0xf193ceb517b043c0d04d50d97950c808",
+                        "options": null,
                         "fields": [
                             {
                                 "position": 7,
@@ -1421,7 +1573,7 @@
                                     "out": false,
                                     "name": "tags",
                                     "datatype": "json",
-                                    "not_null": true,
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1430,7 +1582,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 5,
@@ -1441,8 +1594,8 @@
                                     "in": true,
                                     "out": false,
                                     "name": "locked_down",
-                                    "datatype": "bit(1)",
-                                    "not_null": true,
+                                    "datatype": "tinyint(1)",
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1451,7 +1604,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 1,
@@ -1463,7 +1617,7 @@
                                     "out": false,
                                     "name": "note_id",
                                     "datatype": "int",
-                                    "not_null": true,
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1472,7 +1626,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 3,
@@ -1484,7 +1639,7 @@
                                     "out": false,
                                     "name": "title",
                                     "datatype": "varchar(255)",
-                                    "not_null": true,
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1493,7 +1648,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 6,
@@ -1505,7 +1661,7 @@
                                     "out": false,
                                     "name": "content",
                                     "datatype": "varchar(2000)",
-                                    "not_null": true,
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1514,7 +1670,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 4,
@@ -1525,8 +1682,8 @@
                                     "in": true,
                                     "out": false,
                                     "name": "pinned",
-                                    "datatype": "bit(1)",
-                                    "not_null": true,
+                                    "datatype": "tinyint(1)",
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1535,7 +1692,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             },
                             {
                                 "position": 2,
@@ -1547,7 +1705,7 @@
                                     "out": false,
                                     "name": "user_id",
                                     "datatype": "binary(16)",
-                                    "not_null": true,
+                                    "not_null": false,
                                     "is_unique": false,
                                     "is_primary": false,
                                     "is_generated": false
@@ -1556,7 +1714,8 @@
                                 "allow_filtering": true,
                                 "allow_sorting": false,
                                 "no_check": false,
-                                "no_update": false
+                                "no_update": false,
+                                "options": null
                             }
                         ]
                     }

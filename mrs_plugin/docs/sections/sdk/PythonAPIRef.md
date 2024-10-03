@@ -96,7 +96,7 @@ The following MRS REST resources can be accessed from the corresponding schema n
 
 ### create
 
-`create` is used to insert a record in a given table. The record is represented as a typed dictionary object whose fields, or keys, should comply with the interface exposed by the type definition `I${obj_class_name}DataCreate` where `${obj_class_name}` is a variable which value depends on the *service, schema and table* names themselves.
+`create` is used to insert a record in a given table. The record is represented as a typed dictionary object whose fields, or keys, should comply with the interface exposed by the type definition `INew${obj_class_name}` where `${obj_class_name}` is a variable which value depends on the *service, schema and table* names themselves.
 
 > To insert multiple records, see [create_many](#create_many).
 
@@ -134,7 +134,7 @@ The `actor_id` and `last_update` columns from the `sakila` table on the sample [
 
 ### create_many
 
-`create_many` is used to insert one or more records in a given table. A record is represented as a typed dictionary object whose fields, or keys, should comply with the interface exposed by the type definition `I${obj_class_name}DataCreate` where `${obj_class_name}` is a variable which value depends on the *service, schema and table* names themselves.
+`create_many` is used to insert one or more records in a given table. A record is represented as a typed dictionary object whose fields, or keys, should comply with the interface exposed by the type definition `INew${obj_class_name}` where `${obj_class_name}` is a variable which value depends on the *service, schema and table* names themselves.
 
 > To insert a single record, see [create](#create).
 
