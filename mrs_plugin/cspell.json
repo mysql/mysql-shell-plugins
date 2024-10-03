@@ -6,7 +6,6 @@
         "NOFILTERING",
         "NOUPDATE",
         "quux",
-        "READFUNCTION",
         "ROWOWNERSHIP",
         "sakila",
         "struct",
@@ -24,7 +23,11 @@
         "CURDATE",
         "GTID",
         "corge",
-        "grault"
+        "grault",
+        "asyncio",
+        "asdict",
+        "dataclass",
+        "dataclasses"
     ],
     "flagWords": [
         "hte"
@@ -56,6 +59,9 @@
         "Datatypes",
         "Bruh",
         "asof",
-        "DELETEUNIQUE"
+        "DELETEUNIQUE",
+        "FUNCTIONCALL",
+        "PROCEDURECALL",
+        "coro"
     ]
 }

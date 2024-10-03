@@ -469,12 +469,16 @@ export type IMrsResourceDetails = {
     _metadata: IMrsResourceMetadata;
 } & JsonObject;
 
+
+interface IMrsTransactionalMetadata {
+    gtid?: string;
+}
+
 /**
  * Resource metadata includes the resource ETag.
  */
-export interface IMrsResourceMetadata {
+interface IMrsResourceMetadata extends IMrsTransactionalMetadata {
     etag: string;
-    gtid?: string;
 }
 
 /**
@@ -505,9 +509,18 @@ export interface IMrsProcedureResultList<C> {
     items: C[],
 }
 
-export interface IMrsFunctionResult<C> {
-    result: C,
-}
+type IMrsCommonRoutineResponse = {
+    _metadata?: IMrsTransactionalMetadata;
+} & JsonObject;
+
+export type IMrsProcedureResponse<OutParams, ResultSet> = {
+    outParams?: OutParams;
+    resultSets: ResultSet[]
+} & IMrsCommonRoutineResponse;
+
+export type IMrsFunctionResponse<C> = {
+    result: C;
+} & IMrsCommonRoutineResponse;
 
 export interface IMrsDeleteResult {
     itemsDeleted: number;
@@ -894,10 +907,10 @@ class MrsJSON {
  * @template T The set of fields of a given database object that should be part of the result set.
  */
 class MrsSimplifiedObjectResponse<T> {
-    #json: MrsResourceObject<T>;
+    #json:  T & JsonObject;
     #hypermediaProperties = ["_metadata", "links"];
 
-    public constructor (json: MrsResourceObject<T>) {
+    public constructor (json: T & JsonObject) {
         this.#json = json;
     }
 
@@ -1317,54 +1330,57 @@ export class MrsBaseObjectUpdate<Input, ResourceIdFieldNames extends string[], O
     };
 }
 
-class MrsBaseObjectCall<Input, Output> {
+class MrsBaseObjectCall<Input, Output extends IMrsCommonRoutineResponse> {
     protected constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected params: Input) {
+        protected params?: Input) {
     }
 
     protected async fetch(): Promise<Output> {
         const input = `${this.schema.requestPath}${this.requestPath}`;
 
-        const res = await this.schema.service.session.doFetch({
+        const response = await this.schema.service.session.doFetch({
             input,
             method: "PUT",
-            body: this.params,
+            body: this.params !== undefined ? this.params : {},
             errorMsg: "Failed to call item.",
         });
 
-        return await res.json() as Output;
+        const responseBody = await response.json() as Output;
+
+        // eslint-disable-next-line no-underscore-dangle
+        this.schema.service.session.gtid = responseBody._metadata?.gtid;
+
+        const resource = new MrsSimplifiedObjectResponse(responseBody);
+
+        return resource.getInstance();
     }
 }
 
-export class MrsBaseObjectProcedureCall<Input, Output>
-    extends MrsBaseObjectCall<Input, IMrsProcedureResultList<Output>> {
+export class MrsBaseObjectProcedureCall<InParams, OutParams, ResultSet>
+    extends MrsBaseObjectCall<InParams, IMrsProcedureResponse<OutParams, ResultSet>> {
     public constructor(
         protected override schema: MrsBaseSchema,
         protected override requestPath: string,
-        protected override params: Input) {
+        protected override params?: InParams) {
         super(schema, requestPath, params);
     }
 
-    public override async fetch(): Promise<IMrsProcedureResultList<Output>> {
-        const res = await super.fetch();
-
-        return res;
+    public override async fetch(): Promise<IMrsProcedureResponse<OutParams, ResultSet>> {
+        return super.fetch();
     }
 }
 
-export class MrsBaseObjectFunctionCall<Input, Output> extends MrsBaseObjectCall<Input, Output> {
+export class MrsBaseObjectFunctionCall<Input, Output> extends MrsBaseObjectCall<Input, IMrsFunctionResponse<Output>> {
     public constructor(
         protected override schema: MrsBaseSchema,
         protected override requestPath: string,
-        protected override params: Input) {
+        protected override params?: Input) {
         super(schema, requestPath, params);
     }
 
-    public override async fetch(): Promise<Output> {
-        const res = await super.fetch() as IMrsFunctionResult<Output>;
-
-        return res.result;
+    public override async fetch(): Promise<IMrsFunctionResponse<Output>> {
+        return super.fetch();
     }
 }

@@ -25,12 +25,11 @@
 
 import { assertType, describe, expectTypeOf, it } from "vitest";
 import {
-    type PureFilter, type DataFilter, type BooleanFieldMapSelect, type ColumnOrder, type FieldNameSelect, type IFindFirstOptions, type IFindManyOptions,
-    type IFindUniqueOptions, type IFindAllOptions, type IMrsResourceCollectionData, type MaybeNull, type Point, type MultiPoint, type LineString,
-    type MultiLineString, type Polygon, type MultiPolygon, type Geometry, type GeometryCollection, type HighOrderFilter, type ComparisonOpExpr,
-    type MrsResourceObject,
-    type Cursor,
-    IDeleteOptions,
+    type PureFilter, type DataFilter, type BooleanFieldMapSelect, type ColumnOrder, type FieldNameSelect,
+    type IFindFirstOptions, type IFindManyOptions, type IFindUniqueOptions, type IFindAllOptions,
+    type IMrsResourceCollectionData, type MaybeNull, type Point, type MultiPoint, type LineString,
+    type MultiLineString, type Polygon, type MultiPolygon, type Geometry, type GeometryCollection,
+    type HighOrderFilter, type ComparisonOpExpr, type MrsResourceObject, type Cursor, type IDeleteOptions,
 } from "../MrsBaseClasses";
 
 describe("MRS SDK base types", () => {
@@ -492,14 +491,14 @@ describe("MRS SDK base types", () => {
         it("does not allow high order operators for unique matches", () => {
             expectTypeOf({ where: { $or: [{ name: "foo" }, { age: 42 }] } })
                 .not.toMatchTypeOf<IDeleteOptions<{ name: string, age: number }, { many: false }>>();
-        })
+        });
 
         it("allows to enforce read-your-writes consistency", () => {
             expectTypeOf<IDeleteOptions<unknown>>().toHaveProperty("readOwnWrites");
             expectTypeOf({ where: { id: 1 }, readOwnWrites: true }).toMatchTypeOf<IDeleteOptions<{ id: number }>>();
             expectTypeOf({ where: { id: 1 }, readOwnWrites: false }).toMatchTypeOf<IDeleteOptions<{ id: number }>>();
         });
-    })
+    });
 
     describe("MaybeNull", () => {
         it("accepts a value of a given type", () => {

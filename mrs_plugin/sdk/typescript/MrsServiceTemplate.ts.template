@@ -22,14 +22,13 @@ import {
     ICreateOptions,
     MrsBaseObjectCreate,
     // --- importCreateOnlyEnd
-    // --- importUpdateProcedureOnlyStart
-    IMrsProcedureResult,
-    IMrsProcedureResultList,
+    // --- importProcedureCallOnlyStart
+    IMrsProcedureResponse,
     MrsBaseObjectProcedureCall,
-    // --- importUpdateProcedureOnlyEnd
-    // --- importReadFunctionOnlyStart
+    // --- importProcedureCallOnlyEnd
+    // --- importFunctionCallOnlyStart
     MrsBaseObjectFunctionCall,
-    // --- importReadFunctionOnlyEnd
+    // --- importFunctionCallOnlyEnd
     // --- importUpdateOnlyStart
     IUpdateOptions,
     MrsBaseObjectUpdate,
@@ -189,24 +188,24 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     };
     // --- crudDeleteOnlyEnd
 
-    // --- crudUpdateProcedureOnlyStart
-    public call = async (${obj_name}Params: I${obj_param_interface}): Promise<IMrsProcedureResultList<${obj_meta_interface}>> => {
-        const request = new MrsBaseObjectProcedureCall<I${obj_param_interface}, ${obj_meta_interface}>(
+    // --- crudProcedureCallOnlyStart
+    public call = async (${obj_name}Params?: I${obj_param_interface}): Promise<IMrsProcedureResponse<I${obj_param_interface}Out, ${obj_meta_interface}>> => {
+        const request = new MrsBaseObjectProcedureCall<I${obj_param_interface}, I${obj_param_interface}Out, ${obj_meta_interface}>(
             this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}Params);
         const response = await request.fetch();
 
         return response;
     };
-    // --- crudUpdateProcedureOnlyEnd
-    // --- crudReadFunctionOnlyStart
-    public call = async (${obj_name}Params: I${obj_param_interface}): Promise<${obj_function_result_datatype}> => {
+    // --- crudProcedureCallOnlyEnd
+    // --- crudFunctionCallOnlyStart
+    public call = async (${obj_name}Params?: I${obj_param_interface}): Promise<${obj_function_result_datatype}> => {
         const request = new MrsBaseObjectFunctionCall<I${obj_param_interface}, ${obj_function_result_datatype}>(
             this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}Params);
         const response = await request.fetch();
 
-        return response;
+        return response.result;
     };
-    // --- crudReadFunctionOnlyEnd
+    // --- crudFunctionCallOnlyEnd
 
 // --- MySQL Shell for VS Code Extension Only --- Begin
     public edit = (): void => {
