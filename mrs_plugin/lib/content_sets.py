@@ -1130,7 +1130,7 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
             file_to_load = file_to_load.replace(".mts", ".mjs")
         script_module_files.append({
             "file_info": script_module["file_info"],
-            "file_to_load": file_to_load
+            "file_to_load": file_to_load,
         })
 
         properties = script_module["properties"]
@@ -1203,6 +1203,9 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
                 "language": language,
                 "name": script["function_name"],
                 "class_name": script_module["class_name"],
+                "options": {
+                    "file_to_load": file_to_load
+                }
             }).exec(session)
 
             # Insert interfaces as object/object_field/object_reference
