@@ -73,7 +73,9 @@ export const openSqlEditorConnection = async (sqlEditor: ShellInterfaceSqlEditor
                     });
             }
         } else if (progress) {
-            if (data.requestState !== undefined && data.requestState.msg !== undefined) {
+            if (data.requestState !== undefined &&
+                data.requestState.msg !== undefined &&
+                data.requestState.msg !== "") {
                 progress(data.requestState.msg);
             } else if (isStatusCodeData(data)) {
                 progress(data.result);
