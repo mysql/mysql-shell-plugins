@@ -176,7 +176,7 @@ export class ObjectStorageBrowser {
             await driver.wait(async () => {
                 try {
                     if (i === path.length - 1) {
-                        await driver.executeScript("arguments[0].scrollBy(0, 200)",
+                        await driver.executeScript("arguments[0].scrollBy(0, 150)",
                             await driver.findElement(scrollTable));
                     }
                     let item = await this.getItem(path[i], String(i));

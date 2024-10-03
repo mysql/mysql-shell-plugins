@@ -112,10 +112,13 @@ class SetEnvironmentVariablesTask:
         self.environment["DBPORT"] = argv.db_port
         self.environment["DBPORTX"] = argv.db_port + "0"
         self.environment["DBUSERNAMESHELL"] = "clientqa"
-        self.environment["DBPASSWORDSHELL"] = "clientqa"
+        self.environment["DBPASSWORDSHELL"] = "dummy"
         self.environment["DBUSERNAME1"] = "dbuser1"
+        self.environment["DBUSERNAME1PWD"] = "dummy"
         self.environment["DBUSERNAME2"] = "dbuser2"
+        self.environment["DBUSERNAME2PWD"] = "dummy"
         self.environment["DBUSERNAME3"] = "dbuser3"
+        self.environment["DBUSERNAME3PWD"] = "dummy"
         self.environment["MU_USERNAME"] = "client"
         self.environment["MU_PASSWORD"] = "client"
 

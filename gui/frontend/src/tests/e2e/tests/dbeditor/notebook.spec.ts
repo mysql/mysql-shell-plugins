@@ -47,11 +47,11 @@ const globalConn: interfaces.IDBConnection = {
     basic: {
         hostname: String(process.env.DBHOSTNAME),
         protocol: "mysql",
-        username: "dbuser2",
+        username: String(process.env.DBUSERNAME2),
         port: parseInt(process.env.DBPORT!, 10),
         portX: parseInt(process.env.DBPORTX!, 10),
         schema: "sakila",
-        password: "dbuser2",
+        password: String(process.env.DBUSERNAME2PWD),
     },
 };
 
@@ -860,11 +860,11 @@ describe("Notebook headless on", () => {
         basic: {
             hostname: String(process.env.DBHOSTNAME),
             protocol: "mysql",
-            username: "dbuser2",
+            username: String(process.env.DBUSERNAME2),
             port: parseInt(process.env.DBPORT!, 10),
             portX: parseInt(process.env.DBPORTX!, 10),
             schema: "sakila",
-            password: "dbuser2",
+            password: String(process.env.DBUSERNAME2PWD),
         },
     };
 

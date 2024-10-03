@@ -1072,7 +1072,7 @@ describe("DATABASE CONNECTIONS", () => {
                 expect(latestTable.loaded).to.equals("Yes");
                 expect(latestTable.hasLoadingSpinner).to.be.false;
                 expect(latestTable.rows).to.match(/(\d+)/);
-                expect(latestTable.size).to.match(/(\d+).(\d+) KB/);
+                expect(latestTable.size).to.match(/(\d+).(\d+) (KB|MB)/);
                 expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
                 expect(latestTable.comment).to.equals(newTask.description);
 

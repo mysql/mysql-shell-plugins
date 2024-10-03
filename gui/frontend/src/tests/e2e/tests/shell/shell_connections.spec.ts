@@ -146,11 +146,11 @@ describe("MySQL Shell Connections", () => {
             basic: {
                 hostname: String(process.env.DBHOSTNAME),
                 protocol: "mysql",
-                username: "dbuser3",
+                username: String(process.env.DBUSERNAME3),
                 port: parseInt(String(process.env.DBPORT), 10),
                 portX: parseInt(String(process.env.DBPORTX), 10),
                 schema: "sakila",
-                password: "dbuser3",
+                password: String(process.env.DBUSERNAME3PWD),
 
             },
         };
