@@ -50,11 +50,11 @@ describe("Database Connections", () => {
         basic: {
             hostname: String(process.env.DBHOSTNAME),
             protocol: "mysql",
-            username: "dbuser1",
+            username: String(process.env.DBUSERNAME1),
             port: parseInt(process.env.DBPORT!, 10),
             portX: parseInt(process.env.DBPORTX!, 10),
             schema: "sakila",
-            password: "dbuser1",
+            password: String(process.env.DBUSERNAME1PWD),
         },
     };
 
@@ -364,11 +364,11 @@ describe("Database Connections", () => {
             basic: {
                 hostname: String(process.env.DBHOSTNAME),
                 protocol: "mysql",
-                username: "dbuser1",
+                username: String(process.env.DBUSERNAME1),
                 port: parseInt(process.env.DBPORT!, 10),
                 portX: parseInt(process.env.DBPORTX!, 10),
                 schema: "sakila",
-                password: "dbuser1",
+                password: String(process.env.DBUSERNAME1PWD),
             },
             ssl: {
                 mode: "Require and Verify CA",
