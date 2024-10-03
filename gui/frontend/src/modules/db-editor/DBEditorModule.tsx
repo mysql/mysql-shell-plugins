@@ -1366,8 +1366,8 @@ EXAMPLES
             await backend.openConnection(connection.id, requestId, ((response, requestId) => {
                 if (!ShellPromptHandler.handleShellPrompt(response.result as IShellPasswordFeedbackRequest, requestId,
                     backend, "Provide Password")) {
-                    if (this.isStatusCodeData(response.result)) {
-                        this.setProgressMessage(response.result.result);
+                    if (this.isStatusCodeData(response) && typeof response.result === "string") {
+                        this.setProgressMessage(response.result);
                     }
                     connectionData = response.result as IOpenConnectionData;
                 }
