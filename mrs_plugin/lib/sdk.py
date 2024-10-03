@@ -239,9 +239,9 @@ def substitute_imports_in_template(
         "Read",
         "Update",
         "Delete",
-        "UpdateProcedure",
+        "ProcedureCall",
         "ReadUnique",
-        "ReadFunction",
+        "FunctionCall",
         "Authenticate",
     ]
 
@@ -261,8 +261,8 @@ def substitute_imports_in_template(
             indent = " " * 4
             # each datatype should be comma separated and belongs in a new line
             separator = f",\n{indent}"
-            # the first and last datatypes should also follow the same rules and they should be sorted alphabetically,
-            # mostly for testing purposes, but it is always good to be deterministic
+            # The first and last datatypes should also follow the same rules and they should be sorted alphabetically,
+            # mostly for testing purposes, but it is always good to be deterministic.
             datatypes_block = f"{indent}{separator.join(sorted(required_datatypes))},\n"
 
         import_template = re.sub(
@@ -426,8 +426,8 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
                 )
 
                 schema_template_with_obj_filled = code.get("template")
-                enabled_crud_ops |= {x for x in code.get("enabled_crud_ops") if x not in enabled_crud_ops}
-                required_datatypes |= {x for x in code.get("required_datatypes") if x not in required_datatypes}
+                enabled_crud_ops.update(code.get("enabled_crud_ops"))
+                required_datatypes.update(code.get("required_datatypes"))
 
                 if requires_auth is False:
                     requires_auth |= code.get("requires_auth")
@@ -491,7 +491,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
         schema.get("request_path"))
 
     crud_ops = ["Create", "Read", "Update",
-                "Delete", "DeleteUnique", "UpdateProcedure", "ReadUnique", "ReadFunction"]
+                "Delete", "DeleteUnique", "ProcedureCall", "ReadUnique", "FunctionCall"]
 
     enabled_crud_ops = set()
     required_datatypes = set()
@@ -508,7 +508,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
             obj_interfaces = ""
             obj_param_interface = "I" + default_class_name + "Params"
-            obj_meta_interface = "I" + default_class_name + "Meta"
+            obj_meta_interface = "I" + default_class_name + "ResultSet"
             getters_setters = ""
             obj_pk_list = []
             obj_quoted_pk_list = []
@@ -556,8 +556,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                             # our own.
                             # In Python, we have Optional[SomeType] that does the trick, so there there is no
                             # need to add one.
-                            if (db_not_null is False and sdk_language == "TypeScript" and
-                                db_obj.get("object_type") != "PROCEDURE" and db_obj.get("object_type") != "FUNCTION"):
+                            if db_not_null is False and sdk_language == "TypeScript":
                                 required_datatypes.add("MaybeNull")
 
                             client_datatype = get_enhanced_datatype_mapping(db_datatype, sdk_language)
@@ -575,22 +574,22 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
 
                 # For database objects other than PROCEDUREs and FUNCTIONS, if there are unique fields,
                 # the corresponding SDK commands should be enabled.
-                if db_obj.get("object_type") != "PROCEDURE" and db_obj.get("object_type") != "FUNCTION":
+                if not object_is_routine(db_obj):
                     db_object_crud_ops = db_obj.get("crud_operations", [])
                     # If this DB Object has unique columns (PK or UNIQUE) allow ReadUnique
                     if len(obj_unique_list) > 0 and "READUNIQUE" not in db_object_crud_ops:
                         db_object_crud_ops.append("READUNIQUE")
                     if len(obj_unique_list) > 0 and "DELETE" in db_object_crud_ops and "DELETEUNIQUE" not in db_object_crud_ops:
                         db_object_crud_ops.append("DELETEUNIQUE")
-                # If the database object is a FUNCTION or a PROCEDURE, CRUD operations should not be enabled
-                elif db_obj.get("object_type") == "PROCEDURE" or db_obj.get("object_type") == "SCRIPT":
-                    # For PROCEDUREs, handle custom "UpdateProcedure" operation, delete all other
-                    db_object_crud_ops = ["UPDATEPROCEDURE"]
-                elif db_obj.get("object_type") == "FUNCTION":
-                    # For FUNCTIONs, handle custom "ReadFunction" operation, delete all other
-                    db_object_crud_ops = ["READFUNCTION"]
+                # If the database object is a FUNCTION a PROCEDURE or a SCRIPT, CRUD operations should not be enabled
+                elif object_is_routine(db_obj, of_type={"FUNCTION", "SCRIPT"}):
+                    # For FUNCTIONs, handle custom "FunctionCall" operation, delete all other
+                    db_object_crud_ops = ["FUNCTIONCALL"]
+                else:
+                    # For PROCEDUREs, handle custom "ProcedureCall" operation, delete all other
+                    db_object_crud_ops = ["PROCEDURECALL"]
 
-                obj_interfaces_def, out_params_interface_fields = generate_interfaces(
+                obj_interfaces_def, required_obj_datatypes = generate_interfaces(
                     db_obj,
                     obj,
                     fields,
@@ -600,28 +599,20 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                     obj_endpoint=f"{service_url}{schema.get('request_path')}/{name}"
                     )
 
+                required_datatypes.update(required_obj_datatypes)
+
                 # Do not add obj_interfaces for FUNCTION results
-                if obj.get("kind") == "PARAMETERS" or db_obj.get("object_type") != "FUNCTION":
+                if obj.get("kind") == "PARAMETERS" or not object_is_routine(db_obj, of_type={"FUNCTION"}):
                     obj_interfaces += obj_interfaces_def
 
-                if db_obj.get("object_type") == "PROCEDURE" or db_obj.get("object_type") == "FUNCTION":
-                    if obj.get("kind") == "PARAMETERS":
-                        obj_param_interface = obj.get("name")
-                    if obj.get("kind") != "PARAMETERS":
-                        obj_meta_interfaces.append(class_name)
-                    if len(out_params_interface_fields) > 0:
-                        obj_meta_interfaces.append(class_name + "Out")
-
-            # If there are no result sets defined for a Store Procedure, the return type must be IMrsProcedureResult
-            if len(objects) == 1 and obj.get("kind") == "PARAMETERS":
-                if len(out_params_interface_fields) == 0:
-                    obj_meta_interface = "IMrsProcedureResult"
-                else:
-                    obj_meta_interfaces.append("MrsProcedure")
+                if obj.get("kind") == "PARAMETERS" and object_is_routine(db_obj):
+                    obj_param_interface = obj.get("name")
+                elif obj.get("kind") != "PARAMETERS" and object_is_routine(db_obj):
+                    obj_meta_interfaces.append(class_name)
 
             # If the db object is a function, get the return datatype
             obj_function_result_datatype = None
-            if db_obj.get("object_type") == "FUNCTION":
+            if object_is_routine(db_obj, of_type={"FUNCTION"}):
                 obj_function_result_datatype = "unknown"
                 if len(objects) > 1:
                     fields = lib.db_objects.get_object_fields_with_references(
@@ -634,8 +625,12 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                                 db_datatype=db_column_info.get("datatype"),
                                 sdk_language=sdk_language)
 
-            if len(obj_meta_interfaces) > 0 and db_obj.get("object_type") != "FUNCTION":
-                interface_list = ["I" + name + "Result" for name in obj_meta_interfaces]
+            # If there are no typed result sets for a Procedure, all the result sets will be generic instances of JsonObject
+            if object_is_routine(db_obj, of_type={"PROCEDURE"}) and len(objects) == 1:
+                required_datatypes.add("JsonObject")
+                obj_interfaces += generate_union(obj_meta_interface, ["JsonObject"], sdk_language)
+            elif object_is_routine(db_obj, of_type={"PROCEDURE"}):
+                interface_list = [f"ITagged{name}" for name in obj_meta_interfaces]
                 obj_interfaces += generate_union(obj_meta_interface, interface_list, sdk_language)
 
             # Names by default are formatted in `camelCase`. A different
@@ -958,9 +953,12 @@ def generate_type_declaration(
     sdk_language="TypeScript",
     ignore_base_types=False,
     non_mandatory_fields: Set[str] = set(),  # Users may or not specify them
+    requires_placeholder=False,
 ):
     if len(fields) == 0:
-        return ""
+        if not requires_placeholder:
+            return ""
+        return generate_type_declaration_placeholder(name, sdk_language)
     if sdk_language == "TypeScript":
         field_block = [
             generate_type_declaration_field(
@@ -1154,6 +1152,10 @@ def generate_sequence_constant(name, values, sdk_language):
         return f"{name}: Sequence = {json.dumps(values)}\n\n"
 
 
+def object_is_routine(db_obj, of_type: set[str] = {"PROCEDURE", "FUNCTION", "SCRIPT"}):
+    return db_obj.get("object_type") in of_type
+
+
 def generate_interfaces(
     db_obj,
     obj,
@@ -1161,7 +1163,7 @@ def generate_interfaces(
     class_name,
     sdk_language,
     db_object_crud_ops: list[str],
-    obj_endpoint: Optional[str] = None
+    obj_endpoint: Optional[str] = None,
 ):
     obj_interfaces: list[str] = []
     interface_fields = {}
@@ -1171,103 +1173,119 @@ def generate_interfaces(
     obj_cursor_fields = {}
     has_nested_fields = False
     obj_primary_key = get_primary_key(fields)
-
-    # Aux vars
-    enhanced_fields = False if db_obj.get("object_type") in ("FUNCTION", "PROCEDURE") else True
-    unique_fields_apply = enhanced_fields
+    required_datatypes: set[str] = set()
 
     # The I{class_name}, I{class_name}Params and I{class_name}Out interfaces
     for field in fields:
         db_column = field.get("db_column", {})
         # The field needs to be on level 1 and enabled
         if field.get("lev") == 1 and field.get("enabled"):
+            datatype = get_interface_datatype(field, sdk_language, class_name)
+            enhanced_fields = False if object_is_routine(db_obj) else True
+            enhanced_datatype = get_interface_datatype(
+                field=field,
+                sdk_language=sdk_language,
+                class_name=class_name,
+                enhanced_fields=enhanced_fields,
+            )
             # Handle references
             if field.get("represents_reference_id"):
                 has_nested_fields = True
                 # Check if the field should be reduced to the value of another field
                 reduced_to_datatype = get_reduced_field_interface_datatype(
-                    field, fields, sdk_language, class_name)
+                    field, fields, sdk_language, class_name
+                )
                 if reduced_to_datatype:
-                    interface_fields.update({ field.get("name"): reduced_to_datatype })
+                    interface_fields.update({field.get("name"): reduced_to_datatype})
                 else:
                     obj_ref = field.get("object_reference")
                     # Add field if the referred table is not unnested
                     if not obj_ref.get("unnest"):
                         # If this field represents an OUT parameter of a SP, add it to the
                         # out_params_interface_fields list
-                        if obj.get("kind") == "PARAMETERS" and db_column.get("out"):
-                            datatype = get_interface_datatype(field, sdk_language, class_name)
-                            out_params_interface_fields.update({ field.get("name"): datatype })
-                        else:
-                            # Don't add SP params to result interfaces (OUT params are added to their own list)
-                            if obj.get("kind") != "PARAMETERS":
-                                datatype = get_interface_datatype(field, sdk_language, class_name)
-                                interface_fields.update({ field.get("name"): datatype })
-
+                        if obj.get("kind") == "PARAMETERS" and object_is_routine(
+                            db_obj
+                        ):
+                            if db_column.get("in"):
+                                param_interface_fields.update(
+                                    {field.get("name"): datatype}
+                                )
+                            if db_column.get("out"):
+                                out_params_interface_fields.update(
+                                    {field.get("name"): datatype}
+                                )
+                        elif obj.get("kind") == "PARAMETERS" and not object_is_routine(
+                            db_obj
+                        ):
+                            param_interface_fields.update(
+                                {field.get("name"): enhanced_datatype}
+                            )
+                        elif field.get("allow_filtering") and not object_is_routine(
+                            db_obj
+                        ):
+                            # RESULT
+                            interface_fields.update({field.get("name"): datatype})
                             # Add all table fields that have allow_filtering set and SP params to the
                             # param_interface_fields
-                            if ((field.get("allow_filtering") and db_obj.get("object_type") != "PROCEDURE" and
-                                 db_obj.get("object_type") != "FUNCTION")
-                                    or obj.get("kind") == "PARAMETERS"):
-                                datatype = get_interface_datatype(field=field, sdk_language=sdk_language,
-                                                                  class_name=class_name, enhanced_fields=enhanced_fields, nullable=True)
-                                param_interface_fields.update({ field.get("name"): datatype })
+                            param_interface_fields.update(
+                                {field.get("name"): enhanced_datatype}
+                            )
 
                     # Call recursive interface generation
                     generate_nested_interfaces(
-                        obj_interfaces, interface_fields, field,
+                        obj_interfaces,
+                        interface_fields,
+                        field,
                         reference_class_name_postfix=lib.core.convert_path_to_pascal_case(
-                            field.get("name")),
-                        fields=fields, class_name=class_name, sdk_language=sdk_language)
-            else:
+                            field.get("name")
+                        ),
+                        fields=fields,
+                        class_name=class_name,
+                        sdk_language=sdk_language,
+                    )
+            elif obj.get("kind") == "PARAMETERS":
                 # If this field represents an OUT parameter of a SP, add it to the
                 # out_params_interface_fields list
-                if obj.get("kind") == "PARAMETERS" and db_column.get("out"):
-                    datatype = get_interface_datatype(field, sdk_language, class_name)
-                    out_params_interface_fields.update({ field.get("name"): datatype })
-                else:
-                    if obj.get("kind") != "PARAMETERS":
-                        datatype = get_interface_datatype(field, sdk_language, class_name)
-                        interface_fields.update({ field.get("name"): datatype })
+                if db_column.get("in"):
+                    param_interface_fields.update({field.get("name"): datatype})
+                if db_column.get("out"):
+                    out_params_interface_fields.update({field.get("name"): datatype})
+            else:
+                interface_fields.update({field.get("name"): datatype})
+                # Add all table fields that have allow_filtering set and SP params to the param_interface_fields
+                if field.get("allow_filtering") and not object_is_routine(db_obj):
+                    param_interface_fields.update(
+                        {field.get("name"): enhanced_datatype}
+                    )
 
-                    # Add all table fields that have allow_filtering set and SP params to the param_interface_fields
-                    if (
-                            (
-                                field.get("allow_filtering") and
-                                db_obj.get("object_type") != "PROCEDURE" and
-                                db_obj.get("object_type") != "FUNCTION"
-                            )
-                            or obj.get("kind") == "PARAMETERS"
-                        ):
-                        datatype = get_interface_datatype(field=field, sdk_language=sdk_language,
-                                                          class_name=class_name, enhanced_fields=enhanced_fields)
-                        param_interface_fields.update({ field.get("name"): datatype })
+            if not object_is_routine(db_obj):
+                enhanced_datatype = get_interface_datatype(
+                    field=field,
+                    sdk_language=sdk_language,
+                    class_name=class_name,
+                    enhanced_fields=True,
+                    nullable=False,
+                )
+                # Build Unique list
+                if field_is_unique(field):
+                    obj_unique_fields.update({field.get("name"): enhanced_datatype})
 
-                    # Build Unique list
-                    # NOTE: the notion of "unique parameters" doesn't apply to functions and procedures
-                    if unique_fields_apply and field_is_unique(field):
-                        datatype = get_interface_datatype(field=field, sdk_language=sdk_language,
-                                                          class_name=class_name, enhanced_fields=enhanced_fields, nullable=False)
-                        obj_unique_fields.update({ field.get("name"): datatype })
+                # Build list of columns which can potentially be used for cursor-based pagination.
+                if field_can_be_cursor(field):
+                    obj_cursor_fields.update({field.get("name"): enhanced_datatype})
 
-            # Build list of columns which can potentially be used for cursor-based pagination.
-            if field_can_be_cursor(field):
-                datatype = get_interface_datatype(field=field, sdk_language=sdk_language,
-                                                  class_name=class_name, enhanced_fields=enhanced_fields, nullable=False)
-                obj_cursor_fields.update({ field.get("name"): datatype })
-
-    if db_obj.get("object_type") not in (
-        "PROCEDURE",
-        "FUNCTION",
-    ):
+    if not object_is_routine(db_obj):
         # The object is a TABLE or a VIEW
         if sdk_language != "TypeScript":
             # These type declarations are not needed for TypeScript because it uses a Proxy to replace the interface
             # and not a wrapper class. This might change in the future.
+            mrs_resource_type = "IMrsResourceDetails"
+            required_datatypes.add(mrs_resource_type)
+
             obj_interfaces.append(
                 generate_type_declaration(
                     name=f"{class_name}Details",
-                    parents=["IMrsResourceDetails"],
+                    parents=[mrs_resource_type],
                     fields=interface_fields,
                     sdk_language=sdk_language,
                     ignore_base_types=True,
@@ -1357,7 +1375,11 @@ def generate_interfaces(
             generate_sortable(class_name, interface_fields, sdk_language)
         )
 
-        construct_parents = [] if sdk_language != "Python" else ["Generic[Filterable]", "HighOrderOperator[Filterable]"]
+        construct_parents = (
+            []
+            if sdk_language != "Python"
+            else ["Generic[Filterable]", "HighOrderOperator[Filterable]"]
+        )
         obj_interfaces.append(
             generate_type_declaration(
                 name=f"{class_name}Filterable",
@@ -1365,7 +1387,7 @@ def generate_interfaces(
                 fields=param_interface_fields,
                 sdk_language=sdk_language,
                 ignore_base_types=True,
-                non_mandatory_fields=set(param_interface_fields)
+                non_mandatory_fields=set(param_interface_fields),
             )
         )
 
@@ -1374,66 +1396,81 @@ def generate_interfaces(
                 name=f"{class_name}UniqueFilterable",
                 fields=obj_unique_fields,
                 sdk_language=sdk_language,
-                non_mandatory_fields=set(obj_unique_fields)
+                non_mandatory_fields=set(obj_unique_fields),
             )
         )
 
-        # To avoid conditional logic in the template, we should generate a void type declaration for tables and views that
-        # do not contain any field eligible to be a cursor.
-        if len(obj_cursor_fields) > 0:
-            obj_interfaces.append(generate_type_declaration(name=f"{class_name}Cursors", fields=obj_cursor_fields,
-                                                        sdk_language=sdk_language, non_mandatory_fields=set(obj_cursor_fields)))
-        else:
-            obj_interfaces.append(generate_type_declaration_placeholder(f"{class_name}Cursors", sdk_language))
+        obj_interfaces.append(
+            generate_type_declaration(
+                name=f"{class_name}Cursors",
+                fields=obj_cursor_fields,
+                sdk_language=sdk_language,
+                non_mandatory_fields=set(obj_cursor_fields),
+                # To avoid conditional logic in the template, we should generate a void type declaration.
+                requires_placeholder=True,
+            )
+        )
 
-    # FUNCTIONS and PROCEDURES
+    # FUNCTIONs, PROCEDUREs and SCRIPTs
     elif obj.get("kind") == "RESULT":
+        obj_interfaces.append(
+            generate_type_declaration(
+                name=class_name,
+                fields=interface_fields,
+                sdk_language=sdk_language,
+                non_mandatory_fields=set(interface_fields),
+            )
+        )
+
         if len(interface_fields) > 0:
+            # Result sets are non-deterministic and there is no way to know if a column value can be NULL.
+            # Thus, we must assume that is always the case.
+            required_datatypes.add("MaybeNull")
+
             result_fields = {
                 "type": generate_literal_type([class_name], sdk_language),
                 "items": [f"I{class_name}"],
             }
             obj_interfaces.append(
                 generate_type_declaration(
-                    name=f"{class_name}Result",
+                    name=f"Tagged{class_name}",
                     fields=result_fields,
                     sdk_language=sdk_language,
                 )
             )
 
-        # TODO: Currently, items of a result set from a PROCEDURE or FUNCTION use a general "return type" placeholder.
-        # I{class_name} is the name of that type.
-        obj_interfaces.append(
-            generate_type_declaration(
-                name=class_name,
-                fields=interface_fields,
-                sdk_language=sdk_language,
-                non_mandatory_fields=set(interface_fields)
-            )
-        )
-
     else: # kind = "PARAMETERS"
+        if len(param_interface_fields) > 0:
+            # Parameters are "optional" in a way that they can be NULL at the SQL level.
+            required_datatypes.add("MaybeNull")
+
         # Type definition for the set of IN Parameters.
         obj_interfaces.append(
             generate_type_declaration(
-                name=class_name,
+                name=f"{class_name}",
                 fields=param_interface_fields,
                 sdk_language=sdk_language,
-                non_mandatory_fields=set(param_interface_fields)
+                non_mandatory_fields=set(param_interface_fields),
+                # To avoid conditional logic in the template, we should generate a void type declaration.
+                requires_placeholder=True,
             )
         )
 
-        # TODO: Currently, out parameters and result sets are mixed in the JSON response, this needs to change.
-        if len(out_params_interface_fields) > 0:
-            out_result_fields = { "type": f"I{class_name}Out", "items": [f"I{class_name}Out"] }
-            obj_interfaces.append(generate_type_declaration(name=f"{class_name}OutResult", fields=out_result_fields,
-                                                            sdk_language=sdk_language))
-
         # Type definition for the set of INOUT/OUT Parameters.
-        obj_interfaces.append(generate_type_declaration(name=f"{class_name}Out", fields=out_params_interface_fields,
-                                                        sdk_language=sdk_language))
+        obj_interfaces.append(
+            generate_type_declaration(
+                name=f"{class_name}Out",
+                fields=out_params_interface_fields,
+                sdk_language=sdk_language,
+                non_mandatory_fields=set(out_params_interface_fields),
+                # To avoid conditional logic in the template, we should generate a void type declaration.
+                # In this case, the placeholder is only needed for Procedures, because the type declaration
+                # is not used otherwise.
+                requires_placeholder=object_is_routine(db_obj, of_type={"PROCEDURE"}),
+            )
+        )
 
-    return "".join(obj_interfaces), out_params_interface_fields
+    return "".join(obj_interfaces), required_datatypes
 
 
 # For now, this function is not used for ${DatabaseObject}Params type declarations
@@ -1442,7 +1479,7 @@ def generate_nested_interfaces(
         reference_class_name_postfix,
         fields, class_name, sdk_language):
     # Build interface name
-    interface_name = f'I{class_name}{reference_class_name_postfix}'
+    interface_name = f"{class_name}{reference_class_name_postfix}"
 
     # Check if the reference has unnest set, and if so, use the parent_interface_fields
     parent_obj_ref = parent_field.get("object_reference")
@@ -1465,7 +1502,7 @@ def generate_nested_interfaces(
                         field.get("name"))
                     # Add field if the referred table is not unnested
                     if not obj_ref.get("unnest"):
-                        datatype = f'I{class_name}{reference_class_name_postfix + field.get("name")}'
+                        datatype = f"{class_name}{reference_class_name_postfix + field.get("name")}"
                         # Should use the corresponding nested field type.
                         interface_fields.update({ field.get("name"): interface_name + field_interface_name })
 
@@ -1481,7 +1518,7 @@ def generate_nested_interfaces(
     if not parent_obj_ref.get("unnest"):
         obj_interfaces.append(generate_type_declaration(name=interface_name, fields=interface_fields,
                                                         sdk_language=sdk_language))
-        obj_interfaces.append(generate_field_enum(name=f"{interface_name}Nested", fields=interface_fields,
+        obj_interfaces.append(generate_field_enum(name=f"{class_name}Nested", fields=interface_fields,
                                                   sdk_language=sdk_language))
 
 

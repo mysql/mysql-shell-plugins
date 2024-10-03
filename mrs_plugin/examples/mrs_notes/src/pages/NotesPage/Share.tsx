@@ -72,11 +72,11 @@ export default class Share extends Component<IShareProps, IShareState> {
 
                 // For this specific procedure we expect a single result set of type MyServiceMrsNotesNoteShare
                 // with only one row holding the invitationKey
-                if (response.items.at(0)?.type === "MyServiceMrsNotesNoteShare" &&
-                    response.items[0].items.at(0)) {
+                if (response.resultSets.at(0)?.type === "MyServiceMrsNotesNoteShare" &&
+                    response.resultSets[0].items.at(0)) {
                     // Now that we checked the type and ensured that the result and first row is here
                     // get the actual invitationKey, which we know cannot be NULL
-                    const invitationKey = response.items[0].items[0].invitationKey ?? undefined;
+                    const invitationKey = response.resultSets[0].items[0].invitationKey ?? undefined;
 
                     // Indicate that the note has been shared
                     this.setState({

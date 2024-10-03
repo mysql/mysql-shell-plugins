@@ -346,7 +346,7 @@ def test_generate_function_interface():
         },
     ]
 
-    db_object_crud_ops = ["READFUNCTION"]
+    db_object_crud_ops = ["FUNCTIONCALL"]
     obj_endpoint = "https://localhost:8444/myService/sakila/sumFunc"
 
     got, _ = generate_interfaces(
@@ -684,6 +684,15 @@ def test_generate_type_declaration():
 """
     )
 
+    type_declaration = generate_type_declaration(name="Foo", fields=[])
+    assert type_declaration == ""
+
+    type_declaration = generate_type_declaration(name="Foo", fields=[], requires_placeholder=True, sdk_language="TypeScript")
+    assert type_declaration == "type IFoo = never;\n\n"
+
+    type_declaration = generate_type_declaration(name="Foo", fields=[], requires_placeholder=True, sdk_language="Python")
+    assert type_declaration == "IFoo: TypeAlias = None\n\n\n"
+
 
 def test_generate_data_class():
 
@@ -837,3 +846,39 @@ def test_field_is_required():
     field["db_column"]["column_default"] = None
     is_required = field_is_required(field, obj)
     assert is_required == False
+
+
+def test_object_is_routine():
+    assert object_is_routine({"object_type": "PROCEDURE"}) == True
+    assert object_is_routine({"object_type": "FUNCTION"}) == True
+    assert object_is_routine({"object_type": "SCRIPT"}) == True
+    assert object_is_routine({"object_type": "VIEW"}) == False
+    assert object_is_routine({"object_type": "TABLE"}) == False
+
+    assert (
+        object_is_routine({"object_type": "PROCEDURE"}, of_type={"PROCEDURE"}) == True
+    )
+    assert (
+        object_is_routine(
+            {"object_type": "PROCEDURE"}, of_type={"PROCEDURE", "FUNCTION"}
+        )
+        == True
+    )
+    assert (
+        object_is_routine({"object_type": "PROCEDURE"}, of_type={"PROCEDURE", "SCRIPT"})
+        == True
+    )
+    assert (
+        object_is_routine(
+            {"object_type": "PROCEDURE"}, of_type={"PROCEDURE", "FUNCTION", "SCRIPT"}
+        )
+        == True
+    )
+    assert (
+        object_is_routine({"object_type": "PROCEDURE"}, of_type={"FUNCTION"}) == False
+    )
+    assert object_is_routine({"object_type": "PROCEDURE"}, of_type={"SCRIPT"}) == False
+    assert (
+        object_is_routine({"object_type": "PROCEDURE"}, of_type={"FUNCTION", "SCRIPT"})
+        == False
+    )

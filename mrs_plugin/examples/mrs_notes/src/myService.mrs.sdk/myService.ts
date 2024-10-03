@@ -7,8 +7,8 @@
 import {
     MrsBaseService,
     MrsBaseSchema,
-    JsonValue,
     MaybeNull,
+    JsonValue,
     IFindAllOptions,
     IFindFirstOptions,
     IFindManyOptions,
@@ -17,8 +17,7 @@ import {
     NotFoundError,
     ICreateOptions,
     MrsBaseObjectCreate,
-    IMrsProcedureResult,
-    IMrsProcedureResultList,
+    IMrsProcedureResponse,
     MrsBaseObjectProcedureCall,
     IUpdateOptions,
     MrsBaseObjectUpdate,
@@ -32,7 +31,7 @@ export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
 // --- MySQL Shell for VS Code Extension Remove --- End
 
 
-export type IMyServiceAuthApp = never;
+export type IMyServiceAuthApp = "MRS";
 
 
 /* -----------------------------------------------------------------------------
@@ -638,8 +637,8 @@ export class MyServiceMrsNotesNoteAcceptShareParamsRequest extends MyServiceMrsN
 
 
 
-    public call = async (noteAcceptShareParams: IMyServiceMrsNotesNoteAcceptShareParams): Promise<IMrsProcedureResultList<IMrsProcedureResult>> => {
-        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteAcceptShareParams, IMrsProcedureResult>(
+    public call = async (noteAcceptShareParams?: IMyServiceMrsNotesNoteAcceptShareParams): Promise<IMrsProcedureResponse<IMyServiceMrsNotesNoteAcceptShareParamsOut, IMyServiceMrsNotesNoteAcceptShareResultSet>> => {
+        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteAcceptShareParams, IMyServiceMrsNotesNoteAcceptShareParamsOut, IMyServiceMrsNotesNoteAcceptShareResultSet>(
             this.schema, MyServiceMrsNotesNoteAcceptShareParamsRequest.#requestPath, noteAcceptShareParams);
         const response = await request.fetch();
 
@@ -652,6 +651,10 @@ export interface IMyServiceMrsNotesNoteAcceptShareParams {
     userId?: MaybeNull<string>,
     invitationKey?: MaybeNull<string>,
 }
+
+type IMyServiceMrsNotesNoteAcceptShareParamsOut = never;
+
+export type IMyServiceMrsNotesNoteAcceptShareResultSet = JsonValue;
 
 
 /*
@@ -670,8 +673,8 @@ export class MyServiceMrsNotesNoteDeleteParamsRequest extends MyServiceMrsNotesO
 
 
 
-    public call = async (noteDeleteParams: IMyServiceMrsNotesNoteDeleteParams): Promise<IMrsProcedureResultList<IMrsProcedureResult>> => {
-        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteDeleteParams, IMrsProcedureResult>(
+    public call = async (noteDeleteParams?: IMyServiceMrsNotesNoteDeleteParams): Promise<IMrsProcedureResponse<IMyServiceMrsNotesNoteDeleteParamsOut, IMyServiceMrsNotesNoteDeleteResultSet>> => {
+        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteDeleteParams, IMyServiceMrsNotesNoteDeleteParamsOut, IMyServiceMrsNotesNoteDeleteResultSet>(
             this.schema, MyServiceMrsNotesNoteDeleteParamsRequest.#requestPath, noteDeleteParams);
         const response = await request.fetch();
 
@@ -684,6 +687,10 @@ export interface IMyServiceMrsNotesNoteDeleteParams {
     userId?: MaybeNull<string>,
     noteId?: MaybeNull<number>,
 }
+
+type IMyServiceMrsNotesNoteDeleteParamsOut = never;
+
+export type IMyServiceMrsNotesNoteDeleteResultSet = JsonValue;
 
 
 /*
@@ -702,8 +709,8 @@ export class MyServiceMrsNotesNoteShareRequest extends MyServiceMrsNotesObjectRe
 
 
 
-    public call = async (noteShareParams: IMyServiceMrsNotesNoteShareParams): Promise<IMrsProcedureResultList<IMyServiceMrsNotesNoteShareMeta>> => {
-        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteShareParams, IMyServiceMrsNotesNoteShareMeta>(
+    public call = async (noteShareParams?: IMyServiceMrsNotesNoteShareParams): Promise<IMrsProcedureResponse<IMyServiceMrsNotesNoteShareParamsOut, IMyServiceMrsNotesNoteShareResultSet>> => {
+        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteShareParams, IMyServiceMrsNotesNoteShareParamsOut, IMyServiceMrsNotesNoteShareResultSet>(
             this.schema, MyServiceMrsNotesNoteShareRequest.#requestPath, noteShareParams);
         const response = await request.fetch();
 
@@ -720,16 +727,18 @@ export interface IMyServiceMrsNotesNoteShareParams {
     canShare?: MaybeNull<boolean>,
 }
 
-export interface IMyServiceMrsNotesNoteShareResult {
-    type: "MyServiceMrsNotesNoteShare",
-    items: IMyServiceMrsNotesNoteShare[],
-}
+type IMyServiceMrsNotesNoteShareParamsOut = never;
 
 export interface IMyServiceMrsNotesNoteShare {
     invitationKey?: MaybeNull<string>,
 }
 
-export type IMyServiceMrsNotesNoteShareMeta = IMyServiceMrsNotesNoteShareResult;
+export interface ITaggedMyServiceMrsNotesNoteShare {
+    type: "MyServiceMrsNotesNoteShare",
+    items: IMyServiceMrsNotesNoteShare[],
+}
+
+export type IMyServiceMrsNotesNoteShareResultSet = ITaggedMyServiceMrsNotesNoteShare;
 
 
 /*
@@ -748,8 +757,8 @@ export class MyServiceMrsNotesNoteUpdateParamsRequest extends MyServiceMrsNotesO
 
 
 
-    public call = async (noteUpdateParams: IMyServiceMrsNotesNoteUpdateParams): Promise<IMrsProcedureResultList<IMrsProcedureResult>> => {
-        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteUpdateParams, IMrsProcedureResult>(
+    public call = async (noteUpdateParams?: IMyServiceMrsNotesNoteUpdateParams): Promise<IMrsProcedureResponse<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>> => {
+        const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteUpdateParams, IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>(
             this.schema, MyServiceMrsNotesNoteUpdateParamsRequest.#requestPath, noteUpdateParams);
         const response = await request.fetch();
 
@@ -767,6 +776,10 @@ export interface IMyServiceMrsNotesNoteUpdateParams {
     pinned?: MaybeNull<boolean>,
     userId?: MaybeNull<string>,
 }
+
+type IMyServiceMrsNotesNoteUpdateParamsOut = never;
+
+export type IMyServiceMrsNotesNoteUpdateResultSet = JsonValue;
 
 
 export class MyServiceMrsNotes extends MrsBaseSchema {

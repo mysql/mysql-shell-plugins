@@ -37,9 +37,9 @@ from .mrs_base_classes import (
     DeleteOptions,
     MrsBaseObjectDelete,
     # --- importDeleteOnlyEnd
-    # --- importReadFunctionOnlyStart
+    # --- importFunctionCallOnlyStart
     MrsBaseObjectFunctionCall,
-    # --- importReadFunctionOnlyEnd
+    # --- importFunctionCallOnlyEnd
     Filterable,
     HighOrderOperator,
     IMrsResourceDetails,
@@ -68,7 +68,7 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
     def __init__(self, schema: "${schema_class_name}", request_path: str) -> None:
         super().__init__(schema=schema, request_path=request_path)
 
-    # --- crudReadFunctionOnlyStart
+    # --- crudFunctionCallOnlyStart
     async def __call__(self, **parameters: Unpack[I${obj_param_interface}]) -> ${obj_function_result_datatype}:
         request = MrsBaseObjectFunctionCall[I${obj_param_interface}, ${obj_function_result_datatype}](
             schema=self._schema,
@@ -76,7 +76,7 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
             parameters=parameters
         )
         return await request.submit()
-    # --- crudReadFunctionOnlyEnd
+    # --- crudFunctionCallOnlyEnd
 
     # --- crudCreateOnlyStart
     async def create(self, data: INew${obj_class_name}) -> I${obj_class_name}:
