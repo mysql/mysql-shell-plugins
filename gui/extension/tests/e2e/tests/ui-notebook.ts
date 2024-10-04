@@ -38,7 +38,7 @@ import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import * as errors from "../lib/errors";
 import { E2ECodeEditorWidget } from "../lib/WebViews/E2ECodeEditorWidget";
-import { HeatWaveProfileEditor } from "../lib/WebViews/lakehouseNavigator/heatWaveProfileEditor";
+import { HeatWaveProfileEditor } from "../lib/WebViews/MySQLAdministration/heatWaveProfileEditor";
 import { TestQueue } from "../lib/TestQueue";
 
 describe("NOTEBOOKS", () => {

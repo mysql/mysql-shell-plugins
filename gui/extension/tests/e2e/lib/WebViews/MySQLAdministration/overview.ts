@@ -25,6 +25,7 @@
 
 import { driver, Misc } from "../../Misc";
 import * as locator from "../../locators";
+import { Condition } from "vscode-extension-tester";
 
 export class Overview {
 
@@ -32,13 +33,15 @@ export class Overview {
      * Verifies if the Overview tab is selected
      * @returns A promise resolving to true if the tab is selected, false otherwise
      */
-    public isOpened = async (): Promise<boolean> => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
+    public untilIsOpened = (): Condition<boolean> => {
+        return new Condition("for Overview page to be opened", async () => {
+            await Misc.switchBackToTopFrame();
+            await Misc.switchToFrame();
 
-        const tab = await driver.findElement(locator.lakeHouseNavigator.overview.tab);
+            const tab = await driver.findElement(locator.lakeHouseNavigator.overview.tab);
 
-        return (await tab.getAttribute("class")).includes("selected");
+            return (await tab.getAttribute("class")).includes("selected");
+        });
     };
 
     /**
