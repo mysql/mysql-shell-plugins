@@ -47,10 +47,7 @@ import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
 import { Script } from "../lib/WebViews/Script";
 import { Toolbar } from "../lib/WebViews/Toolbar";
 import { TestQueue } from "../lib/TestQueue";
-import { LakeHouseNavigator } from "../lib/WebViews/lakehouseNavigator/lakeHouseNavigator";
-import { E2EServerStatus } from "../lib/WebViews/E2EServerStatus";
-import { E2EClientConnections } from "../lib/WebViews/E2EClientConnections";
-import { E2EPerformanceDashboard } from "../lib/WebViews/E2EPerformanceDashboard";
+import { E2EMySQLAdministration } from "../lib/WebViews/MySQLAdministration/E2EMySQLAdministration";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -764,6 +761,7 @@ describe("DATABASE CONNECTIONS", () => {
 
     describe("MySQL Administration", () => {
 
+        const mysqlAdministration = new E2EMySQLAdministration();
         const toolbar = new Toolbar();
 
         before(async function () {
@@ -810,110 +808,111 @@ describe("DATABASE CONNECTIONS", () => {
         it("Server Status", async () => {
 
             await (await dbTreeSection.tree.getElement(constants.serverStatus)).click();
-            const serverStatus = new E2EServerStatus();
-            await driver.wait(serverStatus.untilIsOpened(globalConn), constants.wait15seconds);
+            await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.serverStatus),
+                constants.wait15seconds);
             expect((await toolbar.editorSelector.getCurrentEditor()).label,
                 `The current editor name should be ${constants.serverStatus}`)
                 .to.equals(constants.serverStatus);
 
-            await serverStatus.create();
-            expect(serverStatus.host).to.not.equals("");
-            expect(serverStatus.socket).to.match(/(\.sock|MySQL)/);
-            expect(serverStatus.port).to.match(/(\d+)/);
-            expect(serverStatus.version).to.match(/(\d+).(\d+).(\d+)/);
-            expect(serverStatus.compiledFor).to.not.equals("");
-            expect(serverStatus.configurationFile).to.not.equals("");
-            expect(serverStatus.runningSince).to.match(/(\d+) (day|days), (\d+) (hour|hours), (\d+) (minute|minutes)/);
-            expect(serverStatus.baseDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
-            expect(serverStatus.dataDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
-            expect(serverStatus.pluginsDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
-            expect(serverStatus.tempDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
-            expect(serverStatus.errorLog.checked).to.be;
-            expect(serverStatus.errorLog.path).to.match(/((?:[^\\/]*\/)*)(.*)/);
-            expect(typeof serverStatus.generalLog.checked).to.equals("boolean");
-            expect(serverStatus.generalLog.path).to.not.equals("");
-            expect(typeof serverStatus.slowQueryLog.checked).to.equals("boolean");
-            expect(serverStatus.slowQueryLog.path).to.not.equals("");
-            expect(typeof serverStatus.performanceSchema).to.equals("boolean");
-            expect(typeof serverStatus.threadPool).to.equals("boolean");
-            expect(serverStatus.memCachedPlugin).to.not.equals("");
-            expect(serverStatus.semiSyncRepPlugin).to.not.equals("");
-            expect(typeof serverStatus.pamAuthentication).to.equals("boolean");
-            expect(typeof serverStatus.passwordValidation).to.equals("boolean");
-            expect(typeof serverStatus.auditLog).to.equals("boolean");
-            expect(serverStatus.firewall).to.not.equals("");
-            expect(serverStatus.firewallTrace).to.not.equals("");
-            expect(serverStatus.sslCa).to.match(/.pem/);
-            expect(serverStatus.sslCert).to.match(/.pem/);
-            expect(serverStatus.sslKey).to.match(/.pem/);
-            expect(serverStatus.privateKey).to.equals("private_key.pem");
-            expect(serverStatus.publicKey).to.equals("public_key.pem");
+            await mysqlAdministration.serverStatus.create();
+            expect(mysqlAdministration.serverStatus.host).to.not.equals("");
+            expect(mysqlAdministration.serverStatus.socket).to.match(/(\.sock|MySQL)/);
+            expect(mysqlAdministration.serverStatus.port).to.match(/(\d+)/);
+            expect(mysqlAdministration.serverStatus.version).to.match(/(\d+).(\d+).(\d+)/);
+            expect(mysqlAdministration.serverStatus.compiledFor).to.not.equals("");
+            expect(mysqlAdministration.serverStatus.configurationFile).to.not.equals("");
+            expect(mysqlAdministration.serverStatus.runningSince)
+                .to.match(/(\d+) (day|days), (\d+) (hour|hours), (\d+) (minute|minutes)/);
+            expect(mysqlAdministration.serverStatus.baseDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
+            expect(mysqlAdministration.serverStatus.dataDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
+            expect(mysqlAdministration.serverStatus.pluginsDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
+            expect(mysqlAdministration.serverStatus.tempDirectory).to.match(/((?:[^\\/]*\/)*)(.*)/);
+            expect(mysqlAdministration.serverStatus.errorLog.checked).to.be.true;
+            expect(mysqlAdministration.serverStatus.errorLog.path).to.match(/((?:[^\\/]*\/)*)(.*)/);
+            expect(typeof mysqlAdministration.serverStatus.generalLog.checked).to.equals("boolean");
+            expect(mysqlAdministration.serverStatus.generalLog.path).to.not.equals("");
+            expect(typeof mysqlAdministration.serverStatus.slowQueryLog.checked).to.equals("boolean");
+            expect(mysqlAdministration.serverStatus.slowQueryLog.path).to.not.equals("");
+            expect(typeof mysqlAdministration.serverStatus.performanceSchema).to.equals("boolean");
+            expect(typeof mysqlAdministration.serverStatus.threadPool).to.equals("boolean");
+            expect(mysqlAdministration.serverStatus.memCachedPlugin).to.not.equals("");
+            expect(mysqlAdministration.serverStatus.semiSyncRepPlugin).to.not.equals("");
+            expect(typeof mysqlAdministration.serverStatus.pamAuthentication).to.equals("boolean");
+            expect(typeof mysqlAdministration.serverStatus.passwordValidation).to.equals("boolean");
+            expect(typeof mysqlAdministration.serverStatus.auditLog).to.equals("boolean");
+            expect(mysqlAdministration.serverStatus.firewall).to.not.equals("");
+            expect(mysqlAdministration.serverStatus.firewallTrace).to.not.equals("");
+            expect(mysqlAdministration.serverStatus.sslCa).to.match(/.pem/);
+            expect(mysqlAdministration.serverStatus.sslCert).to.match(/.pem/);
+            expect(mysqlAdministration.serverStatus.sslKey).to.match(/.pem/);
+            expect(mysqlAdministration.serverStatus.privateKey).to.equals("private_key.pem");
+            expect(mysqlAdministration.serverStatus.publicKey).to.equals("public_key.pem");
 
         });
 
         it("Client Connections", async () => {
 
             await (await dbTreeSection.tree.getElement(constants.clientConns)).click();
-            const clientConnections = new E2EClientConnections();
-            await driver.wait(clientConnections.untilIsOpened(globalConn), constants.wait15seconds);
+            await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.clientConns),
+                constants.wait15seconds);
             expect((await toolbar.editorSelector.getCurrentEditor()).label,
                 `The current editor name should be ${constants.clientConns}`)
                 .to.equals(constants.clientConns);
 
-            await clientConnections.create();
-            expect(clientConnections.threadsConnected).to.match(/Threads Connected: (\d+)/);
-            expect(clientConnections.threadsRunning).to.match(/Threads Running: (\d+)/);
-            expect(clientConnections.threadsCreated).to.match(/Threads Created: (\d+)/);
-            expect(clientConnections.rejected).to.match(/Rejected \(over limit\):/);
-            expect(clientConnections.totalConnections).to.match(/Total Connections: (\d+)/);
-            expect(clientConnections.connectionLimit).to.match(/Connection Limit: (\d+)/);
-            expect(clientConnections.abortedClients).to.match(/Aborted Clients: (\d+)/);
-            expect(clientConnections.abortedConnections).to.match(/Aborted Connections: (\d+)/);
-            expect(clientConnections.errors).to.match(/Errors: (\d+)/);
-            expect((await clientConnections.connectionsList
+            await mysqlAdministration.clientConnections.create();
+            expect(mysqlAdministration.clientConnections.threadsConnected).to.match(/Threads Connected: (\d+)/);
+            expect(mysqlAdministration.clientConnections.threadsRunning).to.match(/Threads Running: (\d+)/);
+            expect(mysqlAdministration.clientConnections.threadsCreated).to.match(/Threads Created: (\d+)/);
+            expect(mysqlAdministration.clientConnections.rejected).to.match(/Rejected \(over limit\):/);
+            expect(mysqlAdministration.clientConnections.totalConnections).to.match(/Total Connections: (\d+)/);
+            expect(mysqlAdministration.clientConnections.connectionLimit).to.match(/Connection Limit: (\d+)/);
+            expect(mysqlAdministration.clientConnections.abortedClients).to.match(/Aborted Clients: (\d+)/);
+            expect(mysqlAdministration.clientConnections.abortedConnections).to.match(/Aborted Connections: (\d+)/);
+            expect(mysqlAdministration.clientConnections.errors).to.match(/Errors: (\d+)/);
+            expect((await mysqlAdministration.clientConnections.connectionsList
                 .findElements(locator.mysqlAdministration.clientConnections.tableRow)).length).to.be.greaterThan(0);
         });
 
         it("Performance Dashboard - MLE Disabled", async () => {
 
             await (await dbTreeSection.tree.getElement(constants.perfDash)).click();
-            const performanceDashboard = new E2EPerformanceDashboard();
-            await driver.wait(performanceDashboard.untilIsOpened(globalConn), constants.wait15seconds);
-            expect(await performanceDashboard.tabExists(constants.perfDashMLETab)).to.be.false;
+            await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.perfDash),
+                constants.wait15seconds);
+            expect(await mysqlAdministration.performanceDashboard.tabExists(constants.perfDashMLETab)).to.be.false;
 
-            await performanceDashboard.loadServerPerformance();
-            expect(performanceDashboard.networkStatus.incomingNetworkTrafficGraph).to.exist;
-            expect(performanceDashboard.networkStatus.incomingData).to.match(/(\d+) B\/s/);
-            expect(performanceDashboard.networkStatus.outgoingNetworkTrafficGraph).to.exist;
-            expect(performanceDashboard.networkStatus.outgoingData).to.match(/(\d+) B\/s/);
-            expect(performanceDashboard.mysqlStatus.tableCacheGraph).to.exist;
-            expect(performanceDashboard.mysqlStatus.threadsGraph).to.exist;
-            expect(performanceDashboard.mysqlStatus.openObjectsGraph).to.exist;
-            expect(performanceDashboard.mysqlStatus.cacheEfficiency).to.match(/(\d+)%/);
-            expect(performanceDashboard.mysqlStatus.totalOpenedTables).to.match(/(\d+)/);
-            expect(performanceDashboard.mysqlStatus.totalTransactions).to.match(/(\d+)/);
-            expect(performanceDashboard.mysqlStatus.sqlStatementsExecutedGraph).to.exist;
-            expect(performanceDashboard.mysqlStatus.totalStatements).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.mysqlStatus.select).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.mysqlStatus.insert).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.mysqlStatus.update).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.mysqlStatus.delete).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.mysqlStatus.create).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.mysqlStatus.alter).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.mysqlStatus.drop).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.innoDBStatus.innoDBBufferPoolGraph).to.exist;
-            expect(performanceDashboard.innoDBStatus.checkpointAgeGraph).to.exist;
-            expect(performanceDashboard.innoDBStatus.diskReadRatioGraph).to.exist;
-            expect(performanceDashboard.innoDBStatus.readRequests).to.match(/(\d+) pages\/s/);
-            expect(performanceDashboard.innoDBStatus.writeRequests).to.match(/(\d+) pages\/s/);
-            expect(performanceDashboard.innoDBStatus.diskReads).to.match(/(\d+) #\/s/);
-            expect(performanceDashboard.innoDBStatus.innoDBDiskWritesGraph).to.exist;
-            expect(performanceDashboard.innoDBStatus.logDataWritten).to.match(/(\d+) B\/s/);
-            expect(performanceDashboard.innoDBStatus.logWrites).to.match(/(\d+) #\/s/);
-            expect(performanceDashboard.innoDBStatus.writing).to.match(/(\d+) B\/s/);
-            expect(performanceDashboard.innoDBStatus.innoDBDiskReadsGraph).to.exist;
-            expect(performanceDashboard.innoDBStatus.bufferWrites).to.match(/(\d+) B\/s/);
-            expect(performanceDashboard.innoDBStatus.reading).to.match(/(\d+) B\/s/);
+            await mysqlAdministration.performanceDashboard.loadServerPerformance();
+            expect(mysqlAdministration.performanceDashboard.networkStatus.incomingNetworkTrafficGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.networkStatus.incomingData).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.networkStatus.outgoingNetworkTrafficGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.networkStatus.outgoingData).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.tableCacheGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.threadsGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.openObjectsGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.cacheEfficiency).to.match(/(\d+)%/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalOpenedTables).to.match(/(\d+)/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalTransactions).to.match(/(\d+)/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.sqlStatementsExecutedGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalStatements).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.select).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.insert).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.update).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.delete).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.create).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.alter).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.drop).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBBufferPoolGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.checkpointAgeGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.diskReadRatioGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.readRequests).to.match(/(\d+) pages\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.writeRequests).to.match(/(\d+) pages\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.diskReads).to.match(/(\d+) #\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBDiskWritesGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.logDataWritten).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.logWrites).to.match(/(\d+) #\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.writing).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBDiskReadsGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.bufferWrites).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.reading).to.match(/(\d+) B\/s/);
             await Workbench.closeEditor(new RegExp(constants.perfDash));
 
         });
@@ -929,57 +928,58 @@ describe("DATABASE CONNECTIONS", () => {
             expect(result.text).to.match(/OK/);
 
             await (await dbTreeSection.tree.getElement(constants.perfDash)).click();
-            const performanceDashboard = new E2EPerformanceDashboard();
-            await driver.wait(performanceDashboard.untilIsOpened(globalConn), constants.wait15seconds);
+            await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.perfDash),
+                constants.wait15seconds);
             expect((await toolbar.editorSelector.getCurrentEditor()).label,
                 `The current editor name should be ${constants.perfDash}`)
                 .to.equals(constants.perfDash);
 
-            expect(await performanceDashboard.tabExists(constants.perfDashServerTab)).to.be.true;
-            expect(await performanceDashboard.tabExists(constants.perfDashMLETab)).to.be.true;
-            expect(await performanceDashboard.tabIsSelected(constants.perfDashServerTab)).to.be.true;
+            expect(await mysqlAdministration.performanceDashboard.tabExists(constants.perfDashServerTab)).to.be.true;
+            expect(await mysqlAdministration.performanceDashboard.tabExists(constants.perfDashMLETab)).to.be.true;
+            expect(await mysqlAdministration.performanceDashboard.tabIsSelected(constants.perfDashServerTab))
+                .to.be.true;
 
-            await performanceDashboard.loadServerPerformance();
-            expect(performanceDashboard.networkStatus.incomingNetworkTrafficGraph).to.exist;
-            expect(performanceDashboard.networkStatus.incomingData).to.match(/(\d+) B\/s/);
-            expect(performanceDashboard.networkStatus.outgoingNetworkTrafficGraph).to.exist;
-            expect(performanceDashboard.networkStatus.outgoingData).to.match(/(\d+) B\/s/);
-            expect(performanceDashboard.mysqlStatus.tableCacheGraph).to.exist;
-            expect(performanceDashboard.mysqlStatus.threadsGraph).to.exist;
-            expect(performanceDashboard.mysqlStatus.openObjectsGraph).to.exist;
-            expect(performanceDashboard.mysqlStatus.cacheEfficiency).to.match(/(\d+)%/);
-            expect(performanceDashboard.mysqlStatus.totalOpenedTables).to.match(/(\d+)/);
-            expect(performanceDashboard.mysqlStatus.totalTransactions).to.match(/(\d+)/);
-            expect(performanceDashboard.mysqlStatus.sqlStatementsExecutedGraph).to.exist;
-            expect(performanceDashboard.mysqlStatus.totalStatements).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.mysqlStatus.select).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.mysqlStatus.insert).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.mysqlStatus.update).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.mysqlStatus.delete).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.mysqlStatus.create).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.mysqlStatus.alter).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.mysqlStatus.drop).to.match(/(\d+)\/s/);
-            expect(performanceDashboard.innoDBStatus.innoDBBufferPoolGraph).to.exist;
-            expect(performanceDashboard.innoDBStatus.checkpointAgeGraph).to.exist;
-            expect(performanceDashboard.innoDBStatus.diskReadRatioGraph).to.exist;
-            expect(performanceDashboard.innoDBStatus.readRequests).to.match(/(\d+) pages\/s/);
-            expect(performanceDashboard.innoDBStatus.writeRequests).to.match(/(\d+) pages\/s/);
-            expect(performanceDashboard.innoDBStatus.diskReads).to.match(/(\d+) #\/s/);
-            expect(performanceDashboard.innoDBStatus.innoDBDiskWritesGraph).to.exist;
-            expect(performanceDashboard.innoDBStatus.logDataWritten).to.match(/(\d+) B\/s/);
-            expect(performanceDashboard.innoDBStatus.logWrites).to.match(/(\d+) #\/s/);
-            expect(performanceDashboard.innoDBStatus.writing).to.match(/(\d+) B\/s/);
-            expect(performanceDashboard.innoDBStatus.innoDBDiskReadsGraph).to.exist;
-            expect(performanceDashboard.innoDBStatus.bufferWrites).to.match(/(\d+) B\/s/);
-            expect(performanceDashboard.innoDBStatus.reading).to.match(/(\d+) B\/s/);
+            await mysqlAdministration.performanceDashboard.loadServerPerformance();
+            expect(mysqlAdministration.performanceDashboard.networkStatus.incomingNetworkTrafficGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.networkStatus.incomingData).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.networkStatus.outgoingNetworkTrafficGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.networkStatus.outgoingData).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.tableCacheGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.threadsGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.openObjectsGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.cacheEfficiency).to.match(/(\d+)%/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalOpenedTables).to.match(/(\d+)/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalTransactions).to.match(/(\d+)/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.sqlStatementsExecutedGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.totalStatements).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.select).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.insert).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.update).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.delete).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.create).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.alter).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus.drop).to.match(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBBufferPoolGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.checkpointAgeGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.diskReadRatioGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.readRequests).to.match(/(\d+) pages\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.writeRequests).to.match(/(\d+) pages\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.diskReads).to.match(/(\d+) #\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBDiskWritesGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.logDataWritten).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.logWrites).to.match(/(\d+) #\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.writing).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBDiskReadsGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.bufferWrites).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.reading).to.match(/(\d+) B\/s/);
 
-            await (await performanceDashboard.getTab(constants.perfDashMLETab)).click();
-            await performanceDashboard.loadMLEPerformance();
-            expect(performanceDashboard.mlePerformance.heapUsageGraph).to.exist;
-            expect(performanceDashboard.mlePerformance.mleStatus).to.equals("Inactive");
-            expect(performanceDashboard.mlePerformance.mleMaxHeapSize).to.match(/(\d+).(\d+) GB/);
-            expect(performanceDashboard.mlePerformance.mleHeapUtilizationGraph).to.exist;
-            expect(performanceDashboard.mlePerformance.currentHeapUsage).to.equals("0%");
+            await (await mysqlAdministration.performanceDashboard.getTab(constants.perfDashMLETab)).click();
+            await mysqlAdministration.performanceDashboard.loadMLEPerformance();
+            expect(mysqlAdministration.performanceDashboard.mlePerformance.heapUsageGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mlePerformance.mleStatus).to.equals("Inactive");
+            expect(mysqlAdministration.performanceDashboard.mlePerformance.mleMaxHeapSize).to.match(/(\d+).(\d+) GB/);
+            expect(mysqlAdministration.performanceDashboard.mlePerformance.mleHeapUtilizationGraph).to.exist;
+            expect(mysqlAdministration.performanceDashboard.mlePerformance.currentHeapUsage).to.equals("0%");
 
             host = await dbTreeSection.tree.getElement(globalConn.caption);
             await (await dbTreeSection.tree.getActionButton(host, constants.openNewConnection)).click();
@@ -1003,10 +1003,11 @@ describe("DATABASE CONNECTIONS", () => {
             expect(result.toolbar.status).to.match(/OK/);
             await Workbench.closeEditor(new RegExp(constants.dbDefaultEditor));
             await (await dbTreeSection.tree.getElement(constants.perfDash)).click();
-            await (await performanceDashboard.getTab(constants.perfDashMLETab)).click();
-            await performanceDashboard.loadMLEPerformance();
-            expect(performanceDashboard.mlePerformance.mleStatus).to.equals("Active");
-            expect(parseInt(performanceDashboard.mlePerformance.currentHeapUsage.match(/(\d+)/)[1], 10))
+            await (await mysqlAdministration.performanceDashboard.getTab(constants.perfDashMLETab)).click();
+            await mysqlAdministration.performanceDashboard.loadMLEPerformance();
+            expect(mysqlAdministration.performanceDashboard.mlePerformance.mleStatus).to.equals("Active");
+            expect(parseInt(mysqlAdministration.performanceDashboard.mlePerformance.currentHeapUsage
+                .match(/(\d+)/)[1], 10))
                 .to.be.greaterThan(0);
         });
 
@@ -1031,7 +1032,6 @@ describe("DATABASE CONNECTIONS", () => {
                 formats: "PDF (Portable Document Format Files)",
             };
 
-            const lakeHouseNavigator = new LakeHouseNavigator();
             const fileToUpload = "another_cookbook.pdf";
 
             before(async function () {
@@ -1048,7 +1048,8 @@ describe("DATABASE CONNECTIONS", () => {
                     await (await dbTreeSection.tree.getElement(constants.lakehouseNavigator)).click();
                     expect(await Workbench.getOpenEditorTitles(), errors.tabIsNotOpened(constants.lakehouseNavigator))
                         .to.include(constants.lakehouseNavigator);
-                    await driver.wait(new LakeHouseNavigator().untilIsOpened(heatWaveConn), constants.wait15seconds);
+                    await driver.wait(mysqlAdministration.untilPageIsOpened(heatWaveConn, constants.lakehouseNavigator),
+                        constants.wait15seconds);
                     await (await dbTreeSection.tree.getElement((heatWaveConn.basic as interfaces.IConnBasicMySQL)
                         .schema)).expand();
                     await (await dbTreeSection.tree.getElement("Tables")).expand();
@@ -1089,33 +1090,34 @@ describe("DATABASE CONNECTIONS", () => {
 
             it("Upload data to object storage", async () => {
 
-                await driver.wait(lakeHouseNavigator.overview.isOpened(), constants.wait3seconds);
+                const uploadToObjectStorage = mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage;
+
+                await driver.wait(mysqlAdministration.lakeHouseNavigator.overview.untilIsOpened(),
+                    constants.wait3seconds);
                 await driver.wait(new Condition(`for editor to be ${constants.lakeHouseNavigatorEditor}`, async () => {
-                    return (await lakeHouseNavigator.toolbar.editorSelector.getCurrentEditor()).label ===
-                        constants.lakeHouseNavigatorEditor;
+                    return (await mysqlAdministration.lakeHouseNavigator.toolbar.editorSelector
+                        .getCurrentEditor()).label === constants.lakeHouseNavigatorEditor;
                 }), constants.wait3seconds);
 
-                await lakeHouseNavigator.overview.clickUploadFiles();
-                await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.selectOciProfile("HEATWAVE");
-                await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
-                await driver.wait(lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
+                await mysqlAdministration.lakeHouseNavigator.overview.clickUploadFiles();
+                await uploadToObjectStorage.objectStorageBrowser.selectOciProfile("HEATWAVE");
+                await uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
+                await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
                     constants.wait15seconds);
-                await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
+
+                await uploadToObjectStorage.objectStorageBrowser
                     .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
-                await (await lakeHouseNavigator.uploadToObjectStorage.getFilesForUploadButton(constants.addFiles))
-                    .click();
-                await lakeHouseNavigator.uploadToObjectStorage.setFilesForUploadFilePath(join(process.cwd(),
-                    fileToUpload));
-                await driver.wait(lakeHouseNavigator.uploadToObjectStorage.untilExistsFileForUploadFile(fileToUpload),
+                await (await mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage
+                    .getFilesForUploadButton(constants.addFiles)).click();
+                await uploadToObjectStorage.setFilesForUploadFilePath(join(process.cwd(), fileToUpload));
+                await driver.wait(uploadToObjectStorage.untilExistsFileForUploadFile(fileToUpload),
                     constants.wait10seconds);
-                await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.checkItem("upload");
-                await (await lakeHouseNavigator.uploadToObjectStorage
-                    .getFilesForUploadButton(constants.startFileUpload)).click();
-                await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
-                await driver.wait(lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
+                await uploadToObjectStorage.objectStorageBrowser.checkItem("upload");
+                await (await uploadToObjectStorage.getFilesForUploadButton(constants.startFileUpload)).click();
+                await uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
+                await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
                     constants.wait10seconds);
-                expect(await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.existsItem(fileToUpload))
-                    .to.be.true;
+                expect(await uploadToObjectStorage.objectStorageBrowser.existsItem(fileToUpload)).to.be.true;
                 await driver.wait(Workbench.untilNotificationExists("The files have been uploaded successfully"),
                     constants.wait20seconds);
 
@@ -1123,32 +1125,30 @@ describe("DATABASE CONNECTIONS", () => {
 
             it("Load into Lakehouse", async () => {
 
-                await lakeHouseNavigator.selectTab(constants.loadIntoLakeHouseTab);
-                await driver.wait(lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.untilItemsAreLoaded(),
+                const loadIntoLakehouse = mysqlAdministration.lakeHouseNavigator.loadIntoLakehouse;
+                await mysqlAdministration.lakeHouseNavigator.selectTab(constants.loadIntoLakeHouseTab);
+                await driver.wait(loadIntoLakehouse.objectStorageBrowser.untilItemsAreLoaded(),
                     constants.wait10seconds);
-                await lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
+                await mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
                     .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
-                expect(await lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.existsItem(fileToUpload),
+                expect(await loadIntoLakehouse.objectStorageBrowser.existsItem(fileToUpload),
                     `'${fileToUpload}' was not found`).to.be.true;
-                await lakeHouseNavigator.loadIntoLakehouse.objectStorageBrowser.checkItem(fileToUpload);
-                await driver.wait(lakeHouseNavigator.loadIntoLakehouse.untilExistsLoadingTask(fileToUpload),
-                    constants.wait5seconds);
-                await lakeHouseNavigator.loadIntoLakehouse.setNewLoadingTask(newTask);
-                await lakeHouseNavigator.loadIntoLakehouse.startLoadingTask();
+                await loadIntoLakehouse.objectStorageBrowser.checkItem(fileToUpload);
+                await driver.wait(loadIntoLakehouse.untilExistsLoadingTask(fileToUpload), constants.wait5seconds);
+                await loadIntoLakehouse.setNewLoadingTask(newTask);
+                await loadIntoLakehouse.startLoadingTask();
 
             });
 
             it("Lakehouse Tables", async () => {
 
-                await driver.wait(lakeHouseNavigator.lakehouseTables.untilIsOpened(), constants.wait15seconds);
-                expect(await lakeHouseNavigator.lakehouseTables.getDatabaseSchemas())
-                    .to.contain(newTask.targetDatabaseSchema);
-                await driver.wait(lakeHouseNavigator.lakehouseTables.untilExistsLakeHouseTable(newTask.name),
-                    constants.wait10seconds);
-                await driver.wait(lakeHouseNavigator.lakehouseTables.untilLakeHouseTableIsLoading(newTask.name),
-                    constants.wait1minute);
+                const lakehouseTables = mysqlAdministration.lakeHouseNavigator.lakehouseTables;
+                await driver.wait(lakehouseTables.untilIsOpened(), constants.wait15seconds);
+                expect(await lakehouseTables.getDatabaseSchemas()).to.contain(newTask.targetDatabaseSchema);
+                await driver.wait(lakehouseTables.untilExistsLakeHouseTable(newTask.name), constants.wait10seconds);
+                await driver.wait(lakehouseTables.untilLakeHouseTableIsLoading(newTask.name), constants.wait1minute);
 
-                let latestTable = await lakeHouseNavigator.lakehouseTables.getLakehouseTable(newTask.name);
+                let latestTable = await lakehouseTables.getLakehouseTable(newTask.name);
                 expect(latestTable.hasProgressBar).to.be.true;
                 expect(latestTable.loaded).to.match(/(\d+)%/);
                 expect(latestTable.hasLoadingSpinner).to.be.true;
@@ -1157,10 +1157,8 @@ describe("DATABASE CONNECTIONS", () => {
                 expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
                 expect(latestTable.comment).to.equals(newTask.description);
 
-                await driver.wait(lakeHouseNavigator.lakehouseTables.untilLakeHouseTableIsLoaded(newTask.name),
-                    constants.wait2minutes);
-
-                latestTable = await lakeHouseNavigator.lakehouseTables.getLakehouseTable(newTask.name);
+                await driver.wait(lakehouseTables.untilLakeHouseTableIsLoaded(newTask.name), constants.wait2minutes);
+                latestTable = await lakehouseTables.getLakehouseTable(newTask.name);
                 expect(latestTable.hasProgressBar).to.be.false;
                 expect(latestTable.loaded).to.equals("Yes");
                 expect(latestTable.hasLoadingSpinner).to.be.false;
@@ -1169,8 +1167,8 @@ describe("DATABASE CONNECTIONS", () => {
                 expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
                 expect(latestTable.comment).to.equals(newTask.description);
 
-                const latestTask = await lakeHouseNavigator.lakehouseTables.getLatestTask();
-                await driver.wait(lakeHouseNavigator.lakehouseTables.untilLakeHouseTaskIsCompleted(latestTask.id),
+                const latestTask = await lakehouseTables.getLatestTask();
+                await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(latestTask.id),
                     constants.wait10seconds);
                 expect(latestTask.name).to.equals(`Loading ${newTask.name}`);
                 expect(latestTask.hasProgressBar).to.be.false;

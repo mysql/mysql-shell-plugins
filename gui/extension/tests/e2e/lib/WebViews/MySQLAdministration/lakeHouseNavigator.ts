@@ -23,7 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Condition } from "vscode-extension-tester";
 import { driver, Misc } from "../../Misc";
 import * as constants from "../../constants";
 import * as locator from "../../locators";
@@ -32,8 +31,6 @@ import { UploadToObjectStorage } from "./uploadToObjectStorage";
 import { LoadIntoLakehouse } from "./loadIntoLakeHouse";
 import { LakehouseTables } from "./lakehouseTables";
 import { Toolbar } from "../Toolbar";
-import { PasswordDialog } from "../Dialogs/PasswordDialog";
-import * as interfaces from "../../interfaces";
 
 /**
  * This class aggregates the functions that perform password dialog related operations
@@ -49,42 +46,6 @@ export class LakeHouseNavigator {
     public loadIntoLakehouse = new LoadIntoLakehouse();
 
     public lakehouseTables = new LakehouseTables();
-
-    /**
-     * Verifies if the Lakehouse Navigator page is opened and fully loaded
-     * @param connection The DB Connection
-     * @returns A condition resolving to true if the page is loaded, false otherwise
-     */
-    public untilIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
-        return new Condition(`for Lakehouse Navigator to be opened`, async () => {
-            await Misc.switchBackToTopFrame();
-            await Misc.switchToFrame();
-
-            const isOpened = async (): Promise<boolean> => {
-                return (await driver.findElements(locator.lakeHouseNavigator.exists)).length > 0;
-            };
-
-            if (await PasswordDialog.exists()) {
-                await PasswordDialog.setCredentials(connection);
-
-                return driver.wait(async () => {
-                    return isOpened();
-                }, constants.wait10seconds)
-                    .catch(async () => {
-                        const existsErrorDialog = (await driver.findElements(locator.errorDialog.exists)).length > 0;
-                        if (existsErrorDialog) {
-                            const errorDialog = await driver.findElement(locator.errorDialog.exists);
-                            const errorMsg = await errorDialog.findElement(locator.errorDialog.message);
-                            throw new Error(await errorMsg.getText());
-                        } else {
-                            throw new Error("Unknown error");
-                        }
-                    });
-            } else {
-                return isOpened();
-            }
-        });
-    };
 
     /**
      * Selects a tab

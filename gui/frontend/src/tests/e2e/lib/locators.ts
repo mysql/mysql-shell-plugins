@@ -140,14 +140,110 @@ export const dbConnectionOverview = {
 };
 
 // ADMINISTRATION
-export const serverStatusHeadings = By.css(".grid .heading label");
-export const clientConnections = {
-    properties: By.css("#connectionProps label"),
-    connectionListRows: By.css("#connectionList .tabulator-row"),
-};
-export const performanceDashboardGrid = {
-    exists: By.id("dashboardGrid"),
-    headings: By.css(".gridCell.title"),
+export const mysqlAdministration = {
+    serverStatus: {
+        exists: By.id("statusBoxHost"),
+        host: By.css(`div[data-testid="host"]`),
+        socket: By.css(`div[data-testid="socket"]`),
+        port: By.css(`div[data-testid="port"]`),
+        version: By.css(`div[data-testid="version"]`),
+        compiledFor: By.css(`div[data-testid="compiledFor"]`),
+        configFile: By.css(`div[data-testid="configFile"]`),
+        runningSince: By.css(`div[data-testid="runningSince"]`),
+        baseDir: By.css(`div[data-testid="baseDir"]`),
+        dataDir: By.css(`div[data-testid="dataDir"]`),
+        pluginsDir: By.css(`div[data-testid="pluginsDir"]`),
+        tmpDir: By.css(`div[data-testid="tmpDir"]`),
+        errorLog: By.css(`div[data-testid="errorLog"]`),
+        generalLog: By.css(`div[data-testid="generalLog"]`),
+        slowQueryLog: By.css(`div[data-testid="slowQueryLog"]`),
+        performanceSchema: By.css(`div[data-testid="performanceSchema"]`),
+        threadPool: By.css(`div[data-testid="threadPool"]`),
+        memCachedPlugin: By.css(`div[data-testid="memCached"]`),
+        semiSyncReplicationPlugin: By.css(`div[data-testid="semiSyncPlugin"]`),
+        pamAuthentication: By.css(`div[data-testid="pamAuth"]`),
+        passwordValidation: By.css(`div[data-testid="passwordValidation"]`),
+        auditLog: By.css(`div[data-testid="auditLog"]`),
+        firewall: By.css(`div[data-testid="firewall"]`),
+        firewallTrace: By.css(`div[data-testid="firewallTrace"]`),
+        privateKey: By.css(`div[data-testid="privateKey"]`),
+        publicKey: By.css(`div[data-testid="publicKey"]`),
+        sslCa: By.css(`div[data-testid="sslCa"]`),
+        sslCaPath: By.css(`div[data-testid="sslCaPath"]`),
+        sslCert: By.css(`div[data-testid="sslCert"]`),
+        sslCipher: By.css(`div[data-testid="sslCipher"]`),
+        sslCrl: By.css(`div[data-testid="sslCrl"]`),
+        sslCrlPath: By.css(`div[data-testid="sslCrlPath"]`),
+        sslKey: By.css(`div[data-testid="sslKey"]`),
+    },
+    clientConnections: {
+        toolbar: By.id("clientConnectionToolbar"),
+        threadsConnected: By.css(`label[data-testid="threadsConnected"]`),
+        threadsRunning: By.css(`label[data-testid="threadsRunning"]`),
+        threadsCreated: By.css(`label[data-testid="threadsCreated"]`),
+        threadsCached: By.css(`label[data-testid="threadsCached"]`),
+        rejected: By.css(`label[data-testid="rejected"]`),
+        totalConnections: By.css(`label[data-testid="totalConnections"]`),
+        connectionLimit: By.css(`label[data-testid="connectionsLimit"]`),
+        abortedClients: By.css(`label[data-testid="abortedClients"]`),
+        abortedConnections: By.css(`label[data-testid="abortedConnections"]`),
+        errors: By.css(`label[data-testid="errors"]`),
+        connectionsList: By.id("connectionList"),
+        tableRow: By.className("tabulator-row"),
+    },
+    performanceDashboard: {
+        exists: By.id("dashboardGrid"),
+        networkStatus: {
+            incomingNetworkTrafficGraph: By.id("networkStatus1"),
+            // eslint-disable-next-line max-len
+            incomingData: By.css(`div[data-tooltip='Number of bytes received by the MySQL server at the network level.'] .valueLabel`),
+            outgoingNetworkTrafficGraph: By.id("networkStatus2"),
+            // eslint-disable-next-line max-len
+            outgoingData: By.css(`div[data-tooltip='Number of bytes sent by the MySQL server at the network level.'] .valueLabel`),
+            clientConnectionsGraph: By.id("networkStatus3"),
+        },
+        mysqlStatus: {
+            tableCacheGraph: By.id("tableCacheGraph"),
+            threadsGraph: By.id("threadsGraph"),
+            openObjectsGraph: By.id("openFilesGraph"),
+            // eslint-disable-next-line max-len
+            cacheEfficiency: By.css(`div[data-tooltip='Cache for minimizing the number of times MySQL opens database tables when accessed.'] .valueLabel`),
+            totalOpenedTables: By.css(`div[data-tooltip='Total number of opened tables.'] .valueLabel`),
+            totalTransactions: By.css(`div[data-tooltip='Total number of started transactions.'] .valueLabel`),
+            sqlStatementsExecutedGraph: By.id("sqlStatus5"),
+            totalStatements: By.css(`div[data-tooltip='Total number of statements executed.'] .valueLabel`),
+            select: By.css(`div[data-tooltip='SELECT Statements Executed'] .valueLabel`),
+            insert: By.css(`div[data-tooltip='INSERT Statements Executed'] .valueLabel`),
+            update: By.css(`div[data-tooltip='UPDATE Statements Executed'] .valueLabel`),
+            delete: By.css(`div[data-tooltip='DELETE Statements Executed'] .valueLabel`),
+            create: By.css(`div[data-tooltip='CREATE Statements Executed'] .valueLabel`),
+            alter: By.css(`div[data-tooltip='ALTER Statements Executed'] .valueLabel`),
+            drop: By.css(`div[data-tooltip='DROP Statements Executed'] .valueLabel`),
+        },
+        innoDBStatus: {
+            innoDBBufferPoolGraph: By.id("bufferPoolGraph"),
+            checkpointAgeGraph: By.id("innoDBStatus2"),
+            diskReadRatioGraph: By.id("innoDBStatus3"),
+            // eslint-disable-next-line max-len
+            readRequests: By.css(`div[data-tooltip='The number of logical read requests InnoDB has done to the buffer pool.'] .valueLabel`),
+            // eslint-disable-next-line max-len
+            writeRequests: By.css(`div[data-tooltip='The number of logical write requests InnoDB has done to the buffer pool.'] .valueLabel`),
+            // eslint-disable-next-line max-len
+            diskReads: By.css(`div[data-tooltip='The number of logical reads that InnoDB could not satisfy from the buffer pool, and had to read directly from the disk.'] .valueLabel`),
+            innoDBDiskWritesGraph: By.id("innoDBStatus4"),
+            // eslint-disable-next-line max-len
+            logDataWritten: By.css(`div[data-tooltip='The number of bytes written to the InnoDB redo log files.'] .valueLabel`),
+            // eslint-disable-next-line max-len
+            logWrites: By.css(`div[data-tooltip='The number of physical writes to the InnoDB redo log file.'] .valueLabel`),
+            // eslint-disable-next-line max-len
+            writing: By.css(`div[data-tooltip='Total amount of data in bytes written in file operations by the InnoDB storage engine.'] .valueLabel`),
+            innoDBDiskReadsGraph: By.id("innoDBStatus5"),
+            // eslint-disable-next-line max-len
+            bufferWrites: By.css(`div[data-tooltip='The number of double-write operations that have been performed.'] .valueLabel`),
+            // eslint-disable-next-line max-len
+            reading: By.css(`div[data-tooltip='Total amount of data in bytes read in file operations by the InnoDB storage engine.'] .valueLabel`),
+        },
+    },
 };
 
 export const treeToggle = By.css("span.treeToggle");
