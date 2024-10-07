@@ -5232,12 +5232,8 @@ identifierKeywordsUnambiguous:
         | TYPESCRIPT_SYMBOL
         | ROLES_SYMBOL
         | EXTENDS_SYMBOL
-        | GRANTS_SYMBOL
-        | FOR_SYMBOL
         | OBJECT_SYMBOL
         | HIERARCHY_SYMBOL
-        | LEVEL_SYMBOL
-        | ANY_SYMBOL
         | AT_INOUT_SYMBOL
         | AT_IN_SYMBOL
         | AT_OUT_SYMBOL

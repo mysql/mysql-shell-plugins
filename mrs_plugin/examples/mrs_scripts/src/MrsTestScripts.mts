@@ -26,33 +26,37 @@
 // Required to enable support for decorators
 (Symbol.metadata as any) ??= Symbol("Symbol.metadata");
 
-import { Mrs, IMrsInterface, runSql, SqlError } from "../mrs/mrs.mjs";
+import { Mrs, runSql, SqlError } from "../mrs/mrs.mjs";
 
-export interface IMrsGreeting extends IMrsInterface {
+export interface IMrsGreeting {
     greeting: string;
+}
+
+export interface IMrsTimedGreeting extends IMrsGreeting {
     timeStamp: string;
 }
 
-export interface IMrsTestPerson extends IMrsInterface {
+export interface IMrsTestPerson {
     name: string;
     salutation: string;
     birthYear: number;
+    info?: string;
+    version?: IMrsVersion;
 }
 
-export interface IMrsVersion extends IMrsInterface {
+export interface IMrsVersion {
     major: number;
     minor: number;
     patch: number;
 }
 
-export interface IMrsSchemaVersions extends IMrsInterface {
+export interface IMrsSchemaVersions {
     metadata: IMrsVersion,
     userSchema: IMrsVersion,
     supportedVersions: IMrsVersion[],
 }
 
 export @Mrs.module({
-    name: "MRS Test Scripts",
     comments: "This REST module contains several test scripts.",
     requestPath: "/testScripts",
 })
@@ -70,17 +74,23 @@ class mrsTestScripts {
         requestPath: "/getTestData",
         requiresAuth: false,
     })
-    public static async getTestData(name: string, salutation: string, age: number): Promise<IMrsTestPerson[]> {
+    public static async getTestData(name: string, salutation = "Mr.", age?: number,
+        info?: string[]): Promise<IMrsTestPerson[]> {
         const now = new Date();
+
+        if (!age) {
+            age = Math.floor(Math.random() * (90 - 18 + 1) + 18);
+        }
 
         return [{
             name,
             salutation,
             birthYear: now.getFullYear() - age,
+            info: info?.join("\n"),
         },
         {
             name: `${name}\`s friend`,
-            salutation: "Mr.",
+            salutation: "Mrs.",
             birthYear: 1975,
         }];
     }
@@ -90,7 +100,7 @@ class mrsTestScripts {
         comments: "A simple test script that returns a personalized greeting and a timestamp.",
         rowOwnershipParameter: "userId",
     })
-    public static async helloUser(userId: string): Promise<IMrsGreeting> {
+    public static async helloUser(userId: string): Promise<IMrsTimedGreeting> {
         const now = new Date();
 
         const userName: string = (await runSql(

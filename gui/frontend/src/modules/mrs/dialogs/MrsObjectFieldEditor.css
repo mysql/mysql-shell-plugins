@@ -583,6 +583,10 @@ body[theme=dark] .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.re
     margin-left: 42px;
 }
 
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row .tabulator-cell .tabulator-data-tree-branch-empty {
+    width: 7px;
+}
+
 /*.mrsObjectFieldEditor .settingsMain .button {
     width: 24px;
     height: 20px;

@@ -1646,22 +1646,24 @@ export interface IMrsRouterService {
 
 
 export interface IMrsCurrentServiceMetadata {
-    id?: string,
-    hostCtx?: string,
-    metadataVersion?: string,
+    id?: string;
+    hostCtx?: string;
+    metadataVersion?: string;
 }
 
 export interface IMrsTableColumn {
-    name: string,
-    datatype: string,
-    notNull: boolean,
-    isPrimary: boolean,
-    isUnique: boolean,
-    isGenerated: boolean,
-    idGeneration?: string,
-    comment?: string,
-    in?: boolean,
-    out?: boolean,
+    name: string;
+    datatype: string;
+    notNull: boolean;
+    isPrimary: boolean;
+    isUnique: boolean;
+    isGenerated: boolean;
+    idGeneration?: string;
+    comment?: string;
+    in?: boolean;
+    out?: boolean;
+    isArray?: boolean;
+    readOnly?: boolean;
 }
 
 export interface IMrsColumnMapping {
@@ -1740,12 +1742,14 @@ export interface IMrsObjectFieldWithReference {
 }
 
 export interface IMrsObjectSdkLanguageOptions {
-    language: MrsSdkLanguage,
-    className?: string,
+    language: MrsSdkLanguage;
+    className?: string;
 }
 
 export interface IMrsObjectSdkOptions {
-    languageOptions?: IMrsObjectSdkLanguageOptions[],
+    languageOptions?: IMrsObjectSdkLanguageOptions[];
+    className?: string;
+    returnsArray?: boolean;
 }
 
 export interface IMrsObjectOptions {
@@ -1802,6 +1806,7 @@ export interface IMrsScriptProperty {
 export interface IMrsScriptParameter {
     name: string;
     type: string;
+    isArray: boolean;
 }
 
 export interface IMrsScriptCodePosition {
@@ -1818,11 +1823,16 @@ export interface IMrsScriptFileInfo {
     lastModification: string;
 }
 
+export interface IMrsScriptReturnType {
+    type: string;
+    isArray: boolean;
+}
+
 export interface IMrsScriptDefinition {
     functionName: string;
     codePosition: IMrsScriptCodePosition;
     parameters: IMrsScriptParameter[];
-    returnType: string;
+    returnType: IMrsScriptReturnType;
     properties: IMrsScriptProperty[];
 }
 

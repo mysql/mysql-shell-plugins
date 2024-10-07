@@ -56,6 +56,7 @@ export enum MrsDbObjectType {
     View = "VIEW",
     Procedure = "PROCEDURE",
     Function = "FUNCTION",
+    Script = "SCRIPT",
 
     Event = "EVENT", // Not yet supported by the backend.
 }

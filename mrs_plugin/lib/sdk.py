@@ -503,6 +503,8 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
             obj_string_args_where_pk_list = []
             obj_unique_list = []
             obj_meta_interfaces = []
+            class_name = db_obj.get("name")
+            db_object_crud_ops = ""
 
             # Get objects
             objects = lib.db_objects.get_objects(
@@ -568,7 +570,7 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                     if len(obj_unique_list) > 0 and "DELETE" in db_object_crud_ops and "DELETEUNIQUE" not in db_object_crud_ops:
                         db_object_crud_ops.append("DELETEUNIQUE")
                 # If the database object is a FUNCTION or a PROCEDURE, CRUD operations should not be enabled
-                elif db_obj.get("object_type") == "PROCEDURE":
+                elif db_obj.get("object_type") == "PROCEDURE" or db_obj.get("object_type") == "SCRIPT":
                     # For PROCEDUREs, handle custom "UpdateProcedure" operation, delete all other
                     db_object_crud_ops = ["UPDATEPROCEDURE"]
                 elif db_obj.get("object_type") == "FUNCTION":

@@ -405,7 +405,9 @@ export class MrsHub extends ComponentBase {
         const services = await backend.mrs.listServices();
         const schemas = await backend.mrs.listSchemas(dbObject.serviceId === "" ? undefined : dbObject.serviceId);
         let rowOwnershipFields: string[];
-        if (dbObject.objectType !== MrsDbObjectType.Procedure && dbObject.objectType !== MrsDbObjectType.Function) {
+        if (dbObject.objectType !== MrsDbObjectType.Procedure && dbObject.objectType !== MrsDbObjectType.Function
+            && dbObject.objectType !== MrsDbObjectType.Script
+        ) {
             const tableColumnsWithReferences = await backend.mrs.getTableColumnsWithReferences(
                 undefined, dbObject.name,
                 undefined, undefined, dbObject.schemaName,
