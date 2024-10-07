@@ -37,7 +37,7 @@
     transform: translate(-50%, -50%);
 
     text-align: left;
-    border: 1px solid var(--window-inactiveBorder);
+    border: 1px solid color-mix(in srgb, var(--window-inactiveBorder) 20%, var(--window-background));
     border-radius: 0.3rem;
 
     background-color: var(--window-background);
@@ -45,7 +45,7 @@
 
 .msg.dialog:focus,
 .msg.dialog:focus-within {
-    border: 1px solid var(--window-activeBorder);
+    border: 1px solid color-mix(in srgb, var(--window-inactiveBorder) 40%, var(--window-background));
 }
 
 .msg.dialog.visible {
@@ -99,7 +99,7 @@
     flex: 0 0 40px;
     padding: 8px 16px;
     border-top: 1px solid;
-    border-color: var(--textSeparator-foreground);
+    border-color: color-mix(in srgb, var(--window-inactiveBorder) 10%, var(--window-background));
     background-color: var(--window-footerBackground)
 }
 

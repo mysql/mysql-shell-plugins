@@ -1191,7 +1191,8 @@ def identify_target_object(
         cond_string = " AND ".join(conditions)
         where = f"WHERE {cond_string}"
 
-    sql = f"""SELECT {id_field} FROM {" INNER JOIN ".join(tables)} {where} LIMIT 2"""
+    sql = f"""SELECT {id_field} FROM {" INNER JOIN ".join(tables)} {
+        where} LIMIT 2"""
 
     result = session.run_sql(sql, params)
 
@@ -1353,11 +1354,13 @@ def format_result(result):
                     for ln_i, ln in enumerate(lines):
                         if ln_i > 0:
                             formatted_res += pre
-                        formatted_res += f' {ln}{" " * (max_lengths[col] - len(ln))} |'
+                        formatted_res += f' {ln}{" " *
+                                                 (max_lengths[col] - len(ln))} |'
                         if ln_i < len(lines) - 1:
                             formatted_res += post + "\n"
                 else:
-                    formatted_res += f' {f}{" " * (max_lengths[col] - len(f))} |'
+                    formatted_res += f' {f}{" " *
+                                            (max_lengths[col] - len(f))} |'
 
             formatted_res += "\n"
 
@@ -1372,7 +1375,8 @@ def is_text(data: bytes) -> bool:
     if isinstance(data, str):
         data = data.encode()
 
-    valid_text__chars = "".join(list(map(chr, range(32, 127))) + list("\n\r\t\b"))
+    valid_text__chars = "".join(
+        list(map(chr, range(32, 127))) + list("\n\r\t\b"))
 
     data_without_text = data.translate(None, valid_text__chars.encode())
 
@@ -1385,6 +1389,15 @@ def is_text(data: bytes) -> bool:
     if len(data_without_text) >= len(data) * 0.3:
         # if more then 30% if the characters are binary, then
         # take the data as binary
+        return False
+
+    return True
+
+
+def is_number(s):
+    try:
+        float(s)
+    except ValueError:
         return False
 
     return True

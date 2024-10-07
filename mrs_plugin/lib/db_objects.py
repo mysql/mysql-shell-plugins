@@ -370,8 +370,7 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
 
     core.insert(table="db_object", values=values).exec(session)
 
-    if db_object_type != "SCRIPT":
-        set_objects(session, db_object_id, objects)
+    set_objects(session, db_object_id, objects)
 
     if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
         grant_privileges = ["EXECUTE"]

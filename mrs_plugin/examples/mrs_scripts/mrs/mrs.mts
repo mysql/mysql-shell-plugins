@@ -57,9 +57,6 @@ export interface IDictionary {
     [key: string]: unknown;
 }
 
-export interface IMrsInterface extends JsonObject {
-}
-
 export class SqlError extends Error {
     constructor(msg: string) {
         super(msg);

@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import core, content_files, schemas, db_objects
+from mrs_plugin.lib import core, content_files, services, schemas, db_objects
 from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
 
 import os
@@ -62,7 +62,7 @@ TS_SCRIPT_DECORATOR_REGEX = \
 
 # Regex to match each parameter + type
 TS_SCRIPT_PARAMETERS_REGEX = \
-    r"\s*(.*?)\s*:\s*(.*?)\s*,"
+    r"\s*(.*?)(\?)?\s*(:\s*(.*?)\s*)?(=\s*(.*?))?,"
 
 # Regex to remove Promise<> from the result type
 TS_SCRIPT_RESULT_REMOVE_PROMISE_REGEX = \
@@ -596,11 +596,56 @@ def get_function_params(code, code_cleared, start, end):
     matches = re.finditer(
         TS_SCRIPT_PARAMETERS_REGEX, params_string, re.MULTILINE | re.DOTALL)
 
+    # for match_id, match in enumerate(matches, start=1):
+    #     print("Match {match_id} was found at {start}-{end}: {match}".format(
+    #         match_id=match_id, start=match.start(), end=match.end(), match=match.group()))
+    #     for group_id in range(0, len(match.groups())):
+    #         group_id = group_id + 1
+    #         print("Group {group_id} found at {start}-{end}: {group}".format(group_id=group_id,
+    #               start=match.start(group_id), end=match.end(group_id), group=match.group(group_id)))
+
     for match in matches:
-        params.append({
+        # Ignore additional match caused by adding the "," above
+        if match.group(1) == "":
+            continue
+
+        # If a default value is given for the parameter, also get its type
+        optional = match.group(2) is not None
+        if match.group(6) is not None:
+            optional = True
+            default_value = code[start + match.start(6):start + match.end(6)]
+            if core.is_number(default_value):
+                default_value = float(default_value)
+                default_type = "number"
+            elif default_value == "true" or default_value == "false":
+                default_value = default_value == "true"
+                default_type = "boolean"
+            else:
+                if default_value[0] == "'" or default_value[0] == '"':
+                    default_value = default_value[1:-1]
+                    default_type = "string"
+        else:
+            default_value = None
+            default_type = "unknown"
+
+        param_type = match.group(4) if match.group(
+            4) is not None else default_type
+        param_type_array = False
+        if param_type.endswith("[]"):
+            param_type = param_type[:-2]
+            param_type_array = True
+
+        param = {
             "name": match.group(1),
-            "type": match.group(2),
-        })
+            "type": param_type,
+            "optional": optional,
+            "is_array": param_type_array,
+        }
+
+        if default_value is not None:
+            param["default"] = default_value
+
+        params.append(param)
 
     return params
 
@@ -737,6 +782,10 @@ def get_mrs_typescript_definitions(file, mrs_script_def):
 
             return_type = get_function_return_type_no_promise(
                 file["code"][class_content_offset+script_match.start(6):class_content_offset+script_match.end(6)])
+            returns_array = False
+            if return_type.endswith("[]"):
+                return_type = return_type[:-2]
+                returns_array = True
 
             script_def = {
                 "function_name": file["code"][
@@ -748,7 +797,10 @@ def get_mrs_typescript_definitions(file, mrs_script_def):
                     "character_end": class_content_offset+script_match.end(),
                 },
                 "parameters": params,
-                "return_type": return_type,
+                "return_type": {
+                    "type": return_type,
+                    "is_array": returns_array,
+                },
                 "properties": props
             }
 
@@ -785,6 +837,14 @@ def interface_derives_from(interface_name, master_interface_name, interfaces):
     return interface_derives_from(interface_extends, master_interface_name, interfaces)
 
 
+def get_typescript_interface_from_list(type_name, interface_list):
+    for interface_def in interface_list:
+        if interface_def["name"] == type_name:
+            return interface_def
+
+    return None
+
+
 def add_typescript_interface_to_list(type_name, interface_list, interfaces_def):
     # If the name of the type matches a simple type, do not add it
     if is_simple_typescript_type(type_name):
@@ -802,7 +862,7 @@ def add_typescript_interface_to_list(type_name, interface_list, interfaces_def):
 
             # If the interface extends another interface, make sure to add that interface as well, recursively
             extends = interface_def.get("extends")
-            if extends is not None and extends != "IMrsInterface":
+            if extends is not None:  # and extends != "IMrsInterface":
                 add_typescript_interface_to_list(
                     extends, interface_list, interfaces_def)
             return True
@@ -816,20 +876,11 @@ def match_typescript_script_types_to_interface_list(interfaces_def, mrs_script_d
     for script_module in mrs_script_def:
         for script in script_module["scripts"]:
             # Handle return type
-            return_type = script["return_type"]
-            if return_type.endswith("[]"):
-                return_type = return_type[:-2]
-                # errors.append({
-                #     "kind": "TypeError",
-                #     "message": f"A script must not return a array. This script returned `{return_type}`.",
-                #     "script": script,
-                #     "file_info": script_module["file_info"],
-                # })
-
+            return_type = script["return_type"]["type"]
             if not add_typescript_interface_to_list(return_type, used_interfaces, interfaces_def):
                 errors.append({
                     "kind": "TypeError",
-                    "message": f"Unknown datatype `{return_type}` used for script return type.",
+                    "message": f"The script {script["function_name"]} returns an unknown datatype `{return_type}`.",
                     "script": script,
                     "file_info": script_module["file_info"],
                 })
@@ -841,7 +892,8 @@ def match_typescript_script_types_to_interface_list(interfaces_def, mrs_script_d
                     errors.append({
                         "kind": "TypeError",
                         "message": "A script parameter must not be an array. " +
-                        f"This script used `{return_type}` as parameter type.",
+                        f"The script {script["function_name"]} used `{parameter["type"]}` " +
+                        f"as parameter type for `{parameter["name"]}`.",
                         "script": script,
                         "file_info": script_module["file_info"],
                     })
@@ -849,7 +901,8 @@ def match_typescript_script_types_to_interface_list(interfaces_def, mrs_script_d
                     errors.append({
                         "kind": "TypeError",
                         "message":
-                            f'Unknown datatype `{param_type}` used for script parameter `{parameter["name"]}`.',
+                            f'Unknown datatype `{param_type}` used for script parameter `{
+                                parameter["name"]}`.',
                         "script": script,
                         "file_info": script_module["file_info"],
                     })
@@ -867,29 +920,28 @@ def match_typescript_script_types_to_interface_list(interfaces_def, mrs_script_d
                 errors.append({
                     "kind": "TypeError",
                     "message":
-                        f'Unknown datatype `{property_type}` used for interface property `{property["name"]}`.',
+                        f'Unknown datatype `{property_type}` used for interface property `{
+                            property["name"]}`.',
                     "interface": interface,
                     "file_info": interface["file_info"],
                 })
         i += 1
 
     # Check that the return_type is a simple type or derives from IMrsInterface
-    for script_module in mrs_script_def:
-        for script in script_module["scripts"]:
-            # Handle return type
-            return_type = script["return_type"]
-            if return_type.endswith("[]"):
-                return_type = return_type[:-2]
+    # for script_module in mrs_script_def:
+    #     for script in script_module["scripts"]:
+    #         # Handle return type
+    #         return_type = script["return_type"]["type"]
 
-            if not (is_simple_typescript_type(return_type) or interface_derives_from(
-                    return_type, "IMrsInterface", used_interfaces)):
-                errors.append({
-                    "kind": "TypeError",
-                    "message": f"The datatype `{return_type}` returned by the MRS script does not derive from "
-                    + "IMrsInterface nor is a simple type.",
-                    "script": script,
-                    "file_info": script_module["file_info"],
-                })
+    #         if not (is_simple_typescript_type(return_type) or interface_derives_from(
+    #                 return_type, "IMrsInterface", used_interfaces)):
+    #             errors.append({
+    #                 "kind": "TypeError",
+    #                 "message": f"The datatype `{return_type}` returned by the MRS script does not derive from "
+    #                 + "IMrsInterface nor is a simple type.",
+    #                 "script": script,
+    #                 "file_info": script_module["file_info"],
+    #             })
 
     return used_interfaces
 
@@ -1037,6 +1089,18 @@ def print_gui_message(type, msg):
     print(f"{type}: {msg}")
 
 
+def map_ts_type_to_database_type(type: str):
+    match type.lower():
+        case "string":
+            return "text"
+        case "number":
+            return "decimal"
+        case "boolean":
+            return "bit(1)"
+
+    return type
+
+
 def update_scripts_from_content_set(session, content_set_id, language, content_dir=None, ignore_list=None,
                                     send_gui_message=None):
     if send_gui_message is None:
@@ -1047,6 +1111,12 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
     if content_set is None:
         raise ValueError(
             "Could load the MRS scripts. The given content set was not found.")
+
+    service = services.get_service(
+        session=session, service_id=content_set["service_id"])
+    if service is None:
+        raise ValueError(
+            "Could load the MRS scripts. The content set's service was not found.")
 
     code_files = []
     if content_dir is not None:
@@ -1080,7 +1150,8 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
                 if core.is_text(content_file["content"]):
                     code = content_file["content"].decode()
                 else:
-                    raise ValueError(f"The content of file {fullname} is binary data, not text.")
+                    raise ValueError(f"The content of file {
+                                     fullname} is binary data, not text.")
 
                 # Clear TypeScript comments and strings for regex matching
                 code_cleared = blank_quoted_js_strings(
@@ -1122,12 +1193,14 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
     script_module_files = []
     for script_module in script_def["script_modules"]:
         # Add script_module_files information for this module
-        file_to_load = "/" + build_folder + script_module["file_info"]["relative_file_name"]
+        file_to_load = "/" + build_folder + \
+            script_module["file_info"]["relative_file_name"]
         if language == "TypeScript":
             file_to_load = file_to_load.replace(".mts", ".mjs")
         script_module_files.append({
             "file_info": script_module["file_info"],
             "file_to_load": file_to_load,
+            "class_name": script_module["class_name"],
         })
 
         properties = script_module["properties"]
@@ -1138,7 +1211,7 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
             session=session, request_path=request_path)
         if schema is None:
             name = get_mrs_script_property(
-                properties, "name", script_module["class_name"])
+                properties, "name", core.convert_path_to_camel_case(request_path))
 
             send_gui_message(
                 "info", f"Creating new REST schema `{name}` at {request_path} ...")
@@ -1161,16 +1234,123 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
         send_gui_message(
             "info", f"Adding MRS scripts to REST schema {schema.get("name")} at {request_path} ...")
 
+        # Add a db_object for each script
+        interface_list = script_def["interfaces"]
         for script in script_module["scripts"]:
             func_props = script["properties"]
             func_request_path = get_mrs_script_property(
                 func_props, "requestPath", "/" + script["function_name"])
+            full_path = service["url_context_root"] + \
+                schema["request_path"] + func_request_path
+            row_ownership_param = get_mrs_script_property(
+                func_props, "rowOwnershipParameter")
+            row_ownership_field_id = None
 
             send_gui_message(
                 "info", f"Adding MRS script {script["function_name"]} at {func_request_path} ...")
 
+            db_object_id = core.get_sequence_id(session=session)
+            objects = []
+
+            # Build parameters object with all parameter as object_fields
+            object_id = core.get_sequence_id(session=session)
+            object_fields = []
+            pos = 0
+            for param in script["parameters"]:
+                object_field_id = core.get_sequence_id(session=session)
+                if param["name"] == row_ownership_param:
+                    row_ownership_field_id = object_field_id
+
+                object_field = {
+                    "id": object_field_id,
+                    "object_id": object_id,
+                    "name": param["name"],
+                    "position": pos,
+                    "db_column": {
+                        "name": param["name"],
+                        "not_null": not param["optional"],
+                        "in": True,
+                        "datatype": map_ts_type_to_database_type(param["type"]),
+                        "is_array": param["is_array"],
+                    },
+                    "enabled": True,
+                    "allow_filtering": True,
+                    "allow_sorting": False,
+                    "no_check": False,
+                    "no_update": False,
+                }
+                if param.get("default", None) is not None:
+                    object_field["db_column"]["default"] = param["default"]
+
+                object_fields.append(object_field)
+                pos += 1
+
+            obj = {
+                "id": object_id,
+                "db_object_id": db_object_id,
+                "name": core.convert_path_to_pascal_case(full_path) + "Params",
+                "kind": "PARAMETERS",
+                "position": 0,
+                "fields": object_fields,
+            }
+            if row_ownership_field_id is not None:
+                obj["row_ownership_field_id"] = row_ownership_field_id
+            objects.append(obj)
+
+            # Build result object
+            object_id = core.get_sequence_id(session=session)
+            object_fields = []
+            returns_array = False
+            return_type = script["return_type"]["type"]
+            returns_array = script["return_type"]["is_array"]
+            if is_simple_typescript_type(return_type):
+                object_field = {
+                    "id": core.get_sequence_id(session=session),
+                    "object_id": object_id,
+                    "name": "result",
+                    "position": 0,
+                    "db_column": {
+                        "name": "result",
+                        "not_null": True,
+                        "datatype": map_ts_type_to_database_type(return_type),
+                        "is_array": returns_array,
+                    },
+                    "enabled": True,
+                    "allow_filtering": True,
+                    "allow_sorting": False,
+                    "no_check": False,
+                    "no_update": False,
+                }
+                object_fields.append(object_field)
+            else:
+                add_object_fields_from_interface(
+                    session=session, interface_name=return_type,
+                    interface_list=interface_list,
+                    object_id=object_id, object_fields=object_fields)
+
+            objects.append({
+                "id": object_id,
+                "db_object_id": db_object_id,
+                "name": core.convert_path_to_pascal_case(full_path) + "Result",
+                "kind": "RESULT",
+                "position": 1,
+                "fields": object_fields,
+                "sdk_options": {
+                    "language_options": [
+                        {
+                            "language": "TypeScript",
+                            "class_name": return_type,
+                        }
+                    ],
+                    "class_name": return_type,
+                    "returns_array": returns_array,
+                }
+            })
+
             db_object_id = db_objects.add_db_object(
-                session=session, schema_id=schema["id"],
+                session=session,
+                schema_id=schema["id"],
+                db_object_id=db_object_id,
                 db_object_name=get_mrs_script_property(
                     func_props, "name", script["function_name"]),
                 request_path=func_request_path,
@@ -1189,7 +1369,7 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
                 items_per_page=None,
                 auto_detect_media_type=None,
                 auth_stored_procedure=None,
-                objects=None,
+                objects=objects,
             )
 
             core.insert(table="content_set_has_obj_def", values={
@@ -1223,6 +1403,87 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
     ).exec(session, [content_set_id])
 
     return script_def
+
+
+def get_extended_interface_properties(interface, interface_list):
+    if interface.get("extends") is None or interface["extends"] == "":
+        return interface["properties"]
+
+    parent_interface = get_typescript_interface_from_list(
+        type_name=interface["extends"], interface_list=interface_list)
+
+    props = interface["properties"].copy()
+    props.extend(get_extended_interface_properties(parent_interface, interface_list))
+
+    return props
+
+
+def add_object_fields_from_interface(
+        session, interface_name, interface_list, object_id, object_fields: list, parent_reference_id=None):
+    interface = get_typescript_interface_from_list(
+        type_name=interface_name, interface_list=interface_list)
+
+    interface_properties = get_extended_interface_properties(
+        interface=interface,
+        interface_list=interface_list)
+
+    for field in interface_properties:
+        field_type = field["type"]
+        field_array = False
+        if field_type.endswith("[]"):
+            field_type = field_type[:-2]
+            field_array = True
+
+        object_field = {
+            "id": core.get_sequence_id(session=session),
+            "object_id": object_id,
+            "name": field["name"],
+            "position": len(object_fields),
+            "db_column": {
+                "name": field["name"],
+                "not_null": not field["optional"],
+                "datatype": map_ts_type_to_database_type(field_type),
+                "is_array": field_array,
+                "read_only": field["readOnly"],
+            },
+            "enabled": True,
+            "allow_filtering": True,
+            "allow_sorting": False,
+            "no_check": False,
+            "no_update": False,
+        }
+        if parent_reference_id is not None:
+            object_field["parent_reference_id"] = parent_reference_id
+
+        if is_simple_typescript_type(field_type):
+            object_fields.append(object_field)
+        else:
+            object_ref_id = core.get_sequence_id(session=session)
+            object_ref = {
+                "id": object_ref_id,
+                "unnest": False,
+                "reference_mapping": {
+                    "kind": "1:n" if field_array else "1:1",
+                    "constraint": "interface",
+                    "referenced_schema": field_type,
+                    "referenced_table": "",
+                    "column_mapping": [{"base": "n/a", "ref": "n/a"}]
+                },
+                "sdk_options": {
+                    "language_options": [
+                        {
+                            "language": "TypeScript",
+                            "class_name": field_type,
+                        }
+                    ],
+                    "class_name": field_type,
+                }
+            }
+            object_field["represents_reference_id"] = object_ref_id
+            object_field["object_reference"] = object_ref
+
+            # No recursive call to add other interfaces
+            object_fields.append(object_field)
 
 
 def get_create_statement(session, content_set) -> str:
@@ -1309,7 +1570,8 @@ def prepare_open_api_ui(service, request_path, send_gui_message=None) -> str:
         f'url: "{service["url_context_root"]}/open-api-catalog/"')
 
     # Patch UI to redirect to MRS authentication
-    redirect_url = f'/?service={service["url_context_root"]}&redirectUrl={service["url_context_root"]+request_path}/'
+    redirect_url = f'/?service={service["url_context_root"]
+                                }&redirectUrl={service["url_context_root"]+request_path}/'
     authorize_btn_on_click = f'()=>{{window.location.href="{redirect_url}";}}'
     update_file_content_via_regex(
         os.path.join(swagger_ui_path, "swagger-ui-bundle.js"),

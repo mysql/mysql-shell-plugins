@@ -242,8 +242,9 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     } else if (field.objectReference !== undefined && (field.enabled || field.objectReference.unnest)) {
                         const c = cutLastComma(walk(
                             fields, field.representsReferenceId, (level ?? 1) + 1, addDataType, field.objectReference));
-                        const refTable = field.objectReference.referenceMapping.referencedSchema + "." +
-                            field.objectReference.referenceMapping.referencedTable;
+                        const refTable = field.objectReference.referenceMapping.referencedSchema +
+                            field.objectReference.referenceMapping.referencedTable ? "." +
+                        field.objectReference.referenceMapping.referencedTable : "";
                         s += `${indent}${field.name}: ${refTable}`;
                         if (field.objectReference.options?.dualityViewInsert) { s += ` @INSERT`; }
                         if (field.objectReference.options?.dualityViewUpdate) { s += ` @UPDATE`; }
@@ -298,7 +299,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         let view;
         // Handle tables and views
         if (data.dbObject.objectType !== MrsDbObjectType.Procedure &&
-            data.dbObject.objectType !== MrsDbObjectType.Function) {
+            data.dbObject.objectType !== MrsDbObjectType.Function &&
+            data.dbObject.objectType !== MrsDbObjectType.Script) {
             const mrsObject = data.mrsObjects.find((obj) => {
                 return obj.id === data.currentMrsObjectId;
             });
@@ -449,7 +451,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         <Input id="dbObject" value={data.dbObject.name} onChange={this.dbObjectNameChanged} />
                     </Container>
                     {(data.dbObject.objectType === MrsDbObjectType.Procedure ||
-                        data.dbObject.objectType === MrsDbObjectType.Function) &&
+                        data.dbObject.objectType === MrsDbObjectType.Function ||
+                        data.dbObject.objectType === MrsDbObjectType.Script) &&
                         <Container
                             className={"mrsObject"}
                             orientation={Orientation.LeftToRight}
@@ -529,28 +532,30 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     orientation={Orientation.RightToLeft}
                     crossAlignment={ContentAlignment.Center}
                 >
-                    <>
-                        <Button
-                            className="sqlCopyBtn"
-                            key="sqlCopyBtn"
-                            data-tooltip="Copy SQL to Clipboard"
-                            onClick={this.copySqlToClipboard}
-                            imageOnly={true}
-                        >
-                            <Icon src={Codicon.Copy} width={11} height={11} data-tooltip="inherit" />
-                        </Button>
-                        <Button
-                            className={this.getEffectiveClassNames(
-                                ["sqlPreviewBtn", sqlPreview ? "buttonActivated" : undefined])}
-                            key="sqlPreviewBtn"
-                            data-tooltip="Toggle MRS SQL Preview"
-                            onClick={this.toggleSqlPreview}
-                            imageOnly={true}
-                        >
-                            <Icon src={Codicon.Search} width={11} height={11} data-tooltip="inherit" />
-                            <Label caption="SQL Preview" data-tooltip="inherit" />
-                        </Button>
-                    </>
+                    {data.dbObject.objectType !== MrsDbObjectType.Script &&
+                        <>
+                            <Button
+                                className="sqlCopyBtn"
+                                key="sqlCopyBtn"
+                                data-tooltip="Copy SQL to Clipboard"
+                                onClick={this.copySqlToClipboard}
+                                imageOnly={true}
+                            >
+                                <Icon src={Codicon.Copy} width={11} height={11} data-tooltip="inherit" />
+                            </Button>
+                            <Button
+                                className={this.getEffectiveClassNames(
+                                    ["sqlPreviewBtn", sqlPreview ? "buttonActivated" : undefined])}
+                                key="sqlPreviewBtn"
+                                data-tooltip="Toggle MRS SQL Preview"
+                                onClick={this.toggleSqlPreview}
+                                imageOnly={true}
+                            >
+                                <Icon src={Codicon.Search} width={11} height={11} data-tooltip="inherit" />
+                                <Label caption="SQL Preview" data-tooltip="inherit" />
+                            </Button>
+                        </>
+                    }
                     <div className="divider" />
                     {!sqlPreview &&
                         <>
@@ -741,6 +746,16 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         const mrsObjectReference = cellData.parent?.field.objectReference;
         let content;
 
+        const showFieldListOpenActionIcons = !(
+            (data.dbObject.objectType === MrsDbObjectType.Procedure ||
+                data.dbObject.objectType === MrsDbObjectType.Function)
+            && mrsObject?.kind === MrsObjectKind.Result);
+        const showFieldActionIcons = cellData.field.objectReference === undefined &&
+            !((data.dbObject.objectType === MrsDbObjectType.Procedure ||
+                data.dbObject.objectType === MrsDbObjectType.Function ||
+                data.dbObject.objectType === MrsDbObjectType.Script)
+                && mrsObject?.kind === MrsObjectKind.Result);
+
         if (cellData.type === MrsObjectFieldTreeEntryType.FieldListOpen) {
             // Handle the top table row
             if (!cell.getRow().getPrevRow()) {
@@ -761,21 +776,23 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         orientation={Orientation.LeftToRight}
                         crossAlignment={ContentAlignment.Center}
                     >
-                        {!((data.dbObject.objectType === MrsDbObjectType.Procedure ||
-                            data.dbObject.objectType === MrsDbObjectType.Function)
-                            && mrsObject?.kind === MrsObjectKind.Result) &&
+                        {showFieldListOpenActionIcons && data.dbObject.objectType !== MrsDbObjectType.Script &&
                             <Icon className={mrsObject?.options?.dualityViewNoCheck
                                 ? "selected" : "notSelected"} src={noCheckIcon} width={16} height={16}
                                 onClick={() => { this.handleIconClick(cell, ActionIconName.Check); }}
                                 data-tooltip="Disable ETAG calculations for this table." />
                         }
-                        <Icon className="action"
-                            src={checkAllIcon} width={16} height={16}
-                            onClick={() => { this.handleIconClick(cell, ActionIconName.CheckAll); }} />
-                        <Icon className="action"
-                            src={checkNoneIcon} width={16} height={16}
-                            onClick={() => { this.handleIconClick(cell, ActionIconName.CheckNone); }} />
-                        <Label caption="…" />
+                        {data.dbObject.objectType !== MrsDbObjectType.Script &&
+                            <>
+                                <Icon className="action"
+                                    src={checkAllIcon} width={16} height={16}
+                                    onClick={() => { this.handleIconClick(cell, ActionIconName.CheckAll); }} />
+                                <Icon className="action"
+                                    src={checkNoneIcon} width={16} height={16}
+                                    onClick={() => { this.handleIconClick(cell, ActionIconName.CheckNone); }} />
+                                <Label caption="…" />
+                            </>
+                        }
                     </Container>
                 </>;
             } else {
@@ -783,7 +800,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     {(data.showSdkOptions !== undefined) &&
                         <Label className="datatype" caption={this.getJsonFieldDatatype(cellData)} />
                     }
-                    <Label className="bracket" caption={"{"} />
+                    <Label className="bracket" caption={
+                        `${cellData.field.objectReference?.referenceMapping.kind === "1:n" ? "[ " : ""}{`} />
                 </>;
             }
         } else if (cellData.type === MrsObjectFieldTreeEntryType.Field
@@ -822,7 +840,10 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     {(data.showSdkOptions !== undefined) &&
                         <>
                             <Label className="dot" caption={":"} />
-                            <Label className="datatype" caption={this.getJsonFieldDatatype(cellData)} />
+                            <Label className="datatype" caption={
+                                // Reverse order because of CSS {direction: rtl;} setting
+                                `${cellData.field.dbColumn?.isArray ? "[ ]" : ""}${this.getJsonFieldDatatype(cellData)}`
+                            } />
                         </>
                     }
                 </Container>
@@ -831,10 +852,14 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     orientation={Orientation.LeftToRight}
                     crossAlignment={ContentAlignment.Center}
                 >
-                    {cellData.field.objectReference === undefined &&
-                        !((data.dbObject.objectType === MrsDbObjectType.Procedure ||
-                            data.dbObject.objectType === MrsDbObjectType.Function)
-                            && mrsObject?.kind === MrsObjectKind.Result) &&
+                    <Icon className={
+                        (cellData.field.id === mrsObject?.rowOwnershipFieldId ||
+                            cellData.field.id === mrsObjectReference?.rowOwnershipFieldId)
+                            ? "selected" : "notSelected"}
+                        src={rowOwnershipIcon} width={16} height={16}
+                        onClick={() => { this.handleIconClick(cell, ActionIconName.Ownership); }}
+                        data-tooltip="Set as row ownership field" />
+                    {showFieldActionIcons &&
                         <>
                             {(cellData.parent === undefined || cellData.field.objectReference === undefined) &&
                                 <Icon className={
@@ -846,7 +871,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                                     data-tooltip="Set as row ownership field" />
                             }
                             {(data.dbObject.objectType !== MrsDbObjectType.Procedure &&
-                                data.dbObject.objectType !== MrsDbObjectType.Function) &&
+                                data.dbObject.objectType !== MrsDbObjectType.Function &&
+                                data.dbObject.objectType !== MrsDbObjectType.Script) &&
                                 <>
                                     <Icon className={cellData.field.allowSorting
                                         ? "selected" : "notSelected"} src={allowSortingIcon} width={16} height={16}
@@ -908,14 +934,16 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     }
                     {(!(cellData.field.objectReference === undefined
                         && !((data.dbObject.objectType === MrsDbObjectType.Procedure ||
-                            data.dbObject.objectType === MrsDbObjectType.Function)
+                            data.dbObject.objectType === MrsDbObjectType.Function ||
+                            data.dbObject.objectType === MrsDbObjectType.Script)
                             && mrsObject?.kind === MrsObjectKind.Result) &&
                         (cellData.field.id === mrsObject?.rowOwnershipFieldId ||
                             cellData.field.id === mrsObjectReference?.rowOwnershipFieldId)
                     )
                         || !((cellData.field.objectReference === undefined
                             && (data.dbObject.objectType !== MrsDbObjectType.Procedure &&
-                                data.dbObject.objectType !== MrsDbObjectType.Function) &&
+                                data.dbObject.objectType !== MrsDbObjectType.Function &&
+                                data.dbObject.objectType !== MrsDbObjectType.Script) &&
                             (cellData.field.id === mrsObject?.rowOwnershipFieldId ||
                                 cellData.field.id === mrsObjectReference?.rowOwnershipFieldId)
                         )
@@ -960,7 +988,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     <Icon className="addField" width="11px" height="11px"
                         src={addIcon} onClick={() => { this.addNewField(cell.getRow()); }} />
                 }
-                <Label className="bracket" caption={"}"} />
+                <Label className="bracket" caption={
+                    `}${cellData.field.objectReference?.referenceMapping.kind === "1:n" ? ", ... ]" : ""}`} />
             </>;
         }
 
@@ -1024,6 +1053,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             })}
         </Container >;
 
+        const dbColumn = cellData.field.dbColumn;
+
         if (cellData.type === MrsObjectFieldTreeEntryType.FieldListOpen) {
             let dbObjName;
 
@@ -1044,6 +1075,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     dbObjIcon = procedureIcon;
                     break;
                 case MrsDbObjectType.Function:
+                case MrsDbObjectType.Script:
                     dbObjIcon = functionIcon;
                     break;
                 default:
@@ -1060,16 +1092,17 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     </>
                 }
                 {(!cell.getRow().getPrevRow() && data.dbObject.objectType !== MrsDbObjectType.Procedure &&
-                    data.dbObject.objectType !== MrsDbObjectType.Function) &&
+                    data.dbObject.objectType !== MrsDbObjectType.Function &&
+                    data.dbObject.objectType !== MrsDbObjectType.Script) &&
                     crudDiv
                 }
             </>;
         } else if (cellData.type === MrsObjectFieldTreeEntryType.Field
             || cellData.type === MrsObjectFieldTreeEntryType.DeletedField) {
-            let iconName = cellData.field.dbColumn?.isPrimary ? columnPkIcon :
-                (cellData.field.dbColumn?.notNull ? columnNnIcon : columnIcon);
-            let tooltip = cellData.field.dbColumn?.isPrimary ? "Primary key column" :
-                (cellData.field.dbColumn?.notNull ? "Table column that must not be NULL" : "Table column");
+            let iconName = dbColumn?.isPrimary ? columnPkIcon :
+                (dbColumn?.notNull ? columnNnIcon : columnIcon);
+            let tooltip = dbColumn?.isPrimary ? "Primary key column" :
+                (dbColumn?.notNull ? "Table column that must not be NULL" : "Table column");
 
             if (cellData.field.objectReference) {
                 switch (cellData.field.objectReference.referenceMapping.kind) {
@@ -1091,8 +1124,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             }
             if (!cellData.field.objectReference) {
                 const dbColName = cellData.unnested === undefined
-                    ? cellData.field.dbColumn?.name
-                    : `${cellData.unnested.schemaTable}.${String(cellData.field.dbColumn?.name)}`;
+                    ? dbColumn?.name
+                    : `${cellData.unnested.schemaTable}.${String(dbColumn?.name)}`;
 
                 content = <>
                     <Icon src={arrowIcon} width={16} height={16} />
@@ -1100,12 +1133,16 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         data-tooltip={tooltip} />
                     <Label className="columnName" caption={dbColName} />
                     {data.showSdkOptions !== undefined &&
-                        <Label className="datatype" caption={cellData.field.dbColumn?.datatype.toUpperCase()} />
+                        <Label className="datatype" caption={
+                            `${dbColumn?.datatype.toUpperCase()}${dbColumn?.isArray ? "[ ]" : ""}`} />
                     }
                 </>;
             } else {
-                const refTbl = cellData.field.objectReference.referenceMapping.referencedSchema + "." +
-                    cellData.field.objectReference.referenceMapping.referencedTable;
+                let refTbl = cellData.field.objectReference.referenceMapping.referencedSchema;
+                if (cellData.field.objectReference.referenceMapping.referencedTable !== undefined &&
+                    cellData.field.objectReference.referenceMapping.referencedTable !== "") {
+                    refTbl += "." + cellData.field.objectReference.referenceMapping.referencedTable;
+                }
 
                 content = <>
                     <Icon src={arrowIcon} width={16} height={16} />
@@ -1113,7 +1150,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         data-tooltip={tooltip} />
                     <Icon src={tableIcon} width={16} height={16} />
                     <Label className="tableName" caption={refTbl} />
-                    {cellData.field.enabled &&
+                    {cellData.field.enabled && data.dbObject.objectType !== MrsDbObjectType.Script &&
                         crudDiv}
                     {(cellData.field.objectReference.referenceMapping.kind === "1:n" &&
                         cellData.children && cellData.children.length > 0 &&
@@ -1206,7 +1243,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
         if (mrsObject !== undefined && cellData.type === MrsObjectFieldTreeEntryType.FieldListOpen) {
             return data.showSdkOptions
-                ? mrsObjectSdkLangOptions?.className ? "I" + mrsObjectSdkLangOptions?.className : "I" + mrsObject.name
+                ? mrsObjectSdkLangOptions?.className ? mrsObjectSdkLangOptions?.className : "I" + mrsObject.name
                 : mrsObjectSdkLangOptions?.className ?? mrsObject.name;
         }
 
@@ -1253,6 +1290,10 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         let datatype = "";
         if (cellData.field.sdkOptions?.datatypeName) {
             datatype = cellData.field.sdkOptions?.datatypeName;
+        } else if (cellData.field.objectReference?.referenceMapping?.referencedSchema !== undefined &&
+            cellData.field.objectReference?.referenceMapping?.referencedTable === ""
+        ) {
+            datatype = cellData.field.objectReference?.referenceMapping?.referencedSchema;
         } else if (!cellData.field.objectReference?.referenceMapping ||
             cellData.field.objectReference?.referenceMapping === null) {
             datatype = this.getJsonDatatype(cellData.field.dbColumn?.datatype ?? "");
@@ -1327,7 +1368,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         });
 
         try {
-            if (dbObjectType === MrsDbObjectType.Procedure || dbObjectType === MrsDbObjectType.Function) {
+            if (dbObjectType === MrsDbObjectType.Procedure
+                || dbObjectType === MrsDbObjectType.Function) {
                 if (currentObject.kind === MrsObjectKind.Parameters) {
                     await this.addParametersAsFields(dbObjectName, dbSchemaName,
                         dbObjectType, storedFields,
@@ -1335,10 +1377,14 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         referredTreeItemsToLoad,
                         parentTreeItem);
                 } else {
-                    this.addFields(currentObject, parentTreeItemList,
+                    this.addFields(dbObjectType, currentObject, parentTreeItemList,
                         referredTreeItemsToLoad,
                         parentTreeItem);
                 }
+            } else if (dbObjectType === MrsDbObjectType.Script) {
+                this.addScriptFields(dbObjectType, currentObject, parentTreeItemList,
+                    referredTreeItemsToLoad,
+                    parentTreeItem);
             } else {
                 await this.addColumnsAsFields(dbObjectName, dbSchemaName,
                     dbObjectType, storedFields,
@@ -1612,9 +1658,11 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
     };
 
     private addFields = (
+        dbObjectType: MrsDbObjectType,
         currentObject: IMrsObject, parentTreeItemList: IMrsObjectFieldTreeItem[],
         referredTreeItemsToLoad: IMrsObjectFieldTreeItem[],
-        parentTreeItem?: IMrsObjectFieldTreeItem): void => {
+        parentTreeItem?: IMrsObjectFieldTreeItem,
+    ): void => {
 
         currentObject.fields?.forEach((field) => {
             parentTreeItemList.push({
@@ -1632,10 +1680,29 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             });
 
             // If there is a stored field that is not part of the fields list, it has been deleted. Still add it
-            // as a deleted field
+            // as a deleted field.
             if (addedField === undefined) {
                 parentTreeItemList.push({
                     type: MrsObjectFieldTreeEntryType.DeletedField,
+                    expanded: false,
+                    expandedOnce: false,
+                    field,
+                    parent: parentTreeItem,
+                });
+            }
+        });
+    };
+
+    private addScriptFields = (
+        dbObjectType: MrsDbObjectType,
+        currentObject: IMrsObject, parentTreeItemList: IMrsObjectFieldTreeItem[],
+        referredTreeItemsToLoad: IMrsObjectFieldTreeItem[],
+        parentTreeItem?: IMrsObjectFieldTreeItem,
+    ): void => {
+        currentObject.storedFields?.forEach((field) => {
+            if (!field.parentReferenceId) {
+                parentTreeItemList.push({
+                    type: MrsObjectFieldTreeEntryType.Field,
                     expanded: false,
                     expandedOnce: false,
                     field,
@@ -1689,7 +1756,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
                             // For Procedures, initialize the fields with the storedFields
                             if ((data.dbObject.objectType === MrsDbObjectType.Procedure ||
-                                data.dbObject.objectType === MrsDbObjectType.Function) &&
+                                data.dbObject.objectType === MrsDbObjectType.Function ||
+                                data.dbObject.objectType === MrsDbObjectType.Script) &&
                                 obj.kind === MrsObjectKind.Result && obj.storedFields.length > 0) {
                                 // The new structuredClone is faster than JSON.parse(JSON.stringify(obj.storedFields));
                                 obj.fields = structuredClone(obj.storedFields);
@@ -1707,10 +1775,12 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         dbObjectId: data.dbObject.id,
                         name: data.defaultMrsObjectName +
                             ((data.dbObject.objectType === MrsDbObjectType.Procedure ||
-                                data.dbObject.objectType === MrsDbObjectType.Function) ? "Params" : ""),
+                                data.dbObject.objectType === MrsDbObjectType.Function ||
+                                data.dbObject.objectType === MrsDbObjectType.Script) ? "Params" : ""),
                         position: 0,
                         kind: (data.dbObject.objectType === MrsDbObjectType.Procedure ||
-                            data.dbObject.objectType === MrsDbObjectType.Function)
+                            data.dbObject.objectType === MrsDbObjectType.Function ||
+                            data.dbObject.objectType === MrsDbObjectType.Script)
                             ? MrsObjectKind.Parameters : MrsObjectKind.Result,
                         sdkOptions: undefined,
                         comments: undefined,
