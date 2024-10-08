@@ -27,6 +27,43 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 This folder contains the MRS documentation.
 
+## Generating Railroad Diagrams
+
+- The ANTLR4 VS Code extension needs to be installed and patched.
+- Configure the extension as follows:
+    "antlr4.rrd.stripNamePart": "_SYMBOL|_OPERATOR",
+    "antlr4.rrd.wrapAfter": 50,
+    "antlr4.rrd.saveDir": "<path>/shell-plugins/mrs_plugin/docs/images/sql",
+- Then the SVG images can be exported to the ./images/sql folder.
+- The fix-rrd-svg-files NPM script needs to be executed to patch selected SVG images.
+
+### Patching ANTLR4
+
+### Patch Style Sheet
+
+- Open /Users/mzinner/.vscode/extensions/mike-lischke.vscode-antlr4-2.4.3/misc/light.css
+- Replace the RRD section between `/* Railroad diagrams */` and `/* Call graphs */` with the following CSS definitions.`
+
+svg.railroad-diagram path { stroke-width: 2; stroke: darkgray; fill: rgba(0, 0, 0, 0); }
+svg.railroad-diagram text { font: bold 12px Hack, "Source Code Pro", monospace; text-anchor: middle; fill: #404040; }
+svg.railroad-diagram text.comment { font: italic 10px Hack, "Source Code Pro", monospace; fill: #404040; }
+svg.railroad-diagram g.terminal rect { stroke-width: 2; stroke: #404040; fill: rgba(200, 200, 200, 0.8); }
+svg.railroad-diagram g.non-terminal rect { stroke-width: 2; stroke: #404040; fill: rgba(255, 255, 255, 1); }
+svg.railroad-diagram text.diagram-text { font-size: 12px Hack, "Source Code Pro", monospace; fill: red; }
+svg.railroad-diagram path.diagram-text { stroke-width: 1; stroke: red; fill: red; cursor: help; }
+svg.railroad-diagram g.diagram-text:hover path.diagram-text { fill: #f00; }
+
+### Patch Code
+
+- Open /Users/mzinner/.vscode/extensions/mike-lischke.vscode-antlr4-2.4.3/out/main.cjs
+- Do the following replacements (near `new Terminal('${content}')`) (3 lines affected)
+
+- `const content = this.escapeTerminal(node).replace(this.#stripPattern, "");` needs to be replaced with
+- `const content = this.escapeTerminal(node).replace(this.#stripPattern, "").replace("DATABASE", "SCHEMA");`
+
+- `const content = node.getText().replace(this.#stripPattern, "");` needs to be replaced with
+- `const content = node.getText().replace(this.#stripPattern, "").replace("DATABASE", "SCHEMA");`
+
 ## Generate Distribution
 
 The documentation is written in Markdown syntax. It is converted to HTML with the tool [pandoc](https://pandoc.org/).
@@ -42,6 +79,8 @@ Download and install pandoc 2.19.2 from <https://github.com/jgm/pandoc/releases/
 ### Generating the HTML file
 
 A VS Code build tasks has been defined to build the documentation in the docs/dist folder. Press `Cmd + Shift + B` to start the build. The documentation is built using the `./scripts/generate_html_docs.sh` script.
+
+Alternatively, the `update-html-docs` NPM script can be run.
 
 To build the documentation manually, invoke the following command to generate the index.html page from `mrs_plugin/docs`:
 

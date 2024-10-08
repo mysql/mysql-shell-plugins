@@ -435,3 +435,36 @@ The following example shows the DDL statement for the given REST auth app.
 ```sql
 SHOW CREATE REST AUTH APP "MRS" FROM SERVICE localhost/myTestService;
 ```
+
+## SHOW REST ROLES
+
+Shows a list of roles, optionally filtered by service or auth app and users that were granted the role.
+
+**_SYNTAX_**
+
+```antlr
+showRestRolesStatement:
+    SHOW_SYMBOL REST_SYMBOL ROLES_SYMBOL (
+        (ON_SYMBOL | FROM_SYMBOL) (ANY_SYMBOL SERVICE_SYMBOL | SERVICE_SYMBOL? serviceRequestPath)
+    )? (FOR_SYMBOL userName? AT_SIGN_SYMBOL authAppName)?
+;
+```
+
+showRestRolesStatement ::=
+![showRestRolesStatement](../../images/sql/showRestRolesStatement.svg "showRestRolesStatement")
+
+
+## SHOW REST GRANTS
+
+Show the list of REST privileges that were granted to the given role.
+
+**_SYNTAX_**
+
+```antlr
+showRestGrantsStatement:
+    SHOW_SYMBOL REST_SYMBOL GRANTS_SYMBOL FOR_SYMBOL roleName
+;
+```
+
+showRestGrantsStatement ::=
+![showRestGrantsStatement](../../images/sql/showRestGrantsStatement.svg "showRestGrantsStatement")

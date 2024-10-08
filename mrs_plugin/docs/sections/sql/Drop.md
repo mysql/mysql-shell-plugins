@@ -121,8 +121,8 @@ The `DROP REST FUNCTION` statement is used to drop an existing REST functions.
 
 ```antlr
 dropRestFunctionStatement:
-    DROP_SYMBOL REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
-        FROM_SYMBOL serviceSchemaSelector
+    DROP REST FUNCTION functionRequestPath (
+        FROM serviceSchemaSelector
     )?
 ;
 ```
@@ -180,3 +180,19 @@ dropRestUserStatement:
 
 dropRestUserStatement ::=
 ![dropRestUserStatement](../../images/sql/dropRestUserStatement.svg "dropRestUserStatement")
+
+
+## DROP REST ROLE
+
+Drops the named REST role.
+
+**_SYNTAX_**
+
+```antlr
+dropRestRoleStatement:
+    DROP REST ROLE roleName
+;
+```
+
+dropRestRoleStatement ::=
+![dropRestRoleStatement](../../images/sql/dropRestRoleStatement.svg "dropRestRoleStatement")

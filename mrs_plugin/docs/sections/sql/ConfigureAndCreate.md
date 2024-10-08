@@ -1086,11 +1086,61 @@ The `CREATE REST USER` statement is used to add REST user to a REST authenticati
 ```antlr
 createRestUserStatement:
     CREATE (OR REPLACE)? REST USER userName AT_SIGN
-        authAppName (
-        ON SERVICE? serviceRequestPath
-    )? IDENTIFIED BY userPassword
+        authAppName (IDENTIFIED BY userPassword)? userOptions?
 ;
+
+userName:
+    quotedText
+;
+
+userPassword:
+    quotedText
+;
+
+userOptions: (accountLock | appOptions | jsonOptions)+
+;
+
+appOptions:
+    APP OPTIONS jsonValue
+;
+
+accountLock:
+    ACCOUNT ( LOCK | UNLOCK )
+;
+
 ```
 
 createRestUserStatement ::=
 ![createRestUserStatement](../../images/sql/createRestUserStatement.svg "createRestUserStatement")
+
+userOptions ::=
+![userOptions](../../images/sql/userOptions.svg "userOptions")
+
+appOptions ::=
+![appOptions](../../images/sql/appOptions.svg "appOptions")
+
+accountLock ::=
+![accountLock](../../images/sql/accountLock.svg "accountLock")
+
+## CREATE REST ROLE
+
+Creates a REST role to the specified or currently active REST service. Role names must be unique across all services.
+
+**_SYNTAX_**
+
+```antlr
+createRestRoleStatement:
+    CREATE (OR REPLACE)? REST ROLE roleName (
+        EXTENDS parentRoleName
+    )? (ON (ANY SERVICE | SERVICE? serviceRequestPath))? restRoleOptions?
+;
+
+restRoleOptions: (jsonOptions | comments)+
+;
+```
+
+createRestRoleStatement ::=
+![createRestRoleStatement](../../images/sql/createRestRoleStatement.svg "createRestRoleStatement")
+
+restRoleOptions ::=
+![restRoleOptions](../../images/sql/restRoleOptions.svg "restRoleOptions")

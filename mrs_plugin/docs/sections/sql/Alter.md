@@ -249,3 +249,20 @@ serviceSchemaSelector ::=
 
 restObjectOptions ::=
 ![restObjectOptions](../../images/sql/restObjectOptions.svg "restObjectOptions")
+
+
+## ALTER REST USER
+
+Change password and options for an existing REST user account.
+
+**_SYNTAX_**
+
+```antlr
+alterRestUserStatement:
+    ALTER_SYMBOL REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName (
+        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
+    )? (IDENTIFIED_SYMBOL BY_SYMBOL userPassword)? userOptions?
+;
+
+```
+
