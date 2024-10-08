@@ -246,6 +246,39 @@
                                                 class="toc-section-number">6.11</span>
                                                 updateMany</a></li>
                                                 </ul></li>
+                                                <li><a
+                                                href="#python-client-api-reference"
+                                                id="toc-python-client-api-reference"><span
+                                                class="toc-section-number">7</span>
+                                                Python Client API
+                                                Reference</a>
+                                                <ul>
+                                                <li><a
+                                                href="#mrs-services"
+                                                id="toc-mrs-services"><span
+                                                class="toc-section-number">7.1</span>
+                                                MRS Services</a></li>
+                                                <li><a
+                                                href="#mrs-schemas"
+                                                id="toc-mrs-schemas"><span
+                                                class="toc-section-number">7.2</span>
+                                                MRS Schemas</a></li>
+                                                <li><a
+                                                href="#mrs-tables"
+                                                id="toc-mrs-tables"><span
+                                                class="toc-section-number">7.3</span>
+                                                MRS Tables</a></li>
+                                                <li><a
+                                                href="#mrs-records"
+                                                id="toc-mrs-records"><span
+                                                class="toc-section-number">7.4</span>
+                                                MRS Records</a></li>
+                                                <li><a
+                                                href="#mrs-functions"
+                                                id="toc-mrs-functions"><span
+                                                class="toc-section-number">7.5</span>
+                                                MRS Functions</a></li>
+                                                </ul></li>
                                                 </ul>
                                             </div>
                 </nav>
@@ -277,6 +310,8 @@ Reference
                 <li><a
                 href="#typescript-client-api-reference">TypeScript
                 Client API Reference</a></li>
+                <li><a href="#python-client-api-reference">Python Client
+                API Reference</a></li>
                 </ul>
                 <hr />
                 <p>Please also see</p>
@@ -624,6 +659,10 @@ Reference
                 </ul>
                 <div class="sourceCode" id="cb5"><pre
                 class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">actor</span><span class="op">.</span><span class="fu">findFirst</span>({ readOwnWrites<span class="op">:</span> <span class="kw">true</span> })</span></code></pre></div>
+                <p>This option is only relevant when the application is
+                running on top of a MySQL instance cluster where the
+                GTID infrastructure is specifically configured and
+                enabled, otherwise the option will be ignored.</p>
                 <!-- Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -1872,6 +1911,1514 @@ Reference
 <span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a><span class="co">// update the note with id 1 and 2</span></span>
 <span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">note</span><span class="op">.</span><span class="fu">update</span>({ where<span class="op">:</span> [{ id<span class="op">:</span> <span class="dv">1</span> }<span class="op">,</span> { id<span class="op">:</span> <span class="dv">2</span> }]<span class="op">,</span> data<span class="op">:</span> note })<span class="op">;</span></span></code></pre></div>
+                <!-- Copyright (c) 2024, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is designed to work with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have either included with
+                the program or referenced in the documentation.
+
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="7"
+                id="python-client-api-reference"><span
+                class="header-section-number">7</span> Python Client API
+                Reference</h1>
+                <h2 data-number="7.1" id="mrs-services"><span
+                class="header-section-number">7.1</span> MRS
+                Services</h2>
+                <p>The MRS Python SDK exposes a type-safe programmable
+                interface for the MySQL REST Service that unifies, under
+                a set of contextual commands, the available HTTP
+                operations to access and use database objects (tables,
+                views and functions) exposed as REST resources.</p>
+                <p>The following MRS REST resources can be accessed from
+                a service namespace:</p>
+                <ul>
+                <li><a href="#mrs-schemas">Schemas</a></li>
+                </ul>
+                <p>The following commands can be accessed from a service
+                namespace:</p>
+                <ul>
+                <li><a href="#authenticate">authenticate</a></li>
+                </ul>
+                <h3 data-number="7.1.1" id="authenticate"><span
+                class="header-section-number">7.1.1</span>
+                authenticate</h3>
+                <p><code>authenticate</code> is a service-level command
+                that authenticates a user so he/she can work with
+                restricted MySQL REST Services.</p>
+                <h4 data-number="7.1.1.1"
+                id="options-authenticate"><span
+                class="header-section-number">7.1.1.1</span> Options
+                (authenticate)</h4>
+                <table>
+                <colgroup>
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Name</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>app_name</td>
+                <td>str</td>
+                <td>Yes</td>
+                <td>Name of the authentication application (as specified
+                by the admin)</td>
+                </tr>
+                <tr class="even">
+                <td>user</td>
+                <td>str</td>
+                <td>Yes</td>
+                <td>User name</td>
+                </tr>
+                <tr class="odd">
+                <td>password</td>
+                <td>str</td>
+                <td>No</td>
+                <td>If not provided, the empty string is assumed as the
+                password</td>
+                </tr>
+                <tr class="even">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                </tr>
+                </tbody>
+                </table>
+                <p>The following authentication application names are
+                supported:</p>
+                <ul>
+                <li><em>MRS</em></li>
+                </ul>
+                <h4 data-number="7.1.1.2"
+                id="return-type-authenticate"><span
+                class="header-section-number">7.1.1.2</span> Return Type
+                (authenticate)</h4>
+                <p><code>None</code>.</p>
+                <h4 data-number="7.1.1.3"
+                id="example-authenticate"><span
+                class="header-section-number">7.1.1.3</span> Example
+                (authenticate)</h4>
+                <div class="sourceCode" id="cb36"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="co"># `authenticate` will account for authentication</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a> <span class="cf">await</span> my_service.authenticate(</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>    app_name<span class="op">=</span><span class="st">&quot;$</span><span class="sc">{app_name}</span><span class="st">&quot;</span>,</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>    user<span class="op">=</span><span class="st">&quot;Lucas&quot;</span>,</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>    password<span class="op">=</span><span class="st">&quot;S3cr3t&quot;</span></span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Service is ready and tied database objects can be utilized</span></span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a><span class="co"># E.g., calling a function</span></span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.hello_func(name<span class="op">=</span><span class="st">&quot;Rui&quot;</span>)</span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; Hello, Rui!</span></span></code></pre></div>
+                <h2 data-number="7.2" id="mrs-schemas"><span
+                class="header-section-number">7.2</span> MRS
+                Schemas</h2>
+                <p>In the Python SDK, database objects such as tables
+                and functions are grouped under namespaces that
+                correspond to their schema. Applications can access and
+                use those database objects via the API exposed by each
+                one.</p>
+                <p>The following MRS REST resources can be accessed from
+                the corresponding schema namespace:</p>
+                <ul>
+                <li><a href="#mrs-tables">Tables</a></li>
+                <li><a href="#mrs-records">Records</a></li>
+                <li><a href="#mrs-functions">Functions</a></li>
+                </ul>
+                <h2 data-number="7.3" id="mrs-tables"><span
+                class="header-section-number">7.3</span> MRS Tables</h2>
+                <h3 data-number="7.3.1" id="create"><span
+                class="header-section-number">7.3.1</span> create</h3>
+                <p><code>create</code> is used to insert a record in a
+                given table. The record is represented as a typed
+                dictionary object whose fields, or keys, should comply
+                with the interface exposed by the type definition
+                <code>I${obj_class_name}DataCreate</code> where
+                <code>${obj_class_name}</code> is a variable which value
+                depends on the <em>service, schema and table</em> names
+                themselves.</p>
+                <blockquote>
+                <p>To insert multiple records, see <a
+                href="#create_many">create_many</a>.</p>
+                </blockquote>
+                <h4 data-number="7.3.1.1" id="options-create"><span
+                class="header-section-number">7.3.1.1</span> Options
+                (create)</h4>
+                <table>
+                <colgroup>
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Name</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>data</td>
+                <td>TypedDict</td>
+                <td>Yes</td>
+                <td>Object containing the mapping between column names
+                and values for the record to be inserted</td>
+                </tr>
+                </tbody>
+                </table>
+                <h4 data-number="7.3.1.2" id="return-type-create"><span
+                class="header-section-number">7.3.1.2</span> Return Type
+                (create)</h4>
+                <p>An MRS dataclass object representing the record that
+                was inserted. For more details about MRS dataclass
+                objects, see <a href="#mrs-records">MRS Records</a>.</p>
+                <h4 data-number="7.3.1.3" id="example-create"><span
+                class="header-section-number">7.3.1.3</span> Example
+                (create)</h4>
+                <div class="sourceCode" id="cb37"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>actor: Actor <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.create(</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>{</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;FOO&quot;</span>,</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;BAR&quot;</span>,</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actor)</span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a><span class="co"># IMyServiceSakilaActor(actor_id=35000, first_name=&#39;FOO&#39;, last_name=&#39;BAR&#39;, last_update=&#39;2024-06-04 10:14:33.000000&#39;)</span></span></code></pre></div>
+                <p>The <code>actor_id</code> and
+                <code>last_update</code> columns from the
+                <code>sakila</code> table on the sample <a
+                href="https://dev.mysql.com/doc/sakila/en/">sakila
+                database</a> are automatically generated on each insert,
+                which means they can be omitted.</p>
+                <h3 data-number="7.3.2" id="create_many"><span
+                class="header-section-number">7.3.2</span>
+                create_many</h3>
+                <p><code>create_many</code> is used to insert one or
+                more records in a given table. A record is represented
+                as a typed dictionary object whose fields, or keys,
+                should comply with the interface exposed by the type
+                definition <code>I${obj_class_name}DataCreate</code>
+                where <code>${obj_class_name}</code> is a variable which
+                value depends on the <em>service, schema and table</em>
+                names themselves.</p>
+                <blockquote>
+                <p>To insert a single record, see <a
+                href="#create">create</a>.</p>
+                </blockquote>
+                <h4 data-number="7.3.2.1" id="options-create_many"><span
+                class="header-section-number">7.3.2.1</span> Options
+                (create_many)</h4>
+                <table>
+                <colgroup>
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Name</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>data</td>
+                <td>Sequence of <code>TypedDict</code> - it can be any
+                Python object supporting the iteration protocol, such as
+                lists and tuples</td>
+                <td>Yes</td>
+                <td>List of objects containing the mapping between
+                column names and values for the records to be
+                inserted</td>
+                </tr>
+                </tbody>
+                </table>
+                <h4 data-number="7.3.2.2"
+                id="return-type-create_many"><span
+                class="header-section-number">7.3.2.2</span> Return Type
+                (create_many)</h4>
+                <p>A list of MRS dataclass objects of each record that
+                was inserted. For more details about MRS dataclass
+                objects, see <a href="#mrs-records">MRS Records</a>.</p>
+                <h4 data-number="7.3.2.3" id="example-create_many"><span
+                class="header-section-number">7.3.2.3</span> Example
+                (create_many)</h4>
+                <div class="sourceCode" id="cb38"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>actors: <span class="bu">list</span>[Actor] <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.create_many(</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>[</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;FOO&quot;</span>,</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;BAR&quot;</span>,</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;OOF&quot;</span>,</span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;RAB&quot;</span>,</span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actors)</span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a><span class="co"># [</span></span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a><span class="co">#     IMyServiceSakilaActor(</span></span>
+<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a><span class="co">#         actor_id=35000,</span></span>
+<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a><span class="co">#         first_name=&#39;FOO&#39;,</span></span>
+<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_name=&#39;BAR&#39;,</span></span>
+<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_update=&#39;2024-06-04 10:14:33.000000&#39;</span></span>
+<span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
+<span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a><span class="co">#     IMyServiceSakilaActor(</span></span>
+<span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a><span class="co">#         actor_id=36000,</span></span>
+<span id="cb38-28"><a href="#cb38-28" aria-hidden="true" tabindex="-1"></a><span class="co">#         first_name=&#39;OOF&#39;,</span></span>
+<span id="cb38-29"><a href="#cb38-29" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_name=&#39;RAB&#39;,</span></span>
+<span id="cb38-30"><a href="#cb38-30" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_update=&#39;2024-08-04 10:14:33.000000&#39;</span></span>
+<span id="cb38-31"><a href="#cb38-31" aria-hidden="true" tabindex="-1"></a><span class="co">#     )</span></span>
+<span id="cb38-32"><a href="#cb38-32" aria-hidden="true" tabindex="-1"></a><span class="co"># ]</span></span></code></pre></div>
+                <p>The <code>actor_id</code> and
+                <code>last_update</code> columns from the
+                <code>sakila</code> table on the sample <a
+                href="https://dev.mysql.com/doc/sakila/en/">sakila
+                database</a> are automatically generated on each insert,
+                which means they can be omitted.</p>
+                <h3 data-number="7.3.3" id="find_first"><span
+                class="header-section-number">7.3.3</span>
+                find_first</h3>
+                <p><code>find_first</code> is used to query the first
+                record that matches a given optional filter. It returns
+                <code>None</code> if no record is found.</p>
+                <blockquote>
+                <p>To raise an exception if there are no matches, use <a
+                href="#find_first_or_throw">find_first_or_throw</a>
+                instead.</p>
+                </blockquote>
+                <blockquote>
+                <p>To find multiple records, see <a
+                href="#find_many">find_many</a>.</p>
+                </blockquote>
+                <h4 data-number="7.3.3.1" id="options-find_first"><span
+                class="header-section-number">7.3.3.1</span> Options
+                (find_first)</h4>
+                <table>
+                <colgroup>
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Name</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>select</td>
+                <td>dict or list</td>
+                <td>No</td>
+                <td>Specifies which properties to include or exclude on
+                the returned record - works as a <em>field
+                filter</em></td>
+                </tr>
+                <tr class="even">
+                <td>where</td>
+                <td>dict</td>
+                <td>No</td>
+                <td>Applies filtering conditions based on specific
+                fields - works as a <em>record filter</em></td>
+                </tr>
+                <tr class="odd">
+                <td>skip</td>
+                <td>int</td>
+                <td>No</td>
+                <td>Specifies how many records to skip before returning
+                one of the matches</td>
+                </tr>
+                <tr class="even">
+                <td>order_by</td>
+                <td>dict</td>
+                <td>No</td>
+                <td>Lets you customize the order (<code>ASC</code> or
+                <code>DESC</code>) in which the records are returned
+                based on specific fields</td>
+                </tr>
+                <tr class="odd">
+                <td>cursor</td>
+                <td>dict</td>
+                <td>No</td>
+                <td>Specifies the position of the first item to include
+                in the result set. A cursor bookmarks a location in a
+                result set and must be a column containing unique and
+                sequential values.</td>
+                </tr>
+                <tr class="even">
+                <td>read_own_writes</td>
+                <td>bool</td>
+                <td>No</td>
+                <td>Ensures read consistency for a cluster of servers -
+                <code>False</code> is used by default</td>
+                </tr>
+                </tbody>
+                </table>
+                <blockquote>
+                <p>Cursor-based pagination takes precedence over
+                offset-based pagination, which means that if a cursor is
+                defined, the value of the offset property
+                (<code>skip</code>) will be ignored.</p>
+                </blockquote>
+                <h4 data-number="7.3.3.2"
+                id="return-type-find_first"><span
+                class="header-section-number">7.3.3.2</span> Return Type
+                (find_first)</h4>
+                <p>If there is a match, an MRS dataclass object meeting
+                the filter conditions, otherwise <code>None</code> is
+                returned. For more details about MRS dataclass objects,
+                see <a href="#mrs-records">MRS Records</a>.</p>
+                <h4 data-number="7.3.3.3" id="example-find_first"><span
+                class="header-section-number">7.3.3.3</span> Example
+                (find_first)</h4>
+                <p>Consider the following generic usage snippet of
+                <code>find_first</code>:</p>
+                <div class="sourceCode" id="cb39"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>actor: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_first(</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>    select<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: <span class="va">False</span>},</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">ED</span><span class="sc">%%</span><span class="st">&quot;</span>}},</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>    .</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>    .</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+                <p>In the following subsections, a small usage example
+                is included for each option.</p>
+                <h5 data-number="7.3.3.3.1" id="select-find_first"><span
+                class="header-section-number">7.3.3.3.1</span> Select
+                (find_first)</h5>
+                <div class="sourceCode" id="cb40"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Only include the fields specified (`list` use case)</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>select<span class="op">=</span>[<span class="st">&quot;last_update&quot;</span>]</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Only include the fields specified (`dict` use case)</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>select<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: <span class="va">True</span>}</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Include all fields but the specified</span></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>select<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: <span class="va">False</span>}</span></code></pre></div>
+                <h5 data-number="7.3.3.3.2" id="where-find_first"><span
+                class="header-section-number">7.3.3.3.2</span> Where
+                (find_first)</h5>
+                <div class="sourceCode" id="cb41"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Equality - these two are equivalent</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="dv">3</span>}</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;equals&quot;</span>: <span class="dv">3</span>}}</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Difference</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: {<span class="st">&quot;ne&quot;</span>: <span class="st">&quot;Pacheco&quot;</span>}}</span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Greater than</span></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;gt&quot;</span>: <span class="dv">3</span>}}</span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Greater than or equal</span></span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;gte&quot;</span>: <span class="dv">3</span>}}</span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Lower than</span></span>
+<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;lt&quot;</span>: <span class="dv">3</span>}}</span>
+<span id="cb41-16"><a href="#cb41-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-17"><a href="#cb41-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Lower than or equal</span></span>
+<span id="cb41-18"><a href="#cb41-18" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;lte&quot;</span>: <span class="dv">3</span>}}</span>
+<span id="cb41-19"><a href="#cb41-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-20"><a href="#cb41-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Leads to a match when the field is not NULL.</span></span>
+<span id="cb41-21"><a href="#cb41-21" aria-hidden="true" tabindex="-1"></a><span class="co"># In this case, we would get records where the</span></span>
+<span id="cb41-22"><a href="#cb41-22" aria-hidden="true" tabindex="-1"></a><span class="co"># field `last_update` is not NULL.</span></span>
+<span id="cb41-23"><a href="#cb41-23" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;last_updated&quot;</span>: {<span class="st">&quot;not&quot;</span>: <span class="va">None</span>}}</span>
+<span id="cb41-24"><a href="#cb41-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-25"><a href="#cb41-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Pattern</span></span>
+<span id="cb41-26"><a href="#cb41-26" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">ED</span><span class="sc">%%</span><span class="st">&quot;</span>}}</span>
+<span id="cb41-27"><a href="#cb41-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-28"><a href="#cb41-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Union of conditions</span></span>
+<span id="cb41-29"><a href="#cb41-29" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{</span>
+<span id="cb41-30"><a href="#cb41-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;AND&quot;</span>: [</span>
+<span id="cb41-31"><a href="#cb41-31" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;PENELOPE&quot;</span>},</span>
+<span id="cb41-32"><a href="#cb41-32" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;gte&quot;</span>: <span class="dv">3</span>}}</span>
+<span id="cb41-33"><a href="#cb41-33" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb41-34"><a href="#cb41-34" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb41-35"><a href="#cb41-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-36"><a href="#cb41-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Intersection of conditions</span></span>
+<span id="cb41-37"><a href="#cb41-37" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{</span>
+<span id="cb41-38"><a href="#cb41-38" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;OR&quot;</span>: [</span>
+<span id="cb41-39"><a href="#cb41-39" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;MICHAEL&quot;</span>},</span>
+<span id="cb41-40"><a href="#cb41-40" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;last_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">AB</span><span class="sc">%%</span><span class="st">&quot;</span>}}</span>
+<span id="cb41-41"><a href="#cb41-41" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb41-42"><a href="#cb41-42" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h5 data-number="7.3.3.3.3" id="skip-find_first"><span
+                class="header-section-number">7.3.3.3.3</span> Skip
+                (find_first)</h5>
+                <p>Offset-based pagination is non-inclusive, meaning
+                that if the position marking the offset is a match, it
+                will not be included in the result set.</p>
+                <p>Suppose the actor table contains a bunch of records
+                as shown in <a href="#cursor-find_first">Cursor
+                Example</a>. Then, the <code>skip</code> option can be
+                used as follows:</p>
+                <div class="sourceCode" id="cb42"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>actor: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_first(</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">HA</span><span class="sc">%%</span><span class="st">&quot;</span>}}, skip<span class="op">=</span><span class="dv">2</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> actor <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="ss">f&quot;Actor not found&quot;</span>)</span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(actor.actor_id)</span></code></pre></div>
+                <p>The printed actor ID would be <code>32</code>.</p>
+                <h5 data-number="7.3.3.3.4"
+                id="order-by-find_first"><span
+                class="header-section-number">7.3.3.3.4</span> Order By
+                (find_first)</h5>
+                <div class="sourceCode" id="cb43"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Descending order</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>order_by<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;DESC&quot;</span>}</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Ascending order</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>order_by<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="st">&quot;ASC&quot;</span>}</span></code></pre></div>
+                <h5 data-number="7.3.3.3.5" id="cursor-find_first"><span
+                class="header-section-number">7.3.3.3.5</span> Cursor
+                (find_first)</h5>
+                <p>The position bookmarked by the cursor is
+                non-inclusive, meaning that if the bookmarked position
+                is a match, it will not be included in the result
+                set.</p>
+                <p>Suppose the actor table contains a bunch of records.
+                In the following snippet, only those records where
+                <code>last_name</code> matches the pattern
+                <code>%%HA%%</code> are shown:</p>
+                <div class="sourceCode" id="cb44"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;actorId&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastName&quot;</span><span class="fu">:</span> <span class="er">...</span><span class="fu">,</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;firstName&quot;</span><span class="fu">:</span> <span class="er">...</span><span class="fu">,</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="er">...</span><span class="fu">,</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span><span class="er">,</span></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a><span class="er">...,</span></span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;actorId&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastName&quot;</span><span class="fu">:</span> <span class="st">&quot;CHASE&quot;</span><span class="fu">,</span></span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;firstName&quot;</span><span class="fu">:</span> <span class="st">&quot;ED&quot;</span><span class="fu">,</span></span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="st">&quot;2006-02-15 04:34:33.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span><span class="er">,</span></span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a><span class="er">...,</span></span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;actorId&quot;</span><span class="fu">:</span> <span class="dv">8</span><span class="fu">,</span></span>
+<span id="cb44-17"><a href="#cb44-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastName&quot;</span><span class="fu">:</span> <span class="st">&quot;JOHANSSON&quot;</span><span class="fu">,</span></span>
+<span id="cb44-18"><a href="#cb44-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;firstName&quot;</span><span class="fu">:</span> <span class="st">&quot;MATTHEW&quot;</span><span class="fu">,</span></span>
+<span id="cb44-19"><a href="#cb44-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="st">&quot;2006-02-15 04:34:33.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb44-20"><a href="#cb44-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span><span class="er">,</span></span>
+<span id="cb44-21"><a href="#cb44-21" aria-hidden="true" tabindex="-1"></a><span class="er">...,</span></span>
+<span id="cb44-22"><a href="#cb44-22" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb44-23"><a href="#cb44-23" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;actorId&quot;</span><span class="fu">:</span> <span class="dv">32</span><span class="fu">,</span></span>
+<span id="cb44-24"><a href="#cb44-24" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastName&quot;</span><span class="fu">:</span> <span class="st">&quot;HACKMAN&quot;</span><span class="fu">,</span></span>
+<span id="cb44-25"><a href="#cb44-25" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;firstName&quot;</span><span class="fu">:</span> <span class="st">&quot;TIM&quot;</span><span class="fu">,</span></span>
+<span id="cb44-26"><a href="#cb44-26" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="st">&quot;2006-02-15 04:34:33.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb44-27"><a href="#cb44-27" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <p>The cursor option can be used as follows:</p>
+                <div class="sourceCode" id="cb45"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>actor: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_first(</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">HA</span><span class="sc">%%</span><span class="st">&quot;</span>}},</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>    cursor<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="dv">3</span>},  <span class="co"># cursor is exclusive</span></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> actor <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="ss">f&quot;Actor not found&quot;</span>)</span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(actor.actor_id)</span></code></pre></div>
+                <p>The printed actor ID would be <code>8</code>.</p>
+                <h5 data-number="7.3.3.3.6"
+                id="read-own-writes-find_first"><span
+                class="header-section-number">7.3.3.3.6</span> Read Own
+                Writes (find_first)</h5>
+                <div class="sourceCode" id="cb46"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ON</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>read_own_writes<span class="op">=</span><span class="va">True</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="co"># OFF</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>read_own_writes<span class="op">=</span><span class="va">False</span></span></code></pre></div>
+                <h3 data-number="7.3.4" id="find_first_or_throw"><span
+                class="header-section-number">7.3.4</span>
+                find_first_or_throw</h3>
+                <p><code>find_first_or_throw</code> is used to query the
+                first record that matches a given optional filter in the
+                same way as <a href="#find_first">find_first</a> does.
+                However, if the query does not find a record, it raises
+                a <code>RecordNotFoundError</code> exception.</p>
+                <blockquote>
+                <p>To not raise an exception and get <code>None</code>
+                if there are no matches, use <a
+                href="#find_first">find_first</a> instead.</p>
+                </blockquote>
+                <blockquote>
+                <p>To find multiple records, see <a
+                href="#find_many">find_many</a>.</p>
+                </blockquote>
+                <h4 data-number="7.3.4.1"
+                id="options-find_first_or_throw"><span
+                class="header-section-number">7.3.4.1</span> Options
+                (find_first_or_throw)</h4>
+                <p><code>find_first_or_throw</code> and
+                <code>find_first</code> implement the very same options.
+                For more details about these, see <a
+                href="#options-find_first">Options (find_first)</a>.</p>
+                <h4 data-number="7.3.4.2"
+                id="return-type-find_first_or_throw"><span
+                class="header-section-number">7.3.4.2</span> Return Type
+                (find_first_or_throw)</h4>
+                <p>If there is a match, an MRS dataclass object meeting
+                the filter conditions is returned, otherwise an
+                exception <code>RecordNotFoundError</code> is raised.
+                For more details about MRS dataclass objects, see <a
+                href="#mrs-records">MRS Records</a>.</p>
+                <h4 data-number="7.3.4.3"
+                id="example-find_first_or_throw"><span
+                class="header-section-number">7.3.4.3</span> Example
+                (find_first_or_throw)</h4>
+                <p>Usage is similar to <code>find_first</code>, however,
+                now you should account for a possible exception:</p>
+                <div class="sourceCode" id="cb47"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService, RecordNotFoundError</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>    actor: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_first_or_throw(</span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>        select<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: <span class="va">False</span>},</span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">ED</span><span class="sc">%%</span><span class="st">&quot;</span>}},</span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> RecordNotFoundError:</span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="st">&quot;Ups, no matches found&quot;</span>)</span></code></pre></div>
+                <p>See <a href="#example-find_first">Example
+                (find_first)</a> for additional usage options.</p>
+                <h3 data-number="7.3.5" id="find_unique"><span
+                class="header-section-number">7.3.5</span>
+                find_unique</h3>
+                <p><code>find_unique</code> is used to query a single,
+                uniquely identified record by:</p>
+                <ul>
+                <li>Primary key column(s)</li>
+                <li>Unique column(s)</li>
+                </ul>
+                <p>It returns <code>None</code> if no record is
+                found.</p>
+                <blockquote>
+                <p>To raise an exception if there are no matches, use <a
+                href="#find_unique_or_throw">find_unique_or_throw</a>
+                instead.</p>
+                </blockquote>
+                <h4 data-number="7.3.5.1" id="options-find_unique"><span
+                class="header-section-number">7.3.5.1</span> Options
+                (find_unique)</h4>
+                <table>
+                <colgroup>
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Name</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>select</td>
+                <td>dict or list</td>
+                <td>No</td>
+                <td>Specifies which properties to include or exclude on
+                the returned record - works as a <em>field
+                filter</em></td>
+                </tr>
+                <tr class="even">
+                <td>where</td>
+                <td>dict</td>
+                <td>Yes</td>
+                <td>Applies filtering conditions based on specific
+                fields (must be unique) - works as a <em>record
+                filter</em></td>
+                </tr>
+                <tr class="odd">
+                <td>read_own_writes</td>
+                <td>bool</td>
+                <td>No</td>
+                <td>Ensures read consistency for a cluster of servers -
+                <code>False</code> is used by default</td>
+                </tr>
+                </tbody>
+                </table>
+                <h4 data-number="7.3.5.2"
+                id="return-type-find_unique"><span
+                class="header-section-number">7.3.5.2</span> Return Type
+                (find_unique)</h4>
+                <p>If there is a match, an MRS dataclass object meeting
+                the filter conditions, otherwise <code>None</code> is
+                returned. For more details about MRS dataclass objects,
+                see <a href="#mrs-records">MRS Records</a>.</p>
+                <h4 data-number="7.3.5.3" id="example-find_unique"><span
+                class="header-section-number">7.3.5.3</span> Example
+                (find_unique)</h4>
+                <div class="sourceCode" id="cb48"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>aid <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>actor: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_unique(</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: aid}, select<span class="op">=</span>[<span class="st">&quot;last_update&quot;</span>], read_own_writes<span class="op">=</span><span class="va">False</span></span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> actor <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="ss">f&quot;Actor with id=</span><span class="sc">{</span>aid<span class="sc">}</span><span class="ss"> not found&quot;</span>)</span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actor.actor_id <span class="op">==</span> aid</span></code></pre></div>
+                <p>See <a href="#example-find_first">Example
+                (find_first)</a> for additional usage options.</p>
+                <h3 data-number="7.3.6" id="find_unique_or_throw"><span
+                class="header-section-number">7.3.6</span>
+                find_unique_or_throw</h3>
+                <p><code>find_unique_or_throw</code> is used to query a
+                single, uniquely identified record by:</p>
+                <ul>
+                <li>Primary key column(s)</li>
+                <li>Unique column(s)</li>
+                </ul>
+                <p>If no record was found matching the given filter
+                conditions, <code>RecordNotFoundError</code> is
+                raised.</p>
+                <blockquote>
+                <p>To not raise an exception and get <code>None</code>
+                if there are no matches, use <a
+                href="#find_unique">find_unique</a> instead.</p>
+                </blockquote>
+                <h4 data-number="7.3.6.1"
+                id="options-find_unique_or_throw"><span
+                class="header-section-number">7.3.6.1</span> Options
+                (find_unique_or_throw)</h4>
+                <p><code>find_unique_or_throw</code> and
+                <code>find_unique</code> implement the very same
+                options. For more details about these, see <a
+                href="#options-find_unique">Options
+                (find_unique)</a>.</p>
+                <h4 data-number="7.3.6.2"
+                id="return-type-find_unique_or_throw"><span
+                class="header-section-number">7.3.6.2</span> Return Type
+                (find_unique_or_throw)</h4>
+                <p>If there is a match, an MRS dataclass object meeting
+                the filter conditions, otherwise
+                <code>RecordNotFoundError</code> is raised. For more
+                details about MRS dataclass objects, see <a
+                href="#mrs-records">MRS Records</a>.</p>
+                <h4 data-number="7.3.6.3"
+                id="example-find_unique_or_throw"><span
+                class="header-section-number">7.3.6.3</span> Example
+                (find_unique_or_throw)</h4>
+                <div class="sourceCode" id="cb49"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService, RecordNotFoundError</span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>aid <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>    actor: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_unique_or_throw(</span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: aid}, select<span class="op">=</span>[<span class="st">&quot;last_update&quot;</span>], read_own_writes<span class="op">=</span><span class="va">False</span></span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> RecordNotFoundError:</span>
+<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="st">&quot;Ups, no matches found&quot;</span>)</span></code></pre></div>
+                <p>See <a href="#example-find_first">Example
+                (find_first)</a> for additional usage options.</p>
+                <h3 data-number="7.3.7" id="find_many"><span
+                class="header-section-number">7.3.7</span>
+                find_many</h3>
+                <p><code>find_many</code> is used to query a subset of
+                records in one or more pages, and optionally, those that
+                match a given filter.</p>
+                <blockquote>
+                <p>To find all records see <a
+                href="#find_all">find_all</a>.</p>
+                </blockquote>
+                <h4 data-number="7.3.7.1" id="options-find_many"><span
+                class="header-section-number">7.3.7.1</span> Options
+                (find_many)</h4>
+                <table>
+                <colgroup>
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Name</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>select</td>
+                <td>dict or list</td>
+                <td>No</td>
+                <td>Specifies which properties to include or exclude on
+                the returned record - works as a <em>field
+                filter</em></td>
+                </tr>
+                <tr class="even">
+                <td>where</td>
+                <td>dict</td>
+                <td>No</td>
+                <td>Applies filtering conditions based on specific
+                fields - works as a <em>record filter</em></td>
+                </tr>
+                <tr class="odd">
+                <td>skip</td>
+                <td>int</td>
+                <td>No</td>
+                <td>Specifies how many records to skip before returning
+                one of the matches</td>
+                </tr>
+                <tr class="even">
+                <td>order_by</td>
+                <td>dict</td>
+                <td>No</td>
+                <td>Lets you customize the order (<code>ASC</code> or
+                <code>DESC</code>) in which the records are returned
+                based on specific fields</td>
+                </tr>
+                <tr class="odd">
+                <td>cursor</td>
+                <td>dict</td>
+                <td>No</td>
+                <td>Specifies the position of the first item to include
+                in the result set. A cursor bookmarks a location in a
+                result set and must be a column containing unique and
+                sequential values.</td>
+                </tr>
+                <tr class="even">
+                <td>read_own_writes</td>
+                <td>bool</td>
+                <td>No</td>
+                <td>Ensures read consistency for a cluster of servers -
+                <code>False</code> is used by default</td>
+                </tr>
+                <tr class="odd">
+                <td>take</td>
+                <td>int</td>
+                <td>No</td>
+                <td>Maximum number of records to return</td>
+                </tr>
+                <tr class="even">
+                <td>iterator</td>
+                <td>bool</td>
+                <td>No</td>
+                <td>Enable or disable iterator behavior. It is used by
+                the SDK to reset the internal iterator when consuming
+                paginated data in order to avoid n + 1 requests, the
+                internal iterator stops after the MySQL Router says
+                there are no more items. Default value is
+                <code>True</code> (enabled).</td>
+                </tr>
+                </tbody>
+                </table>
+                <blockquote>
+                <p>Cursor-based pagination takes precedence over
+                offset-based pagination, which means that if a cursor is
+                defined, the value of the offset property
+                (<code>skip</code>) will be ignored.</p>
+                </blockquote>
+                <h4 data-number="7.3.7.2"
+                id="return-type-find_many"><span
+                class="header-section-number">7.3.7.2</span> Return Type
+                (find_many)</h4>
+                <p>A list of MRS dataclass objects representing the
+                records that match the filter. For more details about
+                MRS dataclass objects, see <a href="#mrs-records">MRS
+                Records</a>.</p>
+                <h4 data-number="7.3.7.3" id="example-find_many"><span
+                class="header-section-number">7.3.7.3</span> Example
+                (find_many)</h4>
+                <div class="sourceCode" id="cb50"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>actors: <span class="bu">list</span>[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_many(</span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;PENELOPE&quot;</span>},</span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>    take<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>    skip<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actors)</span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a><span class="co"># [</span></span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     IMyServiceSakilaActor(</span></span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a><span class="co">#         actor_id=35000,</span></span>
+<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a><span class="co">#         first_name=&#39;PENELOPE&#39;,</span></span>
+<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_name=&#39;BAR&#39;,</span></span>
+<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_update=&#39;2024-06-04 10:14:33.000000&#39;</span></span>
+<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
+<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a><span class="co">#     IMyServiceSakilaActor(</span></span>
+<span id="cb50-20"><a href="#cb50-20" aria-hidden="true" tabindex="-1"></a><span class="co">#         actor_id=36000,</span></span>
+<span id="cb50-21"><a href="#cb50-21" aria-hidden="true" tabindex="-1"></a><span class="co">#         first_name=&#39;PENELOPE&#39;,</span></span>
+<span id="cb50-22"><a href="#cb50-22" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_name=&#39;FOO&#39;,</span></span>
+<span id="cb50-23"><a href="#cb50-23" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_update=&#39;2024-08-04 10:14:33.000000&#39;</span></span>
+<span id="cb50-24"><a href="#cb50-24" aria-hidden="true" tabindex="-1"></a><span class="co">#     )</span></span>
+<span id="cb50-25"><a href="#cb50-25" aria-hidden="true" tabindex="-1"></a><span class="co"># ]</span></span></code></pre></div>
+                <p>See <a href="#example-find_first">Example
+                (find_first)</a> for additional usage options.</p>
+                <h3 data-number="7.3.8" id="find_all"><span
+                class="header-section-number">7.3.8</span> find_all</h3>
+                <p><code>find_all</code> is used to query every record,
+                and optionally, all those that match a given filter.</p>
+                <blockquote>
+                <p>To get a paginated subset of records, see <a
+                href="#find_many">find_many</a>.</p>
+                </blockquote>
+                <h4 data-number="7.3.8.1" id="options-find_all"><span
+                class="header-section-number">7.3.8.1</span> Options
+                (find_all)</h4>
+                <table>
+                <colgroup>
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Name</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>select</td>
+                <td>dict or list</td>
+                <td>No</td>
+                <td>Specifies which properties to include or exclude on
+                the returned record - works as a <em>field
+                filter</em></td>
+                </tr>
+                <tr class="even">
+                <td>where</td>
+                <td>dict</td>
+                <td>No</td>
+                <td>Applies filtering conditions based on specific
+                fields - works as a <em>record filter</em></td>
+                </tr>
+                <tr class="odd">
+                <td>skip</td>
+                <td>int</td>
+                <td>No</td>
+                <td>Specifies how many records to skip before returning
+                one of the matches</td>
+                </tr>
+                <tr class="even">
+                <td>order_by</td>
+                <td>dict</td>
+                <td>No</td>
+                <td>Lets you customize the order (<code>ASC</code> or
+                <code>DESC</code>) in which the records are returned
+                based on specific fields</td>
+                </tr>
+                <tr class="odd">
+                <td>cursor</td>
+                <td>dict</td>
+                <td>No</td>
+                <td>Specifies the position of the first item to include
+                in the result set. A cursor bookmarks a location in a
+                result set and must be a column containing unique and
+                sequential values.</td>
+                </tr>
+                <tr class="even">
+                <td>read_own_writes</td>
+                <td>bool</td>
+                <td>No</td>
+                <td>Ensures read consistency for a cluster of servers -
+                <code>False</code> is used by default</td>
+                </tr>
+                <tr class="odd">
+                <td>progress</td>
+                <td>function</td>
+                <td>No</td>
+                <td>Specifies a function to be called back when
+                reporting progress</td>
+                </tr>
+                </tbody>
+                </table>
+                <blockquote>
+                <p>Cursor-based pagination takes precedence over
+                offset-based pagination, which means that if a cursor is
+                defined, the value of the offset property
+                (<code>skip</code>) will be ignored.</p>
+                </blockquote>
+                <h4 data-number="7.3.8.2"
+                id="return-type-find_all"><span
+                class="header-section-number">7.3.8.2</span> Return Type
+                (find_all)</h4>
+                <p>A list of MRS dataclass objects representing the
+                records that match the filter. For more details about
+                MRS dataclass objects, see <a href="#mrs-records">MRS
+                Records</a>.</p>
+                <h4 data-number="7.3.8.3" id="example-find_all"><span
+                class="header-section-number">7.3.8.3</span> Example
+                (find_all)</h4>
+                <div class="sourceCode" id="cb51"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> (</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>    IMyServiceSakilaActorData <span class="im">as</span> ActorData,</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>    IMyServiceSakilaActor <span class="im">as</span> Actor,</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>    MyService</span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> my_progress(data: <span class="bu">list</span>[ActorData]) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;Test Progress Option&quot;</span>)</span>
+<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, item <span class="kw">in</span> <span class="bu">enumerate</span>(data):</span>
+<span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> of </span><span class="sc">{</span><span class="bu">len</span>(data)<span class="sc">}</span><span class="ss">: actor_id=</span><span class="sc">{</span>item[<span class="st">&quot;actor_id&quot;</span>]<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb51-14"><a href="#cb51-14" aria-hidden="true" tabindex="-1"></a>        time.sleep(<span class="fl">0.1</span>)</span>
+<span id="cb51-15"><a href="#cb51-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-16"><a href="#cb51-16" aria-hidden="true" tabindex="-1"></a><span class="co"># get all records that first name matches &#39;PENELOPE&#39;</span></span>
+<span id="cb51-17"><a href="#cb51-17" aria-hidden="true" tabindex="-1"></a>actors: <span class="bu">list</span>[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_all(</span>
+<span id="cb51-18"><a href="#cb51-18" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;PENELOPE&quot;</span>}, progress<span class="op">=</span>my_progress</span>
+<span id="cb51-19"><a href="#cb51-19" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+                <p>See <a href="#example-find_first">Example
+                (find_first)</a> for additional usage options.</p>
+                <h3 data-number="7.3.9" id="delete"><span
+                class="header-section-number">7.3.9</span> delete</h3>
+                <p><code>delete</code> is used to delete a single,
+                uniquely identified record by:</p>
+                <ul>
+                <li>Primary key column(s)</li>
+                <li>Unique column(s)</li>
+                </ul>
+                <blockquote>
+                <p>To delete multiple records, see <a
+                href="#delete_many">delete_many</a>.</p>
+                </blockquote>
+                <h4 data-number="7.3.9.1" id="options-delete"><span
+                class="header-section-number">7.3.9.1</span> Options
+                (delete)</h4>
+                <table>
+                <colgroup>
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Name</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>where</td>
+                <td>dict</td>
+                <td>Yes</td>
+                <td>Applies filtering conditions based on specific
+                fields (must be unique) - works as a <em>record
+                filter</em></td>
+                </tr>
+                <tr class="even">
+                <td>read_own_writes</td>
+                <td>bool</td>
+                <td>No</td>
+                <td>Ensures read consistency for a cluster of servers -
+                <code>False</code> is used by default</td>
+                </tr>
+                </tbody>
+                </table>
+                <h4 data-number="7.3.9.2" id="return-type-delete"><span
+                class="header-section-number">7.3.9.2</span> Return Type
+                (delete)</h4>
+                <p><code>True</code> if the record was deleted
+                successfully or <code>False</code> otherwise.</p>
+                <h4 data-number="7.3.9.3" id="example-delete"><span
+                class="header-section-number">7.3.9.3</span> Example
+                (delete)</h4>
+                <div class="sourceCode" id="cb52"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>aid <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>ans: <span class="bu">bool</span> <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.delete(</span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: aid}</span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> ans <span class="kw">is</span> <span class="va">False</span>:</span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="ss">f&quot;Actor not deleted - actor_id=</span><span class="sc">{</span>aid<span class="sc">}</span><span class="ss"> not found&quot;</span>)</span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;Actor record with ID=</span><span class="sc">{</span>aid<span class="sc">}</span><span class="ss"> was deleted&quot;</span>)</span></code></pre></div>
+                <h3 data-number="7.3.10" id="delete_many"><span
+                class="header-section-number">7.3.10</span>
+                delete_many</h3>
+                <p><code>delete_many</code> is used to delete all
+                records that match a given filter. To delete a single
+                record, see <a href="#delete">delete</a>.</p>
+                <h4 data-number="7.3.10.1"
+                id="options-delete_many"><span
+                class="header-section-number">7.3.10.1</span> Options
+                (delete_many)</h4>
+                <table>
+                <colgroup>
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Name</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>where</td>
+                <td>dict</td>
+                <td>Yes</td>
+                <td>Applies filtering conditions based on specific
+                fields - works as a <em>record filter</em></td>
+                </tr>
+                <tr class="even">
+                <td>read_own_writes</td>
+                <td>bool</td>
+                <td>No</td>
+                <td>Ensures read consistency for a cluster of servers -
+                <code>False</code> is used by default</td>
+                </tr>
+                </tbody>
+                </table>
+                <h4 data-number="7.3.10.2"
+                id="return-type-delete_many"><span
+                class="header-section-number">7.3.10.2</span> Return
+                Type (delete_many)</h4>
+                <p>An integer indicating the number of deleted
+                records.</p>
+                <h4 data-number="7.3.10.3"
+                id="example-delete_many"><span
+                class="header-section-number">7.3.10.3</span> Example
+                (delete_many)</h4>
+                <p>Suppose the actor table contains a bunch of records
+                as shown in <a href="#cursor-find_first">Cursor
+                Example</a>.</p>
+                <div class="sourceCode" id="cb53"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>num_items_removed <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.delete_many(</span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">HA</span><span class="sc">%%</span><span class="st">&quot;</span>}}</span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(num_items_removed)</span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 3</span></span></code></pre></div>
+                <h3 data-number="7.3.11" id="update"><span
+                class="header-section-number">7.3.11</span> update</h3>
+                <p><code>update</code> is used to update a record with a
+                given identifier or primary key.</p>
+                <blockquote>
+                <p>To update multiple records, see <a
+                href="#update_many">update_many</a>.</p>
+                </blockquote>
+                <h4 data-number="7.3.11.1" id="options-update"><span
+                class="header-section-number">7.3.11.1</span> Options
+                (update)</h4>
+                <table>
+                <colgroup>
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Name</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>data</td>
+                <td>TypedDict</td>
+                <td>Yes</td>
+                <td>Set of fields and corresponding values to update.
+                The identifier or primary key must be included</td>
+                </tr>
+                </tbody>
+                </table>
+                <h4 data-number="7.3.11.2" id="return-type-update"><span
+                class="header-section-number">7.3.11.2</span> Return
+                Type (update)</h4>
+                <p>An MRS dataclass object representing the up-to-date
+                record. For more details about MRS dataclass objects,
+                see <a href="#mrs-records">MRS Records</a>.</p>
+                <h4 data-number="7.3.11.3" id="example-update"><span
+                class="header-section-number">7.3.11.3</span> Example
+                (update)</h4>
+                <div class="sourceCode" id="cb54"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datetime <span class="im">import</span> datetime</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a><span class="co"># The `actor_id` and `last_update` columns from the `sakila` table on the</span></span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a><span class="co"># sample [sakila database](https://dev.mysql.com/doc/sakila/en/) are</span></span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a><span class="co"># automatically generated on each insert, which means they can be omitted.</span></span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>actor: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.create(</span>
+<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Foo&quot;</span>, <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Bar&quot;</span>, <span class="st">&quot;actor_id&quot;</span>: <span class="dv">345</span>}</span>
+<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a>actor_updated: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.update(</span>
+<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>{</span>
+<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;actor_id&quot;</span>: cast(<span class="bu">int</span>, actor.actor_id),</span>
+<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Rodolfo&quot;</span>,</span>
+<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Smith&quot;</span>,</span>
+<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_update&quot;</span>: <span class="bu">str</span>(datetime.now()),</span>
+<span id="cb54-19"><a href="#cb54-19" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actor_updated.first_name <span class="op">==</span> <span class="st">&quot;Rodolfo&quot;</span></span>
+<span id="cb54-23"><a href="#cb54-23" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actor_updated.last_name <span class="op">==</span> <span class="st">&quot;Smith&quot;</span></span>
+<span id="cb54-24"><a href="#cb54-24" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actor.actor_id <span class="op">==</span> actor_updated.actor_id</span></code></pre></div>
+                <h3 data-number="7.3.12" id="update_many"><span
+                class="header-section-number">7.3.12</span>
+                update_many</h3>
+                <p><code>update_many</code> is used to update all
+                records with matching identifiers or primary keys.</p>
+                <blockquote>
+                <p>To update a single record, see <a
+                href="#update">update</a>.</p>
+                </blockquote>
+                <h4 data-number="7.3.12.1"
+                id="options-update_many"><span
+                class="header-section-number">7.3.12.1</span> Options
+                (update_many)</h4>
+                <table>
+                <colgroup>
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Name</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td>data</td>
+                <td>list of <code>TypedDict</code></td>
+                <td>Yes</td>
+                <td>A list of set of fields and corresponding values to
+                update. The identifier or primary key must be included
+                for each “set of fields” (record)</td>
+                </tr>
+                </tbody>
+                </table>
+                <h4 data-number="7.3.12.2"
+                id="return-type-update_many"><span
+                class="header-section-number">7.3.12.2</span> Return
+                Type (update_many)</h4>
+                <p>A list of MRS dataclass objects representing the
+                up-to-date records. For more details about MRS dataclass
+                objects, see <a href="#mrs-records">MRS Records</a>.</p>
+                <h4 data-number="7.3.12.3"
+                id="example-update_many"><span
+                class="header-section-number">7.3.12.3</span> Example
+                (update_many)</h4>
+                <div class="sourceCode" id="cb55"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datetime <span class="im">import</span> datetime</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a><span class="co"># The `actor_id` and `last_update` columns from the `sakila` table on the</span></span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a><span class="co"># sample [sakila database](https://dev.mysql.com/doc/sakila/en/) are</span></span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a><span class="co"># automatically generated on each insert, which means they can be omitted.</span></span>
+<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>actors: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.create(</span>
+<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>[</span>
+<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Foo&quot;</span>, <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Bar&quot;</span>, <span class="st">&quot;actor_id&quot;</span>: <span class="dv">345</span>},</span>
+<span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Bruh&quot;</span>, <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Baz&quot;</span>, <span class="st">&quot;actor_id&quot;</span>: <span class="dv">346</span>},</span>
+<span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb55-15"><a href="#cb55-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-16"><a href="#cb55-16" aria-hidden="true" tabindex="-1"></a>actors_updated: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.update(</span>
+<span id="cb55-17"><a href="#cb55-17" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>[</span>
+<span id="cb55-18"><a href="#cb55-18" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb55-19"><a href="#cb55-19" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;actor_id&quot;</span>: cast(<span class="bu">int</span>, actors[<span class="dv">0</span>].actor_id),</span>
+<span id="cb55-20"><a href="#cb55-20" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Rodolfo&quot;</span>,</span>
+<span id="cb55-21"><a href="#cb55-21" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Smith&quot;</span>,</span>
+<span id="cb55-22"><a href="#cb55-22" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_update&quot;</span>: <span class="bu">str</span>(datetime.now()),</span>
+<span id="cb55-23"><a href="#cb55-23" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb55-24"><a href="#cb55-24" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb55-25"><a href="#cb55-25" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;actor_id&quot;</span>: cast(<span class="bu">int</span>, actors[<span class="dv">1</span>].actor_id),</span>
+<span id="cb55-26"><a href="#cb55-26" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Ma&quot;</span>,</span>
+<span id="cb55-27"><a href="#cb55-27" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Yeung&quot;</span>,</span>
+<span id="cb55-28"><a href="#cb55-28" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_update&quot;</span>: <span class="bu">str</span>(datetime.now()),</span>
+<span id="cb55-29"><a href="#cb55-29" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb55-30"><a href="#cb55-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-31"><a href="#cb55-31" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb55-32"><a href="#cb55-32" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb55-33"><a href="#cb55-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-34"><a href="#cb55-34" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actors_updated[<span class="dv">0</span>].first_name <span class="op">==</span> <span class="st">&quot;Rodolfo&quot;</span></span>
+<span id="cb55-35"><a href="#cb55-35" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actors_updated[<span class="dv">0</span>].last_name <span class="op">==</span> <span class="st">&quot;Smith&quot;</span></span>
+<span id="cb55-36"><a href="#cb55-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-37"><a href="#cb55-37" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actors_updated[<span class="dv">1</span>].first_name <span class="op">==</span> <span class="st">&quot;Ma&quot;</span></span>
+<span id="cb55-38"><a href="#cb55-38" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actors_updated[<span class="dv">1</span>].last_name <span class="op">==</span> <span class="st">&quot;Yeung&quot;</span></span></code></pre></div>
+                <h2 data-number="7.4" id="mrs-records"><span
+                class="header-section-number">7.4</span> MRS
+                Records</h2>
+                <p>An <em>MRS dataclass object</em> behaves as a <a
+                href="https://docs.python.org/3/library/dataclasses.html">Python
+                dataclass</a> instance, and implements an extended
+                interface which includes the <code>save</code> and
+                <code>delete</code> methods.</p>
+                <h3 data-number="7.4.1" id="save"><span
+                class="header-section-number">7.4.1</span> save</h3>
+                <p><code>save</code> creates or updates the record
+                represented by the dataclass instance.</p>
+                <blockquote>
+                <p>If the specified primary key already exists, an
+                <em>update</em> happens, otherwise a
+                <em>create</em>.</p>
+                </blockquote>
+                <p>After completing the operation, the dataclass
+                instance fields are updated in-place.</p>
+                <h4 data-number="7.4.1.1" id="options-save"><span
+                class="header-section-number">7.4.1.1</span> Options
+                (save)</h4>
+                <p>No options are implemented because the data required
+                to complete the operation is assumed to be already
+                included in the data class instance itself.</p>
+                <h4 data-number="7.4.1.2" id="return-type-save"><span
+                class="header-section-number">7.4.1.2</span> Return Type
+                (save)</h4>
+                <p><code>None</code>.</p>
+                <h4 data-number="7.4.1.3" id="example-save"><span
+                class="header-section-number">7.4.1.3</span> Example
+                (save)</h4>
+                <p>Showcasing a <em>create</em>.</p>
+                <div class="sourceCode" id="cb56"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a><span class="co"># The `actor_id` and `last_update` columns from the `sakila` table on the</span></span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a><span class="co"># sample [sakila database](https://dev.mysql.com/doc/sakila/en/) are</span></span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a><span class="co"># automatically generated on each insert, which means they can be omitted.</span></span>
+<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a>actor <span class="op">=</span> Actor(</span>
+<span id="cb56-9"><a href="#cb56-9" aria-hidden="true" tabindex="-1"></a>    schema<span class="op">=</span><span class="va">self</span>.my_service.sakila,</span>
+<span id="cb56-10"><a href="#cb56-10" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>{</span>
+<span id="cb56-11"><a href="#cb56-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;CHARLY&quot;</span>,</span>
+<span id="cb56-12"><a href="#cb56-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;BROWN&quot;</span></span>
+<span id="cb56-13"><a href="#cb56-13" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb56-14"><a href="#cb56-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb56-15"><a href="#cb56-15" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> actor.save()</span>
+<span id="cb56-16"><a href="#cb56-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-17"><a href="#cb56-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actor)</span>
+<span id="cb56-18"><a href="#cb56-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Actor(actor_id=6753, first_name=&#39;CHARLY&#39;, last_name=&#39;BROWN&#39;, last_update=&#39;2024-06-04 10:14:33.000000&#39;)</span></span></code></pre></div>
+                <p>Showcasing an <em>update</em>.</p>
+                <div class="sourceCode" id="cb57"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>actor: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.find_first(</span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="dv">3</span>}</span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> actor <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;Ups, Invalid record ID&quot;</span>)</span>
+<span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a>    sys.exit()</span>
+<span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Before:&quot;</span>, actor)</span>
+<span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-13"><a href="#cb57-13" aria-hidden="true" tabindex="-1"></a>actor.first_name <span class="op">=</span> <span class="st">&quot;RODOLFO&quot;</span></span>
+<span id="cb57-14"><a href="#cb57-14" aria-hidden="true" tabindex="-1"></a>actor.last_name <span class="op">=</span> <span class="st">&quot;CHASE&quot;</span></span>
+<span id="cb57-15"><a href="#cb57-15" aria-hidden="true" tabindex="-1"></a>actor.last_update <span class="op">=</span> <span class="bu">str</span>(datetime.now())</span>
+<span id="cb57-16"><a href="#cb57-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-17"><a href="#cb57-17" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> actor.save()</span>
+<span id="cb57-18"><a href="#cb57-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-19"><a href="#cb57-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actor)</span>
+<span id="cb57-20"><a href="#cb57-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-21"><a href="#cb57-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Before: Actor(actor_id=3, first_name=&#39;ED&#39;, last_name=&#39;SMITH&#39;, last_update=&#39;2023-04-13 15:11:22.000000&#39;)</span></span>
+<span id="cb57-22"><a href="#cb57-22" aria-hidden="true" tabindex="-1"></a><span class="co"># After: Actor(actor_id=3, first_name=&#39;RODOLFO&#39;, last_name=&#39;CHASE&#39;, last_update=&#39;2024-06-04 10:14:33.000000&#39;)</span></span></code></pre></div>
+                <h3 data-number="7.4.2" id="delete-record"><span
+                class="header-section-number">7.4.2</span> delete
+                (record)</h3>
+                <p><code>delete</code> deletes the resource represented
+                by the data class instance.</p>
+                <h4 data-number="7.4.2.1"
+                id="options-delete---record"><span
+                class="header-section-number">7.4.2.1</span> Options
+                (delete - record)</h4>
+                <p>No options are implemented because the data required
+                to complete the operation is assumed to be already
+                included in the data class instance itself.</p>
+                <h4 data-number="7.4.2.2"
+                id="return-type-delete---record"><span
+                class="header-section-number">7.4.2.2</span> Return Type
+                (delete - record)</h4>
+                <p><code>None</code>.</p>
+                <h4 data-number="7.4.2.3"
+                id="example-delete---record"><span
+                class="header-section-number">7.4.2.3</span> Example
+                (delete - record)</h4>
+                <div class="sourceCode" id="cb58"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>actor: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.find_first(</span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="dv">3</span>}</span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> actor <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;Ups, no record found&quot;</span>)</span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>    sys.exit()</span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actor)</span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> actor.delete()</span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a>actor: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.find_first(</span>
+<span id="cb58-16"><a href="#cb58-16" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="dv">3</span>}</span>
+<span id="cb58-17"><a href="#cb58-17" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb58-18"><a href="#cb58-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;deleted?&quot;</span>, actor <span class="kw">is</span> <span class="va">None</span>)</span>
+<span id="cb58-19"><a href="#cb58-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-20"><a href="#cb58-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Actor(actor_id=3, first_name=&#39;ED&#39;, last_name=&#39;SMITH&#39;, last_update=&#39;2023-04-13 15:11:22.000000&#39;)</span></span>
+<span id="cb58-21"><a href="#cb58-21" aria-hidden="true" tabindex="-1"></a><span class="co"># deleted? True</span></span></code></pre></div>
+                <h2 data-number="7.5" id="mrs-functions"><span
+                class="header-section-number">7.5</span> MRS
+                Functions</h2>
+                <h3 data-number="7.5.1" id="options-function"><span
+                class="header-section-number">7.5.1</span> Options
+                (function)</h3>
+                <p>The input arguments and respective types accepted and
+                expected by <code>&lt;func_name&gt;(...)</code> depend
+                on the MySQL function declaration. See <a
+                href="#examples-function">Example (function)</a> for an
+                example.</p>
+                <blockquote>
+                <p>The input arguments must be provided as keyword
+                arguments.</p>
+                </blockquote>
+                <h3 data-number="7.5.2" id="return-type-function"><span
+                class="header-section-number">7.5.2</span> Return Type
+                (function)</h3>
+                <p>The Python data type returned by
+                <code>&lt;func_name&gt;(...)</code> depends on the data
+                type returned by the MySQL function.</p>
+                <blockquote>
+                <p>For instance, the Python data type <code>int</code>
+                must be expected for MySQL functions declared to return
+                <code>TINYINT</code>, <code>SMALLINT</code>,
+                <code>MEDIUMINT</code>, <code>INT</code> and
+                <code>BIGINT</code>.</p>
+                </blockquote>
+                <p>See <a href="#examples-function">Example
+                (function)</a> for an example.</p>
+                <h3 data-number="7.5.3" id="example-function"><span
+                class="header-section-number">7.5.3</span> Example
+                (function)</h3>
+                <p>Calling an MRS function in the Python SDK is exactly
+                like calling a local Python function.</p>
+                <div class="sourceCode" id="cb59"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.hello_func(name<span class="op">=</span><span class="st">&quot;Rui&quot;</span>)</span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; Hello, Rui!</span></span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.sum_func(a<span class="op">=</span><span class="dv">3</span>, b<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; 5</span></span>
+<span id="cb59-10"><a href="#cb59-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-11"><a href="#cb59-11" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.my_birthday_func()</span>
+<span id="cb59-12"><a href="#cb59-12" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; 2024-07-18 00:00:00</span></span></code></pre></div>
+                <p>where <code>hello_func</code>, <code>sum_func</code>
+                and <code>my_birthday_func</code> are:</p>
+                <div class="sourceCode" id="cb60"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- one input</span></span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> hello_func (name <span class="dt">CHAR</span>(<span class="dv">20</span>))</span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS <span class="dt">CHAR</span>(<span class="dv">50</span>) DETERMINISTIC</span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> <span class="fu">CONCAT</span>(<span class="st">&#39;Hello, &#39;</span>, name, <span class="st">&#39;!&#39;</span>);</span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a><span class="co">-- many input</span></span>
+<span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> sum_func (a <span class="dt">INT</span>, b <span class="dt">INT</span>)</span>
+<span id="cb60-8"><a href="#cb60-8" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS <span class="dt">INT</span> DETERMINISTIC</span>
+<span id="cb60-9"><a href="#cb60-9" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> a <span class="op">+</span> b;</span>
+<span id="cb60-10"><a href="#cb60-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb60-11"><a href="#cb60-11" aria-hidden="true" tabindex="-1"></a><span class="co">-- no input</span></span>
+<span id="cb60-12"><a href="#cb60-12" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> my_birthday_func ()</span>
+<span id="cb60-13"><a href="#cb60-13" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS DATETIME DETERMINISTIC</span>
+<span id="cb60-14"><a href="#cb60-14" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> CURDATE();</span></code></pre></div>
                 <p>Copyright (c) 2022, 2024, Oracle and/or its
                 affiliates.</p>
             </div>

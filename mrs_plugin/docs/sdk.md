@@ -12,6 +12,7 @@ __Chapter Overview__
 - [Checking for NULL Column Values](#checking-for-null-column-values)
 - [Working with Spatial Data Types](#working-with-spatial-data-types)
 - [TypeScript Client API Reference](#typescript-client-api-reference)
+- [Python Client API Reference](#python-client-api-reference)
 
 ---
 
@@ -34,5 +35,7 @@ Please also see
 !include sections/sdk/WorkingWithSpatialDataTypes.md
 
 !include sections/sdk/ClientAPITypeScript.md
+
+!include sections/sdk/PythonAPIRef.md
 
 Copyright (c) 2022, 2024, Oracle and/or its affiliates.
