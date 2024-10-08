@@ -23,6 +23,86 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 # Authentication and Authorization
 
+## Overview
+
+As a HTTP REST service, MRS performs its own authentication and authorization checks separately from the MySQL server.
+
+In general, anyone or anything that intends to access a MRS endpoint needs to first authenticate with it as a specific user account. That user must also have specific privileges to access that object and execute the desired HTTP method (GET, POST etc).
+
+MRS defines 5 discrete types of users according to the type of activities they're allowed to perform in a MRS deployment. These users map to 5 MySQL roles created during MRS configuration, which can be granted in any combination to one or more MySQL user accounts.
+
+All roles have the minimal set of MySQL privileges necessary, mostly restricted to internal MRS metadata tables. By default, they have no access to any other schemas or tables. However, some roles must be granted varying levels of access to user schemas, tables and other DB objects necessary for their purpose.
+
+### MRS Administrative Users
+
+Administrative tasks (configuration, creating and managing endpoints etc) are performed through MySQL Shell. The operations that a user is allowed to perform depend on the MySQL user that was used to connect MySQL Shell to MySQL (i.e. the Username that was set when the Connection was created in MySQL Shell for VSCode or passed in the command line of `mysqlsh`).
+
+Note that any MySQL root or admin users that have full privileges to MySQL will also have full privileges to MRS instances. Therefore, it is recommended that MRS management is done using a dedicated MySQL user with minimal privileges.
+
+#### Service Administrator (`mysql_rest_service_admin`)
+
+A Service Administrator is allowed to:
+
+* add, manage and remove MRS services
+* add, manage and remove endpoint schemas
+* add, manage and remove endpoints to tables, views and routines to MRS schemas
+* add, manage and remove authentication apps
+* add, manage and remove user accounts and roles
+* add, manage and remove content sets and files (static files that can be served via HTTP)
+* manage and monitor MySQL Router status and logs
+* view the MRS audit log
+
+Service administrators must have the `mysql_rest_service_admin` MySQL role.
+
+#### Schema Administrator (`mysql_rest_schema_admin`)
+
+The main purpose of a Schema Administrator is to create REST endpoint schemas, so that objects of that schema can be published as endpoints of a MRS service. They need access to both MRS metadata tables and user schemas
+
+A Schema Administrator is allowed to:
+
+* add, manage and remove endpoint schemas
+* add, manage and remove endpoints to tables, views and routines to MRS schemas
+* add, manage and remove content sets and files
+* monitor MySQL Router status and logs
+* view the MRS audit log
+
+Schema administrators must have the `mysql_rest_schema_admin` MySQL role.
+In addition to that role, Schema Administrator users must be able to view and grant all relevant privileges on objects that they wish to create endpoints for (e.g. `SELECT`, `INSERT`, `UPDATE`, `DELETE` on tables that will be published and updatable, `WITH GRANT OPTION`). These privileges will automatically be re-granted by MySQL Shell to the `mysql_rest_service_data_provider` role, so that MySQL Router can do whatever is required by the endpoint configuration.
+
+#### Developer (`mysql_rest_service_dev`)
+
+Developers have mostly the same privileges as Schema Administrators, except they cannot add new schemas to a service.
+
+Developers are allowed to:
+
+* use/reference existing endpoints schemas
+* add, manage and remove endpoints to tables, views and routines to MRS schemas
+* add, manage and remove content sets and files
+* monitor MySQL Router status and logs
+* view the MRS audit log
+
+Developers must have the `mysql_rest_service_dev` MySQL role.
+In addition to that role, Developer users must be able to grant all relevant privileges on objects that they wish to create endpoints for (e.g. `SELECT`, `INSERT`, `UPDATE`, `DELETE` on tables that will be published and updatable, `WITH GRANT OPTION`). These privileges will automatically be re-granted by MySQL Shell to the `mysql_rest_service_data_provider` role, so that MySQL Router can do whatever is required by the endpoint configuration.
+
+### MRS Service User
+
+When bootstrapping MySQL Router for MRS, a MySQL user account is automatically created for MRS.
+That account has these 2 roles granted:
+
+#### Data Access (`mysql_rest_service_data_provider`)
+
+This is the MySQL role MySQL Router uses to execute SQL necessary to serve HTTP REST requests on behalf of MRS users.
+This role must have grants on all MySQL objects that are exposed as REST endpoints.
+
+The MySQL Shell automatically manages privileges granted to this role, as DB objects are added as REST endpoints.
+
+Note that access control for MRS users is performed at REST endpoint level by MRS; but all REST requests, regardless of the MRS user they're originating from, will be executed through the same MySQL user. Care must be taken when exposing views and stored procedures to avoid granting access to objects to unintended users.
+
+#### Metadata Access (`mysql_rest_service_meta_provider`)
+
+The MySQL Router uses this role when querying the MRS metadata for endpoint configuration, MRS user account information etc.
+This role only has access to internal metadata tables.
+
 ## Authentication Management
 
 MRS currently supports the following authentication methods.
@@ -58,3 +138,46 @@ MRS has built-in support for several authorization models. These authorization m
 - Group-hierarchy based
 
 If the use case of a given project matches one of the offered authorization models, then a custom authorization does not need to be implemented.
+
+From an endpoint's perspective, access to REST resources can be controlled at the following levels:
+
+- Service
+- Schema
+- Object
+
+That is, if a user has read access to a schema, then they will have read access to all objects in that schema of a service.
+
+It is possible to grant CREATE, READ, UPDATE and DELETE privileges at any of these levels.
+
+### MRS Roles
+
+A MRS role encapsulates a set of privileges for REST endpoints which can be granted as a whole to individual MRS users of a service. Roles can also be organized hierarchically, or extended into new roles with additional privileges.
+
+For example, in a simple blog application that has an endpoint for `/myService/blog/post`, we could have 3 roles:
+
+- `reader`, who can only read posts;
+- `poster`, who can create and update posts, besides reading them and
+- `editor`, which has the same privileges as a `poster`, but can also delete them
+
+The following snippet creates these 3 roles and grants them to the `demouser@MRS` user.
+
+```sql
+USE REST SERVICE /myService;
+
+CREATE REST ROLE "reader";
+
+GRANT REST READ ON SCHEMA /blog OBJECT /post TO "reader";
+
+CREATE REST ROLE "poster" EXTENDS "reader";
+
+GRANT REST CREATE, UPDATE ON SCHEMA /blog OBJECT /post TO "poster";
+
+CREATE REST ROLE "editor" EXTENDS "poster";
+
+GRANT REST DELETE ON SCHEMA /blog OBJECT /post TO "editor";
+
+SHOW REST ROLES;
+
+GRANT REST ROLE "poster" TO demouser@MRS;
+```
+

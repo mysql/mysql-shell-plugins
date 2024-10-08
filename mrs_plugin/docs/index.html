@@ -305,16 +305,20 @@
                                                 Authentication and
                                                 Authorization</a>
                                                 <ul>
+                                                <li><a href="#overview"
+                                                id="toc-overview"><span
+                                                class="toc-section-number">8.1</span>
+                                                Overview</a></li>
                                                 <li><a
                                                 href="#authentication-management"
                                                 id="toc-authentication-management"><span
-                                                class="toc-section-number">8.1</span>
+                                                class="toc-section-number">8.2</span>
                                                 Authentication
                                                 Management</a></li>
                                                 <li><a
                                                 href="#authorization-management"
                                                 id="toc-authorization-management"><span
-                                                class="toc-section-number">8.2</span>
+                                                class="toc-section-number">8.3</span>
                                                 Authorization
                                                 Management</a></li>
                                                 </ul></li>
@@ -2389,23 +2393,174 @@ router_id=16</code></pre>
                 id="authentication-and-authorization"><span
                 class="header-section-number">8</span> Authentication
                 and Authorization</h1>
-                <h2 data-number="8.1"
+                <h2 data-number="8.1" id="overview"><span
+                class="header-section-number">8.1</span> Overview</h2>
+                <p>As a HTTP REST service, MRS performs its own
+                authentication and authorization checks separately from
+                the MySQL server.</p>
+                <p>In general, anyone or anything that intends to access
+                a MRS endpoint needs to first authenticate with it as a
+                specific user account. That user must also have specific
+                privileges to access that object and execute the desired
+                HTTP method (GET, POST etc).</p>
+                <p>MRS defines 5 discrete types of users according to
+                the type of activities they’re allowed to perform in a
+                MRS deployment. These users map to 5 MySQL roles created
+                during MRS configuration, which can be granted in any
+                combination to one or more MySQL user accounts.</p>
+                <p>All roles have the minimal set of MySQL privileges
+                necessary, mostly restricted to internal MRS metadata
+                tables. By default, they have no access to any other
+                schemas or tables. However, some roles must be granted
+                varying levels of access to user schemas, tables and
+                other DB objects necessary for their purpose.</p>
+                <h3 data-number="8.1.1"
+                id="mrs-administrative-users"><span
+                class="header-section-number">8.1.1</span> MRS
+                Administrative Users</h3>
+                <p>Administrative tasks (configuration, creating and
+                managing endpoints etc) are performed through MySQL
+                Shell. The operations that a user is allowed to perform
+                depend on the MySQL user that was used to connect MySQL
+                Shell to MySQL (i.e. the Username that was set when the
+                Connection was created in MySQL Shell for VSCode or
+                passed in the command line of <code>mysqlsh</code>).</p>
+                <p>Note that any MySQL root or admin users that have
+                full privileges to MySQL will also have full privileges
+                to MRS instances. Therefore, it is recommended that MRS
+                management is done using a dedicated MySQL user with
+                minimal privileges.</p>
+                <h4 data-number="8.1.1.1"
+                id="service-administrator-mysql_rest_service_admin"><span
+                class="header-section-number">8.1.1.1</span> Service
+                Administrator
+                (<code>mysql_rest_service_admin</code>)</h4>
+                <p>A Service Administrator is allowed to:</p>
+                <ul>
+                <li>add, manage and remove MRS services</li>
+                <li>add, manage and remove endpoint schemas</li>
+                <li>add, manage and remove endpoints to tables, views
+                and routines to MRS schemas</li>
+                <li>add, manage and remove authentication apps</li>
+                <li>add, manage and remove user accounts and roles</li>
+                <li>add, manage and remove content sets and files
+                (static files that can be served via HTTP)</li>
+                <li>manage and monitor MySQL Router status and logs</li>
+                <li>view the MRS audit log</li>
+                </ul>
+                <p>Service administrators must have the
+                <code>mysql_rest_service_admin</code> MySQL role.</p>
+                <h4 data-number="8.1.1.2"
+                id="schema-administrator-mysql_rest_schema_admin"><span
+                class="header-section-number">8.1.1.2</span> Schema
+                Administrator
+                (<code>mysql_rest_schema_admin</code>)</h4>
+                <p>The main purpose of a Schema Administrator is to
+                create REST endpoint schemas, so that objects of that
+                schema can be published as endpoints of a MRS service.
+                They need access to both MRS metadata tables and user
+                schemas</p>
+                <p>A Schema Administrator is allowed to:</p>
+                <ul>
+                <li>add, manage and remove endpoint schemas</li>
+                <li>add, manage and remove endpoints to tables, views
+                and routines to MRS schemas</li>
+                <li>add, manage and remove content sets and files</li>
+                <li>monitor MySQL Router status and logs</li>
+                <li>view the MRS audit log</li>
+                </ul>
+                <p>Schema administrators must have the
+                <code>mysql_rest_schema_admin</code> MySQL role. In
+                addition to that role, Schema Administrator users must
+                be able to view and grant all relevant privileges on
+                objects that they wish to create endpoints for
+                (e.g. <code>SELECT</code>, <code>INSERT</code>,
+                <code>UPDATE</code>, <code>DELETE</code> on tables that
+                will be published and updatable,
+                <code>WITH GRANT OPTION</code>). These privileges will
+                automatically be re-granted by MySQL Shell to the
+                <code>mysql_rest_service_data_provider</code> role, so
+                that MySQL Router can do whatever is required by the
+                endpoint configuration.</p>
+                <h4 data-number="8.1.1.3"
+                id="developer-mysql_rest_service_dev"><span
+                class="header-section-number">8.1.1.3</span> Developer
+                (<code>mysql_rest_service_dev</code>)</h4>
+                <p>Developers have mostly the same privileges as Schema
+                Administrators, except they cannot add new schemas to a
+                service.</p>
+                <p>Developers are allowed to:</p>
+                <ul>
+                <li>use/reference existing endpoints schemas</li>
+                <li>add, manage and remove endpoints to tables, views
+                and routines to MRS schemas</li>
+                <li>add, manage and remove content sets and files</li>
+                <li>monitor MySQL Router status and logs</li>
+                <li>view the MRS audit log</li>
+                </ul>
+                <p>Developers must have the
+                <code>mysql_rest_service_dev</code> MySQL role. In
+                addition to that role, Developer users must be able to
+                grant all relevant privileges on objects that they wish
+                to create endpoints for (e.g. <code>SELECT</code>,
+                <code>INSERT</code>, <code>UPDATE</code>,
+                <code>DELETE</code> on tables that will be published and
+                updatable, <code>WITH GRANT OPTION</code>). These
+                privileges will automatically be re-granted by MySQL
+                Shell to the
+                <code>mysql_rest_service_data_provider</code> role, so
+                that MySQL Router can do whatever is required by the
+                endpoint configuration.</p>
+                <h3 data-number="8.1.2" id="mrs-service-user"><span
+                class="header-section-number">8.1.2</span> MRS Service
+                User</h3>
+                <p>When bootstrapping MySQL Router for MRS, a MySQL user
+                account is automatically created for MRS. That account
+                has these 2 roles granted:</p>
+                <h4 data-number="8.1.2.1"
+                id="data-access-mysql_rest_service_data_provider"><span
+                class="header-section-number">8.1.2.1</span> Data Access
+                (<code>mysql_rest_service_data_provider</code>)</h4>
+                <p>This is the MySQL role MySQL Router uses to execute
+                SQL necessary to serve HTTP REST requests on behalf of
+                MRS users. This role must have grants on all MySQL
+                objects that are exposed as REST endpoints.</p>
+                <p>The MySQL Shell automatically manages privileges
+                granted to this role, as DB objects are added as REST
+                endpoints.</p>
+                <p>Note that access control for MRS users is performed
+                at REST endpoint level by MRS; but all REST requests,
+                regardless of the MRS user they’re originating from,
+                will be executed through the same MySQL user. Care must
+                be taken when exposing views and stored procedures to
+                avoid granting access to objects to unintended
+                users.</p>
+                <h4 data-number="8.1.2.2"
+                id="metadata-access-mysql_rest_service_meta_provider"><span
+                class="header-section-number">8.1.2.2</span> Metadata
+                Access
+                (<code>mysql_rest_service_meta_provider</code>)</h4>
+                <p>The MySQL Router uses this role when querying the MRS
+                metadata for endpoint configuration, MRS user account
+                information etc. This role only has access to internal
+                metadata tables.</p>
+                <h2 data-number="8.2"
                 id="authentication-management"><span
-                class="header-section-number">8.1</span> Authentication
+                class="header-section-number">8.2</span> Authentication
                 Management</h2>
                 <p>MRS currently supports the following authentication
                 methods.</p>
-                <h3 data-number="8.1.1"
+                <h3 data-number="8.2.1"
                 id="mrs-rest-service-specific-authentication"><span
-                class="header-section-number">8.1.1</span> MRS REST
+                class="header-section-number">8.2.1</span> MRS REST
                 Service Specific Authentication</h3>
                 <p>Authentication is handled my MRS against MRS REST
                 Service specific accounts. Applications use SCRAM
                 (Salted Challenge Response Authentication Mechanism) to
                 securely authenticate a user.</p>
-                <h3 data-number="8.1.2"
+                <h3 data-number="8.2.2"
                 id="mysql-internal-authentication"><span
-                class="header-section-number">8.1.2</span> MySQL
+                class="header-section-number">8.2.2</span> MySQL
                 Internal Authentication</h3>
                 <p>Authentication is handled my MRS against MySQL server
                 user accounts. Applications use SCRAM (Salted Challenge
@@ -2413,8 +2568,8 @@ router_id=16</code></pre>
                 authenticate a user.</p>
                 <p>This authentication method is suitable for
                 applications that are not exposed publicly.</p>
-                <h3 data-number="8.1.3" id="oauth2-authentication"><span
-                class="header-section-number">8.1.3</span> OAuth2
+                <h3 data-number="8.2.3" id="oauth2-authentication"><span
+                class="header-section-number">8.2.3</span> OAuth2
                 Authentication</h3>
                 <p>Several OAuth2 services from 3rd-party vendors are
                 supported by MRS; for example, sign in with FaceBook,
@@ -2424,9 +2579,9 @@ router_id=16</code></pre>
                 vendor specific authentication apps need to be created.
                 Then the OAuth2 specific settings - like access_token
                 and app_id - need to be configured on the MRS side.</p>
-                <h2 data-number="8.2"
+                <h2 data-number="8.3"
                 id="authorization-management"><span
-                class="header-section-number">8.2</span> Authorization
+                class="header-section-number">8.3</span> Authorization
                 Management</h2>
                 <p>Access to a given REST resource can have several
                 levels of restrictions when using MRS:</p>
@@ -2454,6 +2609,56 @@ router_id=16</code></pre>
                 <p>If the use case of a given project matches one of the
                 offered authorization models, then a custom
                 authorization does not need to be implemented.</p>
+                <p>From an endpoint’s perspective, access to REST
+                resources can be controlled at the following levels:</p>
+                <ul>
+                <li>Service</li>
+                <li>Schema</li>
+                <li>Object</li>
+                </ul>
+                <p>That is, if a user has read access to a schema, then
+                they will have read access to all objects in that schema
+                of a service.</p>
+                <p>It is possible to grant CREATE, READ, UPDATE and
+                DELETE privileges at any of these levels.</p>
+                <h3 data-number="8.3.1" id="mrs-roles"><span
+                class="header-section-number">8.3.1</span> MRS
+                Roles</h3>
+                <p>A MRS role encapsulates a set of privileges for REST
+                endpoints which can be granted as a whole to individual
+                MRS users of a service. Roles can also be organized
+                hierarchically, or extended into new roles with
+                additional privileges.</p>
+                <p>For example, in a simple blog application that has an
+                endpoint for <code>/myService/blog/post</code>, we could
+                have 3 roles:</p>
+                <ul>
+                <li><code>reader</code>, who can only read posts;</li>
+                <li><code>poster</code>, who can create and update
+                posts, besides reading them and</li>
+                <li><code>editor</code>, which has the same privileges
+                as a <code>poster</code>, but can also delete them</li>
+                </ul>
+                <p>The following snippet creates these 3 roles and
+                grants them to the <code>demouser@MRS</code> user.</p>
+                <div class="sourceCode" id="cb38"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myService;</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;reader&quot;</span>;</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">READ</span> <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="dt">OBJECT</span> <span class="op">/</span>post <span class="kw">TO</span> <span class="ot">&quot;reader&quot;</span>;</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;poster&quot;</span> <span class="kw">EXTENDS</span> <span class="ot">&quot;reader&quot;</span>;</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">CREATE</span>, <span class="kw">UPDATE</span> <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="dt">OBJECT</span> <span class="op">/</span>post <span class="kw">TO</span> <span class="ot">&quot;poster&quot;</span>;</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;editor&quot;</span> <span class="kw">EXTENDS</span> <span class="ot">&quot;poster&quot;</span>;</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">DELETE</span> <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="dt">OBJECT</span> <span class="op">/</span>post <span class="kw">TO</span> <span class="ot">&quot;editor&quot;</span>;</span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>SHOW REST <span class="kw">ROLES</span>;</span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;poster&quot;</span> <span class="kw">TO</span> demouser@MRS;</span></code></pre></div>
                 <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify

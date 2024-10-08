@@ -216,6 +216,12 @@
                                                 class="toc-section-number">2.9</span>
                                                 CREATE REST
                                                 USER</a></li>
+                                                <li><a
+                                                href="#create-rest-role"
+                                                id="toc-create-rest-role"><span
+                                                class="toc-section-number">2.10</span>
+                                                CREATE REST
+                                                ROLE</a></li>
                                                 </ul></li>
                                                 <li><a href="#alter"
                                                 id="toc-alter"><span
@@ -251,6 +257,11 @@
                                                 class="toc-section-number">3.5</span>
                                                 ALTER REST
                                                 FUNCTION</a></li>
+                                                <li><a
+                                                href="#alter-rest-user"
+                                                id="toc-alter-rest-user"><span
+                                                class="toc-section-number">3.6</span>
+                                                ALTER REST USER</a></li>
                                                 </ul></li>
                                                 <li><a href="#drop"
                                                 id="toc-drop"><span
@@ -303,100 +314,144 @@
                                                 id="toc-drop-rest-user"><span
                                                 class="toc-section-number">4.8</span>
                                                 DROP REST USER</a></li>
+                                                <li><a
+                                                href="#drop-rest-role"
+                                                id="toc-drop-rest-role"><span
+                                                class="toc-section-number">4.9</span>
+                                                DROP REST ROLE</a></li>
+                                                </ul></li>
+                                                <li><a
+                                                href="#grant-and-revoke"
+                                                id="toc-grant-and-revoke"><span
+                                                class="toc-section-number">5</span>
+                                                GRANT and REVOKE</a>
+                                                <ul>
+                                                <li><a
+                                                href="#grant-rest"
+                                                id="toc-grant-rest"><span
+                                                class="toc-section-number">5.1</span>
+                                                GRANT REST</a></li>
+                                                <li><a
+                                                href="#grant-rest-role"
+                                                id="toc-grant-rest-role"><span
+                                                class="toc-section-number">5.2</span>
+                                                GRANT REST ROLE</a></li>
+                                                <li><a
+                                                href="#revoke-rest"
+                                                id="toc-revoke-rest"><span
+                                                class="toc-section-number">5.3</span>
+                                                REVOKE REST</a></li>
+                                                <li><a
+                                                href="#revoke-rest-role"
+                                                id="toc-revoke-rest-role"><span
+                                                class="toc-section-number">5.4</span>
+                                                REVOKE REST
+                                                ROLE</a></li>
                                                 </ul></li>
                                                 <li><a
                                                 href="#use-and-show"
                                                 id="toc-use-and-show"><span
-                                                class="toc-section-number">5</span>
+                                                class="toc-section-number">6</span>
                                                 USE and SHOW</a>
                                                 <ul>
                                                 <li><a href="#use"
                                                 id="toc-use"><span
-                                                class="toc-section-number">5.1</span>
+                                                class="toc-section-number">6.1</span>
                                                 USE</a></li>
                                                 <li><a
                                                 href="#show-rest-status"
                                                 id="toc-show-rest-status"><span
-                                                class="toc-section-number">5.2</span>
+                                                class="toc-section-number">6.2</span>
                                                 SHOW REST
                                                 STATUS</a></li>
                                                 <li><a
                                                 href="#show-rest-services"
                                                 id="toc-show-rest-services"><span
-                                                class="toc-section-number">5.3</span>
+                                                class="toc-section-number">6.3</span>
                                                 SHOW REST
                                                 SERVICES</a></li>
                                                 <li><a
                                                 href="#show-rest-schemas"
                                                 id="toc-show-rest-schemas"><span
-                                                class="toc-section-number">5.4</span>
+                                                class="toc-section-number">6.4</span>
                                                 SHOW REST
                                                 SCHEMAS</a></li>
                                                 <li><a
                                                 href="#show-rest-views"
                                                 id="toc-show-rest-views"><span
-                                                class="toc-section-number">5.5</span>
+                                                class="toc-section-number">6.5</span>
                                                 SHOW REST VIEWS</a></li>
                                                 <li><a
                                                 href="#show-rest-procedures"
                                                 id="toc-show-rest-procedures"><span
-                                                class="toc-section-number">5.6</span>
+                                                class="toc-section-number">6.6</span>
                                                 SHOW REST
                                                 PROCEDURES</a></li>
                                                 <li><a
                                                 href="#show-rest-functions"
                                                 id="toc-show-rest-functions"><span
-                                                class="toc-section-number">5.7</span>
+                                                class="toc-section-number">6.7</span>
                                                 SHOW REST
                                                 FUNCTIONS</a></li>
                                                 <li><a
                                                 href="#show-rest-content-sets"
                                                 id="toc-show-rest-content-sets"><span
-                                                class="toc-section-number">5.8</span>
+                                                class="toc-section-number">6.8</span>
                                                 SHOW REST CONTENT
                                                 SETS</a></li>
                                                 <li><a
                                                 href="#show-rest-auth-apps"
                                                 id="toc-show-rest-auth-apps"><span
-                                                class="toc-section-number">5.9</span>
+                                                class="toc-section-number">6.9</span>
                                                 SHOW REST AUTH
                                                 APPS</a></li>
                                                 <li><a
                                                 href="#show-create-rest-service"
                                                 id="toc-show-create-rest-service"><span
-                                                class="toc-section-number">5.10</span>
+                                                class="toc-section-number">6.10</span>
                                                 SHOW CREATE REST
                                                 SERVICE</a></li>
                                                 <li><a
                                                 href="#show-create-rest-schema"
                                                 id="toc-show-create-rest-schema"><span
-                                                class="toc-section-number">5.11</span>
+                                                class="toc-section-number">6.11</span>
                                                 SHOW CREATE REST
                                                 SCHEMA</a></li>
                                                 <li><a
                                                 href="#show-create-rest-view"
                                                 id="toc-show-create-rest-view"><span
-                                                class="toc-section-number">5.12</span>
+                                                class="toc-section-number">6.12</span>
                                                 SHOW CREATE REST
                                                 VIEW</a></li>
                                                 <li><a
                                                 href="#show-create-rest-procedure"
                                                 id="toc-show-create-rest-procedure"><span
-                                                class="toc-section-number">5.13</span>
+                                                class="toc-section-number">6.13</span>
                                                 SHOW CREATE REST
                                                 PROCEDURE</a></li>
                                                 <li><a
                                                 href="#show-create-rest-function"
                                                 id="toc-show-create-rest-function"><span
-                                                class="toc-section-number">5.14</span>
+                                                class="toc-section-number">6.14</span>
                                                 SHOW CREATE REST
                                                 FUNCTION</a></li>
                                                 <li><a
                                                 href="#show-create-auth-app"
                                                 id="toc-show-create-auth-app"><span
-                                                class="toc-section-number">5.15</span>
+                                                class="toc-section-number">6.15</span>
                                                 SHOW CREATE AUTH
                                                 APP</a></li>
+                                                <li><a
+                                                href="#show-rest-roles"
+                                                id="toc-show-rest-roles"><span
+                                                class="toc-section-number">6.16</span>
+                                                SHOW REST ROLES</a></li>
+                                                <li><a
+                                                href="#show-rest-grants"
+                                                id="toc-show-rest-grants"><span
+                                                class="toc-section-number">6.17</span>
+                                                SHOW REST
+                                                GRANTS</a></li>
                                                 </ul></li>
                                                 </ul>
                                             </div>
@@ -1888,14 +1943,63 @@ defaultRole:
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>createRestUserStatement:
     CREATE (OR REPLACE)? REST USER userName AT_SIGN
-        authAppName (
-        ON SERVICE? serviceRequestPath
-    )? IDENTIFIED BY userPassword
-;</code></pre>
+        authAppName (IDENTIFIED BY userPassword)? userOptions?
+;
+
+userName:
+    quotedText
+;
+
+userPassword:
+    quotedText
+;
+
+userOptions: (accountLock | appOptions | jsonOptions)+
+;
+
+appOptions:
+    APP OPTIONS jsonValue
+;
+
+accountLock:
+    ACCOUNT ( LOCK | UNLOCK )
+;
+</code></pre>
                 <p>createRestUserStatement ::= <img
                 src="sections/sql/../../images/sql/createRestUserStatement.svg"
                 title="createRestUserStatement"
                 alt="createRestUserStatement" /></p>
+                <p>userOptions ::= <img
+                src="sections/sql/../../images/sql/userOptions.svg"
+                title="userOptions" alt="userOptions" /></p>
+                <p>appOptions ::= <img
+                src="sections/sql/../../images/sql/appOptions.svg"
+                title="appOptions" alt="appOptions" /></p>
+                <p>accountLock ::= <img
+                src="sections/sql/../../images/sql/accountLock.svg"
+                title="accountLock" alt="accountLock" /></p>
+                <h2 data-number="2.10" id="create-rest-role"><span
+                class="header-section-number">2.10</span> CREATE REST
+                ROLE</h2>
+                <p>Creates a REST role to the specified or currently
+                active REST service. Role names must be unique across
+                all services.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>createRestRoleStatement:
+    CREATE (OR REPLACE)? REST ROLE roleName (
+        EXTENDS parentRoleName
+    )? (ON (ANY SERVICE | SERVICE? serviceRequestPath))? restRoleOptions?
+;
+
+restRoleOptions: (jsonOptions | comments)+
+;</code></pre>
+                <p>createRestRoleStatement ::= <img
+                src="sections/sql/../../images/sql/createRestRoleStatement.svg"
+                title="createRestRoleStatement"
+                alt="createRestRoleStatement" /></p>
+                <p>restRoleOptions ::= <img
+                src="sections/sql/../../images/sql/restRoleOptions.svg"
+                title="restRoleOptions" alt="restRoleOptions" /></p>
                 <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -1955,9 +2059,9 @@ restServiceOptions: (
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example alters a REST service
                 <code>/myService</code> by setting a new comment.</p>
-                <div class="sourceCode" id="cb48"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST SERVICE <span class="op">/</span>myService</span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A simple, improved REST service&quot;</span>;</span></code></pre></div>
+                <div class="sourceCode" id="cb49"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST SERVICE <span class="op">/</span>myService</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A simple, improved REST service&quot;</span>;</span></code></pre></div>
                 <h2 data-number="3.2" id="alter-rest-schema"><span
                 class="header-section-number">3.2</span> ALTER REST
                 SCHEMA</h2>
@@ -1996,9 +2100,9 @@ restSchemaOptions: (
                 <p>The following example alters a REST schema
                 <code>/myService</code> to use a new request path
                 <code>/myPublicService</code>.</p>
-                <div class="sourceCode" id="cb50"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">NEW</span> REQUEST PATH <span class="op">/</span>myPublicService;</span></code></pre></div>
+                <div class="sourceCode" id="cb51"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">NEW</span> REQUEST PATH <span class="op">/</span>myPublicService;</span></code></pre></div>
                 <h2 data-number="3.3" id="alter-rest-view"><span
                 class="header-section-number">3.3</span> ALTER REST
                 VIEW</h2>
@@ -2053,13 +2157,13 @@ restObjectOptions: (
                 <p>The following example alters a REST data mapping view
                 for the <code>sakila.city</code> database schema table
                 and sets a new list of fields.</p>
-                <div class="sourceCode" id="cb52"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity {</span>
-<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
-<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>    city: city</span>
-<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
+                <div class="sourceCode" id="cb53"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity {</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>    city: city</span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
                 <h2 data-number="3.4" id="alter-rest-procedure"><span
                 class="header-section-number">3.4</span> ALTER REST
                 PROCEDURE</h2>
@@ -2158,6 +2262,18 @@ restObjectOptions: (
                 <p>restObjectOptions ::= <img
                 src="sections/sql/../../images/sql/restObjectOptions.svg"
                 title="restObjectOptions" alt="restObjectOptions" /></p>
+                <h2 data-number="3.6" id="alter-rest-user"><span
+                class="header-section-number">3.6</span> ALTER REST
+                USER</h2>
+                <p>Change password and options for an existing REST user
+                account.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>alterRestUserStatement:
+    ALTER_SYMBOL REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName (
+        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
+    )? (IDENTIFIED_SYMBOL BY_SYMBOL userPassword)? userOptions?
+;
+</code></pre>
                 <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -2198,8 +2314,8 @@ restObjectOptions: (
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example drops a REST service with the
                 request path <code>/myService</code>.</p>
-                <div class="sourceCode" id="cb56"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <div class="sourceCode" id="cb58"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
                 <h2 data-number="4.2" id="drop-rest-schema"><span
                 class="header-section-number">4.2</span> DROP REST
                 SCHEMA</h2>
@@ -2218,8 +2334,8 @@ restObjectOptions: (
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example drops a REST schema using the
                 request path <code>/myService</code>.</p>
-                <div class="sourceCode" id="cb58"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <div class="sourceCode" id="cb60"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
                 <h2 data-number="4.3" id="drop-rest-view"><span
                 class="header-section-number">4.3</span> DROP REST
                 VIEW</h2>
@@ -2238,9 +2354,9 @@ restObjectOptions: (
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example drops a REST data mapping view
                 using the request path <code>/city</code>.</p>
-                <div class="sourceCode" id="cb60"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
-<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <div class="sourceCode" id="cb62"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
                 <h2 data-number="4.4" id="drop-rest-procedure"><span
                 class="header-section-number">4.4</span> DROP REST
                 PROCEDURE</h2>
@@ -2263,8 +2379,8 @@ restObjectOptions: (
                 to drop an existing REST functions.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>dropRestFunctionStatement:
-    DROP_SYMBOL REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
-        FROM_SYMBOL serviceSchemaSelector
+    DROP REST FUNCTION functionRequestPath (
+        FROM serviceSchemaSelector
     )?
 ;</code></pre>
                 <p>dropRestFunctionStatement ::= <img
@@ -2318,6 +2434,18 @@ restObjectOptions: (
                 src="sections/sql/../../images/sql/dropRestUserStatement.svg"
                 title="dropRestUserStatement"
                 alt="dropRestUserStatement" /></p>
+                <h2 data-number="4.9" id="drop-rest-role"><span
+                class="header-section-number">4.9</span> DROP REST
+                ROLE</h2>
+                <p>Drops the named REST role.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>dropRestRoleStatement:
+    DROP REST ROLE roleName
+;</code></pre>
+                <p>dropRestRoleStatement ::= <img
+                src="sections/sql/../../images/sql/dropRestRoleStatement.svg"
+                title="dropRestRoleStatement"
+                alt="dropRestRoleStatement" /></p>
                 <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -2340,10 +2468,111 @@ restObjectOptions: (
                 You should have received a copy of the GNU General Public License
                 along with this program; if not, write to the Free Software Foundation, Inc.,
                 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
-                <h1 data-number="5" id="use-and-show"><span
-                class="header-section-number">5</span> USE and SHOW</h1>
-                <h2 data-number="5.1" id="use"><span
-                class="header-section-number">5.1</span> USE</h2>
+                <h1 data-number="5" id="grant-and-revoke"><span
+                class="header-section-number">5</span> GRANT and
+                REVOKE</h1>
+                <h2 data-number="5.1" id="grant-rest"><span
+                class="header-section-number">5.1</span> GRANT REST</h2>
+                <p>Grants REST privileges on endpoint objects to a
+                role.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>grantRestPrivilegeStatement:
+    GRANT REST privilegeList (
+        ON serviceSchemaSelector (
+            OBJECT objectRequestPath
+        )?
+    )? TO roleName
+;
+
+privilegeList:
+    privilegeName
+    | privilegeName COMMA privilegeList
+;
+
+privilegeName:
+    CREATE
+    | READ
+    | UPDATE
+    | DELETE
+;</code></pre>
+                <p>grantRestPrivilegeStatement ::= <img
+                src="sections/sql/../../images/sql/grantRestPrivilegeStatement.svg"
+                title="grantRestPrivilegeStatement"
+                alt="grantRestPrivilegeStatement" /></p>
+                <p>privilegeList ::= <img
+                src="sections/sql/../../images/sql/privilegeList.svg"
+                title="privilegeList" alt="privilegeList" /></p>
+                <p>privilegeName ::= <img
+                src="sections/sql/../../images/sql/privilegeName.svg"
+                title="privilegeName" alt="privilegeName" /></p>
+                <h2 data-number="5.2" id="grant-rest-role"><span
+                class="header-section-number">5.2</span> GRANT REST
+                ROLE</h2>
+                <p>Grants a REST role to a user account.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>grantRestRoleStatement:
+    GRANT REST ROLE roleName TO userName AT_SIGN authAppName
+        comments?
+;</code></pre>
+                <p>grantRestRoleStatement ::= <img
+                src="sections/sql/../../images/sql/grantRestRoleStatement.svg"
+                title="grantRestRoleStatement"
+                alt="grantRestRoleStatement" /></p>
+                <h2 data-number="5.3" id="revoke-rest"><span
+                class="header-section-number">5.3</span> REVOKE
+                REST</h2>
+                <p>Revokes privileges on an REST endpoint object from a
+                role.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>revokeRestPrivilegeStatement:
+    REVOKE REST privilegeList (
+        ON serviceSchemaSelector (
+            OBJECT objectRequestPath
+        )?
+    )? FROM roleName
+;</code></pre>
+                <p>revokeRestPrivilegeStatement ::= <img
+                src="sections/sql/../../images/sql/revokeRestPrivilegeStatement.svg"
+                title="revokeRestPrivilegeStatement"
+                alt="revokeRestPrivilegeStatement" /></p>
+                <h2 data-number="5.4" id="revoke-rest-role"><span
+                class="header-section-number">5.4</span> REVOKE REST
+                ROLE</h2>
+                <p>Revokes a role from a REST user.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>revokeRestRoleStatement:
+    REVOKE REST ROLE roleName FROM userName AT_SIGN authAppName
+;</code></pre>
+                <p>revokeRestRoleStatement ::= <img
+                src="sections/sql/../../images/sql/revokeRestRoleStatement.svg"
+                title="revokeRestRoleStatement"
+                alt="revokeRestRoleStatement" /></p>
+                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is designed to work with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have either included with
+                the program or referenced in the documentation.
+
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="6" id="use-and-show"><span
+                class="header-section-number">6</span> USE and SHOW</h1>
+                <h2 data-number="6.1" id="use"><span
+                class="header-section-number">6.1</span> USE</h2>
                 <p>An existing REST service can be dropped by using the
                 <code>DROP REST SERVICE</code> statement.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
@@ -2366,19 +2595,19 @@ serviceAndSchemaRequestPaths:
                 <p>The following example makes the REST service with the
                 request path <code>/myService</code> the new default
                 REST service.</p>
-                <div class="sourceCode" id="cb67"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <div class="sourceCode" id="cb74"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
                 <p>After the default REST service has been set, the
                 following statement can be used to set the default REST
                 schema.</p>
-                <div class="sourceCode" id="cb68"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <div class="sourceCode" id="cb75"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
                 <p>The next example shows how to set the default REST
                 service and REST schema in a single statement.</p>
-                <div class="sourceCode" id="cb69"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
-                <h2 data-number="5.2" id="show-rest-status"><span
-                class="header-section-number">5.2</span> SHOW REST
+                <div class="sourceCode" id="cb76"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="6.2" id="show-rest-status"><span
+                class="header-section-number">6.2</span> SHOW REST
                 STATUS</h2>
                 <p>The <code>SHOW REST STATUS</code> statement is used
                 to get basic information about the current status of the
@@ -2394,10 +2623,10 @@ serviceAndSchemaRequestPaths:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example drops a REST schema using the
                 request path <code>/myService</code>.</p>
-                <div class="sourceCode" id="cb71"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>SHOW REST STATUS;</span></code></pre></div>
-                <h2 data-number="5.3" id="show-rest-services"><span
-                class="header-section-number">5.3</span> SHOW REST
+                <div class="sourceCode" id="cb78"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>SHOW REST STATUS;</span></code></pre></div>
+                <h2 data-number="6.3" id="show-rest-services"><span
+                class="header-section-number">6.3</span> SHOW REST
                 SERVICES</h2>
                 <p>The <code>SHOW REST SERVICES</code> statement lists
                 all available REST services.</p>
@@ -2411,10 +2640,10 @@ serviceAndSchemaRequestPaths:
                 alt="showRestServicesStatement" /></p>
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example lists all REST services.</p>
-                <div class="sourceCode" id="cb73"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>SHOW REST SERVICES;</span></code></pre></div>
-                <h2 data-number="5.4" id="show-rest-schemas"><span
-                class="header-section-number">5.4</span> SHOW REST
+                <div class="sourceCode" id="cb80"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a>SHOW REST SERVICES;</span></code></pre></div>
+                <h2 data-number="6.4" id="show-rest-schemas"><span
+                class="header-section-number">6.4</span> SHOW REST
                 SCHEMAS</h2>
                 <p>The <code>SHOW REST SCHEMAS</code> statement lists
                 all available REST schemas of the given or current REST
@@ -2433,10 +2662,10 @@ serviceAndSchemaRequestPaths:
                 <p>The following example lists all REST schemas of the
                 REST service using the request path
                 <code>/myService</code>.</p>
-                <div class="sourceCode" id="cb75"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>SHOW REST SERVICES <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
-                <h2 data-number="5.5" id="show-rest-views"><span
-                class="header-section-number">5.5</span> SHOW REST
+                <div class="sourceCode" id="cb82"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>SHOW REST SERVICES <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="6.5" id="show-rest-views"><span
+                class="header-section-number">6.5</span> SHOW REST
                 VIEWS</h2>
                 <p>The <code>SHOW REST DATA MAPPING VIEWS</code>
                 statement lists all available REST data mapping views of
@@ -2462,10 +2691,10 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example lists all REST data mapping
                 views of the given REST schema.</p>
-                <div class="sourceCode" id="cb77"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>SHOW REST VIEWS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
-                <h2 data-number="5.6" id="show-rest-procedures"><span
-                class="header-section-number">5.6</span> SHOW REST
+                <div class="sourceCode" id="cb84"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>SHOW REST VIEWS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="6.6" id="show-rest-procedures"><span
+                class="header-section-number">6.6</span> SHOW REST
                 PROCEDURES</h2>
                 <p>The <code>SHOW REST PROCEDURES</code> statement lists
                 all available REST procedures of the given or current
@@ -2488,8 +2717,8 @@ serviceSchemaSelector:
                 src="sections/sql/../../images/sql/serviceSchemaSelector.svg"
                 title="serviceSchemaSelector"
                 alt="serviceSchemaSelector" /></p>
-                <h2 data-number="5.7" id="show-rest-functions"><span
-                class="header-section-number">5.7</span> SHOW REST
+                <h2 data-number="6.7" id="show-rest-functions"><span
+                class="header-section-number">6.7</span> SHOW REST
                 FUNCTIONS</h2>
                 <p>The <code>SHOW REST FUNCTIONS</code> statement lists
                 all available REST functions of the given or current
@@ -2515,10 +2744,10 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example lists all REST procedures of
                 the given REST schema.</p>
-                <div class="sourceCode" id="cb80"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a>SHOW REST PROCEDURES <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
-                <h2 data-number="5.8" id="show-rest-content-sets"><span
-                class="header-section-number">5.8</span> SHOW REST
+                <div class="sourceCode" id="cb87"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a>SHOW REST PROCEDURES <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="6.8" id="show-rest-content-sets"><span
+                class="header-section-number">6.8</span> SHOW REST
                 CONTENT SETS</h2>
                 <p>The <code>SHOW REST CONTENT SETS</code> statement
                 lists all available REST content sets of the given or
@@ -2536,10 +2765,10 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example lists all REST content sets of
                 the given REST service.</p>
-                <div class="sourceCode" id="cb82"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>SHOW REST CONTENT SETS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
-                <h2 data-number="5.9" id="show-rest-auth-apps"><span
-                class="header-section-number">5.9</span> SHOW REST AUTH
+                <div class="sourceCode" id="cb89"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a>SHOW REST CONTENT SETS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="6.9" id="show-rest-auth-apps"><span
+                class="header-section-number">6.9</span> SHOW REST AUTH
                 APPS</h2>
                 <p>The <code>SHOW REST AUTH APPS</code> statement lists
                 all available REST auth apps of the given or current
@@ -2557,11 +2786,11 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example lists all REST auth apps of the
                 given REST service.</p>
-                <div class="sourceCode" id="cb84"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>SHOW REST AUTH APPS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
-                <h2 data-number="5.10"
+                <div class="sourceCode" id="cb91"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a>SHOW REST AUTH APPS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="6.10"
                 id="show-create-rest-service"><span
-                class="header-section-number">5.10</span> SHOW CREATE
+                class="header-section-number">6.10</span> SHOW CREATE
                 REST SERVICE</h2>
                 <p>The <code>SHOW CREATE REST SERVICE</code> statement
                 shows the corresponding DDL statement for the given REST
@@ -2578,11 +2807,11 @@ serviceSchemaSelector:
                 <p>The following example shows the DDL statement for the
                 REST service with request path
                 <code>/myService</code>.</p>
-                <div class="sourceCode" id="cb86"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
-                <h2 data-number="5.11"
+                <div class="sourceCode" id="cb93"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="6.11"
                 id="show-create-rest-schema"><span
-                class="header-section-number">5.11</span> SHOW CREATE
+                class="header-section-number">6.11</span> SHOW CREATE
                 REST SCHEMA</h2>
                 <p>The <code>SHOW CREATE REST SCHEMA</code> statement
                 shows the corresponding DDL statement for the given REST
@@ -2600,10 +2829,10 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example shows the DDL statement for the
                 given REST schema.</p>
-                <div class="sourceCode" id="cb88"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
-                <h2 data-number="5.12" id="show-create-rest-view"><span
-                class="header-section-number">5.12</span> SHOW CREATE
+                <div class="sourceCode" id="cb95"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
+                <h2 data-number="6.12" id="show-create-rest-view"><span
+                class="header-section-number">6.12</span> SHOW CREATE
                 REST VIEW</h2>
                 <p>The <code>SHOW CREATE REST DATA MAPPING VIEW</code>
                 statement shows the corresponding DDL statement for the
@@ -2629,11 +2858,11 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example shows the DDL statement for the
                 given REST data mapping view.</p>
-                <div class="sourceCode" id="cb90"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
-                <h2 data-number="5.13"
+                <div class="sourceCode" id="cb97"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb97-1"><a href="#cb97-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="6.13"
                 id="show-create-rest-procedure"><span
-                class="header-section-number">5.13</span> SHOW CREATE
+                class="header-section-number">6.13</span> SHOW CREATE
                 REST PROCEDURE</h2>
                 <p>The <code>SHOW CREATE REST PROCEDURE</code> statement
                 shows the corresponding DDL statement for the given REST
@@ -2656,9 +2885,9 @@ serviceSchemaSelector:
                 src="sections/sql/../../images/sql/serviceSchemaSelector.svg"
                 title="serviceSchemaSelector"
                 alt="serviceSchemaSelector" /></p>
-                <h2 data-number="5.14"
+                <h2 data-number="6.14"
                 id="show-create-rest-function"><span
-                class="header-section-number">5.14</span> SHOW CREATE
+                class="header-section-number">6.14</span> SHOW CREATE
                 REST FUNCTION</h2>
                 <p>The <code>SHOW CREATE REST FUNCTION</code> statement
                 shows the corresponding DDL statement for the given REST
@@ -2684,10 +2913,10 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example shows the DDL statement for the
                 given REST procedure.</p>
-                <div class="sourceCode" id="cb93"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>inventory_in_stock <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
-                <h2 data-number="5.15" id="show-create-auth-app"><span
-                class="header-section-number">5.15</span> SHOW CREATE
+                <div class="sourceCode" id="cb100"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb100-1"><a href="#cb100-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>inventory_in_stock <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <h2 data-number="6.15" id="show-create-auth-app"><span
+                class="header-section-number">6.15</span> SHOW CREATE
                 AUTH APP</h2>
                 <p>The <code>SHOW CREATE AUTH APP</code> statement shows
                 the corresponding DDL statement for the given REST auth
@@ -2705,8 +2934,36 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example shows the DDL statement for the
                 given REST auth app.</p>
-                <div class="sourceCode" id="cb95"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST AUTH APP <span class="ot">&quot;MRS&quot;</span> <span class="kw">FROM</span> SERVICE localhost<span class="op">/</span>myTestService;</span></code></pre></div>
+                <div class="sourceCode" id="cb102"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb102-1"><a href="#cb102-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST AUTH APP <span class="ot">&quot;MRS&quot;</span> <span class="kw">FROM</span> SERVICE localhost<span class="op">/</span>myTestService;</span></code></pre></div>
+                <h2 data-number="6.16" id="show-rest-roles"><span
+                class="header-section-number">6.16</span> SHOW REST
+                ROLES</h2>
+                <p>Shows a list of roles, optionally filtered by service
+                or auth app and users that were granted the role.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>showRestRolesStatement:
+    SHOW_SYMBOL REST_SYMBOL ROLES_SYMBOL (
+        (ON_SYMBOL | FROM_SYMBOL) (ANY_SYMBOL SERVICE_SYMBOL | SERVICE_SYMBOL? serviceRequestPath)
+    )? (FOR_SYMBOL userName? AT_SIGN_SYMBOL authAppName)?
+;</code></pre>
+                <p>showRestRolesStatement ::= <img
+                src="sections/sql/../../images/sql/showRestRolesStatement.svg"
+                title="showRestRolesStatement"
+                alt="showRestRolesStatement" /></p>
+                <h2 data-number="6.17" id="show-rest-grants"><span
+                class="header-section-number">6.17</span> SHOW REST
+                GRANTS</h2>
+                <p>Show the list of REST privileges that were granted to
+                the given role.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>showRestGrantsStatement:
+    SHOW_SYMBOL REST_SYMBOL GRANTS_SYMBOL FOR_SYMBOL roleName
+;</code></pre>
+                <p>showRestGrantsStatement ::= <img
+                src="sections/sql/../../images/sql/showRestGrantsStatement.svg"
+                title="showRestGrantsStatement"
+                alt="showRestGrantsStatement" /></p>
                 <p>Copyright (c) 2023, 2024, Oracle and/or its
                 affiliates.</p>
             </div>

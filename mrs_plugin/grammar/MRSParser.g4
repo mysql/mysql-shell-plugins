@@ -427,8 +427,7 @@ appOptions:
 ;
 
 accountLock:
-    ACCOUNT_SYMBOL LOCK_SYMBOL
-    | ACCOUNT_SYMBOL UNLOCK_SYMBOL
+    ACCOUNT_SYMBOL ( LOCK_SYMBOL | UNLOCK_SYMBOL )
 ;
 
 // - CREATE REST ROLE -------------------------------------------------------
@@ -523,7 +522,7 @@ alterRestContentSetStatement:
 alterRestUserStatement:
     ALTER_SYMBOL REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName (
         ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )? IDENTIFIED_SYMBOL BY_SYMBOL userPassword userOptions?
+    )? ( IDENTIFIED_SYMBOL BY_SYMBOL userPassword )? userOptions?
 ;
 
 // DROP statements ==========================================================
