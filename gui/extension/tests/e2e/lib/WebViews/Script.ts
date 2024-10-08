@@ -65,7 +65,7 @@ export class Script {
                 }, constants.wait15seconds, `Could not connect to '${connection.caption}'`);
             }
 
-            return ((await this.toolbar.getCurrentEditor()).label).match(/Script/) !== null;
+            return ((await this.toolbar.editorSelector.getCurrentEditor()).label).match(/Script/) !== null;
         });
 
     };

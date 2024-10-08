@@ -419,7 +419,8 @@ describe("NOTEBOOKS", () => {
             const result = await notebook.codeEditor.execute("select * from sakila.actor;");
             expect(result.toolbar.status).to.match(/OK/);
             await result.toolbar.maximize();
-            expect((await notebook.toolbar.getCurrentEditor()).label, `The current editor name should be Result #1`)
+            expect((await notebook.toolbar.editorSelector.getCurrentEditor()).label,
+                `The current editor name should be Result #1`)
                 .to.equals("Result #1");
             try {
                 let tabArea = await driver.findElements(locator.notebook.codeEditor.editor.result.tabs.body);
@@ -428,7 +429,8 @@ describe("NOTEBOOKS", () => {
                 tabArea = await driver.findElements(locator.notebook.codeEditor.editor.result.tabs.body);
                 expect(tabArea.length, "Result tab should be visible").to.equals(1);
             } finally {
-                await notebook.toolbar.selectEditor(new RegExp(constants.openEditorsDBNotebook), globalConn.caption);
+                await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.openEditorsDBNotebook),
+                    globalConn.caption);
                 await Workbench.toggleSideBar(false);
                 await notebook.codeEditor.loadCommandResults();
             }
@@ -648,7 +650,7 @@ describe("NOTEBOOKS", () => {
             await Workbench.openEditor("test.mysql-notebook");
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
             await notebook.exists("SELECT VERSION");
-            await Workbench.closeEditor("test.mysql-notebook", true);
+            await Workbench.closeEditor(new RegExp("test.mysql-notebook"), true);
 
         });
 

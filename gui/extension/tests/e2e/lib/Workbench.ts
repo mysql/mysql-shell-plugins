@@ -406,17 +406,23 @@ export class Workbench {
 
     /**
      * Closes an editor
-     * @param editor The editor
+     * @param editorRef The editor
      * @param maybeDirty True is it's expected the editor to have changes (is dirty), false otherwise
      * @returns A promise resolving when the editor is closed
      */
-    public static closeEditor = async (editor: string, maybeDirty = false): Promise<void> => {
+    public static closeEditor = async (editorRef: RegExp, maybeDirty = false): Promise<void> => {
         await Misc.switchBackToTopFrame();
-        await new EditorView().closeEditor(editor);
-        if (maybeDirty) {
-            await Workbench.pushDialogButton("Don't Save").catch(() => {
-                // continue
-            });
+        const editors = await Workbench.getOpenEditorTitles();
+        for (const editor of editors) {
+            if (editor.match(new RegExp(editorRef)) !== null) {
+                await new EditorView().closeEditor(editor);
+                if (maybeDirty) {
+                    await Workbench.pushDialogButton("Don't Save").catch(() => {
+                        // continue
+                    });
+                }
+                break;
+            }
         }
     };
 
@@ -426,15 +432,15 @@ export class Workbench {
      */
     public static closeAllEditors = async (): Promise<void> => {
         await Misc.switchBackToTopFrame();
-        const editors = await Workbench.getOpenEditorTitles();
-        for (const editor of editors) {
-            await Workbench.closeEditor(editor);
+        await driver.wait(async () => {
             try {
-                await Workbench.pushDialogButton("Don't Save");
+                await new EditorView().closeAllEditors();
+
+                return true;
             } catch (e) {
-                //continue
+                await Workbench.pushDialogButton("Don't Save");
             }
-        }
+        }, constants.wait5seconds, "Could not close all editors");
     };
 
     /**
@@ -553,9 +559,19 @@ export class Workbench {
      * @param tabName The tab name
      * @returns A promise resolving when the tab is opened
      */
-    public static untilTabIsOpened = (tabName: string): Condition<boolean> => {
+    public static untilTabIsOpened = (tabName: string | RegExp): Condition<boolean> => {
         return new Condition(`for ${tabName} to be opened`, async () => {
-            return (await Workbench.getOpenEditorTitles()).includes(tabName);
+            const editors = await Workbench.getOpenEditorTitles();
+            if (tabName instanceof RegExp) {
+                for (const editor of editors) {
+                    if (editor.match(tabName) != null) {
+                        return true;
+                    }
+                }
+            } else {
+                return (await Workbench.getOpenEditorTitles()).includes(tabName);
+            }
+
         });
     };
 
@@ -641,7 +657,7 @@ export class Workbench {
             await Misc.switchBackToTopFrame();
             await Misc.switchToFrame();
 
-            return ((await new Toolbar().getCurrentEditor()).label).match(editor) !== null;
+            return ((await new Toolbar().editorSelector.getCurrentEditor()).label).match(editor) !== null;
         });
     };
 

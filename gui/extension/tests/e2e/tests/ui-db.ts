@@ -262,7 +262,8 @@ describe("DATABASE CONNECTIONS", () => {
         beforeEach(async function () {
 
             try {
-                await dbConnectionOverview.toolbar.selectEditor(new RegExp(constants.dbConnectionsLabel));
+                await dbConnectionOverview.toolbar.editorSelector
+                    .selectEditor(new RegExp(constants.dbConnectionsLabel));
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -811,7 +812,7 @@ describe("DATABASE CONNECTIONS", () => {
             await (await dbTreeSection.tree.getElement(constants.serverStatus)).click();
             const serverStatus = new E2EServerStatus();
             await driver.wait(serverStatus.untilIsOpened(globalConn), constants.wait15seconds);
-            expect((await toolbar.getCurrentEditor()).label,
+            expect((await toolbar.editorSelector.getCurrentEditor()).label,
                 `The current editor name should be ${constants.serverStatus}`)
                 .to.equals(constants.serverStatus);
 
@@ -855,7 +856,7 @@ describe("DATABASE CONNECTIONS", () => {
             await (await dbTreeSection.tree.getElement(constants.clientConns)).click();
             const clientConnections = new E2EClientConnections();
             await driver.wait(clientConnections.untilIsOpened(globalConn), constants.wait15seconds);
-            expect((await toolbar.getCurrentEditor()).label,
+            expect((await toolbar.editorSelector.getCurrentEditor()).label,
                 `The current editor name should be ${constants.clientConns}`)
                 .to.equals(constants.clientConns);
 
@@ -873,16 +874,72 @@ describe("DATABASE CONNECTIONS", () => {
                 .findElements(locator.mysqlAdministration.clientConnections.tableRow)).length).to.be.greaterThan(0);
         });
 
-        it("Performance Dashboard", async () => {
+        it("Performance Dashboard - MLE Disabled", async () => {
 
             await (await dbTreeSection.tree.getElement(constants.perfDash)).click();
             const performanceDashboard = new E2EPerformanceDashboard();
             await driver.wait(performanceDashboard.untilIsOpened(globalConn), constants.wait15seconds);
-            expect((await toolbar.getCurrentEditor()).label,
+            expect(await performanceDashboard.tabExists(constants.perfDashMLETab)).to.be.false;
+
+            await performanceDashboard.loadServerPerformance();
+            expect(performanceDashboard.networkStatus.incomingNetworkTrafficGraph).to.exist;
+            expect(performanceDashboard.networkStatus.incomingData).to.match(/(\d+) B\/s/);
+            expect(performanceDashboard.networkStatus.outgoingNetworkTrafficGraph).to.exist;
+            expect(performanceDashboard.networkStatus.outgoingData).to.match(/(\d+) B\/s/);
+            expect(performanceDashboard.mysqlStatus.tableCacheGraph).to.exist;
+            expect(performanceDashboard.mysqlStatus.threadsGraph).to.exist;
+            expect(performanceDashboard.mysqlStatus.openObjectsGraph).to.exist;
+            expect(performanceDashboard.mysqlStatus.cacheEfficiency).to.match(/(\d+)%/);
+            expect(performanceDashboard.mysqlStatus.totalOpenedTables).to.match(/(\d+)/);
+            expect(performanceDashboard.mysqlStatus.totalTransactions).to.match(/(\d+)/);
+            expect(performanceDashboard.mysqlStatus.sqlStatementsExecutedGraph).to.exist;
+            expect(performanceDashboard.mysqlStatus.totalStatements).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.mysqlStatus.select).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.mysqlStatus.insert).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.mysqlStatus.update).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.mysqlStatus.delete).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.mysqlStatus.create).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.mysqlStatus.alter).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.mysqlStatus.drop).to.match(/(\d+)\/s/);
+            expect(performanceDashboard.innoDBStatus.innoDBBufferPoolGraph).to.exist;
+            expect(performanceDashboard.innoDBStatus.checkpointAgeGraph).to.exist;
+            expect(performanceDashboard.innoDBStatus.diskReadRatioGraph).to.exist;
+            expect(performanceDashboard.innoDBStatus.readRequests).to.match(/(\d+) pages\/s/);
+            expect(performanceDashboard.innoDBStatus.writeRequests).to.match(/(\d+) pages\/s/);
+            expect(performanceDashboard.innoDBStatus.diskReads).to.match(/(\d+) #\/s/);
+            expect(performanceDashboard.innoDBStatus.innoDBDiskWritesGraph).to.exist;
+            expect(performanceDashboard.innoDBStatus.logDataWritten).to.match(/(\d+) B\/s/);
+            expect(performanceDashboard.innoDBStatus.logWrites).to.match(/(\d+) #\/s/);
+            expect(performanceDashboard.innoDBStatus.writing).to.match(/(\d+) B\/s/);
+            expect(performanceDashboard.innoDBStatus.innoDBDiskReadsGraph).to.exist;
+            expect(performanceDashboard.innoDBStatus.bufferWrites).to.match(/(\d+) B\/s/);
+            expect(performanceDashboard.innoDBStatus.reading).to.match(/(\d+) B\/s/);
+            await Workbench.closeEditor(new RegExp(constants.perfDash));
+
+        });
+
+        it("Performance Dashboard - MLE Enabled", async () => {
+
+            let host = await dbTreeSection.tree.getElement(globalConn.caption);
+            await (await dbTreeSection.tree.getActionButton(host, constants.openNewConnection)).click();
+            let notebook = new E2ENotebook();
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
+            await notebook.codeEditor.loadCommandResults();
+            let result = await notebook.codeEditor.execute(`INSTALL COMPONENT "file://component_mle";`);
+            expect(result.text).to.match(/OK/);
+
+            await (await dbTreeSection.tree.getElement(constants.perfDash)).click();
+            const performanceDashboard = new E2EPerformanceDashboard();
+            await driver.wait(performanceDashboard.untilIsOpened(globalConn), constants.wait15seconds);
+            expect((await toolbar.editorSelector.getCurrentEditor()).label,
                 `The current editor name should be ${constants.perfDash}`)
                 .to.equals(constants.perfDash);
 
-            await performanceDashboard.create();
+            expect(await performanceDashboard.tabExists(constants.perfDashServerTab)).to.be.true;
+            expect(await performanceDashboard.tabExists(constants.perfDashMLETab)).to.be.true;
+            expect(await performanceDashboard.tabIsSelected(constants.perfDashServerTab)).to.be.true;
+
+            await performanceDashboard.loadServerPerformance();
             expect(performanceDashboard.networkStatus.incomingNetworkTrafficGraph).to.exist;
             expect(performanceDashboard.networkStatus.incomingData).to.match(/(\d+) B\/s/);
             expect(performanceDashboard.networkStatus.outgoingNetworkTrafficGraph).to.exist;
@@ -916,6 +973,41 @@ describe("DATABASE CONNECTIONS", () => {
             expect(performanceDashboard.innoDBStatus.bufferWrites).to.match(/(\d+) B\/s/);
             expect(performanceDashboard.innoDBStatus.reading).to.match(/(\d+) B\/s/);
 
+            await (await performanceDashboard.getTab(constants.perfDashMLETab)).click();
+            await performanceDashboard.loadMLEPerformance();
+            expect(performanceDashboard.mlePerformance.heapUsageGraph).to.exist;
+            expect(performanceDashboard.mlePerformance.mleStatus).to.equals("Inactive");
+            expect(performanceDashboard.mlePerformance.mleMaxHeapSize).to.match(/(\d+).(\d+) GB/);
+            expect(performanceDashboard.mlePerformance.mleHeapUtilizationGraph).to.exist;
+            expect(performanceDashboard.mlePerformance.currentHeapUsage).to.equals("0%");
+
+            host = await dbTreeSection.tree.getElement(globalConn.caption);
+            await (await dbTreeSection.tree.getActionButton(host, constants.openNewConnection)).click();
+            notebook = new E2ENotebook();
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
+            await notebook.codeEditor.loadCommandResults();
+
+            const jsFunction =
+                `CREATE FUNCTION js_pow(arg1 INT, arg2 INT) 
+                    RETURNS INT DETERMINISTIC LANGUAGE JAVASCRIPT 
+                    AS 
+                    $$
+                    let x = Math.pow(arg1, arg2)
+                    return x
+                    $$; 
+                `;
+
+            result = await notebook.codeEditor.executeWithButton(jsFunction, constants.execFullBlockSql);
+            expect(result.text).to.match(/OK/);
+            result = await notebook.codeEditor.execute("SELECT js_pow(2,3);");
+            expect(result.toolbar.status).to.match(/OK/);
+            await Workbench.closeEditor(new RegExp(constants.dbDefaultEditor));
+            await (await dbTreeSection.tree.getElement(constants.perfDash)).click();
+            await (await performanceDashboard.getTab(constants.perfDashMLETab)).click();
+            await performanceDashboard.loadMLEPerformance();
+            expect(performanceDashboard.mlePerformance.mleStatus).to.equals("Active");
+            expect(parseInt(performanceDashboard.mlePerformance.currentHeapUsage.match(/(\d+)/)[1], 10))
+                .to.be.greaterThan(0);
         });
 
         describe("Lakehouse Navigator", () => {
@@ -945,6 +1037,7 @@ describe("DATABASE CONNECTIONS", () => {
             before(async function () {
 
                 try {
+                    await Workbench.closeAllEditors();
                     await dbTreeSection.clickToolbarButton(constants.collapseAll);
                     await dbTreeSection.createDatabaseConnection(heatWaveConn);
                     const treeConn = await dbTreeSection.tree.getElement(heatWaveConn.caption);
@@ -998,7 +1091,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 await driver.wait(lakeHouseNavigator.overview.isOpened(), constants.wait3seconds);
                 await driver.wait(new Condition(`for editor to be ${constants.lakeHouseNavigatorEditor}`, async () => {
-                    return (await lakeHouseNavigator.toolbar.getCurrentEditor()).label ===
+                    return (await lakeHouseNavigator.toolbar.editorSelector.getCurrentEditor()).label ===
                         constants.lakeHouseNavigatorEditor;
                 }), constants.wait3seconds);
 
@@ -1239,14 +1332,16 @@ describe("DATABASE CONNECTIONS", () => {
             await Workbench.setInputPath(destFile);
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
             await driver.wait(async () => {
-                return ((await notebook.toolbar.getCurrentEditor()).label) === script;
+                return ((await notebook.toolbar.editorSelector.getCurrentEditor()).label) === script;
             }, constants.wait5seconds, `Current editor is not ${script}`);
             let error = `The current editor type should be 'Mysql',`;
-            error += ` but found ${(await notebook.toolbar.getCurrentEditor()).icon}`;
-            expect((await notebook.toolbar.getCurrentEditor()).icon, error).to.include(constants.mysqlScriptIcon);
+            error += ` but found ${(await notebook.toolbar.editorSelector.getCurrentEditor()).icon}`;
+            expect((await notebook.toolbar.editorSelector.getCurrentEditor()).icon, error)
+                .to.include(constants.mysqlScriptIcon);
             const scriptLines = await driver.findElements(locator.notebook.codeEditor.editor.line);
             expect(scriptLines.length, "The script was not loaded. No lines found on the editor").to.be.greaterThan(0);
-            await notebook.toolbar.selectEditor(new RegExp(constants.openEditorsDBNotebook), globalConn.caption);
+            await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.openEditorsDBNotebook),
+                globalConn.caption);
             await notebook.codeEditor.loadCommandResults();
 
         });

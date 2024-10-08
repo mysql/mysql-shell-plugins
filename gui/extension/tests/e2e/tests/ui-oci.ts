@@ -310,7 +310,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     await driver.wait(new E2ENotebook().untilIsOpened(mdsConnection), constants.wait1minute);
                 } catch (e) {
                     if (String(e).match(/Tunnel/) !== null) {
-                        await Workbench.closeEditor(constants.dbDefaultEditor);
+                        await Workbench.closeEditor(new RegExp(constants.dbDefaultEditor));
                         skipTest = true;
                         this.skip();
                     }
@@ -444,7 +444,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(Workbench.untilJsonFileIsOpened(`${bastionName} Info.json`),
                 constants.wait5seconds);
             bastionId = JSON.parse(await new TextEditor().getText()).id;
-            await Workbench.closeEditor(`${bastionName} Info.json`);
+            await Workbench.closeEditor(new RegExp(`${bastionName} Info.json`));
             await Workbench.pushDialogButton("Don't Save");
 
         });
@@ -579,7 +579,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await ociTreeSection.tree.openContextMenuAndSelect(treeComputeInstance, constants.viewComputeInstanceInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${computeName} Info.json`), constants.wait5seconds);
             await driver.wait(Workbench.untilJsonFileIsOpened(`${computeName} Info.json`), constants.wait5seconds);
-            await Workbench.closeEditor(`${computeName} Info.json`);
+            await Workbench.closeEditor(new RegExp(`${computeName} Info.json`));
             await Workbench.pushDialogButton("Don't Save");
 
         });

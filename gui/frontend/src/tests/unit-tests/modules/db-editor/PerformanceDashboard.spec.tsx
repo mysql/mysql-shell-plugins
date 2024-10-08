@@ -105,7 +105,7 @@ describe("PerformanceDashboard Tests", (): void => {
 
             const props = component.props();
             expect(props.graphData.displayInterval).toBe(300);
-            expect(props.graphData.series.size).toBe(6);
+            expect(props.graphData.series.size).toBe(7);
             expect(Object.values(props.graphData.computedValues).length).toBeGreaterThan(35);
 
             component.unmount();

@@ -180,6 +180,8 @@ export class E2ECodeEditor {
                 }
             }
         }, constants.wait5seconds, "Editor was not cleaned");
+
+        this.resultIds = [];
     };
 
     /**
@@ -343,6 +345,7 @@ export class E2ECodeEditor {
             await driver.executeScript("arguments[0].click()", button);
         }
         const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
+        console.log(`[DEBUG] expecting id '${id}' for cmd ${cmd}`);
         const commandResult = new CommandResult(this, cmd, id);
         await commandResult.loadResult();
 
@@ -695,15 +698,12 @@ export class E2ECodeEditor {
         if (lastResultId) {
             resultId = String(parseInt(lastResultId, 10) + 1);
         } else {
-            const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
             // the editor may not have any previous results at all (it has been cleaned)
-            if (results.length > 0) {
-                const result = results[results.length - 1];
-                const id = (await result.getAttribute("monaco-view-zone")).match(/(\d+)/)![1];
-                resultId = String(parseInt(id, 10));
-            } else {
-                return undefined;
-            }
+            const results = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.result.exists),
+                constants.wait5seconds, "Could not find results to calculate the next id");
+            const result = results[results.length - 1];
+            const id = (await result.getAttribute("monaco-view-zone")).match(/(\d+)/)![1];
+            resultId = String(parseInt(id, 10));
         }
 
         return resultId;

@@ -167,7 +167,7 @@ export class E2EAccordionSection {
         }
 
         await this.clickToolbarButton(constants.createDBConnection);
-        await driver.wait(Workbench.untilTabIsOpened(constants.dbDefaultEditor), constants.wait5seconds);
+        await driver.wait(Workbench.untilTabIsOpened(new RegExp(constants.dbDefaultEditor)), constants.wait5seconds);
         await Misc.switchToFrame();
         await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists), constants.wait10seconds);
         await DatabaseConnectionDialog.setConnection(dbConfig);

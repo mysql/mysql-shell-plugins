@@ -286,11 +286,10 @@ describe("Notebook", () => {
             expect(result.toolbar!.status).toMatch(/OK/);
             htmlGrid = await result.grid!.content!.getAttribute("innerHTML");
             expect(htmlGrid).toMatch(/address_id/);
+            await notebook.codeEditor.execute("");
         } catch (e) {
             testFailed = true;
             throw e;
-        } finally {
-            cleanEditor = true;
         }
     });
 

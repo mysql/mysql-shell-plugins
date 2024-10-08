@@ -4,7 +4,7 @@
 
 ### Additions
 
--
+- Added MLE performance status in the admin section for a connection
 
 ### Fixes
 

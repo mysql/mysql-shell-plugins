@@ -221,7 +221,7 @@ describe("MySQL REST Service", () => {
                     }
                 }, constants.wait5seconds, "Could not find the title 'MRS Developer's Guide'");
             } finally {
-                await Workbench.closeEditor(constants.mrsDocs);
+                await Workbench.closeEditor(new RegExp(constants.mrsDocs));
             }
         });
 
@@ -865,7 +865,7 @@ describe("MySQL REST Service", () => {
 
                 return (await driver.findElements(locator.mrsDocumentation.restServiceProperties)).length > 0;
             }, constants.wait5seconds, "MRS Service Docs tab was not opened");
-            await Workbench.closeEditor(constants.mrsDocs);
+            await Workbench.closeEditor(new RegExp(constants.mrsDocs));
 
         });
 
