@@ -826,10 +826,10 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                     // Make sure to place the cursor at the new ending line number, based on the line count
                     // of the new statement
                     const numberOfLines = text.split("\n").length;
-                    const endColumn = model.getLineMaxColumn(context.startLine + numberOfLines);
+                    const endColumn = model.getLineMaxColumn(context.startLine + numberOfLines - 1);
 
-                    return [new Selection(context.startLine + numberOfLines, endColumn,
-                        context.startLine + numberOfLines, endColumn)];
+                    return [new Selection(context.startLine + numberOfLines - 1, endColumn,
+                        context.startLine + numberOfLines - 1, endColumn)];
                 }
             });
         }
