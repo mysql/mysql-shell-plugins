@@ -231,3 +231,5 @@ ST_GeomFromText('MultiLineString((1 1,2 2,3 3),(4 4,5 5))'), -- multilinestring
 ST_GeomFromText('MULTIPOLYGON(((0 0,10 0,10 10,0 10,0 0)),((5 5,7 5,7 7,5 7, 5 5)))'), -- multipolygon
 ST_GeomFromText('GEOMETRYCOLLECTION(POINT(1 1),LINESTRING(0 0,1 1,2 2,3 3,4 4))') -- geomcollection
 );
+
+DROP FUNCTION IF EXISTS `js_pow`;

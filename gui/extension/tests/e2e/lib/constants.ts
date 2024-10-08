@@ -331,6 +331,9 @@ export const excludeETAG = "Exclude this field from ETAG calculations";
 
 export const lockFlag = join(process.cwd(), "locked");
 
+export const perfDashServerTab = "Server Performance";
+export const perfDashMLETab = "MLE Performance";
+
 export const dbMainCtxMenu = new Map([
     [restartInternalShell, 1],
     [connectToExternalShell, 2],

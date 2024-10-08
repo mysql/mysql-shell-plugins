@@ -104,3 +104,8 @@ write-host "DONE"
 $env:NODE_ENV = "test"
 
 npm run e2e-tests -- -s $testResources -e "$testResources/ext" -f -o "settings.json" "./output/tests/ui-$env:TEST_SUITE.js"
+
+# RUN TEARDOWN SQL FOR TESTS
+$runConfig = "$shell -u $env:DBUSERNAME -p$env:DBPASSWORD -h localhost --file sql/teardown.sql"
+Invoke-Expression $runConfig
+write-host "[OK] Teardown SQL scripts were executed successfully"

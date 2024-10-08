@@ -261,7 +261,7 @@ try {
     # RUN SQL CONFIGURATIONS FOR TESTS
     $runConfig = "$shell -u $env:DBUSERNAME -p$env:DBPASSWORD -h localhost --file sql/setup.sql"
     Invoke-Expression $runConfig
-    writeMsg "[OK] SQL scripts were executed successfully"
+    writeMsg "[OK] Setup SQL scripts were executed successfully"
 
     # CHECK CONFIG FOLDERS AND WEB CERTIFICATES
     if($isWindows){

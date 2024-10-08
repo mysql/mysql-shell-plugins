@@ -207,6 +207,18 @@ try {
             $result = runTests $testResources
         }
     }
+
+    # RUN TEARDOWN SQL FOR TESTS
+    if ($env:TEST_SUITE -eq "db"){
+        $refExt = Join-Path $env:WORKSPACE "shell-plugins" "ext-db"
+        $extFolder = Get-ChildItem -Path $refExt -Filter "*oracle*"
+        $shell = Join-Path $extFolder "shell" "bin" "mysqlsh"
+
+        $runConfig = "$shell -u $env:DBUSERNAME -p$env:DBPASSWORD -h localhost --file sql/teardown.sql"
+        Invoke-Expression $runConfig
+        writeMsg "[OK] Teardown SQL scripts were executed successfully"
+    }
+
     exit $result
 }
 catch {

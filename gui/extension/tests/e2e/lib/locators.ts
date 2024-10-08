@@ -635,6 +635,8 @@ export const mysqlAdministration = {
     },
     performanceDashboard: {
         exists: By.id("dashboardGrid"),
+        serverTab: By.id("serverTab"),
+        mleTab: By.id("mleTab"),
         networkStatus: {
             incomingNetworkTrafficGraph: By.id("networkStatus1"),
             // eslint-disable-next-line max-len
@@ -684,6 +686,13 @@ export const mysqlAdministration = {
             bufferWrites: By.css(`div[data-tooltip='The number of double-write operations that have been performed.'] .valueLabel`),
             // eslint-disable-next-line max-len
             reading: By.css(`div[data-tooltip='Total amount of data in bytes read in file operations by the InnoDB storage engine.'] .valueLabel`),
+        },
+        mleStatus: {
+            heapUsageGraph: By.id("heapUsageGraph"),
+            mleStatus: By.css(`div[data-tooltip='MLE status'] .valueLabel`),
+            mleMaxHeapSize: By.css(`div[data-tooltip='MLE max heap size'] .valueLabel`),
+            mleHeapUtilizationGraph: By.id("mleHeapUtilization"),
+            currentHeapUsage: By.css(`div[data-tooltip='Current Heap Usage'] .valueLabel`),
         },
     },
 };
