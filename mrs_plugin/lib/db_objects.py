@@ -384,7 +384,13 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
         return db_object_id
     else:
         return db_object_id, database.get_grant_statements(
-            schema["name"], db_object_name, grant_privileges, objects, db_object_type)
+            session,
+            schema["name"],
+            db_object_name,
+            grant_privileges,
+            objects,
+            db_object_type,
+        )
 
 
 def get_crud_operations(session, db_object_id: bytes):

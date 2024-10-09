@@ -500,6 +500,25 @@ def create_test_db(session, schema_name):
                         SELECT f_name, l_name, number FROM `Contacts`
                         WHERE `email` is not NULL;"""
     )
+    session.run_sql(
+        f"""CREATE TABLE IF NOT EXISTS `{schema_name}`.`Notes` (
+                        `id` INT NOT NULL,
+                        `contact_id` INT NOT NULL,
+                        `title` VARCHAR(50) NOT NULL,
+                        `content` VARCHAR(255),
+                        PRIMARY KEY (`id`),
+                        FOREIGN KEY (`contact_id`) REFERENCES `{schema_name}`.`Contacts`(`id`));"""
+    )
+    session.run_sql(
+        f"""CREATE FUNCTION `format_name` (first_name VARCHAR(45), last_name VARCHAR(45))
+                        RETURNS VARCHAR(91) DETERMINISTIC
+                        RETURN CONCAT(first_name, ' ', last_name);"""
+    )
+    session.run_sql(
+        f"""CREATE OR REPLACE SQL SECURITY INVOKER VIEW `ContactNotes` AS
+                        SELECT `format_name`(t1.`f_name`, t1.`l_name`), t1.`number`, t2.`title`, t2.`content` FROM `Contacts` t1
+                        JOIN `Notes` t2 ON t1.`id` = t2.`contact_id`;"""
+    )
 
 
 def reset_mrs_database(session):

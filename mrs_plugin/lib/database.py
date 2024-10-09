@@ -171,10 +171,76 @@ def db_schema_object_is_table(session, db_schema_name, db_object_name):
 
     row = core.MrsDbExec(sql).exec(
         session, [db_schema_name, db_object_name]).first
+
     return row and "TABLE" in row["TABLE_TYPE"]
 
 
-def get_grant_statements(schema_name, db_object_name, grant_privileges, objects, db_object_type=None):
+def stored_object_executes_as_invoker(session, schema_name, db_object_name):
+    sql = """
+        SELECT SECURITY_TYPE FROM INFORMATION_SCHEMA.VIEWS
+        WHERE TABLE_SCHEMA = ? and TABLE_NAME = ?
+        UNION
+        SELECT SECURITY_TYPE FROM INFORMATION_SCHEMA.ROUTINES
+        WHERE ROUTINE_SCHEMA = ? and ROUTINE_NAME = ?
+    """
+
+    row = (
+        core.MrsDbExec(sql)
+        .exec(session, [schema_name, db_object_name, schema_name, db_object_name])
+        .first
+    )
+
+    return row and "INVOKER" in row["SECURITY_TYPE"]
+
+
+def get_tables_used_in_view_including_required_grants(
+    session, schema_name, db_object_name
+):
+    sql = """
+        SELECT TABLE_NAME AS OBJ_NAME FROM INFORMATION_SCHEMA.VIEW_TABLE_USAGE
+        WHERE VIEW_SCHEMA = ? AND VIEW_NAME = ?
+    """
+
+    rows = core.MrsDbExec(sql).exec(session, [schema_name, db_object_name]).items
+
+    return [
+        (row["OBJ_NAME"], "TABLE", ["SELECT", "INSERT", "UPDATE", "DELETE"])
+        for row in rows
+    ]
+
+
+def get_routines_used_in_view_including_required_grants(
+    session, schema_name, db_object_name
+):
+    sql = """
+        SELECT DISTINCT t1.SPECIFIC_NAME AS OBJ_NAME, t2.ROUTINE_TYPE OBJ_TYPE
+        FROM INFORMATION_SCHEMA.VIEW_ROUTINE_USAGE t1
+        JOIN INFORMATION_SCHEMA.ROUTINES t2
+        ON t1.SPECIFIC_NAME = t2.ROUTINE_NAME
+        WHERE t1.TABLE_SCHEMA = ? AND t1.TABLE_NAME = ?;
+    """
+
+    rows = core.MrsDbExec(sql).exec(session, [schema_name, db_object_name]).items
+
+    return [(row["OBJ_NAME"], row["OBJ_TYPE"], ["EXECUTE"]) for row in rows]
+
+
+def get_objects_used_in_view_including_required_grants(
+    session, schema_name, db_object_name
+):
+    objects_with_grants = get_tables_used_in_view_including_required_grants(
+        session, schema_name, db_object_name
+    )
+    objects_with_grants.extend(
+        get_routines_used_in_view_including_required_grants(
+            session, schema_name, db_object_name
+        )
+    )
+
+    return objects_with_grants
+
+
+def get_grant_statements(session, schema_name, db_object_name, grant_privileges, objects, db_object_type=None):
     # We can not grant/revoke the information_schema
     if schema_name.lower() == "information_schema":
         return []
@@ -186,11 +252,29 @@ def get_grant_statements(schema_name, db_object_name, grant_privileges, objects,
     if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
         grant_privileges = ["EXECUTE"]
 
+    db_objects = [(db_object_name, db_object_type, grant_privileges)]
+
+    # A view that executes in invoker security context can perform only operations for which the invoker has
+    # privileges. This means the MRS user needs the additional grants for the underlying tables.
+    if db_object_type == "VIEW" and stored_object_executes_as_invoker(
+        session, schema_name, db_object_name
+    ):
+        db_objects.extend(
+            [
+                (obj_name, obj_type, obj_grants)
+                for obj_name, obj_type, obj_grants in get_objects_used_in_view_including_required_grants(
+                    session, schema_name, db_object_name
+                )
+            ]
+        )
+
     grants = [
-        f"""GRANT {','.join(grant_privileges)}
-        ON {db_object_type if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION" else ''}
-        {schema_name}.{db_object_name}
-        TO 'mysql_rest_service_data_provider'@'%'"""]
+        f"""GRANT {','.join(obj_grants)}
+        ON {obj_type if obj_type == "PROCEDURE" or obj_type == "FUNCTION" else ''}
+        {schema_name}.{obj_name}
+        TO 'mysql_rest_service_data_provider'@'%'"""
+        for obj_name, obj_type, obj_grants in db_objects
+    ]
 
     # If the object is not a procedure, also add all referenced tables and views
     if db_object_type != "PROCEDURE" and db_object_type != "FUNCTION" and objects is not None:
@@ -208,7 +292,7 @@ def get_grant_statements(schema_name, db_object_name, grant_privileges, objects,
 
 
 def grant_db_object(session, schema_name, db_object_name, grant_privileges, objects=None, db_object_type=None):
-    grants = get_grant_statements(schema_name, db_object_name, grant_privileges, objects, db_object_type)
+    grants = get_grant_statements(session, schema_name, db_object_name, grant_privileges, objects, db_object_type)
     for grant in grants:
         session.run_sql(grant)
 
@@ -299,4 +383,3 @@ def crud_mapping(crud_operations):
         grant_privileges.append(crud_to_grant_mapping[crud_operation])
 
     return grant_privileges
-

@@ -115,7 +115,6 @@ def test_add_delete_db_object(phone_book, table_contents):
     grants = get_db_object_privileges(session, schema["name"], db_object_init1["db_object_name"])
     assert grants == []
 
-
     assert delete_db_object(db_object_id=db_object_id2)
     assert db_objects_table.count == db_objects_table.snapshot.count + 1
     grants = get_db_object_privileges(session, schema["name"], db_object_init2["db_object_name"])
@@ -123,6 +122,20 @@ def test_add_delete_db_object(phone_book, table_contents):
 
     assert delete_db_object(db_object_id=db_object_id3)
     assert db_objects_table.count == db_objects_table.snapshot.count
+
+    # Check grants for tables and routines used by a VIEW
+    db_object_init5 = get_default_db_object_init(
+        session, schema_id, "ContactNotes", "/contactNotes"
+    )
+    db_object_id5 = add_db_object(**db_object_init5)
+
+    grants = get_db_object_privileges(session, schema["name"], "Notes")
+    assert grants == ["SELECT", "INSERT", "UPDATE", "DELETE"]
+
+    grants = get_db_object_privileges(session, schema["name"], "format_name")
+    assert grants == ["EXECUTE"]
+
+    assert delete_db_object(db_object_id=db_object_id5)
 
 
 def test_get_db_objects(phone_book, table_contents):
