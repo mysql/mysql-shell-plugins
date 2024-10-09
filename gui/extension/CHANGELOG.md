@@ -9,6 +9,8 @@
 ### Fixes
 
 - BUG#36893025 Directive `importReadOnly` doesn't import read-resources when at least one table object has no READ permissions
+- BUG#37154650 Unexpected error whist using a REST VIEW in invoker security context
+-
 
 ## Changes in 1.16.4+9.0.1
 
