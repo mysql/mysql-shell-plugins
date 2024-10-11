@@ -85,7 +85,7 @@ export class Workbench {
      */
     public static pushDialogButton = async (buttonName: string): Promise<void> => {
         const dialogBox = await driver.wait(until.elementLocated(locator.dialogBox.exists),
-            constants.wait2seconds, `Could not find dialog box`);
+            constants.wait5seconds, `Could not find dialog box`);
         const dialogButtons = await dialogBox.findElements(locator.dialogBox.buttons);
         for (const button of dialogButtons) {
             if (await button.getAttribute("title") === buttonName) {
@@ -434,7 +434,23 @@ export class Workbench {
         await Misc.switchBackToTopFrame();
         await driver.wait(async () => {
             try {
-                await new EditorView().closeAllEditors();
+                const editorView = new EditorView();
+                const editors = await editorView.getOpenEditorTitles();
+
+                if (editors.join(",").includes(".json")) {
+
+                    for (const editor of editors) {
+
+                        if (editor.includes(".json")) {
+                            await editorView.closeEditor(editor);
+                            if (await new TextEditor().isDirty()) {
+                                await Workbench.pushDialogButton("Don't Save");
+                            }
+                        }
+                    }
+                } else {
+                    await editorView.closeAllEditors();
+                }
 
                 return true;
             } catch (e) {
