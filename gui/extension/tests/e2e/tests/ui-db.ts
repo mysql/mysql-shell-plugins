@@ -1006,6 +1006,9 @@ describe("DATABASE CONNECTIONS", () => {
             await (await mysqlAdministration.performanceDashboard.getTab(constants.perfDashMLETab)).click();
             await mysqlAdministration.performanceDashboard.loadMLEPerformance();
             expect(mysqlAdministration.performanceDashboard.mlePerformance.mleStatus).to.equals("Active");
+            const currentHeap = await driver
+                .findElement(locator.mysqlAdministration.performanceDashboard.mleStatus.currentHeapUsage);
+            await driver.executeScript("arguments[0].scrollIntoView()", currentHeap);
             expect(parseInt(mysqlAdministration.performanceDashboard.mlePerformance.currentHeapUsage
                 .match(/(\d+)/)[1], 10))
                 .to.be.greaterThan(0);
