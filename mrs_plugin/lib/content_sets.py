@@ -1001,6 +1001,7 @@ def get_mrs_script_definitions_from_code_file_list(code_files, language, send_gu
         "script_modules": mrs_script_modules_def,
         "interfaces": used_interfaces,
         "errors": errors,
+        "language": language,
     }
 
     return mrs_script_def
@@ -1183,12 +1184,11 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
 
     script_def = get_mrs_script_definitions_from_code_file_list(
         code_files, language=language, send_gui_message=send_gui_message)
+    script_def["build_folder"] = build_folder
 
     error_count = len(script_def["errors"])
     if error_count > 0:
         return script_def
-
-    # print(json.dumps(script_def, indent=4))
 
     script_module_files = []
     for script_module in script_def["script_modules"]:
@@ -1392,9 +1392,10 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
         # for interface in script_def["interfaces"]:
         #     print(f"{interface["name"]=}")
 
-    # Add the list of MRS script files to load
+    # Add the list of MRS script files to load, as well as the script definition
     options = content_set["options"]
     options["script_module_files"] = script_module_files
+    options["script_definitions"] = script_def
 
     core.update(
         table="content_set",

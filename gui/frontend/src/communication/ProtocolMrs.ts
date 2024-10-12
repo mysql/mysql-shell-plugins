@@ -1484,6 +1484,8 @@ export interface IMrsContentSetData {
     requiresAuth: number;
     serviceId: string;
     options: IShellDictionary;
+    scriptModuleFiles?: IMrsScriptModuleFile[];
+    scriptModuleDefinitions?: IMrsScriptDefinitions;
 }
 
 export interface IMrsContentFileData {
@@ -1502,6 +1504,12 @@ export interface IMrsAddContentSetData {
     contentSetId?: string;
     numberOfFilesUploaded?: number;
     info?: string;
+}
+
+export interface IMrsScriptModuleFile {
+    fileInfo: IMrsScriptFileInfo;
+    fileToLoad: string;
+    className: string;
 }
 
 export interface IMrsServiceDevelopmentOptions {

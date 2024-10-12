@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Shell tab tests Connection tests Test ShellModule instantiation 1`] = `
+<Container
+  id="shellEditorHost"
+  mainAlignment="stretch"
+  orientation="column"
+>
+  <ShellPrompt
+    getSchemas={[Function]}
+    id="shellPrompt"
+    onSelectSchema={[Function]}
+    values={
+      {
+        "backend": {
+          "execute": [Function],
+        },
+        "serverEdition": "foo",
+        "serverVersion": 0,
+        "sqlMode": "bar",
+        "state": {
+          "model": {
+            "getVersionId": [Function],
+          },
+        },
+      }
+    }
+  />
+  <ShellConsole
+    editorState={
+      {
+        "model": {
+          "getVersionId": [Function],
+        },
+      }
+    }
+    id="shellEditor"
+    onScriptExecution={[Function]}
+  />
+</Container>
+`;

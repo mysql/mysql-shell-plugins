@@ -216,8 +216,8 @@ const config: Config = {
 
     // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
     testPathIgnorePatterns: [
-        "src/tests/unit-tests/modules/mrs",
-        // "[/\\\\]tests/unit-tests/mrs[/\\\\].+\\.(js|jsx|mjs|cjs|ts|tsx)$",
+        "src/tests/unit-tests/modules/mrs/.*",
+        //"[/\\\\]tests/unit-tests/mrs[/\\\\].+\\.(js|jsx|mjs|cjs|ts|tsx)$",
         //"[/\\\\]node_modules[/\\\\].+\\.(js|jsx|mjs|cjs|ts|tsx)$",
         //"^.+\\.module\\.(css|sass|scss)$",
     ],

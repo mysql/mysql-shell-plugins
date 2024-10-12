@@ -24,7 +24,7 @@
  */
 
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types.js";
-import { IMrsScriptDefinitions, IMrsServiceData } from "../../../communication/ProtocolMrs.js";
+import { IMrsScriptDefinitions, IMrsScriptModuleFile, IMrsServiceData } from "../../../communication/ProtocolMrs.js";
 import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog.js";
 import {
     IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
@@ -47,6 +47,8 @@ export interface IMrsContentSetDialogData extends IDictionary {
 export class MrsContentSetDialog extends AwaitableValueEditDialog {
     #backend!: ShellInterfaceSqlEditor;
     #mrsScriptLanguage?: string;
+    #mrsScriptDefinitions?: IMrsScriptDefinitions;
+    #mrsScriptModuleFiles?: IMrsScriptModuleFile[];
 
     protected override get id(): string {
         return "mrsContentSetDialog";
@@ -60,10 +62,19 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
 
         let dialogValues = this.dialogValues(request, services);
         dialogValues = await this.updateMrsScriptSection(dialogValues);
+        const contexts: string[] = [];
+
+        if (dialogValues.sections.get("settingsSection")?.values.containsMrsScripts.value === true
+            || dialogValues.sections.get("scriptErrorsSection")?.values.errors.value) {
+            contexts.push("MrsScripts");
+            if (dialogValues.sections.get("scriptErrorsSection")?.values.errors.value) {
+                contexts.push("MrsScriptErrors");
+            }
+        }
 
         const result = await this.doShow(() => {
             return dialogValues;
-        }, { title: "MRS Content Set" });
+        }, { title: "MRS Content Set", contexts });
 
         if (result.closure === DialogResponseClosure.Accept) {
             return this.processResults(result.values, services);
@@ -80,7 +91,8 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
 
         if (closing) {
             const mainSection = values.sections.get("mainSection");
-            if (mainSection) {
+            const optionsSection = values.sections.get("optionsSection");
+            if (mainSection && optionsSection) {
                 if (!mainSection.values.requestPath.value) {
                     result.messages.requestPath = "The request path must not be empty.";
                 } else {
@@ -91,8 +103,8 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                 }
 
                 try {
-                    if (mainSection.values.options.value) {
-                        JSON.parse(mainSection.values.options.value as string);
+                    if (optionsSection.values.options.value) {
+                        JSON.parse(optionsSection.values.options.value as string);
                     }
                 } catch (e) {
                     result.messages.options = `The options need to confirm to JSON format. (${String(e)})`;
@@ -116,15 +128,26 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
         let newOptions = "";
         let containsMrsScripts = this.#mrsScriptLanguage !== undefined;
         let buildFolder = "build";
+        let scriptingLanguage = "";
         if (request.values && request.values.options) {
             const options = JSON.parse(request.values.options as string);
             if ("containsMrsScripts" in options) {
                 containsMrsScripts = options.containsMrsScripts === true;
                 options.containsMrsScripts = undefined;
             }
-            if ("buildFolder" in options) {
-                buildFolder = options.buildFolder;
-                options.buildFolder = undefined;
+            if ("scriptDefinitions" in options) {
+                if ("buildFolder" in options.scriptDefinitions) {
+                    buildFolder = options.scriptDefinitions.buildFolder;
+                }
+                if ("language" in options.scriptDefinitions) {
+                    scriptingLanguage = options.scriptDefinitions.language;
+                }
+                this.#mrsScriptDefinitions = options.scriptDefinitions;
+                options.scriptDefinitions = undefined;
+            }
+            if ("scriptModuleFiles" in options) {
+                this.#mrsScriptModuleFiles = options.scriptModuleFiles;
+                options.scriptModuleFiles = undefined;
             }
             newOptions = JSON.stringify(options, undefined, 4);
             if (newOptions === "{}") {
@@ -197,55 +220,129 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                     caption: "Files to ignore",
                     value: "*node_modules/*, */.*",
                     horizontalSpan: 3,
-                    description: "A list of files to ignore, use * and ? for pattern matching",
+                    description: "A list of files to ignore, use * and ? as wildcards",
                 },
-                containsMrsScripts: {
-                    type: "boolean",
-                    caption: "MRS Scripts",
-                    label: "Load MRS Scripts",
-                    horizontalSpan: 4,
-                    value: containsMrsScripts,
-                    description: "Load the MRS scripts, triggers and interfaces from this content set",
-                    options: this.#mrsScriptLanguage === undefined ? [CommonDialogValueOption.Hidden] : [],
-                },
-                mrsScriptLanguage: {
-                    type: "text",
-                    caption: "Language",
-                    value: "",
-                    horizontalSpan: 2,
-                    description: "The MRS Script language",
-                    options: this.#mrsScriptLanguage === undefined ? [CommonDialogValueOption.Hidden] : [],
-                },
-                buildFolder: {
-                    type: "text",
-                    caption: "Build Folder",
-                    value: buildFolder,
-                    horizontalSpan: 2,
-                    description: "The name of the build folder",
-                    options: this.#mrsScriptLanguage === undefined ? [CommonDialogValueOption.Hidden] : [],
-                },
+            },
+        };
+
+        const settingsSection: IDialogSection = {
+            caption: "Settings",
+            groupName: "group1",
+            values: {
                 comments: {
                     type: "text",
                     caption: "Comments",
                     value: request.values?.comments as string,
                     horizontalSpan: 8,
+                    multiLine: true,
+                    multiLineCount: 3,
                 },
-                options: {
+                containsMrsScripts: {
+                    type: "boolean",
+                    caption: "MRS Scripts",
+                    label: "Enable MRS Scripts",
+                    horizontalSpan: 4,
+                    value: containsMrsScripts,
+                    description: "Load and enabled the MRS scripts and triggers from this content set "
+                        + "and create the corresponding endpoints",
+                    options: this.#mrsScriptLanguage === undefined ? [CommonDialogValueOption.Hidden] : [],
+                    onChange: (value, dialog) => {
+                        if (value) {
+                            dialog.updateActiveContexts({
+                                add: ["MrsScripts"],
+                            });
+                        } else {
+                            dialog.updateActiveContexts({
+                                remove: ["MrsScripts"],
+                            });
+                        }
+                    },
+                },
+            },
+        };
+
+        const scriptSection: IDialogSection = {
+            caption: "MRS Scripts",
+            groupName: "group1",
+            contexts: ["MrsScripts"],
+            values: {
+                mrsScriptLanguage: {
                     type: "text",
-                    caption: "Options",
-                    value: newOptions,
+                    caption: "Language",
+                    value: scriptingLanguage,
+                    horizontalSpan: 3,
+                    description: "The detected MRS Script language",
+                    options: [CommonDialogValueOption.ReadOnly],
+                },
+                buildFolder: {
+                    type: "text",
+                    caption: "Build Folder",
+                    value: buildFolder,
+                    horizontalSpan: 5,
+                    description: "The path of the build folder, for compiled languages",
+                    options: [CommonDialogValueOption.ReadOnly],
+                },
+                scriptModuleDefinitions: {
+                    type: "text",
+                    caption: "Module Definitions",
+                    value: "",
                     horizontalSpan: 8,
                     multiLine: true,
-                    description: "Additional options in JSON format",
+                    multiLineCount: 10,
+                    description: "A listing of the module and script definitions",
+                    options: [CommonDialogValueOption.ReadOnly],
                 },
+            },
+        };
+
+        const scriptInterfacesSection: IDialogSection = {
+            caption: "MRS Script Interfaces",
+            groupName: "group1",
+            contexts: ["MrsScripts"],
+            values: {
+                scriptInterfaceDefinitions: {
+                    type: "text",
+                    caption: "Interface Definitions",
+                    value: "",
+                    horizontalSpan: 8,
+                    multiLine: true,
+                    multiLineCount: 12,
+                    options: [CommonDialogValueOption.ReadOnly],
+                    description: "A listing of the interface definitions",
+                },
+            },
+        };
+
+        const scriptErrorsSection: IDialogSection = {
+            caption: "MRS Scripts Errors",
+            groupName: "group1",
+            contexts: ["MrsScripts", "MrsScriptErrors"],
+            values: {
                 errors: {
                     type: "text",
                     caption: "MRS Script Errors",
                     value: "",
                     horizontalSpan: 8,
                     multiLine: true,
-                    options: [CommonDialogValueOption.Hidden],
+                    multiLineCount: 12,
+                    options: [CommonDialogValueOption.ReadOnly],
                     description: "Errors that occurred while parsing the MRS Scripts",
+                },
+            },
+        };
+
+        const optionsSection: IDialogSection = {
+            caption: "Options",
+            groupName: "group1",
+            values: {
+                options: {
+                    type: "text",
+                    caption: "Options",
+                    value: newOptions,
+                    horizontalSpan: 8,
+                    multiLine: true,
+                    multiLineCount: 10,
+                    description: "Additional options in JSON format",
                 },
             },
         };
@@ -254,6 +351,11 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
             id: "mainSection",
             sections: new Map<string, IDialogSection>([
                 ["mainSection", mainSection],
+                ["settingsSection", settingsSection],
+                ["scriptSection", scriptSection],
+                ["scriptInterfacesSection", scriptInterfacesSection],
+                ["scriptErrorsSection", scriptErrorsSection],
+                ["optionsSection", optionsSection],
             ]),
         };
     }
@@ -269,7 +371,12 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
 
     private updateMrsScriptSection = async (dialogValues: IDialogValues): Promise<IDialogValues> => {
         const mainSection = dialogValues.sections.get("mainSection");
-        if (mainSection) {
+        const settingsSection = dialogValues.sections.get("settingsSection");
+        const scriptSection = dialogValues.sections.get("scriptSection");
+        const scriptInterfacesSection = dialogValues.sections.get("scriptInterfacesSection");
+        const scriptErrorsSection = dialogValues.sections.get("scriptErrorsSection");
+
+        if (mainSection && settingsSection && scriptSection && scriptInterfacesSection && scriptErrorsSection) {
             this.#mrsScriptLanguage = undefined;
             if (mainSection.values.directory.value) {
                 this.#mrsScriptLanguage = await this.#backend.mrs.getFolderMrsScriptLanguage(
@@ -278,11 +385,8 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
             }
 
             if (this.#mrsScriptLanguage !== undefined) {
-                mainSection.values.containsMrsScripts.value = true;
-                mainSection.values.containsMrsScripts.options = [];
-                mainSection.values.mrsScriptLanguage.value = this.#mrsScriptLanguage;
-                mainSection.values.mrsScriptLanguage.options = [CommonDialogValueOption.ReadOnly];
-                mainSection.values.buildFolder.options = [];
+                scriptSection.values.mrsScriptLanguage.value = this.#mrsScriptLanguage;
+                const dialogContexts = ["MrsScripts"];
 
                 let mrsScriptDefinitions: IMrsScriptDefinitions | undefined;
                 await this.#backend.mrs.getFolderMrsScriptDefinitions(
@@ -297,32 +401,45 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                         }
                     });
 
-                mainSection.values.buildFolder.value = mrsScriptDefinitions?.buildFolder ?? "";
+                scriptSection.values.buildFolder.value = mrsScriptDefinitions?.buildFolder ?? "";
+                scriptSection.values.scriptModuleDefinitions.value = JSON.stringify(
+                    mrsScriptDefinitions?.scriptModules ?? "", undefined, 4);
+                scriptInterfacesSection.values.scriptInterfaceDefinitions.value = JSON.stringify(
+                    mrsScriptDefinitions?.interfaces ?? "", undefined, 4);
 
                 // If there are errors, list them
                 if (mrsScriptDefinitions?.errors && mrsScriptDefinitions?.errors.length > 0) {
-                    mainSection.values.errors.value = mrsScriptDefinitions.errors.map((error) => {
+                    scriptErrorsSection.values.errors.value = mrsScriptDefinitions.errors.map((error) => {
                         if (error.script) {
-                            return error.fileInfo.relativeFileName +
-                                ` | Ln ${error.script.codePosition.lineNumberStart}++ | ` +
-                                error.message;
+                            return `SCRIPT ERROR: ${error.message} [${error.fileInfo.relativeFileName}: ` +
+                                `Ln ${error.script.codePosition.lineNumberStart}++]`;
                         } else {
-                            return error.fileInfo.relativeFileName +
-                                ` | Ln ${error.interface?.codePosition.lineNumberStart}++ | ` +
-                                error.message;
+                            return `INTERFACE ERROR: ${error.message} [${error.fileInfo.relativeFileName}: ` +
+                                `Ln ${error.interface?.codePosition.lineNumberStart}++]`;
                         }
                     }).join("\n");
-                    mainSection.values.errors.options = [CommonDialogValueOption.ReadOnly];
-                    mainSection.values.containsMrsScripts.value = false;
-                    mainSection.values.containsMrsScripts.options = [CommonDialogValueOption.ReadOnly];
+                    scriptErrorsSection.values.errors.options = [CommonDialogValueOption.ReadOnly];
+                    settingsSection.values.containsMrsScripts.value = false;
+                    settingsSection.values.containsMrsScripts.options = [CommonDialogValueOption.Disabled];
+
+                    dialogContexts.push("MrsScriptErrors");
+                } else {
+                    settingsSection.values.containsMrsScripts.value = true;
+                    settingsSection.values.containsMrsScripts.options = [];
                 }
+
+                this.dialog?.updateActiveContexts({
+                    add: dialogContexts,
+                });
             } else {
-                mainSection.values.containsMrsScripts.value = false;
-                mainSection.values.containsMrsScripts.options = [CommonDialogValueOption.Hidden];
-                mainSection.values.mrsScriptLanguage.value = "";
-                mainSection.values.mrsScriptLanguage.options = [CommonDialogValueOption.Hidden];
-                mainSection.values.buildFolder.options = [CommonDialogValueOption.Hidden];
-                mainSection.values.errors.options = [CommonDialogValueOption.Hidden];
+                settingsSection.values.containsMrsScripts.value = false;
+                settingsSection.values.containsMrsScripts.options = [CommonDialogValueOption.Hidden];
+                scriptSection.values.mrsScriptLanguage.value = "";
+                scriptErrorsSection.values.errors.value = "";
+
+                this.dialog?.updateActiveContexts({
+                    remove: ["MrsScripts", "MrsScriptErrors"],
+                });
             }
         }
 
@@ -331,12 +448,21 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
 
     private processResults = (dialogValues: IDialogValues, services: IMrsServiceData[]): IDictionary => {
         const mainSection = dialogValues.sections.get("mainSection");
-        if (mainSection) {
-            const options = JSON.parse(mainSection.values.options.value as string || "{}");
-            options.containsMrsScripts = mainSection.values.containsMrsScripts.value as boolean;
-            options.buildFolder = mainSection.values.buildFolder.value as string;
+        const settingsSection = dialogValues.sections.get("settingsSection");
+        const optionsSection = dialogValues.sections.get("optionsSection");
+        const scriptSection = dialogValues.sections.get("scriptSection");
+
+        if (mainSection && settingsSection && optionsSection && scriptSection) {
+            const options = JSON.parse(optionsSection.values.options.value as string || "{}");
+            options.containsMrsScripts = settingsSection.values.containsMrsScripts.value as boolean;
             if (options.containsMrsScripts) {
                 options.mrsScriptingLanguage = this.#mrsScriptLanguage;
+            }
+            if (this.#mrsScriptDefinitions) {
+                options.scriptDefinitions = this.#mrsScriptDefinitions;
+            }
+            if (this.#mrsScriptModuleFiles) {
+                options.scriptModuleFiles = this.#mrsScriptModuleFiles;
             }
             const newOptions = JSON.stringify(options, undefined, 4);
 
@@ -347,7 +473,7 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                 requestPath: mainSection.values.requestPath.value as string,
                 requiresAuth: mainSection.values.requiresAuth.value as boolean,
                 enabled: mainSection.values.enabled.value as boolean,
-                comments: mainSection.values.comments.value as string,
+                comments: settingsSection.values.comments.value as string,
                 options: newOptions,
                 directory: mainSection.values.directory.value as string,
                 ignoreList: mainSection.values.ignoreList.value as string,
