@@ -48,6 +48,10 @@ export class AwaitableValueEditDialog extends ComponentBase {
         return "";
     }
 
+    public get dialog(): ValueEditDialog | null {
+        return this.#dialogRef.current;
+    }
+
     public render(): ComponentChild {
         return (
             <ValueEditDialog
