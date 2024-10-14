@@ -75,7 +75,7 @@ export class DateTime extends ComponentBase<IDateTimeProperties> {
     }
 
     public override componentDidMount(): void {
-        const { autoFocus } = this.mergedProps;
+        const { autoFocus } = this.props;
         if (this.dateTimeRef.current && autoFocus) {
             const element = this.dateTimeRef.current;
             element.focus();
@@ -83,7 +83,7 @@ export class DateTime extends ComponentBase<IDateTimeProperties> {
     }
 
     public render(): ComponentChild {
-        const { type, value } = this.mergedProps;
+        const { type, value } = this.props;
 
         const className = this.getEffectiveClassNames(["dateTime"]);
 
@@ -101,25 +101,25 @@ export class DateTime extends ComponentBase<IDateTimeProperties> {
     }
 
     private handleInput = (e: Event): void => {
-        const { onChange } = this.mergedProps;
+        const { onChange } = this.props;
 
         const element = e.target as HTMLInputElement;
-        onChange?.(e as InputEvent, { ...this.mergedProps, value: element.value });
+        onChange?.(e as InputEvent, { ...this.props, value: element.value });
     };
 
     private handleKeyDown = (e: KeyboardEvent): void => {
-        const { onConfirm, onCancel } = this.mergedProps;
+        const { onConfirm, onCancel } = this.props;
 
         switch (e.key) {
             case KeyboardKeys.Enter: {
                 const element = e.target as HTMLInputElement;
-                onConfirm?.(e, { ...this.mergedProps, value: element.value });
+                onConfirm?.(e, { ...this.props, value: element.value });
 
                 break;
             }
 
             case KeyboardKeys.Escape: {
-                onCancel?.(e, this.mergedProps);
+                onCancel?.(e, this.props);
                 break;
             }
 

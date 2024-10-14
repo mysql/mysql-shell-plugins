@@ -72,14 +72,14 @@ export class Search extends ComponentBase<ISearchProperties> {
     }
 
     public override componentDidUpdate(): void {
-        const { autoFocus } = this.mergedProps;
+        const { autoFocus } = this.props;
         if (autoFocus && this.inputRef.current) {
             this.inputRef.current.focus();
         }
     }
 
     public render(): ComponentChild {
-        const { placeholder = "Search", values, autoFocus, result, buttons } = this.mergedProps;
+        const { placeholder = "Search", values, autoFocus, result, buttons } = this.props;
         const className = this.getEffectiveClassNames(["search"]);
 
         return (
@@ -154,7 +154,7 @@ export class Search extends ComponentBase<ISearchProperties> {
     }
 
     private handleChange = (e: InputEvent): void => {
-        const { values } = this.mergedProps;
+        const { values } = this.props;
 
         const value = (e.target as HTMLInputElement).value;
         this.sendChange(e, {
@@ -170,7 +170,7 @@ export class Search extends ComponentBase<ISearchProperties> {
     };
 
     private handleButtonClick = (e: MouseEvent | KeyboardEvent): void => {
-        const { values } = this.mergedProps;
+        const { values } = this.props;
 
         if (e.currentTarget && "id" in e.currentTarget) {
             switch (e.currentTarget?.id) {
@@ -203,17 +203,17 @@ export class Search extends ComponentBase<ISearchProperties> {
     };
 
     private sendChange = (e: UIEvent, change?: ISearchValues): void => {
-        const { values, onChange, onConfirm } = this.mergedProps;
+        const { values, onChange, onConfirm } = this.props;
 
         if (change) {
-            onChange?.(e, this.mergedProps, {
+            onChange?.(e, this.props, {
                 value: change.value ?? values?.value,
                 matchCase: change.matchCase === undefined ? values?.matchCase : change.matchCase,
                 matchWholeWord: change.matchWholeWord === undefined ? values?.matchWholeWord : change.matchWholeWord,
                 useRegExp: change.useRegExp === undefined ? values?.useRegExp : change.useRegExp,
             });
         } else {
-            onConfirm?.(e, this.mergedProps, values ?? {});
+            onConfirm?.(e, this.props, values ?? {});
         }
     };
 

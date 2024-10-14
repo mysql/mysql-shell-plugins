@@ -155,7 +155,7 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
         const {
             tabPosition, stretchTabs, hideSingleTab, pages, tabBorderWidth, style, contentSeparatorWidth, selectedId,
             showTabs, canReorderTabs, auxillary,
-        } = this.mergedProps;
+        } = this.props;
 
         const className = this.getEffectiveClassNames([
             "tabview",
@@ -318,13 +318,13 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
 
         (e.currentTarget as HTMLElement).classList.remove("dropTarget");
 
-        const { onDrop } = this.mergedProps;
+        const { onDrop } = this.props;
 
         onDrop?.(e, props);
     };
 
     private selectTab = (event: MouseEvent | KeyboardEvent, props: IButtonProperties): void => {
-        const { onSelectTab } = this.mergedProps;
+        const { onSelectTab } = this.props;
 
         onSelectTab?.(props.id!);
     };
@@ -362,7 +362,7 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
         if (items) {
             const sourceId = this.getDragSourceId(e);
             if (sourceId) {
-                const { pages, onMoveTab } = this.mergedProps;
+                const { pages, onMoveTab } = this.props;
                 const sourceIndex = pages.findIndex((page: ITabviewPage) => { return page.id === sourceId; });
                 if (sourceIndex > -1) {
                     let targetIndex = pages.length - 1;
@@ -481,7 +481,7 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
      * Auto scrolls the active tab item into view. Updates both the tab area and the slider position.
      */
     private scrollActiveItemIntoView = (): void => {
-        const { selectedId } = this.mergedProps;
+        const { selectedId } = this.props;
 
         if (this.tabAreaRef.current && selectedId) {
             const tabArea = this.tabAreaRef.current;

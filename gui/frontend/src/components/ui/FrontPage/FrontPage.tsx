@@ -58,7 +58,7 @@ export class FrontPage extends ComponentBase<IFrontPageProperties> {
     }
 
     public render(): ComponentChild {
-        const { showGreeting, caption, description, children, logo } = this.mergedProps;
+        const { showGreeting, caption, description, children, logo } = this.props;
 
         const className = this.getEffectiveClassNames([
             "frontPage",

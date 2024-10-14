@@ -96,7 +96,7 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
     }
 
     public override componentDidUpdate(): void {
-        const { cursorWidth = 16, cursorHeight = 16 } = this.mergedProps;
+        const { cursorWidth = 16, cursorHeight = 16 } = this.props;
         const { tooltip, target, expand, mouse } = this.state;
 
         if (this.innerRef.current && target) {
@@ -147,7 +147,7 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
     }
 
     public render(): ComponentChild {
-        const { style } = this.mergedProps;
+        const { style } = this.props;
         const { target, tooltip, expand } = this.state;
 
         if (!target) {
@@ -227,7 +227,7 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
         }
 
         if (tooltip) {
-            const { showDelay = 300, maxLength = 500 } = this.mergedProps;
+            const { showDelay = 300, maxLength = 500 } = this.props;
 
             let expand = false;
             if (tooltip === "expand") { // Expand means: use the text of the target element.

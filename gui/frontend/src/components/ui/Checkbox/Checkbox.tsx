@@ -56,19 +56,19 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
     public constructor(props: ICheckboxProperties) {
         super(props);
 
-        this.addHandledProperties("checkState", "caption", "disabled", "onChange", "dataId");
+        this.addHandledProperties("checkState", "caption", "disabled", "onChange");
         this.connectEvents("onClick");
     }
 
     public override componentDidMount(): void {
-        const { checkState } = this.mergedProps;
+        const { checkState } = this.props;
         if (this.#labelRef.current) {
             this.#labelRef.current.value = checkState;
         }
     }
 
     public render(): ComponentChild {
-        const { children, caption, disabled, checkState } = this.mergedProps;
+        const { children, caption, disabled, checkState } = this.props;
 
         const className = this.getEffectiveClassNames([
             "checkbox",
@@ -92,7 +92,7 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
     }
 
     protected override handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
-        const { disabled } = this.mergedProps;
+        const { disabled } = this.props;
         if (disabled) {
             e.preventDefault();
 
@@ -108,7 +108,7 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
     }
 
     private handleKeyPress = (e: KeyboardEvent): void => {
-        const { disabled } = this.mergedProps;
+        const { disabled } = this.props;
         if (disabled) {
             e.preventDefault();
 
@@ -122,7 +122,7 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
     };
 
     private toggleCheckState(): void {
-        const { onChange, checkState } = this.mergedProps;
+        const { onChange, checkState } = this.props;
 
         let newState;
         switch (checkState) {
@@ -146,7 +146,7 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
             this.#labelRef.current.value = newState;
         }
 
-        onChange?.(newState, this.mergedProps);
+        onChange?.(newState, this.props);
     }
 
 }

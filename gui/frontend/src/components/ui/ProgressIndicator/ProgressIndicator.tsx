@@ -55,7 +55,7 @@ export class ProgressIndicator extends ComponentBase<IProgressIndicatorPropertie
         const {
             id, backgroundOpacity = 1, linear = false, position, indicatorWidth,
             indicatorHeight, style, stroke,
-        } = this.mergedProps;
+        } = this.props;
         const className = this.getEffectiveClassNames(["progressIndicatorHost"]);
 
         const strokeWidth = stroke ?? 5; // Only for circles. Make this configurable?

@@ -75,7 +75,7 @@ export class Button extends ComponentBase<IButtonProperties> {
     }
 
     public render(): ComponentChild {
-        const { children, caption, style, orientation, round, imageOnly, disabled, isDefault } = this.mergedProps;
+        const { children, caption, style, orientation, round, imageOnly, disabled, isDefault } = this.props;
         const className = this.getEffectiveClassNames([
             "button",
             this.classFromProperty(round, "round"),
@@ -109,7 +109,7 @@ export class Button extends ComponentBase<IButtonProperties> {
     protected override handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
         switch (type) {
             case MouseEventType.Down: {
-                const { focusOnClick } = this.mergedProps;
+                const { focusOnClick } = this.props;
                 if (focusOnClick) {
                     this.buttonRef?.current?.focus();
                 } else {
@@ -120,7 +120,7 @@ export class Button extends ComponentBase<IButtonProperties> {
             }
 
             case MouseEventType.Click: {
-                const { requestType: requestId } = this.mergedProps;
+                const { requestType: requestId } = this.props;
                 if (requestId) {
                     void requisitions.execute(requestId, undefined);
 

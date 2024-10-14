@@ -230,7 +230,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     }
 
     public override componentDidMount(): void {
-        const { tableData } = this.mergedProps;
+        const { tableData } = this.props;
 
         // istanbul ignore else
         if (this.#hostRef.current) {
@@ -238,7 +238,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             this.#timeoutId = null;
             this.#tabulator = new Tabulator(this.#hostRef.current, this.tabulatorOptions);
             this.#tabulator.on("tableBuilt", () => {
-                const { topRowIndex, selectedRows, options } = this.mergedProps;
+                const { topRowIndex, selectedRows, options } = this.props;
 
                 // The tabulator field must be assigned. We are in one of its events.
                 this.#tabulator!.off("tableBuilt");
@@ -307,7 +307,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
     public override componentDidUpdate(_prevProps: ITreeGridProperties): void {
         if (this.#tabulator && this.#tableReady) {
-            const { selectedRows, columns, tableData } = this.mergedProps;
+            const { selectedRows, columns, tableData } = this.props;
 
             // When we are editing, we don't want to update the table.
             if (this.#isEditing) {
@@ -363,7 +363,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     }
 
     public render(): ComponentChild {
-        const { options } = this.mergedProps;
+        const { options } = this.props;
 
         const className = this.getEffectiveClassNames([
             "treeGrid",
@@ -574,7 +574,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         const {
             height = "100%", columns = [], tableData, options, rowContextMenu, frozenRows = 0, isRowExpanded,
             onFormatRow,
-        } = this.mergedProps;
+        } = this.props;
 
         let selectableRows: number | boolean | "highlight";
         switch (options?.selectionType) {
@@ -652,14 +652,14 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     }
 
     private handleRowExpanded = (row: RowComponent, level: number): void => {
-        const { onRowExpanded } = this.mergedProps;
+        const { onRowExpanded } = this.props;
         row.getElement().classList.add("expanded");
 
         onRowExpanded?.(row, level);
     };
 
     private handleRowCollapsed = (row: RowComponent, level: number): void => {
-        const { onRowCollapsed } = this.mergedProps;
+        const { onRowCollapsed } = this.props;
 
         row.getElement().classList.remove("expanded");
 
@@ -667,25 +667,25 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     };
 
     private handleRowContext = (event: Event, row: RowComponent): void => {
-        const { onRowContext } = this.mergedProps;
+        const { onRowContext } = this.props;
 
         onRowContext?.(event, row);
     };
 
     private handleCellClick = (event: Event, cell: CellComponent): void => {
-        const { onCellClick } = this.mergedProps;
+        const { onCellClick } = this.props;
 
         onCellClick?.(event, cell);
     };
 
     private handleCellContext = (event: Event, cell: CellComponent): void => {
-        const { onCellContext } = this.mergedProps;
+        const { onCellContext } = this.props;
 
         onCellContext?.(event, cell);
     };
 
     private handleRowClicked = (event: Event, row: RowComponent): void => {
-        const { options, columns } = this.mergedProps;
+        const { options, columns } = this.props;
 
         if (options?.treeColumn) {
             if (this.#toggleTimeoutId) {
@@ -708,7 +708,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     };
 
     private handleRowSelected = (row: RowComponent): void => {
-        const { options } = this.mergedProps;
+        const { options } = this.props;
 
         if (options?.autoScrollOnSelect) {
             const selected = this.#tabulator?.getSelectedRows() ?? [];
@@ -717,19 +717,19 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             }
         }
 
-        const { onRowSelected } = this.mergedProps;
+        const { onRowSelected } = this.props;
 
         onRowSelected?.(row);
     };
 
     private handleRowDeselected = (row: RowComponent): void => {
-        const { onRowDeselected } = this.mergedProps;
+        const { onRowDeselected } = this.props;
 
         onRowDeselected?.(row);
     };
 
     private handleColumnResized = (column: ColumnComponent): void => {
-        const { onColumnResized } = this.mergedProps;
+        const { onColumnResized } = this.props;
 
         onColumnResized?.(column);
     };
@@ -741,7 +741,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
      *             cannot be applied to the grid directly.
      */
     private handleVerticalScroll = (_top: number): void => {
-        const { onVerticalScroll } = this.mergedProps;
+        const { onVerticalScroll } = this.props;
 
         const rows = this.#tabulator!.getRows("visible");
         if (rows.length > 0) {

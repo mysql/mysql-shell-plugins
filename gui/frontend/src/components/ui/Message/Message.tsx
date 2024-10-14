@@ -43,7 +43,7 @@ export class Message extends ComponentBase<IMessageProperties> {
     }
 
     public render(): ComponentChild {
-        const { children, type } = this.mergedProps;
+        const { children, type } = this.props;
         const className = this.getEffectiveClassNames([
             "message",
             this.classFromProperty(type, ["error", "warning", "info", "response", "interactive"]),

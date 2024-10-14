@@ -62,10 +62,10 @@ export class SessionTile extends BrowserTile<ISessionTileProperties> {
     };
 
     private handleActionClick = (e: MouseEvent | KeyboardEvent): void => {
-        const { onAction } = this.mergedProps;
+        const { onAction } = this.props;
 
         e.stopPropagation();
-        onAction?.("remove", this.mergedProps, {});
+        onAction?.("remove", this.props, {});
     };
 
 }

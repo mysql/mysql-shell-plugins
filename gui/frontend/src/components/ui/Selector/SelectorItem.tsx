@@ -70,7 +70,7 @@ export class SelectorItem extends ComponentBase<ISelectorItemProperties> {
     public render(): ComponentChild {
         const {
             selected, disabled, type, innerRef, orientation, image, caption, tooltip, auxillary,
-        } = this.mergedProps;
+        } = this.props;
         const className = this.getEffectiveClassNames([
             "selectorItem",
             this.classFromProperty(selected, "selected"),

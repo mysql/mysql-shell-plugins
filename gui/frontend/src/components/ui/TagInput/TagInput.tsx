@@ -64,7 +64,7 @@ export class TagInput extends ComponentBase<ITagInputProperties> {
     }
 
     public render(): ComponentChild {
-        const { tags, removable, innerRef, orientation, children } = this.mergedProps;
+        const { tags, removable, innerRef, orientation, children } = this.props;
         const className = this.getEffectiveClassNames(["tagInput"]);
 
         const content = tags?.map((tag: ITag) => {
@@ -113,13 +113,13 @@ export class TagInput extends ComponentBase<ITagInputProperties> {
 
             case DragEventType.Over: {
                 if (e.dataTransfer) {
-                    const { canAdd } = this.mergedProps;
+                    const { canAdd } = this.props;
 
                     // Data is not available during drag-over, so we can only check if the expected type matches.
                     const items = e.dataTransfer.items;
                     let canAccept = false;
                     if (items.length === 1 && items[0].type === "text/tag") {
-                        canAccept = canAdd?.(this.mergedProps) ?? true;
+                        canAccept = canAdd?.(this.props) ?? true;
                     }
                     e.dataTransfer.dropEffect = canAccept ? "copy" : "none";
                     e.preventDefault();
@@ -146,18 +146,18 @@ export class TagInput extends ComponentBase<ITagInputProperties> {
 
                 if (e.dataTransfer) {
                     // Do not add the new tag, but just tell the owner, to take action.
-                    const { tags, onAdd } = this.mergedProps;
+                    const { tags, onAdd } = this.props;
                     const value = e.dataTransfer.getData("text/tag");
 
                     if (!tags || tags.length === 0) {
-                        onAdd?.(value, this.mergedProps);
+                        onAdd?.(value, this.props);
 
                         break;
                     }
 
                     const index = tags?.findIndex((tag: ITag) => { return tag.caption === value; });
                     if (index === -1) {
-                        onAdd?.(value, this.mergedProps);
+                        onAdd?.(value, this.props);
                     }
                 }
 
@@ -173,12 +173,12 @@ export class TagInput extends ComponentBase<ITagInputProperties> {
     }
 
     private handleCloseButtonClick = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
-        const { onRemove } = this.mergedProps;
+        const { onRemove } = this.props;
 
         // Button in the label makes the entire label act like a button (but we only want the button to act so).
         if ((e.target as HTMLElement).className === "msg icon") {
             e.stopPropagation();
-            onRemove?.(props.id || "", this.mergedProps);
+            onRemove?.(props.id || "", this.props);
         }
     };
 

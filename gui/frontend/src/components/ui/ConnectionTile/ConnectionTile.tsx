@@ -86,25 +86,25 @@ export class ConnectionTile extends BrowserTile<IConnectionTileProperties> {
     };
 
     private handleActionClick = (e: MouseEvent | KeyboardEvent): void => {
-        const { onAction } = this.mergedProps;
+        const { onAction } = this.props;
 
         e.stopPropagation();
         const id = (e.currentTarget as HTMLElement).id;
         switch (id) {
             case "tileMoreActionsAction": {
-                onAction?.("menu", this.mergedProps, { target: e.currentTarget as HTMLElement });
+                onAction?.("menu", this.props, { target: e.currentTarget as HTMLElement });
 
                 break;
             }
 
             case "tileNewNotebookAction": {
-                onAction?.("open", this.mergedProps, { newTab: e.metaKey || e.altKey, editor: "notebook" });
+                onAction?.("open", this.props, { newTab: e.metaKey || e.altKey, editor: "notebook" });
 
                 break;
             }
 
             case "tileNewScriptAction": {
-                onAction?.("open", this.mergedProps, { newTab: e.metaKey || e.altKey, editor: "script" });
+                onAction?.("open", this.props, { newTab: e.metaKey || e.altKey, editor: "script" });
 
                 break;
             }

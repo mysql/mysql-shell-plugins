@@ -54,7 +54,7 @@ export class CalendarView extends ComponentBase<ICalendarViewProperties> {
     }
 
     public render(): ComponentChild {
-        const { date } = this.mergedProps;
+        const { date } = this.props;
         const className = this.getEffectiveClassNames(["calendarView"]);
 
         // View caption (the current month + year).
@@ -151,14 +151,14 @@ export class CalendarView extends ComponentBase<ICalendarViewProperties> {
     }
 
     private handleMonthSwitch = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
-        const { onChangeMonth } = this.mergedProps;
+        const { onChangeMonth } = this.props;
         onChangeMonth?.(props.id === "nextMonthButton");
     };
 
     private handleDayClick = (e: MouseEvent | KeyboardEvent): void => {
         const day = parseInt((e.target as HTMLElement).innerText, 10);
-        const { date, onSelect } = this.mergedProps;
-        onSelect?.(new Date(date.getFullYear(), date.getMonth(), day), this.mergedProps);
+        const { date, onSelect } = this.props;
+        onSelect?.(new Date(date.getFullYear(), date.getMonth(), day), this.props);
     };
 
 }

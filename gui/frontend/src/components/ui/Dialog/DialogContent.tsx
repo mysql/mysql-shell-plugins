@@ -73,7 +73,7 @@ export class DialogContent extends ComponentBase<IDialogContentProperties> {
     }
 
     public render(): ComponentChild {
-        const { children, content, header, caption, actions } = this.mergedProps;
+        const { children, content, header, caption, actions } = this.props;
         const className = this.getEffectiveClassNames(["dialog", "visible"]);
 
         let dialogContent;

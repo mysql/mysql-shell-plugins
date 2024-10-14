@@ -55,7 +55,7 @@ export class Breadcrumb extends ComponentBase<IBreadcrumbProperties> {
     }
 
     public render(): ComponentChild {
-        const { id, children, path, separator, selected } = this.mergedProps;
+        const { id, children, path, separator, selected } = this.props;
         const className = this.getEffectiveClassNames([
             "breadcrumb",
             "verticalCenterContent",
@@ -119,7 +119,7 @@ export class Breadcrumb extends ComponentBase<IBreadcrumbProperties> {
                 }
             }
 
-            const { onSelect } = this.mergedProps;
+            const { onSelect } = this.props;
             onSelect?.(path);
         }
     };

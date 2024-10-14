@@ -27,8 +27,8 @@ import "./ValueEditDialog.css";
 import addProperty from "../../assets/images/add.svg";
 import removeProperty from "../../assets/images/remove.svg";
 
-import { cloneElement, ComponentChild, createRef, VNode } from "preact";
-import { ColumnDefinition, RowComponent } from "tabulator-tables";
+import { cloneElement, ComponentChild, createRef, VNode, render } from "preact";
+import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 import { Children } from "preact/compat";
 
 import { DialogResponseClosure, IDictionary, MessageType } from "../../app-logic/Types.js";
@@ -47,7 +47,6 @@ import { GridCell } from "../ui/Grid/GridCell.js";
 import { Icon } from "../ui/Icon/Icon.js";
 import { Input, IInputChangeProperties, IInputProperties } from "../ui/Input/Input.js";
 import { Label } from "../ui/Label/Label.js";
-import { DynamicList } from "../ui/List/DynamicList.js";
 import { Menu } from "../ui/Menu/Menu.js";
 import { MenuItem, IMenuItemProperties } from "../ui/Menu/MenuItem.js";
 import { Message } from "../ui/Message/Message.js";
@@ -1133,28 +1132,32 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                     }
 
                     case "checkList": {
-                        const containerListEntry = (
-                            <Container
-                                id="listContainer"
-                                className="verticalCenterContent"
-                            >
-                                <Checkbox
-                                    // The id field will be set from the template data.
-                                    dataId="data"
-                                    className="stretch"
-                                    checkState={CheckState.Unchecked}
-                                    onChange={this.checkListCheckboxChange.bind(this, sectionId, key)}>
-                                </Checkbox>
-                            </Container>
-                        );
+                        const columns: ColumnDefinition[] = [{
+                            title: "",
+                            field: "data",
+                            formatter: this.checklistCellFormatter(sectionId, key),
+                        }];
 
-                        result.push(<DynamicList
+                        const options: ITreeGridOptions = {
+                            layout: "fitColumns",
+                            verticalGridLines: false,
+                            horizontalGridLines: false,
+                            alternatingRowBackgrounds: false,
+                            selectionType: SelectionType.Highlight,
+                            showHeader: false,
+                        };
+
+                        const tableData = entry.value.checkList ?? [];
+                        const className = this.getEffectiveClassNames(["checkList"]);
+
+                        result.push(<TreeGrid
                             id={key}
                             key={key}
-                            height={150}
-                            rowHeight={29}
-                            template={containerListEntry}
-                            elements={entry.value.checkList ?? []}
+                            height="150"
+                            className={className}
+                            tableData={tableData}
+                            columns={columns}
+                            options={options}
                         />);
 
                         break;
@@ -1344,6 +1347,35 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         return result;
     };
 
+    private checklistCellFormatter = (sectionId: string, key: string) => {
+        return (cell: CellComponent): string | HTMLElement => {
+            const { checkState, caption, id } = cell.getValue();
+
+            const host = document.createElement("div");
+            host.classList.add("checkListEntry");
+            host.style.height = "29px";
+
+            const element = (
+                <Container
+                    id="listContainer"
+                    className="verticalCenterContent"
+                >
+                    <Checkbox
+                        className="stretch"
+                        checkState={checkState ? CheckState.Checked : CheckState.Unchecked}
+                        caption={caption}
+                        id={id}
+                        onChange={this.checkListCheckboxChange.bind(this, sectionId, key)}
+                    />
+                </Container>
+            );
+
+            render(element, host);
+
+            return host;
+        };
+    };
+
     private handleAddProperty = (): void => {
         if (this.paramDialogRef.current) {
             this.paramDialogRef.current.show();
@@ -1464,7 +1496,6 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         const { values, data } = this.state;
 
         const id = props.id;
-        const templateData = props.data && props.dataId ? props.data[props.dataId] : undefined;
 
         if (!id) {
             return;
@@ -1474,14 +1505,12 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         if (section) {
             const entry = section.values[valueId] as ICheckListDialogValue;
             if (entry) {
-                if (templateData) {
-                    const found = entry.checkList?.find((item) => {
-                        return item.data.id === templateData.id;
-                    });
+                const found = entry.checkList?.find((item) => {
+                    return item.data.id === id;
+                });
 
-                    if (found) {
-                        (found.data as ICheckboxProperties).checkState = checkState;
-                    }
+                if (found) {
+                    (found.data as ICheckboxProperties).checkState = checkState;
                 }
 
 

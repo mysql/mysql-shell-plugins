@@ -44,7 +44,7 @@ export class Group extends ComponentBase<IGroupProperties> {
     }
 
     public render(): ComponentChild {
-        const { children, caption } = this.mergedProps;
+        const { children, caption } = this.props;
         const className = this.getEffectiveClassNames(["group"]);
 
         return (

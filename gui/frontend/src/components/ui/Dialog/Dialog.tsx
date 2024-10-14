@@ -67,7 +67,7 @@ export class Dialog extends ComponentBase<IDialogProperties> {
     }
 
     public render(): ComponentChild {
-        const { children, caption, header, content, actions, container } = this.mergedProps;
+        const { children, caption, header, content, actions, container } = this.props;
 
         const className = this.getEffectiveClassNames([]); // Dialog class name is handled in the DialogContent class.
 
@@ -107,17 +107,17 @@ export class Dialog extends ComponentBase<IDialogProperties> {
     }
 
     private handleClose = (cancelled: boolean): void => {
-        const { onClose } = this.mergedProps;
+        const { onClose } = this.props;
 
-        onClose?.(cancelled, this.mergedProps);
+        onClose?.(cancelled, this.props);
 
         this.setState({ open: false });
     };
 
     private handleOpen = (): void => {
-        const { onOpen } = this.mergedProps;
+        const { onOpen } = this.props;
 
-        onOpen?.(this.mergedProps);
+        onOpen?.(this.props);
     };
 
     private handleCloseClick = (): void => {

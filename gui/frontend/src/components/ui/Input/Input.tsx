@@ -89,7 +89,7 @@ export class Input extends ComponentBase<IInputProperties> {
     }
 
     public override componentDidMount(): void {
-        const { autoFocus } = this.mergedProps;
+        const { autoFocus } = this.props;
         if (this.inputRef.current && autoFocus) {
             const element = this.inputRef.current;
             element.focus();
@@ -97,7 +97,7 @@ export class Input extends ComponentBase<IInputProperties> {
     }
 
     public render(): ComponentChild {
-        const { password, textAlignment, value, multiLine, multiLineCount, spellCheck, readOnly } = this.mergedProps;
+        const { password, textAlignment, value, multiLine, multiLineCount, spellCheck, readOnly } = this.props;
 
         const className = this.getEffectiveClassNames(["input"]);
 
@@ -137,20 +137,20 @@ export class Input extends ComponentBase<IInputProperties> {
     }
 
     private handleInput = (e: Event): void => {
-        const { onChange } = this.mergedProps;
+        const { onChange } = this.props;
 
         const element = e.target as HTMLInputElement;
-        onChange?.(e as InputEvent, { ...this.mergedProps, value: element.value });
+        onChange?.(e as InputEvent, { ...this.props, value: element.value });
     };
 
     private handleKeyDown = (e: KeyboardEvent): void => {
-        const { multiLine, multiLineSwitchEnterKeyBehavior, onConfirm, onCancel, onCustomKeyDown } = this.mergedProps;
+        const { multiLine, multiLineSwitchEnterKeyBehavior, onConfirm, onCancel, onCustomKeyDown } = this.props;
 
         // If there is a custom onKeyDown method defined in the properties, call it. If the function returns true
         // it will prevent the internal key handling.
         if (onCustomKeyDown) {
             const element = e.target as HTMLInputElement;
-            if (onCustomKeyDown(e, { ...this.mergedProps, value: element.value })) {
+            if (onCustomKeyDown(e, { ...this.props, value: element.value })) {
                 return;
             }
         }
@@ -161,7 +161,7 @@ export class Input extends ComponentBase<IInputProperties> {
                     || (multiLineSwitchEnterKeyBehavior && !e.shiftKey)
                     || (!multiLineSwitchEnterKeyBehavior && e.shiftKey)) {
                     const element = e.target as HTMLInputElement;
-                    onConfirm?.(e, { ...this.mergedProps, value: element.value });
+                    onConfirm?.(e, { ...this.props, value: element.value });
                 }
 
                 break;
@@ -175,7 +175,7 @@ export class Input extends ComponentBase<IInputProperties> {
             }
 
             case KeyboardKeys.Escape: {
-                onCancel?.(e, this.mergedProps);
+                onCancel?.(e, this.props);
                 break;
             }
 

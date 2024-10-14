@@ -100,7 +100,7 @@ export class Calendar extends ComponentBase<ICalendarProperties, ICalendarState>
     private handleSelectDate = (date: Date): void => {
         this.popupRef.current?.close(false);
 
-        const { onChange } = this.mergedProps;
+        const { onChange } = this.props;
         onChange?.(date);
     };
 

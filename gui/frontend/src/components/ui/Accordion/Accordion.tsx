@@ -106,7 +106,7 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
     }
 
     public render(): ComponentChild {
-        const { caption, footer, sections, sectionClosedSize } = this.mergedProps;
+        const { caption, footer, sections, sectionClosedSize } = this.props;
 
         const className = this.getEffectiveClassNames(["accordion"]);
 
@@ -170,15 +170,15 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
      * @param props The section that changed.
      */
     private toggleSectionExpandState = (props: IAccordionSectionProperties): void => {
-        const { onSectionExpand } = this.mergedProps;
+        const { onSectionExpand } = this.props;
 
-        onSectionExpand?.(this.mergedProps, props.id || "", !props.expanded);
+        onSectionExpand?.(this.props, props.id || "", !props.expanded);
     };
 
     private handleSectionAction = (actionId: string, props: IAccordionSectionProperties): void => {
-        const { onSectionAction } = this.mergedProps;
+        const { onSectionAction } = this.props;
 
-        onSectionAction?.(this.mergedProps, props.id || "", actionId);
+        onSectionAction?.(this.props, props.id || "", actionId);
     };
 
     /**
@@ -188,8 +188,8 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
      * @param info The ids and current sizes of all panes.
      */
     private handleSectionResize = (info: ISplitterPaneSizeInfo[]): void => {
-        const { onSectionResize } = this.mergedProps;
+        const { onSectionResize } = this.props;
 
-        onSectionResize?.(this.mergedProps, info);
+        onSectionResize?.(this.props, info);
     };
 }
