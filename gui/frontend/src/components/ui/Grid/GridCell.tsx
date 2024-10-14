@@ -54,7 +54,7 @@ export class GridCell extends ComponentBase<IGridCellProperties> {
     public render(): ComponentChild {
         const {
             style = {}, columnSpan, rowSpan, orientation, mainAlignment, crossAlignment, children,
-        } = this.mergedProps;
+        } = this.props;
 
         if (rowSpan) {
             style.gridRow = `span ${rowSpan}`;

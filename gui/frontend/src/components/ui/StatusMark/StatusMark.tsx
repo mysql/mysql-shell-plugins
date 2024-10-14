@@ -44,7 +44,7 @@ export class StatusMark extends ComponentBase<IStatusMarkProperties> {
     }
 
     public render(): ComponentChild {
-        const { statusState, text } = this.mergedProps;
+        const { statusState, text } = this.props;
 
         const className = this.getEffectiveClassNames([
             "statusmark",

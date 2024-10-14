@@ -167,7 +167,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     }
 
     public override componentDidMount(): void {
-        const { editable, editModeActive, selectRow, resultSet, topRowIndex } = this.mergedProps;
+        const { editable, editModeActive, selectRow, resultSet, topRowIndex } = this.props;
 
         document.addEventListener("keydown", this.handleKeyDown);
         document.addEventListener("mouseup", this.handleMouseUp);
@@ -198,7 +198,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     }
 
     public override componentDidUpdate(prevProps: IResultViewProperties): void {
-        const { resultSet } = this.mergedProps;
+        const { resultSet } = this.props;
 
         if (prevProps.resultSet.columns !== resultSet.columns) {
             void this.updateColumns(resultSet.columns);
@@ -210,7 +210,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     }
 
     public render(): ComponentChild {
-        const { resultSet, editable, editModeActive } = this.mergedProps;
+        const { resultSet, editable, editModeActive } = this.props;
 
         const className = this.getEffectiveClassNames(["resultView"]);
 
@@ -421,7 +421,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     public updateColumns(columns: IColumnInfo[]): Promise<void> {
         // istanbul ignore next
         if (this.gridRef.current) {
-            const { editable, editModeActive } = this.mergedProps;
+            const { editable, editModeActive } = this.props;
 
             const canEdit = Settings.get<boolean>("editor.editOnDoubleClick", true) || editModeActive;
             this.#columnDefinitions = this.generateColumnDefinitions(columns, editable && canEdit);
@@ -623,7 +623,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
      * @param cell The cell component for the cell that will be edited now.
      */
     private cellEditing = (cell: CellComponent): void => {
-        const { onFieldEditStart } = this.mergedProps;
+        const { onFieldEditStart } = this.props;
 
         if (this.selectedCell && this.selectedCell.getElement()) {
             this.selectedCell.getElement().classList.remove("manualFocus");
@@ -641,7 +641,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
      * @param cell The component for the cell that was edited.
      */
     private cellEdited = (cell: CellComponent): void => {
-        const { onFieldEdited } = this.mergedProps;
+        const { onFieldEdited } = this.props;
 
         const rowIndex = cell.getRow().getPosition() as number;
         const field = cell.getColumn().getField();
@@ -658,7 +658,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
      * Triggered when the user cancelled editing a cell value.
      */
     private cellEditCancelled = (): void => {
-        const { onFieldEditCancel } = this.mergedProps;
+        const { onFieldEditCancel } = this.props;
 
         if (this.editingCell) {
             onFieldEditCancel?.(this.editingCell.getRow().getPosition() as number - 1,
@@ -678,7 +678,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     };
 
     private handleCellMenuItemDisabled = (props: IMenuItemProperties): boolean => {
-        const { editable } = this.mergedProps;
+        const { editable } = this.props;
 
         // istanbul ignore next
         if (!this.selectedCell || !this.gridRef.current) {
@@ -860,14 +860,14 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     };
 
     private handleVerticalScroll = (rowIndex: number): void => {
-        const { onVerticalScroll } = this.mergedProps;
+        const { onVerticalScroll } = this.props;
         this.cellContextMenuRef.current?.close();
 
         onVerticalScroll?.(rowIndex);
     };
 
     private handleFormatRow = (row: RowComponent): void => {
-        const { rowChanges } = this.mergedProps;
+        const { rowChanges } = this.props;
 
         if (rowChanges) {
             const rowIndex = row.getPosition() as number - 1;
@@ -897,7 +897,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     };
 
     private handleAction = (e: Event, props: IButtonProperties): void => {
-        const { onAction } = this.mergedProps;
+        const { onAction } = this.props;
 
         if (props.id === "addNewRow") {
             void onAction?.(props.id).then(() => {
@@ -1743,7 +1743,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
      * @returns True if the row the cell belongs to is new.
      */
     private markIfChanged(cell: CellComponent): boolean {
-        const { rowChanges } = this.mergedProps;
+        const { rowChanges } = this.props;
         if (rowChanges) {
             const rowIndex = cell.getRow().getPosition() as number - 1;
             const rowChange = rowChanges[rowIndex];
@@ -1774,7 +1774,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
      * @param cell The cell to check.
      */
     private isNewRow(cell: CellComponent): boolean {
-        const { rowChanges } = this.mergedProps;
+        const { rowChanges } = this.props;
         if (rowChanges) {
             const rowIndex = cell.getRow().getPosition() as number - 1;
             const rowChange = rowChanges[rowIndex];
@@ -1796,7 +1796,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         }
 
         if (rows) {
-            const { onToggleRowDeletionMarks } = this.mergedProps;
+            const { onToggleRowDeletionMarks } = this.props;
             const positions = rows.map((row) => {
                 return row.getPosition() as number - 1;
             });
@@ -1932,7 +1932,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
      * @param e The keyboard event.
      */
     private handleKeyDown = (e: KeyboardEvent): void => {
-        const { editable, onAction } = this.mergedProps;
+        const { editable, onAction } = this.props;
 
         switch (e.key) {
             // Support to start editing via Return/Enter key

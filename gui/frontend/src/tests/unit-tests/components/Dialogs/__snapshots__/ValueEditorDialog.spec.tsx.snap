@@ -1265,7 +1265,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             class="control-wrap"
           >
             <div
-              class="msg treeGrid dynamicList"
+              class="msg treeGrid checkList"
               id="listMe"
             />
           </div>
@@ -1798,7 +1798,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             class="control-wrap"
           >
             <div
-              class="msg treeGrid dynamicList"
+              class="msg treeGrid checkList"
               id="listMe"
             />
           </div>

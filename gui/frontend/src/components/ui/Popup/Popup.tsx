@@ -76,7 +76,7 @@ export class Popup extends ComponentBase<IPopupProperties, IPopupStates> {
     }
 
     public render(): ComponentChild {
-        const { children, header, placement, showArrow, orientation } = this.mergedProps;
+        const { children, header, placement, showArrow, orientation } = this.props;
         const className = this.getEffectiveClassNames([
             "popup",
             "visible",
@@ -137,17 +137,17 @@ export class Popup extends ComponentBase<IPopupProperties, IPopupStates> {
     }
 
     private handleClose = (cancelled: boolean): void => {
-        const { onClose } = this.mergedProps;
+        const { onClose } = this.props;
 
-        onClose?.(cancelled, this.mergedProps);
+        onClose?.(cancelled, this.props);
     };
 
     private handleOpen = (): void => {
-        const { placement, pinned, showArrow, onOpen } = this.mergedProps;
+        const { placement, pinned, showArrow, onOpen } = this.props;
         const { currentTarget } = this.state;
 
         if (currentTarget) {
-            onOpen?.(this.mergedProps);
+            onOpen?.(this.props);
 
             if (this.containerRef.current && placement) {
                 const { left, top } = computeContentPosition(placement, this.containerRef.current, currentTarget,

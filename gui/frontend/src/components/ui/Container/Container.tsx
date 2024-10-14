@@ -25,10 +25,9 @@
 
 import "./Container.css";
 
-import { cloneElement, ComponentChild, VNode } from "preact";
+import { ComponentChild } from "preact";
 
 import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
-import { collectVNodes } from "../../../utilities/preact-helpers.js";
 
 /** Content alignment on both the main axis and the cross axis. */
 export enum ContentAlignment {
@@ -85,7 +84,7 @@ export class Container extends ComponentBase<IContainerProperties> {
     }
 
     public override componentDidUpdate(): void {
-        const { innerRef, scrollPosition } = this.mergedProps;
+        const { innerRef, scrollPosition } = this.props;
 
         if (scrollPosition !== undefined) {
             innerRef?.current?.scrollTo({ left: 0, top: scrollPosition });
@@ -94,8 +93,8 @@ export class Container extends ComponentBase<IContainerProperties> {
 
     public render(): ComponentChild {
         const {
-            children, style, orientation, mainAlignment, crossAlignment, data, wrap, fixedScrollbars = true, innerRef,
-        } = this.mergedProps;
+            children, style, orientation, mainAlignment, crossAlignment, wrap, fixedScrollbars = true, innerRef,
+        } = this.props;
         const className = this.getEffectiveClassNames([
             "container",
             this.classFromProperty(fixedScrollbars, "fixedScrollbar"),
@@ -109,16 +108,6 @@ export class Container extends ComponentBase<IContainerProperties> {
             ...style,
         };
 
-        let content = children;
-        if (data && children) {
-            // Template data exists. Duplicate all children and forward that data.
-            // This way all children share the same data and pick their actual values using their data ID.
-            const nodes = collectVNodes(children);
-            content = nodes.map((child: VNode): ComponentChild => {
-                return cloneElement(child, { data } as IContainerProperties);
-            });
-        }
-
         return (
             <div
                 ref={innerRef}
@@ -127,7 +116,7 @@ export class Container extends ComponentBase<IContainerProperties> {
 
                 {...this.unhandledProperties}
             >
-                {content}
+                {children}
             </div>
         );
     }

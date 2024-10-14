@@ -51,7 +51,7 @@ export class Grid extends ComponentBase<IGridProperties> {
     }
 
     public render(): ComponentChild {
-        const { children, rowGap, columnGap, equalHeight, columns, style, innerRef } = this.mergedProps;
+        const { children, rowGap, columnGap, equalHeight, columns, style, innerRef } = this.props;
         const className = this.getEffectiveClassNames([
             "grid",
             this.classFromProperty(equalHeight, "equalHeight"),

@@ -51,7 +51,7 @@ export class DropdownItem<T extends IDropdownItemProperties> extends ComponentBa
     }
 
     public render(): ComponentChild {
-        const { caption, picture, selected, checked, children } = this.mergedProps;
+        const { caption, picture, selected, checked, children } = this.props;
         const className = this.getEffectiveClassNames([
             "dropdownItem",
             "ellipsis",

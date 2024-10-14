@@ -162,16 +162,6 @@ export interface IComponentProperties {
     /** For OS style tooltips. */
     title?: string;
 
-    /**
-     * Template handling: a template describes how a single element in a list of potentially many elements looks like.
-     * The template is cloned for each list entry and gets assigned the element data for this list entry.
-     * All nested components in such a cloned element receive the same element data.
-     * This data is an object with fields that hold component properties. A component uses the properties for which it
-     * has got a data ID. Multiple elements can use the same data ID.
-     */
-    dataId?: string;
-    data?: { [key: string]: IComponentProperties; };
-
     /** Clicks can be triggered by both mouse and keyboard events. */
     onClick?: ClickEventCallback;
     onDoubleClick?: MouseEventCallback;
@@ -264,22 +254,6 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
             "onClose",
             "onSelect",
         );
-    }
-
-    /**
-     * Returns the properties from the component's props field, which are potentially overwritten by template data
-     * (if there was something set).
-     *
-     * @returns Merged component properties.
-     */
-    public get mergedProps(): Readonly<P> {
-        const { dataId, data } = this.props;
-
-        if (dataId && data) {
-            return Object.assign({}, this.props, data[dataId]) as P;
-        }
-
-        return this.props;
     }
 
     /* Use to debug setState calls.
@@ -552,140 +526,140 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
 
     private internalHandleMouseClick = (e: MouseEvent): void => {
         if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.Click, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onClick?.(e, props);
         }
     };
 
     private internalHandleMouseDoubleClick = (e: MouseEvent): void => {
         if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.DoubleClick, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onDoubleClick?.(e, props);
         }
     };
 
     private internalHandleKeyDown = (e: KeyboardEvent): void => {
         if (!this.isDisabled(e) && this.handleKeyboardEvent(KeyboardEventType.Down, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onKeyDown?.(e, props);
         }
     };
 
     private internalHandleKeyUp = (e: KeyboardEvent): void => {
         if (!this.isDisabled(e) && this.handleKeyboardEvent(KeyboardEventType.Up, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onKeyUp?.(e, props);
         }
     };
 
     private internalHandleKeyPress = (e: KeyboardEvent): void => {
         if (!this.isDisabled(e) && this.handleKeyboardEvent(KeyboardEventType.Press, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onKeyPress?.(e, props);
         }
     };
 
     private internalHandleFocus = (e: FocusEvent): void => {
         if (!this.isDisabled(e) && this.handleFocusEvent(FocusEventType.Focus, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onFocus?.(e, props);
         }
     };
 
     private internalHandleBlur = (e: FocusEvent): void => {
         if (!this.isDisabled(e) && this.handleFocusEvent(FocusEventType.Blur, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onBlur?.(e, props);
         }
     };
 
     private internalHandleMouseEnter = (e: MouseEvent): void => {
         if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.Enter, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onMouseEnter?.(e, props);
         }
     };
 
     private internalHandleMouseLeave = (e: MouseEvent): void => {
         if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.Leave, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onMouseLeave?.(e, props);
         }
     };
 
     private internalHandleMouseDown = (e: MouseEvent): void => {
         if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.Down, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onMouseDown?.(e, props);
         }
     };
 
     private internalHandleMouseUp = (e: MouseEvent): void => {
         if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.Up, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onMouseUp?.(e, props);
         }
     };
 
     private internalHandleMouseMove = (e: MouseEvent): void => {
         if (!this.isDisabled(e) && this.handleMouseEvent(MouseEventType.Move, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onMouseMove?.(e, props);
         }
     };
 
     private internalHandlePointerDown = (e: PointerEvent): void => {
         if (!this.isDisabled(e) && this.handlePointerEvent(PointerEventType.Down, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onPointerDown?.(e, props);
         }
     };
 
     private internalHandlePointerUp = (e: PointerEvent): void => {
         if (!this.isDisabled(e) && this.handlePointerEvent(PointerEventType.Up, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onPointerUp?.(e, props);
         }
     };
 
     private internalHandlePointerMove = (e: PointerEvent): void => {
         if (!this.isDisabled(e) && this.handlePointerEvent(PointerEventType.Move, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onPointerMove?.(e, props);
         }
     };
 
     private internalHandleDragStart = (e: DragEvent): void => {
         if (!this.isDisabled(e) && this.handleDragEvent(DragEventType.Start, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onDragStart?.(e, props);
         }
     };
 
     private internalHandleDragOver = (e: DragEvent): void => {
         if (this.handleDragEvent(DragEventType.Over, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onDragOver?.(e, props);
         }
     };
 
     private internalHandleDragEnter = (e: DragEvent): void => {
         if (!this.isDisabled(e) && this.handleDragEvent(DragEventType.Enter, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onDragEnter?.(e, props);
         }
     };
 
     private internalHandleDragLeave = (e: DragEvent): void => {
         if (!this.isDisabled(e) && this.handleDragEvent(DragEventType.Leave, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onDragLeave?.(e, props);
         }
     };
 
     private internalHandleDrop = (e: DragEvent): void => {
         if (!this.isDisabled(e) && this.handleDragEvent(DragEventType.Drop, e)) {
-            const props = this.mergedProps;
+            const props = this.props;
             props.onDrop?.(e, props);
         }
     };

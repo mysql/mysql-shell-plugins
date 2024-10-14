@@ -60,14 +60,14 @@ export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
     public override componentDidMount(): void {
         // istanbul ignore else
         if (this.inputRef.current) {
-            const { checkState } = this.mergedProps;
+            const { checkState } = this.props;
 
             this.inputRef.current.checked = checkState === CheckState.Checked;
         }
     }
 
     public render(): ComponentChild {
-        const { children, id, caption, name, disabled } = this.mergedProps;
+        const { children, id, caption, name, disabled } = this.props;
         const className = this.getEffectiveClassNames([
             "radioButton",
             this.classFromProperty(disabled, "disabled"),
@@ -97,7 +97,7 @@ export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
     }
 
     protected override handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
-        const { disabled } = this.mergedProps;
+        const { disabled } = this.props;
         if (disabled) {
             e.preventDefault();
 
@@ -112,7 +112,7 @@ export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
     }
 
     private handleKeyPress = (e: KeyboardEvent): void => {
-        const { disabled } = this.mergedProps;
+        const { disabled } = this.props;
 
         if (disabled) {
             e.preventDefault();
@@ -127,7 +127,7 @@ export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
     };
 
     private setChecked(): void {
-        const { name, onChange } = this.mergedProps;
+        const { name, onChange } = this.props;
 
         if (name) {
             const inputs = document.getElementsByName(name);
@@ -142,7 +142,7 @@ export class Radiobutton extends ComponentBase<IRadiobuttonProperties> {
             this.inputRef.current.checked = true;
         }
 
-        onChange?.(CheckState.Checked, this.mergedProps);
+        onChange?.(CheckState.Checked, this.props);
     }
 
 }

@@ -52,7 +52,7 @@ export class Icon extends ComponentBase<IIconProperties> {
     }
 
     public render(): ComponentChild {
-        const { disabled, src, style, height, width, color } = this.mergedProps;
+        const { disabled, src, style, height, width, color } = this.props;
         let className = this.getEffectiveClassNames([
             "icon",
             this.classFromProperty(disabled, "disabled"),

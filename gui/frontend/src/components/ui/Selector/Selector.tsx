@@ -97,7 +97,7 @@ export class Selector extends ComponentBase<ISelectorProperties> {
     }
 
     public render(): ComponentChild {
-        const { id, children, smoothScroll, items, orientation, entryOrientation, activeItemId } = this.mergedProps;
+        const { id, children, smoothScroll, items, orientation, entryOrientation, activeItemId } = this.props;
 
         const className = this.getEffectiveClassNames([
             "selector",
@@ -214,7 +214,7 @@ export class Selector extends ComponentBase<ISelectorProperties> {
 
     private handleItemClick = (childOnClick: ClickEventCallback | undefined, e: MouseEvent | KeyboardEvent,
         props: Readonly<IComponentProperties>): void => {
-        const { onSelect } = this.mergedProps;
+        const { onSelect } = this.props;
         onSelect?.(props.id ?? "");
 
         childOnClick?.(e, props);
@@ -222,14 +222,14 @@ export class Selector extends ComponentBase<ISelectorProperties> {
 
     private handleItemDrop = (childOnDrop: DragEventCallback | undefined, e: DragEvent,
         props: IComponentProperties): void => {
-        const { onDrop } = this.mergedProps;
+        const { onDrop } = this.props;
         onDrop?.(e, props);
 
         childOnDrop?.(e, props);
     };
 
     private handleNavigationClick = (e: MouseEvent | KeyboardEvent, props: Readonly<IComponentProperties>): void => {
-        const { wrapNavigation, onSelect } = this.mergedProps;
+        const { wrapNavigation, onSelect } = this.props;
 
         let element: HTMLElement | undefined | null = e.currentTarget as HTMLElement;
 
@@ -263,7 +263,7 @@ export class Selector extends ComponentBase<ISelectorProperties> {
     };
 
     private get isHorizontal(): boolean {
-        const { orientation } = this.mergedProps;
+        const { orientation } = this.props;
 
         return orientation === Orientation.LeftToRight || orientation === Orientation.RightToLeft;
     }
@@ -350,7 +350,7 @@ export class Selector extends ComponentBase<ISelectorProperties> {
             return;
         }
 
-        const { wrapNavigation } = this.mergedProps;
+        const { wrapNavigation } = this.props;
 
         if (!this.requiresScrolling) {
             this.stepDownRef.current.style.display = "none";

@@ -81,7 +81,7 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
     }
 
     public render(): ComponentChild {
-        const { innerRef, tileId, type, icon, caption, description } = this.mergedProps;
+        const { innerRef, tileId, type, icon, caption, description } = this.props;
 
         const className = this.getEffectiveClassNames([
             "browserTile",
@@ -164,8 +164,8 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
 
                 const id = filterInt(e.dataTransfer.getData("browser/tile"));
                 if (!isNaN(id)) {
-                    const { onTileReorder } = this.mergedProps;
-                    onTileReorder?.(id, this.mergedProps);
+                    const { onTileReorder } = this.props;
+                    onTileReorder?.(id, this.props);
                 }
 
                 return true;
@@ -179,7 +179,7 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
     };
 
     private handleClick = (e: MouseEvent | KeyboardEvent): void => {
-        const { onAction, type } = this.mergedProps;
+        const { onAction, type } = this.props;
 
         const event = e as MouseEvent;
         const button = event.currentTarget as HTMLButtonElement;
@@ -194,19 +194,19 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
         e.stopPropagation();
 
         if (type === BrowserTileType.Open) {
-            onAction?.("open", this.mergedProps, { newTab: event.metaKey || event.altKey });
+            onAction?.("open", this.props, { newTab: event.metaKey || event.altKey });
         } else {
-            onAction?.("new", this.mergedProps, {});
+            onAction?.("new", this.props, {});
         }
     };
 
     private handleKeydown = (e: KeyboardEvent): void => {
         if (e.key === KeyboardKeys.A) { // Unmodified A key.
             e.stopPropagation();
-            const { type, onAction } = this.mergedProps;
+            const { type, onAction } = this.props;
             if (type === BrowserTileType.Open) {
                 this.actionsRef.current?.focus();
-                onAction?.("menu", this.mergedProps, { target: this.actionsRef.current });
+                onAction?.("menu", this.props, { target: this.actionsRef.current });
             }
         }
     };

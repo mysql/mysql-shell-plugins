@@ -74,7 +74,7 @@ export class ColorField extends ComponentBase<IColorFieldProperties, IColorField
     }
 
     public render(): ComponentChild {
-        const { id } = this.mergedProps;
+        const { id } = this.props;
         const { currentColor } = this.state;
 
         const className = this.getEffectiveClassNames([

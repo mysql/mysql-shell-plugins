@@ -2115,7 +2115,7 @@ Execute \\help or \\? for help;`;
     };
 
     private handleContextLanguageChange = (context: ExecutionContext, language: EditorLanguage): void => {
-        const { savedState, onChatOptionsChange, id } = this.mergedProps;
+        const { savedState, onChatOptionsChange, id } = this.props;
 
         switch (language) {
             case "text": {

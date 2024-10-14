@@ -145,7 +145,7 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
     };
 
     public render(): ComponentChild {
-        const { children } = this.mergedProps;
+        const { children } = this.props;
         const { activeItemIndex } = this.state;
 
         const className = this.getEffectiveClassNames(["menu"]);
@@ -248,7 +248,7 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
                 }
 
                 case KeyboardKeys.ArrowLeft: {
-                    const { onMenuBack } = this.mergedProps;
+                    const { onMenuBack } = this.props;
                     onMenuBack?.();
 
                     e.stopPropagation();
@@ -301,7 +301,7 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
     };
 
     private handleItemClick = (e: MouseEvent, props: IMenuItemProperties): void => {
-        const { onItemClick } = this.mergedProps;
+        const { onItemClick } = this.props;
         const { payload } = this.state;
 
         // Propagate the click up the parent chain.
@@ -311,14 +311,14 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
     };
 
     private handleOpen = (): void => {
-        const { onOpen } = this.mergedProps;
+        const { onOpen } = this.props;
 
         Menu.menuStack.push(this);
-        onOpen?.(this.mergedProps);
+        onOpen?.(this.props);
     };
 
     private handleClose = (cancelled: boolean, props: IPopupProperties): void => {
-        const { onClose } = this.mergedProps;
+        const { onClose } = this.props;
 
         this.itemRefs.forEach((ref): void => {
             if (ref.current?.props !== props) {
@@ -327,7 +327,7 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
         });
 
         Menu.menuStack.pop();
-        onClose?.(true, this.mergedProps);
+        onClose?.(true, this.props);
     };
 
 }

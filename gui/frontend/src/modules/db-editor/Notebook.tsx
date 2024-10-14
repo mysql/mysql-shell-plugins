@@ -150,7 +150,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         const {
             standaloneMode, toolbarItemsTemplate, savedState, backend, dbType, readOnly, extraLibs, fontSize,
             onScriptExecution, onHelpCommand,
-        } = this.mergedProps;
+        } = this.props;
 
         const dialect = this.dialectFromDbType(dbType);
 
@@ -411,7 +411,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     };
 
     private handleContextLanguageChange = (context: ExecutionContext, language: EditorLanguage): void => {
-        const { onContextLanguageChange } = this.mergedProps;
+        const { onContextLanguageChange } = this.props;
 
         if (onContextLanguageChange) {
             onContextLanguageChange(context, language);

@@ -45,7 +45,7 @@ export class ActivityBar extends ComponentBase<IActivityBarProperties> {
     }
 
     public render(): ComponentChild {
-        const { borderWidth, children, style } = this.mergedProps;
+        const { borderWidth, children, style } = this.props;
 
         const className = this.getEffectiveClassNames([
             "activityBar",

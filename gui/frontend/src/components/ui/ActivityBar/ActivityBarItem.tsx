@@ -53,7 +53,7 @@ export class ActivityBarItem extends ComponentBase<IActivityBarItemProperties> {
     }
 
     public render(): ComponentChild {
-        const { active, expand, caption, image } = this.mergedProps;
+        const { active, expand, caption, image } = this.props;
         const className = this.getEffectiveClassNames([
             "activityBarItem",
             this.classFromProperty(active, "active"),

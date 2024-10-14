@@ -58,7 +58,7 @@ export class Slider extends ComponentBase<ISliderProperties> {
     }
 
     public set value(newValue: number) {
-        const { onChange } = this.mergedProps;
+        const { onChange } = this.props;
 
         newValue = clampValue(newValue, 0, 1);
         this.setState({ currentValue: newValue });
@@ -71,7 +71,7 @@ export class Slider extends ComponentBase<ISliderProperties> {
     }
 
     public override componentDidUpdate(): void {
-        const { value, handleSize } = this.mergedProps;
+        const { value, handleSize } = this.props;
 
         if (this.sliderRef.current) {
             this.sliderRef.current.style.setProperty("--current-value", `${100 * value}%`);
@@ -80,7 +80,7 @@ export class Slider extends ComponentBase<ISliderProperties> {
     }
 
     public render(): ComponentChild {
-        const { vertical } = this.mergedProps;
+        const { vertical } = this.props;
         const className = this.getEffectiveClassNames([
             "slider",
             this.classFromProperty(vertical, "vertical"),
@@ -134,7 +134,7 @@ export class Slider extends ComponentBase<ISliderProperties> {
 
     private handleItemPointerMove = (e: PointerEvent): void => {
         if (this.sliderRef.current) {
-            const { vertical, onChange } = this.mergedProps;
+            const { vertical, onChange } = this.props;
 
             const bounds = this.sliderRef.current.getBoundingClientRect();
             let value;

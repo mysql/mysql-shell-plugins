@@ -125,7 +125,7 @@ export class UpDown<ValueType extends string | number | bigint>
     }
 
     public render(): ComponentChild {
-        const { items = [], textAlignment } = this.mergedProps;
+        const { items = [], textAlignment } = this.props;
         const { currentValue, useNumeric } = this.state;
 
         const className = this.getEffectiveClassNames(["upDown"]);
@@ -204,13 +204,13 @@ export class UpDown<ValueType extends string | number | bigint>
     }
 
     private handleButtonClick = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
-        const { step = 1 } = this.mergedProps;
+        const { step = 1 } = this.props;
         this.stepValue(props.id === "up" ? step : -step);
         e.preventDefault();
     };
 
     private stepValue = (amount: number | bigint): void => {
-        const { onChange, min, max } = this.mergedProps;
+        const { onChange, min, max } = this.props;
         const { currentValue, useNumeric } = this.state;
 
         let newValue;
@@ -233,7 +233,7 @@ export class UpDown<ValueType extends string | number | bigint>
     };
 
     private handleInputChange = (e: InputEvent, props: IInputChangeProperties): void => {
-        const { onChange, value, min, max } = this.mergedProps;
+        const { onChange, value, min, max } = this.props;
 
         // This handler is only called for numeric up/down controls.
         let newValue;
@@ -259,14 +259,14 @@ export class UpDown<ValueType extends string | number | bigint>
     };
 
     private handleInputConfirm = (): void => {
-        const { onConfirm } = this.mergedProps;
+        const { onConfirm } = this.props;
         const { currentValue } = this.state;
 
         onConfirm?.(currentValue as ValueType, this.props);
     };
 
     private handleInputCancel = (): void => {
-        const { onCancel } = this.mergedProps;
+        const { onCancel } = this.props;
 
         onCancel?.(this.props);
     };

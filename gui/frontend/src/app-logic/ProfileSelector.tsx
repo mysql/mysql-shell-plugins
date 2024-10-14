@@ -41,8 +41,7 @@ import {
 import { CheckState, ICheckboxProperties } from "../components/ui/Checkbox/Checkbox.js";
 import { ComponentBase, ComponentPlacement, IComponentState } from "../components/ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../components/ui/Container/Container.js";
-import { ILabelProperties, Label } from "../components/ui/Label/Label.js";
-import { List } from "../components/ui/List/List.js";
+import { Label } from "../components/ui/Label/Label.js";
 import { Menu } from "../components/ui/Menu/Menu.js";
 import { IMenuItemProperties, MenuItem } from "../components/ui/Menu/MenuItem.js";
 import type { IStatusBarItem } from "../components/ui/Statusbar/StatusBarItem.js";
@@ -454,13 +453,10 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
     };
 
     private deleteProfileConfirm = (): void => {
-        const simpleListEntry = <Label dataId="data" />;
-        const listElements = this.deleteList.map((item: IShellProfile) => {
-            const labelContent: ILabelProperties = {
-                caption: item.name,
-            };
+        const listElements = this.deleteList.map((item: IShellProfile, index) => {
+            const id = `list${index}`;
 
-            return { data: labelContent };
+            return <Label caption={item.name} id={id} key={id} />;
         });
 
         const caption =
@@ -469,7 +465,9 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
         const content = (
             <Container orientation={Orientation.TopDown}>
                 <Label caption={caption} />
-                <List template={simpleListEntry} elements={listElements} />
+                <ul className={this.getEffectiveClassNames(["list"])}>
+                    {listElements}
+                </ul>
             </Container>
         );
 

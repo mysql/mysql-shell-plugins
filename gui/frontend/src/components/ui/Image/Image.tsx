@@ -60,7 +60,7 @@ export class Image extends ComponentBase<IImageProperties, IImageState> {
     }
 
     public render(): ComponentChild {
-        const { disabled, src, alt, width, height, innerRef } = this.mergedProps;
+        const { disabled, src, alt, width, height, innerRef } = this.props;
         const className = this.getEffectiveClassNames([
             "image",
             this.classFromProperty(disabled, "disabled"),

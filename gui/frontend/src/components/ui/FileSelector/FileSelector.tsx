@@ -121,7 +121,7 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
     }
 
     public render(): ComponentChild {
-        const { path, placeholder, id, canSelectFolders } = this.mergedProps;
+        const { path, placeholder, id, canSelectFolders } = this.props;
 
         const className = this.getEffectiveClassNames(["fileSelector"]);
 
@@ -149,7 +149,7 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
     }
 
     private selectFile = (openFileResult: IOpenFileDialogResult): Promise<boolean> => {
-        const { id, onChange } = this.mergedProps;
+        const { id, onChange } = this.props;
 
         if (id !== openFileResult.resourceId) {
             return Promise.resolve(false);
@@ -159,7 +159,7 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
         const result = openFileResult.path.map((value) => {
             return decodeURI(value.startsWith("file://") ? value.substring("file://".length) : value);
         });
-        onChange?.(result, this.mergedProps);
+        onChange?.(result, this.props);
 
         return Promise.resolve(true);
     };
@@ -168,7 +168,7 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
         const {
             path, title, openLabel, canSelectFiles = true, canSelectFolders, filters, multiSelection = false, onChange,
             id,
-        } = this.mergedProps;
+        } = this.props;
 
         if (appParameters.embedded) {
             const options = {
@@ -192,29 +192,29 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
 
             void selectFile(contentType, multiSelection).then((result) => {
                 if (result) {
-                    onChange?.(result.map((value) => { return value.name; }), this.mergedProps);
+                    onChange?.(result.map((value) => { return value.name; }), this.props);
                 } else {
-                    onChange?.([], this.mergedProps);
+                    onChange?.([], this.props);
                 }
             });
         }
     };
 
     private handleInputChange = (e: InputEvent, props: IInputChangeProperties): void => {
-        const { onChange } = this.mergedProps;
+        const { onChange } = this.props;
 
-        onChange?.([props.value], this.mergedProps);
+        onChange?.([props.value], this.props);
     };
 
     private handleInputConfirm = (e: KeyboardEvent): void => {
-        const { onConfirm } = this.mergedProps;
+        const { onConfirm } = this.props;
 
-        onConfirm?.(e, this.mergedProps);
+        onConfirm?.(e, this.props);
     };
 
     private handleInputCancel = (e: KeyboardEvent): void => {
-        const { onCancel } = this.mergedProps;
+        const { onCancel } = this.props;
 
-        onCancel?.(e, this.mergedProps);
+        onCancel?.(e, this.props);
     };
 }

@@ -125,7 +125,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     }
 
     public override componentDidMount(): void {
-        const { autoFocus } = this.mergedProps;
+        const { autoFocus } = this.props;
 
         this.currentSelectionIndex = this.indexOfFirstSelectedEntry;
         if ((this.containerRef.current) && autoFocus) {
@@ -156,7 +156,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         const {
             children, id, defaultId, selection, optional, showDescription, withoutArrow, multiSelect,
             placeholder, iconOnly, disabled,
-        } = this.mergedProps;
+        } = this.props;
         const { hotId } = this.state;
 
         const currentSelection = typeof selection === "string" ? new Set([selection]) : selection;
@@ -317,7 +317,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     };
 
     private readonly handleKeydown = (e: KeyboardEvent): void => {
-        const { children } = this.mergedProps;
+        const { children } = this.props;
         const childArray = collectVNodes<IDropdownItemProperties>(children);
 
         const element = e.currentTarget as HTMLElement;
@@ -402,7 +402,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     };
 
     private readonly handleItemMouseEnter = (e: MouseEvent, props: IDropdownItemProperties): void => {
-        const { showDescription } = this.mergedProps;
+        const { showDescription } = this.props;
 
         if (showDescription) {
             this.setState({ hotId: props.id });
@@ -420,7 +420,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     };
 
     private readonly handleItemMouseLeave = (e: MouseEvent, props: IDropdownItemProperties): void => {
-        const { showDescription } = this.mergedProps;
+        const { showDescription } = this.props;
         if (showDescription) {
             this.setState({ hotId: props.id });
         }
@@ -430,7 +430,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     };
 
     private readonly handleItemClick = (e: MouseEvent | KeyboardEvent, props: IDropdownItemProperties): void => {
-        const { multiSelect } = this.mergedProps;
+        const { multiSelect } = this.props;
 
         if (props.id) {
             if (this.containerRef.current) {
@@ -453,7 +453,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
      * @param accept If true then the selection is accepted and the dropdown is closed.
      */
     private readonly toggleSelectedItem = (id: string, replace: boolean, accept: boolean): void => {
-        const { selection, multiSelect, optional, onSelect } = this.mergedProps;
+        const { selection, multiSelect, optional, onSelect } = this.props;
 
         let newSelection: Set<string>;
         if (optional && id === "empty") {
@@ -483,7 +483,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     };
 
     private readonly handleClose = (cancelled: boolean): void => {
-        const { multiSelect, onCancel } = this.mergedProps;
+        const { multiSelect, onCancel } = this.props;
 
         // In multi selection mode changes are already saved and cannot be restored here.
         if (cancelled) {
@@ -499,7 +499,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     };
 
     private readonly handleTagAdd = (value: string): void => {
-        const { children } = this.mergedProps;
+        const { children } = this.props;
         const childArray = collectVNodes<IDropdownItemProperties>(children);
 
         // See if we have a child with the value as caption and add its id to the current selection, if so.
@@ -523,7 +523,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     private descriptionFromId(id?: string): string {
         let result = "";
         if (id) {
-            const { children } = this.mergedProps;
+            const { children } = this.props;
             const childArray = collectVNodes<IDropdownItemProperties>(children);
 
             childArray.forEach((child): void => {
@@ -540,8 +540,8 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
      * @returns The index of the first selected entry or -1 if there's none.
      */
     private get indexOfFirstSelectedEntry(): number {
-        const { selection } = this.mergedProps;
-        const { children } = this.mergedProps;
+        const { selection } = this.props;
+        const { children } = this.props;
         const childArray = collectVNodes<IDropdownItemProperties>(children);
 
         const currentSelection = typeof selection === "string" ? new Set<string>([selection]) : selection;
@@ -560,7 +560,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
      * Keep a copy of the current selection state for later restoration.
      */
     private readonly saveSelection = (): void => {
-        const { selection } = this.mergedProps;
+        const { selection } = this.props;
 
         this.selectionIndexBackup = this.currentSelectionIndex;
         this.selectionBackup = typeof selection === "string" ? new Set<string>([selection]) : selection;

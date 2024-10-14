@@ -55,7 +55,7 @@ export class Divider extends ComponentBase<IDividerProperties> {
     }
 
     public render(): ComponentChild {
-        const { vertical, thickness, style, innerRef } = this.mergedProps;
+        const { vertical, thickness, style, innerRef } = this.props;
 
         const className = this.getEffectiveClassNames([
             "divider",

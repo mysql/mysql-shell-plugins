@@ -63,7 +63,7 @@ export class MenuBar extends ComponentBase<IMenuBarProperties, IMenuBarState> {
     }
 
     public render(): ComponentChild {
-        const { children } = this.mergedProps;
+        const { children } = this.props;
         const { activeMenuId, trackItems } = this.state;
 
         const className = this.getEffectiveClassNames(["menubar"]);
@@ -142,7 +142,7 @@ export class MenuBar extends ComponentBase<IMenuBarProperties, IMenuBarState> {
     };
 
     private handleItemClick = (e: MouseEvent, props: IMenuItemProperties): void => {
-        const { onItemClick } = this.mergedProps;
+        const { onItemClick } = this.props;
 
         onItemClick?.(e, props);
     };

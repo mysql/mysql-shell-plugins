@@ -351,7 +351,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             language, initialContent, savedState, autoFocus, readonly, minimap, detectLinks, suggest, showIndentGuides,
             renderLineHighlight, useTabStops, font, scrollbar, lineNumbers, lineDecorationsWidth, allowSoftWrap,
             extraLibs,
-        } = this.mergedProps;
+        } = this.props;
 
         const className = this.getEffectiveClassNames([
             "codeEditor",
@@ -502,7 +502,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     }
 
     public override componentWillUnmount(): void {
-        const { savedState } = this.mergedProps;
+        const { savedState } = this.props;
 
         requisitions.unregister("settingsChanged", this.handleSettingsChanged);
         requisitions.unregister("editorExecuteSelectedOrAll", this.executeSelectedOrAll);
@@ -529,7 +529,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     }
 
     public override componentDidUpdate(prevProps: ICodeEditorProperties): void {
-        const { initialContent, language, savedState, autoFocus } = this.mergedProps;
+        const { initialContent, language, savedState, autoFocus } = this.props;
 
         const editor = this.backend;
         if (editor && savedState?.model !== editor.getModel()) {
@@ -712,7 +712,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      * @returns The newly added execution context.
      */
     public addExecutionBlock(startLine: number, language: EditorLanguage): ExecutionContext | undefined {
-        const { createResultPresentation } = this.mergedProps;
+        const { createResultPresentation } = this.props;
 
         const editor = this.backend;
         const model = this.model;
@@ -881,7 +881,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         } else {
             switch (entry.key) {
                 case "editor.wordWrap": {
-                    const { allowSoftWrap } = this.mergedProps;
+                    const { allowSoftWrap } = this.props;
 
                     if (allowSoftWrap) {
                         const editor = this.backend;
@@ -903,7 +903,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
                 case "editor.showMinimap":
                 case "dbEditor.useMinimap": {
-                    const { minimap } = this.mergedProps;
+                    const { minimap } = this.props;
                     const showMinimap = Settings.get("editor.showMinimap", true);
                     const useMinimap = Settings.get("dbEditor.useMinimap", false);
                     const effectiveMinimapSettings = minimap ?? {
@@ -928,7 +928,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      * Additional setup beside the initial configuration.
      */
     private prepareUse(): void {
-        const { language, allowedLanguages = [] } = this.mergedProps;
+        const { language, allowedLanguages = [] } = this.props;
         const editor = this.backend;
         if (!editor) {
             return;
@@ -1228,7 +1228,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         }));
 
         this.disposables.push(editor.onDidChangeModelOptions(() => {
-            const { onOptionsChanged } = this.mergedProps;
+            const { onOptionsChanged } = this.props;
             onOptionsChanged?.();
         }));
 
@@ -1529,7 +1529,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 }
             }
 
-            const { onModelChange } = this.mergedProps;
+            const { onModelChange } = this.props;
 
             onModelChange?.();
         }
@@ -1557,7 +1557,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      * @param options Options to control the execution.
      */
     private doExecuteContext(options: IEditorCommonExecutionOptions): void {
-        const { onScriptExecution } = this.mergedProps;
+        const { onScriptExecution } = this.props;
 
         const editor = this.backend;
         const model = this.model;
@@ -1580,7 +1580,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                             requisitions.executeRemote("editorChanged", undefined);
 
                             if (this.handleInternalCommand(index) === "unhandled") {
-                                const { onScriptExecution } = this.mergedProps;
+                                const { onScriptExecution } = this.props;
 
                                 let position = options.atCaret
                                     ? editor.getPosition() as IPosition ?? undefined
@@ -1757,7 +1757,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             const contextsToUpdate = this.contextIndicesFromRange(range);
 
             if (contextsToUpdate.length > 0) {
-                const { createResultPresentation } = this.mergedProps;
+                const { createResultPresentation } = this.props;
 
                 const firstIndex = contextsToUpdate[0];
                 const firstContext = model.executionContexts.contextAt(firstIndex)!;
@@ -1838,7 +1838,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      * It creates the initial block list based on the found language switches in the text.
      */
     private generateExecutionBlocksFromContent = (): void => {
-        const { createResultPresentation } = this.mergedProps;
+        const { createResultPresentation } = this.props;
 
         const editor = this.backend;
         const model = this.model;
@@ -1861,7 +1861,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      * @param model The model used in the editor.
      */
     private addInitialBlock(model: ICodeEditorModel): void {
-        const { sqlDialect, allowedLanguages = [], startLanguage } = this.mergedProps;
+        const { sqlDialect, allowedLanguages = [], startLanguage } = this.props;
 
         let blockLanguage: EditorLanguage;
         if (model.getLanguageId() === "msg") {
@@ -1890,7 +1890,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      * @returns A list of ranges with language, start and stop line (both zero-based).
      */
     private determineTextBlocks = (startOrText: ExecutionContext | string): ITextBlockEntry[] => {
-        const { language, allowedLanguages = [], startLanguage, sqlDialect } = this.mergedProps;
+        const { language, allowedLanguages = [], startLanguage, sqlDialect } = this.props;
 
         // Determine a language to start with.
         let currentLanguage: EditorLanguage = "javascript";
@@ -2006,7 +2006,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      * @returns A string indicating what to do next with that block.
      */
     private handleInternalCommand(index: number): "handled" | "ignore" | "unhandled" {
-        const { allowedLanguages = [] } = this.mergedProps;
+        const { allowedLanguages = [] } = this.props;
 
         const model = this.model;
         if (model && model.executionContexts) {
@@ -2025,7 +2025,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
                 trimmed = trimmed.slice(1);
                 if (!terminalMode) {
                     if (trimmed === "?" || trimmed === "h" || trimmed === "help") {
-                        const { onHelpCommand } = this.mergedProps;
+                        const { onHelpCommand } = this.props;
                         const helpText = onHelpCommand?.(trimmed, block.language);
                         if (helpText) {
                             void block.addResultData({
@@ -2058,7 +2058,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
                 switch (language) {
                     case "sql": {
-                        const { sqlDialect = "sql" } = this.mergedProps;
+                        const { sqlDialect = "sql" } = this.props;
 
                         // In terminal mode we sent the command to the backend and must reflect this in the editor.
                         if (terminalMode) {
@@ -2125,7 +2125,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     }
 
     private executeSelectedOrAll = (options: IEditorCommonExecutionOptions): Promise<boolean> => {
-        const { language } = this.mergedProps;
+        const { language } = this.props;
 
         const editor = this.backend;
         const model = this.model;
@@ -2144,7 +2144,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     };
 
     private executeContext = (options: IEditorCommonExecutionOptions): Promise<boolean> => {
-        const { language } = this.mergedProps;
+        const { language } = this.props;
 
         const editor = this.backend;
         const model = this.model;
@@ -2200,7 +2200,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
      * @param clearInput If true, the input of the current block is cleared.
      */
     private switchCurrentLanguage = (language: EditorLanguage, clearInput = false): void => {
-        const { sqlDialect, onContextLanguageChange } = this.mergedProps;
+        const { sqlDialect, onContextLanguageChange } = this.props;
 
         const editor = this.backend;
         const model = this.model;

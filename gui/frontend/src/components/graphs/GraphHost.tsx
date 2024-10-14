@@ -57,7 +57,7 @@ export class GraphHost extends ComponentBase<IGraphHostProps> {
     }
 
     public render(): ComponentChild {
-        const { id, options } = this.mergedProps;
+        const { id, options } = this.props;
 
         const className = this.getEffectiveClassNames(["graphHost"]);
         const left = options.viewport?.left ?? 0;
@@ -80,7 +80,7 @@ export class GraphHost extends ComponentBase<IGraphHostProps> {
     }
 
     private update = (): void => {
-        const { options } = this.mergedProps;
+        const { options } = this.props;
 
         // istanbul ignore else
         if (this.svgRef.current) {

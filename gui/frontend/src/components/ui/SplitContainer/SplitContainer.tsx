@@ -181,7 +181,7 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
     }
 
     public render(): ComponentChild {
-        const { panes, orientation, splitterSize } = this.mergedProps;
+        const { panes, orientation, splitterSize } = this.props;
 
         const className = this.getEffectiveClassNames(["splitContainer"]);
 
@@ -244,7 +244,7 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
     }
 
     private get isHorizontal(): boolean {
-        const { orientation } = this.mergedProps;
+        const { orientation } = this.props;
 
         return orientation === Orientation.LeftToRight || orientation === Orientation.RightToLeft;
     }
@@ -278,7 +278,7 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
                 paneData.startSize = paneData.currentSize;
             });
 
-            const { onPaneResized } = this.mergedProps;
+            const { onPaneResized } = this.props;
             onPaneResized?.(this.paneData);
         }
 
@@ -652,7 +652,7 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
     };
 
     private updatePaneData = (): void => {
-        const { panes } = this.mergedProps;
+        const { panes } = this.props;
 
         this.paneData = [];
         this.stretchCount = 0;

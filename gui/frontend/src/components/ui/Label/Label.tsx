@@ -97,7 +97,7 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
     }
 
     public override componentDidUpdate(prevProps: ILabelProperties): void {
-        const { caption, children } = this.mergedProps;
+        const { caption, children } = this.props;
         if (caption !== prevProps.caption || children !== prevProps.children) {
             this.updateComputedOutput();
         }
@@ -106,7 +106,7 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
     public render(): ComponentChild {
         const {
             children, caption, textAlignment, quoted, code, heading, language, type, style, wrap,
-        } = this.mergedProps;
+        } = this.props;
         const { labelEntries } = this.state;
 
         const actualStyle = { ...style };
@@ -167,7 +167,7 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
      * to "text" then no styling is applied.
      */
     private updateComputedOutput() {
-        const { caption, children, language } = this.mergedProps;
+        const { caption, children, language } = this.props;
 
         if (language === "ansi") {
             const content = caption || children;

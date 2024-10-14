@@ -89,7 +89,7 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
     }
 
     public override componentDidUpdate(): void {
-        const { id, children, container = document.body } = this.mergedProps;
+        const { id, children, container = document.body } = this.props;
         const { open, options } = this.state;
 
         if (open) {
@@ -143,8 +143,8 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
             this.setState({ open: true, options: activeOptions }, (): void => {
                 Portal.portalStack.push(this);
 
-                const { onOpen } = this.mergedProps;
-                onOpen?.(this.mergedProps);
+                const { onOpen } = this.props;
+                onOpen?.(this.props);
             });
         }
     };
@@ -155,8 +155,8 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
         if (open) {
             // First notify descendants so they can act properly *before* this portal is closed
             // (think of sub menus).
-            const { onClose } = this.mergedProps;
-            onClose?.(cancelled, this.mergedProps);
+            const { onClose } = this.props;
+            onClose?.(cancelled, this.props);
 
             this.setState({ open: false, options: {} }, () => {
                 const index = Portal.portalStack.findIndex((portal) => {

@@ -64,7 +64,7 @@ export class Toggle extends ComponentBase<IToggleProperties> {
 
     public override componentDidMount(): void {
         if (this.toggleRef.current) {
-            const { color, checkedColor, borderWidth, checkState } = this.mergedProps;
+            const { color, checkedColor, borderWidth, checkState } = this.props;
 
             if (color) {
                 const hsl = color.hsl();
@@ -87,14 +87,14 @@ export class Toggle extends ComponentBase<IToggleProperties> {
 
     public override componentDidUpdate(): void {
         if (this.toggleRef.current) {
-            const { checkState } = this.mergedProps;
+            const { checkState } = this.props;
 
             this.toggleRef.current.checked = checkState === CheckState.Checked;
         }
     }
 
     public render(): ComponentChild {
-        const { children, id = "", disabled, round, caption } = this.mergedProps;
+        const { children, id = "", disabled, round, caption } = this.props;
         const className = this.getEffectiveClassNames([
             "toggle",
             this.classFromProperty(round, "round"),
@@ -134,7 +134,7 @@ export class Toggle extends ComponentBase<IToggleProperties> {
     }
 
     private handleClick = (e: MouseEvent): void => {
-        const { disabled } = this.mergedProps;
+        const { disabled } = this.props;
 
         if (disabled) {
             e.preventDefault();
@@ -147,7 +147,7 @@ export class Toggle extends ComponentBase<IToggleProperties> {
 
     private handleInput = (e: Event): void => {
         if (e.target) {
-            const { onChange } = this.mergedProps;
+            const { onChange } = this.props;
 
             e.preventDefault();
             const element = e.target as HTMLInputElement;

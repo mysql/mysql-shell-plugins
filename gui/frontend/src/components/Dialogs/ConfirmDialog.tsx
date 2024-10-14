@@ -187,7 +187,7 @@ export class ConfirmDialog extends ComponentBase<IConfirmDialogProperties, IConf
 
     private handleClose = (cancelled: boolean): void => {
         if (cancelled) {
-            const { onClose } = this.mergedProps;
+            const { onClose } = this.props;
             const { values } = this.state;
 
             onClose?.(DialogResponseClosure.Cancel, values);

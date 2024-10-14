@@ -51,7 +51,7 @@ export class Toolbar extends ComponentBase<IToolbarProperties> {
     }
 
     public render(): ComponentChild {
-        const { children, innerRef, vibrant, dropShadow } = this.mergedProps;
+        const { children, innerRef, vibrant, dropShadow } = this.props;
         const className = this.getEffectiveClassNames([
             "toolbar",
             this.classFromProperty(dropShadow, "dropShadow"),
