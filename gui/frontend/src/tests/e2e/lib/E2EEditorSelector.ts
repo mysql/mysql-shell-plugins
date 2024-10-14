@@ -21,63 +21,24 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until, WebElement, error } from "selenium-webdriver";
+import { until, error } from "selenium-webdriver";
 import * as constants from "./constants.js";
 import * as locator from "./locators.js";
 import * as interfaces from "./interfaces.js";
 import { driver } from "./driver.js";
-import { E2EEditorSelector } from "./E2EEditorSelector.js";
 
 /**
  * This class represents the toolbar
  */
-export class Toolbar {
-
-    /** The editor selector*/
-    public editorSelector = new E2EEditorSelector();
-
-    /**
-     * Verifies if a toolbar button exists
-     * @param button The button
-     * @returns A promise resolving with true if the button exists, false otherwise
-     */
-    public existsButton = async (button: string): Promise<boolean> => {
-        const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
-            constants.wait5seconds, "Toolbar was not found");
-        const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
-        for (const btn of buttons) {
-            if ((await btn.getAttribute("data-tooltip")) === button) {
-                return true;
-            }
-        }
-
-        return false;
-    };
-
-    /**
-     * Gets a toolbar button
-     * @param button The button name
-     * @returns A promise resolving with the button
-     */
-    public getButton = async (button: string): Promise<WebElement | undefined> => {
-        const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
-            constants.wait5seconds, "Toolbar was not found");
-        const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
-        for (const btn of buttons) {
-            if ((await btn.getAttribute("data-tooltip")) === button) {
-                return btn;
-            }
-        }
-
-        throw new Error(`Could not find '${button}' button`);
-    };
+export class E2EEditorSelector {
 
     /**
      * Gets the current editor
      * @returns A promise resolving with the editor
      */
-    public getCurrentEditor = async (): Promise<interfaces.ICurrentEditor | undefined> => {
-        let editor: interfaces.ICurrentEditor | undefined;
+    public getCurrentEditor = async (): Promise<interfaces.ICurrentEditor> => {
+
+        let editor: interfaces.ICurrentEditor;
         await driver.wait(async () => {
             try {
                 const selector = await driver.wait(until.elementLocated(locator.notebook.toolbar.editorSelector.exists),
@@ -105,7 +66,7 @@ export class Toolbar {
             }
         }, constants.wait5seconds, "Could not get the current editor values");
 
-        return editor;
+        return editor!;
     };
 
     /**
@@ -115,24 +76,24 @@ export class Toolbar {
      * @returns A promise resolving when the editor is selected
      */
     public selectEditor = async (editorName: RegExp, parentConnection?: string): Promise<void> => {
-        const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
-        await driver.executeScript("arguments[0].click()", selector);
-
-        const list = await driver.wait(until
-            .elementLocated(locator.notebook.toolbar.editorSelector.list.exists),
-            constants.wait2seconds, "The editor list was not displayed");
-
-        await driver.wait(async () => {
-            return (await list.findElements(locator.notebook.toolbar.editorSelector.list.item)).length >= 1;
-        }, constants.wait2seconds, "No elements located on editors dropdown list");
-
         await driver.wait(async () => {
             try {
+                const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
+                await driver.executeScript("arguments[0].click()", selector);
+
+                const list = await driver.wait(until
+                    .elementLocated(locator.notebook.toolbar.editorSelector.list.exists),
+                    constants.wait2seconds, "The editor list was not displayed");
+
+                await driver.wait(async () => {
+                    return (await list.findElements(locator.notebook.toolbar.editorSelector.list.item)).length >= 1;
+                }, constants.wait2seconds, "No elements located on editors dropdown list");
+
                 let listItems = await driver.findElements(locator.notebook.toolbar.editorSelector.list.item);
 
                 if (parentConnection) {
-                    let startIndex = -1;
-                    let endIndex = -1;
+                    let startIndex: number;
+                    let endIndex: number;
 
                     for (let i = 0; i <= listItems.length - 1; i++) {
                         const isConnection = await listItems[i].getAttribute("id") !== "connections" &&
@@ -148,7 +109,7 @@ export class Toolbar {
                         }
                     }
 
-                    for (let i = startIndex + 1; i <= listItems.length - 1; i++) {
+                    for (let i = startIndex! + 1; i <= listItems.length - 1; i++) {
                         const isConnection = await listItems[i].getAttribute("id") !== "connections" &&
                             await listItems[i].getAttribute("type") === null;
 
@@ -158,7 +119,7 @@ export class Toolbar {
                         }
                     }
 
-                    listItems = listItems.slice(startIndex + 1, endIndex);
+                    listItems = listItems.slice(startIndex! + 1, endIndex!);
 
                     for (let i = 0; i <= listItems.length - 1; i++) {
                         const label = await (listItems[i].findElement(locator.htmlTag.label)).getText();
@@ -168,11 +129,12 @@ export class Toolbar {
                         }
                     }
                 } else {
-                    for (const item of listItems) {
-                        const itemText = await (await item.findElement(locator.htmlTag.label)).getText();
+                    for (const listItem of listItems) {
+                        const itemText = await (await listItem.findElement(locator.htmlTag.label)).getText();
 
                         if (itemText.match(editorName) !== null) {
-                            await item.click();
+                            await listItem.click();
+                            break;
                         }
                     }
                 }
@@ -183,24 +145,6 @@ export class Toolbar {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Could not select the editor ${editorName}`);
-    };
-
-    /**
-     * Closes the current editor
-     */
-    public closeCurrentEditor = async (): Promise<void> => {
-        try {
-            await driver.findElement(locator.notebook.toolbar.closeEditor).click();
-        } catch (e) {
-            if (e instanceof error.ElementNotInteractableError) {
-                const closeEditor = await driver.wait(until
-                    .elementLocated(locator.notebook.toolbar.closeEditor), constants.wait5seconds);
-                await driver.wait(until.elementIsVisible(closeEditor), constants.wait5seconds);
-                await closeEditor.click();
-            } else {
-                throw e;
-            }
-        }
+        }, constants.wait5seconds, `Could not select ${editorName} from the select list`);
     };
 }

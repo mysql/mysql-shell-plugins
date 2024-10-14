@@ -60,9 +60,7 @@ export const wait20seconds = 20000;
 export const wait25seconds = 25000;
 export const wait30seconds = 30000;
 export const wait1minute = 60000;
-export const wait2minutes = 120000; //extensionReadyWait
-export const wait5minutes = 300000;
-export const queuePollTimeout = wait5minutes;
+export const queuePollTimeout = wait1minute * 5;
 
 // TREE SEARCH LEVELS
 export const dbMaxLevel = 5;

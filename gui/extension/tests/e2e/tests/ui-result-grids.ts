@@ -93,10 +93,11 @@ describe("RESULT GRIDS", () => {
     before(async function () {
         await Misc.loadDriver();
         try {
-            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
 
             if (process.env.PARALLEL) {
-                await driver.wait(Misc.untilSchemaExists(constants.restServiceMetadataSchema), constants.wait2minutes);
+                await driver.wait(Misc.untilSchemaExists(constants.restServiceMetadataSchema),
+                    constants.wait1minute * 2);
             }
 
             await Workbench.toggleBottomBar(false);

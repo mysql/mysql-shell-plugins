@@ -32,6 +32,7 @@ export const wait20seconds = 20000;
 export const wait150MilliSeconds = 150;
 export const wait250seconds = 250000;
 export const wait1minute = 60000;
+export const wait2minutes = 120000;
 
 // BUTTONS
 export const execCaret = "Execute the statement at the caret position";
@@ -44,6 +45,7 @@ export const rollback = "Rollback DB changes";
 export const commit = "Commit DB changes";
 export const saveNotebook = "Save this Notebook";
 export const dbNotebook = "DB Notebook";
+export const showChatOptions = "Show Chat Options";
 
 // RESULT GRID CONTEXT MENU
 export const resultGridContextMenu = {
@@ -128,3 +130,17 @@ export const collapse = "collapse";
 export const serverStatus = "Server Status";
 export const clientConnections = "Client Connections";
 export const performanceDashboard = "Performance Dashboard";
+export const lakeHouseNavigator = "Lakehouse Navigator";
+
+// LAKE HOUSE NAVIGATOR
+export const lakeHouseNavigatorEditor = "Lakehouse Navigator";
+export const overviewTab = "Overview";
+export const uploadToObjectStorageTab = "Upload to Object Storage";
+export const loadIntoLakeHouseTab = "Load into Lakehouse";
+export const lakeHouseTablesTab = "Lakehouse Tables";
+export const addFiles = "Add Files";
+export const startFileUpload = "Start File Upload";
+
+// HEATWAVE PROFILE EDITOR
+export const modelLlama2 = "Llama2";
+export const modelMistral = "Mistral";

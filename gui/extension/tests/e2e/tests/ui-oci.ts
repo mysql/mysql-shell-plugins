@@ -91,7 +91,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
             await Workbench.toggleBottomBar(false);
             await ociTreeSection.focus();
             await ociTreeSection.clickToolbarButton(constants.configureOci);

@@ -75,7 +75,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
             await Workbench.toggleBottomBar(false);
             await Misc.switchToFrame();
             await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),

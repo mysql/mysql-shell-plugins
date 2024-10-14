@@ -95,10 +95,11 @@ describe("DATABASE CONNECTIONS", () => {
 
         await Misc.loadDriver();
         try {
-            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
 
             if (process.env.PARALLEL) {
-                await driver.wait(Misc.untilSchemaExists(constants.restServiceMetadataSchema), constants.wait2minutes);
+                await driver.wait(Misc.untilSchemaExists(constants.restServiceMetadataSchema),
+                    constants.wait1minute * 2);
             }
 
             const activityBare = new ActivityBar();
@@ -1029,13 +1030,13 @@ describe("DATABASE CONNECTIONS", () => {
             };
 
             const newTask: interfaces.INewLoadingTask = {
-                name: "another_cookbook",
+                name: "qa_cookbook_ext",
                 description: "How do cook properly",
                 targetDatabaseSchema: "e2e_tests",
                 formats: "PDF (Portable Document Format Files)",
             };
 
-            const fileToUpload = "another_cookbook.pdf";
+            const fileToUpload = "qa_cookbook_ext.pdf";
 
             before(async function () {
 
@@ -1112,7 +1113,8 @@ describe("DATABASE CONNECTIONS", () => {
                     .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
                 await (await mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage
                     .getFilesForUploadButton(constants.addFiles)).click();
-                await uploadToObjectStorage.setFilesForUploadFilePath(join(process.cwd(), fileToUpload));
+                await uploadToObjectStorage.setFilesForUploadFilePath(join(process.cwd(), "lakehouse_nav_files",
+                    fileToUpload));
                 await driver.wait(uploadToObjectStorage.untilExistsFileForUploadFile(fileToUpload),
                     constants.wait10seconds);
                 await uploadToObjectStorage.objectStorageBrowser.checkItem("upload");
@@ -1160,7 +1162,7 @@ describe("DATABASE CONNECTIONS", () => {
                 expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
                 expect(latestTable.comment).to.equals(newTask.description);
 
-                await driver.wait(lakehouseTables.untilLakeHouseTableIsLoaded(newTask.name), constants.wait2minutes);
+                await driver.wait(lakehouseTables.untilLakeHouseTableIsLoaded(newTask.name), constants.wait1minute * 2);
                 latestTable = await lakehouseTables.getLakehouseTable(newTask.name);
                 expect(latestTable.hasProgressBar).to.be.false;
                 expect(latestTable.loaded).to.equals("Yes");
