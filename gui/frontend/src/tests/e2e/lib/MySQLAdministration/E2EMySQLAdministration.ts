@@ -30,6 +30,7 @@ import * as constants from "../constants.js";
 import { E2EServerStatus } from "./E2EServerStatus.js";
 import { E2EClientConnections } from "./E2EClientConnections.js";
 import { E2EPerformanceDashboard } from "./E2EPerformanceDashboard.js";
+import { E2ELakeHouseNavigator } from "./E2ELakeHouseNavigator.js";
 
 /**
  * This class represents the MySQL Administration pages and all its related functions
@@ -44,6 +45,9 @@ export class E2EMySQLAdministration {
 
     /** The Performance Dashboard page */
     public performanceDashboard = new E2EPerformanceDashboard();
+
+    /** The Lakehouse Navigator page */
+    public lakeHouseNavigator = new E2ELakeHouseNavigator();
 
     /**
      * Verifies if the page is opened and fully loaded
@@ -70,11 +74,14 @@ export class E2EMySQLAdministration {
                             .length > 0;
                     }
 
+                    case constants.lakeHouseNavigator: {
+                        return (await driver.findElements(locator.lakeHouseNavigator.exists)).length > 0;
+                    }
+
                     default: {
                         throw new Error(`Unknown page`);
                     }
                 }
-
             };
 
             if (await PasswordDialog.exists()) {

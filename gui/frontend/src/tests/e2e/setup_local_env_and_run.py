@@ -246,6 +246,13 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as tmp_dirname:
         executor = task_utils.TaskExecutor(tmp_dirname)
 
+        if (os.environ["HWHOSTNAME"]) is None:
+            raise "Please define environment variable 'HWHOSTNAME'"
+        if (os.environ["HWUSERNAME"]) is None:
+            raise "Please define environment variable 'HWUSERNAME'"
+        if (os.environ["HWPASSWORD"]) is None:
+            raise "Please define environment variable 'HWPASSWORD'"
+
         executor.add_prerequisite(task_utils.CheckVersionTask("MySQL Shell"))
         executor.add_prerequisite(task_utils.CheckVersionTask("MySQL Server"))
         executor.add_prerequisite(

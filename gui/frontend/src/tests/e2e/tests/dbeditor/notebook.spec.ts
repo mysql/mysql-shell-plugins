@@ -36,6 +36,7 @@ import { Os } from "../../lib/os.js";
 import { E2EStatusBar } from "../../lib/E2EStatusBar.js";
 import { E2ENotebook } from "../../lib/E2ENotebook.js";
 import { E2ECodeEditorWidget } from "../../lib/E2ECodeEditorWidget.js";
+import { E2EHeatWaveProfileEditor } from "../../lib/MySQLAdministration/E2EHeatWaveProfileEditor.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -724,6 +725,98 @@ describe("Notebook headless on", () => {
             await result.toolbar!.rollbackChanges();
         } catch (e) {
             testFailed = true;
+            throw e;
+        }
+    });
+
+});
+
+describe("HeatWave Chat", () => {
+
+    const heatWaveConn: interfaces.IDBConnection = {
+        dbType: "MySQL",
+        caption: "e2eHeatWave Connection",
+        description: "Local connection",
+        basic: {
+            hostname: String(process.env.HWHOSTNAME),
+            username: String(process.env.HWUSERNAME),
+            schema: "e2e_tests",
+            password: String(process.env.HWPASSWORD),
+        },
+    };
+
+    const newTask: interfaces.INewLoadingTask = {
+        name: "static_cookbook",
+        description: "How do cook properly",
+        targetDatabaseSchema: "e2e_tests",
+        formats: "PDF (Portable Document Format Files)",
+    };
+
+    const cookbookFile = "static_cookbook.pdf";
+    const notebook = new E2ENotebook();
+    let testFailed = false;
+
+    beforeAll(async () => {
+        try {
+            await loadDriver();
+            await driver.get(url);
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+
+            await driver.executeScript("arguments[0].click()",
+                await driver.wait(until.elementLocated(locator.sqlEditorPage.icon)), constants.wait5seconds);
+
+            await DatabaseConnectionOverview.createDataBaseConnection(heatWaveConn);
+            await driver.executeScript("arguments[0].click();",
+                await DatabaseConnectionOverview.getConnection(heatWaveConn.caption!));
+            await driver.wait(new E2ENotebook().untilIsOpened(heatWaveConn), constants.wait10seconds);
+            await notebook.codeEditor.loadCommandResults();
+        } catch (e) {
+            await Misc.storeScreenShot("beforeAll_HeatWave_Chat");
+            throw e;
+        }
+    });
+
+    afterEach(async () => {
+        if (testFailed) {
+            testFailed = false;
+            await Misc.storeScreenShot();
+        }
+    });
+
+    afterAll(async () => {
+        await Os.writeFELogs(basename(__filename), driver.manage().logs());
+        await driver.close();
+        await driver.quit();
+    });
+
+    it("Execute a query", async () => {
+        try {
+            const query = "How do I cook fish?";
+            await (await notebook.toolbar.getButton(constants.showChatOptions))!.click();
+            const hwProfileEditor = new E2EHeatWaveProfileEditor();
+            await driver.wait(hwProfileEditor.untilIsOpened(), constants.wait5seconds);
+            await hwProfileEditor.selectModel(constants.modelMistral);
+            await notebook.codeEditor.languageSwitch("\\chat");
+            await notebook.codeEditor.loadCommandResults();
+            const result = await notebook.codeEditor.execute(query);
+            expect(result.chat!.length).toBeGreaterThan(0);
+
+            const history = await hwProfileEditor.getHistory();
+            expect(history[0].userMessage).toBe(query);
+            expect(history[0].chatBotOptions!.length).toBeGreaterThan(0);
+            const dbTables = await hwProfileEditor.getDatabaseTables();
+            expect(dbTables).toContain(`\`${newTask.targetDatabaseSchema}\`.\`${newTask.name}\``);
+            const matchedDocuments = await hwProfileEditor.getMatchedDocuments();
+            expect(matchedDocuments.length).toBeGreaterThan(0);
+
+            const documentTitles = [];
+            for (const doc of matchedDocuments) {
+                documentTitles.push(doc.title);
+            }
+
+            expect(documentTitles).toContain(cookbookFile);
+        } catch (e) {
+            await Misc.storeScreenShot("beforeAll_HeatWave_Chat");
             throw e;
         }
     });

@@ -23,22 +23,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebElement, until, Condition } from "vscode-extension-tester";
-import { driver, Misc } from "../../Misc";
-import * as locator from "../../locators";
-import * as interfaces from "../../interfaces";
-import * as constants from "../../constants";
+import { WebElement, until, Condition } from "selenium-webdriver";
+import { driver } from "../driver.js";
+import * as locator from "../locators.js";
+import * as interfaces from "../interfaces.js";
+import * as constants from "../constants.js";
 
-export class HeatWaveProfileEditor {
+export class E2EHeatWaveProfileEditor {
 
     /**
      * Verifies if the HeatWave Profile Editor is opened
      * @returns A promise resolving to true if the HeatWave Profile Editor is opened, false otherwise
      */
     public isOpened = async (): Promise<boolean> => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-
         return (await driver.findElements(locator.notebook.codeEditor.editor.result.chatOptions.panel)).length > 0;
     };
 

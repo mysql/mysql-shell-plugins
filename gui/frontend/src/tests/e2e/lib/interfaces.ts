@@ -131,6 +131,44 @@ export interface IConnSSL {
     clientKeyPath?: string;
 }
 
+export interface IHeatWaveProfileHistory {
+    userMessage?: string;
+    chatBotOptions?: string;
+}
+
+export interface IHeatWaveProfileMatchedDocument {
+    title?: string;
+    segment?: string;
+}
+
+export interface INewLoadingTask {
+    name?: string;
+    description?: string;
+    targetDatabaseSchema?: string;
+    formats?: string;
+}
+
+export interface ILakeHouseTable {
+    tableName?: string;
+    hasProgressBar?: boolean;
+    loaded?: string;
+    hasLoadingSpinner?: boolean;
+    rows?: string;
+    size?: string;
+    date?: string;
+    comment?: string;
+}
+
+export interface ICurrentTask {
+    name?: string;
+    hasProgressBar?: boolean;
+    id?: string;
+    status?: string;
+    startTime?: string;
+    endTime?: string;
+    message?: string;
+}
+
 export interface IConnAdvancedMySQL {
     mode?: {
         ansi: boolean,

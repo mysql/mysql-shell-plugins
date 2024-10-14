@@ -31,6 +31,31 @@ import { Os } from "./os.js";
 export class Explorer {
 
     /**
+     * Toggles the explorer
+     * @param expand True to expand, false otherwise
+     * @returns A promise resolving when the explorer is expanded or collapsed
+     */
+    public toggle = async (expand = true): Promise<void> => {
+
+        const isExpanded = async (): Promise<boolean> => {
+            const explorerHost = await driver.findElement(locator.notebook.explorerHost.exists);
+            const width = await explorerHost.getCssValue("width");
+
+            return width !== "0px";
+        };
+
+        if (expand) {
+            if (!await isExpanded()) {
+                await driver.findElement(locator.sqlEditorPage.icon).click();
+            }
+        } else {
+            if (await isExpanded()) {
+                await driver.findElement(locator.sqlEditorPage.icon).click();
+            }
+        }
+    };
+
+    /**
      * Toggles a section
      * @param sectionName The section name
      * @param expand True to expand, false otherwise
@@ -327,8 +352,7 @@ export class Explorer {
      * @param scriptType javascript/typescript/mysql
      * @returns Promise resolving with true if exists, false otherwise
      */
-    public existsScript = async (scriptName: string, scriptType: string):
-        Promise<boolean> => {
+    public existsScript = async (scriptName: string, scriptType: string): Promise<boolean> => {
         const context = await driver.findElement(locator.notebook.explorerHost.scripts.exists);
         const items = await context.findElements(locator.notebook.explorerHost.scripts.script);
 
@@ -344,6 +368,4 @@ export class Explorer {
 
         return false;
     };
-
-
 }

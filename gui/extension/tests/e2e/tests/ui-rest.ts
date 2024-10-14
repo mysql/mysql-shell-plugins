@@ -85,7 +85,7 @@ describe("MySQL REST Service", () => {
 
         await Misc.loadDriver();
         try {
-            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.focus();
             await dbTreeSection.createDatabaseConnection(globalConn);

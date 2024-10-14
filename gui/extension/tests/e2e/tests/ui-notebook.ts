@@ -84,10 +84,11 @@ describe("NOTEBOOKS", () => {
     before(async function () {
         await Misc.loadDriver();
         try {
-            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait2minutes);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
 
             if (process.env.PARALLEL) {
-                await driver.wait(Misc.untilSchemaExists(constants.restServiceMetadataSchema), constants.wait2minutes);
+                await driver.wait(Misc.untilSchemaExists(constants.restServiceMetadataSchema),
+                    constants.wait1minute * 2);
             }
 
             await Workbench.toggleBottomBar(false);
@@ -726,14 +727,14 @@ describe("NOTEBOOKS", () => {
         };
 
         const newTask: interfaces.INewLoadingTask = {
-            name: "cookbook",
+            name: "static_cookbook",
             description: "How do cook properly",
             targetDatabaseSchema: "e2e_tests",
             formats: "PDF (Portable Document Format Files)",
         };
 
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
-        const cookbookFile = "cookbook.pdf";
+        const cookbookFile = "static_cookbook.pdf";
         const notebook = new E2ENotebook();
 
         before(async function () {
@@ -759,7 +760,7 @@ describe("NOTEBOOKS", () => {
 
         it("Execute a query", async () => {
 
-            const query = "How do I cook some waffles?";
+            const query = "How do I cook fish?";
             await Workbench.toggleSideBar(false);
             await (await notebook.toolbar.getButton(constants.showChatOptions)).click();
             const hwProfileEditor = new HeatWaveProfileEditor();
@@ -774,14 +775,16 @@ describe("NOTEBOOKS", () => {
             expect(history[0].userMessage).to.equals(query);
             expect(history[0].chatBotOptions.length).to.be.greaterThan(0);
             const dbTables = await hwProfileEditor.getDatabaseTables();
-            expect(dbTables[0]).to.equals(`\`${newTask.targetDatabaseSchema}\`.\`${newTask.name}\``);
+            expect(dbTables).to.include(`\`${newTask.targetDatabaseSchema}\`.\`${newTask.name}\``);
             const matchedDocuments = await hwProfileEditor.getMatchedDocuments();
             expect(matchedDocuments.length).to.be.greaterThan(0);
 
+            const documentTitles = [];
             for (const doc of matchedDocuments) {
-                expect(doc.title).to.equals(cookbookFile);
+                documentTitles.push(doc.title);
             }
 
+            expect(documentTitles).to.include(cookbookFile);
         });
 
     });

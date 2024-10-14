@@ -819,3 +819,120 @@ export const notificationsCenter = {
 
 export const pageIsLoading = By.className("circleBackground");
 
+export const lakeHouseNavigator = {
+    exists: By.id("lakehouseNavigatorToolbar"),
+    overview: {
+        tab: By.id("overview"),
+        uploadFiles: By.id("overviewUploadFilesBtn"),
+        startLoad: By.id("overviewStartLoadBtn"),
+        manageLakeHouse: By.id("overviewManageLakehouse"),
+    },
+    uploadToObjectStorage: {
+        tab: By.id("upload"),
+        objectStorageBrowser: {
+            exists: By.className("objectStorageBrowser"),
+            ociProfile: By.css(".panelToolbar .dropdown"),
+            ociProfileList: {
+                exists: By.id("objBrowserOciProfileDropdownPopup"),
+                item: (id: string): By => {
+                    return By.id(id);
+                },
+            },
+            refresh: By.css(".panelToolbar .refreshBtn"),
+            scroll: By.css(".objectStorageBrowser .tabulator-tableholder"),
+            objectStorageItem: {
+                item: {
+                    exists: By.css(".tabulator-row-odd, .tabulator-row-even"),
+                    existsByLevel: (level: string): By => {
+                        return By.className(`tabulator-tree-level-${level}`);
+                    },
+                    isLoading: By.css(".tabulator-row .codicon-loading"),
+                    treeToggle: By.className("treeToggle"),
+                    caption: By.className("itemCaption"),
+                    checkbox: By.className("checkbox"),
+                },
+            },
+        },
+        filesForUpload: {
+            path: By.id("uploadTargetPath"),
+            button: By.css(".loadingTaskActionButtons .button"),
+            file: By.css(".loadingTaskItem .itemCaption"),
+            fileSelect: By.id("fileSelect"),
+        },
+    },
+    loadIntoLakeHouse: {
+        tab: By.id("load"),
+        newLoadingTask: {
+            exists: By.css(".loadingTaskPreview .mainPanel"),
+            name: By.id("loadTaskTableName"),
+            description: By.id("loadTaskDescription"),
+            targetSchema: {
+                exists: By.id("loadTaskTargetSchemaDropdown"),
+                value: By.css("#loadTaskTargetSchemaDropdown > label"),
+                list: By.id("loadTaskTargetSchemaDropdownPopup"),
+                item: (id: string): By => {
+                    return By.id(id);
+                },
+            },
+            formats: {
+                exists: By.id("loadTaskFormatsDropdown"),
+                value: By.css("#loadTaskFormatsDropdown > label"),
+                list: By.id("loadTaskFormatsDropdownPopup"),
+                item: {
+                    all: By.id("all"),
+                    pdf: By.id("pdf"),
+                    txt: By.id("txt"),
+                    html: By.id("html"),
+                    doc: By.id("doc"),
+                    ppt: By.id("ppt"),
+                },
+            },
+            loadingTaskItem: {
+                caption: By.css(".loadingTaskItem .itemCaption"),
+            },
+            startLoadingTask: By.id("loadStartLoadingTaskBtn"),
+        },
+    },
+    lakeHouseTables: {
+        tab: By.id("manage"),
+        deleteTableBtn: By.id("lakehouseDeleteTablesBtn"),
+        databaseSchemas: {
+            item: By.className("schemaNameField"),
+        },
+        lakeHouseTables: {
+            refresh: By.id("lakehouseRefreshBtn"),
+            row: By.css("#lakehouseTablesTreeGrid .tabulator-row"),
+            cell: {
+                tableName: {
+                    label: By.css('div.tabulator-cell[tabulator-field="tableName"] label'),
+                    progressBar: By.css("div.tabulator-cell[tabulator-field='tableName'] .progressBar"),
+                },
+                loaded: {
+                    loadingSpinner: By.className("codicon-loading"),
+                    label: By.css('div.tabulator-cell[tabulator-field="loaded"]'),
+                },
+                rows: By.css('div.tabulator-cell[tabulator-field="rows"]'),
+                size: By.css('div.tabulator-cell[tabulator-field="dataLength"]'),
+                date: By.css('div.tabulator-cell[tabulator-field="lastChange"]'),
+                comment: By.css('div.tabulator-cell[tabulator-field="comment"]'),
+            },
+        },
+        delete: By.id("lakehouseDeleteTablesBtn"),
+        currentTaskList: {
+            exists: By.className("taskListPanel"),
+            row: By.className("tabulator-row"),
+            cell: {
+                task: {
+                    label: By.css('div.tabulator-cell[tabulator-field="title"] label'),
+                    progressBar: By.css("div.tabulator-cell[tabulator-field='title'] .progressBar"),
+                },
+                id: By.css('div.tabulator-cell[tabulator-field="id"]'),
+                status: By.css('div.tabulator-cell[tabulator-field="status"] label'),
+                startTime: By.css('div.tabulator-cell[tabulator-field="startingTime"] label'),
+                endTime: By.css('div.tabulator-cell[tabulator-field="estimatedCompletionTime"] label'),
+                message: By.css('div.tabulator-cell[tabulator-field="statusMessage"] label'),
+            },
+        },
+    },
+};
+

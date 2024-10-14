@@ -23,13 +23,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until, Condition, WebElement } from "vscode-extension-tester";
-import { driver, Misc } from "../../Misc";
-import * as constants from "../../constants";
-import * as locator from "../../locators";
-import * as errors from "../../errors";
+import { Condition, until, WebElement, error } from "selenium-webdriver";
+import { driver } from "../driver.js";
+import * as constants from "../constants.js";
+import * as locator from "../locators.js";
 
-export class ObjectStorageBrowser {
+export class E2EObjectStorageBrowser {
 
     /**
      * Selects an OCI profile
@@ -37,12 +36,8 @@ export class ObjectStorageBrowser {
      * @returns A promise resolving when the profile is selected
      */
     public selectOciProfile = async (ociProfileName: string): Promise<void> => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-
         const objStorageBrowser = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser;
-        await driver.findElement(objStorageBrowser.ociProfile)
-            .click();
+        await driver.findElement(objStorageBrowser.ociProfile).click();
         const list = await driver.wait(until
             .elementLocated(objStorageBrowser.ociProfileList.exists),
             constants.wait5seconds, "OCI Profile List was not found");
@@ -57,9 +52,6 @@ export class ObjectStorageBrowser {
      */
     public untilItemsAreLoaded = (): Condition<boolean> => {
         return new Condition(`for Object Storage items to be loaded`, async () => {
-            await Misc.switchBackToTopFrame();
-            await Misc.switchToFrame();
-
             const isLoadingLocator = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
                 .objectStorageItem.item.isLoading;
 
@@ -74,9 +66,6 @@ export class ObjectStorageBrowser {
      * @returns A promise resolving when the compartments are expanded and loaded
      */
     public getItem = async (itemName: string, level?: string): Promise<WebElement> => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-
         const objStorageItem = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
             .objectStorageItem.item;
 
@@ -104,13 +93,13 @@ export class ObjectStorageBrowser {
                     }
                 }
             } catch (e) {
-                if (!errors.isStaleError(e as Error)) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
         }, constants.wait5seconds, `Could not get item '${itemName}' on the Object Storage Browser`);
 
-        return itemToReturn;
+        return itemToReturn!;
     };
 
     /**
@@ -120,9 +109,6 @@ export class ObjectStorageBrowser {
      * @returns A promise resolving when the compartments are expanded and loaded
      */
     public existsItem = async (itemName: string, level?: string): Promise<boolean> => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-
         const objStorageItem = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
             .objectStorageItem.item;
 
@@ -150,7 +136,7 @@ export class ObjectStorageBrowser {
                     }
                 }
             } catch (e) {
-                if (!errors.isStaleError(e as Error)) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
@@ -165,9 +151,6 @@ export class ObjectStorageBrowser {
      * @returns A promise resolving when the compartments are expanded and loaded
      */
     public openObjectStorageCompartment = async (path: string[]): Promise<void> => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-
         const objStorageItem = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
             .objectStorageItem.item;
         const scrollTable = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.scroll;
@@ -189,7 +172,7 @@ export class ObjectStorageBrowser {
 
                     return (await (itemToggle.getAttribute("class"))).includes("expanded");
                 } catch (e) {
-                    if (!errors.isStaleError(e as Error)) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
                         throw e;
                     }
                 }
@@ -203,9 +186,6 @@ export class ObjectStorageBrowser {
      * @returns A promise resolving when the checkbox is clicked
      */
     public checkItem = async (itemName: string): Promise<void> => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-
         await driver.wait(async () => {
             try {
                 const objectStorageItem = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
@@ -236,7 +216,7 @@ export class ObjectStorageBrowser {
                         return false;
                     });
             } catch (e) {
-                if (!errors.isStaleError(e as Error)) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
@@ -248,9 +228,6 @@ export class ObjectStorageBrowser {
      * @returns A promise resolving when Object Storage Browser is refreshed
      */
     public refreshObjectStorageBrowser = async (): Promise<void> => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-
         await driver.findElement(locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.refresh)
             .click();
     };
