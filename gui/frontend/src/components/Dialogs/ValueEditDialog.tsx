@@ -960,17 +960,26 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         const edits = this.renderEdits(group, sectionId, relatedValues);
         const contentCount = Children.count(edits);
 
+        let mainAlignment = ContentAlignment.Start;
+        let labelCaption = caption;
+        if (!labelCaption || !labelCaption.trim()) {
+            mainAlignment = ContentAlignment.Center;
+            labelCaption = "\u00A0"; // &nbsp; to vertically align the description with the type drop down.
+        }
+
         result.push(
             <GridCell
                 key={`valueCell${index}`}
                 orientation={Orientation.TopDown}
-                mainAlignment={ContentAlignment.Start}
+                mainAlignment={mainAlignment}
                 crossAlignment={ContentAlignment.Stretch}
                 columnSpan={groupHorizontalSpan}
                 rowSpan={groupVerticalSpan}
             >
-                {contentCount > 0 && caption && <Label className="valueTitle" caption={caption} />}
-                {contentCount > 0 && edits}
+                {contentCount > 0 && <Label className="valueTitle" caption={labelCaption} />}
+                {contentCount > 0 && <div className="control-wrap">
+                    {edits}
+                </div>}
                 {errors.map((value: string, errorIndex: number) => {
                     return (
                         <Message

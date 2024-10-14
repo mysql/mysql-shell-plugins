@@ -207,3 +207,13 @@
 .msg.dialog.valueEditDialog .tabulator-tableholder {
     overflow-x: hidden;
 }
+
+.msg.dialog.valueEditDialog .control-wrap div {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.msg.dialog.valueEditDialog .control-wrap .input {
+    padding-top: 3px;
+    padding-bottom: 3px;
+}

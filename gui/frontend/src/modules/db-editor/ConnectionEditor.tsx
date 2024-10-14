@@ -435,7 +435,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 },
                 databaseTypeDescription: {
                     type: "description",
-                    caption: " ", // To vertically align the description with the type drop down.
                     value: "Choose a type for this database connection",
                 },
             },
@@ -773,7 +772,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 },
                 databaseTypeDescription: {
                     type: "description",
-                    caption: " ", // To vertically align the description with the type drop down.
                     value: "",
                 },
                 sshKeyFile: {
