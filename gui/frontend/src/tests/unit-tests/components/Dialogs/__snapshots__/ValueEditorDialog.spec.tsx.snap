@@ -83,15 +83,19 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
             input
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="input"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="input"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -266,15 +270,19 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
                     output
                   </label>
                   <div
-                    class="msg container fixedScrollbar inputWithProgress"
-                    style="flex-direction: row;"
+                    class="control-wrap"
                   >
-                    <input
-                      class="msg input valueEditor"
-                      id="input"
-                      spellcheck="true"
-                      type="text"
-                    />
+                    <div
+                      class="msg container fixedScrollbar inputWithProgress"
+                      style="flex-direction: row;"
+                    >
+                      <input
+                        class="msg input valueEditor"
+                        id="input"
+                        spellcheck="true"
+                        type="text"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -292,15 +300,19 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
             something else
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="input"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="input"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -475,15 +487,19 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
                     output
                   </label>
                   <div
-                    class="msg container fixedScrollbar inputWithProgress"
-                    style="flex-direction: row;"
+                    class="control-wrap"
                   >
-                    <input
-                      class="msg input valueEditor"
-                      id="input"
-                      spellcheck="true"
-                      type="text"
-                    />
+                    <div
+                      class="msg container fixedScrollbar inputWithProgress"
+                      style="flex-direction: row;"
+                    >
+                      <input
+                        class="msg input valueEditor"
+                        id="input"
+                        spellcheck="true"
+                        type="text"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -501,15 +517,19 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
             something else
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="input"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="input"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -599,29 +619,39 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
       >
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 4;"
         >
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
           >
-            <input
-              class="msg input valueEditor"
-              id="input"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
+             
+          </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="output"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="input"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="output"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
         <div
@@ -634,10 +664,14 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
           >
             Print Help
           </label>
-          <label
-            class="msg label description"
-            data-tooltip="expand"
-          />
+          <div
+            class="control-wrap"
+          >
+            <label
+              class="msg label description"
+              data-tooltip="expand"
+            />
+          </div>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -650,26 +684,30 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
             Helpers
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="note"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              class="msg input valueEditor"
-              id="debug"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="note"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="debug"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -845,15 +883,19 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
             input
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="input"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="input"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -945,15 +987,19 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
             input
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="input"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="input"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -1045,15 +1091,19 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             input
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="input"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="input"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
         <div
@@ -1077,12 +1127,16 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           >
             A caption for the section
           </label>
-          <label
-            class="msg label description"
-            data-tooltip="expand"
+          <div
+            class="control-wrap"
           >
-            A caption for the section
-          </label>
+            <label
+              class="msg label description"
+              data-tooltip="expand"
+            >
+              A caption for the section
+            </label>
+          </div>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -1094,16 +1148,20 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
           >
             Activate this
           </label>
-          <label
-            class="msg checkbox unchecked valueEditor"
-            id="yesNo"
-            tabindex="0"
+          <div
+            class="control-wrap"
           >
-            <span
-              class="checkMark"
-            />
-            Activate this
-          </label>
+            <label
+              class="msg checkbox unchecked valueEditor"
+              id="yesNo"
+              tabindex="0"
+            >
+              <span
+                class="checkMark"
+              />
+              Activate this
+            </label>
+          </div>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -1116,23 +1174,27 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             Pick File
           </label>
           <div
-            class="msg container fixedScrollbar fileSelector valueEditor"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input"
-              id="file"
-              spellcheck="true"
-              type="text"
-            />
             <div
-              caption="..."
-              class="msg button"
-              id="fileBtn"
-              role="button"
-              tabindex="0"
+              class="msg container fixedScrollbar fileSelector valueEditor"
+              style="flex-direction: row;"
             >
-              ...
+              <input
+                class="msg input"
+                id="file"
+                spellcheck="true"
+                type="text"
+              />
+              <div
+                caption="..."
+                class="msg button"
+                id="fileBtn"
+                role="button"
+                tabindex="0"
+              >
+                ...
+              </div>
             </div>
           </div>
         </div>
@@ -1147,18 +1209,22 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             Select One
           </label>
           <div
-            class="msg container fixedScrollbar dropdown valueEditor"
-            data-tooltip="inherit"
-            id="selectOne"
-            style="flex-direction: row; align-items: center;"
-            tabindex="0"
+            class="control-wrap"
           >
-            <label
-              class="msg label ellipsis"
-              data-tooltip="expand"
+            <div
+              class="msg container fixedScrollbar dropdown valueEditor"
+              data-tooltip="inherit"
+              id="selectOne"
+              style="flex-direction: row; align-items: center;"
+              tabindex="0"
             >
-              One
-            </label>
+              <label
+                class="msg label ellipsis"
+                data-tooltip="expand"
+              >
+                One
+              </label>
+            </div>
           </div>
         </div>
         <div
@@ -1172,115 +1238,149 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             Do it!
           </label>
           <div
-            caption="Do it!"
-            class="msg button valueEditor"
-            id="clickMe"
-            role="button"
-            tabindex="0"
+            class="control-wrap"
           >
-            Do it!
+            <div
+              caption="Do it!"
+              class="msg button valueEditor"
+              id="clickMe"
+              role="button"
+              tabindex="0"
+            >
+              Do it!
+            </div>
           </div>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 4;"
         >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+             
+          </label>
           <div
-            class="msg treeGrid dynamicList"
-            id="listMe"
-          />
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-        >
-          <div
-            class="msg container fixedScrollbar matrixContainer"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
             <div
-              class="msg treeGrid verticalGrid"
-              id="valueGrid"
+              class="msg treeGrid dynamicList"
+              id="listMe"
             />
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+             
+          </label>
+          <div
+            class="control-wrap"
+          >
             <div
-              class="msg container fixedScrollbar"
-              id="matrixActions"
+              class="msg container fixedScrollbar matrixContainer"
               style="flex-direction: row;"
             >
               <div
-                class="msg button"
-                data-tooltip="Add new property entry"
-                id="buttonAddEntry"
-                role="button"
-                tabindex="0"
-              >
-                <div
-                  class="msg icon"
-                  data-tooltip="inherit"
-                  style="mask-image: url("add.svg");"
-                />
-              </div>
+                class="msg treeGrid verticalGrid"
+                id="valueGrid"
+              />
               <div
-                class="msg button"
-                data-tooltip="Remove selected entries"
-                id="buttonRemoveEntry"
-                role="button"
-                tabindex="0"
+                class="msg container fixedScrollbar"
+                id="matrixActions"
+                style="flex-direction: row;"
               >
                 <div
-                  class="msg icon"
-                  data-tooltip="inherit"
-                  style="mask-image: url("remove.svg");"
-                />
+                  class="msg button"
+                  data-tooltip="Add new property entry"
+                  id="buttonAddEntry"
+                  role="button"
+                  tabindex="0"
+                >
+                  <div
+                    class="msg icon"
+                    data-tooltip="inherit"
+                    style="mask-image: url("add.svg");"
+                  />
+                </div>
+                <div
+                  class="msg button"
+                  data-tooltip="Remove selected entries"
+                  id="buttonRemoveEntry"
+                  role="button"
+                  tabindex="0"
+                >
+                  <div
+                    class="msg icon"
+                    data-tooltip="inherit"
+                    style="mask-image: url("remove.svg");"
+                  />
+                </div>
               </div>
             </div>
           </div>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 4;"
         >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+             
+          </label>
           <div
-            class="msg grid upDown valueEditor"
-            id="upDown"
-            step="1"
-            style="grid-template-columns: auto 16px; --item-height: 0px;"
-            value="12345"
+            class="control-wrap"
           >
             <div
-              class="msg container fixedScrollbar gridCell"
-              id="content"
-              style="flex-direction: row; grid-row: span 2;"
-            >
-              <input
-                class="msg input"
-                id="upDownInput"
-                spellcheck="true"
-                style="text-align: end;"
-                type="text"
-              />
-            </div>
-            <div
-              class="msg container fixedScrollbar gridCell"
-              style="flex-direction: row;"
+              class="msg grid upDown valueEditor"
+              id="upDown"
+              step="1"
+              style="grid-template-columns: auto 16px; --item-height: 0px;"
+              value="12345"
             >
               <div
-                class="msg button"
-                id="up"
-                role="button"
-                tabindex="-1"
-              />
-            </div>
-            <div
-              class="msg container fixedScrollbar gridCell"
-              style="flex-direction: row;"
-            >
+                class="msg container fixedScrollbar gridCell"
+                id="content"
+                style="flex-direction: row; grid-row: span 2;"
+              >
+                <input
+                  class="msg input"
+                  id="upDownInput"
+                  spellcheck="true"
+                  style="text-align: end;"
+                  type="text"
+                />
+              </div>
               <div
-                class="msg button"
-                id="down"
-                role="button"
-                tabindex="-1"
-              />
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: row;"
+              >
+                <div
+                  class="msg button"
+                  id="up"
+                  role="button"
+                  tabindex="-1"
+                />
+              </div>
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: row;"
+              >
+                <div
+                  class="msg button"
+                  id="down"
+                  role="button"
+                  tabindex="-1"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1295,15 +1395,19 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             Give Me Text
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="input"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="input"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
         <div
@@ -1317,25 +1421,29 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             Wait For Me
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="loadingInput"
-              spellcheck="true"
-              type="text"
-            />
             <div
-              class="msg container fixedScrollbar progressIndicatorHost"
-              style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 40; --height: 7; --strokeWidth: 5;"
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
             >
+              <input
+                class="msg input valueEditor"
+                id="loadingInput"
+                spellcheck="true"
+                type="text"
+              />
               <div
-                class="linearBackground"
+                class="msg container fixedScrollbar progressIndicatorHost"
+                style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 40; --height: 7; --strokeWidth: 5;"
               >
                 <div
-                  class="linear animated"
-                />
+                  class="linearBackground"
+                >
+                  <div
+                    class="linear animated"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1351,9 +1459,13 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             Routine Parameters:
           </label>
           <div
-            class="msg treeGrid verticalGrid relationalList"
-            selectedrows="1"
-          />
+            class="control-wrap"
+          >
+            <div
+              class="msg treeGrid verticalGrid relationalList"
+              selectedrows="1"
+            />
+          </div>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -1366,15 +1478,19 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             Name
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="testRelation.title"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="testRelation.title"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
         <div
@@ -1388,15 +1504,19 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
             Parameter 1
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="testRelation.param1"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="testRelation.param1"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
         <div
@@ -1504,15 +1624,19 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             input
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="input"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="input"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
         <div
@@ -1536,12 +1660,16 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           >
             A caption for the section
           </label>
-          <label
-            class="msg label description"
-            data-tooltip="expand"
+          <div
+            class="control-wrap"
           >
-            A caption for the section
-          </label>
+            <label
+              class="msg label description"
+              data-tooltip="expand"
+            >
+              A caption for the section
+            </label>
+          </div>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -1553,16 +1681,20 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
           >
             Activate this
           </label>
-          <label
-            class="msg checkbox unchecked valueEditor"
-            id="yesNo"
-            tabindex="0"
+          <div
+            class="control-wrap"
           >
-            <span
-              class="checkMark"
-            />
-            Activate this
-          </label>
+            <label
+              class="msg checkbox unchecked valueEditor"
+              id="yesNo"
+              tabindex="0"
+            >
+              <span
+                class="checkMark"
+              />
+              Activate this
+            </label>
+          </div>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -1575,23 +1707,27 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             Pick File
           </label>
           <div
-            class="msg container fixedScrollbar fileSelector valueEditor"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input"
-              id="file"
-              spellcheck="true"
-              type="text"
-            />
             <div
-              caption="..."
-              class="msg button"
-              id="fileBtn"
-              role="button"
-              tabindex="0"
+              class="msg container fixedScrollbar fileSelector valueEditor"
+              style="flex-direction: row;"
             >
-              ...
+              <input
+                class="msg input"
+                id="file"
+                spellcheck="true"
+                type="text"
+              />
+              <div
+                caption="..."
+                class="msg button"
+                id="fileBtn"
+                role="button"
+                tabindex="0"
+              >
+                ...
+              </div>
             </div>
           </div>
         </div>
@@ -1606,18 +1742,22 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             Select One
           </label>
           <div
-            class="msg container fixedScrollbar dropdown valueEditor"
-            data-tooltip="inherit"
-            id="selectOne"
-            style="flex-direction: row; align-items: center;"
-            tabindex="0"
+            class="control-wrap"
           >
-            <label
-              class="msg label ellipsis"
-              data-tooltip="expand"
+            <div
+              class="msg container fixedScrollbar dropdown valueEditor"
+              data-tooltip="inherit"
+              id="selectOne"
+              style="flex-direction: row; align-items: center;"
+              tabindex="0"
             >
-              One
-            </label>
+              <label
+                class="msg label ellipsis"
+                data-tooltip="expand"
+              >
+                One
+              </label>
+            </div>
           </div>
         </div>
         <div
@@ -1631,115 +1771,149 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             Do it!
           </label>
           <div
-            caption="Do it!"
-            class="msg button valueEditor"
-            id="clickMe"
-            role="button"
-            tabindex="0"
+            class="control-wrap"
           >
-            Do it!
+            <div
+              caption="Do it!"
+              class="msg button valueEditor"
+              id="clickMe"
+              role="button"
+              tabindex="0"
+            >
+              Do it!
+            </div>
           </div>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 4;"
         >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+             
+          </label>
           <div
-            class="msg treeGrid dynamicList"
-            id="listMe"
-          />
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-        >
-          <div
-            class="msg container fixedScrollbar matrixContainer"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
             <div
-              class="msg treeGrid verticalGrid"
-              id="valueGrid"
+              class="msg treeGrid dynamicList"
+              id="listMe"
             />
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 4;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+             
+          </label>
+          <div
+            class="control-wrap"
+          >
             <div
-              class="msg container fixedScrollbar"
-              id="matrixActions"
+              class="msg container fixedScrollbar matrixContainer"
               style="flex-direction: row;"
             >
               <div
-                class="msg button"
-                data-tooltip="Add new property entry"
-                id="buttonAddEntry"
-                role="button"
-                tabindex="0"
-              >
-                <div
-                  class="msg icon"
-                  data-tooltip="inherit"
-                  style="mask-image: url("add.svg");"
-                />
-              </div>
+                class="msg treeGrid verticalGrid"
+                id="valueGrid"
+              />
               <div
-                class="msg button"
-                data-tooltip="Remove selected entries"
-                id="buttonRemoveEntry"
-                role="button"
-                tabindex="0"
+                class="msg container fixedScrollbar"
+                id="matrixActions"
+                style="flex-direction: row;"
               >
                 <div
-                  class="msg icon"
-                  data-tooltip="inherit"
-                  style="mask-image: url("remove.svg");"
-                />
+                  class="msg button"
+                  data-tooltip="Add new property entry"
+                  id="buttonAddEntry"
+                  role="button"
+                  tabindex="0"
+                >
+                  <div
+                    class="msg icon"
+                    data-tooltip="inherit"
+                    style="mask-image: url("add.svg");"
+                  />
+                </div>
+                <div
+                  class="msg button"
+                  data-tooltip="Remove selected entries"
+                  id="buttonRemoveEntry"
+                  role="button"
+                  tabindex="0"
+                >
+                  <div
+                    class="msg icon"
+                    data-tooltip="inherit"
+                    style="mask-image: url("remove.svg");"
+                  />
+                </div>
               </div>
             </div>
           </div>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 4;"
         >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+             
+          </label>
           <div
-            class="msg grid upDown valueEditor"
-            id="upDown"
-            step="1"
-            style="grid-template-columns: auto 16px; --item-height: 0px;"
-            value="12345"
+            class="control-wrap"
           >
             <div
-              class="msg container fixedScrollbar gridCell"
-              id="content"
-              style="flex-direction: row; grid-row: span 2;"
-            >
-              <input
-                class="msg input"
-                id="upDownInput"
-                spellcheck="true"
-                style="text-align: end;"
-                type="text"
-              />
-            </div>
-            <div
-              class="msg container fixedScrollbar gridCell"
-              style="flex-direction: row;"
+              class="msg grid upDown valueEditor"
+              id="upDown"
+              step="1"
+              style="grid-template-columns: auto 16px; --item-height: 0px;"
+              value="12345"
             >
               <div
-                class="msg button"
-                id="up"
-                role="button"
-                tabindex="-1"
-              />
-            </div>
-            <div
-              class="msg container fixedScrollbar gridCell"
-              style="flex-direction: row;"
-            >
+                class="msg container fixedScrollbar gridCell"
+                id="content"
+                style="flex-direction: row; grid-row: span 2;"
+              >
+                <input
+                  class="msg input"
+                  id="upDownInput"
+                  spellcheck="true"
+                  style="text-align: end;"
+                  type="text"
+                />
+              </div>
               <div
-                class="msg button"
-                id="down"
-                role="button"
-                tabindex="-1"
-              />
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: row;"
+              >
+                <div
+                  class="msg button"
+                  id="up"
+                  role="button"
+                  tabindex="-1"
+                />
+              </div>
+              <div
+                class="msg container fixedScrollbar gridCell"
+                style="flex-direction: row;"
+              >
+                <div
+                  class="msg button"
+                  id="down"
+                  role="button"
+                  tabindex="-1"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1754,15 +1928,19 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             Give Me Text
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="input"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="input"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
         <div
@@ -1776,25 +1954,29 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             Wait For Me
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="loadingInput"
-              spellcheck="true"
-              type="text"
-            />
             <div
-              class="msg container fixedScrollbar progressIndicatorHost"
-              style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 40; --height: 7; --strokeWidth: 5;"
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
             >
+              <input
+                class="msg input valueEditor"
+                id="loadingInput"
+                spellcheck="true"
+                type="text"
+              />
               <div
-                class="linearBackground"
+                class="msg container fixedScrollbar progressIndicatorHost"
+                style="flex-direction: column; justify-content: center; align-items: center; opacity: 0.95; --position: 0; --width: 40; --height: 7; --strokeWidth: 5;"
               >
                 <div
-                  class="linear animated"
-                />
+                  class="linearBackground"
+                >
+                  <div
+                    class="linear animated"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1810,9 +1992,13 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             Routine Parameters:
           </label>
           <div
-            class="msg treeGrid verticalGrid relationalList"
-            selectedrows="1"
-          />
+            class="control-wrap"
+          >
+            <div
+              class="msg treeGrid verticalGrid relationalList"
+              selectedrows="1"
+            />
+          </div>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -1825,15 +2011,19 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             Name
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="testRelation.title"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="testRelation.title"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
         <div
@@ -1847,15 +2037,19 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
             Parameter 1
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="testRelation.param1"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="testRelation.param1"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
         <div

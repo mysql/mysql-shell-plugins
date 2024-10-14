@@ -52,15 +52,19 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
             Lorem ipsum dolor sit amet
           </label>
           <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
+            class="control-wrap"
           >
-            <input
-              class="msg input valueEditor"
-              id="input"
-              spellcheck="true"
-              type="text"
-            />
+            <div
+              class="msg container fixedScrollbar inputWithProgress"
+              style="flex-direction: row;"
+            >
+              <input
+                class="msg input valueEditor"
+                id="input"
+                spellcheck="true"
+                type="text"
+              />
+            </div>
           </div>
         </div>
       </div>
