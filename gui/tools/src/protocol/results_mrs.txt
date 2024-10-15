@@ -33,6 +33,7 @@ export interface IMrsDbObjectData extends IDictionary {
 }
 
 export interface IMrsContentSetData {
+    contentType: string;
     comments: string;
     enabled: number;
     hostCtx: string;
@@ -471,6 +472,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsSetSchemaComments]: {};
     [ShellAPIMrs.MrsUpdateSchema]: {};
     [ShellAPIMrs.MrsAddContentSet]: { result: IMrsAddContentSetData; };
+    [ShellAPIMrs.MrsGetContentSetCount]: { result: number; };
     [ShellAPIMrs.MrsListContentSets]: { result: IMrsContentSetData[]; };
     [ShellAPIMrs.MrsGetContentSet]: {};
     [ShellAPIMrs.MrsEnableContentSet]: {};

@@ -36,8 +36,17 @@ export class MrsContentSetTreeItem extends MrsTreeBaseItem {
         backend: ShellInterfaceSqlEditor,
         connectionId: number,
     ) {
-        super(label, backend, connectionId, value.enabled === 1
-            ? "mrsContentSet.svg"
-            : "mrsContentSetDisabled.svg", true);
+        super(label, backend, connectionId, MrsContentSetTreeItem.getIconName(value), true);
+
+        this.description = value.contentType === "SCRIPTS" ? "MRS Scripts" : "Static Files";
     }
+
+    private static getIconName = (value: IMrsContentSetData): string => {
+        let iconName = value.contentType === "SCRIPTS" ? "mrsContentSetScripts" : "mrsContentSet";
+        if (value.enabled !== 1) {
+            iconName += "Disabled";
+        }
+
+        return iconName + ".svg";
+    };
 }

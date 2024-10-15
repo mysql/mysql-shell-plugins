@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { describe, it, SqlError, pushRunSqlResults } from "../mrs/mrs.mjs";
+import { describe, it, SqlError, session } from "../mrs/mrs.mjs";
 import { mrsTestScripts } from "../src/MrsTestScripts.mjs";
 
 describe("MRS Script Example - MRS script tests", async () => {
@@ -48,7 +48,7 @@ describe("MRS Script Example - MRS script tests", async () => {
         const userName = "Mike";
 
         // Push mock results so runSql() will return them instead of actually querying the database
-        pushRunSqlResults([{ "name": userName }]);
+        session.pushRunSqlResults([{ "name": userName }]);
 
         const result = await mrsTestScripts.helloUser("0x12345678");
         if (result.greeting !== `Hello ${userName}!`) {
@@ -59,7 +59,7 @@ describe("MRS Script Example - MRS script tests", async () => {
     await it("getMrsVersions", async () => {
         // Push two versions (3.0.0) for both metadata schema version and user schema version as mock results
         const versionResult = { "major": 3, "minor": 0, "patch": 0 };
-        pushRunSqlResults([versionResult], [versionResult]);
+        session.pushRunSqlResults([versionResult], [versionResult]);
 
         const versions = await mrsTestScripts.getMrsVersions();
         if (versions.metadata.major !== versionResult.major
@@ -70,7 +70,7 @@ describe("MRS Script Example - MRS script tests", async () => {
         }
 
         // Omit the result for the user schema version to check if an SqlError is thrown
-        pushRunSqlResults([{ "major": 3, "minor": 0, "patch": 0 }]);
+        session.pushRunSqlResults([{ "major": 3, "minor": 0, "patch": 0 }]);
         try {
             await mrsTestScripts.getMrsVersions();
         } catch (error) {

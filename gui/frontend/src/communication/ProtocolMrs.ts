@@ -158,6 +158,8 @@ export enum ShellAPIMrs {
     /** Adds content to the given MRS service */
     MrsAddContentSet = "mrs.add.content_set",
     /** Returns all content sets for the given MRS service */
+    MrsGetContentSetCount = "mrs.get.content_set_count",
+    /** Returns all content sets for the given MRS service */
     MrsListContentSets = "mrs.list.content_sets",
     /** Gets a specific MRS content_set */
     MrsGetContentSet = "mrs.get.content_set",
@@ -1019,6 +1021,11 @@ export interface IShellMrsAddContentSetKwargs {
     sendGuiMessage?: object;
 }
 
+export interface IShellMrsGetContentSetCountKwargs {
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
 export interface IShellMrsListContentSetsKwargs {
     /** Only include items with the given enabled state */
     includeEnableState?: boolean;
@@ -1401,6 +1408,7 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsGetDbObjectCreateStatement]: { kwargs?: IShellMrsGetDbObjectCreateStatementKwargs; };
     [ShellAPIMrs.MrsDumpDbObjectCreateStatement]: { kwargs?: IShellMrsDumpDbObjectCreateStatementKwargs; };
     [ShellAPIMrs.MrsAddContentSet]: { args: { serviceId?: string; contentDir?: string; }; kwargs?: IShellMrsAddContentSetKwargs; };
+    [ShellAPIMrs.MrsGetContentSetCount]: { args: { serviceId?: string; }; kwargs?: IShellMrsGetContentSetCountKwargs; };
     [ShellAPIMrs.MrsListContentSets]: { args: { serviceId?: string; }; kwargs?: IShellMrsListContentSetsKwargs; };
     [ShellAPIMrs.MrsGetContentSet]: { kwargs?: IShellMrsGetContentSetKwargs; };
     [ShellAPIMrs.MrsEnableContentSet]: { kwargs?: IShellMrsEnableContentSetKwargs; };
@@ -1476,6 +1484,7 @@ export interface IMrsDbObjectData extends IDictionary {
 }
 
 export interface IMrsContentSetData {
+    contentType: string;
     comments: string;
     enabled: number;
     hostCtx: string;
@@ -1914,6 +1923,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsSetSchemaComments]: {};
     [ShellAPIMrs.MrsUpdateSchema]: {};
     [ShellAPIMrs.MrsAddContentSet]: { result: IMrsAddContentSetData; };
+    [ShellAPIMrs.MrsGetContentSetCount]: { result: number; };
     [ShellAPIMrs.MrsListContentSets]: { result: IMrsContentSetData[]; };
     [ShellAPIMrs.MrsGetContentSet]: {};
     [ShellAPIMrs.MrsEnableContentSet]: {};

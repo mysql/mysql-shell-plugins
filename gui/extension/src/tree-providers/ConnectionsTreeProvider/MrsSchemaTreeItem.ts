@@ -35,10 +35,19 @@ export class MrsSchemaTreeItem extends MrsTreeBaseItem {
         public value: IMrsSchemaData,
         backend: ShellInterfaceSqlEditor,
         connectionId: number) {
-        const iconName = value.enabled === 1
-            ? (value.requiresAuth === 1 ? "mrsSchemaLocked.svg" : "mrsSchema.svg")
-            : "mrsSchemaDisabled.svg";
+        super(label, backend, connectionId, MrsSchemaTreeItem.getIconName(value), true);
 
-        super(label, backend, connectionId, iconName, true);
+        this.description = `(${value.name})`;
     }
+
+    private static getIconName = (value: IMrsSchemaData): string => {
+        let iconName = value.schemaType === "SCRIPT_MODULE" ? "mrsSchemaModule" : "mrsSchema";
+        if (value.enabled !== 1) {
+            iconName += "Disabled";
+        } else if (value.requiresAuth) {
+            iconName += "Locked";
+        }
+
+        return iconName + ".svg";
+    };
 }

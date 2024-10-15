@@ -268,6 +268,24 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
                 "number_of_files_uploaded": files_added
             }
 
+@plugin_function('mrs.get.contentSetCount', shell=False, cli=False, web=True)
+def get_content_set_count(service_id=None, **kwargs):
+    """Returns all content sets for the given MRS service
+
+    Args:
+        service_id (str): The id of the service to list the content sets from
+        **kwargs: Additional options
+
+    Keyword Args:
+        session (object): The database session to use.
+
+    Returns:
+        The number of content sets of the given service
+    """
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        # Check the given service_id or get the default if none was given
+        service = lib.services.get_service(
+            service_id=service_id, session=session)
 
 @plugin_function('mrs.list.contentSets', shell=True, cli=True, web=True)
 def get_content_sets(service_id=None, **kwargs):
