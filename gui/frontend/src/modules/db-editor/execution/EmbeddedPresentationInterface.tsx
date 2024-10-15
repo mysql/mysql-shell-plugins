@@ -53,7 +53,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
     // Listener for content changes in the render target.
     private resizeObserver?: ResizeObserver;
 
-    public constructor(private isScrolling: () => boolean, language: EditorLanguage) {
+    public constructor(language: EditorLanguage) {
         super(language);
     }
 
@@ -284,11 +284,7 @@ export class EmbeddedPresentationInterface extends PresentationInterface {
         const renderTarget = this.zoneInfo!.zone.domNode.firstChild as HTMLDivElement;
 
         renderTarget.addEventListener("wheel", (e) => {
-            if (!this.isScrolling()) {
-                (e.currentTarget as HTMLElement).scrollLeft += Math.sign(e.deltaX) * 2;
-                (e.currentTarget as HTMLElement).scrollTop += Math.sign(e.deltaY) * 2;
-                e.stopPropagation();
-            }
+            e.stopPropagation();
         }, { passive: true });
 
         renderTarget.addEventListener("keydown", (e) => {

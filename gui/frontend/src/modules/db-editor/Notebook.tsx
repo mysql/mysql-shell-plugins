@@ -443,7 +443,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     };
 
     private createPresentation = (editor: CodeEditor, language: EditorLanguage): PresentationInterface => {
-        const result = new EmbeddedPresentationInterface(editor.isScrolling, language);
+        const result = new EmbeddedPresentationInterface(language);
         result.activate(editor.backend!);
 
         return result;

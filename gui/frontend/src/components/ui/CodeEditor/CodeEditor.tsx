@@ -209,9 +209,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
     // Set when a new execution context is being added. Requires special handling in the change event.
     private addingNewContext = false;
-    private scrolling = false;
-
-    private scrollingTimer: ReturnType<typeof setTimeout> | null = null;
     private keyboardTimer: ReturnType<typeof setTimeout> | null = null;
 
     // Automatic re-layout on host resize.
@@ -344,16 +341,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             });
         }
     }
-
-    /**
-     * A method that can be used to determine if the editor is currently scrolling its content because of mouse wheel
-     * events. This is used to correctly scroll embedded content like result panes in editor zones.
-     *
-     * @returns True if the editor is currently scrolling.
-     */
-    public isScrolling = (): boolean => {
-        return this.scrolling;
-    };
 
     public override componentDidMount(): void {
         if (!this.hostRef.current) {
@@ -515,11 +502,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     }
 
     public override componentWillUnmount(): void {
-        if (this.scrollingTimer) {
-            clearTimeout(this.scrollingTimer);
-            this.scrollingTimer = null;
-        }
-
         const { savedState } = this.mergedProps;
 
         requisitions.unregister("settingsChanged", this.handleSettingsChanged);
@@ -1228,20 +1210,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         this.disposables.push(editor.onDidPaste(this.handlePaste));
 
         this.disposables.push(editor.onDidScrollChange((e) => {
-            if (e.scrollTopChanged) {
-                this.scrolling = true;
-                if (this.scrollingTimer) {
-                    clearTimeout(this.scrollingTimer);
-                }
-                this.scrollingTimer = setTimeout(() => {
-                    this.scrolling = false;
-                    if (this.scrollingTimer) {
-                        clearTimeout(this.scrollingTimer);
-                    }
-
-                    this.scrollingTimer = null;
-                }, 500);
-            }
 
             if (e.scrollLeftChanged) {
                 const viewZones = editor.getDomNode()?.getElementsByClassName("view-zones");
