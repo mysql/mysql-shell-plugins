@@ -159,7 +159,7 @@ describe("MsgSemanticTokensProvider Tests", () => {
             onCancellationRequested: () => { return { dispose: () => { /**/ } }; },
         };
 
-        const sqlPresentation = new EmbeddedPresentationInterface(() => { return false; }, "sql");
+        const sqlPresentation = new EmbeddedPresentationInterface("sql");
         model.executionContexts?.addContext(sqlPresentation);
         model.executionContexts?.addContext(sqlPresentation);
         model.executionContexts?.addContext(sqlPresentation);
@@ -178,7 +178,7 @@ describe("MsgSemanticTokensProvider Tests", () => {
             editorMode: CodeEditorMode.Standard,
         });
 
-        const jsPresentation = new EmbeddedPresentationInterface(() => { return false; }, "javascript");
+        const jsPresentation = new EmbeddedPresentationInterface("javascript");
         model.executionContexts?.addContext(jsPresentation);
         model.executionContexts?.addContext(jsPresentation);
         model.executionContexts?.addContext(jsPresentation);
@@ -197,7 +197,7 @@ describe("MsgSemanticTokensProvider Tests", () => {
             editorMode: CodeEditorMode.Standard,
         });
 
-        const tsPresentation = new EmbeddedPresentationInterface(() => { return false; }, "typescript");
+        const tsPresentation = new EmbeddedPresentationInterface("typescript");
         model.executionContexts?.addContext(tsPresentation);
         model.executionContexts?.addContext(tsPresentation);
         model.executionContexts?.addContext(tsPresentation);
@@ -223,11 +223,11 @@ describe("MsgSemanticTokensProvider Tests", () => {
             onCancellationRequested: () => { return { dispose: () => { /**/ } }; },
         };
 
-        const sqlPresentation = new EmbeddedPresentationInterface(() => { return false; }, "sql");
+        const sqlPresentation = new EmbeddedPresentationInterface("sql");
         model.executionContexts?.addContext(sqlPresentation);
-        const jsPresentation = new EmbeddedPresentationInterface(() => { return false; }, "javascript");
+        const jsPresentation = new EmbeddedPresentationInterface("javascript");
         model.executionContexts?.addContext(jsPresentation);
-        const tsPresentation = new EmbeddedPresentationInterface(() => { return false; }, "typescript");
+        const tsPresentation = new EmbeddedPresentationInterface("typescript");
         model.executionContexts?.addContext(tsPresentation);
         await nextProcessTick();
 
