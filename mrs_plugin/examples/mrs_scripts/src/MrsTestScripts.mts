@@ -26,7 +26,7 @@
 // Required to enable support for decorators
 (Symbol.metadata as any) ??= Symbol("Symbol.metadata");
 
-import { Mrs, runSql, SqlError } from "../mrs/mrs.mjs";
+import { Mrs, session, SqlError } from "../mrs/mrs.mjs";
 
 export interface IMrsGreeting {
     greeting: string;
@@ -103,9 +103,9 @@ class mrsTestScripts {
     public static async helloUser(userId: string): Promise<IMrsTimedGreeting> {
         const now = new Date();
 
-        const userName: string = (await runSql(
+        const userName: string = (await session.runSql(
             "SELECT name FROM mysql_rest_service_metadata.mrs_user WHERE id = ?", [userId])
-        ).at(0)?.["name"] as string;
+        ).rows.at(0)?.["name"] as string;
         if (userName === undefined) {
             throw new SqlError("Unable to find the given user.")
         }
@@ -124,9 +124,9 @@ class mrsTestScripts {
         let versions: IMrsVersion[] = [];
 
         for (const view of ["schema_version", "mrs_user_schema_version"]) {
-            const res = await runSql(`SELECT major, minor, patch FROM mysql_rest_service_metadata.${view}`);
-            if (res?.length > 0) {
-                const row = res[0];
+            const rows = (await session.runSql(`SELECT major, minor, patch FROM mysql_rest_service_metadata.${view}`)).rows;
+            if (rows?.length > 0) {
+                const row = rows[0];
 
                 versions.push({
                     major: row["major"] as number,

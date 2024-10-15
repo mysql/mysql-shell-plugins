@@ -63,25 +63,6 @@ export class SqlError extends Error {
     }
 };
 
-const runSqlTestBuffer: IDictionary[][] = [];
-
-export const pushRunSqlResults = (...res: IDictionary[][]): void => {
-    for (let r of res) {
-        runSqlTestBuffer.push(r);
-    }
-};
-
-export const runSql = async (sql: string, params?: unknown): Promise<IDictionary[]> => {
-    return new Promise((resolve, reject) => {
-        const res = runSqlTestBuffer.shift();
-        if (res) {
-            resolve(res);
-        } else {
-            throw new SqlError("No result available.");
-        }
-    });
-};
-
 export const hash64 = (str: string, seed = 0) => {
     let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
     for (let i = 0, ch; i < str.length; i++) {
@@ -307,3 +288,40 @@ export class Mrs {
         }
     }
 }
+
+export interface IMrsResultSet {
+    rows: IDictionary[];
+}
+
+export class Session {
+    static #instance: Session;
+    #runSqlTestBuffer: IDictionary[][] = [];
+
+    public constructor() {
+        // Make the Session a singleton
+        if (Session.#instance) {
+            return Session.#instance;
+        }
+
+        Session.#instance = this;
+    }
+
+    public pushRunSqlResults = (...res: IDictionary[][]): void => {
+        for (let r of res) {
+            this.#runSqlTestBuffer.push(r);
+        }
+    };
+
+    public runSql = async (sql: string, params?: unknown): Promise<IMrsResultSet> => {
+        return new Promise((resolve, reject) => {
+            const res = this.#runSqlTestBuffer.shift();
+            if (res) {
+                resolve({ rows: res });
+            } else {
+                throw new SqlError("No result available.");
+            }
+        });
+    };
+}
+
+export const session = new Session();

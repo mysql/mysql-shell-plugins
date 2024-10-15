@@ -249,6 +249,13 @@ def get_content_sets(session, service_id: bytes, include_enable_state=None, requ
                               request_path=request_path, include_enable_state=include_enable_state)
 
 
+def get_content_set_count(session, service_id: bytes):
+    sql = "SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`content_set` cs WHERE cs.service_id = ?"
+    res = core.MrsDbExec(sql, [service_id]).exec(session).first
+
+    return res[0]
+
+
 def add_content_set(session, service_id, request_path, requires_auth=False, comments="", options=None, enabled=True,
                     content_dir=None, send_gui_message=None, service=None, ignore_list=None):
 

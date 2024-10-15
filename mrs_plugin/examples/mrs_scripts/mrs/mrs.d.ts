@@ -29,6 +29,3 @@ declare interface IDictionary {
 
 declare function print(out: string): void;
 
-declare function pushRunSqlResults(...res: IDictionary[][]): void;
-
-declare function runSql(sql: string, params?: unknown): Promise<IDictionary[]>;

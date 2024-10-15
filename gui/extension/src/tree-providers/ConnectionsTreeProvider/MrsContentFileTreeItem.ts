@@ -35,6 +35,8 @@ export class MrsContentFileTreeItem extends MrsTreeBaseItem {
         public value: IMrsContentFileData,
         backend: ShellInterfaceSqlEditor,
         connectionId: number) {
-        super(label, backend, connectionId, value.enabled ? "mrsContentFile.svg" : "mrsContentFileDisabled.svg", false);
+        super(label, backend, connectionId, value.enabled
+            ? "mrsContentFile.svg"
+            : "mrsContentFileDisabled.svg", false);
     }
 }

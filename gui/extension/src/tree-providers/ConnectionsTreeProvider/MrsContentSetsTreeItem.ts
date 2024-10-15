@@ -23,32 +23,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMrsDbObjectData } from "../../../../frontend/src/communication/ProtocolMrs.js";
+import { IMrsServiceData } from "../../../../frontend/src/communication/ProtocolMrs.js";
 import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { convertToPascalCase } from "../../../../frontend/src/utilities/string-helpers.js";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
-export class MrsDbObjectTreeItem extends MrsTreeBaseItem {
-    public override contextValue = "mrsDbObject";
+export class MrsContentSetsTreeItem extends MrsTreeBaseItem {
+    public override contextValue = "mrsContentSets";
 
     public constructor(
         label: string,
-        public value: IMrsDbObjectData,
+        public value: IMrsServiceData,
         backend: ShellInterfaceSqlEditor,
-        connectionId: number) {
-        super(label, backend, connectionId, MrsDbObjectTreeItem.getIconName(value), false);
-
-        this.description = `(${value.name})`;
+        connectionId: number,
+    ) {
+        super(label, backend, connectionId, "mrsContentSets.svg", true);
     }
-
-    private static getIconName = (value: IMrsDbObjectData): string => {
-        let iconName = "mrsDbObject" + convertToPascalCase(value.objectType.toLowerCase());
-        if (value.enabled !== 1) {
-            iconName += "Disabled";
-        } else if (value.requiresAuth === 1) {
-            iconName += "Locked";
-        }
-
-        return iconName + ".svg";
-    };
 }

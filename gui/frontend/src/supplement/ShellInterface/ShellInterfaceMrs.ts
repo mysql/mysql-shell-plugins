@@ -588,6 +588,22 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
+    public async getContentSetCount(serviceId: string): Promise<number> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetContentSetCount,
+            parameters: {
+                args: {
+                    serviceId,
+                },
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
     public async listContentSets(serviceId: string, requestPath?: string): Promise<IMrsContentSetData[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsListContentSets,
