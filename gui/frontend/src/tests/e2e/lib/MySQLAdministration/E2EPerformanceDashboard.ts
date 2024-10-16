@@ -21,14 +21,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebElement } from "selenium-webdriver";
+import { Condition, WebElement, until } from "selenium-webdriver";
 import * as locator from "../locators.js";
 import { driver } from "../driver.js";
+import { E2EEditorSelector } from "../E2EEditorSelector.js";
+import * as constants from "../constants.js";
 
 /**
  * This class represents the Performance dashboard page and all its related functions
  */
 export class E2EPerformanceDashboard {
+
+    /** The editor selector*/
+    public editorSelector = new E2EEditorSelector();
 
     /** The network status*/
     public networkStatus: {
@@ -75,11 +80,20 @@ export class E2EPerformanceDashboard {
         reading: string;
     } | undefined;
 
+    /** The MLE Performance status*/
+    public mlePerformance: {
+        heapUsageGraph: WebElement;
+        mleStatus: string;
+        mleMaxHeapSize: string;
+        mleHeapUtilizationGraph: WebElement;
+        currentHeapUsage: string;
+    } | undefined;
+
     /**
-     * Loads the Server Status page objects and attributes
+     * Loads the Performance Dashboard/Server Performance page objects and attributes
      * @returns A promise resolving when the page is loaded
      */
-    public create = async (): Promise<void> => {
+    public loadServerPerformance = async (): Promise<void> => {
         const performanceDashboardLocator = locator.mysqlAdministration.performanceDashboard;
 
         const [
@@ -194,6 +208,89 @@ export class E2EPerformanceDashboard {
             bufferWrites,
             reading,
         };
+    };
+
+    /**
+     * Loads the Performance Dashboard/MLE Performance page objects and attributes
+     * @returns A promise resolving when the page is loaded
+     */
+    public loadMLEPerformance = async (): Promise<void> => {
+        const performanceDashboardLocator = locator.mysqlAdministration.performanceDashboard;
+
+        this.mlePerformance = {
+            heapUsageGraph: await driver
+                .findElement(performanceDashboardLocator.mleStatus.heapUsageGraph),
+            mleStatus: await (await driver
+                .findElement(performanceDashboardLocator.mleStatus.mleStatus)).getText(),
+            mleMaxHeapSize: await (await driver
+                .findElement(performanceDashboardLocator.mleStatus.mleMaxHeapSize)).getText(),
+            mleHeapUtilizationGraph: await driver
+                .findElement(performanceDashboardLocator.mleStatus.mleHeapUtilizationGraph),
+            currentHeapUsage: await (await driver
+                .findElement(performanceDashboardLocator.mleStatus.currentHeapUsage)).getText(),
+        };
+    };
+
+    /**
+     * Verifies if the tab exists
+     * @param tabName The tab name
+     * @returns A promise resolving to true if the tab exists, false otherwise
+     */
+    public untilTabExists = (tabName: string): Condition<boolean> => {
+        return new Condition(`for ${tabName} to exist`, async () => {
+            return this.tabExists(tabName);
+        });
+    };
+
+    /**
+     * Verifies if the tab exists
+     * @param tabName The tab name
+     * @returns A promise resolving to true if the tab exists, false otherwise
+     */
+    public tabExists = async (tabName: string): Promise<boolean> => {
+        if (tabName === constants.perfDashServerTab) {
+            return (await driver.findElements(locator.mysqlAdministration.performanceDashboard.serverTab))
+                .length > 0;
+        } else if (tabName === constants.perfDashMLETab) {
+            return (await driver.findElements(locator.mysqlAdministration.performanceDashboard.mleTab)).length > 0;
+        } else {
+            throw new Error(`Unknown tab ${tabName}`);
+        }
+    };
+
+    /**
+     * Verifies if the tab is selected
+     * @param tabName The tab name
+     * @returns A promise resolving to true if the tab is selected, false otherwise
+     */
+    public tabIsSelected = async (tabName: string): Promise<boolean> => {
+        let tab: WebElement;
+        if (tabName === constants.perfDashServerTab) {
+            tab = driver.findElement(locator.mysqlAdministration.performanceDashboard.serverTab);
+        } else if (tabName === constants.perfDashMLETab) {
+            tab = driver.findElement(locator.mysqlAdministration.performanceDashboard.mleTab);
+        } else {
+            throw new Error(`Unknown tab ${tabName}`);
+        }
+
+        return (await tab.getAttribute("class")).includes("selected");
+    };
+
+    /**
+     * Gets the tab
+     * @param tabName The tab name
+     * @returns A promise resolving with the tab
+     */
+    public getTab = async (tabName: string): Promise<WebElement | undefined> => {
+        if (tabName === constants.perfDashServerTab) {
+            return driver.wait(until.elementLocated(locator.mysqlAdministration.performanceDashboard.serverTab),
+                constants.wait3seconds, "Could not find Server Performance tab");
+        } else if (tabName === constants.perfDashMLETab) {
+            return driver.wait(until.elementLocated(locator.mysqlAdministration.performanceDashboard.mleTab),
+                constants.wait3seconds, "Could not find MLE Performance tab");
+        } else {
+            throw new Error(`Unknown tab ${tabName}`);
+        }
     };
 
 }

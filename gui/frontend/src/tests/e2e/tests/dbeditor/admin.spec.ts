@@ -166,14 +166,15 @@ describe("MySQL Administration", () => {
         }
     });
 
-    it("Performance Dashboard", async () => {
+    it("Performance Dashboard - MLE Disabled", async () => {
         try {
-            await (await notebook.explorer.getMySQLAdminElement(constants.performanceDashboard)).click();
+            await driver.executeScript("arguments[0].click()",
+                await notebook.explorer.getMySQLAdminElement(constants.performanceDashboard));
             await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.performanceDashboard),
                 constants.wait15seconds);
-            expect((await toolbar.getCurrentEditor())!.label).toBe(constants.performanceDashboard);
+            expect(await mysqlAdministration.performanceDashboard.tabExists(constants.perfDashMLETab)).toBe(false);
 
-            await mysqlAdministration.performanceDashboard.create();
+            await mysqlAdministration.performanceDashboard.loadServerPerformance();
             expect(mysqlAdministration.performanceDashboard.networkStatus!.incomingNetworkTrafficGraph).toBeDefined();
             expect(mysqlAdministration.performanceDashboard.networkStatus!.incomingData).toMatch(/(\d+) B\/s/);
             expect(mysqlAdministration.performanceDashboard.networkStatus!.outgoingNetworkTrafficGraph).toBeDefined();
@@ -206,6 +207,107 @@ describe("MySQL Administration", () => {
             expect(mysqlAdministration.performanceDashboard.innoDBStatus!.innoDBDiskReadsGraph).toBeDefined();
             expect(mysqlAdministration.performanceDashboard.innoDBStatus!.bufferWrites).toMatch(/(\d+) B\/s/);
             expect(mysqlAdministration.performanceDashboard.innoDBStatus!.reading).toMatch(/(\d+) B\/s/);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Performance Dashboard - MLE Enabled", async () => {
+        try {
+            await mysqlAdministration.performanceDashboard.editorSelector
+                .selectEditor(new RegExp(constants.dbNotebook));
+            let notebook = new E2ENotebook();
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
+            await notebook.codeEditor.loadCommandResults();
+            let result = await notebook.codeEditor.execute(`INSTALL COMPONENT "file://component_mle";`);
+            expect(result.text).toMatch(/OK/);
+
+            await mysqlAdministration.performanceDashboard.editorSelector
+                .selectEditor(new RegExp(constants.performanceDashboard));
+            await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.performanceDashboard),
+                constants.wait15seconds);
+
+            await driver.wait(mysqlAdministration.performanceDashboard.untilTabExists(constants.perfDashServerTab),
+                constants.wait3seconds);
+            await driver.wait(mysqlAdministration.performanceDashboard.untilTabExists(constants.perfDashMLETab),
+                constants.wait3seconds);
+            expect(await mysqlAdministration.performanceDashboard.tabIsSelected(constants.perfDashServerTab))
+                .toBe(true);
+
+            await mysqlAdministration.performanceDashboard.loadServerPerformance();
+            expect(mysqlAdministration.performanceDashboard.networkStatus!.incomingNetworkTrafficGraph).toBeDefined();
+            expect(mysqlAdministration.performanceDashboard.networkStatus!.incomingData).toMatch(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.networkStatus!.outgoingNetworkTrafficGraph).toBeDefined();
+            expect(mysqlAdministration.performanceDashboard.networkStatus!.outgoingData).toMatch(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus!.tableCacheGraph).toBeDefined();
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus!.threadsGraph).toBeDefined();
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus!.openObjectsGraph).toBeDefined();
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus!.cacheEfficiency).toMatch(/(\d+)%/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus!.totalOpenedTables).toMatch(/(\d+)/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus!.totalTransactions).toMatch(/(\d+)/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus!.sqlStatementsExecutedGraph).toBeDefined();
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus!.totalStatements).toMatch(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus!.select).toMatch(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus!.insert).toMatch(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus!.update).toMatch(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus!.delete).toMatch(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus!.create).toMatch(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus!.alter).toMatch(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.mysqlStatus!.drop).toMatch(/(\d+)\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus!.innoDBBufferPoolGraph).toBeDefined();
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus!.checkpointAgeGraph).toBeDefined();
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus!.diskReadRatioGraph).toBeDefined();
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus!.readRequests).toMatch(/(\d+) pages\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus!.writeRequests).toMatch(/(\d+) pages\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus!.diskReads).toMatch(/(\d+) #\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus!.innoDBDiskWritesGraph).toBeDefined();
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus!.logDataWritten).toMatch(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus!.logWrites).toMatch(/(\d+) #\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus!.writing).toMatch(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus!.innoDBDiskReadsGraph).toBeDefined();
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus!.bufferWrites).toMatch(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus!.reading).toMatch(/(\d+) B\/s/);
+
+            await (await mysqlAdministration.performanceDashboard.getTab(constants.perfDashMLETab))!.click();
+            await mysqlAdministration.performanceDashboard.loadMLEPerformance();
+            expect(mysqlAdministration.performanceDashboard.mlePerformance!.heapUsageGraph).toBeDefined();
+            expect(mysqlAdministration.performanceDashboard.mlePerformance!.mleStatus).toBe("Inactive");
+            expect(mysqlAdministration.performanceDashboard.mlePerformance!.mleMaxHeapSize).toMatch(/(\d+).(\d+) GB/);
+            expect(mysqlAdministration.performanceDashboard.mlePerformance!.mleHeapUtilizationGraph).toBeDefined();
+            expect(mysqlAdministration.performanceDashboard.mlePerformance!.currentHeapUsage).toBe("0%");
+
+            await mysqlAdministration.performanceDashboard.editorSelector
+                .selectEditor(new RegExp(constants.dbNotebook));
+            notebook = new E2ENotebook();
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
+            await notebook.codeEditor.loadCommandResults();
+
+            const jsFunction =
+                `CREATE FUNCTION js_pow(arg1 INT, arg2 INT) 
+                RETURNS INT DETERMINISTIC LANGUAGE JAVASCRIPT 
+                AS 
+                $$
+                let x = Math.pow(arg1, arg2)
+                return x
+                $$; 
+            `;
+
+            result = await notebook.codeEditor.executeWithButton(jsFunction, constants.execFullBlockSql);
+            expect(result.text).toMatch(/OK/);
+            result = await notebook.codeEditor.execute("SELECT js_pow(2,3);");
+            expect(result.toolbar!.status).toMatch(/OK/);
+            await mysqlAdministration.performanceDashboard.editorSelector
+                .selectEditor(new RegExp(constants.performanceDashboard));
+
+            await (await mysqlAdministration.performanceDashboard.getTab(constants.perfDashMLETab))!.click();
+            await mysqlAdministration.performanceDashboard.loadMLEPerformance();
+            expect(mysqlAdministration.performanceDashboard.mlePerformance!.mleStatus).toBe("Active");
+            const currentHeap = await driver
+                .findElement(locator.mysqlAdministration.performanceDashboard.mleStatus.currentHeapUsage);
+            await driver.executeScript("arguments[0].scrollIntoView()", currentHeap);
+            expect(parseInt(mysqlAdministration.performanceDashboard.mlePerformance!.currentHeapUsage
+                .match(/(\d+)/)![1], 10)).toBeGreaterThan(0);
         } catch (e) {
             testFailed = true;
             throw e;

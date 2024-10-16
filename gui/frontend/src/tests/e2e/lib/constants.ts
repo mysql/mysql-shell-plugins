@@ -131,6 +131,8 @@ export const serverStatus = "Server Status";
 export const clientConnections = "Client Connections";
 export const performanceDashboard = "Performance Dashboard";
 export const lakeHouseNavigator = "Lakehouse Navigator";
+export const perfDashMLETab = "MLE Performance";
+export const perfDashServerTab = "Server Performance";
 
 // LAKE HOUSE NAVIGATOR
 export const lakeHouseNavigatorEditor = "Lakehouse Navigator";
