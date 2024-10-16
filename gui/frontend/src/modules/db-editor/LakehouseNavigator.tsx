@@ -76,7 +76,7 @@ export enum LakehouseNavigatorTab {
     Manage = "manage",
 }
 
-interface ILakehouseNavigatorProperties extends IComponentProperties {
+export interface ILakehouseNavigatorProperties extends IComponentProperties {
     backend: ShellInterfaceSqlEditor;
     savedState: ILakehouseNavigatorSavedState;
 

@@ -1,0 +1,3184 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`LakehouseNavigator tests Test LakehouseNavigator instantiation 1`] = `
+<Container
+  className="lakehouseNavigatorHost"
+  orientation="column"
+>
+  <Toolbar
+    dropShadow={false}
+    id="lakehouseNavigatorToolbar"
+    vibrant={false}
+  >
+    <Divider
+      key="refreshSeparator"
+      thickness={1}
+      vertical={true}
+    />
+    <Button
+      className="toolbarButton"
+      data-tooltip="Assign the required privileges to a MySQL user"
+      id="ensureUserPrivilegesBtn"
+      imageOnly={true}
+      key="ensureUserPrivileges"
+      onClick={[Function]}
+    >
+      <Icon
+        data-tooltip="inherit"
+        disabled={false}
+        src="ensurePrivileges.svg"
+      />
+    </Button>
+    <div
+      className="expander"
+    />
+  </Toolbar>
+  <Tabview
+    hideSingleTab={false}
+    onSelectTab={[Function]}
+    pages={
+      [
+        {
+          "caption": "Overview",
+          "content": <Container
+            className="overviewTab"
+            crossAlignment="stretch"
+            mainAlignment="flex-start"
+            orientation="column"
+          >
+            <Container
+              className="overviewDiagram"
+              crossAlignment="stretch"
+              mainAlignment="flex-start"
+              orientation="row"
+            >
+              <Container
+                className="workflowStep onPremise"
+                crossAlignment="center"
+                mainAlignment="stretch"
+                orientation="column"
+              >
+                <Container
+                  className="iconLabel"
+                  orientation="row"
+                >
+                  <Icon
+                    color="#ffffff"
+                    disabled={false}
+                    src="folder.svg"
+                  />
+                  <Label
+                    caption="On-Premise"
+                    className="title"
+                  />
+                </Container>
+                <Label
+                  className="subTitle"
+                >
+                  Data to be analyzed
+                  <br />
+                  (on your local storage)
+                </Label>
+                <Image
+                  className="diagram onPremiseDiagram"
+                  disabled={false}
+                  src="lakehouseNavigatorOnPremise.svg"
+                />
+                <Container
+                  className="actionPanel"
+                  crossAlignment="stretch"
+                  mainAlignment="center"
+                  orientation="column"
+                >
+                  <Label
+                    caption="Upload Data to Object Storage"
+                    className="title"
+                  />
+                  <Label
+                    className="info"
+                  >
+                    Select this option to upload files from your local file system or local company network to the Object Storage.
+                  </Label>
+                  <Button
+                    caption="Upload Files >>"
+                    id="overviewUploadFilesBtn"
+                    onClick={[Function]}
+                  />
+                </Container>
+              </Container>
+              <Container
+                className="workflowStep objectStorage"
+                crossAlignment="center"
+                orientation="column"
+              >
+                <Container
+                  className="iconLabel"
+                  orientation="row"
+                >
+                  <Icon
+                    color="#ffffff"
+                    disabled={false}
+                    src="dataLake.svg"
+                  />
+                  <Label
+                    caption="Object Storage"
+                    className="title"
+                  />
+                </Container>
+                <Label
+                  className="subTitle"
+                >
+                  Data to be analyzed
+                  <br />
+                  (on OCI Object Storage)
+                </Label>
+                <Image
+                  className="diagram objectStorageDiagram"
+                  disabled={false}
+                  src="lakehouseNavigatorObjectStorage.svg"
+                />
+                <Container
+                  className="actionPanel"
+                  crossAlignment="stretch"
+                  mainAlignment="center"
+                  orientation="column"
+                >
+                  <Label
+                    caption="Load Data into Lakehouse"
+                    className="title"
+                  />
+                  <Label
+                    className="info"
+                  >
+                    If your files have been uploaded to the OCI Object Storage select this option to load the data into Lakehouse.
+                  </Label>
+                  <Button
+                    caption="Start Load >>"
+                    id="overviewStartLoadBtn"
+                    onClick={[Function]}
+                  />
+                </Container>
+              </Container>
+              <Container
+                className="workflowStep lakeHouse"
+                crossAlignment="center"
+                orientation="column"
+              >
+                <Container
+                  className="iconLabel"
+                  orientation="row"
+                >
+                  <Icon
+                    color="#ffffff"
+                    disabled={false}
+                    src="lakehouseHouse.svg"
+                  />
+                  <Label
+                    caption="Lakehouse"
+                    className="title"
+                  />
+                </Container>
+                <Label
+                  className="subTitle"
+                >
+                  Data ready for analysis
+                  <br />
+                  (held in memory)
+                </Label>
+                <Image
+                  className="diagram lakeHouseDiagram"
+                  disabled={false}
+                  src="lakehouseNavigatorLakeHouse.svg"
+                />
+                <Container
+                  className="actionPanel"
+                  crossAlignment="stretch"
+                  mainAlignment="center"
+                  orientation="column"
+                >
+                  <Label
+                    caption="Manage Lakehouse Tables"
+                    className="title"
+                  />
+                  <Label
+                    className="info"
+                  >
+                    This option allows you to monitor running your data loading task and manage your data inside Lakehouse.
+                  </Label>
+                  <Button
+                    caption="Manage Lakehouse"
+                    id="overviewManageLakehouse"
+                    onClick={[Function]}
+                  />
+                </Container>
+              </Container>
+              <Container
+                className="stepSeparator step1to2"
+                orientation="row"
+              >
+                &gt;&gt;&gt;
+              </Container>
+              <Container
+                className="stepSeparator step2to3"
+                orientation="row"
+              >
+                &gt;&gt;&gt;
+              </Container>
+            </Container>
+            <Container
+              className="headerTitle"
+              orientation="row"
+            >
+              <Label
+                caption="HeatWave Lakehouse Navigator"
+              />
+            </Container>
+          </Container>,
+          "id": "overview",
+          "tooltip": "Lakehouse Navigator Overview",
+        },
+        {
+          "caption": "Upload to Object Storage",
+          "content": <Container
+            className="uploadTab"
+            crossAlignment="stretch"
+            mainAlignment="center"
+            orientation="column"
+          >
+            <SplitContainer
+              className="mainSplitter"
+              onPaneResized={[Function]}
+              orientation="row"
+              panes={
+                [
+                  {
+                    "collapsed": false,
+                    "content": <Container
+                      className="filesForUpload mainPanel"
+                      crossAlignment="stretch"
+                      mainAlignment="stretch"
+                      orientation="column"
+                    >
+                      <Label
+                        caption="Files for Upload"
+                        className="titleLbl"
+                      />
+                      <Container
+                        className="panelToolbar"
+                        crossAlignment="center"
+                        mainAlignment="flex-start"
+                        orientation="row"
+                      >
+                        <Label
+                          caption="Path:"
+                        />
+                        <Input
+                          disabled={true}
+                          id="uploadTargetPath"
+                          onBlur={[Function]}
+                          onChange={[Function]}
+                          spellCheck={true}
+                          value=""
+                        />
+                        <Button
+                          className="clearFilesForUpload"
+                          id="objBrowserRefreshBtn"
+                          imageOnly={true}
+                          onClick={[Function]}
+                        >
+                          <Icon
+                            disabled={false}
+                            src={397}
+                          />
+                        </Button>
+                      </Container>
+                      <Container
+                        className="loadingTaskItems"
+                        crossAlignment="stretch"
+                        mainAlignment="stretch"
+                        orientation="column"
+                      >
+                        <Container
+                          className="uploadFilesInfo"
+                          crossAlignment="center"
+                          mainAlignment="center"
+                          orientation="column"
+                        >
+                          <g>
+                            <Label
+                              caption="• Add files for upload"
+                              className="addFilesLbl"
+                              onClick={[Function]}
+                            />
+                          </g>
+                          <g>
+                            <Label
+                              caption="• Select a target in the Object Storage Browser"
+                            />
+                          </g>
+                          <Label
+                            caption="• Click the Start File Upload button"
+                          />
+                        </Container>
+                      </Container>
+                      <Container
+                        className="loadingTaskActions"
+                        crossAlignment="stretch"
+                        mainAlignment="stretch"
+                        orientation="column"
+                      >
+                        <Container
+                          className="loadingTaskActionButtons"
+                          crossAlignment="stretch"
+                          mainAlignment="stretch"
+                          orientation="row"
+                        >
+                          <Button
+                            disabled={false}
+                            id="uploadAddFilesBtn"
+                            onClick={[Function]}
+                          >
+                            <Icon
+                              disabled={false}
+                              src={3}
+                            />
+                            <Label
+                              caption="Add Files"
+                            />
+                          </Button>
+                          <Button
+                            disabled={true}
+                            id="uploadStartFileUploadBtn"
+                            onClick={[Function]}
+                          >
+                            <Label
+                              caption="Start File Upload"
+                            />
+                            <Icon
+                              disabled={false}
+                              src={10}
+                            />
+                          </Button>
+                        </Container>
+                      </Container>
+                    </Container>,
+                    "id": "filesForUpload",
+                    "initialSize": 380,
+                    "minSize": 380,
+                    "resizable": true,
+                    "snap": true,
+                  },
+                  {
+                    "content": <g>
+                      <Container
+                        className="separator"
+                        crossAlignment="center"
+                        mainAlignment="center"
+                        orientation="column"
+                      >
+                        <Icon
+                          className="arrowIcon"
+                          disabled={false}
+                          src={10}
+                        />
+                      </Container>
+                      <Container
+                        className="objectStorageBrowser mainPanel"
+                        crossAlignment="stretch"
+                        mainAlignment="flex-start"
+                        orientation="column"
+                      >
+                        <Label
+                          caption="Object Storage Browser"
+                          className="titleLbl"
+                        />
+                        <Container
+                          className="panelToolbar"
+                          crossAlignment="center"
+                          mainAlignment="flex-start"
+                          orientation="row"
+                        >
+                          <Label
+                            caption="OCI Profile:"
+                          />
+                          <Dropdown
+                            id="objBrowserOciProfileDropdown"
+                            multiSelect={false}
+                            onSelect={[Function]}
+                            optional={false}
+                            placeholder="Profile"
+                            showDescription={false}
+                            withoutArrow={false}
+                          />
+                          <Container
+                            className="placeHolder"
+                            orientation="row"
+                          />
+                          <Button
+                            className="refreshBtn"
+                            id="objBrowserRefreshBtn"
+                            imageOnly={true}
+                            onClick={[Function]}
+                          >
+                            <Icon
+                              disabled={false}
+                              src={286}
+                            />
+                          </Button>
+                        </Container>
+                        <Container
+                          className="loadingTaskItemInfo"
+                          crossAlignment="center"
+                          mainAlignment="center"
+                          orientation="column"
+                        >
+                          <Label
+                            caption="Please add your OCI configuration to the Oracle Cloud Infrastructure sidebar."
+                          />
+                        </Container>
+                      </Container>
+                    </g>,
+                    "id": "objectStoreBrowserForFileUpload",
+                    "minSize": 300,
+                    "snap": false,
+                    "stretch": true,
+                  },
+                ]
+              }
+              splitterSize={4}
+            />
+          </Container>,
+          "id": "upload",
+          "tooltip": "Upload local files to Object Storage",
+        },
+        {
+          "caption": "Load into Lakehouse",
+          "content": <Container
+            className="loadTab"
+            crossAlignment="stretch"
+            mainAlignment="flex-start"
+            orientation="column"
+          >
+            <SplitContainer
+              className="mainSplitter"
+              onPaneResized={[Function]}
+              orientation="row"
+              panes={
+                [
+                  {
+                    "content": <g>
+                      <Container
+                        className="objectStorageBrowser mainPanel"
+                        crossAlignment="stretch"
+                        mainAlignment="flex-start"
+                        orientation="column"
+                      >
+                        <Label
+                          caption="Object Storage Browser"
+                          className="titleLbl"
+                        />
+                        <Container
+                          className="panelToolbar"
+                          crossAlignment="center"
+                          mainAlignment="flex-start"
+                          orientation="row"
+                        >
+                          <Label
+                            caption="OCI Profile:"
+                          />
+                          <Dropdown
+                            id="objBrowserOciProfileDropdown"
+                            multiSelect={false}
+                            onSelect={[Function]}
+                            optional={false}
+                            placeholder="Profile"
+                            showDescription={false}
+                            withoutArrow={false}
+                          />
+                          <Container
+                            className="placeHolder"
+                            orientation="row"
+                          />
+                          <Button
+                            className="refreshBtn"
+                            id="objBrowserRefreshBtn"
+                            imageOnly={true}
+                            onClick={[Function]}
+                          >
+                            <Icon
+                              disabled={false}
+                              src={286}
+                            />
+                          </Button>
+                        </Container>
+                        <Container
+                          className="loadingTaskItemInfo"
+                          crossAlignment="center"
+                          mainAlignment="center"
+                          orientation="column"
+                        >
+                          <Label
+                            caption="Please add your OCI configuration to the Oracle Cloud Infrastructure sidebar."
+                          />
+                        </Container>
+                      </Container>
+                      <Container
+                        className="separator"
+                        crossAlignment="center"
+                        mainAlignment="center"
+                        orientation="column"
+                      >
+                        <Icon
+                          className="arrowIcon"
+                          disabled={false}
+                          src={10}
+                        />
+                      </Container>
+                    </g>,
+                    "id": "objectStoreBrowserForNewLoadTask",
+                    "minSize": 300,
+                    "resizable": true,
+                    "snap": false,
+                    "stretch": true,
+                  },
+                  {
+                    "collapsed": false,
+                    "content": <g>
+                      <Container
+                        className="loadingTaskPreview mainPanel"
+                        crossAlignment="stretch"
+                        mainAlignment="stretch"
+                        orientation="column"
+                      >
+                        <Label
+                          caption="New Loading Task"
+                          className="titleLbl"
+                        />
+                        <Container
+                          className="taskProperties"
+                          crossAlignment="stretch"
+                          mainAlignment="flex-start"
+                          orientation="column"
+                        >
+                          <Container
+                            className="taskPropertyContainer"
+                            crossAlignment="stretch"
+                            mainAlignment="stretch"
+                            orientation="row"
+                          >
+                            <Icon
+                              className="loadingTaskPreviewIcon"
+                              disabled={false}
+                              src="lakehouseNavigator.svg"
+                            />
+                            <Container
+                              className="taskInputLabelContainer"
+                              orientation="column"
+                            >
+                              <Label
+                                caption="Vector Store Table Name"
+                              />
+                              <Input
+                                autoFocus={true}
+                                className="taskTableName"
+                                id="loadTaskTableName"
+                                onChange={[Function]}
+                                placeholder="lakehouse_data_<#>"
+                                spellCheck={true}
+                              />
+                            </Container>
+                          </Container>
+                          <Container
+                            className="taskInputLabelContainer"
+                            orientation="column"
+                          >
+                            <Label
+                              caption="Table Description"
+                            />
+                            <Input
+                              className="taskDescription"
+                              id="loadTaskDescription"
+                              multiLine={true}
+                              multiLineCount={2}
+                              onChange={[Function]}
+                              placeholder="Data from Object Storage"
+                              spellCheck={true}
+                            />
+                          </Container>
+                          <Container
+                            className="taskPropertyContainer"
+                            crossAlignment="flex-end"
+                            mainAlignment="stretch"
+                            orientation="row"
+                          >
+                            <Container
+                              className="taskInputLabelContainer"
+                              orientation="column"
+                            >
+                              <Label
+                                caption="Target Database Schema"
+                              />
+                              <Container
+                                className="taskInputLabelContainer"
+                                orientation="row"
+                              >
+                                <Dropdown
+                                  id="loadTaskTargetSchemaDropdown"
+                                  multiSelect={false}
+                                  onSelect={[Function]}
+                                  optional={false}
+                                  showDescription={false}
+                                  withoutArrow={false}
+                                />
+                                <Button
+                                  id="loadTaskAddSchemaBtn"
+                                  imageOnly={true}
+                                  onClick={[Function]}
+                                >
+                                  <Icon
+                                    disabled={false}
+                                    src={3}
+                                  />
+                                </Button>
+                                <Button
+                                  id="refreshTaskAddSchemaBtn"
+                                  imageOnly={true}
+                                  onClick={[Function]}
+                                >
+                                  <Icon
+                                    disabled={false}
+                                    src={286}
+                                  />
+                                </Button>
+                              </Container>
+                            </Container>
+                          </Container>
+                          <Container
+                            className="taskInputLabelContainer"
+                            orientation="column"
+                          >
+                            <Label
+                              caption="Formats:"
+                            />
+                            <Dropdown
+                              id="loadTaskFormatsDropdown"
+                              multiSelect={false}
+                              onSelect={[Function]}
+                              optional={false}
+                              selection="all"
+                              showDescription={false}
+                              withoutArrow={false}
+                            >
+                              <DropdownItem
+                                caption="All Supported Formats"
+                                id="all"
+                              />
+                            </Dropdown>
+                          </Container>
+                        </Container>
+                        <Container
+                          className="loadingTaskItems"
+                          crossAlignment="stretch"
+                          mainAlignment="stretch"
+                          orientation="column"
+                        >
+                          <Container
+                            className="loadingTaskItemInfo"
+                            crossAlignment="center"
+                            mainAlignment="center"
+                            orientation="column"
+                          >
+                            <Label
+                              caption="Please select items from the Object Storage Browser."
+                            />
+                          </Container>
+                        </Container>
+                        <Container
+                          className="loadingTaskActions"
+                          crossAlignment="stretch"
+                          mainAlignment="stretch"
+                          orientation="column"
+                        >
+                          <Container
+                            className="loadingTaskActionButtons"
+                            crossAlignment="stretch"
+                            mainAlignment="stretch"
+                            orientation="row"
+                          >
+                            <Button
+                              disabled={true}
+                              id="loadStartLoadingTaskBtn"
+                              onClick={[Function]}
+                            >
+                              <Label
+                                caption="Start Loading Task"
+                              />
+                              <Icon
+                                disabled={false}
+                                src={10}
+                              />
+                            </Button>
+                          </Container>
+                        </Container>
+                      </Container>
+                    </g>,
+                    "id": "newLoadTask",
+                    "initialSize": 380,
+                    "minSize": 380,
+                    "snap": true,
+                  },
+                ]
+              }
+              splitterSize={4}
+            />
+          </Container>,
+          "id": "load",
+          "tooltip": "Load from Object Storage into Lakehouse",
+        },
+        {
+          "caption": "Lakehouse Tables",
+          "content": <Container
+            className="lakehouseTablesTab"
+            crossAlignment="stretch"
+            mainAlignment="flex-start"
+            orientation="column"
+          >
+            <SplitContainer
+              className="mainSplitter"
+              onPaneResized={[Function]}
+              orientation="column"
+              panes={
+                [
+                  {
+                    "content": <Container
+                      className="lakehouseTablesPanel mainPanel"
+                      crossAlignment="stretch"
+                      mainAlignment="flex-start"
+                      orientation="column"
+                    >
+                      <Label
+                        caption="Lakehouse Tables"
+                        className="titleLbl"
+                      />
+                      <Container
+                        className="panelToolbar"
+                        crossAlignment="center"
+                        mainAlignment="flex-start"
+                        orientation="row"
+                      >
+                        <Label
+                          caption="HeatWave Memory:"
+                        />
+                        <Container
+                          className="heatWaveMemory"
+                          orientation="row"
+                        >
+                          <Container
+                            className="heatWaveMemoryUsage"
+                            orientation="row"
+                            style={
+                              {
+                                "width": "4.5px",
+                              }
+                            }
+                          />
+                          <Label
+                            caption="0 B free"
+                            id="lakehouseMemLbl"
+                          />
+                        </Container>
+                        <Container
+                          className="placeHolder"
+                          orientation="row"
+                        />
+                        <Button
+                          caption="Reload Tables"
+                          id="lakehouseReloadTablesBtn"
+                          onClick={[Function]}
+                        />
+                        <Button
+                          caption="Unload Tables"
+                          id="lakehouseUnloadTablesBtn"
+                          onClick={[Function]}
+                        />
+                        <Button
+                          id="lakehouseDeleteTablesBtn"
+                          imageOnly={true}
+                          onClick={[Function]}
+                        >
+                          <Icon
+                            disabled={false}
+                            src={397}
+                          />
+                        </Button>
+                        <Toggle
+                          caption="Auto-Refresh"
+                          checkState={1}
+                          disabled={false}
+                          id="lakehouseAutoRefreshToggle"
+                          onChange={[Function]}
+                          round={true}
+                        />
+                        <Button
+                          id="lakehouseRefreshBtn"
+                          imageOnly={true}
+                          onClick={[Function]}
+                        >
+                          <Icon
+                            disabled={false}
+                            src={286}
+                          />
+                        </Button>
+                      </Container>
+                      <Container
+                        className="schemaTablesContainer"
+                        crossAlignment="stretch"
+                        mainAlignment="flex-start"
+                        orientation="row"
+                      >
+                        <Container
+                          className="schemaList"
+                          crossAlignment="stretch"
+                          mainAlignment="flex-start"
+                          orientation="column"
+                        />
+                        <Container
+                          className="tableList"
+                          crossAlignment="stretch"
+                          mainAlignment="flex-start"
+                          orientation="column"
+                        >
+                          <Container
+                            className="loadingTaskItemInfo"
+                            crossAlignment="center"
+                            mainAlignment="center"
+                            orientation="column"
+                          >
+                            <Container
+                              crossAlignment="center"
+                              mainAlignment="center"
+                              orientation="row"
+                            >
+                              <Label
+                                caption="There are no Lakehouse tables in the schema yet."
+                              />
+                            </Container>
+                          </Container>
+                        </Container>
+                      </Container>
+                    </Container>,
+                    "id": "lakehouseTablePanel",
+                    "minSize": 300,
+                    "resizable": true,
+                    "snap": false,
+                    "stretch": true,
+                  },
+                  {
+                    "collapsed": false,
+                    "content": <Container
+                      className="taskListPanel mainPanel"
+                      crossAlignment="stretch"
+                      mainAlignment="flex-start"
+                      orientation="column"
+                    >
+                      <Label
+                        caption="Current Task List"
+                        className="titleLbl"
+                      />
+                      <Container
+                        className="panelToolbar"
+                        crossAlignment="center"
+                        mainAlignment="flex-start"
+                        orientation="row"
+                      >
+                        <Container
+                          className="placeHolder"
+                          orientation="row"
+                        />
+                        <Button
+                          caption="Cancel Tasks"
+                          id="lakehouseTaskCancelBtn"
+                          onClick={[Function]}
+                        />
+                      </Container>
+                      <Container
+                        className="taskListContainer"
+                        crossAlignment="stretch"
+                        mainAlignment="flex-start"
+                        orientation="column"
+                      >
+                        <Container
+                          className="loadingTaskItemInfo"
+                          crossAlignment="center"
+                          mainAlignment="center"
+                          orientation="column"
+                        >
+                          <Label
+                            caption="No loading tasks scheduled at this time."
+                          />
+                        </Container>
+                      </Container>
+                    </Container>,
+                    "id": "taskListPanel",
+                    "initialSize": 200,
+                    "minSize": 200,
+                    "snap": true,
+                  },
+                ]
+              }
+              splitterSize={4}
+            />
+          </Container>,
+          "id": "manage",
+          "tooltip": "Lakehouse Tables and Loading Tasks",
+        },
+      ]
+    }
+    selectedId="overview"
+    showTabs={true}
+    stretchTabs={true}
+    tabPosition="top"
+  />
+</Container>
+`;
+
+exports[`LakehouseNavigator tests Test getLoadTabContent with no task items 1`] = `
+<Container
+  className="loadTab"
+  crossAlignment="stretch"
+  mainAlignment="flex-start"
+  orientation="column"
+>
+  <SplitContainer
+    className="mainSplitter"
+    onPaneResized={[Function]}
+    orientation="row"
+    panes={
+      [
+        {
+          "content": <g>
+            <Container
+              className="objectStorageBrowser mainPanel"
+              crossAlignment="stretch"
+              mainAlignment="flex-start"
+              orientation="column"
+            >
+              <Label
+                caption="Object Storage Browser"
+                className="titleLbl"
+              />
+              <Container
+                className="panelToolbar"
+                crossAlignment="center"
+                mainAlignment="flex-start"
+                orientation="row"
+              >
+                <Label
+                  caption="OCI Profile:"
+                />
+                <Dropdown
+                  id="objBrowserOciProfileDropdown"
+                  multiSelect={false}
+                  onSelect={[Function]}
+                  optional={false}
+                  placeholder="Profile"
+                  showDescription={false}
+                  withoutArrow={false}
+                />
+                <Container
+                  className="placeHolder"
+                  orientation="row"
+                />
+                <Button
+                  className="refreshBtn"
+                  id="objBrowserRefreshBtn"
+                  imageOnly={true}
+                  onClick={[Function]}
+                >
+                  <Icon
+                    disabled={false}
+                    src={286}
+                  />
+                </Button>
+              </Container>
+              <Container
+                className="loadingTaskItemInfo"
+                crossAlignment="center"
+                mainAlignment="center"
+                orientation="column"
+              >
+                <Label
+                  caption="Please add your OCI configuration to the Oracle Cloud Infrastructure sidebar."
+                />
+              </Container>
+            </Container>
+            <Container
+              className="separator"
+              crossAlignment="center"
+              mainAlignment="center"
+              orientation="column"
+            >
+              <Icon
+                className="arrowIcon"
+                disabled={false}
+                src={10}
+              />
+            </Container>
+          </g>,
+          "id": "objectStoreBrowserForNewLoadTask",
+          "minSize": 300,
+          "resizable": true,
+          "snap": false,
+          "stretch": true,
+        },
+        {
+          "collapsed": false,
+          "content": <g>
+            <Container
+              className="loadingTaskPreview mainPanel"
+              crossAlignment="stretch"
+              mainAlignment="stretch"
+              orientation="column"
+            >
+              <Label
+                caption="New Loading Task"
+                className="titleLbl"
+              />
+              <Container
+                className="taskProperties"
+                crossAlignment="stretch"
+                mainAlignment="flex-start"
+                orientation="column"
+              >
+                <Container
+                  className="taskPropertyContainer"
+                  crossAlignment="stretch"
+                  mainAlignment="stretch"
+                  orientation="row"
+                >
+                  <Icon
+                    className="loadingTaskPreviewIcon"
+                    disabled={false}
+                    src="lakehouseNavigator.svg"
+                  />
+                  <Container
+                    className="taskInputLabelContainer"
+                    orientation="column"
+                  >
+                    <Label
+                      caption="Vector Store Table Name"
+                    />
+                    <Input
+                      autoFocus={true}
+                      className="taskTableName"
+                      id="loadTaskTableName"
+                      onChange={[Function]}
+                      placeholder="lakehouse_data_<#>"
+                      spellCheck={true}
+                    />
+                  </Container>
+                </Container>
+                <Container
+                  className="taskInputLabelContainer"
+                  orientation="column"
+                >
+                  <Label
+                    caption="Table Description"
+                  />
+                  <Input
+                    className="taskDescription"
+                    id="loadTaskDescription"
+                    multiLine={true}
+                    multiLineCount={2}
+                    onChange={[Function]}
+                    placeholder="Data from Object Storage"
+                    spellCheck={true}
+                  />
+                </Container>
+                <Container
+                  className="taskPropertyContainer"
+                  crossAlignment="flex-end"
+                  mainAlignment="stretch"
+                  orientation="row"
+                >
+                  <Container
+                    className="taskInputLabelContainer"
+                    orientation="column"
+                  >
+                    <Label
+                      caption="Target Database Schema"
+                    />
+                    <Container
+                      className="taskInputLabelContainer"
+                      orientation="row"
+                    >
+                      <Dropdown
+                        id="loadTaskTargetSchemaDropdown"
+                        multiSelect={false}
+                        onSelect={[Function]}
+                        optional={false}
+                        showDescription={false}
+                        withoutArrow={false}
+                      />
+                      <Button
+                        id="loadTaskAddSchemaBtn"
+                        imageOnly={true}
+                        onClick={[Function]}
+                      >
+                        <Icon
+                          disabled={false}
+                          src={3}
+                        />
+                      </Button>
+                      <Button
+                        id="refreshTaskAddSchemaBtn"
+                        imageOnly={true}
+                        onClick={[Function]}
+                      >
+                        <Icon
+                          disabled={false}
+                          src={286}
+                        />
+                      </Button>
+                    </Container>
+                  </Container>
+                </Container>
+                <Container
+                  className="taskInputLabelContainer"
+                  orientation="column"
+                >
+                  <Label
+                    caption="Formats:"
+                  />
+                  <Dropdown
+                    id="loadTaskFormatsDropdown"
+                    multiSelect={false}
+                    onSelect={[Function]}
+                    optional={false}
+                    selection="all"
+                    showDescription={false}
+                    withoutArrow={false}
+                  >
+                    <DropdownItem
+                      caption="All Supported Formats"
+                      id="all"
+                    />
+                  </Dropdown>
+                </Container>
+              </Container>
+              <Container
+                className="loadingTaskItems"
+                crossAlignment="stretch"
+                mainAlignment="stretch"
+                orientation="column"
+              >
+                <Container
+                  className="loadingTaskItemInfo"
+                  crossAlignment="center"
+                  mainAlignment="center"
+                  orientation="column"
+                >
+                  <Label
+                    caption="Please select items from the Object Storage Browser."
+                  />
+                </Container>
+              </Container>
+              <Container
+                className="loadingTaskActions"
+                crossAlignment="stretch"
+                mainAlignment="stretch"
+                orientation="column"
+              >
+                <Container
+                  className="loadingTaskActionButtons"
+                  crossAlignment="stretch"
+                  mainAlignment="stretch"
+                  orientation="row"
+                >
+                  <Button
+                    disabled={true}
+                    id="loadStartLoadingTaskBtn"
+                    onClick={[Function]}
+                  >
+                    <Label
+                      caption="Start Loading Task"
+                    />
+                    <Icon
+                      disabled={false}
+                      src={10}
+                    />
+                  </Button>
+                </Container>
+              </Container>
+            </Container>
+          </g>,
+          "id": "newLoadTask",
+          "initialSize": 380,
+          "minSize": 380,
+          "snap": true,
+        },
+      ]
+    }
+    splitterSize={4}
+  />
+</Container>
+`;
+
+exports[`LakehouseNavigator tests Test getLoadTabContent with task items 1`] = `
+<Container
+  className="loadTab"
+  crossAlignment="stretch"
+  mainAlignment="flex-start"
+  orientation="column"
+>
+  <SplitContainer
+    className="mainSplitter"
+    onPaneResized={[Function]}
+    orientation="row"
+    panes={
+      [
+        {
+          "content": <g>
+            <Container
+              className="objectStorageBrowser mainPanel"
+              crossAlignment="stretch"
+              mainAlignment="flex-start"
+              orientation="column"
+            >
+              <Label
+                caption="Object Storage Browser"
+                className="titleLbl"
+              />
+              <Container
+                className="panelToolbar"
+                crossAlignment="center"
+                mainAlignment="flex-start"
+                orientation="row"
+              >
+                <Label
+                  caption="OCI Profile:"
+                />
+                <Dropdown
+                  id="objBrowserOciProfileDropdown"
+                  multiSelect={false}
+                  onSelect={[Function]}
+                  optional={false}
+                  placeholder="Profile"
+                  showDescription={false}
+                  withoutArrow={false}
+                />
+                <Container
+                  className="placeHolder"
+                  orientation="row"
+                />
+                <Button
+                  className="refreshBtn"
+                  id="objBrowserRefreshBtn"
+                  imageOnly={true}
+                  onClick={[Function]}
+                >
+                  <Icon
+                    disabled={false}
+                    src={286}
+                  />
+                </Button>
+              </Container>
+              <Container
+                className="loadingTaskItemInfo"
+                crossAlignment="center"
+                mainAlignment="center"
+                orientation="column"
+              >
+                <Label
+                  caption="Please add your OCI configuration to the Oracle Cloud Infrastructure sidebar."
+                />
+              </Container>
+            </Container>
+            <Container
+              className="separator"
+              crossAlignment="center"
+              mainAlignment="center"
+              orientation="column"
+            >
+              <Icon
+                className="arrowIcon"
+                disabled={false}
+                src={10}
+              />
+            </Container>
+          </g>,
+          "id": "objectStoreBrowserForNewLoadTask",
+          "minSize": 300,
+          "resizable": true,
+          "snap": false,
+          "stretch": true,
+        },
+        {
+          "collapsed": false,
+          "content": <g>
+            <Container
+              className="loadingTaskPreview mainPanel"
+              crossAlignment="stretch"
+              mainAlignment="stretch"
+              orientation="column"
+            >
+              <Label
+                caption="New Loading Task"
+                className="titleLbl"
+              />
+              <Container
+                className="taskProperties"
+                crossAlignment="stretch"
+                mainAlignment="flex-start"
+                orientation="column"
+              >
+                <Container
+                  className="taskPropertyContainer"
+                  crossAlignment="stretch"
+                  mainAlignment="stretch"
+                  orientation="row"
+                >
+                  <Icon
+                    className="loadingTaskPreviewIcon"
+                    disabled={false}
+                    src="lakehouseNavigator.svg"
+                  />
+                  <Container
+                    className="taskInputLabelContainer"
+                    orientation="column"
+                  >
+                    <Label
+                      caption="Vector Store Table Name"
+                    />
+                    <Input
+                      autoFocus={true}
+                      className="taskTableName"
+                      id="loadTaskTableName"
+                      onChange={[Function]}
+                      placeholder="lakehouse_data_<#>"
+                      spellCheck={true}
+                    />
+                  </Container>
+                </Container>
+                <Container
+                  className="taskInputLabelContainer"
+                  orientation="column"
+                >
+                  <Label
+                    caption="Table Description"
+                  />
+                  <Input
+                    className="taskDescription"
+                    id="loadTaskDescription"
+                    multiLine={true}
+                    multiLineCount={2}
+                    onChange={[Function]}
+                    placeholder="Data from Object Storage"
+                    spellCheck={true}
+                  />
+                </Container>
+                <Container
+                  className="taskPropertyContainer"
+                  crossAlignment="flex-end"
+                  mainAlignment="stretch"
+                  orientation="row"
+                >
+                  <Container
+                    className="taskInputLabelContainer"
+                    orientation="column"
+                  >
+                    <Label
+                      caption="Target Database Schema"
+                    />
+                    <Container
+                      className="taskInputLabelContainer"
+                      orientation="row"
+                    >
+                      <Dropdown
+                        id="loadTaskTargetSchemaDropdown"
+                        multiSelect={false}
+                        onSelect={[Function]}
+                        optional={false}
+                        showDescription={false}
+                        withoutArrow={false}
+                      />
+                      <Button
+                        id="loadTaskAddSchemaBtn"
+                        imageOnly={true}
+                        onClick={[Function]}
+                      >
+                        <Icon
+                          disabled={false}
+                          src={3}
+                        />
+                      </Button>
+                      <Button
+                        id="refreshTaskAddSchemaBtn"
+                        imageOnly={true}
+                        onClick={[Function]}
+                      >
+                        <Icon
+                          disabled={false}
+                          src={286}
+                        />
+                      </Button>
+                    </Container>
+                  </Container>
+                </Container>
+                <Container
+                  className="taskInputLabelContainer"
+                  orientation="column"
+                >
+                  <Label
+                    caption="Formats:"
+                  />
+                  <Dropdown
+                    id="loadTaskFormatsDropdown"
+                    multiSelect={false}
+                    onSelect={[Function]}
+                    optional={false}
+                    selection="all"
+                    showDescription={false}
+                    withoutArrow={false}
+                  >
+                    <DropdownItem
+                      caption="All Supported Formats"
+                      id="all"
+                    />
+                  </Dropdown>
+                </Container>
+              </Container>
+              <Container
+                className="loadingTaskItems"
+                crossAlignment="stretch"
+                mainAlignment="stretch"
+                orientation="column"
+              >
+                <Container
+                  className="loadingTaskItemInfo"
+                  crossAlignment="center"
+                  mainAlignment="center"
+                  orientation="column"
+                >
+                  <Label
+                    caption="Please select items from the Object Storage Browser."
+                  />
+                </Container>
+              </Container>
+              <Container
+                className="loadingTaskActions"
+                crossAlignment="stretch"
+                mainAlignment="stretch"
+                orientation="column"
+              >
+                <Container
+                  className="loadingTaskActionButtons"
+                  crossAlignment="stretch"
+                  mainAlignment="stretch"
+                  orientation="row"
+                >
+                  <Button
+                    disabled={true}
+                    id="loadStartLoadingTaskBtn"
+                    onClick={[Function]}
+                  >
+                    <Label
+                      caption="Start Loading Task"
+                    />
+                    <Icon
+                      disabled={false}
+                      src={10}
+                    />
+                  </Button>
+                </Container>
+              </Container>
+            </Container>
+          </g>,
+          "id": "newLoadTask",
+          "initialSize": 380,
+          "minSize": 380,
+          "snap": true,
+        },
+      ]
+    }
+    splitterSize={4}
+  />
+</Container>
+`;
+
+exports[`LakehouseNavigator tests Test getLoadTabContent with task schedule error 1`] = `
+<Container
+  className="loadTab"
+  crossAlignment="stretch"
+  mainAlignment="flex-start"
+  orientation="column"
+>
+  <SplitContainer
+    className="mainSplitter"
+    onPaneResized={[Function]}
+    orientation="row"
+    panes={
+      [
+        {
+          "content": <g>
+            <Container
+              className="objectStorageBrowser mainPanel"
+              crossAlignment="stretch"
+              mainAlignment="flex-start"
+              orientation="column"
+            >
+              <Label
+                caption="Object Storage Browser"
+                className="titleLbl"
+              />
+              <Container
+                className="panelToolbar"
+                crossAlignment="center"
+                mainAlignment="flex-start"
+                orientation="row"
+              >
+                <Label
+                  caption="OCI Profile:"
+                />
+                <Dropdown
+                  id="objBrowserOciProfileDropdown"
+                  multiSelect={false}
+                  onSelect={[Function]}
+                  optional={false}
+                  placeholder="Profile"
+                  showDescription={false}
+                  withoutArrow={false}
+                />
+                <Container
+                  className="placeHolder"
+                  orientation="row"
+                />
+                <Button
+                  className="refreshBtn"
+                  id="objBrowserRefreshBtn"
+                  imageOnly={true}
+                  onClick={[Function]}
+                >
+                  <Icon
+                    disabled={false}
+                    src={286}
+                  />
+                </Button>
+              </Container>
+              <Container
+                className="loadingTaskItemInfo"
+                crossAlignment="center"
+                mainAlignment="center"
+                orientation="column"
+              >
+                <Label
+                  caption="Please add your OCI configuration to the Oracle Cloud Infrastructure sidebar."
+                />
+              </Container>
+            </Container>
+            <Container
+              className="separator"
+              crossAlignment="center"
+              mainAlignment="center"
+              orientation="column"
+            >
+              <Icon
+                className="arrowIcon"
+                disabled={false}
+                src={10}
+              />
+            </Container>
+          </g>,
+          "id": "objectStoreBrowserForNewLoadTask",
+          "minSize": 300,
+          "resizable": true,
+          "snap": false,
+          "stretch": true,
+        },
+        {
+          "collapsed": false,
+          "content": <g>
+            <Container
+              className="loadingTaskPreview mainPanel"
+              crossAlignment="stretch"
+              mainAlignment="stretch"
+              orientation="column"
+            >
+              <Label
+                caption="New Loading Task"
+                className="titleLbl"
+              />
+              <Container
+                className="taskProperties"
+                crossAlignment="stretch"
+                mainAlignment="flex-start"
+                orientation="column"
+              >
+                <Container
+                  className="taskPropertyContainer"
+                  crossAlignment="stretch"
+                  mainAlignment="stretch"
+                  orientation="row"
+                >
+                  <Icon
+                    className="loadingTaskPreviewIcon"
+                    disabled={false}
+                    src="lakehouseNavigator.svg"
+                  />
+                  <Container
+                    className="taskInputLabelContainer"
+                    orientation="column"
+                  >
+                    <Label
+                      caption="Vector Store Table Name"
+                    />
+                    <Input
+                      autoFocus={true}
+                      className="taskTableName"
+                      id="loadTaskTableName"
+                      onChange={[Function]}
+                      placeholder="lakehouse_data_<#>"
+                      spellCheck={true}
+                    />
+                  </Container>
+                </Container>
+                <Container
+                  className="taskInputLabelContainer"
+                  orientation="column"
+                >
+                  <Label
+                    caption="Table Description"
+                  />
+                  <Input
+                    className="taskDescription"
+                    id="loadTaskDescription"
+                    multiLine={true}
+                    multiLineCount={2}
+                    onChange={[Function]}
+                    placeholder="Data from Object Storage"
+                    spellCheck={true}
+                  />
+                </Container>
+                <Container
+                  className="taskPropertyContainer"
+                  crossAlignment="flex-end"
+                  mainAlignment="stretch"
+                  orientation="row"
+                >
+                  <Container
+                    className="taskInputLabelContainer"
+                    orientation="column"
+                  >
+                    <Label
+                      caption="Target Database Schema"
+                    />
+                    <Container
+                      className="taskInputLabelContainer"
+                      orientation="row"
+                    >
+                      <Dropdown
+                        id="loadTaskTargetSchemaDropdown"
+                        multiSelect={false}
+                        onSelect={[Function]}
+                        optional={false}
+                        showDescription={false}
+                        withoutArrow={false}
+                      />
+                      <Button
+                        id="loadTaskAddSchemaBtn"
+                        imageOnly={true}
+                        onClick={[Function]}
+                      >
+                        <Icon
+                          disabled={false}
+                          src={3}
+                        />
+                      </Button>
+                      <Button
+                        id="refreshTaskAddSchemaBtn"
+                        imageOnly={true}
+                        onClick={[Function]}
+                      >
+                        <Icon
+                          disabled={false}
+                          src={286}
+                        />
+                      </Button>
+                    </Container>
+                  </Container>
+                </Container>
+                <Container
+                  className="taskInputLabelContainer"
+                  orientation="column"
+                >
+                  <Label
+                    caption="Formats:"
+                  />
+                  <Dropdown
+                    id="loadTaskFormatsDropdown"
+                    multiSelect={false}
+                    onSelect={[Function]}
+                    optional={false}
+                    selection="all"
+                    showDescription={false}
+                    withoutArrow={false}
+                  >
+                    <DropdownItem
+                      caption="All Supported Formats"
+                      id="all"
+                    />
+                  </Dropdown>
+                </Container>
+              </Container>
+              <Container
+                className="loadingTaskItems"
+                crossAlignment="stretch"
+                mainAlignment="stretch"
+                orientation="column"
+              >
+                <Container
+                  className="loadingTaskItemInfo"
+                  crossAlignment="center"
+                  mainAlignment="center"
+                  orientation="column"
+                >
+                  <Label
+                    caption="Please select items from the Object Storage Browser."
+                  />
+                </Container>
+              </Container>
+              <Container
+                className="loadingTaskActions"
+                crossAlignment="stretch"
+                mainAlignment="stretch"
+                orientation="column"
+              >
+                <Container
+                  className="loadingTaskActionButtons"
+                  crossAlignment="stretch"
+                  mainAlignment="stretch"
+                  orientation="row"
+                >
+                  <Button
+                    disabled={true}
+                    id="loadStartLoadingTaskBtn"
+                    onClick={[Function]}
+                  >
+                    <Label
+                      caption="Start Loading Task"
+                    />
+                    <Icon
+                      disabled={false}
+                      src={10}
+                    />
+                  </Button>
+                </Container>
+              </Container>
+            </Container>
+          </g>,
+          "id": "newLoadTask",
+          "initialSize": 380,
+          "minSize": 380,
+          "snap": true,
+        },
+      ]
+    }
+    splitterSize={4}
+  />
+</Container>
+`;
+
+exports[`LakehouseNavigator tests Test getObjectStoreBrowserContent with active profile and profiles 1`] = `
+<Container
+  className="objectStorageBrowser mainPanel"
+  crossAlignment="stretch"
+  mainAlignment="flex-start"
+  orientation="column"
+>
+  <Label
+    caption="Object Storage Browser"
+    className="titleLbl"
+  />
+  <Container
+    className="panelToolbar"
+    crossAlignment="center"
+    mainAlignment="flex-start"
+    orientation="row"
+  >
+    <Label
+      caption="OCI Profile:"
+    />
+    <Dropdown
+      id="objBrowserOciProfileDropdown"
+      multiSelect={false}
+      onSelect={[Function]}
+      optional={false}
+      placeholder="Profile"
+      showDescription={false}
+      withoutArrow={false}
+    />
+    <Container
+      className="placeHolder"
+      orientation="row"
+    />
+    <Button
+      className="refreshBtn"
+      id="objBrowserRefreshBtn"
+      imageOnly={true}
+      onClick={[Function]}
+    >
+      <Icon
+        disabled={false}
+        src={286}
+      />
+    </Button>
+  </Container>
+  <Container
+    className="loadingTaskItemInfo"
+    crossAlignment="center"
+    mainAlignment="center"
+    orientation="column"
+  >
+    <Label
+      caption="Please add your OCI configuration to the Oracle Cloud Infrastructure sidebar."
+    />
+  </Container>
+</Container>
+`;
+
+exports[`LakehouseNavigator tests Test getObjectStoreBrowserContent with no active profile 1`] = `
+<Container
+  className="objectStorageBrowser mainPanel"
+  crossAlignment="stretch"
+  mainAlignment="flex-start"
+  orientation="column"
+>
+  <Label
+    caption="Object Storage Browser"
+    className="titleLbl"
+  />
+  <Container
+    className="panelToolbar"
+    crossAlignment="center"
+    mainAlignment="flex-start"
+    orientation="row"
+  >
+    <Label
+      caption="OCI Profile:"
+    />
+    <Dropdown
+      id="objBrowserOciProfileDropdown"
+      multiSelect={false}
+      onSelect={[Function]}
+      optional={false}
+      placeholder="Profile"
+      showDescription={false}
+      withoutArrow={false}
+    />
+    <Container
+      className="placeHolder"
+      orientation="row"
+    />
+    <Button
+      className="refreshBtn"
+      id="objBrowserRefreshBtn"
+      imageOnly={true}
+      onClick={[Function]}
+    >
+      <Icon
+        disabled={false}
+        src={286}
+      />
+    </Button>
+  </Container>
+  <Container
+    className="loadingTaskItemInfo"
+    crossAlignment="center"
+    mainAlignment="center"
+    orientation="column"
+  >
+    <Label
+      caption="Please add your OCI configuration to the Oracle Cloud Infrastructure sidebar."
+    />
+  </Container>
+</Container>
+`;
+
+exports[`LakehouseNavigator tests Test getObjectStoreBrowserContent with no profiles 1`] = `
+<Container
+  className="objectStorageBrowser mainPanel"
+  crossAlignment="stretch"
+  mainAlignment="flex-start"
+  orientation="column"
+>
+  <Label
+    caption="Object Storage Browser"
+    className="titleLbl"
+  />
+  <Container
+    className="panelToolbar"
+    crossAlignment="center"
+    mainAlignment="flex-start"
+    orientation="row"
+  >
+    <Label
+      caption="OCI Profile:"
+    />
+    <Dropdown
+      id="objBrowserOciProfileDropdown"
+      multiSelect={false}
+      onSelect={[Function]}
+      optional={false}
+      placeholder="Profile"
+      showDescription={false}
+      withoutArrow={false}
+    />
+    <Container
+      className="placeHolder"
+      orientation="row"
+    />
+    <Button
+      className="refreshBtn"
+      id="objBrowserRefreshBtn"
+      imageOnly={true}
+      onClick={[Function]}
+    >
+      <Icon
+        disabled={false}
+        src={286}
+      />
+    </Button>
+  </Container>
+  <Container
+    className="loadingTaskItemInfo"
+    crossAlignment="center"
+    mainAlignment="center"
+    orientation="column"
+  >
+    <Label
+      caption="Please add your OCI configuration to the Oracle Cloud Infrastructure sidebar."
+    />
+  </Container>
+</Container>
+`;
+
+exports[`LakehouseNavigator tests Test getTablesAndTasksTabContent with error 1`] = `
+<Container
+  className="lakehouseTablesTab"
+  crossAlignment="stretch"
+  mainAlignment="flex-start"
+  orientation="column"
+>
+  <SplitContainer
+    className="mainSplitter"
+    onPaneResized={[Function]}
+    orientation="column"
+    panes={
+      [
+        {
+          "content": <Container
+            className="lakehouseTablesPanel mainPanel"
+            crossAlignment="stretch"
+            mainAlignment="flex-start"
+            orientation="column"
+          >
+            <Label
+              caption="Lakehouse Tables"
+              className="titleLbl"
+            />
+            <Container
+              className="panelToolbar"
+              crossAlignment="center"
+              mainAlignment="flex-start"
+              orientation="row"
+            >
+              <Label
+                caption="HeatWave Memory:"
+              />
+              <Container
+                className="heatWaveMemory"
+                orientation="row"
+              >
+                <Container
+                  className="heatWaveMemoryUsage"
+                  orientation="row"
+                  style={
+                    {
+                      "width": "4.5px",
+                    }
+                  }
+                />
+                <Label
+                  caption="0 B free"
+                  id="lakehouseMemLbl"
+                />
+              </Container>
+              <Container
+                className="placeHolder"
+                orientation="row"
+              />
+              <Button
+                caption="Reload Tables"
+                id="lakehouseReloadTablesBtn"
+                onClick={[Function]}
+              />
+              <Button
+                caption="Unload Tables"
+                id="lakehouseUnloadTablesBtn"
+                onClick={[Function]}
+              />
+              <Button
+                id="lakehouseDeleteTablesBtn"
+                imageOnly={true}
+                onClick={[Function]}
+              >
+                <Icon
+                  disabled={false}
+                  src={397}
+                />
+              </Button>
+              <Toggle
+                caption="Auto-Refresh"
+                checkState={1}
+                disabled={false}
+                id="lakehouseAutoRefreshToggle"
+                onChange={[Function]}
+                round={true}
+              />
+              <Button
+                id="lakehouseRefreshBtn"
+                imageOnly={true}
+                onClick={[Function]}
+              >
+                <Icon
+                  disabled={false}
+                  src={286}
+                />
+              </Button>
+            </Container>
+            <Container
+              className="schemaTablesContainer"
+              crossAlignment="stretch"
+              mainAlignment="flex-start"
+              orientation="row"
+            >
+              <Container
+                className="schemaList"
+                crossAlignment="stretch"
+                mainAlignment="flex-start"
+                orientation="column"
+              />
+              <Container
+                className="tableList"
+                crossAlignment="stretch"
+                mainAlignment="flex-start"
+                orientation="column"
+              >
+                <Container
+                  className="loadingTaskItemInfo"
+                  crossAlignment="center"
+                  mainAlignment="center"
+                  orientation="column"
+                >
+                  <Container
+                    crossAlignment="center"
+                    mainAlignment="center"
+                    orientation="row"
+                  >
+                    <Label
+                      caption="There are no Lakehouse tables in the schema yet."
+                    />
+                  </Container>
+                </Container>
+              </Container>
+            </Container>
+          </Container>,
+          "id": "lakehouseTablePanel",
+          "minSize": 300,
+          "resizable": true,
+          "snap": false,
+          "stretch": true,
+        },
+        {
+          "collapsed": false,
+          "content": <Container
+            className="taskListPanel mainPanel"
+            crossAlignment="stretch"
+            mainAlignment="flex-start"
+            orientation="column"
+          >
+            <Label
+              caption="Current Task List"
+              className="titleLbl"
+            />
+            <Container
+              className="panelToolbar"
+              crossAlignment="center"
+              mainAlignment="flex-start"
+              orientation="row"
+            >
+              <Container
+                className="placeHolder"
+                orientation="row"
+              />
+              <Button
+                caption="Cancel Tasks"
+                id="lakehouseTaskCancelBtn"
+                onClick={[Function]}
+              />
+            </Container>
+            <Container
+              className="taskListContainer"
+              crossAlignment="stretch"
+              mainAlignment="flex-start"
+              orientation="column"
+            >
+              <Container
+                className="loadingTaskItemInfo"
+                crossAlignment="center"
+                mainAlignment="center"
+                orientation="column"
+              >
+                <Label
+                  caption="No loading tasks scheduled at this time."
+                />
+              </Container>
+            </Container>
+          </Container>,
+          "id": "taskListPanel",
+          "initialSize": 200,
+          "minSize": 200,
+          "snap": true,
+        },
+      ]
+    }
+    splitterSize={4}
+  />
+</Container>
+`;
+
+exports[`LakehouseNavigator tests Test getTablesAndTasksTabContent with no tables and tasks 1`] = `
+<Container
+  className="lakehouseTablesTab"
+  crossAlignment="stretch"
+  mainAlignment="flex-start"
+  orientation="column"
+>
+  <SplitContainer
+    className="mainSplitter"
+    onPaneResized={[Function]}
+    orientation="column"
+    panes={
+      [
+        {
+          "content": <Container
+            className="lakehouseTablesPanel mainPanel"
+            crossAlignment="stretch"
+            mainAlignment="flex-start"
+            orientation="column"
+          >
+            <Label
+              caption="Lakehouse Tables"
+              className="titleLbl"
+            />
+            <Container
+              className="panelToolbar"
+              crossAlignment="center"
+              mainAlignment="flex-start"
+              orientation="row"
+            >
+              <Label
+                caption="HeatWave Memory:"
+              />
+              <Container
+                className="heatWaveMemory"
+                orientation="row"
+              >
+                <Container
+                  className="heatWaveMemoryUsage"
+                  orientation="row"
+                  style={
+                    {
+                      "width": "4.5px",
+                    }
+                  }
+                />
+                <Label
+                  caption="0 B free"
+                  id="lakehouseMemLbl"
+                />
+              </Container>
+              <Container
+                className="placeHolder"
+                orientation="row"
+              />
+              <Button
+                caption="Reload Tables"
+                id="lakehouseReloadTablesBtn"
+                onClick={[Function]}
+              />
+              <Button
+                caption="Unload Tables"
+                id="lakehouseUnloadTablesBtn"
+                onClick={[Function]}
+              />
+              <Button
+                id="lakehouseDeleteTablesBtn"
+                imageOnly={true}
+                onClick={[Function]}
+              >
+                <Icon
+                  disabled={false}
+                  src={397}
+                />
+              </Button>
+              <Toggle
+                caption="Auto-Refresh"
+                checkState={1}
+                disabled={false}
+                id="lakehouseAutoRefreshToggle"
+                onChange={[Function]}
+                round={true}
+              />
+              <Button
+                id="lakehouseRefreshBtn"
+                imageOnly={true}
+                onClick={[Function]}
+              >
+                <Icon
+                  disabled={false}
+                  src={286}
+                />
+              </Button>
+            </Container>
+            <Container
+              className="schemaTablesContainer"
+              crossAlignment="stretch"
+              mainAlignment="flex-start"
+              orientation="row"
+            >
+              <Container
+                className="schemaList"
+                crossAlignment="stretch"
+                mainAlignment="flex-start"
+                orientation="column"
+              />
+              <Container
+                className="tableList"
+                crossAlignment="stretch"
+                mainAlignment="flex-start"
+                orientation="column"
+              >
+                <Container
+                  className="loadingTaskItemInfo"
+                  crossAlignment="center"
+                  mainAlignment="center"
+                  orientation="column"
+                >
+                  <Container
+                    crossAlignment="center"
+                    mainAlignment="center"
+                    orientation="row"
+                  >
+                    <Label
+                      caption="There are no Lakehouse tables in the schema yet."
+                    />
+                  </Container>
+                </Container>
+              </Container>
+            </Container>
+          </Container>,
+          "id": "lakehouseTablePanel",
+          "minSize": 300,
+          "resizable": true,
+          "snap": false,
+          "stretch": true,
+        },
+        {
+          "collapsed": false,
+          "content": <Container
+            className="taskListPanel mainPanel"
+            crossAlignment="stretch"
+            mainAlignment="flex-start"
+            orientation="column"
+          >
+            <Label
+              caption="Current Task List"
+              className="titleLbl"
+            />
+            <Container
+              className="panelToolbar"
+              crossAlignment="center"
+              mainAlignment="flex-start"
+              orientation="row"
+            >
+              <Container
+                className="placeHolder"
+                orientation="row"
+              />
+              <Button
+                caption="Cancel Tasks"
+                id="lakehouseTaskCancelBtn"
+                onClick={[Function]}
+              />
+            </Container>
+            <Container
+              className="taskListContainer"
+              crossAlignment="stretch"
+              mainAlignment="flex-start"
+              orientation="column"
+            >
+              <Container
+                className="loadingTaskItemInfo"
+                crossAlignment="center"
+                mainAlignment="center"
+                orientation="column"
+              >
+                <Label
+                  caption="No loading tasks scheduled at this time."
+                />
+              </Container>
+            </Container>
+          </Container>,
+          "id": "taskListPanel",
+          "initialSize": 200,
+          "minSize": 200,
+          "snap": true,
+        },
+      ]
+    }
+    splitterSize={4}
+  />
+</Container>
+`;
+
+exports[`LakehouseNavigator tests Test getTablesAndTasksTabContent with tables and tasks 1`] = `
+<Container
+  className="lakehouseTablesTab"
+  crossAlignment="stretch"
+  mainAlignment="flex-start"
+  orientation="column"
+>
+  <SplitContainer
+    className="mainSplitter"
+    onPaneResized={[Function]}
+    orientation="column"
+    panes={
+      [
+        {
+          "content": <Container
+            className="lakehouseTablesPanel mainPanel"
+            crossAlignment="stretch"
+            mainAlignment="flex-start"
+            orientation="column"
+          >
+            <Label
+              caption="Lakehouse Tables"
+              className="titleLbl"
+            />
+            <Container
+              className="panelToolbar"
+              crossAlignment="center"
+              mainAlignment="flex-start"
+              orientation="row"
+            >
+              <Label
+                caption="HeatWave Memory:"
+              />
+              <Container
+                className="heatWaveMemory"
+                orientation="row"
+              >
+                <Container
+                  className="heatWaveMemoryUsage"
+                  orientation="row"
+                  style={
+                    {
+                      "width": "4.5px",
+                    }
+                  }
+                />
+                <Label
+                  caption="0 B free"
+                  id="lakehouseMemLbl"
+                />
+              </Container>
+              <Container
+                className="placeHolder"
+                orientation="row"
+              />
+              <Button
+                caption="Reload Tables"
+                id="lakehouseReloadTablesBtn"
+                onClick={[Function]}
+              />
+              <Button
+                caption="Unload Tables"
+                id="lakehouseUnloadTablesBtn"
+                onClick={[Function]}
+              />
+              <Button
+                id="lakehouseDeleteTablesBtn"
+                imageOnly={true}
+                onClick={[Function]}
+              >
+                <Icon
+                  disabled={false}
+                  src={397}
+                />
+              </Button>
+              <Toggle
+                caption="Auto-Refresh"
+                checkState={1}
+                disabled={false}
+                id="lakehouseAutoRefreshToggle"
+                onChange={[Function]}
+                round={true}
+              />
+              <Button
+                id="lakehouseRefreshBtn"
+                imageOnly={true}
+                onClick={[Function]}
+              >
+                <Icon
+                  disabled={false}
+                  src={286}
+                />
+              </Button>
+            </Container>
+            <Container
+              className="schemaTablesContainer"
+              crossAlignment="stretch"
+              mainAlignment="flex-start"
+              orientation="row"
+            >
+              <Container
+                className="schemaList"
+                crossAlignment="stretch"
+                mainAlignment="flex-start"
+                orientation="column"
+              />
+              <Container
+                className="tableList"
+                crossAlignment="stretch"
+                mainAlignment="flex-start"
+                orientation="column"
+              >
+                <Container
+                  className="loadingTaskItemInfo"
+                  crossAlignment="center"
+                  mainAlignment="center"
+                  orientation="column"
+                >
+                  <Container
+                    crossAlignment="center"
+                    mainAlignment="center"
+                    orientation="row"
+                  >
+                    <Label
+                      caption="There are no Lakehouse tables in the schema yet."
+                    />
+                  </Container>
+                </Container>
+              </Container>
+            </Container>
+          </Container>,
+          "id": "lakehouseTablePanel",
+          "minSize": 300,
+          "resizable": true,
+          "snap": false,
+          "stretch": true,
+        },
+        {
+          "collapsed": false,
+          "content": <Container
+            className="taskListPanel mainPanel"
+            crossAlignment="stretch"
+            mainAlignment="flex-start"
+            orientation="column"
+          >
+            <Label
+              caption="Current Task List"
+              className="titleLbl"
+            />
+            <Container
+              className="panelToolbar"
+              crossAlignment="center"
+              mainAlignment="flex-start"
+              orientation="row"
+            >
+              <Container
+                className="placeHolder"
+                orientation="row"
+              />
+              <Button
+                caption="Cancel Tasks"
+                id="lakehouseTaskCancelBtn"
+                onClick={[Function]}
+              />
+            </Container>
+            <Container
+              className="taskListContainer"
+              crossAlignment="stretch"
+              mainAlignment="flex-start"
+              orientation="column"
+            >
+              <Container
+                className="loadingTaskItemInfo"
+                crossAlignment="center"
+                mainAlignment="center"
+                orientation="column"
+              >
+                <Label
+                  caption="No loading tasks scheduled at this time."
+                />
+              </Container>
+            </Container>
+          </Container>,
+          "id": "taskListPanel",
+          "initialSize": 200,
+          "minSize": 200,
+          "snap": true,
+        },
+      ]
+    }
+    splitterSize={4}
+  />
+</Container>
+`;
+
+exports[`LakehouseNavigator tests Test getUploadTabContent with files for upload 1`] = `
+<Container
+  className="uploadTab"
+  crossAlignment="stretch"
+  mainAlignment="center"
+  orientation="column"
+>
+  <SplitContainer
+    className="mainSplitter"
+    onPaneResized={[Function]}
+    orientation="row"
+    panes={
+      [
+        {
+          "collapsed": false,
+          "content": <Container
+            className="filesForUpload mainPanel"
+            crossAlignment="stretch"
+            mainAlignment="stretch"
+            orientation="column"
+          >
+            <Label
+              caption="Files for Upload"
+              className="titleLbl"
+            />
+            <Container
+              className="panelToolbar"
+              crossAlignment="center"
+              mainAlignment="flex-start"
+              orientation="row"
+            >
+              <Label
+                caption="Path:"
+              />
+              <Input
+                disabled={true}
+                id="uploadTargetPath"
+                onBlur={[Function]}
+                onChange={[Function]}
+                spellCheck={true}
+                value=""
+              />
+              <Button
+                className="clearFilesForUpload"
+                id="objBrowserRefreshBtn"
+                imageOnly={true}
+                onClick={[Function]}
+              >
+                <Icon
+                  disabled={false}
+                  src={397}
+                />
+              </Button>
+            </Container>
+            <Container
+              className="loadingTaskItems"
+              crossAlignment="stretch"
+              mainAlignment="stretch"
+              orientation="column"
+            >
+              <Container
+                className="uploadFilesInfo"
+                crossAlignment="center"
+                mainAlignment="center"
+                orientation="column"
+              >
+                <g>
+                  <Label
+                    caption="• Add files for upload"
+                    className="addFilesLbl"
+                    onClick={[Function]}
+                  />
+                </g>
+                <g>
+                  <Label
+                    caption="• Select a target in the Object Storage Browser"
+                  />
+                </g>
+                <Label
+                  caption="• Click the Start File Upload button"
+                />
+              </Container>
+            </Container>
+            <Container
+              className="loadingTaskActions"
+              crossAlignment="stretch"
+              mainAlignment="stretch"
+              orientation="column"
+            >
+              <Container
+                className="loadingTaskActionButtons"
+                crossAlignment="stretch"
+                mainAlignment="stretch"
+                orientation="row"
+              >
+                <Button
+                  disabled={false}
+                  id="uploadAddFilesBtn"
+                  onClick={[Function]}
+                >
+                  <Icon
+                    disabled={false}
+                    src={3}
+                  />
+                  <Label
+                    caption="Add Files"
+                  />
+                </Button>
+                <Button
+                  disabled={true}
+                  id="uploadStartFileUploadBtn"
+                  onClick={[Function]}
+                >
+                  <Label
+                    caption="Start File Upload"
+                  />
+                  <Icon
+                    disabled={false}
+                    src={10}
+                  />
+                </Button>
+              </Container>
+            </Container>
+          </Container>,
+          "id": "filesForUpload",
+          "initialSize": 380,
+          "minSize": 380,
+          "resizable": true,
+          "snap": true,
+        },
+        {
+          "content": <g>
+            <Container
+              className="separator"
+              crossAlignment="center"
+              mainAlignment="center"
+              orientation="column"
+            >
+              <Icon
+                className="arrowIcon"
+                disabled={false}
+                src={10}
+              />
+            </Container>
+            <Container
+              className="objectStorageBrowser mainPanel"
+              crossAlignment="stretch"
+              mainAlignment="flex-start"
+              orientation="column"
+            >
+              <Label
+                caption="Object Storage Browser"
+                className="titleLbl"
+              />
+              <Container
+                className="panelToolbar"
+                crossAlignment="center"
+                mainAlignment="flex-start"
+                orientation="row"
+              >
+                <Label
+                  caption="OCI Profile:"
+                />
+                <Dropdown
+                  id="objBrowserOciProfileDropdown"
+                  multiSelect={false}
+                  onSelect={[Function]}
+                  optional={false}
+                  placeholder="Profile"
+                  showDescription={false}
+                  withoutArrow={false}
+                />
+                <Container
+                  className="placeHolder"
+                  orientation="row"
+                />
+                <Button
+                  className="refreshBtn"
+                  id="objBrowserRefreshBtn"
+                  imageOnly={true}
+                  onClick={[Function]}
+                >
+                  <Icon
+                    disabled={false}
+                    src={286}
+                  />
+                </Button>
+              </Container>
+              <Container
+                className="loadingTaskItemInfo"
+                crossAlignment="center"
+                mainAlignment="center"
+                orientation="column"
+              >
+                <Label
+                  caption="Please add your OCI configuration to the Oracle Cloud Infrastructure sidebar."
+                />
+              </Container>
+            </Container>
+          </g>,
+          "id": "objectStoreBrowserForFileUpload",
+          "minSize": 300,
+          "snap": false,
+          "stretch": true,
+        },
+      ]
+    }
+    splitterSize={4}
+  />
+</Container>
+`;
+
+exports[`LakehouseNavigator tests Test getUploadTabContent with no files for upload 1`] = `
+<Container
+  className="uploadTab"
+  crossAlignment="stretch"
+  mainAlignment="center"
+  orientation="column"
+>
+  <SplitContainer
+    className="mainSplitter"
+    onPaneResized={[Function]}
+    orientation="row"
+    panes={
+      [
+        {
+          "collapsed": false,
+          "content": <Container
+            className="filesForUpload mainPanel"
+            crossAlignment="stretch"
+            mainAlignment="stretch"
+            orientation="column"
+          >
+            <Label
+              caption="Files for Upload"
+              className="titleLbl"
+            />
+            <Container
+              className="panelToolbar"
+              crossAlignment="center"
+              mainAlignment="flex-start"
+              orientation="row"
+            >
+              <Label
+                caption="Path:"
+              />
+              <Input
+                disabled={true}
+                id="uploadTargetPath"
+                onBlur={[Function]}
+                onChange={[Function]}
+                spellCheck={true}
+                value=""
+              />
+              <Button
+                className="clearFilesForUpload"
+                id="objBrowserRefreshBtn"
+                imageOnly={true}
+                onClick={[Function]}
+              >
+                <Icon
+                  disabled={false}
+                  src={397}
+                />
+              </Button>
+            </Container>
+            <Container
+              className="loadingTaskItems"
+              crossAlignment="stretch"
+              mainAlignment="stretch"
+              orientation="column"
+            >
+              <Container
+                className="uploadFilesInfo"
+                crossAlignment="center"
+                mainAlignment="center"
+                orientation="column"
+              >
+                <g>
+                  <Label
+                    caption="• Add files for upload"
+                    className="addFilesLbl"
+                    onClick={[Function]}
+                  />
+                </g>
+                <g>
+                  <Label
+                    caption="• Select a target in the Object Storage Browser"
+                  />
+                </g>
+                <Label
+                  caption="• Click the Start File Upload button"
+                />
+              </Container>
+            </Container>
+            <Container
+              className="loadingTaskActions"
+              crossAlignment="stretch"
+              mainAlignment="stretch"
+              orientation="column"
+            >
+              <Container
+                className="loadingTaskActionButtons"
+                crossAlignment="stretch"
+                mainAlignment="stretch"
+                orientation="row"
+              >
+                <Button
+                  disabled={false}
+                  id="uploadAddFilesBtn"
+                  onClick={[Function]}
+                >
+                  <Icon
+                    disabled={false}
+                    src={3}
+                  />
+                  <Label
+                    caption="Add Files"
+                  />
+                </Button>
+                <Button
+                  disabled={true}
+                  id="uploadStartFileUploadBtn"
+                  onClick={[Function]}
+                >
+                  <Label
+                    caption="Start File Upload"
+                  />
+                  <Icon
+                    disabled={false}
+                    src={10}
+                  />
+                </Button>
+              </Container>
+            </Container>
+          </Container>,
+          "id": "filesForUpload",
+          "initialSize": 380,
+          "minSize": 380,
+          "resizable": true,
+          "snap": true,
+        },
+        {
+          "content": <g>
+            <Container
+              className="separator"
+              crossAlignment="center"
+              mainAlignment="center"
+              orientation="column"
+            >
+              <Icon
+                className="arrowIcon"
+                disabled={false}
+                src={10}
+              />
+            </Container>
+            <Container
+              className="objectStorageBrowser mainPanel"
+              crossAlignment="stretch"
+              mainAlignment="flex-start"
+              orientation="column"
+            >
+              <Label
+                caption="Object Storage Browser"
+                className="titleLbl"
+              />
+              <Container
+                className="panelToolbar"
+                crossAlignment="center"
+                mainAlignment="flex-start"
+                orientation="row"
+              >
+                <Label
+                  caption="OCI Profile:"
+                />
+                <Dropdown
+                  id="objBrowserOciProfileDropdown"
+                  multiSelect={false}
+                  onSelect={[Function]}
+                  optional={false}
+                  placeholder="Profile"
+                  showDescription={false}
+                  withoutArrow={false}
+                />
+                <Container
+                  className="placeHolder"
+                  orientation="row"
+                />
+                <Button
+                  className="refreshBtn"
+                  id="objBrowserRefreshBtn"
+                  imageOnly={true}
+                  onClick={[Function]}
+                >
+                  <Icon
+                    disabled={false}
+                    src={286}
+                  />
+                </Button>
+              </Container>
+              <Container
+                className="loadingTaskItemInfo"
+                crossAlignment="center"
+                mainAlignment="center"
+                orientation="column"
+              >
+                <Label
+                  caption="Please add your OCI configuration to the Oracle Cloud Infrastructure sidebar."
+                />
+              </Container>
+            </Container>
+          </g>,
+          "id": "objectStoreBrowserForFileUpload",
+          "minSize": 300,
+          "snap": false,
+          "stretch": true,
+        },
+      ]
+    }
+    splitterSize={4}
+  />
+</Container>
+`;
+
+exports[`LakehouseNavigator tests Test getUploadTabContent with upload error 1`] = `
+<Container
+  className="uploadTab"
+  crossAlignment="stretch"
+  mainAlignment="center"
+  orientation="column"
+>
+  <SplitContainer
+    className="mainSplitter"
+    onPaneResized={[Function]}
+    orientation="row"
+    panes={
+      [
+        {
+          "collapsed": false,
+          "content": <Container
+            className="filesForUpload mainPanel"
+            crossAlignment="stretch"
+            mainAlignment="stretch"
+            orientation="column"
+          >
+            <Label
+              caption="Files for Upload"
+              className="titleLbl"
+            />
+            <Container
+              className="panelToolbar"
+              crossAlignment="center"
+              mainAlignment="flex-start"
+              orientation="row"
+            >
+              <Label
+                caption="Path:"
+              />
+              <Input
+                disabled={true}
+                id="uploadTargetPath"
+                onBlur={[Function]}
+                onChange={[Function]}
+                spellCheck={true}
+                value=""
+              />
+              <Button
+                className="clearFilesForUpload"
+                id="objBrowserRefreshBtn"
+                imageOnly={true}
+                onClick={[Function]}
+              >
+                <Icon
+                  disabled={false}
+                  src={397}
+                />
+              </Button>
+            </Container>
+            <Container
+              className="loadingTaskItems"
+              crossAlignment="stretch"
+              mainAlignment="stretch"
+              orientation="column"
+            >
+              <Container
+                className="uploadFilesInfo"
+                crossAlignment="center"
+                mainAlignment="center"
+                orientation="column"
+              >
+                <g>
+                  <Label
+                    caption="• Add files for upload"
+                    className="addFilesLbl"
+                    onClick={[Function]}
+                  />
+                </g>
+                <g>
+                  <Label
+                    caption="• Select a target in the Object Storage Browser"
+                  />
+                </g>
+                <Label
+                  caption="• Click the Start File Upload button"
+                />
+              </Container>
+            </Container>
+            <Container
+              className="loadingTaskActions"
+              crossAlignment="stretch"
+              mainAlignment="stretch"
+              orientation="column"
+            >
+              <Container
+                className="loadingTaskActionButtons"
+                crossAlignment="stretch"
+                mainAlignment="stretch"
+                orientation="row"
+              >
+                <Button
+                  disabled={false}
+                  id="uploadAddFilesBtn"
+                  onClick={[Function]}
+                >
+                  <Icon
+                    disabled={false}
+                    src={3}
+                  />
+                  <Label
+                    caption="Add Files"
+                  />
+                </Button>
+                <Button
+                  disabled={true}
+                  id="uploadStartFileUploadBtn"
+                  onClick={[Function]}
+                >
+                  <Label
+                    caption="Start File Upload"
+                  />
+                  <Icon
+                    disabled={false}
+                    src={10}
+                  />
+                </Button>
+              </Container>
+            </Container>
+          </Container>,
+          "id": "filesForUpload",
+          "initialSize": 380,
+          "minSize": 380,
+          "resizable": true,
+          "snap": true,
+        },
+        {
+          "content": <g>
+            <Container
+              className="separator"
+              crossAlignment="center"
+              mainAlignment="center"
+              orientation="column"
+            >
+              <Icon
+                className="arrowIcon"
+                disabled={false}
+                src={10}
+              />
+            </Container>
+            <Container
+              className="objectStorageBrowser mainPanel"
+              crossAlignment="stretch"
+              mainAlignment="flex-start"
+              orientation="column"
+            >
+              <Label
+                caption="Object Storage Browser"
+                className="titleLbl"
+              />
+              <Container
+                className="panelToolbar"
+                crossAlignment="center"
+                mainAlignment="flex-start"
+                orientation="row"
+              >
+                <Label
+                  caption="OCI Profile:"
+                />
+                <Dropdown
+                  id="objBrowserOciProfileDropdown"
+                  multiSelect={false}
+                  onSelect={[Function]}
+                  optional={false}
+                  placeholder="Profile"
+                  showDescription={false}
+                  withoutArrow={false}
+                />
+                <Container
+                  className="placeHolder"
+                  orientation="row"
+                />
+                <Button
+                  className="refreshBtn"
+                  id="objBrowserRefreshBtn"
+                  imageOnly={true}
+                  onClick={[Function]}
+                >
+                  <Icon
+                    disabled={false}
+                    src={286}
+                  />
+                </Button>
+              </Container>
+              <Container
+                className="loadingTaskItemInfo"
+                crossAlignment="center"
+                mainAlignment="center"
+                orientation="column"
+              >
+                <Label
+                  caption="Please add your OCI configuration to the Oracle Cloud Infrastructure sidebar."
+                />
+              </Container>
+            </Container>
+          </g>,
+          "id": "objectStoreBrowserForFileUpload",
+          "minSize": 300,
+          "snap": false,
+          "stretch": true,
+        },
+      ]
+    }
+    splitterSize={4}
+  />
+</Container>
+`;
