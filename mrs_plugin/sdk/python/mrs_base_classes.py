@@ -61,10 +61,10 @@ from urllib.request import HTTPError, Request, urlopen
 #                               Base Classes
 ####################################################################################
 @dataclass
-class Record(ABC):
+class MrsDocument(ABC):
     """Data classes produced by the SDK generator inherit from this base class.
 
-    Relevant dunder methods are customized to achieve the wanted behaviour where
+    Relevant dunder methods are customized to achieve the wanted behavior where
     hypermedia-related information remains hidden and inaccessible publicly.
 
     This base class is not instantiable.
@@ -76,7 +76,7 @@ class Record(ABC):
 
         def __getattribute__(self, name: str) -> Any:
             """Hypermedia-related fields cannot be accessed."""
-            if name in Record._reserved_keys:
+            if name in MrsDocument._reserved_keys:
                 raise AttributeError(
                     f"'{type(self).__name__}' object has no attribute '{name}'"
                 )
@@ -84,7 +84,7 @@ class Record(ABC):
 
         def __setattr__(self, name: str, value: Any) -> None:
             """Hypermedia-related fields cannot be modified."""
-            if name in Record._reserved_keys:
+            if name in MrsDocument._reserved_keys:
                 raise AttributeError(
                     f"Attribute '{name}' of '{type(self).__name__}' object cannot be changed."
                 )
@@ -92,7 +92,7 @@ class Record(ABC):
 
         def __delattr__(self, name: str) -> None:
             """Hypermedia-related fields cannot be deleted."""
-            if name in Record._reserved_keys:
+            if name in MrsDocument._reserved_keys:
                 raise AttributeError(
                     f"Attribute '{name}' of '{type(self).__name__}' object cannot be deleted."
                 )
@@ -104,7 +104,7 @@ class Record(ABC):
 
     def __dir__(self) -> Iterable[str]:
         """Hypermedia-related fields should be hidden."""
-        return [key for key in super().__dir__() if key not in Record._reserved_keys]
+        return [key for key in super().__dir__() if key not in MrsDocument._reserved_keys]
 
     @classmethod
     @abstractmethod
@@ -146,10 +146,10 @@ class MrsError(Exception):
         super().__init__(msg, *args)
 
 
-class RecordNotFoundError(MrsError):
-    """Raised when a record doesn't exist in the database."""
+class MrsDocumentNotFoundError(MrsError):
+    """Raised when a document doesn't exist in the database."""
 
-    _default_msg = "No record exists matching the query options"
+    _default_msg = "No document exists matching the query options"
 
 
 class AuthAppNotFoundError(MrsError):
@@ -170,7 +170,7 @@ JsonValue = JsonPrimitive | JsonObject | JsonArray
 UndefinedField = UndefinedDataClassField()
 
 Data = TypeVar("Data", bound=Mapping)
-DataClass = TypeVar("DataClass", bound="Record")
+DataClass = TypeVar("DataClass", bound="MrsDocument")
 DataDetails = TypeVar("DataDetails", bound="IMrsResourceDetails")
 Filterable = TypeVar("Filterable", bound=Optional[Mapping])
 UniqueFilterable = TypeVar("UniqueFilterable", bound=Optional[Mapping])
@@ -755,7 +755,7 @@ class MrsBaseObjectFunctionCall(Generic[FuncParameters, FuncResult]):
         """Submit the request to the Router to invoke the corresponding
         MySQL function.
 
-        Reurns:
+        Returns:
             A value which type complies with the corresponding MySQL
             function declaration.
         """
@@ -871,7 +871,7 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
         """Fetch a result set (page). The page size is as `take` if specified,
         otherwise it is as configured (default) in the MRS SDK application.
 
-        Reurns:
+        Returns:
             A dictionary with the following keys:
             ```
                 items: list[IMrsResourceDetails]
@@ -934,7 +934,7 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
         """Fetch all result sets (pages). Unlike `fetch()`, this method loads
         all pages matching the query `options`.
 
-        Reurns:
+        Returns:
             A dictionary with the following keys:
             ```
                 items: list[IMrsResourceDetails]
@@ -984,16 +984,16 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
         return res
 
     async def fetch_one(self) -> Optional[DataDetails]:
-        """Fetch a single record.
+        """Fetch a single document.
 
-        Reurns:
+        Returns:
             A dictionary with hypermedia-related and metadata-related keys:
             ```
                 _metadata: MrsResourceMetadata
                 links: list[MrsResourceLink]
             ```
             Additionally, specific fields are included, but these depend on the
-            record type itself. E.g., for a fictional `ActorDetails` data type:
+            document type itself. E.g., for a fictional `ActorDetails` data type:
             ```
                 actor_id: int
                 first_name: str
@@ -1020,17 +1020,17 @@ class MrsBaseObjectCreate(Generic[Data, DataDetails]):
 
         Args:
             request_path: the base endpoint to the resource (database table).
-            data: record to be created.
+            data: document to be created.
         """
         self._schema: MrsBaseSchema = schema
         self._request_path: str = request_path
         self._data: Data = data
 
     async def submit(self) -> DataDetails:
-        """Submit the request to the Router to create a new record
+        """Submit the request to the Router to create a new document
         as of `data` specified at construction time.
 
-        Reurns:
+        Returns:
             A dictionary representing the newly created resource
             with hypermedia-related and metadata-related keys:
             ```
@@ -1038,7 +1038,7 @@ class MrsBaseObjectCreate(Generic[Data, DataDetails]):
                 links: list[MrsResourceLink]
             ```
             Additionally, specific fields are included, but these depend on the
-            record type itself. E.g., for a fictional `ActorDetails` data type:
+            document type itself. E.g., for a fictional `ActorDetails` data type:
             ```
                 actor_id: int
                 first_name: str
@@ -1061,18 +1061,18 @@ class MrsBaseObjectCreate(Generic[Data, DataDetails]):
         context = ssl.create_default_context()
         response = await asyncio.to_thread(urlopen, req, context=context)
 
-        table_record = cast(
+        mrs_document = cast(
             DataDetails,
             json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys),
         )
 
         # track the latest GTID
         try:
-            self._schema._service._session["gtid"] = table_record["_metadata"]["gtid"]
+            self._schema._service._session["gtid"] = mrs_document["_metadata"]["gtid"]
         except KeyError:
             pass
 
-        return table_record
+        return mrs_document
 
 
 class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
@@ -1086,17 +1086,17 @@ class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
         Args:
             schema: instance of the corresponding MRS schema
             request_path: the base endpoint to the resource (database table).
-            data: record's information to be updated.
+            data: document updated details.
         """
         self._schema: MrsBaseSchema = schema
         self._request_path: str = request_path
         self._data: DataClass = data
 
     async def submit(self) -> DataDetails:
-        """Submit the request to the Router to update a new record
+        """Submit the request to the Router to update a new document
         as of `data` specified at construction time.
 
-        Reurns:
+        Returns:
             A dictionary representing the updated resource
             with hypermedia-related and metadata-related keys:
             ```
@@ -1104,7 +1104,7 @@ class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
                 links: list[MrsResourceLink]
             ```
             Additionally, specific fields are included, but these depend on the
-            record type itself. E.g., for a fictional `ActorDetails` data type:
+            document type itself. E.g., for a fictional `ActorDetails` data type:
             ```
                 actor_id: int
                 first_name: str
@@ -1137,18 +1137,18 @@ class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
         context = ssl.create_default_context()
         response = await asyncio.to_thread(urlopen, req, context=context)
 
-        table_record = cast(
+        mrs_document = cast(
             DataDetails,
             json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys),
         )
 
         # track the latest GTID
         try:
-            self._schema._service._session["gtid"] = table_record["_metadata"]["gtid"]
+            self._schema._service._session["gtid"] = mrs_document["_metadata"]["gtid"]
         except KeyError:
             pass
 
-        return table_record
+        return mrs_document
 
 
 class MrsBaseObjectDelete(Generic[Filterable]):
@@ -1181,10 +1181,10 @@ class MrsBaseObjectDelete(Generic[Filterable]):
                 self._where.update({"asof": gtid})
 
     async def submit(self) -> IMrsDeleteResponse:
-        """Submit the request to the Router to delete a record
+        """Submit the request to the Router to delete a document
         as of `where` specified at construction time.
 
-        Reurns:
+        Returns:
             A dictionary with information about the
             number of items deleted.
             ```

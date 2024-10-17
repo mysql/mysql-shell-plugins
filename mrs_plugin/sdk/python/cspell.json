@@ -1,0 +1,30 @@
+{
+    "version": "0.2",
+    "language": "en",
+    "import": [
+        "../../cspell.json"
+    ],
+    "words": [
+        "digestmod",
+        "dunder",
+        "hdrs",
+        "asyncio",
+        "dataclass",
+        "dataclasses",
+        "asdict",
+        "dbobject"
+    ],
+    "ignorePaths": [
+        "cspell.json"
+    ],
+    "ignoreWords": [
+        "coro",
+        "AMACH",
+        "Killerpollo",
+        "Shigeru",
+        "Miyamoto",
+        "furbo",
+        "eebd",
+        "Anull"
+    ]
+}

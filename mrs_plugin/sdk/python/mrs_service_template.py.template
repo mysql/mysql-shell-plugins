@@ -47,8 +47,8 @@ from .mrs_base_classes import (
     MrsBaseSchema,
     MrsBaseService,
     Order,
-    Record,
-    RecordNotFoundError,
+    MrsDocument,
+    MrsDocumentNotFoundError,
     UndefinedDataClassField,
     UndefinedField,
     MrsJSONDataEncoder,
@@ -80,18 +80,17 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
 
     # --- crudCreateOnlyStart
     async def create(self, data: INew${obj_class_name}) -> I${obj_class_name}:
-        request = MrsBaseObjectCreate[INew${obj_class_name}, I${obj_class_name}Details](
-            schema=self._schema,
-            request_path=self._request_path,
-            data=data
-        )
-        record = await request.submit()
+        request = MrsBaseObjectCreate[
+            INew${obj_class_name}, I${obj_class_name}Details
+        ](schema=self._schema, request_path=self._request_path, data=data)
+        rest_document = await request.submit()
         return I${obj_class_name}(
-            schema=self._schema,
-            data=cast(I${obj_class_name}Data, record)
+            schema=self._schema, data=cast(I${obj_class_name}Data, rest_document)
         )
 
-    async def create_many(self, data: Sequence[INew${obj_class_name}]) -> list[I${obj_class_name}]:
+    async def create_many(
+        self, data: Sequence[INew${obj_class_name}]
+    ) -> list[I${obj_class_name}]:
         return [
             await coro
             for coro in asyncio.as_completed((self.create(item) for item in data))
@@ -112,15 +111,17 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
             ]
         ],
     ) -> Optional[I${obj_class_name}]:
-        request = MrsBaseObjectQuery[I${obj_class_name}Data, I${obj_class_name}Details](
+        request = MrsBaseObjectQuery[
+            I${obj_class_name}Data, I${obj_class_name}Details
+        ](
             schema=self._schema,
             request_path=self._request_path,
             options=cast(FindFirstOptions, options),
         )
-        record = cast(I${obj_class_name}Data, await request.fetch_one())
+        rest_document = cast(I${obj_class_name}Data, await request.fetch_one())
 
-        if record is not None:
-            return I${obj_class_name}(schema=self._schema, data=record)
+        if rest_document is not None:
+            return I${obj_class_name}(schema=self._schema, data=rest_document)
 
         return None
 
@@ -139,7 +140,7 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
     ) -> I${obj_class_name}:
         data_obj = await self.find_first(**options)
         if data_obj is None:
-            raise RecordNotFoundError
+            raise MrsDocumentNotFoundError
         return data_obj
 
     # --- crudReadUniqueOnlyStart
@@ -147,7 +148,10 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
         self,
         **options: Unpack[  # type: ignore[misc]
             FindUniqueOptions[
-                I${obj_class_name}UniqueFilterable, I${obj_class_name}Selectable, I${obj_class_name}Field, I${obj_class_name}NestedField
+                I${obj_class_name}UniqueFilterable,
+                I${obj_class_name}Selectable,
+                I${obj_class_name}Field,
+                I${obj_class_name}NestedField
             ]
         ],
     ) -> Optional[I${obj_class_name}]:
@@ -157,13 +161,16 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
         self,
         **options: Unpack[  # type: ignore[misc]
             FindUniqueOptions[
-                I${obj_class_name}UniqueFilterable, I${obj_class_name}Selectable, I${obj_class_name}Field, I${obj_class_name}NestedField
+                I${obj_class_name}UniqueFilterable,
+                I${obj_class_name}Selectable,
+                I${obj_class_name}Field,
+                I${obj_class_name}NestedField
             ]
         ],
     ) -> I${obj_class_name}:
         data_obj = await self.find_unique(**options)
         if data_obj is None:
-            raise RecordNotFoundError
+            raise MrsDocumentNotFoundError
         return data_obj
     # --- crudReadUniqueOnlyEnd
 
@@ -181,10 +188,12 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
             ]
         ],
     ) -> list[I${obj_class_name}]:
-        request = MrsBaseObjectQuery[I${obj_class_name}Data, I${obj_class_name}Details](
+        request = MrsBaseObjectQuery[
+            I${obj_class_name}Data, I${obj_class_name}Details
+        ](
             schema=self._schema,
             request_path=self._request_path,
-            options=cast(FindManyOptions, options)
+            options=cast(FindManyOptions, options),
         )
         iterator = options.get("iterator", True)
 
@@ -199,8 +208,7 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
 
         return [
             I${obj_class_name}(
-                schema=self._schema,
-                data=cast(I${obj_class_name}Data, item)
+                schema=self._schema, data=cast(I${obj_class_name}Data, item)
             )
             for item in response["items"]
         ]
@@ -219,10 +227,12 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
             ]
         ],
     ) -> list[I${obj_class_name}]:
-        request = MrsBaseObjectQuery[I${obj_class_name}Data, I${obj_class_name}Details](
+        request = MrsBaseObjectQuery[
+            I${obj_class_name}Data, I${obj_class_name}Details
+        ](
             schema=self._schema,
             request_path=self._request_path,
-            options=cast(FindAllOptions, options)
+            options=cast(FindAllOptions, options),
         )
         progress = options.get("progress")
 
@@ -244,22 +254,26 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
         # Primary key name is guaranteed to be a string because when it
         # isn't, `update` and `update_many` aren't generated by the SDK.
         prk_name = cast(str, I${obj_class_name}.get_primary_key_name())
-        record_id = data.get(prk_name, -1)
+        rest_document_id = data.get(prk_name, -1)
 
-        request = MrsBaseObjectUpdate[I${obj_class_name}, I${obj_class_name}Details](
+        request = MrsBaseObjectUpdate[
+            I${obj_class_name}, I${obj_class_name}Details
+        ](
             schema=self._schema,
-            request_path=self._request_path + f"/{record_id}",
+            request_path=self._request_path + f"/{rest_document_id}",
             data=I${obj_class_name}(
                 schema=self._schema, data=cast(I${obj_class_name}Data, data)
             ),
         )
-        record = await request.submit()
+        rest_document = await request.submit()
 
         return I${obj_class_name}(
-            schema=self._schema, data=cast(I${obj_class_name}Data, record)
+            schema=self._schema, data=cast(I${obj_class_name}Data, rest_document)
         )
 
-    async def update_many(self, data: Sequence[IUpdate${obj_class_name}]) -> list[I${obj_class_name}]:
+    async def update_many(
+        self, data: Sequence[IUpdate${obj_class_name}]
+    ) -> list[I${obj_class_name}]:
         return [
             await coro
             for coro in asyncio.as_completed((self.update(item) for item in data))
@@ -271,11 +285,7 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
         self,
         **options: Unpack[DeleteOptions[I${obj_class_name}UniqueFilterable]],
     ) -> bool:
-        return bool(
-            await self.delete_many(
-                **cast(DeleteOptions, options)
-            )
-        )
+        return bool(await self.delete_many(**cast(DeleteOptions, options)))
     # --- crudDeleteUniqueOnlyEnd
 
     # --- crudDeleteOnlyStart
@@ -303,7 +313,7 @@ class ${schema_class_name}(MrsBaseSchema):
         # --- objectLoopStart
         self.${obj_name} = ${obj_class_name}DatabaseObject(
             schema=self,
-            request_path=f"{self._request_path}/{MrsJSONDataEncoder.snake_to_camel('${obj_name}')}"
+            request_path=f"{self._request_path}/{MrsJSONDataEncoder.snake_to_camel('${obj_name}')}",
         )
         # --- objectLoopEnd
 # --- schemaLoopEnd

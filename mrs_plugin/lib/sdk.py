@@ -32,46 +32,50 @@ import json
 
 # TODO: this skeleton should be extracted into a template file.
 # |--------------- CREATE'S EXECUTION PATH ---------------|
-# Primary key may or not be `None`, therefore, `record_id`
-# may or not be defined. If `record_id` is defined, then the
+# Primary key may or not be `None`, therefore, `rest_document_id`
+# may or not be defined. If `rest_document_id` is defined, then the
 # update's execution path will be added where defined values are handled.
-SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_CREATE = '''
-        if record_id is UndefinedField:
-            request = MrsBaseObjectCreate[INew{name}, I{name}Details](
+SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_CREATE = '''
+        if rest_document_id is UndefinedField:
+            request = MrsBaseObjectCreate[
+                INew{name}, I{name}Details
+            ](
                 schema=self._schema,
                 request_path=self._request_path,
                 data=cast(INew{name}, asdict(self)),
             )
-            return self.__load_fields(cast(I{name}Data, await request.submit()))
+            return self.__load_fields(
+                cast(I{name}Data, await request.submit())
+            )
 '''
 
 # TODO: this skeleton should be extracted into a template file.
 # |--------------- UPDATE'S EXECUTION PATH ---------------|
 # Primary key name isn't `None`, otherwise this
-# execution path wouldn't have been added to `save()`.
-# Therefore, `record_id` is defined.
-SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_UPDATE = '''
+# execution path wouldn't have been added to `upsert()`.
+# Therefore, `rest_document_id` is defined.
+SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_UPDATE = '''
         await MrsBaseObjectUpdate[I{name}, I{name}Details](
             schema=self._schema,
-            request_path=f"{{self._request_path}}/{{record_id}}",
+            request_path=f"{{self._request_path}}/{{rest_document_id}}",
             data=self,
         ).submit()
 '''
 
 # TODO: this skeleton should be extracted into a template file.
-SDK_PYTHON_DATACLASS_TEMPLATE_SAVE = '''
+SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT = '''
 
-    async def save(self) -> None:
+    async def upsert(self) -> None:
         """Create or update a new resource represented by the data class instance.
 
         If the specified primary key already exists an `update`
         will happen, otherwise a `create`.
         """
         prk_name = self.get_primary_key_name()
-        record_id = UndefinedField
+        rest_document_id = UndefinedField
 
         if prk_name is not None and hasattr(self, prk_name):
-            record_id = getattr(self, prk_name){create_snippet}{update_snippet}
+            rest_document_id = getattr(self, prk_name){create_snippet}{update_snippet}
 '''
 
 # TODO: this skeleton should be extracted into a template file.
@@ -85,8 +89,11 @@ SDK_PYTHON_DATACLASS_TEMPLATE_DELETE = '''
     async def delete(self, read_own_writes: bool = False) -> None:
         """Deletes the resource represented by the data class instance."""
         prk_name = cast(str, self.get_primary_key_name())
-        record_id = getattr(self, prk_name)
-        options = {{"where": {{prk_name: f"{{record_id}}"}}, "read_own_writes": read_own_writes}}
+        rest_document_id = getattr(self, prk_name)
+        options = {{
+            "where": {{prk_name: f"{{rest_document_id}}"}},
+            "read_own_writes": read_own_writes
+        }}
 
         _ = await MrsBaseObjectDelete[I{name}Filterable](
             schema=self._schema,
@@ -97,7 +104,7 @@ SDK_PYTHON_DATACLASS_TEMPLATE_DELETE = '''
 
 # TODO: this skeleton should be extracted into a template file.
 SDK_PYTHON_DATACLASS_TEMPLATE = '''@dataclass(init=False, repr=True)
-class I{name}(Record):
+class I{name}(MrsDocument):
 
     # For data attributes, `None` means "NULL" and
     # `UndefinedField` means "not set or undefined"
@@ -113,7 +120,7 @@ class I{name}(Record):
         """Refresh data fields based on the input data."""
 {join_assignment_block}
 
-        for key in Record._reserved_keys:
+        for key in MrsDocument._reserved_keys:
             self.__dict__.update({{key: data.get(key)}})
 
     @classmethod
@@ -123,7 +130,7 @@ class I{name}(Record):
         Returns:
             `str` when there is a primary key, `None` otherwise.
         """
-        return {primary_key_name}{save_method}{delete_method}
+        return {primary_key_name}{upsert_method}{delete_method}
 '''
 
 
@@ -168,7 +175,7 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
     if sdk_language == "TypeScript":
         file_name = "MrsServiceTemplate.ts.template"
     elif sdk_language == "Python":
-        file_name = "my_service_template.py.template"
+        file_name = "mrs_service_template.py.template"
     else:
         raise LanguageNotSupportedError(sdk_language)
 
@@ -1041,19 +1048,19 @@ def generate_data_class(
 
         create_snippet = ""
         update_snippet = ""
-        save_method = ""
+        upsert_method = ""
         delete_method = ""
 
         if "UPDATE" in db_object_crud_ops:
-            update_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_UPDATE.format(
+            update_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_UPDATE.format(
                 name=name
             )
         if "CREATE" in db_object_crud_ops:
-            create_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_CREATE.format(
+            create_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_CREATE.format(
                 name=name
             )
         if update_snippet or create_snippet:
-            save_method = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE.format(
+            upsert_method = SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT.format(
                 create_snippet=create_snippet,
                 update_snippet=update_snippet,
             )
@@ -1061,7 +1068,7 @@ def generate_data_class(
             delete_method = SDK_PYTHON_DATACLASS_TEMPLATE_DELETE.format(
                 name=name
             )
-            if save_method:
+            if upsert_method:
                 delete_method = " "*4 + delete_method.lstrip()
 
         return SDK_PYTHON_DATACLASS_TEMPLATE.format(
@@ -1070,9 +1077,9 @@ def generate_data_class(
             obj_endpoint=obj_endpoint,
             join_assignment_block="".join(assignment_block).rstrip(),
             primary_key_name=(None if obj_primary_key is None else f'"{obj_primary_key}"'),
-            save_method=save_method,
+            upsert_method=upsert_method,
             delete_method=delete_method,
-        ) + ("" if save_method or delete_method else "\n\n")
+        ) + ("" if upsert_method or delete_method else "\n\n")
 
 
 def generate_field_enum(name, fields=None, sdk_language="TypeScript"):

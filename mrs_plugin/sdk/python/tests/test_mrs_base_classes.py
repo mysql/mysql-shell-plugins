@@ -62,8 +62,8 @@ from python.mrs_base_classes import (
     MrsJSONDataDecoder,
     MrsJSONDataEncoder,
     MrsQueryEncoder,
-    Record,
-    RecordNotFoundError,
+    MrsDocument,
+    MrsDocumentNotFoundError,
     MrsBaseSession,
     StringField,
     UndefinedDataClassField,
@@ -233,7 +233,7 @@ class ActorData(TypedDict):
 
 
 @dataclass(init=False, repr=True)
-class Actor(Record):
+class Actor(MrsDocument):
 
     # For data attributes, `None` means "NULL" and
     # `UndefinedField` means "not set or undefined"
@@ -254,7 +254,7 @@ class Actor(Record):
         self.last_name = data.get("last_name", UndefinedField)
         self.last_update = data.get("last_update", UndefinedField)
 
-        for key in Record._reserved_keys:
+        for key in MrsDocument._reserved_keys:
             self.__dict__.update({key: data.get(key)})
 
     @classmethod
@@ -827,8 +827,8 @@ async def test_update_submit(
 ):
     """Check `MrsBaseObjectUpdate.submit()`."""
     prk = cast(str, data.get_primary_key_name())
-    record_id = getattr(data, prk)
-    request_path = f"{schema._request_path}/actor/{record_id}"
+    rest_document_id = getattr(data, prk)
+    request_path = f"{schema._request_path}/actor/{rest_document_id}"
     request = MrsBaseObjectUpdate[Actor, ActorDetails](
         schema=schema, request_path=request_path, data=data
     )
@@ -1435,12 +1435,12 @@ async def test_fetch_all(
 
 
 ####################################################################################
-#           Test "Record" Abstract Class (Data Class Objects' backbone)
+#           Test "MrsDocument" Abstract Class (Data Class Objects' backbone)
 ####################################################################################
 def test_hypermedia_property_access():
     """Check hypermedia information is inaccessible."""
 
-    class SubjectUnderTest(Record):
+    class SubjectUnderTest(MrsDocument):
         def __init__(self) -> None:
             self.__dict__.update({"_metadata": "foo", "links": "bar"})
 
@@ -1464,7 +1464,7 @@ def test_hypermedia_property_access():
 def test_hypermedia_property_modifications():
     """Check hypermedia information cannot be modified."""
 
-    class SubjectUnderTest(Record):
+    class SubjectUnderTest(MrsDocument):
         def __init__(self) -> None:
             self.__dict__.update({"_metadata": "foo", "links": "bar"})
 
@@ -1490,7 +1490,7 @@ def test_hypermedia_property_modifications():
 def test_hypermedia_property_removal():
     """Check hypermedia information cannot be deleted."""
 
-    class SubjectUnderTest(Record):
+    class SubjectUnderTest(MrsDocument):
         def __init__(self) -> None:
             self.__dict__.update({"_metadata": "foo", "links": "bar"})
 
@@ -1516,7 +1516,7 @@ def test_hypermedia_property_removal():
 def test_hypermedia_property_indexing():
     """Check hypermedia information is hidden."""
 
-    class SubjectUnderTest(Record):
+    class SubjectUnderTest(MrsDocument):
         def __init__(self) -> None:
             self.__dict__.update({"_metadata": "foo", "links": "bar"})
 
@@ -1623,13 +1623,13 @@ def test_undefined_is_singleton():
 ####################################################################################
 #                           Test Custom Exceptions
 ####################################################################################
-def test_record_not_found_exception():
-    """Check custom message is shown when raising `RecordNotFoundError"""
+def test_mrs_document_not_found_exception():
+    """Check custom message is shown when raising `MrsDocumentNotFoundError"""
     with pytest.raises(
-        RecordNotFoundError,
-        match=RecordNotFoundError._default_msg,
+        MrsDocumentNotFoundError,
+        match=MrsDocumentNotFoundError._default_msg,
     ):
-        raise RecordNotFoundError
+        raise MrsDocumentNotFoundError
 
 
 def test_auth_app_not_found_exception():

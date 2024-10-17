@@ -24,13 +24,13 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 # Python Client API Reference
 
 
-## MRS Services
+## REST Services
 
 The MRS Python SDK exposes a type-safe programmable interface for the MySQL REST Service that unifies, under a set of contextual commands, the available HTTP operations to access and use database objects (tables, views and functions) exposed as REST resources.
 
-The following MRS REST resources can be accessed from a service namespace:
+The following resources can be accessed from a service namespace:
 
-* [Schemas](#mrs-schemas)
+* [REST Schemas](#rest-schemas)
 
 The following commands can be accessed from a service namespace:
 
@@ -79,26 +79,26 @@ res = await my_service.sakila.hello_func(name="Rui")
 
 
 
-## MRS Schemas
+## REST Schemas
 
 In the Python SDK, database objects such as tables and functions are grouped under namespaces that correspond to their schema. Applications can access and use those database objects via the API exposed by each one.
 
-The following MRS REST resources can be accessed from the corresponding schema namespace:
+The following REST resources can be accessed from the corresponding schema namespace:
 
-* [Tables](#mrs-tables)
-* [Records](#mrs-records)
-* [Functions](#mrs-functions)
+* [REST Views](#rest-views)
+* [REST Documents](#rest-documents)
+* [REST Functions](#rest-functions)
 
 
 
-## MRS Tables
+## REST Views
 
 
 ### create
 
-`create` is used to insert a record in a given table. The record is represented as a typed dictionary object whose fields, or keys, should comply with the interface exposed by the type definition `INew${obj_class_name}` where `${obj_class_name}` is a variable which value depends on the *service, schema and table* names themselves.
+`create` is used to insert a record (a REST document) into the database. The REST document is represented as a typed dictionary object whose fields, or keys, should comply with the interface exposed by the type definition `INew${obj_class_name}` where `${obj_class_name}` is a variable containing a string which is a fully-qualified name composed by the names of the *REST Service*, *REST Schema* and *REST View* themselves.
 
-> To insert multiple records, see [create_many](#create_many).
+> To insert multiple documents, see [create_many](#create_many).
 
 #### Options (create)
 
@@ -108,7 +108,7 @@ The following MRS REST resources can be accessed from the corresponding schema n
 
 #### Return Type (create)
 
-An MRS dataclass object representing the record that was inserted. For more details about MRS dataclass objects, see [MRS Records](#mrs-records).
+A REST document data class object representing the record that was inserted. For more details about REST documents, check the [REST Documents](#rest-documents) section.
 
 #### Example (create)
 
@@ -134,7 +134,7 @@ The `actor_id` and `last_update` columns from the `sakila` table on the sample [
 
 ### create_many
 
-`create_many` is used to insert one or more records in a given table. A record is represented as a typed dictionary object whose fields, or keys, should comply with the interface exposed by the type definition `INew${obj_class_name}` where `${obj_class_name}` is a variable which value depends on the *service, schema and table* names themselves.
+`create_many` is used to insert one or more records (REST documents) into the database. A record is represented as a typed dictionary object whose fields, or keys, should comply with the interface exposed by the type definition `INew${obj_class_name}` where `${obj_class_name}` is a variable which value depends on the *service, schema and table* names themselves.
 
 > To insert a single record, see [create](#create).
 
@@ -146,7 +146,7 @@ The `actor_id` and `last_update` columns from the `sakila` table on the sample [
 
 #### Return Type (create_many)
 
-A list of MRS dataclass objects of each record that was inserted. For more details about MRS dataclass objects, see [MRS Records](#mrs-records).
+A list of REST document data class objects representing each record that was inserted. For more details about REST documents, check the [REST Documents](#rest-documents) section.
 
 #### Example (create_many)
 
@@ -191,20 +191,20 @@ The `actor_id` and `last_update` columns from the `sakila` table on the sample [
 
 ### find_first
 
-`find_first` is used to query the first record that matches a given optional filter. It returns `None` if no record is found.
+`find_first` is used to query the first REST document that matches a given optional filter. It returns `None` if no document is found.
 
 > To raise an exception if there are no matches, use [find_first_or_throw](#find_first_or_throw) instead.
 
-> To find multiple records, see [find_many](#find_many).
+> To find multiple REST documents, see [find_many](#find_many).
 
 #### Options (find_first)
 
 | Name | Type | Required | Description |
 |---|---|---|---|
-| select | dict or list | No | Specifies which properties to include or exclude on the returned record - works as a *field filter* |
-| where | dict | No | Applies filtering conditions based on specific fields - works as a *record filter* |
-| skip | int | No | Specifies how many records to skip before returning one of the matches |
-| order_by | dict | No | Lets you customize the order (`ASC` or `DESC`) in which the records are returned based on specific fields|
+| select | dict or list | No | Specifies which properties to include or exclude on the returned document - works as a *field filter* |
+| where | dict | No | Applies filtering conditions based on specific fields - works as a *document filter* |
+| skip | int | No | Specifies how many documents to skip before returning one of the matches |
+| order_by | dict | No | Lets you customize the order (`ASC` or `DESC`) in which the documents are returned based on specific fields|
 | cursor | dict | No | Specifies the position of the first item to include in the result set. A cursor bookmarks a location in a result set and must be a column containing unique and sequential values. |
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
 
@@ -212,7 +212,7 @@ The `actor_id` and `last_update` columns from the `sakila` table on the sample [
 
 #### Return Type (find_first)
 
-If there is a match, an MRS dataclass object meeting the filter conditions, otherwise `None` is returned. For more details about MRS dataclass objects, see [MRS Records](#mrs-records).
+If there is a match, a REST document data class object meeting the filter conditions, otherwise `None` is returned. For more details about REST documents, check the [REST Documents](#rest-documents) section.
 
 #### Example (find_first)
 
@@ -269,7 +269,7 @@ where={"actor_id": {"lt": 3}}
 where={"actor_id": {"lte": 3}}
 
 # Leads to a match when the field is not NULL.
-# In this case, we would get records where the
+# In this case, we would get documents where the
 # field `last_update` is not NULL.
 where={"last_updated": {"not": None}}
 
@@ -387,11 +387,11 @@ read_own_writes=False
 
 ### find_first_or_throw
 
-`find_first_or_throw` is used to query the first record that matches a given optional filter in the same way as [find_first](#find_first) does. However, if the query does not find a record, it raises a `RecordNotFoundError` exception.
+`find_first_or_throw` is used to retrieve the first REST document that matches a given optional filter in the same way as [find_first](#find_first) does. However, if the query does not find a document, it raises a `MrsDocumentNotFoundError` exception.
 
 > To not raise an exception and get `None` if there are no matches, use [find_first](#find_first) instead.
 
-> To find multiple records, see [find_many](#find_many).
+> To find multiple REST documents, see [find_many](#find_many).
 
 #### Options (find_first_or_throw)
 
@@ -399,7 +399,7 @@ read_own_writes=False
 
 #### Return Type (find_first_or_throw)
 
-If there is a match, an MRS dataclass object meeting the filter conditions is returned, otherwise an exception `RecordNotFoundError` is raised. For more details about MRS dataclass objects, see [MRS Records](#mrs-records).
+If there is a match, a REST document data class object meeting the filter conditions is returned, otherwise an exception `MrsDocumentNotFoundError` is raised. For more details about REST documents, check the [REST Documents](#rest-documents) section.
 
 #### Example (find_first_or_throw)
 
@@ -407,7 +407,7 @@ Usage is similar to `find_first`, however, now you should account for a possible
 
 ```Python
 import warnings
-from sdk.python.my_service import IMyServiceSakilaActor as Actor, MyService, RecordNotFoundError
+from sdk.python.my_service import IMyServiceSakilaActor as Actor, MyService, MrsDocumentNotFoundError
 
 my_service = MyService()
 
@@ -416,7 +416,7 @@ try:
         select={"last_name": False},
         where={"first_name": {"like": "%%ED%%"}},
     )
-except RecordNotFoundError:
+except MrsDocumentNotFoundError:
     warnings.warn("Ups, no matches found")
 ```
 
@@ -426,12 +426,12 @@ See [Example (find_first)](#example-find_first) for additional usage options.
 
 ### find_unique
 
-`find_unique` is used to query a single, uniquely identified record by:
+`find_unique` is used to query a single, uniquely identified REST document by:
 
 - Primary key column(s)
 - Unique column(s)
 
-It returns `None` if no record is found.
+It returns `None` if no document is found.
 
 > To raise an exception if there are no matches, use [find_unique_or_throw](#find_unique_or_throw) instead.
 
@@ -439,13 +439,13 @@ It returns `None` if no record is found.
 
 | Name | Type | Required | Description |
 |---|---|---|---|
-| select | dict or list | No | Specifies which properties to include or exclude on the returned record - works as a *field filter* |
-| where | dict | Yes | Applies filtering conditions based on specific fields (must be unique) - works as a *record filter* |
+| select | dict or list | No | Specifies which properties to include or exclude on the returned document - works as a *field filter* |
+| where | dict | Yes | Applies filtering conditions based on specific fields (must be unique) - works as a *document filter* |
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
 
 #### Return Type (find_unique)
 
-If there is a match, an MRS dataclass object meeting the filter conditions, otherwise `None` is returned. For more details about MRS dataclass objects, see [MRS Records](#mrs-records).
+If there is a match, a REST document data class object meeting the filter conditions, otherwise `None` is returned. For more details about REST documents, check the [REST Documents](#rest-documents) section.
 
 #### Example (find_unique)
 
@@ -471,12 +471,12 @@ See [Example (find_first)](#example-find_first) for additional usage options.
 
 ### find_unique_or_throw
 
-`find_unique_or_throw` is used to query a single, uniquely identified record by:
+`find_unique_or_throw` is used to query a single, uniquely identified REST document by:
 
 - Primary key column(s)
 - Unique column(s)
 
-If no record was found matching the given filter conditions, `RecordNotFoundError` is raised.
+If no document was found matching the given filter conditions, `MrsDocumentNotFoundError` is raised.
 
 > To not raise an exception and get `None` if there are no matches, use [find_unique](#find_unique) instead.
 
@@ -486,13 +486,13 @@ If no record was found matching the given filter conditions, `RecordNotFoundErro
 
 #### Return Type (find_unique_or_throw)
 
-If there is a match, an MRS dataclass object meeting the filter conditions, otherwise `RecordNotFoundError` is raised. For more details about MRS dataclass objects, see [MRS Records](#mrs-records).
+If there is a match, a REST document data class object meeting the filter conditions, otherwise `MrsDocumentNotFoundError` is raised. For more details about REST documents, check the [REST Documents](#rest-documents) section.
 
 #### Example (find_unique_or_throw)
 
 ```Python
 import warnings
-from sdk.python.my_service import IMyServiceSakilaActor as Actor, MyService, RecordNotFoundError
+from sdk.python.my_service import IMyServiceSakilaActor as Actor, MyService, MrsDocumentNotFoundError
 
 my_service = MyService()
 
@@ -501,7 +501,7 @@ try:
     actor: Actor = await self.my_service.sakila.actor.find_unique_or_throw(
         where={"actor_id": aid}, select=["last_update"], read_own_writes=False
     )
-except RecordNotFoundError:
+except MrsDocumentNotFoundError:
     warnings.warn("Ups, no matches found")
 ```
 
@@ -511,28 +511,28 @@ See [Example (find_first)](#example-find_first) for additional usage options.
 
 ### find_many
 
-`find_many` is used to query a subset of records in one or more pages, and optionally, those that match a given filter.
+`find_many` is used to query a subset of REST documents in one or more pages, and optionally, those that match a given filter.
 
-> To find all records see [find_all](#find_all).
+> To retrieve all documents see [find_all](#find_all).
 
 #### Options (find_many)
 
 | Name | Type | Required | Description |
 |---|---|---|---|
-| select | dict or list | No | Specifies which properties to include or exclude on the returned record - works as a *field filter* |
-| where | dict | No | Applies filtering conditions based on specific fields - works as a *record filter* |
-| skip | int | No | Specifies how many records to skip before returning one of the matches |
-| order_by | dict | No | Lets you customize the order (`ASC` or `DESC`) in which the records are returned based on specific fields|
+| select | dict or list | No | Specifies which properties to include or exclude on the returned document - works as a *field filter* |
+| where | dict | No | Applies filtering conditions based on specific fields - works as a *document filter* |
+| skip | int | No | Specifies how many documents to skip before returning one of the matches |
+| order_by | dict | No | Lets you customize the order (`ASC` or `DESC`) in which the documents are returned based on specific fields|
 | cursor | dict | No | Specifies the position of the first item to include in the result set. A cursor bookmarks a location in a result set and must be a column containing unique and sequential values. |
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
-| take | int | No | Maximum number of records to return |
+| take | int | No | Maximum number of documents to return |
 | iterator | bool | No | Enable or disable iterator behavior. It is used by the SDK to reset the internal iterator when consuming paginated data in order to avoid n + 1 requests, the internal iterator stops after the MySQL Router says there are no more items. Default value is `True` (enabled). |
 
 > Cursor-based pagination takes precedence over offset-based pagination, which means that if a cursor is defined, the value of the offset property (`skip`) will be ignored.
 
 #### Return Type (find_many)
 
-A list of MRS dataclass objects representing the records that match the filter. For more details about MRS dataclass objects, see [MRS Records](#mrs-records).
+A list of REST document data class objects representing the records that match the filter. For more details about REST documents, check the [REST Documents](#rest-documents) section.
 
 #### Example (find_many)
 
@@ -570,18 +570,18 @@ See [Example (find_first)](#example-find_first) for additional usage options.
 
 ### find_all
 
-`find_all` is used to query every record, and optionally, all those that match a given filter.
+`find_all` is used to retrieve every MRS document, and optionally, all those that match a given filter.
 
-> To get a paginated subset of records, see [find_many](#find_many).
+> To get a paginated subset of documents, see [find_many](#find_many).
 
 #### Options (find_all)
 
 | Name | Type | Required | Description |
 |---|---|---|---|
-| select | dict or list | No | Specifies which properties to include or exclude on the returned record - works as a *field filter* |
-| where | dict | No | Applies filtering conditions based on specific fields - works as a *record filter* |
-| skip | int | No | Specifies how many records to skip before returning one of the matches |
-| order_by | dict | No | Lets you customize the order (`ASC` or `DESC`) in which the records are returned based on specific fields|
+| select | dict or list | No | Specifies which properties to include or exclude on the returned document - works as a *field filter* |
+| where | dict | No | Applies filtering conditions based on specific fields - works as a *document filter* |
+| skip | int | No | Specifies how many documents to skip before returning one of the matches |
+| order_by | dict | No | Lets you customize the order (`ASC` or `DESC`) in which the documents are returned based on specific fields|
 | cursor | dict | No | Specifies the position of the first item to include in the result set. A cursor bookmarks a location in a result set and must be a column containing unique and sequential values. |
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
 | progress | function | No | Specifies a function to be called back when reporting progress |
@@ -591,7 +591,7 @@ See [Example (find_first)](#example-find_first) for additional usage options.
 
 #### Return Type (find_all)
 
-A list of MRS dataclass objects representing the records that match the filter. For more details about MRS dataclass objects, see [MRS Records](#mrs-records).
+A list of REST document data class objects representing the records that match the filter. For more details about REST documents, check the [REST Documents](#rest-documents) section.
 
 #### Example (find_all)
 
@@ -611,7 +611,7 @@ def my_progress(data: list[ActorData]) -> None:
         print(f"{i+1} of {len(data)}: actor_id={item["actor_id"]}")
         time.sleep(0.1)
 
-# get all records that first name matches 'PENELOPE'
+# get all documents that first name matches 'PENELOPE'
 actors: list[Actor] = await self.my_service.sakila.actor.find_all(
     where={"first_name": "PENELOPE"}, progress=my_progress
 )
@@ -623,23 +623,23 @@ See [Example (find_first)](#example-find_first) for additional usage options.
 
 ### delete
 
-`delete` is used to delete a single, uniquely identified record by:
+`delete` is used to delete a single, uniquely identified REST document by:
 
 - Primary key column(s)
 - Unique column(s)
 
-> To delete multiple records, see [delete_many](#delete_many).
+> To delete multiple documents, see [delete_many](#delete_many).
 
 #### Options (delete)
 
 | Name | Type | Required | Description |
 |---|---|---|---|
-| where | dict | Yes | Applies filtering conditions based on specific fields (must be unique) - works as a *record filter* |
+| where | dict | Yes | Applies filtering conditions based on specific fields (must be unique) - works as a *document filter* |
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
 
 #### Return Type (delete)
 
-`True` if the record was deleted successfully or `False` otherwise.
+`True` if the document was deleted successfully or `False` otherwise.
 
 #### Example (delete)
 
@@ -656,25 +656,25 @@ ans: bool = await self.my_service.sakila.actor.delete(
 if ans is False:
     warnings.warn(f"Actor not deleted - actor_id={aid} not found")
 else:
-    print(f"Actor record with ID={aid} was deleted")
+    print(f"Actor document with ID={aid} was deleted")
 ```
 
 
 
 ### delete_many
 
-`delete_many` is used to delete all records that match a given filter. To delete a single record, see [delete](#delete).
+`delete_many` is used to delete all REST documents that match a given filter. To delete a single document, see [delete](#delete).
 
 #### Options (delete_many)
 
 | Name | Type | Required | Description |
 |---|---|---|---|
-| where | dict | Yes | Applies filtering conditions based on specific fields - works as a *record filter* |
+| where | dict | Yes | Applies filtering conditions based on specific fields - works as a *document filter* |
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
 
 #### Return Type (delete_many)
 
-An integer indicating the number of deleted records.
+An integer indicating the number of deleted documents.
 
 #### Example (delete_many)
 
@@ -695,9 +695,9 @@ print(num_items_removed)
 
 ### update
 
-`update` is used to update a record with a given identifier or primary key.
+`update` is used to update a REST document with a given identifier or primary key.
 
-> To update multiple records, see [update_many](#update_many).
+> To update multiple documents, see [update_many](#update_many).
 
 #### Options (update)
 
@@ -707,7 +707,7 @@ print(num_items_removed)
 
 #### Return Type (update)
 
-An MRS dataclass object representing the up-to-date record. For more details about MRS dataclass objects, see [MRS Records](#mrs-records).
+A REST document data class object representing the up-to-date record. For more details about REST documents, check the [REST Documents](#rest-documents) section.
 
 #### Example (update)
 
@@ -743,19 +743,19 @@ assert actor.actor_id == actor_updated.actor_id
 
 ### update_many
 
-`update_many` is used to update all records with matching identifiers or primary keys.
+`update_many` is used to update all REST documents with matching identifiers or primary keys.
 
-> To update a single record, see [update](#update).
+> To update a single document, see [update](#update).
 
 #### Options (update_many)
 
 | Name | Type | Required | Description |
 |---|---|---|---|
-| data | list of `TypedDict` | Yes | A list of set of fields and corresponding values to update. The identifier or primary key must be included for each "set of fields" (record)|
+| data | list of `TypedDict` | Yes | A list of set of fields and corresponding values to update. The identifier or primary key must be included for each "set of fields" (document)|
 
 #### Return Type (update_many)
 
-A list of MRS dataclass objects representing the up-to-date records. For more details about MRS dataclass objects, see [MRS Records](#mrs-records).
+A list of REST document data class objects representing the up-to-date records. For more details about REST documents, check the [REST Documents](#rest-documents) section.
 
 #### Example (update_many)
 
@@ -802,27 +802,27 @@ assert actors_updated[1].last_name == "Yeung"
 
 
 
-## MRS Records
+## REST Documents
 
-An *MRS dataclass object* behaves as a [Python dataclass](https://docs.python.org/3/library/dataclasses.html) instance, and implements an extended interface which includes the `save` and `delete` methods.
+A *REST document* behaves like a [Python data class](https://docs.python.org/3/library/dataclasses.html) instance, and implements an extended interface which includes the `upsert` and `delete` methods.
 
-### save
+### upsert
 
-`save` creates or updates the record represented by the dataclass instance.
+`upsert` creates or updates the REST document represented by the data class instance.
 
 > If the specified primary key already exists, an *update* happens, otherwise a *create*.
 
-After completing the operation, the dataclass instance fields are updated in-place.
+After completing the operation, the data class instance fields are updated in-place.
 
-#### Options (save)
+#### Options (upsert)
 
 No options are implemented because the data required to complete the operation is assumed to be already included in the data class instance itself.
 
-#### Return Type (save)
+#### Return Type (upsert)
 
 `None`.
 
-#### Example (save)
+#### Example (upsert)
 
 Showcasing a *create*.
 
@@ -841,7 +841,7 @@ actor = Actor(
         "last_name": "BROWN"
     },
 )
-await actor.save()
+await actor.upsert()
 
 print(actor)
 # Actor(actor_id=6753, first_name='CHARLY', last_name='BROWN', last_update='2024-06-04 10:14:33.000000')
@@ -858,7 +858,7 @@ actor: Optional[Actor] = await my_service.sakila.actor.find_first(
         where={"actor_id": 3}
     )
 if actor is None:
-    print("Ups, Invalid record ID")
+    print("Ups, Invalid document ID")
     sys.exit()
 print("Before:", actor)
 
@@ -866,7 +866,7 @@ actor.first_name = "RODOLFO"
 actor.last_name = "CHASE"
 actor.last_update = str(datetime.now())
 
-await actor.save()
+await actor.upsert()
 
 print(actor)
 
@@ -875,19 +875,19 @@ print(actor)
 ```
 
 
-### delete (record)
+### delete (document)
 
 `delete` deletes the resource represented by the data class instance.
 
-#### Options (delete - record)
+#### Options (delete - document)
 
 No options are implemented because the data required to complete the operation is assumed to be already included in the data class instance itself.
 
-#### Return Type (delete - record)
+#### Return Type (delete - document)
 
 `None`.
 
-#### Example (delete - record)
+#### Example (delete - document)
 
 ```python
 from sdk.python.my_service import IMyServiceSakilaActor as Actor, MyService
@@ -898,7 +898,7 @@ actor: Optional[Actor] = await my_service.sakila.actor.find_first(
         where={"actor_id": 3}
     )
 if actor is None:
-    print("Ups, no record found")
+    print("Ups, no document found")
     sys.exit()
 
 print(actor)
@@ -914,7 +914,7 @@ print("deleted?", actor is None)
 ```
 
 
-## MRS Functions
+## REST Functions
 
 ### Options (function)
 
@@ -933,7 +933,7 @@ See [Example (function)](#examples-function) for an example.
 
 ### Example (function)
 
-Calling an MRS function in the Python SDK is exactly like calling a local Python function.
+Calling a REST function in the Python SDK is exactly like calling a local Python function.
 
 ```python
 from sdk.python import MyService
