@@ -27,7 +27,7 @@ import json
 # Define plugin version
 VERSION = "1.16.5"
 
-DB_VERSION = [3, 0, 1]
+DB_VERSION = [3, 0, 2]
 REQUIRED_ROUTER_VERSION = [8, 1, 0]
 SUPPORTED_MAJOR_VERSION = 3
 
