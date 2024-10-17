@@ -420,9 +420,9 @@ export interface IFooCursors {
     obj_primary_key = None
     join_field_block = "    bar: str | UndefinedDataClassField"
     join_assignment_block = '        self.bar = data.get("bar", UndefinedField)'
-    update_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_UPDATE.format(name=class_name)
-    create_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_CREATE.format(name=class_name)
-    save_method = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE.format(
+    update_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_UPDATE.format(name=class_name)
+    create_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_CREATE.format(name=class_name)
+    upsert_method = SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT.format(
         create_snippet=create_snippet,
         update_snippet=update_snippet,
     )
@@ -431,7 +431,7 @@ export interface IFooCursors {
         if obj_primary_key
         else ""
     )
-    if save_method and delete_method:
+    if upsert_method and delete_method:
         delete_method = " " * 4 + delete_method.lstrip()
 
     want = """class I{name}Details(IMrsResourceDetails):
@@ -483,7 +483,7 @@ class I{name}Cursors(TypedDict, total=False):
             primary_key_name=(
                 None if obj_primary_key is None else f'"{obj_primary_key}"'
             ),
-            save_method=save_method,
+            upsert_method=upsert_method,
             delete_method=delete_method,
         ).rstrip(),
     )
@@ -711,37 +711,37 @@ def test_generate_data_class():
     permutations = [
         ("", "", []),
         (
-            SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_UPDATE.format(name="Foobar"),
+            SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_UPDATE.format(name="Foobar"),
             "",
             ["UPDATE"],
         ),
         (
             "",
-            SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_CREATE.format(name="Foobar"),
+            SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_CREATE.format(name="Foobar"),
             ["CREATE"],
         ),
         (
-            SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_UPDATE.format(name="Foobar"),
-            SDK_PYTHON_DATACLASS_TEMPLATE_SAVE_CREATE.format(name="Foobar"),
+            SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_UPDATE.format(name="Foobar"),
+            SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_CREATE.format(name="Foobar"),
             ["UPDATE", "CREATE"],
         ),
     ]
 
     for update_snippet, create_snippet, db_object_crud_ops in permutations:
         for obj_prk, add_delete in [(None, False), (None, True), ("foo_id", True), ("foo_id", False)]:
-            save_method = ""
+            upsert_method = ""
             delete_method = ""
             db_object_delete_op = []
 
             if update_snippet or create_snippet:
-                save_method = SDK_PYTHON_DATACLASS_TEMPLATE_SAVE.format(
+                upsert_method = SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT.format(
                     create_snippet=create_snippet,
                     update_snippet=update_snippet,
                 )
             if add_delete and obj_prk:
                 delete_method = SDK_PYTHON_DATACLASS_TEMPLATE_DELETE.format(name="Foobar")
                 db_object_delete_op.append("DELETE")
-                if save_method:
+                if upsert_method:
                     delete_method = " "*4 + delete_method.lstrip()
 
             data_class = generate_data_class(
@@ -759,9 +759,9 @@ def test_generate_data_class():
                 obj_endpoint=obj_endpoint,
                 join_assignment_block=join_assignment_block,
                 primary_key_name=f'"{obj_prk}"' if obj_prk is not None else obj_prk,
-                save_method=save_method,
+                upsert_method=upsert_method,
                 delete_method=delete_method
-            ) + ("" if save_method or delete_method else "\n\n")
+            ) + ("" if upsert_method or delete_method else "\n\n")
 
 
 def test_generate_literal_type():

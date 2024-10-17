@@ -13,7 +13,18 @@
         "symlink",
         "unregister",
         "UPDATEPROCEDURE",
-        "urandom"
+        "urandom",
+        "upsert",
+        "insertable",
+        "JOHANSSON",
+        "Yeung",
+        "CHARLY",
+        "SMALLINT",
+        "CONCAT",
+        "CURDATE",
+        "GTID",
+        "corge",
+        "grault"
     ],
     "flagWords": [
         "hte"
@@ -40,6 +51,10 @@
         "typecheck",
         "preact",
         "READUNIQUE",
-        "codegen"
+        "codegen",
+        "xfcv",
+        "Datatypes",
+        "Bruh",
+        "asof"
     ]
 }
