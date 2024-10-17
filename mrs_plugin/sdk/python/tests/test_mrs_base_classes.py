@@ -28,9 +28,7 @@ from dataclasses import asdict, dataclass
 from typing import (
     Any,
     Callable,
-    Generic,
     Literal,
-    NotRequired,
     Optional,
     TypeAlias,
     TypedDict,
@@ -41,13 +39,18 @@ from unittest.mock import MagicMock
 from urllib.parse import quote, urlencode
 from urllib.request import HTTPError
 
-import pytest
+import pytest  # type: ignore[import-not-found]
 
-from python.mrs_base_classes import (
+from ..mrs_base_classes import (
     AuthAppNotFoundError,
     AuthenticateOptions,
     BoolField,
-    Filterable,  # type: ignore
+    DeleteOptions,
+    Filterable,
+    FindAllOptions,
+    FindFirstOptions,
+    FindManyOptions,
+    FindUniqueOptions,
     HighOrderOperator,
     IMrsResourceDetails,
     IntField,
@@ -142,69 +145,33 @@ TEST_FETCH_SAMPLE_DATA = [
 TEST_DATA_ENCODE_SAMPLE_DATA = [
     (
         {
-            "player_id": 65,
-            "gamer_tag": "Killerpollo",
-            "favorite_game": "Gears of War 2",
-            "friends": [
+            "first_key": "value1",
+            "second_key": {
+                "second_first_key": "value2",
+                "second_second_key": {"second_second_first_key": "value3"},
+                "second_third_key": ["value3", "value4"],
+            },
+            "third_key": [
                 {
-                    "player_id": 33,
-                    "gamer_tag": "Dr. Winner",
-                    "favorite_game": "Halo 3",
-                    "friends": None,
+                    "third_first_first_key": "value5",
+                    "third_first_second_key": "value6",
                 },
-                {
-                    "player_id": 2,
-                    "gamer_tag": "Speedy",
-                    "favorite_game": "Resident Evil 4",
-                    "friends": [
-                        {
-                            "player_id": 87,
-                            "gamer_tag": "Mr. Ripper",
-                            "favorite_game": "Dead Space",
-                            "friends": [
-                                {
-                                    "player_id": 134,
-                                    "gamer_tag": "KalJu",
-                                    "favorite_game": "Mario Kart",
-                                    "friends": None,
-                                }
-                            ],
-                        }
-                    ],
-                },
+                {"third_second_first_key": "value7"},
             ],
         },
         {
-            "playerId": 65,
-            "gamerTag": "Killerpollo",
-            "favoriteGame": "Gears of War 2",
-            "friends": [
+            "firstKey": "value1",
+            "secondKey": {
+                "secondFirstKey": "value2",
+                "secondSecondKey": {"secondSecondFirstKey": "value3"},
+                "secondThirdKey": ["value3", "value4"],
+            },
+            "thirdKey": [
                 {
-                    "playerId": 33,
-                    "gamerTag": "Dr. Winner",
-                    "favoriteGame": "Halo 3",
-                    "friends": None,
+                    "thirdFirstFirstKey": "value5",
+                    "thirdFirstSecondKey": "value6",
                 },
-                {
-                    "playerId": 2,
-                    "gamerTag": "Speedy",
-                    "favoriteGame": "Resident Evil 4",
-                    "friends": [
-                        {
-                            "playerId": 87,
-                            "gamerTag": "Mr. Ripper",
-                            "favoriteGame": "Dead Space",
-                            "friends": [
-                                {
-                                    "playerId": 134,
-                                    "gamerTag": "KalJu",
-                                    "favoriteGame": "Mario Kart",
-                                    "friends": None,
-                                }
-                            ],
-                        }
-                    ],
-                },
+                {"thirdSecondFirstKey": "value7"},
             ],
         },
     ),
@@ -218,18 +185,18 @@ TEST_DATA_DECODE_SAMPLE_DATA = [
 ####################################################################################
 #                               Custom Types
 ####################################################################################
-class ActorDetails(IMrsResourceDetails):
+class ActorDetails(IMrsResourceDetails, total=False):
     actor_id: int
     first_name: str
     last_name: str
     last_update: str
 
 
-class ActorData(TypedDict):
-    actor_id: NotRequired[int]
+class ActorData(TypedDict, total=False):
+    actor_id: int
     first_name: str
     last_name: str
-    last_update: NotRequired[str]
+    last_update: str
 
 
 @dataclass(init=False, repr=True)
@@ -263,7 +230,7 @@ class Actor(MrsDocument):
         return "actor_id"
 
 
-class Obj1Details(IMrsResourceDetails):
+class Obj1Details(IMrsResourceDetails, total=False):
     an_int: int
     a_str: str
     a_bool: bool
@@ -277,14 +244,14 @@ class Obj1Data(TypedDict, total=False):
     a_list_of_types: list["Obj2Data"]
 
 
-class Obj1Filterable(Generic[Filterable], HighOrderOperator[Filterable], total=False):
+class Obj1Filterable(HighOrderOperator[Filterable], total=False):
     an_int: IntField
     a_str: StringField
     a_bool: BoolField
     a_list_of_types: list["Obj2Data"]
 
 
-class Obj2Details(IMrsResourceDetails):
+class Obj2Details(IMrsResourceDetails, total=False):
     an_int: int
     a_str: str
     a_type: "Obj3Data"
@@ -296,7 +263,7 @@ class Obj2Data(TypedDict, total=False):
     a_type: "Obj3Data"
 
 
-class Obj3Details(IMrsResourceDetails):
+class Obj3Details(IMrsResourceDetails, total=False):
     an_int: int
     a_str: str
 
@@ -306,16 +273,16 @@ class Obj3Data(TypedDict, total=False):
     a_str: str
 
 
-class HelloFuncFuncParameters(TypedDict):
+class HelloFuncFuncParameters(TypedDict, total=False):
     name: str
 
 
-class SumFuncFuncParameters(TypedDict):
+class SumFuncFuncParameters(TypedDict, total=False):
     a: int
     b: int
 
 
-class MyBirthdayFuncFuncParameters(TypedDict):
+class MyBirthdayFuncFuncParameters(TypedDict, total=False):
     pass
 
 
@@ -336,7 +303,7 @@ def schema():
 
 
 @pytest.fixture
-def schema_on_service_with_session():
+def schema_on_service_with_session() -> MrsBaseSchema:
     service_url = f"https://localhost:{MRS_SERVICE_PORT}/{MRS_SERVICE_NAME}"
     schema_url = f"{service_url}/{DATABASE}"
     session: MrsBaseSession = {"access_token": ""}
@@ -422,7 +389,7 @@ async def validate_url(
     if isinstance(request, MrsBaseObjectQuery):
         # Returns `fictional_response_from_router` because urlopen was mocked to return it.
         # The returned data is not important in this case.
-        _ = await request.fetch()
+        _ = await request.submit()
 
         # check urlopen was called once and the url that was built matches the expected
         # mock_urlopen.assert_called_once_with(ANY, context=expected_context)
@@ -543,12 +510,13 @@ async def test_gtid_track_and_sync(
     * when UPDATE response include gtid in metadata, the latest GTID is updated.
     """
     # dummy data
-    data_create = {"first_name": "Shigeru", "last_name": "Miyamoto"}
+    data_create: ActorData = {"first_name": "Shigeru", "last_name": "Miyamoto"}
     data_update = Actor(
         cast(
             ActorData,
             ActorDetails(
                 {
+                    "links": [],
                     "first_name": "Shigeru",
                     "last_name": "Miyamoto",
                     "_metadata": {
@@ -563,28 +531,37 @@ async def test_gtid_track_and_sync(
         # set latest GTID
         schema._service._session["gtid"] = gtid_epoch_0
 
+        request: (
+            MrsBaseObjectQuery
+            | MrsBaseObjectCreate
+            | MrsBaseObjectUpdate
+            | MrsBaseObjectDelete
+        )
+
         # ------------------------------- GTID Tracking -------------------------------
         # Checking CREATE/UPDATE/DELETE HTTP requests
         if cls_ == MrsBaseObjectCreate:
             request_path = f"{schema._request_path}/actor"
-            request = cls_[ActorData, ActorDetails](
+            request = MrsBaseObjectCreate[ActorData, ActorDetails](
                 schema=schema, request_path=request_path, data=data_create
             )
         elif cls_ == MrsBaseObjectUpdate:
             prk = cast(str, data_update.get_primary_key_name())
             request_path = f"{schema._request_path}/actor/{getattr(data_update, prk)}"
-            request = cls_[Actor, ActorDetails](
+            request = MrsBaseObjectUpdate[Actor, ActorDetails](
                 schema=schema, request_path=request_path, data=data_update
             )
         elif cls_ == MrsBaseObjectDelete:
-            request = cls_[Obj1Filterable](
-                schema=schema, request_path=request_path, options=query
+            request = MrsBaseObjectDelete[Obj1Filterable](
+                schema=schema,
+                request_path=request_path,
+                options=cast(DeleteOptions, query),
             )
 
         mock_urlopen.return_value = urlopen_simulator(urlopen_read=fictional_response)
         mock_create_default_context.return_value = ssl.create_default_context()
 
-        _ = await request.submit();
+        _ = await request.submit()
 
         # ------------------------------- GTID Synchronization -------------------------------
         # Internally, the tracked gtid should have been updated if new gtid comes
@@ -594,12 +571,16 @@ async def test_gtid_track_and_sync(
         # Checking GET/DELETE HTTP requests
         for my_cls in (MrsBaseObjectQuery, MrsBaseObjectDelete):
             if my_cls == MrsBaseObjectQuery:
-                request = my_cls[Obj1Data, Obj1Details](
-                    schema=schema, request_path=request_path, options=query
+                request = MrsBaseObjectQuery[Obj1Data, Obj1Details](
+                    schema=schema,
+                    request_path=request_path,
+                    options=cast(FindManyOptions, query),
                 )
             else:
-                request = my_cls[Obj1Filterable](
-                    schema=schema, request_path=request_path, options=query
+                request = MrsBaseObjectDelete[Obj1Filterable](
+                    schema=schema,
+                    request_path=request_path,
+                    options=cast(DeleteOptions, query),
                 )
 
             await validate_url(
@@ -733,7 +714,7 @@ async def test_create_submit(
     mock_request_class: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    data: dict[str, Any],
+    data: ActorData,
     urlopen_read: dict[str, Any],
     schema: MrsBaseSchema,
     schema_on_service_with_session: MrsBaseSchema,
@@ -794,6 +775,7 @@ async def test_create_submit(
                     ActorData,
                     ActorDetails(
                         {
+                            "links": [],
                             "first_name": "Shigeru",
                             "last_name": "Miyamoto",
                             "_metadata": {
@@ -880,25 +862,28 @@ async def test_update_submit(
 #                      Test "submit" Method (function-call's backbone)
 ####################################################################################
 @pytest.mark.parametrize(
-    "func_name, parameters, urlopen_read, func_params_type",
+    "func_name, parameters, urlopen_read, func_params_type, func_result_type",
     [
         (
             "sumFunc",  # f(i1, i2) -> i3
             {"a": 2, "b": 3},
             {"result": 5},
             SumFuncFuncParameters,
+            int,
         ),
         (
             "helloFunc",  # f(s) -> s
             {"name": "Rui"},
             {"result": "Hello Rui!"},
             HelloFuncFuncParameters,
+            str,
         ),
         (
             "myBirthdayFunc",  # f() -> s
             {},
             {"result": "2024-07-23 00:00:00"},
             MyBirthdayFuncFuncParameters,
+            str,
         ),
     ],
 )
@@ -913,10 +898,11 @@ async def test_function_call_submit(
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
     schema_on_service_with_session: MrsBaseSchema,
+    func_result_type: TypeAlias,
 ):
     """Check `MrsBaseObjectFunctionCall.submit()`."""
     request_path = f"{schema._request_path}/{func_name}"
-    request = MrsBaseObjectFunctionCall[func_params_type, type(urlopen_read)](
+    request = MrsBaseObjectFunctionCall[func_params_type, func_result_type](
         schema=schema,
         request_path=request_path,
         parameters=cast(func_params_type, parameters),
@@ -936,7 +922,7 @@ async def test_function_call_submit(
     mock_urlopen.assert_called_once()
 
     # Check authenticated `MrsBaseObjectFunctionCall.submit()`
-    request = MrsBaseObjectFunctionCall[func_params_type, type(urlopen_read)](
+    request = MrsBaseObjectFunctionCall[func_params_type, func_result_type](
         schema=schema_on_service_with_session,
         request_path=request_path,
         parameters=cast(func_params_type, parameters),
@@ -963,7 +949,7 @@ async def test_select_with_list_for_inclusion(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: dict[str, Any],
+    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -989,7 +975,7 @@ async def test_select_with_mapper_for_inclusion(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: dict[str, Any],
+    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -1015,7 +1001,7 @@ async def test_select_with_mapper_for_exclusion(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: dict[str, Any],
+    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -1051,15 +1037,22 @@ async def test_where_field_is_equal_with_implicit_filter(
 ):
     """Specifying `where`. Checking implicit filter."""
     request_path = f"{schema._request_path}/dbobject"
+    request: MrsBaseObjectQuery | MrsBaseObjectDelete
 
     for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
         if cls_ == MrsBaseObjectQuery:
-            request = cls_[Obj1Data, Obj1Details](
-                schema=schema, request_path=request_path, options=query
+            request = MrsBaseObjectQuery[Obj1Data, Obj1Details](
+                schema=schema,
+                request_path=request_path,
+                options=cast(
+                    FindFirstOptions | FindManyOptions | FindUniqueOptions, query
+                ),
             )
         else:
-            request = cls_[Obj1Filterable](
-                schema=schema, request_path=request_path, options=query
+            request = MrsBaseObjectDelete[Obj1Filterable](
+                schema=schema,
+                request_path=request_path,
+                options=cast(DeleteOptions, query),
             )
 
         await validate_url(
@@ -1086,19 +1079,22 @@ async def test_where_field_is_equal_with_explicit_filter(
 ):
     """Specifying `where`. Checking explicit filter."""
     request_path = f"{schema._request_path}/dbobject"
+    request: MrsBaseObjectQuery | MrsBaseObjectDelete
 
     for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
         if cls_ == MrsBaseObjectQuery:
-            request = cls_[Obj1Data, Obj1Details](
+            request = MrsBaseObjectQuery[Obj1Data, Obj1Details](
                 schema=schema,
                 request_path=request_path,
-                options=query,
+                options=cast(
+                    FindFirstOptions | FindManyOptions | FindUniqueOptions, query
+                ),
             )
         else:
-            request = cls_[Obj1Filterable](
+            request = MrsBaseObjectDelete[Obj1Filterable](
                 schema=schema,
                 request_path=request_path,
-                options=query,
+                options=cast(DeleteOptions, query),
             )
 
         await validate_url(
@@ -1125,15 +1121,22 @@ async def test_where_field_is_null(
 ):
     """Specifying `where`. Checking filter where field is NULL."""
     request_path = f"{schema._request_path}/dbobject"
+    request: MrsBaseObjectQuery | MrsBaseObjectDelete
 
     for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
         if cls_ == MrsBaseObjectQuery:
-            request = cls_[Obj1Data, Obj1Details](
-                schema=schema, request_path=request_path, options=query
+            request = MrsBaseObjectQuery[Obj1Data, Obj1Details](
+                schema=schema,
+                request_path=request_path,
+                options=cast(
+                    FindFirstOptions | FindManyOptions | FindUniqueOptions, query
+                ),
             )
         else:
-            request = cls_[Obj1Filterable](
-                schema=schema, request_path=request_path, options=query
+            request = MrsBaseObjectDelete[Obj1Filterable](
+                schema=schema,
+                request_path=request_path,
+                options=cast(DeleteOptions, query),
             )
 
         await validate_url(
@@ -1160,15 +1163,20 @@ async def test_where_field_is_not_null(
 ):
     """Specifying `where`. Checking filter where field isn't NULL."""
     request_path = f"{schema._request_path}/dbobject"
+    request: MrsBaseObjectQuery | MrsBaseObjectDelete
 
     for cls_ in (MrsBaseObjectQuery, MrsBaseObjectDelete):
         if cls_ == MrsBaseObjectQuery:
-            request = cls_[Obj1Data, Obj1Details](
-                schema=schema, request_path=request_path, options=query
+            request = MrsBaseObjectQuery[Obj1Data, Obj1Details](
+                schema=schema,
+                request_path=request_path,
+                options=cast(FindManyOptions, query),
             )
         else:
-            request = cls_[Obj1Filterable](
-                schema=schema, request_path=request_path, options=query
+            request = MrsBaseObjectDelete[Obj1Filterable](
+                schema=schema,
+                request_path=request_path,
+                options=cast(DeleteOptions, query),
             )
 
         await validate_url(
@@ -1192,7 +1200,7 @@ async def test_skip(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: dict[str, Any],
+    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -1222,7 +1230,7 @@ async def test_cursor(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: dict[str, Any],
+    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -1252,7 +1260,7 @@ async def test_take(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: dict[str, Any],
+    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -1282,7 +1290,7 @@ async def test_order_by_asc_without_filter(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: dict[str, Any],
+    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -1309,7 +1317,7 @@ async def test_order_by_asc_with_filter(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: dict[str, Any],
+    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -1336,7 +1344,7 @@ async def test_order_by_desc_with_filter(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: dict[str, Any],
+    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -1356,18 +1364,18 @@ async def test_order_by_desc_with_filter(
 
 
 ####################################################################################
-#                      Test "fetch" Method (find*'s backbone)
+#                      Test "submit" Method (find*'s backbone)
 ####################################################################################
 @pytest.mark.parametrize("query, urlopen_read", TEST_FETCH_SAMPLE_DATA)
-async def test_fetch(
+async def test_submit(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: dict[str, Any],
+    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
     urlopen_read: dict[str, Any],
     schema: MrsBaseSchema,
 ):
-    """Check `MrsBaseObjectQuery.fetch()`."""
+    """Check `MrsBaseObjectQuery.submit()`."""
     request_path = f"{schema._request_path}/actor"
     request = MrsBaseObjectQuery[ActorData, ActorDetails](
         schema=schema, request_path=request_path, options=query
@@ -1375,7 +1383,7 @@ async def test_fetch(
     mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
     mock_create_default_context.return_value = ssl.create_default_context()
 
-    response = await request.fetch()
+    response = await request.submit()
     mock_urlopen.assert_called_once()
     assert response["items"] == MrsJSONDataDecoder.convert_keys(urlopen_read)["items"]
 
@@ -1385,7 +1393,7 @@ async def test_fetch_one(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: dict[str, Any],
+    query: FindFirstOptions,
     urlopen_read: dict[str, Any],
     schema: MrsBaseSchema,
 ):
@@ -1411,7 +1419,7 @@ async def test_fetch_all(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: dict[str, Any],
+    query: FindAllOptions,
     urlopen_read: dict[str, Any],
     schema: MrsBaseSchema,
 ):
@@ -1591,7 +1599,7 @@ def test_decode_data(data: dict[str, Any], converted_data: dict[str, Any]):
     ],
 )
 async def test_query_encoder(
-    sample_filter: dict[str, Any],
+    sample_filter: FindFirstOptions | FindManyOptions | FindUniqueOptions,
     expected_payload: str,
     schema: MrsBaseSchema,
 ):

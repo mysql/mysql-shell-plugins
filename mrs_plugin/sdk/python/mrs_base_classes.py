@@ -249,7 +249,7 @@ class AuthenticateOptions(Generic[AuthAppName], TypedDict):
     password: NotRequired[str]
 
 
-class MrsBaseSession(TypedDict):
+class MrsBaseSession(TypedDict, total=False):
     access_token: str
     gtid: Optional[str]
 
@@ -867,7 +867,7 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
             if gtid is not None:
                 self._where.update({"asof": gtid})
 
-    async def fetch(self) -> IMrsResourceCollectionData:
+    async def submit(self) -> IMrsResourceCollectionData:
         """Fetch a result set (page). The page size is as `take` if specified,
         otherwise it is as configured (default) in the MRS SDK application.
 
@@ -931,7 +931,7 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
     async def fetch_all(
         self, progress: Optional[ProgressCallback] = None
     ) -> IMrsResourceCollectionData:
-        """Fetch all result sets (pages). Unlike `fetch()`, this method loads
+        """Fetch all result sets (pages). Unlike `submit()`, this method loads
         all pages matching the query `options`.
 
         Returns:
@@ -956,7 +956,7 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
         }
 
         while has_more:
-            current = await self.fetch()
+            current = await self.submit()
 
             if current is None:
                 break
@@ -1004,7 +1004,7 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
         # impose artificial limit
         self.limit = 1
 
-        response = await self.fetch()
+        response = await self.submit()
 
         if len(response["items"]) == 0:
             return None

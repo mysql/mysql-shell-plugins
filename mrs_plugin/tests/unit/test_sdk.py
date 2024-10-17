@@ -434,7 +434,7 @@ export interface IFooCursors {
     if upsert_method and delete_method:
         delete_method = " " * 4 + delete_method.lstrip()
 
-    want = """class I{name}Details(IMrsResourceDetails):
+    want = """class I{name}Details(IMrsResourceDetails, total=False):
     bar: str
 
 
