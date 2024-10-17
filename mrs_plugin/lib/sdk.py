@@ -1257,16 +1257,6 @@ def generate_interfaces(
         "FUNCTION",
     ):
         # The object is a TABLE or a VIEW
-        obj_non_mandatory_fields = set(
-            [
-                field.get("name")
-                for field in fields
-                # exclude fields that are out of range (e.g. on different nesting levels)
-                if field.get("name") in interface_fields.keys()
-                and field_is_required(field, obj) is False
-            ]
-        )
-
         if sdk_language != "TypeScript":
             # These type declarations are not needed for TypeScript because it uses a Proxy to replace the interface
             # and not a wrapper class. This might change in the future.
@@ -1277,6 +1267,7 @@ def generate_interfaces(
                     fields=interface_fields,
                     sdk_language=sdk_language,
                     ignore_base_types=True,
+                    non_mandatory_fields=set(interface_fields),
                 )
             )
 
@@ -1285,11 +1276,21 @@ def generate_interfaces(
                     name=f"{class_name}Data",
                     fields=interface_fields,
                     sdk_language=sdk_language,
-                    non_mandatory_fields=obj_non_mandatory_fields,
+                    non_mandatory_fields=set(interface_fields),
                 )
             )
 
         if "CREATE" in db_object_crud_ops:
+            obj_non_mandatory_fields = set(
+                [
+                    field.get("name")
+                    for field in fields
+                    # exclude fields that are out of range (e.g. on different nesting levels)
+                    if field.get("name") in interface_fields.keys()
+                    and field_is_required(field, obj) is False
+                ]
+            )
+
             obj_interfaces.append(
                 generate_type_declaration(
                     name=f"New{class_name}",

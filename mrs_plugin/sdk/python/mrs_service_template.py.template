@@ -201,7 +201,7 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
             self._has_more = True
             return []
 
-        response = await request.fetch()
+        response = await request.submit()
 
         if iterator:
             self._has_more = response["has_more"]
