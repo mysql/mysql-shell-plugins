@@ -46,7 +46,7 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
-            "error": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nRuntimeError: Shell.prompt: Cancelled\n\n"
+            "error": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nRuntimeError: Cancelled\n\n"
         }
     },
     responses.ok.default
@@ -76,7 +76,7 @@ await ws.sendAndValidate({
             "msg": "Executing..."
         },
         "request_id": ws.lastGeneratedRequestId,
-        "result": 
+        "result":
         {
             'prompt': 'Gimme a password: ',
             'type': 'password'
@@ -98,7 +98,7 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
-            "error": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nRuntimeError: Shell.prompt: Cancelled\n\n"
+            "error": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nRuntimeError: Cancelled\n\n"
         }
     },
     responses.ok.default

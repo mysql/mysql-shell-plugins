@@ -175,7 +175,7 @@ def test_change_schema(phone_book, table_contents):
         args['value'] = "/PhoneBook"
         with pytest.raises(Exception) as exc_info:
             result = set_request_path(schema_id=schema_id, **args)
-        assert str(exc_info.value) == "MySQL Error (1644): ClassicSession.run_sql: The request_path is already used by another entity."
+        assert str(exc_info.value) == "MySQL Error (1644): The request_path is already used by another entity."
 
         args['value'] = "/test_schema_4"
         result = set_request_path(schema_id=schema_id, **args)

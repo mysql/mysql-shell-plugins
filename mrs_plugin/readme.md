@@ -12,7 +12,7 @@ Since this is a MySQL Shell plugin, the tests should run as part of a MySQL Shel
 
 ```sh
 $ cd mrs_plugin
-$ mysqlsh --pym pip install --user -r requirements.txt
+$ mysqlsh --pym pip install --user -r requirements.txt -r sdk/python/requirements.txt
 ```
 
 After the dependencies are installed, the test script can execute as follows:

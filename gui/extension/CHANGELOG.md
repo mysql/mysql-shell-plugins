@@ -1,10 +1,11 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.16.5+9.0.1
+## Changes in 1.16.5+9.1.0
 
 ### Additions
 
 - Added MLE performance status in the admin section for a connection
+- Updated MySQL Shell to 9.1.0
 
 ### Fixes
 

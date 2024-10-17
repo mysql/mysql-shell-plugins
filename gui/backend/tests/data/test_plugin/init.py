@@ -24,7 +24,6 @@
 from mysqlsh.plugin_manager import plugin, plugin_function
 import mysqlsh
 
-
 @plugin
 class guitest:
     """
@@ -60,6 +59,7 @@ def do_prompt(prompt):
     Args:
       prompt (str): the data to be prompted
     """
+
     result = shell.prompt(prompt)
 
     print(result)
