@@ -300,7 +300,8 @@
             width: 220px;
             padding: 8px 20px 8px 20px;
             border: 1px solid var(--error-text-color);
-            border-radius: 6px
+            border-radius: 6px;
+            overflow-wrap: break-word;
         }
 
         .mrsLoginError p {
@@ -452,7 +453,9 @@
                         `${String(this.serviceUrl)}${this.authPath}/authApps is accessible. `;
 
                     throw new Error(errorDesc + `(${response.status}:${response.statusText})` +
-                        `${(errorInfo !== undefined) ? ("\n\n" + JSON.stringify(errorInfo, null, 4) + "\n") : ""}`);
+                        `${(errorInfo !== undefined && errorInfo !== null)
+                            ? ("\n\n" + JSON.stringify(errorInfo, null, 4) + "\n")
+                            : ""}`);
                 }
             };
 
@@ -894,23 +897,27 @@
             render = (props, state) => {
                 const { userName, password, loginError, userNameVerified, authApps, authApp } = state;
 
-                let mrsAuthApp = authApps?.find((app) => {
-                    return app.vendorId === "0x30000000000000000000000000000000";
-                });
-
                 let requestedAuthApp;
+                // If a specific authApp has been given, use that one
                 if (authApp) {
                     requestedAuthApp = authApps?.find((app) => {
                         return app.name.toLowerCase() === authApp.toLowerCase();
                     });
-
-                    // If a specific authApp was requested and it is not the mrsAuthApp, rule mrsAuthApp out
-                    if (mrsAuthApp && requestedAuthApp && mrsAuthApp !== requestedAuthApp) {
-                        mrsAuthApp = undefined;
-                    }
+                } else {
+                    // If not specific authApp was specified, use the first MRS authApp
+                    requestedAuthApp = authApps?.find((app) => {
+                        return app.vendorId === "0x30000000000000000000000000000000";
+                    });
                 }
 
                 if (authApps === undefined) {
+                    if (loginError !== undefined) {
+                        return html`<br />
+                            <div className="mrsLoginError">
+                                <p>${String(loginError)}</p>
+                            </div>`;
+                    }
+
                     return html`
                         <div className="mrsLogin">
                             <p>Loading ...</p>
@@ -919,23 +926,26 @@
 
                 if (authApps.length === 0) {
                     return html`
-                        <div className="mrsLogin">
+                        <br />
+                        <div className="mrsLoginError">
                             <p>No Authentication Apps defined for this REST Service.</p>
                         </div>`;
                 }
 
                 if (authApp && !requestedAuthApp) {
                     return html`
-                        <div className="mrsLogin">
+                        <br />
+                        <div className="mrsLoginError">
                             <p>Requested Authentication App ${authApp} not found on REST Service.</p>
                         </div>`
                 }
 
-                if (mrsAuthApp) {
+                // Handle MRS authApps
+                if (requestedAuthApp?.vendorId === "0x30000000000000000000000000000000") {
                     // If an MRS authApp has been defined, immediately show the login inputs
                     const LoginNextBtn = html`
                         <div id="userNameBtn" className="mrsLoginBtnNext"
-                            onClick=${() => { void this.verifyUserName(mrsAuthApp.name); }}
+                            onClick=${() => { void this.verifyUserName(requestedAuthApp.name); }}
                             onKeyPress=${() => { /** */ }} role="button" tabIndex={-1} />`;
                     const loginBtnHtml = html`
                             <div className="mrsLoginField">
@@ -944,7 +954,7 @@
                                     onInput=${(e) => { this.userNameChange(e.target.value); }}
                                     onKeyPress=${(e) => {
                             if (e.keyCode === 13) {
-                                void this.verifyUserName(mrsAuthApp.name);
+                                void this.verifyUserName(requestedAuthApp.name);
                             }
                         }} />
                                 ${!userNameVerified && LoginNextBtn}
@@ -962,7 +972,7 @@
                     // Single MRS AuthApp configured
                     return html`
                         <div className="mrsLogin">
-                            <p><br/><br/>Sign in with ${mrsAuthApp.name}</p>
+                            <p><br/><br/>Sign in with ${requestedAuthApp.name}</p>
                             <div className="mrsLoginFields">
                                 ${loginBtnHtml}
                                 ${userNameVerified && passwordBtnHtml}

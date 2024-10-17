@@ -31,7 +31,7 @@ InitialAuthAppIds = []
 def test_verify_auth_vendors(phone_book, table_contents):
     auth_vendor_table = table_contents("auth_vendor")
 
-    assert auth_vendor_table.count == 4
+    assert auth_vendor_table.count == 5
     assert auth_vendor_table.items == [{
         "comments": "Built-in user management of MRS",
         "enabled": 1,
@@ -62,6 +62,14 @@ def test_verify_auth_vendors(phone_book, table_contents):
         "id": lib.core.id_to_binary("0x34000000000000000000000000000000", ""),
         "name": "Google",
         "validation_url": None,
+        "options": None,
+    },
+    {
+        "id": lib.core.id_to_binary("0x35000000000000000000000000000000", ""),
+        "name": "OCI OAuth2",
+        "validation_url": None,
+        "enabled": 1,
+        "comments": "Uses the OCI OAuth2 service",
         "options": None,
     }]
 

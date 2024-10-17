@@ -58,6 +58,14 @@ EXPECTED = {
         "comments": "Uses the Google OAuth2 service",
         "options": None,
     },
+    "0x35000000000000000000000000000000": {
+        "id": lib.core.id_to_binary("0x35000000000000000000000000000000", ""),
+        "name": "OCI OAuth2",
+        "validation_url": None,
+        "enabled": 1,
+        "comments": "Uses the OCI OAuth2 service",
+        "options": None,
+    },
 }
 
 
