@@ -97,7 +97,7 @@ def test_add_service(phone_book, table_contents):
 
     with pytest.raises(Exception) as exc_info:
         add_service(url_context_root="/test", url_host_name="localhost", enabled=True, **args)
-    assert str(exc_info.value) == "MySQL Error (1644): ClassicSession.run_sql: The request_path is already used by another entity."
+    assert str(exc_info.value) == "MySQL Error (1644): The request_path is already used by another entity."
 
     assert services_table.same_as_snapshot
 
@@ -271,7 +271,7 @@ def test_change_service(phone_book):
 
         with pytest.raises(Exception) as exc_info:
             set_url_context_root(**args, value="/test")
-        assert str(exc_info.value) == "MySQL Error (1644): ClassicSession.run_sql: The request_path is already used by another entity."
+        assert str(exc_info.value) == "MySQL Error (1644): The request_path is already used by another entity."
 
         assert set_url_context_root(**args, value="/service3") == True
         service2 = get_service(**args_for_get_service)

@@ -252,7 +252,7 @@ def test_edit_users(phone_book, table_contents):
             update_user(**user_update)
         assert (
             str(exp.value)
-            == "MySQL Error (1644): ClassicSession.run_sql: This name has already been used."
+            == "MySQL Error (1644): This name has already been used."
         )
 
         user_update = {
@@ -264,7 +264,7 @@ def test_edit_users(phone_book, table_contents):
             update_user(**user_update)
         assert (
             str(exp.value)
-            == "MySQL Error (1644): ClassicSession.run_sql: This email has already been used."
+            == "MySQL Error (1644): This email has already been used."
         )
 
 

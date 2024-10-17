@@ -42,7 +42,7 @@ await ws.sendAndValidate({
         "request_state":
         {
             "type": "ERROR",
-            "msg": "guitest.do_fail: Something failed\n",
+            "msg": "Something failed\n",
             "source": "MSG",
             "code": 1
         },
@@ -132,7 +132,7 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "ERROR",
-            "msg": ws.matchRegexp("RuntimeError: Shell.prompt: Cancelled"),
+            "msg": ws.matchRegexp("RuntimeError: Cancelled"),
             "source": "MSG",
             "code": 1
         },
@@ -225,7 +225,7 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "ERROR",
-            "msg": ws.matchRegexp("Shell.prompt: Cancelled"),
+            "msg": ws.matchRegexp("RuntimeError: Cancelled"),
             "source": "MSG",
             "code": 1
         },

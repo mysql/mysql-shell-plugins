@@ -21,7 +21,7 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "ERROR",
-            "msg": "MySQL Error (1411): ClassicResult.fetch_one: Incorrect string value: '1' for function uuid_to_bin",
+            "msg": "MySQL Error (1411): Incorrect string value: '1' for function uuid_to_bin",
         }
     }
 ])

@@ -16,7 +16,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
             "type": "ERROR",
-            "msg": "Shell.open_session: Access denied for user 'user2'@'localhost' (using password: NO)",
+            "msg": "Access denied for user 'user2'@'localhost' (using password: NO)",
             "code": 1045,
             "source": "MYSQL"
         }

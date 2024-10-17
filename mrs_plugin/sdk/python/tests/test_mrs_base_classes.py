@@ -36,6 +36,7 @@ from typing import (
     TypedDict,
     cast,
 )
+from unittest import mock
 from unittest.mock import MagicMock
 from urllib.parse import quote, urlencode
 from urllib.request import HTTPError

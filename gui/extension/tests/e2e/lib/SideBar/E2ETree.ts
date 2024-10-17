@@ -530,7 +530,7 @@ export class E2ETree {
                 return true;
             } catch (e) {
                 console.log("[DEBUG] An error occurred");
-                if (await Workbench.existsNotification(/Error.*Shell.open_session/)) {
+                if (await Workbench.existsNotification(/Error.*/)) {
                     console.log("Shell session error, retrying...");
                     await Workbench.dismissNotifications();
                 } else {

@@ -121,7 +121,7 @@ describe("Notifications", () => {
 
             const notification = await new E2EToastNotification().create();
             expect(notification.type).toBe("error");
-            expect(notification.message).toBe("Connection Error: Shell.open_session: Cancelled");
+            expect(notification.message).toBe("Connection Error: Cancelled");
             const statusBar = new E2EStatusBar();
             expect(await statusBar.hasNotifications()).toBe(true);
             await notification.close();
@@ -286,12 +286,12 @@ describe("Notifications", () => {
 
             const notification = await new E2EToastNotification().create();
             expect(notification.type).toBe("error");
-            expect(notification.message).toBe("Connection Error: Shell.open_session: Cancelled");
+            expect(notification.message).toBe("Connection Error: Cancelled");
             notificationsCenter = await new E2ENotificationsCenter().open();
             notifications = await notificationsCenter!.getNotifications();
             expect(((notifications).length)).toBe(1);
             expect(notifications[0].type).toBe("error");
-            expect(notifications[0].message).toBe("Connection Error: Shell.open_session: Cancelled");
+            expect(notifications[0].message).toBe("Connection Error: Cancelled");
         } catch (e) {
             testFailed = true;
             throw e;
