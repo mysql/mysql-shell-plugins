@@ -11,6 +11,7 @@
         "build-with-maps": "bash ./scripts/production-build.sh true",
         "build-win": "pwsh scripts/production-build.ps1",
         "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\"",
+        "unit-tests:debug": "node --max_old_space_size=4096 node_modules/.bin/jest -c=unit-tests.jest.config.ts",
         "unit-tests:run": "node --no-compilation-cache --expose-gc --max_old_space_size=4096 node_modules/.bin/jest --logHeapUsage",
         "unit-tests:generic": "npm run unit-tests:run -- -c=unit-tests.jest.config.ts --watchAll=false",
         "unit-tests:mrs": "npm run unit-tests:run -- -c=unit-tests-mrs.jest.config.ts --watchAll=false --runInBand",
