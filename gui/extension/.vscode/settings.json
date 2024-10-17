@@ -1,8 +1,7 @@
 {
     "jest.coverageFormatter": "GutterFormatter",
-    "jest.autoRun": "off",
     "jest.jestCommandLine": "npm run unit-tests --",
-    "jest.showCoverageOnLoad": true,
+    "jest.runMode": "deferred",
     "jest.monitorLongRun": "off",
     "files.exclude": {
         ".rollup.cache/**": true,
@@ -18,5 +17,5 @@
         "**/test-resources/**",
         "**/shell/**",
         "**/e2e/vscode**"
-    ]
+    ],
 }
