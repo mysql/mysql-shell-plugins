@@ -678,7 +678,8 @@ Reference
                 circumstances are valid and should be accounted for,
                 whereas whilst updating a value, due to the limitations
                 described above, it only makes sense for a field to be
-                optional when it maps to a nullable column.</p>
+                optional when it maps to a nullable column or column
+                with row ownership.</p>
                 <p>When it comes to Functions or Procedures, all fields
                 (or input parameters in this case) should be considered
                 optional because they cannot have <code>NOT NULL</code>
@@ -774,8 +775,8 @@ Reference
                 class="header-section-number">3.5</span> Python</h2>
                 <div class="sourceCode" id="cb12"><pre
                 class="sourceCode py"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>my_service.my_db.myFunc() <span class="co"># None</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>my_service.my_db.myFunc({ x: <span class="dv">3</span> }) <span class="co"># 3</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>my_service.my_db.myFunc({ x: <span class="dv">3</span>, y: <span class="dv">2</span> }) <span class="co"># 5</span></span></code></pre></div>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>my_service.my_db.myFunc(x<span class="op">=</span><span class="dv">3</span>) <span class="co"># 3</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>my_service.my_db.myFunc(x<span class="op">=</span><span class="dv">3</span>, y<span class="op">=</span><span class="dv">2</span>) <span class="co"># 5</span></span></code></pre></div>
                 <!-- Copyright (c) 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify

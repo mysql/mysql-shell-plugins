@@ -152,6 +152,14 @@ These options can include the following JSON keys.
       - Defines how often the GTID cache will be refreshed. Set seconds, e.g. 5.
     - `refresh_when_increases_by`
       - In addition to the time based refresh, the GTID cache can also be refreshed based on the number of transactions that happened since the last refresh. Set in number of transactions, e.g. 500.
+- `responseCache`
+    - Global options for the REST endpoint response cache, which keeps an in-memory cache of responses to GET requests on tables, views, procedures and functions. To enable caching of an endpoint, you must also set the `cache_ttl` option for each object to be cached.
+    - `maxCacheSize`
+        - Maximum size of the cache. Default is 1M.
+- `fileCache`
+    - Global options for the static file data cache, which keeps an in-memory cache of responses to GET requests on content set files.
+    - `maxCacheSize`
+        - Maximum size of the cache. Default is 1M.
 - `defaultStaticContent`
   - Allows the definition of static content for the root path `/` that will be returned for file paths matching the given JSON keys. A JSON key `index.html` will be  served as `/index.html` by the MySQL Router. The file content needs to be Base64 encoded. If the same JSON key is used for `defaultStaticContent` as well as for `defaultRedirects`, the redirect is prioritized.
 - `defaultRedirects`
@@ -724,7 +732,7 @@ AUTHENTICATION REQUIRED;
 
 This is what the REST data mapping view looks like in the interactive MySQL REST Object Dialog in the MySQL Shell for VS Code extension.
 
-![Adding a Referenced Table](../../images/vsc-mrs-json-relational-editor-2-referenced-table.png "Adding a Referenced Table")
+![Adding a Referenced Table](../../images/vsc-mrs-rest-object-editor-2-referenced-table.png "Adding a Referenced Table")ı
 
 Running a TypeScript SDK query against this new REST endpoint returns the following JSON Document.
 
@@ -907,6 +915,19 @@ metadata:
 ;
 ```
 
+### JSON Options for Views
+
+```antlr
+jsonOptions:
+    OPTIONS jsonValue
+;
+```
+
+The following additional options can be configured for a view in a JSON object through the OPTIONS clause:
+
+- `cache_ttl` enables caching for GET requests. Specifies the number of seconds to keep the response in the cache, after which it will be discarded until a new request comes in or when the cache fills up.
+
+
 ## CREATE REST PROCEDURE
 
 The `CREATE REST PROCEDURE` statement is used to add REST endpoints for database schema stored procedures. It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-view) as defined for REST data mapping views to describe the REST procedure's parameters and result sets. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-view).
@@ -955,6 +976,19 @@ restObjectOptions ::=
 restProcedureResult ::=
 ![restProcedureResult](../../images/sql/restProcedureResult.svg "restProcedureResult")
 
+### JSON Options for Procedures
+
+```antlr
+jsonOptions:
+    OPTIONS jsonValue
+;
+```
+
+The following additional options can be configured for a view in a JSON object through the OPTIONS clause:
+
+- `cache_ttl` enables caching for GET or PUT requests. Specifies the number of seconds to keep the response in the cache, after which it will be discarded until a new request comes in or when the cache fills up.
+
+
 ## CREATE REST FUNCTION
 
 The `CREATE REST FUNCTION` statement is used to add REST endpoints for database schema stored function. It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-view) as defined for REST data mapping views to describe the REST functions's parameters and result. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-view).
@@ -1002,6 +1036,18 @@ restObjectOptions ::=
 
 restFunctionResult ::=
 ![restFunctionResult](../../images/sql/restFunctionResult.svg "restFunctionResult")
+
+### JSON Options for Functions
+
+```antlr
+jsonOptions:
+    OPTIONS jsonValue
+;
+```
+
+The following additional options can be configured for a view in a JSON object through the OPTIONS clause:
+
+- `cache_ttl` enables caching for GET or PUT requests. Specifies the number of seconds to keep the response in the cache, after which it will be discarded until a new request comes in or when the cache fills up.
 
 ## CREATE REST CONTENT SET
 
