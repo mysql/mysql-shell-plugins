@@ -432,7 +432,7 @@ export class ExecutionContexts implements IContextProvider {
 
     private onCommitChanges = async (resultSet: IResultSet, updateSql: string[]): Promise<ISqlUpdateResult> => {
         const result = await this.runUpdates?.(updateSql) ?? { affectedRows: 0, errors: [] };
-        if (typeof result === "number") {
+        if (typeof result.affectedRows === "number") {
             await ApplicationDB.updateRowsForResultId(StoreType.DbEditor, resultSet.resultId, resultSet.data.rows);
         }
 

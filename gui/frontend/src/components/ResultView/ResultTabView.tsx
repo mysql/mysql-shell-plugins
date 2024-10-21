@@ -146,7 +146,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     private topRowIndexes = new Map<string, number>();
 
     /** The number of updated rows during the last commit action. */
-    #affectedRows?: number;
+    #affectedRows:  Map<string, number> = new Map();
 
     /** All value changes per result set. */
     #editingInfo: Map<string, IEditingInfo> = new Map();
@@ -250,11 +250,14 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         const updatable = currentResultSet?.updatable ?? false;
 
         resultSets.sets.forEach((resultSet: IResultSet, index) => {
+            const editingInfo = this.#editingInfo.get(resultSet?.resultId ?? "");
+            const editModeActive = editingInfo !== undefined;
+
             const ref = createRef<ResultView>();
             this.viewRefs.set(resultSet.resultId, ref);
 
             let topRowIndex = this.topRowIndexes.get(resultSet.resultId);
-            const selectedRowIndex = currentEditingInfo?.selectedRowIndex;
+            const selectedRowIndex = editingInfo?.selectedRowIndex;
             if (selectedRowIndex !== undefined) {
                 topRowIndex = selectedRowIndex;
             }
@@ -272,11 +275,11 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                 }
 
                 let content;
-                if (resultSet === currentResultSet && currentEditingInfo?.previewActive) {
+                if (resultSet === currentResultSet && editingInfo?.previewActive) {
                     content = (
                         <SQLPreview
-                            statements={this.generateStatements(currentEditingInfo)}
-                            errors={currentEditingInfo.errors}
+                            statements={this.generateStatements(editingInfo)}
+                            errors={editingInfo.errors}
                             onStatementClick={this.handleStatementClick}
                         />
                     );
@@ -288,7 +291,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                             selectRow={selectedRowIndex}
                             resultSet={resultSet}
                             editable={updatable}
-                            rowChanges={currentEditingInfo?.rowChanges}
+                            rowChanges={editingInfo?.rowChanges}
                             editModeActive={editModeActive}
                             onFieldEditStart={this.onFieldEditStart}
                             onFieldEdited={this.onFieldEdited}
@@ -313,8 +316,9 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         // Show editing information if we have it, otherwise use the execution info.
         let statusInfo = currentEditingInfo?.statusInfo;
         if (!statusInfo) {
-            if (this.#affectedRows !== undefined) {
-                const rowText = formatWithNumber("row", this.#affectedRows);
+            if (currentResultSet && this.#affectedRows.has(currentResultSet.resultId)) {
+                const affectedRows = this.#affectedRows.get(currentResultSet.resultId)!;
+                const rowText = formatWithNumber("row", affectedRows);
                 statusInfo = {
                     text: `${rowText} updated`,
                 };
@@ -483,7 +487,10 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
      * @returns true if the user can close the tab, false otherwise.
      */
     public async canClose(): Promise<boolean> {
-        for (const [, info] of this.#editingInfo) {
+        // Store values in a separate array before iterating over them -
+        // they may be removed from #editingInfo map by the time the user confirms the operation.
+        const infoValues = [...this.#editingInfo.values()];
+        for (const info of infoValues) {
             const ok = await this.confirmCommitOrRollback(info);
 
             if (!ok) {
@@ -1094,7 +1101,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             });
 
             void onCommitChanges?.(info.resultSet, statements).then((result) => {
-                this.#affectedRows = result.affectedRows;
+                this.#affectedRows.set(info.resultSet.resultId, result.affectedRows);
 
                 if (result.errors.length > 0) {
                     // We got an error (can only be one as execution is stopped on the first error).
@@ -1227,7 +1234,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     private prepareEditingInfo = (resultSet: IResultSet): IEditingInfo => {
         let info = this.#editingInfo.get(resultSet.resultId);
         if (!info) {
-            this.#affectedRows = undefined;
+            this.#affectedRows.delete(resultSet.resultId);
             info = {
                 description: `table ${resultSet.fullTableName}`,
                 statusInfo: {

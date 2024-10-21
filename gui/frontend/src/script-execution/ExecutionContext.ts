@@ -585,6 +585,7 @@ export class ExecutionContext implements IExecutionContext {
     private async loadResultSets(): Promise<IResultSet[]> {
         const sets: IResultSet[] = [];
 
+        let index = 0;
         for await (const id of this.#cachedResultIds) {
             const values = await ApplicationDB.db.getAllFromIndex(this.store, "resultIndex", id);
             const set: IResultSet = {
@@ -604,7 +605,7 @@ export class ExecutionContext implements IExecutionContext {
 
             if (this.isDbModuleResultData(values)) {
                 for (const value of values) {
-                    set.index = value.index;
+                    set.index = index++;
                     if (value.sql) {
                         set.sql = value.sql;
                     }

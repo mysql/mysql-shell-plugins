@@ -933,7 +933,12 @@ export class PresentationInterface {
      * @param options Controls the result area presentation after adding the new data.
      */
     private renderResults(options?: IPresentationOptions): void {
-        if (!this.resultData || !this.context) {
+        // Adding additional check because switching away from the current DB Connection Tab
+        // when rolling back changes at the same time causes re-rendering with emptied result set,
+        // so we have to destroy renderTarget in this case
+        const hasEmptyResultSet = this.resultData?.type === "resultSets" && !this.resultData.sets.length;
+
+        if (!this.resultData || hasEmptyResultSet || !this.context) {
             this.removeRenderTarget();
 
             return;
@@ -966,7 +971,7 @@ export class PresentationInterface {
                         ref={this.resultRef}
                         resultSets={data}
                         contextId={contextId}
-                        currentSet={options?.currentSet}
+                        currentSet={this.currentSet}
                         showMaximizeButton={this.showMaximizeButton()}
                         hideTabs={this.hideTabs}
                         onResultPageChange={this.handleResultPageChange}
@@ -1093,6 +1098,9 @@ export class PresentationInterface {
 
     private handleSelectTab = (index: number): void => {
         this.currentSet = index;
+        setTimeout(() => {
+            this.renderResults();
+        }, 0);
     };
 
     private changeLoadingState = (newState: LoadingState): void => {
