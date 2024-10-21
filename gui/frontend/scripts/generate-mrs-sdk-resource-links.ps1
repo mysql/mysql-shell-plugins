@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, Oracle and/or its affiliates.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -21,16 +21,9 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-node --no-warnings --loader ts-node/esm scripts/generate-mrs-grammar.ts
+$target_dir = "$PSScriptRoot\..\src\modules\mrs\sdk"
+New-Item -ItemType Directory -Path $target_dir -Force
 
-antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/mysql/generated src/parsing/mysql/*.g4
-antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/SQLite/generated src/parsing/SQLite/*.g4
-antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/python/generated src/parsing/python/*.g4
-
-# Include required MRS plugin resources as part of the frontend build
-$generate_sdk_resource_links_script = "$PSScriptRoot\generate-mrs-sdk-resource-links.ps1"
-& $generate_sdk_resource_links_script
-
-SET NODE_OPTIONS=--max-old-space-size=16000
-SET SOURCE_MAPS=$1
-node_modules/.bin/vite build
+$source = Resolve-Path "$PSScriptRoot\..\..\..\mrs_plugin\sdk\typescript\MrsBaseClasses.ts"
+$target = "$target_dir\MrsBaseClasses.ts"
+New-Item -Path $target -ItemType HardLink -Value $source -Force

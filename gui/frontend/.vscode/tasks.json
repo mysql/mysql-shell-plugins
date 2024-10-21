@@ -2,6 +2,23 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Generate MRS SDK Resource Links",
+            "type": "shell",
+            "command": "bash scripts/generate-mrs-sdk-resource-links.sh",
+            "windows": {
+                "command": ".\\scripts\\generate-mrs-sdk-resource-links.ps1"
+            },
+            "group": "none",
+            "presentation": {
+                "close": true,
+                "reveal": "never",
+                "revealProblems": "onProblem"
+            },
+            "runOptions": {
+                "runOn": "folderOpen",
+            }
+        },
+        {
             "type": "typescript",
             "tsconfig": "tsconfig.json",
             "option": "watch",
@@ -30,7 +47,7 @@
                 "--headless",
                 "${input:headless}",
             ],
-        },
+        }
     ],
     "inputs": [
         {

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, Oracle and/or its affiliates.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -25,26 +25,9 @@
 
 cwd=`dirname $0`
 
-node --no-warnings --loader ts-node/esm scripts/generate-mrs-grammar.ts
+target_dir=$cwd/../src/modules/mrs/sdk
+mkdir -p $target_dir
 
-# Generate parsers only if something in the source folder changed.
-source=`ls -t src/parsing/mysql/MySQL* | head -1`
-target=`ls -t src/parsing/mysql/generated/MySQL* 2> /dev/null | head -1`
-
-if [[ $source -nt $target ]]; then
-  printf "\x1b[1m\x1b[34mParser source files changed - regenerating target files..."
-  printf "\x1b[0m\n\n"
-
-  antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o ./src/parsing/mysql/generated src/parsing/mysql/MySQLMRS*.g4
-  antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o ./src/parsing/SQLite/generated src/parsing/SQLite/*.g4
-  antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o ./src/parsing/python/generated src/parsing/python/*.g4
-
-  printf "\n"
-fi
-
-# Include required MRS plugin resources as part of the frontend build
-bash $cwd/generate-mrs-sdk-resource-links.sh
-
-# We need lots of RAM when building with source maps. Without them 8GB are enough.
-export NODE_OPTIONS="--max-old-space-size=16000"
-SOURCE_MAPS=$1 node_modules/.bin/vite build
+source=`realpath $cwd/../../../mrs_plugin/sdk/typescript/MrsBaseClasses.ts`
+target=$target_dir/MrsBaseClasses.ts
+ln -nf $source $target
