@@ -43,38 +43,16 @@ import { TestQueue } from "../lib/TestQueue";
 
 describe("NOTEBOOKS", () => {
 
-    if (!process.env.DBHOSTNAME) {
-        throw new Error("Please define the environment variable DBHOSTNAME");
-    }
-    if (!process.env.DBUSERNAME) {
-        throw new Error("Please define the environment variable DBUSERNAME");
-    }
-    if (!process.env.DBPASSWORD) {
-        throw new Error("Please define the environment variable DBPASSWORD");
-    }
-    if (!process.env.DBSHELLUSERNAME) {
-        throw new Error("Please define the environment variable DBSHELLUSERNAME");
-    }
-    if (!process.env.DBSHELLPASSWORD) {
-        throw new Error("Please define the environment variable DBSHELLPASSWORD");
-    }
-    if (!process.env.DBPORT) {
-        throw new Error("Please define the environment variable DBPORT");
-    }
-    if (!process.env.SSL_ROOT_FOLDER) {
-        throw new Error("Please define the environment variable SSL_ROOT_FOLDER");
-    }
-
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
         caption: "e2eGlobalDBConnection",
         description: "Local connection",
         basic: {
-            hostname: String(process.env.DBHOSTNAME),
-            username: String(process.env.DBUSERNAME),
-            port: Number(process.env.DBPORT),
+            hostname: "localhost",
+            username: String(process.env.DBUSERNAME1),
+            port: parseInt(process.env.MYSQL_PORT, 10),
             schema: "sakila",
-            password: String(process.env.DBPASSWORD),
+            password: String(process.env.DBPASSWORD1),
         },
     };
 
@@ -417,6 +395,7 @@ describe("NOTEBOOKS", () => {
 
         it("Maximize and Normalize Result tab", async () => {
 
+            await Workbench.dismissNotifications();
             const result = await notebook.codeEditor.execute("select * from sakila.actor;");
             expect(result.toolbar.status).to.match(/OK/);
             await result.toolbar.maximize();
@@ -479,12 +458,14 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Copy paste into notebook", async function () {
-
+            console.log(1);
             await TestQueue.push(this.test.title);
+            console.log(2);
             existsInQueue = true;
             await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
-
+            console.log(3);
             await notebook.codeEditor.clean();
+            console.log(4);
             await Misc.switchBackToTopFrame();
             const filename = "users.sql";
             await browser.openResources(join(constants.workspace, "gui", "frontend",

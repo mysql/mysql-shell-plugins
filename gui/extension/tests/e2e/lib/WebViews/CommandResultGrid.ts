@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import { WebElement, until, Key, Condition, error, Button, Origin } from "vscode-extension-tester";
 import clipboard from "clipboardy";
 import { driver, Misc } from "../Misc";
@@ -30,7 +31,6 @@ import * as constants from "../constants";
 import * as interfaces from "../interfaces";
 import * as locator from "../locators";
 import * as errors from "../errors";
-import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import { Os } from "../Os";
 import { CommandResult } from "./CommandResult";
 

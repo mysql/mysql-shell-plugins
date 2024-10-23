@@ -23,10 +23,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { driver } from "./Misc";
 import { mkdirSync, rmdirSync, writeFileSync, existsSync, appendFileSync } from "fs";
-import * as constants from "./constants";
 import { join } from "path";
+import { driver } from "./Misc";
+import * as constants from "./constants";
 
 /**
  * This class locks the testing system by creating a folder in the file system.

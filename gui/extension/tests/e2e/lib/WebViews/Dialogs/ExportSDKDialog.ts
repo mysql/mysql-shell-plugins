@@ -24,7 +24,6 @@
  */
 
 import { By, until, Key } from "vscode-extension-tester";
-
 import { driver, Misc } from "../../Misc";
 import * as constants from "../../constants";
 import * as interfaces from "../../interfaces";

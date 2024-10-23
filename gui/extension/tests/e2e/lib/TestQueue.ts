@@ -25,9 +25,9 @@
 
 import { writeFileSync, readFileSync, existsSync } from "fs";
 import { join } from "path";
+import { Condition } from "vscode-extension-tester";
 import { SystemLocker } from "./SystemLocker";
 import * as constants from "./constants";
-import { Condition } from "vscode-extension-tester";
 
 const queueFile = join(process.cwd(), "testsQueue.txt");
 

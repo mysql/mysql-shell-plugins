@@ -23,6 +23,22 @@
 
 import { WebElement, Condition } from "selenium-webdriver";
 import { CommandResultGrid } from "./WebViews/CommandResultGrid";
+import { ExTester } from "vscode-extension-tester";
+
+export interface IE2ECli {
+    testSuite?: string;
+    extensionPath?: string;
+    mysqlPort?: string;
+    generateWebCertificate?: boolean;
+    log?: boolean;
+}
+
+export interface IE2ETestSuite {
+    name: string;
+    testResources?: string;
+    extensionDir?: string;
+    exTester?: ExTester;
+}
 
 export interface IConnBasicMySQL {
     hostname?: string;

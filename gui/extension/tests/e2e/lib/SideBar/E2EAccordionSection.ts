@@ -27,8 +27,8 @@ import {
     Condition, CustomTreeSection, error, SideBarView, until, WebElement,
     ActivityBar,
 } from "vscode-extension-tester";
-import * as constants from "../constants";
 import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
+import * as constants from "../constants";
 import * as locator from "../locators";
 import * as interfaces from "../interfaces";
 import * as errors from "../errors";

@@ -23,12 +23,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { until, By } from "vscode-extension-tester";
+import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import { driver, Misc } from "../../Misc";
 import * as constants from "../../constants";
 import * as interfaces from "../../interfaces";
 import * as locator from "../../locators";
 import { DialogHelper } from "./DialogHelper";
-import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 
 /**
  * This class holds the functions to interact with the Rest user dialog

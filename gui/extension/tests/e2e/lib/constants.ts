@@ -44,10 +44,6 @@ export const dbSystemType = "ociDbSystem";
 export const bastionType = "ociBastion";
 export const ociComputeType = "ociCompute";
 
-// OCI E2E TESTS BASTION CREDENTIALS
-export const bastionUsername = process.env.OCI_BASTION_USERNAME;
-export const bastionPassword = process.env.OCI_BASTION_PASSWORD;
-
 // TIMEOUTS
 export const wait150MilliSeconds = 150;
 export const wait1second = 1000;
