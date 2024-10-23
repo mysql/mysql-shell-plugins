@@ -346,7 +346,7 @@ export class Os {
         const taps = Misc.getValueFromMap(item, map);
         for (let i = 0; i <= taps - 1; i++) {
             await keyboard.type(nutKey.Down);
-            await driver.sleep(50);
+            await driver.sleep(250);
         }
         await keyboard.type(nutKey.Enter);
     };
