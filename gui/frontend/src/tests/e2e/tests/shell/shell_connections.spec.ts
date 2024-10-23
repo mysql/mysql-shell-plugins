@@ -215,7 +215,7 @@ describe("MySQL Shell Connections", () => {
             let cmd = `mysql.getClassicSession('${username}:${password}@${hostname}:${port}/${schema}')`;
             let result = await session.codeEditor.execute(cmd, true);
             expect(result.text).toMatch(/ClassicSession/);
-            cmd = `mysqlx.getSession('${username}:${password}@${hostname}:33060/${schema}')`;
+            cmd = `mysqlx.getSession('${username}:${password}@${hostname}:${portX}/${schema}')`;
             result = await session.codeEditor.execute(cmd, true);
             expect(result.text).toMatch(/Session/);
         } catch (e) {
