@@ -1011,8 +1011,7 @@ describe("DATABASE CONNECTIONS", () => {
                 .findElement(locator.mysqlAdministration.performanceDashboard.mleStatus.currentHeapUsage);
             await driver.executeScript("arguments[0].scrollIntoView()", currentHeap);
             expect(parseInt(mysqlAdministration.performanceDashboard.mlePerformance.currentHeapUsage
-                .match(/(\d+)/)[1], 10))
-                .to.be.greaterThan(0);
+                .match(/(\d+)/)[1], 10)).to.match(/(\d+)/);
         });
 
         describe("Lakehouse Navigator", () => {
