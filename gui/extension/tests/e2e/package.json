@@ -18,7 +18,8 @@
     "mysql2": "3.10.2",
     "sqlite3": "5.1.7",
     "typescript": "5.4.5",
-    "vscode-extension-tester": "6.0.0"
+    "vscode-extension-tester": "8.8.0",
+    "ts-node": "10.9.2"
   },
   "overrides": {
     "@types/node": "20.3.2",
@@ -26,11 +27,14 @@
     "@types/selenium-webdriver": "4.1.22"
   },
   "scripts": {
-    "e2e-tests-get-vscode": "extest get-vscode",
-    "e2e-tests-get-chromedriver": "extest get-chromedriver",
-    "e2e-tests-install-vsix": "extest install-vsix",
     "e2e-tests-setup-and-run": "mysqlsh --py -f setup_local_env_for_ext_tests_and_run.py",
-    "e2e-tests": "extest run-tests",
+    "e2e-tests-setup-and-run-ts": "ts-node setup/setup_and_run.ts",
+    "e2e-tests-install-test-resources": "ts-node setup/install_test_resources.ts",
+    "e2e-tests-run": "ts-node setup/run.ts",
+    "e2e-tests-web-certificate": "ts-node setup/generate_web_certificate.ts",
+    "e2e-tests-setup": "ts-node setup/setup.ts",
+    "e2e-tests-teardown": "ts-node setup/teardown.ts",
+    "e2e-tests-install-extension": "ts-node setup/install_extension.ts",
     "e2e-tests-tsc": "tsc",
     "e2e-tests-merge": "mochawesome-merge",
     "e2e-tests-report": "marge -f test-report"

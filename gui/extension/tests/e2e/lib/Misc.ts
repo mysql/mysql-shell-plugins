@@ -58,7 +58,7 @@ export class Misc {
         await Workbench.expandNotifications();
         const img = await driver.takeScreenshot();
         const testName = testContext.currentTest?.title ?? String(process.env.TEST_SUITE);
-        const ssDir = join(process.cwd(), "../../../../", "screenshots");
+        const ssDir = join(process.cwd(), "screenshots");
         if (!existsSync(ssDir)) {
             await fs.mkdir(ssDir);
         }
@@ -300,9 +300,9 @@ export class Misc {
         return new Condition(`for schema '${schema}' to exist`, async () => {
             try {
                 const mysqlConnection = await createConnection({
-                    host: process.env.DBHOSTNAME,
-                    user: process.env.DBUSERNAME,
-                    password: process.env.DBPASSWORD,
+                    host: "localhost",
+                    user: process.env.DBUSERNAME1,
+                    password: process.env.DBPASSWORD1,
                     database: schema,
                 });
 

@@ -51,41 +51,16 @@ import { E2EMySQLAdministration } from "../lib/WebViews/MySQLAdministration/E2EM
 
 describe("DATABASE CONNECTIONS", () => {
 
-    if (!process.env.DBHOSTNAME) {
-        throw new Error("Please define the environment variable DBHOSTNAME");
-    }
-    if (!process.env.DBUSERNAME) {
-        throw new Error("Please define the environment variable DBUSERNAME");
-    }
-    if (!process.env.DBPASSWORD) {
-        throw new Error("Please define the environment variable DBPASSWORD");
-    }
-    if (!process.env.DBSHELLUSERNAME) {
-        throw new Error("Please define the environment variable DBSHELLUSERNAME");
-    }
-    if (!process.env.DBSHELLPASSWORD) {
-        throw new Error("Please define the environment variable DBSHELLPASSWORD");
-    }
-    if (!process.env.DBPORT) {
-        throw new Error("Please define the environment variable DBPORT");
-    }
-    if (!process.env.SSL_ROOT_FOLDER) {
-        throw new Error("Please define the environment variable SSL_ROOT_FOLDER");
-    }
-    if (!process.env.MYSQLSH_OCI_CONFIG_FILE) {
-        throw new Error("Please define the environment variable MYSQLSH_OCI_CONFIG_FILE");
-    }
-
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
         caption: `e2eGlobalDBConnection`,
         description: "Local connection",
         basic: {
-            hostname: String(process.env.DBHOSTNAME),
-            username: String(process.env.DBUSERNAME),
-            port: Number(process.env.DBPORT),
+            hostname: "localhost",
+            username: String(process.env.DBUSERNAME1),
+            port: parseInt(process.env.MYSQL_PORT, 10),
             schema: "sakila",
-            password: String(process.env.DBPASSWORD),
+            password: String(process.env.DBPASSWORD1),
         },
     };
 
@@ -418,9 +393,9 @@ describe("DATABASE CONNECTIONS", () => {
 
             sslConn.ssl = {
                 mode: "Require and Verify CA",
-                caPath: String(process.env.SSL_CA_CERT_PATH),
-                clientCertPath: String(process.env.SSL_CLIENT_CERT_PATH),
-                clientKeyPath: String(process.env.SSL_CLIENT_KEY_PATH),
+                caPath: join(process.env.SSL_CERTIFICATES_PATH, "ca.pem"),
+                clientCertPath: join(process.env.SSL_CERTIFICATES_PATH, "client-cert.pem"),
+                clientKeyPath: join(process.env.SSL_CERTIFICATES_PATH, "client-key.pem"),
             };
 
             await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
@@ -483,11 +458,11 @@ describe("DATABASE CONNECTIONS", () => {
                 caption: `e2eConnectionToEdit`,
                 description: "Local connection",
                 basic: {
-                    hostname: String(process.env.DBHOSTNAME),
-                    username: String(process.env.DBUSERNAME),
-                    port: Number(process.env.DBPORT),
+                    hostname: "localhost",
+                    username: String(process.env.DBUSERNAME1),
+                    port: 3308,
                     schema: "sakila",
-                    password: String(process.env.DBPASSWORD),
+                    password: String(process.env.DBPASSWORD1),
                 },
             };
 
@@ -631,7 +606,7 @@ describe("DATABASE CONNECTIONS", () => {
                 caption: "e2eDuplicateFromGlobal",
                 basic: {
                     hostname: "localhost",
-                    username: String(process.env.DBUSERNAME),
+                    username: String(process.env.DBUSERNAME1),
                 },
             };
             await DatabaseConnectionDialog.setConnection(duplicate);
@@ -677,8 +652,8 @@ describe("DATABASE CONNECTIONS", () => {
                 caption: `e2eConnectionToRemove`,
                 description: "Local connection",
                 basic: {
-                    hostname: String(process.env.DBHOSTNAME),
-                    username: String(process.env.DBUSERNAME),
+                    hostname: "localhost",
+                    username: String(process.env.DBUSERNAME1),
                 },
             };
 
@@ -989,7 +964,7 @@ describe("DATABASE CONNECTIONS", () => {
             await notebook.codeEditor.loadCommandResults();
 
             const jsFunction =
-                `CREATE FUNCTION js_pow(arg1 INT, arg2 INT) 
+                `CREATE FUNCTION IF NOT EXISTS js_pow(arg1 INT, arg2 INT) 
                     RETURNS INT DETERMINISTIC LANGUAGE JAVASCRIPT 
                     AS 
                     $$

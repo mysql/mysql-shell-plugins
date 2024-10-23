@@ -23,14 +23,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import fs from "fs/promises";
+import { join } from "path";
 import clipboard from "clipboardy";
 import {
     EditorView, error, InputBox, Key, until, NotificationType, OutputView, WebElement,
     Workbench as extWorkbench, Notification, TerminalView, EditorTab, ActivityBar, Condition,
     ModalDialog, logging, TextEditor,
 } from "vscode-extension-tester";
-import fs from "fs/promises";
-import { join } from "path";
 import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import * as constants from "./constants";
 import * as locator from "./locators";
@@ -167,7 +167,9 @@ export class Workbench {
      * @returns A promise resolving when all notifications are closed
      */
     public static dismissNotifications = async (): Promise<void> => {
+        await Misc.switchBackToTopFrame();
         const ntfs = await new extWorkbench().getNotifications();
+
         for (const ntf of ntfs) {
             if (await ntf.hasProgress()) {
                 await keyboard.type(nutKey.Escape);
@@ -437,11 +439,11 @@ export class Workbench {
                 const editorView = new EditorView();
                 const editors = await editorView.getOpenEditorTitles();
 
-                if (editors.join(",").includes(".json")) {
+                if (editors.join(",").includes("json")) {
 
                     for (const editor of editors) {
 
-                        if (editor.includes(".json")) {
+                        if (editor.includes("json")) {
                             await editorView.closeEditor(editor);
                             if (await new TextEditor().isDirty()) {
                                 await Workbench.pushDialogButton("Don't Save");

@@ -22,6 +22,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 import { until } from "vscode-extension-tester";
 import { expect } from "chai";
 import { driver, Misc } from "../lib/Misc";
@@ -41,11 +42,11 @@ describe("MYSQL SHELL CONSOLES", () => {
         caption: "e2eConn",
         description: "Local connection",
         basic: {
-            hostname: String(process.env.DBHOSTNAME),
-            username: String(process.env.DBUSERNAME),
-            port: Number(process.env.DBPORT),
+            hostname: "localhost",
+            username: String(process.env.DBUSERNAME1),
+            port: parseInt(process.env.MYSQL_PORT, 10),
             schema: "sakila",
-            password: String(process.env.DBPASSWORD),
+            password: String(process.env.DBPASSWORD1),
         },
     };
 
@@ -58,19 +59,6 @@ describe("MYSQL SHELL CONSOLES", () => {
     const shellConsole = new E2EShellConsole();
 
     before(async function () {
-
-        if (!process.env.DBHOSTNAME) {
-            throw new Error("Please define the environment variable DBHOSTNAME");
-        }
-        if (!process.env.DBUSERNAME) {
-            throw new Error("Please define the environment variable DBUSERNAME");
-        }
-        if (!process.env.DBPASSWORD) {
-            throw new Error("Please define the environment variable DBPASSWORD");
-        }
-        if (!process.env.DBPORT) {
-            throw new Error("Please define the environment variable DBPORT");
-        }
 
         await Misc.loadDriver();
 
@@ -102,8 +90,8 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         const shellConn = Object.assign({}, globalConn);
         shellConn.caption = "shellConn";
-        (shellConn.basic as interfaces.IConnBasicMySQL).username = String(process.env.DBSHELLUSERNAME);
-        (shellConn.basic as interfaces.IConnBasicMySQL).password = String(process.env.DBSHELLPASSWORD);
+        (shellConn.basic as interfaces.IConnBasicMySQL).username = String(process.env.DBUSERNAME2);
+        (shellConn.basic as interfaces.IConnBasicMySQL).password = String(process.env.DBPASSWORD2);
         const shellUsername = String((shellConn.basic as interfaces.IConnBasicMySQL).username);
 
         afterEach(async function () {
@@ -149,6 +137,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Connect to host without password", async () => {
 
+            await Os.deleteCredentials();
             let uri = `\\c ${shellUsername}@${hostname}:${port}/${schema}`;
             const result = await shellConsole.codeEditor.executeExpectingCredentials(uri, shellConn);
             uri = `Creating a session to '${shellUsername}@${hostname}:${port}/${schema}'`;
@@ -177,9 +166,9 @@ describe("MYSQL SHELL CONSOLES", () => {
                 errors.queryResultError("MySQL Shell version (\\d+).(\\d+).(\\d+)",
                     result.text)).to.match(/MySQL Shell version (\d+).(\d+).(\d+)/);
 
-            let uri = `shell.connect('${username}:${password}@${hostname}:33060/${schema}')`;
+            let uri = `shell.connect('${username}:${password}@${hostname}:${port}0/${schema}')`;
             result = await shellConsole.codeEditor.execute(uri, true);
-            uri = `Creating a session to '${username}@${hostname}:33060/${schema}'`;
+            uri = `Creating a session to '${username}@${hostname}:${port}0/${schema}'`;
             expect(result.text, errors.queryResultError(uri,
                 result.text)).to.match(new RegExp(uri));
             expect(result.text, errors.queryResultError("Server version: (\\d+).(\\d+).(\\d+)",

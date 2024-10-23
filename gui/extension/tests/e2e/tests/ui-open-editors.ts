@@ -22,11 +22,13 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
+import { join } from "path";
 import { BottomBarPanel, ActivityBar, until } from "vscode-extension-tester";
 import { expect } from "chai";
 import { driver, Misc } from "../lib/Misc";
 import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection";
-import { Os } from "../lib/Os";
+import { Os } from "../lib/Os.js";
 import { Workbench } from "../lib/Workbench";
 import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
@@ -35,39 +37,19 @@ import * as errors from "../lib/errors";
 import { Script } from "../lib/WebViews/Script";
 import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
 import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
-import { join } from "path";
 
 describe("OPEN EDITORS", () => {
-
-    if (!process.env.DBHOSTNAME) {
-        throw new Error("Please define the environment variable DBHOSTNAME");
-    }
-    if (!process.env.DBUSERNAME) {
-        throw new Error("Please define the environment variable DBUSERNAME");
-    }
-    if (!process.env.DBPASSWORD) {
-        throw new Error("Please define the environment variable DBPASSWORD");
-    }
-    if (!process.env.DBSHELLUSERNAME) {
-        throw new Error("Please define the environment variable DBSHELLUSERNAME");
-    }
-    if (!process.env.DBSHELLPASSWORD) {
-        throw new Error("Please define the environment variable DBSHELLPASSWORD");
-    }
-    if (!process.env.DBPORT) {
-        throw new Error("Please define the environment variable DBPORT");
-    }
 
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
         caption: `e2eGlobalDBConnection`,
         description: "Local connection",
         basic: {
-            hostname: String(process.env.DBHOSTNAME),
-            username: String(process.env.DBUSERNAME),
-            port: Number(process.env.DBPORT),
+            hostname: "localhost",
+            username: String(process.env.DBUSERNAME1),
+            port: parseInt(process.env.MYSQL_PORT, 10),
             schema: "sakila",
-            password: String(process.env.DBPASSWORD),
+            password: String(process.env.DBPASSWORD1),
         },
     };
 

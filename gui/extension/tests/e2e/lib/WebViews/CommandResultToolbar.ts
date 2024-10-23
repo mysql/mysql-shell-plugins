@@ -25,10 +25,10 @@
 
 import { WebElement, until, error, Condition } from "vscode-extension-tester";
 import { driver } from "../Misc";
-import * as constants from "../constants.js";
-import * as interfaces from "../interfaces.js";
-import * as locator from "../locators.js";
-import { CommandResult } from "./CommandResult.js";
+import * as constants from "../constants";
+import * as interfaces from "../interfaces";
+import * as locator from "../locators";
+import { CommandResult } from "./CommandResult";
 import { Workbench } from "../Workbench";
 
 const toolbarLocator = locator.notebook.codeEditor.editor.result.toolbar;

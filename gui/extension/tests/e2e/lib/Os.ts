@@ -22,14 +22,15 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { WebElement, Key } from "vscode-extension-tester";
-import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
-import clipboard from "clipboardy";
+
 import { existsSync, mkdirSync, readFileSync } from "fs";
 import { spawnSync, execSync } from "child_process";
 import fs from "fs/promises";
 import { platform } from "os";
 import { join } from "path";
+import { WebElement, Key } from "vscode-extension-tester";
+import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
+import clipboard from "clipboardy";
 import * as constants from "./constants";
 import { driver, Misc } from "./Misc";
 
@@ -114,10 +115,7 @@ export class Os {
      */
     public static deleteCredentials = async (): Promise<void> => {
         const params = ["--js", "-e", "shell.deleteAllCredentials()"];
-        let extDir = join(constants.workspace, `ext-${String(process.env.TEST_SUITE)}`);
-        if (!existsSync(extDir)) {
-            extDir = join(process.env.TEST_RESOURCES_PATH, `test-resources`, "ext");
-        }
+        const extDir = join(process.env.EXTENSIONS_DIR, `ext-${String(process.env.TEST_SUITE)}`);
         const items = await fs.readdir(extDir);
         let extDirName = "";
         for (const item of items) {
@@ -135,18 +133,11 @@ export class Os {
      * @returns A promise resolving with the location of the logs folder
      */
     public static getExtensionOutputLogsFolder = async (): Promise<string> => {
-        let testResources: string;
-        for (let i = 0; i <= process.argv.length - 1; i++) {
-            if (process.argv[i] === "-s") {
-                testResources = process.argv[i + 1];
-                break;
-            }
-        }
-
         const today = new Date();
         const month = (`0${(today.getMonth() + 1)}`).slice(-2);
         const day = (`0${today.getDate()}`).slice(-2);
         const todaysDate = `${today.getFullYear()}${month}${day}`;
+        const testResources = join(process.env.TEST_RESOURCES_PATH, `test-resources-${process.env.TEST_SUITE}`);
 
         let pathToLog = join(
             testResources,
@@ -213,7 +204,7 @@ export class Os {
                 join(logPathFolder, `${testSuite}_output_tab.log`));
             // copy to workspace
             await fs.copyFile(join(logPathFolder, `${testSuite}_output_tab.log`),
-                join(constants.workspace, `${testSuite}_output_tab.log`));
+                join(process.cwd(), `${testSuite}_output_tab.log`));
         } catch (e) {
             // continue
         }

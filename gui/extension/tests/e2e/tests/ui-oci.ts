@@ -45,21 +45,6 @@ import { TestQueue } from "../lib/TestQueue";
 let ociConfig: interfaces.IOciProfileConfig;
 let ociTree: RegExp[];
 
-if (!process.env.MYSQLSH_OCI_CONFIG_FILE) {
-    throw new Error("Please define the environment variable MYSQLSH_OCI_CONFIG_FILE");
-}
-if (!process.env.MYSQLSH_OCI_RC_FILE) {
-    throw new Error("Please define the environment variable MYSQLSH_OCI_RC_FILE");
-}
-
-if (!process.env.OCI_BASTION_USERNAME) {
-    throw new Error("Please define the environment variable OCI_BASTION_USERNAME");
-}
-
-if (!process.env.OCI_BASTION_PASSWORD) {
-    throw new Error("Please define the environment variable OCI_BASTION_PASSWORD");
-}
-
 describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
     let dbSystemID: string;
@@ -78,16 +63,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             return item.name = "E2ETESTS";
         });
 
-        ociTree = [
-            `${ociConfig.name} (${ociConfig.region})`,
-            "(Root Compartment)"]
-            .concat(process.env.OCI_OBJECTS_PATH.split("/")).map((el: string) => {
-                return new RegExp(el
-                    .replace(/\(/g, "\\(")
-                    .replace(/\)/g, "\\)"),
-                );
-            });
-
+        ociTree = [new RegExp(`E2ETESTS \\(${ociConfig.region}\\)`),
+        new RegExp("\\(Root Compartment\\)"), /QA/, /MySQLShellTesting/];
         await Misc.loadDriver();
 
         try {
@@ -289,8 +266,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 if (interfaces.isMySQLConnection(mdsConnection.basic)) {
                     expect(mdsConnection.basic.hostname).to.match(/(\d+).(\d+).(\d+).(\d+)/);
                     mdsEndPoint = mdsConnection.basic.hostname;
-                    mdsConnection.basic.username = constants.bastionUsername;
-                    mdsConnection.basic.password = constants.bastionPassword;
+                    mdsConnection.basic.username = process.env.OCI_BASTION_USERNAME;
+                    mdsConnection.basic.password = process.env.OCI_BASTION_PASSWORD;
                     dbSystemID = mdsConnection.mds.dbSystemOCID;
                     bastionID = mdsConnection.mds.bastionOCID;
                     mdsConnection.advanced = undefined;
@@ -511,8 +488,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 description: "Local connection",
                 basic: {
                     hostname: mdsEndPoint,
-                    username: constants.bastionUsername,
-                    password: constants.bastionPassword,
+                    username: process.env.OCI_BASTION_USERNAME,
+                    password: process.env.OCI_BASTION_PASSWORD,
                     port: 3306,
                     ociBastion: true,
                 },

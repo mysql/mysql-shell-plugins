@@ -40,38 +40,16 @@ import { TestQueue } from "../lib/TestQueue";
 
 describe("RESULT GRIDS", () => {
 
-    if (!process.env.DBHOSTNAME) {
-        throw new Error("Please define the environment variable DBHOSTNAME");
-    }
-    if (!process.env.DBUSERNAME) {
-        throw new Error("Please define the environment variable DBUSERNAME");
-    }
-    if (!process.env.DBPASSWORD) {
-        throw new Error("Please define the environment variable DBPASSWORD");
-    }
-    if (!process.env.DBSHELLUSERNAME) {
-        throw new Error("Please define the environment variable DBSHELLUSERNAME");
-    }
-    if (!process.env.DBSHELLPASSWORD) {
-        throw new Error("Please define the environment variable DBSHELLPASSWORD");
-    }
-    if (!process.env.DBPORT) {
-        throw new Error("Please define the environment variable DBPORT");
-    }
-    if (!process.env.SSL_ROOT_FOLDER) {
-        throw new Error("Please define the environment variable SSL_ROOT_FOLDER");
-    }
-
     const globalConn: interfaces.IDBConnection = {
         dbType: "MySQL",
         caption: "e2eGlobalDBConnection",
         description: "Local connection",
         basic: {
-            hostname: String(process.env.DBHOSTNAME),
-            username: String(process.env.DBSHELLUSERNAME),
-            port: Number(process.env.DBPORT),
+            hostname: "localhost",
+            username: String(process.env.DBUSERNAME2),
+            port: parseInt(process.env.MYSQL_PORT, 10),
             schema: "sakila",
-            password: String(process.env.DBSHELLPASSWORD),
+            password: String(process.env.DBPASSWORD2),
         },
     };
     const anotherConn: interfaces.IDBConnection = {
@@ -79,11 +57,11 @@ describe("RESULT GRIDS", () => {
         caption: "e2eAnotherDBConnection",
         description: "Local connection",
         basic: {
-            hostname: String(process.env.DBHOSTNAME),
-            username: String(process.env.DBUSERNAME),
-            port: Number(process.env.DBPORT),
+            hostname: "localhost",
+            username: String(process.env.DBUSERNAME1),
+            port: parseInt(process.env.MYSQL_PORT, 10),
             schema: "sakila",
-            password: String(process.env.DBPASSWORD),
+            password: String(process.env.DBPASSWORD1),
         },
     };
 
