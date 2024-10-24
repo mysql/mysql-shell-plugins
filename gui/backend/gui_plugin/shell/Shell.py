@@ -61,16 +61,17 @@ def start_session(db_connection_id=None, shell_args=None, be_session=None):
         None
     """
     options = None
+    settings = None
     if db_connection_id is not None:
         db_type = None
         with BackendDatabase(be_session) as db:
-            db_type, options = db.get_connection_details(db_connection_id)
+            db_type, options, settings = db.get_connection_details(db_connection_id)
 
         if db_type != "MySQL":
             raise Error.MSGException(Error.DB_INVALID_DB_TYPE,
                                      f'Shell operations only work with MySQL database connections.')
 
-    ShellModuleSession(options=options, shell_args=shell_args)
+    ShellModuleSession(options=options, settings=settings, shell_args=shell_args)
 
 
 @plugin_function('gui.shell.closeSession', shell=False, web=True)

@@ -439,8 +439,8 @@ export class ThemeManager {
         fontVariables["msg-standard-font-weight"] = font.fontWeight ?? "400";
         fontVariables["msg-monospace-font-family"] = font.editorFontFamily
             ?? "'SourceCodePro+Powerline+Awesome+MySQL', monospace";
+        fontVariables["msg-standard-font-size"] = font.fontSize ?? "14px";
 
-        font.fontSize && (fontVariables["msg-standard-font-size"] = font.fontSize);
         font.editorFontSize && (fontVariables["msg-monospace-font-size"] = font.editorFontSize);
         font.editorFontWeight && (fontVariables["msg-monospace-font-weight"] = font.editorFontWeight);
 

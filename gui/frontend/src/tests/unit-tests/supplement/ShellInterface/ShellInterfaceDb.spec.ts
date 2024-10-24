@@ -101,6 +101,7 @@ describe("ShellInterfaceDb Tests", () => {
             caption: testConnection.caption,
             description: testConnection.description,
             options: { ...testConnection.options },
+            settings: {},
         };
 
         try {

@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS `db_connection` (
   `caption` VARCHAR(256) NULL,
   `description` VARCHAR(200) NULL,
   `options` TEXT NULL,
+  `settings` TEXT NULL,
   PRIMARY KEY (`id`));
 
 
@@ -295,7 +296,7 @@ CREATE INDEX `fk_profile_has_db_connection_db_connection1_idx` ON `profile_has_d
 
 CREATE INDEX `fk_profile_has_db_connection_user_profile1_idx` ON `profile_has_db_connection` (`profile_id` ASC);
 
-
+CREATE INDEX `folder_path_idx` ON `profile_has_db_connection` (`folder_path` ASC);
 
 
 
@@ -601,7 +602,7 @@ CREATE TABLE IF NOT EXISTS `logs`.`message` (
 -- View `schema_version`
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `schema_version` ;
-CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 17;
+CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 18;
 
 -- -----------------------------------------------------
 -- Data for table `data_category`

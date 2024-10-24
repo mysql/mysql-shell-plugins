@@ -277,6 +277,8 @@ export interface IShellDbConnection {
     description: string | null;
     /** The options specific for the current database type */
     options: IShellDictionary | null;
+    /** The additional settings for the given connection */
+    settings: IShellDictionary | null;
 }
 
 export interface IProtocolGuiParameters {

@@ -178,15 +178,17 @@
     padding: unset;
 }
 
+.msg.chatOptionsPanel .dropdown {
+    font-size: 0.8em;
+}
+
 .msg.chatOptionsPanel .titleLabel {
     font-size: 0.7em;
     margin-bottom: 2px;
 }
 
 .msg.chatOptionsPanel .scopeLabel {
-    margin-top: 6px;
     font-size: 0.8em;
-    margin-bottom: 2px;
 }
 
 .msg.chatOptionsPanel .scopeSchema {
@@ -266,6 +268,7 @@
 .msg.chatOptionsPanel .scopeLabeledItem {
     gap: 6px;
     overflow-y: hidden;
+    align-items: center;
 }
 
 .msg.chatOptionsPanel .scopeLabeledItem .dropdown {
@@ -368,3 +371,4 @@
     border-color: var(--input-border);
     filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
 }
+

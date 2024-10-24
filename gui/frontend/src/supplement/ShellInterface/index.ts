@@ -33,7 +33,16 @@ export enum DBType {
     Sqlite = "Sqlite",
 }
 
+export enum DBConnectionEditorType {
+    DbNotebook = "DB Notebook",
+    DbScript = "DB Script",
+}
+
 type IShellConnectionOptions = IMySQLConnectionOptions | ISqliteConnectionOptions | IDictionary;
+
+export interface IConnectionSettings {
+    defaultEditor?: DBConnectionEditorType;
+}
 
 export interface IConnectionDetails {
     // A running number in the backend DB, where connections are stored.
@@ -50,6 +59,8 @@ export interface IConnectionDetails {
     sqlMode?: string;     // Ditto, if the server supports sql modes (MySQL).
 
     hideSystemSchemas?: boolean;
+
+    settings?: IConnectionSettings;
 }
 
 // All available shell (backend) interfaces to access the functionality of the backend.

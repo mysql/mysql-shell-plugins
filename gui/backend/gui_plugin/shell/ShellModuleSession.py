@@ -109,7 +109,7 @@ class ShellDbSessionHandler(DbMysqlSession):
 
 
 class ShellModuleSession(ModuleSession):
-    def __init__(self, options=None, shell_args=None):
+    def __init__(self, options=None, settings=None, shell_args=None):
         context = get_context()
         request_id = context.request_id if context else None
         super().__init__()
@@ -147,23 +147,24 @@ class ShellModuleSession(ModuleSession):
 
         if not options is None:
             session_handler = ShellDbSessionHandler(options,
-                                                    message_callback=lambda x, y: self._web_session.send_response_message(
-                                                        msg_type=x,
-                                                        msg=y,
+                                                    message_callback=lambda msg_type, msg, result: self._web_session.send_response_message(
+                                                        msg_type=msg_type,
+                                                        msg=msg,
                                                         request_id=request_id,
-                                                        values=None, api=False))
+                                                        values=result, api=False))
 
             session_handler.open()
             options = session_handler.connection_options
 
-            if 'ssh' in options.keys():
-                connection_args.append('--ssh')
-                connection_args.append(options.pop('ssh'))
+            if settings is not None:
+                if 'ssh' in settings.keys():
+                    connection_args.append('--ssh')
+                    connection_args.append(settings.pop('ssh'))
 
-            if 'ssh-identity-file' in options.keys():
-                connection_args.append('--ssh-identity-file')
-                connection_args.append(
-                    options.pop('ssh-identity-file'))
+                if 'ssh-identity-file' in settings.keys():
+                    connection_args.append('--ssh-identity-file')
+                    connection_args.append(
+                        settings.pop('ssh-identity-file'))
 
             connection_args.append(
                 mysqlsh.globals.shell.unparse_uri(options))
