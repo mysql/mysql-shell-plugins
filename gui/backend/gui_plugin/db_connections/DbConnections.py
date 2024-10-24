@@ -48,6 +48,9 @@ def add_db_connection(profile_id, connection, folder_path='',
             "options": {
                 "uri": "mysql://mike@localhost:3306/test",
                 "password": "myPassword2BeStoredEncrypted"
+            },
+            "settings": {
+                "defaultEditor": "DB Notebook",
             }}
         folder_path (str): The folder path used for grouping and nesting
             connections, optional
@@ -59,6 +62,7 @@ def add_db_connection(profile_id, connection, folder_path='',
         caption (str): A name for this connection
         description (str): A longer description for this connection
         options (dict): The options specific for the current database type
+        settings (dict): The additional settings for the given connection
 
     Returns:
         int: The connection ID
@@ -84,12 +88,13 @@ def add_db_connection(profile_id, connection, folder_path='',
         with BackendTransaction(db):
             # Insert new db_connection
             db.execute('''INSERT INTO db_connection(
-                db_type, caption, description, options)
-                VALUES(?, ?, ?, ?)''',
+                db_type, caption, description, options, settings)
+                VALUES(?, ?, ?, ?, ?)''',
                        (connection.get('db_type', "MySQL"),
                         connection.get('caption', 'New Connection'),
                         connection.get('description', ''),
-                        json.dumps(connection.get('options', {}))))
+                        json.dumps(connection.get('options', {})),
+                        json.dumps(connection.get('settings', {}))))
 
             connection_id = db.get_last_row_id()
 
@@ -120,6 +125,9 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
                     "uri": "mysql://mike@localhost:3306/test",
                     "password": "myPassword2BeStoredEncrypted"
                 },
+                "settings": {
+                    "defaultEditor": "DB Notebook",
+                }
             }
         folder_path (str): The folder path used for grouping and nesting
             connections, optional
@@ -131,6 +139,7 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
         caption (str): A name for this connection
         description (str): A longer description for this connection
         options (dict): The options specific for the current database type
+        settings (dict): The additional settings for the given connection
 
     Returns:
         None
@@ -150,6 +159,9 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
             if "options" in connection:
                 db.execute("UPDATE db_connection SET options=? WHERE id=?", (json.dumps(
                     connection['options']), connection_id))
+            if "settings" in connection:
+                db.execute("UPDATE db_connection SET settings=? WHERE id=?", (json.dumps(
+                    connection['settings']), connection_id))
             if "folder_path" in connection:
                 index = db_connections.get_next_connection_index(
                     db, profile_id, folder_path)
@@ -210,7 +222,7 @@ def list_db_connections(profile_id, folder_path='', be_session=None):
     """
     with BackendDatabase(be_session) as db:
         return db.select('''SELECT dc.id, p_dc.folder_path, dc.caption,
-            dc.description, dc.db_type, dc.options, p_dc.`index`
+            dc.description, dc.db_type, dc.options, dc.settings, p_dc.`index`
             FROM profile_has_db_connection p_dc
                 LEFT JOIN db_connection dc ON
                     p_dc.db_connection_id = dc.id

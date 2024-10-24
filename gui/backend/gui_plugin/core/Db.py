@@ -181,7 +181,7 @@ class GuiBackendDb():
         """
         Returns a tuple with the type and options for the given connection_id
         """
-        res = self.execute('''SELECT db_type, options
+        res = self.execute('''SELECT db_type, options, settings
                                 FROM db_connection
                                 WHERE id = ?''',
                         (db_connection_id,)).fetch_one()
@@ -191,16 +191,21 @@ class GuiBackendDb():
 
         db_type = None
         options = None
+        settings = None
 
         try:
             db_type = res['db_type']
 
             options = json.loads(res['options'])
+            if "settings" in res:
+                settings = json.loads(res['settings'])
+            else:
+                settings = {}
         except ValueError as e:
             raise Error.MSGException(Error.DB_INVALID_OPTIONS,
                                     f'The connection options are not valid JSON. {e}.')
 
-        return (db_type, options)
+        return (db_type, options, settings)
 
     @property
     def rows_affected(self):

@@ -797,8 +797,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     password: savedState.lastPassword,
                     host: savedState.lastHost,
                     port: savedState.lastPort,
-
                 },
+                settings: {},
             });
         } catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);

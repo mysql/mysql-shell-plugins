@@ -85,7 +85,8 @@ def mysql_connections_exists():  # pragma: no cover
         "db_type": "MySQL",
         "caption": "This is a test MySQL database",
         "description": "This is a test MySQL database description",
-        "options": connection
+        "options": connection,
+        "settings": {}
     }, 'tests')
 
     connection_id = result

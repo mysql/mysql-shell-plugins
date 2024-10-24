@@ -53,7 +53,7 @@ import {
     IMrsUserEditRequest, InitialEditor, requisitions,
 } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
-import { DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
+import { DBConnectionEditorType, DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { ConnectionBrowser } from "./ConnectionBrowser.js";
 import {
     DBConnectionTab, IDBConnectionTabPersistentState, IOpenEditorState, ISelectItemDetails,
@@ -1395,7 +1395,12 @@ EXAMPLES
             const mleEnabled = info.mleAvailable ?? false;
 
             const entryId = uuid();
-            const useNotebook = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
+            let useNotebook;
+            if (connection.settings && connection.settings.defaultEditor) {
+                useNotebook = connection.settings.defaultEditor === DBConnectionEditorType.DbNotebook;
+            } else {
+                useNotebook = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
+            }
 
             // Get the execution history entries for this connection, but only fetch the first 30 chars of the code
             // for preview purposes

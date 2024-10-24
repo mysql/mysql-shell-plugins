@@ -91,7 +91,7 @@
 .msg.dropdown:not(.multiSelect) > .label {
     display: inline-block;
     appearance: none;
-    margin: 0 8px;
+    margin: 0 4px;
 
     color: var(--dropdown-foreground);
     background-color: transparent;
@@ -99,8 +99,6 @@
     border-radius: 4px;
     width: 100%;
     white-space: nowrap;
-
-    font-size: 0.8rem;
 
     outline: none;
     cursor: pointer;
@@ -131,8 +129,6 @@
     color: var(--dropdown-foreground);
     background-color: var(--dropdown-listBackground);
     border: 1px solid transparent;
-
-    font-size: 0.9em;
 
     max-height: 250px;
     overflow-y: scroll;

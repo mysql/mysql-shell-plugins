@@ -208,4 +208,13 @@
 .msg.dialog.valueEditDialog .control-wrap .input {
     padding-top: 3px;
     padding-bottom: 3px;
+    font-size: var(--msg-standard-font-size);
+}
+
+.msg.dialog.valueEditDialog .control-wrap label {
+    padding-bottom: 1px;
+}
+
+.msg.dialog.valueEditDialog .control-wrap .valueEditor.button {
+    height: 24px;
 }

@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS `db_connection` (
   `caption` VARCHAR(256) NULL,
   `description` VARCHAR(200) NULL,
   `options` TEXT NULL,
+  `settings` TEXT NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
@@ -263,6 +264,7 @@ CREATE TABLE IF NOT EXISTS `profile_has_db_connection` (
   PRIMARY KEY (`profile_id`, `db_connection_id`),
   INDEX `fk_profile_has_db_connection_db_connection1_idx` (`db_connection_id` ASC) VISIBLE,
   INDEX `fk_profile_has_db_connection_user_profile1_idx` (`profile_id` ASC) VISIBLE,
+  INDEX `folder_path_idx` (`folder_path` ASC) VISIBLE,
   CONSTRAINT `fk_profile_has_db_connection_profile1`
     FOREIGN KEY (`profile_id`)
     REFERENCES `profile` (`id`)
@@ -274,7 +276,6 @@ CREATE TABLE IF NOT EXISTS `profile_has_db_connection` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
-
 
 -- -----------------------------------------------------
 -- Table `data_profile_tree`
@@ -551,7 +552,7 @@ ENGINE = InnoDB;
 -- View `schema_version`
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `schema_version` ;
-CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 17;
+CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 18;
 
 -- -----------------------------------------------------
 -- Data for table `data_category`

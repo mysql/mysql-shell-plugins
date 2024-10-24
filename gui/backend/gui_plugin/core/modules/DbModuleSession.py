@@ -167,7 +167,7 @@ class DbModuleSession(ModuleSession):
         self._current_request_id = context.request_id if context else None
 
         if isinstance(connection, int):
-            self._db_type, options = self._web_session.db.get_connection_details(
+            self._db_type, options, _ = self._web_session.db.get_connection_details(
                 connection)
         elif isinstance(connection, dict):
             self._db_type = connection['db_type']

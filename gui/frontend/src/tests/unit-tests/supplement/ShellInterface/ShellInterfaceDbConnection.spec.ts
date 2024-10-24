@@ -56,6 +56,7 @@ describe("ShellInterfaceDbConnection Tests", () => {
             caption: "ShellInterfaceDb Test Connection 1",
             description: "ShellInterfaceDb Test Connection",
             options,
+            settings: {},
         };
 
         let connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId);

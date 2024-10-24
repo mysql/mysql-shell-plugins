@@ -112,7 +112,7 @@ parameter_mapper_bindings = {}
 
 nullable_bindings = {
     'Gui' : {
-        'IShellDbConnection': ['dbType', 'caption', 'description', 'options']
+        'IShellDbConnection': ['dbType', 'caption', 'description', 'options', 'settings']
     },
     'Mrs' : {
         'IShellMrsAddServiceKwargs': ['options'],

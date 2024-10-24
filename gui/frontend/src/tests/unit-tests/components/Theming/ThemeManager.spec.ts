@@ -114,6 +114,7 @@ describe("ThemeManager tests", () => {
                 "msg-standard-font-family": "'Helvetica Neue', Helvetica, Arial, sans-serif",
                 "msg-standard-font-weight": "400",
                 "msg-monospace-font-family": "'SourceCodePro+Powerline+Awesome+MySQL', monospace",
+                "msg-standard-font-size": "14px",
             });
         });
 

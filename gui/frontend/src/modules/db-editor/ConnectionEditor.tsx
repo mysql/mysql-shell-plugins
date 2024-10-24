@@ -46,14 +46,15 @@ import { GridCell } from "../../components/ui/Grid/GridCell.js";
 import { Label } from "../../components/ui/Label/Label.js";
 import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator.js";
 import { requisitions } from "../../supplement/Requisitions.js";
-import { DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
+import { DBConnectionEditorType, DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
 import { filterInt, basename } from "../../utilities/string-helpers.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
 
 const editorHeading = "Database Connection Configuration";
 const editorDescription = [
-    "Select a database type and enter database specific connection data.",
+    "Please enter the database connection data.",
 ];
 
 interface ILiveUpdateField {
@@ -372,6 +373,11 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 port: 3306,
                 scheme: MySQLConnectionScheme.MySQL,
             },
+            settings: {
+                defaultEditor: Settings.get("dbEditor.defaultEditor", "notebook") === "notebook"
+                    ? DBConnectionEditorType.DbNotebook
+                    : DBConnectionEditorType.DbScript,
+            },
         };
 
         // In the dialog config we have to provide values for each DB type, because the user can switch the type.
@@ -414,8 +420,48 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             };
         }
 
+        const defaultEditor = details.settings?.defaultEditor ?? DBConnectionEditorType.DbNotebook;
+
+        const informationSection: IDialogSection = {
+            values: {
+                caption: {
+                    type: "text",
+                    caption: "Caption:",
+                    value: details.caption,
+                    placeholder: "<enter a unique caption>",
+                    options: [CommonDialogValueOption.AutoFocus],
+                    description: "Short label for this database connection",
+                    horizontalSpan: 3,
+                },
+                description: {
+                    type: "text",
+                    caption: "Description:",
+                    value: details.description,
+                    placeholder: "<describe the connection>",
+                    description: "More detailed description of the connection",
+                    horizontalSpan: 5,
+                },
+            },
+        };
+
         const generalSection: IDialogSection = {
             values: {
+                defaultEditor: {
+                    type: "choice",
+                    caption: "Default Editor:",
+                    value: defaultEditor,
+                    choices: [DBConnectionEditorType.DbNotebook, DBConnectionEditorType.DbScript],
+                    description: "Choose between a modern notebook interface or a traditional script editor",
+                    horizontalSpan: 3,
+                },
+                folderPath: {
+                    type: "choice",
+                    caption: "Folder Path:",
+                    value: "/",
+                    choices: ["/"],
+                    description: "Path of the folder holding the connection",
+                    horizontalSpan: 3,
+                },
                 databaseType: {
                     type: "choice",
                     caption: "Database Type:",
@@ -432,28 +478,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                             remove: availableNames,
                         });
                     },
-                },
-                databaseTypeDescription: {
-                    type: "description",
-                    value: "Choose a type for this database connection",
-                },
-            },
-        };
-
-        const informationSection: IDialogSection = {
-            values: {
-                caption: {
-                    type: "text",
-                    caption: "Caption:",
-                    value: details.caption,
-                    placeholder: "<enter a unique caption>",
-                    options: [CommonDialogValueOption.AutoFocus],
-                },
-                description: {
-                    type: "text",
-                    caption: "Description:",
-                    value: details.description,
-                    placeholder: "<describe the connection>",
+                    horizontalSpan: 2,
+                    description: "Database connection type",
                 },
             },
         };
@@ -467,6 +493,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     type: "resource",
                     caption: "Database Path:",
                     value: optionsSqlite.dbFile,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     filters: { "SQLite 3": ["sqlite3", "sqlite"] },
                     placeholder: "<Enter the DB file location>",
                     horizontalSpan: 8,
@@ -495,11 +522,11 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             },
         };
 
-        const detailsHeaderSection: IDialogSection = {
+        /*const detailsHeaderSection: IDialogSection = {
             caption: "Connection Details",
             values: {
             },
-        };
+        };*/
 
         const mysqlDetailsSection: IDialogSection = {
             contexts: ["MySQL"],
@@ -825,9 +852,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         return {
             id: String(details.id),
             sections: new Map<string, IDialogSection>([
-                ["general", generalSection],
                 ["information", informationSection],
-                ["detailsHeaderSection", detailsHeaderSection],
+                ["general", generalSection],
                 ["sqliteDetails", sqliteDetailsSection],
                 ["sqliteAdvanced", sqliteAdvancedSection],
                 ["mysqlDetails", mysqlDetailsSection],
@@ -857,6 +883,9 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
             let details: IConnectionDetails | undefined = data?.details as IConnectionDetails;
             const dbType = generalSection.databaseType.value as DBType; // value must be a string.
+
+            const defaultEditor = (generalSection.defaultEditor.value as DBConnectionEditorType)
+                ?? DBConnectionEditorType.DbNotebook;
 
             if (data?.createNew) {
                 details = {
@@ -888,6 +917,10 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 details.useSSH = mysqlDetailsSection.useSSH.value as boolean;
                 details.caption = informationSection.caption.value as string;
                 details.description = informationSection.description.value as string;
+
+                details.settings = {
+                    defaultEditor,
+                };
 
                 // TODO: use current active nesting group, once available.
                 // details.folderPath = ...
