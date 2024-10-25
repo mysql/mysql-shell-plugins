@@ -29,3 +29,18 @@ declare interface IDictionary {
 
 declare function print(out: string): void;
 
+declare class SqlError extends Error {
+}
+
+declare interface IMrsResultSet {
+    rows: IDictionary[];
+}
+
+declare class Session {
+    public pushRunSqlResults(...res: IDictionary[][]): void;
+
+    public runSql(sql: string, params?: unknown): Promise<IMrsResultSet>;
+}
+
+declare var session: Session;
+declare var contentSetPath: string;

@@ -411,6 +411,10 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
 
         filled_temp = ""
         for schema in schemas:
+            # TODO: Implement support for MRS Scripts
+            if schema.get("schema_type") == "SCRIPT_MODULE":
+                continue
+
             if requires_auth is False:
                 requires_auth |= schema.get("requires_auth") == 1
 
