@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { describe, it, SqlError, session } from "../mrs/mrs.mjs";
+import { SqlError, describe, it } from "../mrs/mrs.mjs";
 import { mrsTestScripts } from "../src/MrsTestScripts.mjs";
 
 describe("MRS Script Example - MRS script tests", async () => {
@@ -77,6 +77,14 @@ describe("MRS Script Example - MRS script tests", async () => {
             if (!(error instanceof SqlError)) {
                 throw new Error("No SqlError thrown.");
             }
+        }
+    });
+
+    await it("renderTestPage", async () => {
+        const pageContent = await mrsTestScripts.renderTestPage();
+
+        if (!pageContent.startsWith("<!DOCTYPE html>")) {
+            throw new Error("Content page not rendered correctly.");
         }
     });
 });

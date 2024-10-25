@@ -1882,7 +1882,7 @@ export interface IMrsScriptModuleDefinition {
 export interface IMrsScriptError {
     message: string;
     kind?: string;
-    fileInfo: IMrsScriptFileInfo;
+    fileInfo?: IMrsScriptFileInfo;
     script?: IMrsScriptDefinition;
     interface?: IMrsScriptInterfaceDefinition;
 }
@@ -1892,6 +1892,7 @@ export interface IMrsScriptDefinitions {
     interfaces: IMrsScriptInterfaceDefinition[];
     errors: IMrsScriptError[];
     buildFolder?: string;
+    staticContentFolders?: string[];
     info?: string;
 }
 

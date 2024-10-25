@@ -79,6 +79,10 @@ export const hash64 = (str: string, seed = 0) => {
 };
 
 export const describe = async (name: string, tests: () => Promise<void>): Promise<void> => {
+    // Initialize global session with a mock session
+    globalThis.session = new MockSession();
+    globalThis.contentSetPath = ".";
+
     const title = `Starting tests for ${name}`;
     print(`${title}\n${"=".repeat(title.length)}`);
 
@@ -293,26 +297,30 @@ export interface IMrsResultSet {
     rows: IDictionary[];
 }
 
-export class Session {
-    static #instance: Session;
+class Session {
+}
+
+export class MockSession extends Session {
+    static #instance: MockSession;
     #runSqlTestBuffer: IDictionary[][] = [];
 
     public constructor() {
+        super();
         // Make the Session a singleton
-        if (Session.#instance) {
-            return Session.#instance;
+        if (MockSession.#instance) {
+            return MockSession.#instance;
         }
 
-        Session.#instance = this;
+        MockSession.#instance = this;
     }
 
-    public pushRunSqlResults = (...res: IDictionary[][]): void => {
+    public pushRunSqlResults(...res: IDictionary[][]): void {
         for (let r of res) {
             this.#runSqlTestBuffer.push(r);
         }
     };
 
-    public runSql = async (sql: string, params?: unknown): Promise<IMrsResultSet> => {
+    public async runSql (sql: string, params?: unknown): Promise<IMrsResultSet> {
         return new Promise((resolve, reject) => {
             const res = this.#runSqlTestBuffer.shift();
             if (res) {
@@ -323,5 +331,3 @@ export class Session {
         });
     };
 }
-
-export const session = new Session();

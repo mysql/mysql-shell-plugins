@@ -1015,7 +1015,15 @@ def get_mrs_script_definitions_from_code_file_list(code_files, language, send_gu
 
 
 def is_common_build_folder(dir):
-    if dir.lower() == "build" or dir.lower() == "output" or dir.lower() == "out" or dir.lower() == "web":
+    if (dir.lower() == "build" or dir.lower() == "output" or dir.lower() == "out" or dir.lower() == "dist"):
+        return True
+
+    return False
+
+
+def is_common_static_content_folder(dir):
+    if (dir.lower() == "static" or dir.lower() == "assets" or dir.lower() == "media" or dir.lower() == "web"
+        or dir.lower() == "js" or dir.lower() == "css" or dir.lower() == "images"):
         return True
 
     return False
@@ -1027,6 +1035,7 @@ def get_code_files_from_folder(path, ignore_list, language):
 
     code_files = []
     build_folder = None
+    static_content_folders = []
 
     for root, dirs, files in os.walk(path):
         # Check if there is a build directory with a common name in the root dir
@@ -1034,6 +1043,8 @@ def get_code_files_from_folder(path, ignore_list, language):
             for dir in dirs:
                 if is_common_build_folder(dir):
                     build_folder = dir
+                if is_common_static_content_folder(dir):
+                    static_content_folders.append(dir)
 
         for file in files:
             fullname = os.path.join(root, file)
@@ -1066,11 +1077,11 @@ def get_code_files_from_folder(path, ignore_list, language):
                         "code_cleared": code_cleared,
                     })
 
-    return code_files, build_folder
+    return code_files, build_folder, static_content_folders
 
 
 def get_folder_mrs_script_definitions(path, ignore_list, language, send_gui_message=None):
-    code_files, build_folder = get_code_files_from_folder(
+    code_files, build_folder, static_content_folders = get_code_files_from_folder(
         path=path, ignore_list=ignore_list, language=language)
 
     mrs_script_def = get_mrs_script_definitions_from_code_file_list(
@@ -1078,6 +1089,15 @@ def get_folder_mrs_script_definitions(path, ignore_list, language, send_gui_mess
 
     if build_folder is not None:
         mrs_script_def["build_folder"] = build_folder
+
+    if len(static_content_folders) > 0:
+        mrs_script_def["static_content_folders"] = static_content_folders
+
+    if language == "TypeScript" and build_folder is None:
+        mrs_script_def["errors"].append({
+            "kind": "BuildError",
+            "message": f"No build folder found for this TypeScript project. Please build the project before adding it.",
+        })
 
     return mrs_script_def
 
@@ -1127,8 +1147,9 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
             "Could load the MRS scripts. The content set's service was not found.")
 
     code_files = []
+    static_content_folders = []
     if content_dir is not None:
-        code_files, build_folder = get_code_files_from_folder(
+        code_files, build_folder, static_content_folders = get_code_files_from_folder(
             path=content_dir, ignore_list=ignore_list, language=language)
     else:
         files = content_files.get_content_files(
@@ -1143,6 +1164,11 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
                     build_folder = dirs.parts[0]
                 elif len(dirs.parts) > 1 and is_common_build_folder(dirs.parts[1]):
                     build_folder = dirs.parts[1]
+
+                if is_common_static_content_folder(dirs.parts[0]):
+                    static_content_folders.append(dirs.parts[0])
+                elif len(dirs.parts) > 1 and is_common_static_content_folder(dirs.parts[1]):
+                    static_content_folders.append(dirs.parts[1])
 
             fullname = "." + \
                 content_file["content_set_request_path"] + \
@@ -1191,7 +1217,20 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
 
     script_def = get_mrs_script_definitions_from_code_file_list(
         code_files, language=language, send_gui_message=send_gui_message)
-    script_def["build_folder"] = build_folder
+    if build_folder:
+        script_def["build_folder"] = build_folder
+    if len(static_content_folders) > 0:
+        script_def["static_content_folders"] = static_content_folders
+
+    if send_gui_message is not None:
+        send_gui_message(
+            "info", f"{language=}, {build_folder= }")
+
+    if language == "TypeScript" and build_folder is None:
+        script_def["errors"].append({
+            "kind": "BuildError",
+            "message": f"No build folder found for this TypeScript project. Please build the project before adding it.",
+        })
 
     error_count = len(script_def["errors"])
     if error_count > 0:
@@ -1421,7 +1460,8 @@ def get_extended_interface_properties(interface, interface_list):
         type_name=interface["extends"], interface_list=interface_list)
 
     props = interface["properties"].copy()
-    props.extend(get_extended_interface_properties(parent_interface, interface_list))
+    props.extend(get_extended_interface_properties(
+        parent_interface, interface_list))
 
     return props
 

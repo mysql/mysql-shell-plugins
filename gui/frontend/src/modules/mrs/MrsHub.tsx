@@ -590,6 +590,8 @@ export class MrsHub extends ComponentBase {
                         requestPath = directory.substring(directory.lastIndexOf("/"));
                     }
 
+                    requestPath = convertSnakeToCamelCase(requestPath) + "Content";
+
                     if (!requestPath.startsWith("/")) {
                         requestPath = "/" + requestPath;
                     }

@@ -221,6 +221,7 @@ export const testReqShowMrsContentSetDialog = async (
         options: {
             schemaName: "MRS_TEST",
         },
+        contentType: "STATIC",
     };
 
     const request: IMrsContentSetEditRequest = {

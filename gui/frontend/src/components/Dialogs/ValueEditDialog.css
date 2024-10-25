@@ -112,9 +112,10 @@
 .msg.dialog.valueEditDialog .gridCell .cellDescription {
     padding-top: 3px;
     padding-bottom: 3px;
-    flex: 1 1 auto;
     font-size: 10px;
-    white-space: initial;
+    line-height: 12px;
+    text-wrap: wrap;
+    display: inline-block;
     color: var(--tag-background);
 }
 
@@ -125,15 +126,6 @@
     flex: 1 1 auto;
     white-space: initial;
     font-size: 12px;
-}
-
-.msg.dialog.valueEditDialog .gridCell .cellDescription {
-    padding-top: 3px;
-    padding-bottom: 3px;
-    flex: 1 1 auto;
-    font-size: 10px;
-    white-space: initial;
-    color: var(--tag-background);
 }
 
 .msg.dialog.valueEditDialog .gridCell .image {

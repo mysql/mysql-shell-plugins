@@ -23,10 +23,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/// <reference types="../mrs/mrs.d.ts" />
+
 // Required to enable support for decorators
 (Symbol.metadata as any) ??= Symbol("Symbol.metadata");
 
-import { Mrs, session, SqlError } from "../mrs/mrs.mjs";
+import { Mrs } from "../mrs/mrs.mjs";
 
 export interface IMrsGreeting {
     greeting: string;
@@ -144,4 +146,27 @@ class mrsTestScripts {
             supportedVersions: [versions[0]],
         }
     };
+
+    @Mrs.script({
+        requestPath: "/testPage.html",
+        format: "MEDIA",
+        mediaType: "text/html",
+    })
+    public static async renderTestPage(): Promise<string> {
+        const header = `<!DOCTYPE html><html lang="en">\n<head><meta charset="utf-8"><title>Test Page</title>` +
+            `<link rel="stylesheet" href="${contentSetPath}/static/testPage.css"></head>\n`;
+        let body = `<body><div class="appListing">\n`;
+
+        for (let i = 1; i < 12; i++) {
+            body +=
+                `<div class="appTile">\n` +
+                `    <div class="appIcon"><span>${i}</span></div>\n` +
+                `    <div class="appTitle">App ${i}</div>\n` +
+                `</div>\n`;
+        }
+
+        body += "</div></body>";
+
+        return header + body + `</html>`;
+    }
 }
