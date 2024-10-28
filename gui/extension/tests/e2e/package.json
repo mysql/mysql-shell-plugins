@@ -35,6 +35,7 @@
     "e2e-tests-setup": "ts-node setup/setup.ts",
     "e2e-tests-teardown": "ts-node setup/teardown.ts",
     "e2e-tests-install-extension": "ts-node setup/install_extension.ts",
+    "e2e-tests-copy-extension": "ts-node setup/copy_extension.ts",
     "e2e-tests-tsc": "tsc",
     "e2e-tests-merge": "mochawesome-merge",
     "e2e-tests-report": "marge -f test-report"

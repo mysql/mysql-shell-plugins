@@ -280,7 +280,6 @@ export class Misc {
         const query2 = "DELETE FROM main.db_connection";
 
         if (existsSync(sqliteFile)) {
-            console.log(`Deleting e2e connections from: ${sqliteFile}`);
             const sqlite = new Database(sqliteFile);
             sqlite.run(query1);
             sqlite.run(query2);

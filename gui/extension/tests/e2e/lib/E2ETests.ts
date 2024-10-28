@@ -29,6 +29,7 @@ import { join } from "path";
 import {
     readdirSync, existsSync, mkdirSync, writeFileSync, symlinkSync, readFileSync,
     truncateSync, rmSync, createWriteStream,
+    cpSync,
 } from "fs";
 import { get } from "https";
 import { ExTester } from "vscode-extension-tester";
@@ -85,6 +86,9 @@ export class E2ETests {
                 if (cli.includes("--log")) {
                     cliArguments.log = cli.split("=")[1] === "true";
                 }
+                if (cli.includes("--source-test-suite")) {
+                    cliArguments.sourceTestSuite = cli.split("=")[1];
+                }
             }
         }
 
@@ -117,10 +121,12 @@ export class E2ETests {
      * Sets the Shell binary location on the shellBinary attribute
      */
     public static setShellBinary = (): void => {
+        const mysqlsh = platform() !== "win32" ? "mysqlsh" : "mysqlsh.exe";
+
         this.shellBinary = join(this.testSuites[0].extensionDir, readdirSync(this.testSuites[0].extensionDir)
             .filter((item) => {
                 return item.includes("oracle");
-            })[0], "shell", "bin", "mysqlsh");
+            })[0], "shell", "bin", mysqlsh);
 
         if (!existsSync(this.shellBinary)) {
             throw new Error(`[ERR] Could not find the shell binary. Please install the extension`);
@@ -315,7 +321,8 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         console.log("[OK] OCI Configuration file created successfully");
 
         // CONVERT LIB TS FILES TO JS
-        this.runCommand("npm", ["run", "e2e-tests-tsc"]);
+        const npm = platform() !== "win32" ? "npm" : "npm.cmd";
+        this.runCommand(npm, ["run", "e2e-tests-tsc"]);
         console.log("[OK] TS files converted to JS successfully");
         console.log("[OK] Setup finished !");
     };
@@ -462,23 +469,28 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
             mkdirSync(configFolder);
             writeFileSync(join(configFolder, "mysqlsh.log"), "");
             mkdirSync(join(configFolder, "plugin_data", "gui_plugin"), { recursive: true });
+            console.log(`[OK] Created config folder for ${testSuite.name} test suite`);
         }
 
         const webCerts = join(configFolder, "plugin_data", "gui_plugin", "web_certs");
 
-        for (const item of readdirSync(join(configFolder, "plugin_data", "gui_plugin"))) {
-            if (item === "web_certs") {
-                rmSync(webCerts, { recursive: true });
+        if (platform() !== "win32") {
+            for (const item of readdirSync(join(configFolder, "plugin_data", "gui_plugin"))) {
+                if (item === "web_certs") {
+                    rmSync(webCerts, { recursive: true });
+                }
+            }
+
+            symlinkSync(webCertificatesPath, webCerts);
+            console.log(`[OK] Web Certificates symlink created for ${testSuite.name} test suite`);
+        } else {
+            if (!existsSync(webCerts)) {
+                cpSync(webCertificatesPath, webCerts, { recursive: true });
+                console.log(`[OK] Copied web_certs folder for ${testSuite.name} test suite`);
+            } else {
+                console.log(`[OK] Found web_certs folder for ${testSuite.name} test suite`);
             }
         }
-
-        if (platform() !== "win32") {
-            symlinkSync(webCertificatesPath, webCerts);
-        } else {
-            symlinkSync(webCertificatesPath, webCerts, "junction");
-        }
-
-        console.log(`[OK] Web Certificates symlink created for ${testSuite.name} test suite`);
     };
 
     /**
@@ -520,7 +532,9 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
             }
         }
 
-        this.runCommand("npm", [
+        const npm = platform() !== "win32" ? "npm" : "npm.cmd";
+
+        this.runCommand(npm, [
             "run",
             "e2e-tests-merge",
             "--",
@@ -529,7 +543,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         ].concat(reportFiles));
         console.log("[OK] Test reports merged successfully");
 
-        this.runCommand("npm", [
+        this.runCommand(npm, [
             "run",
             "e2e-tests-report",
             "--",
@@ -538,6 +552,24 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
             "mergeReport.json",
         ]);
         console.log("[OK] Test report generated successfully");
+    };
+
+    /**
+     * Copies the extension for a test suite
+     * @param testSuiteSource The test suite source that already has the extension installed
+     * @param testSuite The test suite to copy the extension for
+     */
+    public static copyExtension = (testSuiteSource: IE2ETestSuite, testSuite: IE2ETestSuite): void => {
+        if (!existsSync(testSuite.testResources)) {
+            throw new Error(`${testSuite.testResources} does not exist`);
+        }
+
+        if (existsSync(testSuiteSource.extensionDir)) {
+            cpSync(testSuiteSource.extensionDir, testSuite.extensionDir, { recursive: true });
+            console.log(`[OK] Copied the extension from ${testSuiteSource.name} suite to ${testSuite.name} suite`);
+        } else {
+            throw new Error(`Please install the extension for ${testSuite.name} test suite`);
+        }
     };
 
     /**
@@ -700,7 +732,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
             output = this.runCommand("mysql", ["--version"]);
             console.log(`[OK] Found MySQL Server - ${output}`);
         } catch (e) {
-            console.error(`[ERR] MySQL Server was not found.`);
+            throw new Error(`[ERR] MySQL Server was not found.`);
         }
 
     };
@@ -742,7 +774,6 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         const cliArguments = this.getCliArguments();
 
         if (cliArguments.mysqlPort) {
-            console.log(`cli arg; ${cliArguments.mysqlPort}`);
             this.mysqlPort = cliArguments.mysqlPort;
         }
     };
