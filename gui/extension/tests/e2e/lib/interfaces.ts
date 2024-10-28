@@ -31,6 +31,7 @@ export interface IE2ECli {
     mysqlPort?: string;
     generateWebCertificate?: boolean;
     log?: boolean;
+    sourceTestSuite?: string;
 }
 
 export interface IE2ETestSuite {
