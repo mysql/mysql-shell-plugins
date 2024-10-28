@@ -13,11 +13,16 @@
         "plugin:jsdoc/recommended"
     ],
     "ignorePatterns": [
-        "**/generated/*"
+        "**/generated/*",
+        "node_modules",
+        "oci-typings"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
-        "project": "tsconfig.json",
+        "project": [
+            "tsconfig.json",
+            "src/tests/tsconfig.json"
+        ],
         "sourceType": "module",
         "implicitStrict": true,
         "ecmaFeatures": {
@@ -379,6 +384,7 @@
         "guard-for-in": "off",
         "id-match": "error",
         "import/order": "off",
+        "lines-around-comment": "off",
         "max-classes-per-file": [
             "error",
             1
@@ -529,7 +535,7 @@
         ],
         "@typescript-eslint/ban-types": "off",
         "@typescript-eslint/ban-ts-comment": "off",
-        "@typescript-eslint/consistent-type-definitions": "error",
+        "@typescript-eslint/consistent-type-definitions": "off",
         "@typescript-eslint/explicit-member-accessibility": [
             "error",
             {
@@ -672,10 +678,26 @@
         "@typescript-eslint/triple-slash-reference": "off",
         "@typescript-eslint/no-base-to-string": "off",
         "@typescript-eslint/no-redundant-type-constituents": "off",
+        "@typescript-eslint/lines-around-comment": [ // Enforces too many empty lines where not needed.
+            "off",
+            {
+                "beforeBlockComment": true,
+                "beforeLineComment": true,
+                "allowBlockStart": true,
+                "allowClassStart": true,
+                "allowObjectStart": true,
+                "allowArrayStart": true,
+                "allowInterfaceStart": true,
+                "allowTypeStart": true,
+                "allowEnumStart": true,
+                "allowModuleStart": true
+            }
+        ],
         "jsdoc/check-alignment": "error",
         "jsdoc/check-indentation": "off",
         "jsdoc/require-param-type": "off",
         "jsdoc/require-returns-type": "off",
+        "jsdoc/no-undefined-types": "off",
         "jsdoc/tag-lines": [
             // Have to switch this off, as it is not good enough to be used.
             "off"

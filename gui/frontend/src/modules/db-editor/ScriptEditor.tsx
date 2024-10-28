@@ -23,33 +23,33 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import loadIcon from "../../assets/images/toolbar/toolbar-load.svg";
-import normalizeIcon from "../../assets/images/toolbar/toolbar-normalize.svg";
-import saveIcon from "../../assets/images/toolbar/toolbar-save.svg";
-
-import { type IPosition } from "monaco-editor";
 import { ComponentChild, createRef } from "preact";
 
+import { ui } from "../../app-logic/UILayer.js";
 import { Button } from "../../components/ui/Button/Button.js";
 import { CodeEditor } from "../../components/ui/CodeEditor/CodeEditor.js";
-import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
-import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
+import type { IPosition, IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
+import {
+    ComponentBase, type IComponentProperties, type IComponentState,
+} from "../../components/ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
-import { ISplitterPaneSizeInfo, SplitContainer } from "../../components/ui/SplitContainer/SplitContainer.js";
+import { SplitContainer, type ISplitterPaneSizeInfo } from "../../components/ui/SplitContainer/SplitContainer.js";
 import { StatusBarAlignment, type IStatusBarItem } from "../../components/ui/Statusbar/StatusBarItem.js";
-import { StatusBar } from "../../components/ui/Statusbar/Statusbar.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
-import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
-import { PresentationInterface } from "../../script-execution/PresentationInterface.js";
+import type { ConnectionDataModelEntry } from "../../data-models/ConnectionDataModel.js";
+import type { IOdmScriptEntry } from "../../data-models/OpenDocumentDataModel.js";
+import type { ExecutionContext } from "../../script-execution/ExecutionContext.js";
+import type { PresentationInterface } from "../../script-execution/PresentationInterface.js";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
+import { Assets } from "../../supplement/Assets.js";
 import { requisitions } from "../../supplement/Requisitions.js";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { EditorLanguage, IScriptRequest } from "../../supplement/index.js";
-import { IOpenEditorState, ISavedEditorState } from "./DBConnectionTab.js";
+import type { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import type { EditorLanguage, IScriptRequest } from "../../supplement/index.js";
+import type { IOpenDocumentState, ISavedEditorState } from "./DBConnectionTab.js";
 import { DBEditorToolbar } from "./DBEditorToolbar.js";
 import { StandalonePresentationInterface } from "./execution/StandalonePresentationInterface.js";
-import { ISchemaTreeEntry, IToolbarItems } from "./index.js";
+import type { IToolbarItems } from "./index.js";
 
 interface IScriptEditorProperties extends IComponentProperties {
     /** When true some adjustments are made to the UI to represent the editor in a way needed for pure notebooks. */
@@ -59,6 +59,7 @@ interface IScriptEditorProperties extends IComponentProperties {
 
     backend?: ShellInterfaceSqlEditor;
     savedState: ISavedEditorState;
+    connectionId: number;
 
     /** Extra libraries for the code editor that don't change. */
     extraLibs?: Array<{ code: string, path: string; }>;
@@ -72,7 +73,7 @@ interface IScriptEditorProperties extends IComponentProperties {
 
 interface IScriptEditorState extends IComponentState {
     // The id of the currently displayed editor.
-    lastId: string;
+    currentId: string;
 
     // These two fields are set via setState in the StandalonePresentationInterface.
     showResultPane: boolean;
@@ -95,7 +96,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         super(props);
 
         this.state = {
-            lastId: "",
+            currentId: "",
             showResultPane: false,
             maximizeResultPane: false,
         };
@@ -108,11 +109,11 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         oldState: IScriptEditorState): Partial<IScriptEditorState> {
 
         const { savedState } = newProps;
-        const { lastId } = oldState;
+        const { currentId: lastId } = oldState;
 
         if (savedState.activeEntry !== lastId) {
             return {
-                lastId: savedState.activeEntry,
+                currentId: savedState.activeEntry,
                 showResultPane: false,
                 maximizeResultPane: false,
             };
@@ -122,36 +123,14 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     }
 
     public override componentDidMount(): void {
-        requisitions.register("explorerDoubleClick", this.handleExplorerDoubleClick);
+        requisitions.register("connectionItemDefaultAction", this.doConnectionEntryDefaultAction);
+        requisitions.register("editorInsertText", this.doInsertText);
         requisitions.register("editorCaretMoved", this.handleCaretMove);
 
-        this.#editorPositionSbEntry = StatusBar.createStatusBarItem({
-            id: "editorPosition",
-            text: "",
-            priority: 990,
-            alignment: StatusBarAlignment.Right,
-        });
-
-        this.#editorIndentSbEntry = StatusBar.createStatusBarItem({
-            id: "editorIndent",
-            text: "",
-            priority: 985,
-            alignment: StatusBarAlignment.Right,
-        });
-
-        this.#editorEolSbEntry = StatusBar.createStatusBarItem({
-            id: "editorEOL",
-            text: "",
-            priority: 980,
-            alignment: StatusBarAlignment.Right,
-        });
-
-        this.#editorLanguageSbEntry = StatusBar.createStatusBarItem({
-            id: "editorLanguage",
-            text: "",
-            priority: 975,
-            alignment: StatusBarAlignment.Right,
-        });
+        this.#editorPositionSbEntry = ui.createStatusBarItem("editorPosition", StatusBarAlignment.Right, 990);
+        this.#editorIndentSbEntry = ui.createStatusBarItem("editorIndent", StatusBarAlignment.Right, 985);
+        this.#editorEolSbEntry = ui.createStatusBarItem("editorEOL", StatusBarAlignment.Right, 980);
+        this.#editorLanguageSbEntry = ui.createStatusBarItem("editorLanguage", StatusBarAlignment.Right, 975);
 
         this.updateStatusItems();
         this.updatePresentationInterface();
@@ -168,8 +147,9 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         this.#editorPositionSbEntry.dispose();
         this.#editorEolSbEntry.dispose();
 
+        requisitions.unregister("connectionItemDefaultAction", this.doConnectionEntryDefaultAction);
+        requisitions.unregister("editorInsertText", this.doInsertText);
         requisitions.unregister("editorCaretMoved", this.handleCaretMove);
-        requisitions.unregister("explorerDoubleClick", this.handleExplorerDoubleClick);
     }
 
     public render(): ComponentChild {
@@ -201,7 +181,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                         data-tooltip="Return to embedded results"
                         onClick={this.closeEditor}
                     >
-                        <Icon src={normalizeIcon} data-tooltip="inherit" />
+                        <Icon src={Assets.toolbar.normalizeIcon} data-tooltip="inherit" />
                     </Button>
                 </Toolbar >;
             } else {
@@ -219,7 +199,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                         data-tooltip="Normalize Result Tab"
                         onClick={this.toggleMaximizeResultPane}
                     >
-                        <Icon src={normalizeIcon} data-tooltip="inherit" />
+                        <Icon src={Assets.toolbar.normalizeIcon} data-tooltip="inherit" />
                     </Button>
                     {toolbarItemsTemplate.auxillary}
                 </Toolbar >;
@@ -240,7 +220,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                 style={{ marginLeft: "4px" }}
                 onClick={this.handleEditorSave}
             >
-                <Icon src={saveIcon} data-tooltip="inherit" />
+                <Icon src={Assets.toolbar.saveIcon} data-tooltip="inherit" />
             </Button>);
 
             toolbarItems.navigation.push(<Button
@@ -250,15 +230,15 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                 data-tooltip="Load Script From File"
                 onClick={this.handleEditorLoad}
             >
-                <Icon src={loadIcon} data-tooltip="inherit" />
+                <Icon src={Assets.toolbar.loadIcon} data-tooltip="inherit" />
             </Button>);
 
             toolbar = <DBEditorToolbar
                 toolbarItems={toolbarItems}
                 language={language}
-                activeEditor={savedState.activeEntry}
+                activeDocument={savedState.activeEntry}
                 heatWaveEnabled={savedState.heatWaveEnabled}
-                editors={savedState.editors}
+                documentState={savedState.documentStates}
                 backend={backend}
             />;
         }
@@ -423,9 +403,15 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
         onEdit?.(id);
     };
 
-    private handleExplorerDoubleClick = (entry: ISchemaTreeEntry): Promise<boolean> => {
+    private doConnectionEntryDefaultAction = (entry: ConnectionDataModelEntry): Promise<boolean> => {
         this.editorRef.current?.insertText(entry.caption);
         this.editorRef.current?.focus();
+
+        return Promise.resolve(true);
+    };
+
+    private doInsertText = (text: string): Promise<boolean> => {
+        this.editorRef.current?.insertText(text);
 
         return Promise.resolve(true);
     };
@@ -473,9 +459,9 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
     };
 
     private closeEditor = (): void => {
-        const { savedState } = this.props;
-        void requisitions.execute("editorClose",
-            { connectionId: savedState.connectionId, editorId: savedState.activeEntry });
+        const { savedState, connectionId } = this.props;
+        void requisitions.execute("closeDocument",
+            { connectionId, documentId: savedState.activeEntry });
     };
 
     /**
@@ -485,51 +471,51 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
      *
      * @returns The active editor state.
      */
-    private get activeEditorState(): IOpenEditorState {
+    private get activeEditorState(): IOpenDocumentState {
         const { savedState } = this.props;
 
-        let activeEditor = savedState.editors.find(
-            (entry: IOpenEditorState): boolean => {
-                return entry.id === savedState.activeEntry;
+        let activeEditor = savedState.documentStates.find(
+            (entry: IOpenDocumentState): boolean => {
+                return entry.document.id === savedState.activeEntry;
             },
         );
 
         if (!activeEditor) {
-            activeEditor = savedState.editors[0];
+            activeEditor = savedState.documentStates[0];
         }
 
         return activeEditor;
     }
 
     private handleEditorLoad = (): void => {
-        const { lastId } = this.state;
-
         const activeEditor = this.activeEditorState;
         const editorState = activeEditor.state;
         if (editorState) {
-            const model = editorState.model;
+            const document = activeEditor.document as IOdmScriptEntry;
             const details: IScriptRequest = {
-                scriptId: lastId,
+                id: document.id,
+                caption: document.caption,
+                language: editorState.model.getLanguageId() as EditorLanguage,
                 content: "",
-                language: model.getLanguageId() as EditorLanguage,
             };
             requisitions.executeRemote("editorLoadScript", details);
         }
     };
 
     private handleEditorSave = (): void => {
-        const { lastId } = this.state;
-
         const activeEditor = this.activeEditorState;
         const editorState = activeEditor.state;
         if (editorState) {
             const model = editorState.model;
             const content = model.getValue();
+            const document = activeEditor.document as IOdmScriptEntry;
             const details: IScriptRequest = {
-                scriptId: lastId,
-                content,
+                id: document.id,
+                caption: document.caption,
                 language: model.getLanguageId() as EditorLanguage,
+                content,
             };
+
             requisitions.executeRemote("editorSaveScript", details);
         }
     };

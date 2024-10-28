@@ -36,15 +36,15 @@
     width: 100vw;
 }
 
-.msg.tabview > .content {
+.msg.tabview > .tabContent {
     flex: 1 1 auto;
 }
 
-.msg.tabview > .content.dropTarget {
+.msg.tabview > .tabContent.dropTarget {
     background-color: var(--editorGroup-dropBackground);
 }
 
-.msg.tabview > .content:not(.dropTarget) {
+.msg.tabview > .tabContent:not(.dropTarget) {
     background-color: var(--tab-activeBackground)
 }
 
@@ -255,19 +255,19 @@
 }
 
 /* Separator between content and tabs. */
-.msg.tabview.top > .content {
+.msg.tabview.top > .tabContent {
     border-top: var(--content-separator-width) solid var(--editorGroupHeader-tabsBorder)
 }
 
-.msg.tabview.right > .content {
+.msg.tabview.right > .tabContent {
     border-right: var(--content-separator-width) solid var(--editorGroupHeader-tabsBorder)
 }
 
-.msg.tabview.bottom > .content {
+.msg.tabview.bottom > .tabContent {
     border-bottom: var(--content-separator-width) solid var(--editorGroupHeader-tabsBorder)
 }
 
-.msg.tabview.left > .content {
+.msg.tabview.left > .tabContent {
     border-left: var(--content-separator-width) solid var(--editorGroupHeader-tabsBorder)
 }
 

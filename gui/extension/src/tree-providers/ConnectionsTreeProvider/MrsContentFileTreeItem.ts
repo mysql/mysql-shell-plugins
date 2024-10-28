@@ -23,20 +23,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMrsContentFileData } from "../../../../frontend/src/communication/ProtocolMrs.js";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import type { ICdmRestContentFileEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 import { formatBytes } from "../../../../frontend/src/utilities/string-helpers.js";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
-export class MrsContentFileTreeItem extends MrsTreeBaseItem {
+export class MrsContentFileTreeItem extends MrsTreeBaseItem<ICdmRestContentFileEntry> {
     public override contextValue = "mrsContentFile";
 
-    public constructor(
-        label: string,
-        public value: IMrsContentFileData,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number) {
-        super(label, backend, connectionId, value.enabled === 2 ? "mrsContentFilePrivate.svg" :
+    public constructor(dataModelEntry: ICdmRestContentFileEntry) {
+        const value = dataModelEntry.details;
+        super(dataModelEntry, value.enabled === 2 ? "mrsContentFilePrivate.svg" :
             value.enabled === 1 ? "mrsContentFile.svg" : "mrsContentFileDisabled.svg", false);
 
         this.description = formatBytes(value.size);

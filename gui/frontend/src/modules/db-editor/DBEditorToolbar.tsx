@@ -28,11 +28,13 @@ import lakehouseNavigatorIcon from "../../assets/images/lakehouseNavigator.svg";
 import autoCommitActiveIcon from "../../assets/images/toolbar/toolbar-auto_commit-active.svg";
 import autoCommitInactiveIcon from "../../assets/images/toolbar/toolbar-auto_commit-inactive.svg";
 import commitIcon from "../../assets/images/toolbar/toolbar-commit.svg";
-import executeIcon from "../../assets/images/toolbar/toolbar-execute.svg";
 import executeCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret.svg";
+import executePrintTextIcon from "../../assets/images/toolbar/toolbar-execute_print_text.svg";
+
+//import executeExplainIcon from "../../assets/images/toolbar/execute-explain.svg";
+import executeIcon from "../../assets/images/toolbar/toolbar-execute.svg";
 import executeHeatWaveCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret_heatwave.svg";
 import executeHeatWaveIcon from "../../assets/images/toolbar/toolbar-execute_heatwave.svg";
-import executePrintTextIcon from "../../assets/images/toolbar/toolbar-execute_print_text.svg";
 import rollbackIcon from "../../assets/images/toolbar/toolbar-rollback.svg";
 import searchIcon from "../../assets/images/toolbar/toolbar-search.svg";
 import showHiddenActiveIcon from "../../assets/images/toolbar/toolbar-show_hidden-active.svg";
@@ -56,7 +58,7 @@ import { LoadingState } from "../../script-execution/index.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { IOpenEditorState } from "./DBConnectionTab.js";
+import { IOpenDocumentState } from "./DBConnectionTab.js";
 import { IToolbarItems } from "./index.js";
 
 interface IDBEditorToolbarProperties extends IComponentProperties {
@@ -66,11 +68,11 @@ interface IDBEditorToolbarProperties extends IComponentProperties {
      */
     toolbarItems: IToolbarItems;
 
-    activeEditor: string;
+    activeDocument: string;
+    documentState: IOpenDocumentState[];
     heatWaveEnabled: boolean;
-    editors: IOpenEditorState[];
 
-    /** The main language of the editor. */
+    /** The editor language, if the document is a notebook or script. */
     language: string;
 
     backend?: ShellInterfaceSqlEditor;
@@ -78,7 +80,7 @@ interface IDBEditorToolbarProperties extends IComponentProperties {
 
 interface IDBEditorToolbarState extends IComponentState {
     editorId: string;
-    currentEditor?: IOpenEditorState;
+    currentEditor?: IOpenDocumentState;
 
     currentContext?: ExecutionContext;
 
@@ -96,12 +98,12 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
     public constructor(props: IDBEditorToolbarProperties) {
         super(props);
 
-        const currentEditor = props.editors.find((state) => {
-            return state.id === props.activeEditor;
+        const currentEditor = props.documentState.find((state) => {
+            return state.document.id === props.activeDocument;
         });
 
         this.state = {
-            editorId: props.activeEditor,
+            editorId: props.activeDocument,
             currentEditor,
             canExecute: true,
             canStop: false,
@@ -110,14 +112,15 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
             contextLanguage: "sql",
         };
 
-        this.addHandledProperties("toolbarItems", "activeEditor", "heatWaveEnabled", "editors", "language", "backend");
+        this.addHandledProperties("toolbarItems", "activeDocument", "heatWaveEnabled", "documentState", "language",
+            "backend");
     }
 
     public override componentDidUpdate(oldProps: IDBEditorToolbarProperties): void {
-        const { activeEditor, editors } = this.props;
-        if (activeEditor !== oldProps.activeEditor) {
-            const currentEditor = editors.find((state) => {
-                return state.id === activeEditor;
+        const { activeDocument, documentState } = this.props;
+        if (activeDocument !== oldProps.activeDocument) {
+            const currentEditor = documentState.find((state) => {
+                return state.document.id === activeDocument;
             });
 
             const contexts = currentEditor?.state?.model.executionContexts;
@@ -289,15 +292,6 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
             }
 
             executionItems.push(
-                /*<Button
-                    key="editorExplainButton"
-                    data-tooltip="Execute Explain for the statement at the caret position"
-                    requestType="editorExecuteExplain"
-                    imageOnly={true}
-                    disabled
-                >
-                    <Icon src={executeExplainIcon} data-tooltip="inherit" />
-                </Button>,*/
                 <Button
                     key="editorStpExecutionButton"
                     data-tooltip="Stop execution of the current statement/script"

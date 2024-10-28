@@ -83,7 +83,7 @@
     flex: 0 0 auto;
 }
 
-.msg.statusbar .statusbarItem:not(:disabled):hover {
+.msg.statusbar .statusbarItem:not(.disabled):hover {
     background-color: var(--statusBarItem-hoverBackground);
 }
 

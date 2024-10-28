@@ -26,38 +26,22 @@
 import { mount } from "enzyme";
 
 import { Dropdown } from "../../../../components/ui/Dropdown/Dropdown.js";
+import { DropdownItem } from "../../../../components/ui/Dropdown/DropdownItem.js";
 
 describe("Dropdown render testing", (): void => {
 
     it("Standard Rendering", () => {
         const component = mount<Dropdown>(
             <Dropdown selection="tesla" optional={false} style={{ maxWidth: "300px" }}>
-                <Dropdown.Item id="tesla" caption="Tesla" />
-                <Dropdown.Item id="volvo" caption="Volvo" />
-                <Dropdown.Item id="bmw" caption="BMW" />
-                <Dropdown.Item id="renault" caption="Renault" />
+                <DropdownItem id="tesla" caption="Tesla" />
+                <DropdownItem id="volvo" caption="Volvo" />
+                <DropdownItem id="bmw" caption="BMW" />
+                <DropdownItem id="renault" caption="Renault" />
             </Dropdown>,
         );
         expect(component).toMatchSnapshot();
 
         component.unmount();
-    });
-
-    // TODO: onSelect is not called when changing the selection via props. Fix that.
-    xit("Test Dropdown onSelect callback test", () => {
-        const component = mount<Dropdown>(
-            <Dropdown selection="tesla" optional={false} onSelect={jest.fn()} style={{ maxWidth: "300px" }}>
-                <Dropdown.Item id="tesla" caption="Tesla" />
-                <Dropdown.Item id="volvo" caption="Volvo" />
-                <Dropdown.Item id="bmw" caption="BMW" />
-                <Dropdown.Item id="renault" caption="Renault" />
-            </Dropdown>,
-        );
-
-        const instance = component.instance();
-        const spyOnChange = jest.spyOn(instance.props, "onSelect");
-        component.setProps({ selection: "volvo" });
-        expect(spyOnChange).toHaveBeenCalled();
     });
 
 });

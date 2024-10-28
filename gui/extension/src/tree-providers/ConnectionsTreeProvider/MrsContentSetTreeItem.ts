@@ -23,22 +23,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMrsContentSetData } from "../../../../frontend/src/communication/ProtocolMrs.js";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import type { IMrsContentSetData } from "../../../../frontend/src/communication/ProtocolMrs.js";
+import type { ICdmRestContentSetEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
-export class MrsContentSetTreeItem extends MrsTreeBaseItem {
+export class MrsContentSetTreeItem extends MrsTreeBaseItem<ICdmRestContentSetEntry> {
     public override contextValue = "mrsContentSet";
 
-    public constructor(
-        label: string,
-        public value: IMrsContentSetData,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number,
-    ) {
-        super(label, backend, connectionId, MrsContentSetTreeItem.getIconName(value), true);
-
-        this.description = value.contentType === "SCRIPTS" ? "MRS Scripts" : "Static Files";
+    public constructor(dataModelEntry: ICdmRestContentSetEntry) {
+        super(dataModelEntry, MrsContentSetTreeItem.getIconName(dataModelEntry.details), true);
     }
 
     private static getIconName = (value: IMrsContentSetData): string => {

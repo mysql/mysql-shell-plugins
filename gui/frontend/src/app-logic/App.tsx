@@ -38,20 +38,25 @@ import { ApplicationHost } from "./ApplicationHost.js";
 import { ErrorBoundary } from "./ErrorBoundary.js";
 import { ProfileSelector } from "./ProfileSelector.js";
 
+import type { IDisposable } from "monaco-editor";
 import { MessageScheduler } from "../communication/MessageScheduler.js";
 import { IShellProfile } from "../communication/ProtocolGui.js";
 import { MessagePanel } from "../components/Dialogs/MessagePanel.js";
 import { ColorPopup } from "../components/ui/ColorPicker/ColorPopup.js";
 import { IComponentState } from "../components/ui/Component/ComponentBase.js";
-import { NotificationCenter } from "../components/ui/NotificationCenter/NotificationCenter.js";
+import { NotificationCenter, NotificationType } from "../components/ui/NotificationCenter/NotificationCenter.js";
 import { ProgressIndicator } from "../components/ui/ProgressIndicator/ProgressIndicator.js";
-import { renderStatusBar } from "../components/ui/Statusbar/Statusbar.js";
+import { renderStatusBar, StatusBar } from "../components/ui/Statusbar/Statusbar.js";
+import type {
+    IStatusBarItem, IStatusBarItemOptions, StatusBarAlignment,
+} from "../components/ui/Statusbar/StatusBarItem.js";
 import { DBEditorModule } from "../modules/db-editor/DBEditorModule.js";
 import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModule.js";
 import { ShellModule } from "../modules/shell/ShellModule.js";
 import { versionMatchesExpected } from "../utilities/helpers.js";
 import { ApplicationDB } from "./ApplicationDB.js";
-import { IDialogResponse, minimumShellVersion } from "./Types.js";
+import { IDialogResponse, minimumShellVersion, type IServicePasswordRequest } from "./general-types.js";
+import { registerUiLayer } from "./UILayer.js";
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;
@@ -66,8 +71,12 @@ export class App extends Component<{}, IAppState> {
     private actionMenuRef = createRef<ProfileSelector>();
     private defaultProfile?: IShellProfile;
 
+    #notificationCenterRef = createRef<NotificationCenter>();
+
     public constructor(props: {}) {
         super(props);
+
+        registerUiLayer(this);
 
         this.state = {
             authenticated: false,
@@ -199,7 +208,7 @@ export class App extends Component<{}, IAppState> {
 
                 <MessagePanel />
                 <TooltipProvider showDelay={200} />
-                <NotificationCenter />
+                <NotificationCenter ref={this.#notificationCenterRef} />
 
                 {!appParameters.embedded && (
                     <>
@@ -212,9 +221,97 @@ export class App extends Component<{}, IAppState> {
         );
     }
 
-    /*private initProfileList = (profile: IShellProfile): void => {
-        this.actionMenuRef.current?.initProfileList(profile);
-    };*/
+    // IUILayer interface implementation
+
+    public showFatalError = (message: string, title?: string): void => {
+        void requisitions.execute("showFatalError", [`${(title ?? "Error")}: ${message}`]);
+    };
+
+    public showInformationNotification = async (message: string, timeout?: number): Promise<string | undefined> => {
+        // Forward info messages to the hosting application.
+        if (appParameters.embedded) {
+            const result = requisitions.executeRemote("showInfo", message);
+            if (result) {
+                return;
+            }
+        }
+
+        if (this.#notificationCenterRef.current) {
+            return this.#notificationCenterRef.current.showNotification({
+                type: NotificationType.Information,
+                text: message,
+                timeout,
+            });
+        }
+    };
+
+    public showWarningNotification = async (message: string): Promise<string | undefined> => {
+        if (appParameters.embedded) {
+            const result = requisitions.executeRemote("showWarning", message);
+            if (result) {
+                return;
+            }
+        }
+
+        if (this.#notificationCenterRef.current) {
+            return this.#notificationCenterRef.current.showNotification({
+                type: NotificationType.Warning,
+                text: message,
+            });
+        }
+    };
+
+    public showErrorNotification = async (message: string): Promise<string | undefined> => {
+        if (appParameters.embedded) {
+            const result = requisitions.executeRemote("showError", message);
+            if (result) {
+                return;
+            }
+        }
+
+        if (this.#notificationCenterRef.current) {
+            return this.#notificationCenterRef.current.showNotification({
+                type: NotificationType.Error,
+                text: message,
+            });
+        }
+    };
+
+    public createStatusBarItem(alignment?: StatusBarAlignment, priority?: number): IStatusBarItem;
+    public createStatusBarItem(id: string, alignment?: StatusBarAlignment, priority?: number): IStatusBarItem;
+    public createStatusBarItem(...args: unknown[]): IStatusBarItem {
+        let options: IStatusBarItemOptions;
+        if (args.length > 0 && typeof args[0] === "string") {
+            options = {
+                id: args[0],
+                alignment: args[1] as StatusBarAlignment,
+                priority: args[2] as number,
+            };
+        } else {
+            options = {
+                alignment: args.length > 0 ? args[0] as StatusBarAlignment : undefined,
+                priority: args.length > 1 ? args[1] as number : undefined,
+            };
+        }
+
+        return StatusBar.createStatusBarItem(options);
+    }
+
+
+    public setStatusBarMessage = (message: string, timeout?: number): IDisposable => {
+        return StatusBar.setStatusBarMessage(message, timeout);
+    };
+
+    public confirm = (message: string, yes: string, no: string): Promise<string | undefined> => {
+        return Promise.resolve(window.confirm(message) ? yes : no);
+    };
+
+    public requestPassword = (values: IServicePasswordRequest): void => {
+        // Important: running a pw request from here requires the caller to handle the response.
+        void requisitions.execute("requestPassword", values);
+    };
+
+    // End of UILayer interface implementation
 
     private statusBarButtonClick = (values: { type: string; event: MouseEvent | KeyboardEvent; }): Promise<boolean> => {
         if (values.type === "openPopupMenu") {
@@ -272,5 +369,4 @@ export class App extends Component<{}, IAppState> {
 
         return Promise.resolve(false);
     };
-
 }

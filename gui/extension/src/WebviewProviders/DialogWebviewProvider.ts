@@ -23,11 +23,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { requisitions } from "../../../frontend/src/supplement/Requisitions.js";
 import {
-    IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
-} from "../../../frontend/src/supplement/Requisitions.js";
+    IRequestListEntry, IRequestTypeMap, IWebviewProvider,
+} from "../../../frontend/src/supplement/RequisitionTypes.js";
 
-import { IDialogRequest, IDialogResponse } from "../../../frontend/src/app-logic/Types.js";
+import { IDialogRequest, IDialogResponse } from "../../../frontend/src/app-logic/general-types.js";
 import { WebviewProvider } from "./WebviewProvider.js";
 
 /** Creates and handles web views for dialog requests. */

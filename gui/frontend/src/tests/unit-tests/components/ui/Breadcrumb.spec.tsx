@@ -30,7 +30,7 @@ import { Breadcrumb, IBreadcrumbProperties } from "../../../../components/ui/Bre
 import { Button } from "../../../../components/ui/Button/Button.js";
 import { Label } from "../../../../components/ui/Label/Label.js";
 
-import { mouseEventMock } from "../../__mocks__/MockEvents.js";
+import { mouseEventMock } from "../../__mocks__/EventMocks.js";
 
 describe("Breadcrumb render testing", (): void => {
 

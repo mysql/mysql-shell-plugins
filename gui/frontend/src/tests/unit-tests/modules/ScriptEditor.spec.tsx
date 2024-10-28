@@ -25,12 +25,14 @@
 
 import { mount } from "enzyme";
 
-import { ScriptEditor } from "../../../modules/db-editor/ScriptEditor.js";
-import { CodeEditorMode, Monaco } from "../../../components/ui/CodeEditor/index.js";
+import { registerUiLayer } from "../../../app-logic/UILayer.js";
 import { ICodeEditorModel } from "../../../components/ui/CodeEditor/CodeEditor.js";
-import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
+import { CodeEditorMode, Monaco } from "../../../components/ui/CodeEditor/index.js";
 import { ISavedEditorState } from "../../../modules/db-editor/DBConnectionTab.js";
-import { EntityType } from "../../../modules/db-editor/index.js";
+import { ScriptEditor } from "../../../modules/db-editor/ScriptEditor.js";
+import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
+import { scriptDocumentMock } from "../__mocks__/DBEditorModuleMocks.js";
+import { uiLayerMock } from "../__mocks__/UILayerMock.js";
 
 describe("Script editor tests", (): void => {
 
@@ -52,12 +54,14 @@ describe("Script editor tests", (): void => {
 
     model.setValue(content);
 
+    beforeAll(() => {
+        registerUiLayer(uiLayerMock);
+    });
+
     it("Script editor instantiation", () => {
         const savedState: ISavedEditorState = {
-            editors: [{
-                type: EntityType.Notebook,
-                id: "1",
-                caption: "Test",
+            documentStates: [{
+                document: scriptDocumentMock,
                 currentVersion: 1,
                 state: {
                     viewState: null,
@@ -68,13 +72,13 @@ describe("Script editor tests", (): void => {
             activeEntry: "1",
             heatWaveEnabled: false,
             mleEnabled: false,
-            connectionId: -1,
         };
 
         const component = mount<ScriptEditor>(
             <ScriptEditor
                 savedState={savedState}
                 standaloneMode={false}
+                connectionId={-1}
                 toolbarItemsTemplate={{ navigation: [], execution: [], editor: [], auxillary: [] }}
             />,
         );

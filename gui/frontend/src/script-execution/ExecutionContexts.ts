@@ -24,11 +24,12 @@
  */
 
 import { ApplicationDB, IDbModuleResultData, StoreType } from "../app-logic/ApplicationDB.js";
-import type { ISqlUpdateResult } from "../app-logic/Types.js";
-import type { CodeEditor, ResultPresentationFactory } from "../components/ui/CodeEditor/CodeEditor.js";
+import type { ISqlUpdateResult } from "../app-logic/general-types.js";
+import { CodeEditor, ResultPresentationFactory } from "../components/ui/CodeEditor/CodeEditor.js";
 import { IPosition, Monaco } from "../components/ui/CodeEditor/index.js";
 import { IStatementSpan } from "../parsing/parser-common.js";
-import { requisitions, type IColumnDetails } from "../supplement/Requisitions.js";
+import { type IColumnDetails } from "../supplement/RequisitionTypes.js";
+import { requisitions } from "../supplement/Requisitions.js";
 import { EditorLanguage, ITextRange } from "../supplement/index.js";
 import { ExecutionContext } from "./ExecutionContext.js";
 import { PresentationInterface } from "./PresentationInterface.js";

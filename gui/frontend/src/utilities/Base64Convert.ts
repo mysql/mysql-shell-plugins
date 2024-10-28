@@ -77,14 +77,10 @@ export class Base64Convert {
             return new ArrayBuffer(0);
         }
 
-        let bufferLength = base64.length * 0.75;
+        let bufferLength = Math.round(base64.length * 0.75);
         const len = base64.length;
         let i;
         let p = 0;
-        let encoded1;
-        let encoded2;
-        let encoded3;
-        let encoded4;
 
         if (base64[base64.length - 1] === "=") {
             bufferLength--;
@@ -93,20 +89,20 @@ export class Base64Convert {
             }
         }
 
-        const arraybuffer = new ArrayBuffer(bufferLength);
-        const bytes = new Uint8Array(arraybuffer);
+        const buffer = new ArrayBuffer(bufferLength);
+        const bytes = new Uint8Array(buffer);
 
         for (i = 0; i < len; i += 4) {
-            encoded1 = Base64Convert.#lookup[base64.charCodeAt(i)];
-            encoded2 = Base64Convert.#lookup[base64.charCodeAt(i + 1)];
-            encoded3 = Base64Convert.#lookup[base64.charCodeAt(i + 2)];
-            encoded4 = Base64Convert.#lookup[base64.charCodeAt(i + 3)];
+            const encoded1 = Base64Convert.#lookup[base64.charCodeAt(i)];
+            const encoded2 = Base64Convert.#lookup[base64.charCodeAt(i + 1)];
+            const encoded3 = Base64Convert.#lookup[base64.charCodeAt(i + 2)];
+            const encoded4 = Base64Convert.#lookup[base64.charCodeAt(i + 3)];
 
             bytes[p++] = (encoded1 << 2) | (encoded2 >> 4);
             bytes[p++] = ((encoded2 & 15) << 4) | (encoded3 >> 2);
             bytes[p++] = ((encoded3 & 3) << 6) | (encoded4 & 63);
         }
 
-        return arraybuffer;
+        return buffer;
     }
 }

@@ -23,63 +23,59 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { driver } from "../driver.js";
+import { driver } from "../../lib/driver.js";
 import * as constants from "../constants.js";
 import * as locator from "../locators.js";
-import { E2EOverview } from "./E2EOverview.js";
+import { Overview } from "./E2EOverview.js";
 import { E2EUploadToObjectStorage } from "./E2EUploadToObjectStorage.js";
 import { E2ELoadIntoLakehouse } from "./E2ELoadIntoLakeHouse.js";
-import { E2ELakeHouseTables } from "./E2ELakeHouseTables.js";
-import { Toolbar } from "../Toolbar.js";
+import { E2ELakehouseTables } from "./E2ELakeHouseTables.js";
+import { E2EToolbar } from "../E2EToolbar.js";
 
 /**
- * This class aggregates the functions that perform password dialog related operations
+ * This class represents the LakeHouse Navigator page, and all its related functions
  */
 export class E2ELakeHouseNavigator {
 
-    /** The Toolbar*/
-    public toolbar = new Toolbar();
+    /** The Toolbar for the LakeHouse Navigator page*/
+    public toolbar = new E2EToolbar();
 
     /** The Overview page*/
-    public overview = new E2EOverview();
+    public overview = new Overview();
 
-    /** The Upload to object storage page*/
+    /** The Upload to Object Storage page*/
     public uploadToObjectStorage = new E2EUploadToObjectStorage();
 
     /** The Load into Lakehouse page*/
     public loadIntoLakehouse = new E2ELoadIntoLakehouse();
 
-    /** The Lakehouse tables page*/
-    public lakehouseTables = new E2ELakeHouseTables();
+    /** The Lakehouse Tables page*/
+    public lakehouseTables = new E2ELakehouseTables();
 
     /**
-     * Selects a tab
+     * Selects a tab (Overview/Upload to Object Storage/Load into Lakehouse/Lakehouse Tables)
      * @param tabName The tab name
      * @returns A promise resolving when the tab is selected
      */
     public selectTab = async (tabName: string): Promise<void> => {
-        switch (tabName) {
 
+        switch (tabName) {
             case constants.overviewTab: {
                 await driver.findElement(locator.lakeHouseNavigator.overview.tab).click();
                 break;
             }
-
             case constants.uploadToObjectStorageTab: {
                 await driver.findElement(locator.lakeHouseNavigator.uploadToObjectStorage.tab).click();
                 break;
             }
-
             case constants.loadIntoLakeHouseTab: {
                 await driver.findElement(locator.lakeHouseNavigator.loadIntoLakeHouse.tab).click();
                 break;
             }
-
             case constants.lakeHouseTablesTab: {
                 await driver.findElement(locator.lakeHouseNavigator.lakeHouseTables.tab).click();
                 break;
             }
-
             default: {
                 throw new Error(`Unknown tab '${tabName}'`);
             }

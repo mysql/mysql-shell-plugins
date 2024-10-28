@@ -58,9 +58,8 @@ export class ColorField extends ComponentBase<IColorFieldProperties, IColorField
         this.connectDragEvents();
     }
 
-    public static override getDerivedStateFromProps(
-        newProps: IColorFieldProperties, state: IColorFieldState,
-    ): IColorFieldState {
+    public static override getDerivedStateFromProps(newProps: IColorFieldProperties,
+        state: IColorFieldState): IColorFieldState {
         const newColor = newProps.initialColor?.unitArray() || [];
         const oldColor = state.originalColor?.unitArray() || [];
         if (!deepEqual(newColor, oldColor)) {

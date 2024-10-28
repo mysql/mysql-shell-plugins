@@ -25,7 +25,7 @@
 
 import { mount } from "enzyme";
 
-import { MessageType } from "../../../../../app-logic/Types.js";
+import { MessageType } from "../../../../../app-logic/general-types.js";
 import { ResultStatus } from "../../../../../components/ResultView/ResultStatus.js";
 import { ResultTabView } from "../../../../../components/ResultView/ResultTabView.js";
 import { Button } from "../../../../../components/ui/Button/Button.js";

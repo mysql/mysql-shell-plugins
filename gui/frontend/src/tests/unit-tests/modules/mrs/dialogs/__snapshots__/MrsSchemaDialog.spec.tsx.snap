@@ -215,7 +215,7 @@ exports[`MRS Schema dialog tests Show MRS Schema Dialog (snapshot) and escape 1`
               </div>
             </div>
             <div
-              class="msg container fixedScrollbar content"
+              class="msg container fixedScrollbar tabContent"
               style="flex-direction: column;"
             >
               <div

@@ -946,7 +946,7 @@ export class MySQLParsingServices {
         this.tokenStream.setTokenSource(this.lexer);
 
         this.parser.reset();
-        this.parser.buildParseTrees = !fast;
+        this.parser.buildParseTrees = true; // !fast;
 
         // First parse with the bail error strategy to get quick feedback for correct queries.
         this.parser.errorHandler = new BailErrorStrategy();
@@ -982,7 +982,10 @@ export class MySQLParsingServices {
             }
         }
 
-        //console.log(this.tree?.toStringTree());
+        /*
+        if (this.tree instanceof ParserRuleContext) {
+            console.log(this.tree.toStringTree(null, this.parser));
+        } // */
 
         return this.tree;
     }

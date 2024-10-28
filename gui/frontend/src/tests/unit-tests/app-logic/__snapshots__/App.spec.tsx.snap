@@ -76,9 +76,13 @@ exports[`Application tests Application readiness 1`] = `
                   id="headingSubLabel"
                   style={{}}
                 >
-                  Welcome to the MySQL Shell GUI.
+                  Welcome to the $
+                  MySQL Shell Workbench
+                  .
                   <br />
-                  Please provide your MySQL Shell GUI credentials to log into the shell interface.
+                  Please provide your $
+                  MySQL Shell Workbench
+                   credentials to log into the shell interface.
                 </label>
               </Label>
             </div>
@@ -335,7 +339,9 @@ exports[`Application tests Application readiness 1`] = `
               id="loginDialogSubtext"
               style={{}}
             >
-              If you do not have an MySQL Shell GUI account yet, please
+              If you do not have a $
+              MySQL Shell Workbench
+               account yet, please
               <br />
               ask your administrator to have one created for you.
             </label>
@@ -584,25 +590,7 @@ exports[`Application tests Application readiness 1`] = `
           onItemClick={[Function]}
           orientation="column"
           placement="right-start"
-        >
-          <Popup
-            className="msg menu"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-            orientation="column"
-            pinned={false}
-            placement="right-start"
-            showArrow={false}
-          >
-            <Portal
-              className="popupPortal"
-              onClose={[Function]}
-              onKeyDown={[Function]}
-              onOpen={[Function]}
-            />
-          </Popup>
-        </Menu>
+        />
       </ValueEditDialog>
       <ConfirmDialog
         id="confirmDeleteDialog"
@@ -660,27 +648,7 @@ exports[`Application tests Application readiness 1`] = `
         onItemClick={[Function]}
         orientation="column"
         placement="top-start"
-      >
-        <Popup
-          className="msg menu"
-          id="tileActionMenu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="top-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            id="tileActionMenu"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </ProfileSelector>
     <ColorPopup>
       <Popup

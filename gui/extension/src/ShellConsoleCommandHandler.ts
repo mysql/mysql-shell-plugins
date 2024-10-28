@@ -23,16 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { commands } from "vscode";
 
-import { IWebviewProvider, requisitions } from "../../frontend/src/supplement/Requisitions.js";
-import { IShellSessionDetails } from "../../frontend/src/supplement/ShellInterface/index.js";
+import { requisitions } from "../../frontend/src/supplement/Requisitions.js";
 import { ExtensionHost } from "./ExtensionHost.js";
-import { ICdmConnectionEntry } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel.js";
-import { ConnectionTreeItem } from "./tree-providers/ConnectionsTreeProvider/ConnectionTreeItem.js";
-import {
-    IEditorConnectionEntry, IShellSessionEntry,
-} from "./tree-providers/OpenEditorsTreeProvider/OpenEditorsTreeProvider.js";
 
 import { ShellConsoleViewProvider } from "./WebviewProviders/ShellConsoleViewProvider.js";
 
@@ -40,58 +33,8 @@ export class ShellConsoleCommandHandler {
     private providers: ShellConsoleViewProvider[] = [];
     private url?: URL;
 
-    public setup(host: ExtensionHost): void {
-        const context = host.context;
-
+    public setup(_host: ExtensionHost): void {
         requisitions.register("connectedToUrl", this.connectedToUrl);
-
-        context.subscriptions.push(commands.registerCommand("msg.openSessionBrowser", (provider?: IWebviewProvider) => {
-            provider ??= this.currentProvider;
-            if (provider instanceof ShellConsoleViewProvider) {
-                void provider?.show("sessions");
-            }
-        }));
-
-        context.subscriptions.push(commands.registerCommand("msg.newSession", () => {
-            const provider = this.currentProvider;
-            void provider?.openSession({ sessionId: -1 });
-        }));
-
-        context.subscriptions.push(commands.registerCommand("msg.openSession", (details: IShellSessionDetails) => {
-            const provider = this.currentProvider;
-            void provider?.openSession(details);
-        }));
-
-        context.subscriptions.push(commands.registerCommand("msg.newSessionUsingConnection",
-            (entry: ICdmConnectionEntry | IEditorConnectionEntry) => {
-                const provider = this.currentProvider;
-
-                let caption;
-                let dbConnectionId;
-                if (entry.treeItem instanceof ConnectionTreeItem) {
-                    caption = entry.treeItem.details.caption;
-                    dbConnectionId = entry.treeItem.details.id;
-                } else {
-                    caption = (entry as IEditorConnectionEntry).caption;
-                    dbConnectionId = (entry as IEditorConnectionEntry).connectionId;
-                }
-
-                const details: IShellSessionDetails = {
-                    sessionId: -1,
-                    caption: `Session to ${caption}`,
-                    dbConnectionId,
-                };
-                void provider?.openSession(details);
-            }));
-
-        context.subscriptions.push(commands.registerCommand("msg.removeSession",
-            (entry: IShellSessionEntry) => {
-                const provider = entry.parent.provider;
-                if (provider instanceof ShellConsoleViewProvider) {
-                    void provider.removeSession(entry.details);
-                }
-            }));
-
     }
 
     public closeProviders(): void {
@@ -128,6 +71,7 @@ export class ShellConsoleCommandHandler {
 
         return Promise.resolve(true);
     };
+
     private createTabCaption = (): string => {
         if (this.providers.length === 0) {
             return "MySQL Shell Consoles";

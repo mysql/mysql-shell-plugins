@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../../app-logic/Types.js";
+import { IDictionary } from "../../app-logic/general-types.js";
 import { IMySQLConnectionOptions } from "../../communication/MySQL.js";
 import { ISqliteConnectionOptions } from "../../communication/Sqlite.js";
 
@@ -45,7 +45,7 @@ export interface IConnectionSettings {
 }
 
 export interface IConnectionDetails {
-    // A running number in the backend DB, where connections are stored.
+    /** A running number in the backend DB, where connections are stored. */
     id: number;
 
     dbType: DBType;
@@ -53,27 +53,39 @@ export interface IConnectionDetails {
     description: string;
     options: IShellConnectionOptions;
     useSSH?: boolean;
-    useMDS?: boolean;
+    useMHS?: boolean;
 
-    version?: number;     // The version of the server. Valid not before the connection is open.
-    sqlMode?: string;     // Ditto, if the server supports sql modes (MySQL).
+    /** The version of the server. Valid not before the connection is open. */
+    version?: number;
 
-    hideSystemSchemas?: boolean;
+    /** The current SQL mode of the session. Valid not before the connection is open. */
+    sqlMode?: string;
 
+    /** The server edition (commercial, GPL) */
+    edition?: string;
+
+    /** Is MHS (MySQL Heatwave Service) available on this server? */
+    heatWaveAvailable?: boolean;
+
+    /** Connection specific UI settings. */
     settings?: IConnectionSettings;
 }
 
-// All available shell (backend) interfaces to access the functionality of the backend.
-
 export interface IShellSessionDetails {
-    sessionId: number;    // A running number to identify open shell sessions in the UI.
-    caption?: string;     // The text of the shell console tab entry and the title used in shell session tiles.
-    description?: string; // A description text used in shell session tiles.
+    /** A string to identify open shell sessions in the UI. */
+    sessionId: string;
 
-    version?: number;     // The version of the server. Valid not before the session is open.
-    sqlMode?: string;     // Ditto, if the server supports sql modes (MySQL).
+    /** The text of the shell console tab entry and the title used in shell session tiles. */
+    caption?: string;
 
-    dbConnectionId?: number; // The id of the database connection to open
+    /** The version of the server. Valid not before the session is open. */
+    version?: number;
+
+    /** Ditto, if the server supports sql modes (MySQL). */
+    sqlMode?: string;
+
+    /** The id of the database connection to open */
+    dbConnectionId?: number;
 }
 
 export interface IBackendInformation {

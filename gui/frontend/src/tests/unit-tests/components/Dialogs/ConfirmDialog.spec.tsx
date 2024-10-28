@@ -28,7 +28,7 @@ import { mount } from "enzyme";
 import { Label } from "../../../../components/ui/Label/Label.js";
 
 import { nextProcessTick, sendKeyPress } from "../../test-helpers.js";
-import { DialogResponseClosure } from "../../../../app-logic/Types.js";
+import { DialogResponseClosure } from "../../../../app-logic/general-types.js";
 import { ConfirmDialog } from "../../../../components/Dialogs/ConfirmDialog.js";
 import { KeyboardKeys } from "../../../../utilities/helpers.js";
 

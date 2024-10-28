@@ -25,34 +25,26 @@
 
 import { Command } from "vscode";
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
+import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
 import { MrsDbObjectType } from "../../../../frontend/src/modules/mrs/types.js";
+import { CdmEntityType, type ICdmRoutineEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
-export class SchemaRoutineTreeItem extends ConnectionsTreeBaseItem {
+export class SchemaRoutineTreeItem extends ConnectionBaseTreeItem<ICdmRoutineEntry> {
     public override contextValue = "schemaRoutineItem";
 
-    public constructor(
-        name: string,
-        schema: string,
-        private type: MrsDbObjectType,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number,
-        hasChildren: boolean,
-        command?: Command) {
-        super(name, schema, backend, connectionId,
-            type === MrsDbObjectType.Procedure ? "schemaRoutine.svg" : "schemaFunction.svg", hasChildren, command);
+    public constructor(dataModelEntry: ICdmRoutineEntry, command?: Command) {
+        super(dataModelEntry,
+            dataModelEntry.type === CdmEntityType.StoredProcedure ? "schemaProcedure.svg" : "schemaFunction.svg", true,
+            command);
     }
 
     public override get qualifiedName(): string {
-        return `\`${this.schema}\`.\`${this.name}\``;
+        return `\`${this.dataModelEntry.schema}\`.\`${this.dataModelEntry.caption}\``;
     }
 
     public override get dbType(): MrsDbObjectType {
-        return this.type;
-    }
-
-    protected override get createScriptResultIndex(): number {
-        return 2;
+        return this.dataModelEntry.type === CdmEntityType.StoredProcedure
+            ? MrsDbObjectType.Procedure
+            : MrsDbObjectType.Function;
     }
 }

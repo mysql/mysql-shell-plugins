@@ -26,7 +26,7 @@
 import { ComponentChild, VNode } from "preact";
 
 import { Container, ContentAlignment } from "../Container/Container.js";
-import { IDictionary } from "../../../app-logic/Types.js";
+import { IDictionary } from "../../../app-logic/general-types.js";
 import { Codicon } from "../Codicon.js";
 import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
 import { Icon } from "../Icon/Icon.js";

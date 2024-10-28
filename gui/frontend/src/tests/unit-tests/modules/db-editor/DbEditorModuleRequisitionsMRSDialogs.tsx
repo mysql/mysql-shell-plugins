@@ -26,22 +26,18 @@
 import { mount } from "enzyme";
 
 import { screen, waitFor } from "@testing-library/preact";
+import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../communication/MySQL.js";
 import {
-    IMySQLConnectionOptions,
-    MySQLConnectionScheme,
-} from "../../../../communication/MySQL.js";
-import {
-    IMrsAuthAppData,
-    IMrsContentSetData, IMrsDbObjectData,
-    IMrsSchemaData, IMrsServiceData, IMrsUserData,
+    IMrsAuthAppData, IMrsContentSetData, IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsUserData,
 } from "../../../../communication/ProtocolMrs.js";
 import { DBEditorModuleId } from "../../../../modules/ModuleInfo.js";
 import { DBEditorModule } from "../../../../modules/db-editor/DBEditorModule.js";
 import { MrsDbObjectType } from "../../../../modules/mrs/types.js";
 import {
     IMrsAuthAppEditRequest, IMrsContentSetEditRequest, IMrsDbObjectEditRequest,
-    IMrsSchemaEditRequest, IMrsSdkExportRequest, IMrsUserEditRequest, requisitions,
-} from "../../../../supplement/Requisitions.js";
+    IMrsSchemaEditRequest, IMrsSdkExportRequest, IMrsUserEditRequest,
+} from "../../../../supplement/RequisitionTypes.js";
+import { requisitions } from "../../../../supplement/Requisitions.js";
 import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
 import { KeyboardKeys } from "../../../../utilities/helpers.js";
 import { DialogHelper, getDbCredentials, nextProcessTick, sendKeyPress } from "../../test-helpers.js";
@@ -75,7 +71,7 @@ export const testReqShowMrsDbObjectDialog = async (
         createObject: true,
     };
 
-    await requisitions.execute("refreshConnections", undefined);
+    await requisitions.execute("refreshConnection", undefined);
     await requisitions.execute("showPage", {
         module: DBEditorModuleId,
         page: String(connID),
@@ -127,7 +123,7 @@ export const testReqShowMrsServiceDialog = async (
         authCompletedPageContent: "test_auth_completed_page_content",
     };
 
-    await requisitions.execute("refreshConnections", undefined);
+    await requisitions.execute("refreshConnection", undefined);
     await requisitions.execute("showPage", {
         module: DBEditorModuleId,
         page: String(connID),
@@ -179,7 +175,7 @@ export const testReqShowMrsSchemaDialog = async (
         schema: schemaData,
     };
 
-    await requisitions.execute("refreshConnections", undefined);
+    await requisitions.execute("refreshConnection", undefined);
     await requisitions.execute("showPage", {
         module: DBEditorModuleId,
         page: String(connID),
@@ -187,7 +183,7 @@ export const testReqShowMrsSchemaDialog = async (
 
     await nextProcessTick();
 
-    const promise =  requisitions.execute("showMrsSchemaDialog", request);
+    const promise = requisitions.execute("showMrsSchemaDialog", request);
 
     await waitFor(() => {
         expect(screen.getByText("MySQL REST Schema")).toBeDefined();
@@ -229,7 +225,7 @@ export const testReqShowMrsContentSetDialog = async (
         contentSet: content,
     };
 
-    await requisitions.execute("refreshConnections", undefined);
+    await requisitions.execute("refreshConnection", undefined);
     await requisitions.execute("showPage", {
         module: DBEditorModuleId,
         page: String(connID),
@@ -237,7 +233,7 @@ export const testReqShowMrsContentSetDialog = async (
 
     await nextProcessTick();
 
-    const promise =  requisitions.execute("showMrsContentSetDialog", request);
+    const promise = requisitions.execute("showMrsContentSetDialog", request);
 
     await waitFor(() => {
         expect(screen.getByText("MRS Content Set")).toBeDefined();
@@ -287,7 +283,7 @@ export const testReqShowMrsAuthAppDialog = async (
         service,
     };
 
-    await requisitions.execute("refreshConnections", undefined);
+    await requisitions.execute("refreshConnection", undefined);
     await requisitions.execute("showPage", {
         module: DBEditorModuleId,
         page: String(connID),
@@ -295,7 +291,7 @@ export const testReqShowMrsAuthAppDialog = async (
 
     await nextProcessTick();
 
-    const promise =  requisitions.execute("showMrsAuthAppDialog", request);
+    const promise = requisitions.execute("showMrsAuthAppDialog", request);
 
     await waitFor(() => {
         expect(screen.getByText("MySQL REST Authentication App")).toBeDefined();
@@ -330,7 +326,7 @@ export const testReqShowMrsUserDialog = async (
         user,
     };
 
-    await requisitions.execute("refreshConnections", undefined);
+    await requisitions.execute("refreshConnection", undefined);
     await requisitions.execute("showPage", {
         module: DBEditorModuleId,
         page: String(connID),
@@ -386,7 +382,7 @@ export const testReqShowMrsSdkExportDialog = async (
         directory: "test",
     };
 
-    await requisitions.execute("refreshConnections", undefined);
+    await requisitions.execute("refreshConnection", undefined);
     await requisitions.execute("showPage", {
         module: DBEditorModuleId,
         page: String(connID),

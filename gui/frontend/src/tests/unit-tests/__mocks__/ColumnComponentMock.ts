@@ -26,7 +26,7 @@
 /* eslint-disable max-classes-per-file */
 
 import { ColumnComponent, ColumnDefinition } from "tabulator-tables";
-import { DBDataType, IColumnInfo } from "../../../app-logic/Types.js";
+import { DBDataType, IColumnInfo } from "../../../app-logic/general-types.js";
 
 const mockColumnsInfo: IColumnInfo = {
     title: "col1",

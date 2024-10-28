@@ -25,7 +25,7 @@
 
 import { ComponentChild } from "preact";
 
-import { IStatusInfo, MessageType } from "../../app-logic/Types.js";
+import { IStatusInfo, MessageType } from "../../app-logic/general-types.js";
 import { IComponentProperties, ComponentBase } from "../ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../ui/Container/Container.js";
 import { Label } from "../ui/Label/Label.js";

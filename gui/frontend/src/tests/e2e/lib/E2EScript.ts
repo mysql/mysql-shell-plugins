@@ -21,8 +21,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { Condition } from "selenium-webdriver";
+import * as constants from "./constants.js";
+import * as locator from "./locators.js";
+import * as interfaces from "./interfaces.js";
+import { driver } from "./driver.js";
 import { E2ECodeEditor } from "./E2ECodeEditor.js";
-import { Toolbar } from "./Toolbar.js";
+import { E2EToolbar } from "./E2EToolbar.js";
+import { PasswordDialog } from "./Dialogs/PasswordDialog.js";
+import { CommandResult } from "./CommandResult.js";
 
 /**
  * This class represents the Script page
@@ -30,9 +37,48 @@ import { Toolbar } from "./Toolbar.js";
 export class E2EScript {
 
     /** The toolbar*/
-    public toolbar = new Toolbar();
+    public toolbar = new E2EToolbar();
 
     /** The code editor*/
     public codeEditor = new E2ECodeEditor(this);
+
+    /**
+     * Waits until the shell session is opened
+     * @param connection The database connection
+     * @returns A promise resolving when the shell session is opened
+     */
+    public untilIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
+
+        return new Condition(`for script to be opened`, async () => {
+            const editorSelectorLocator = locator.notebook.toolbar.editorSelector.exists;
+
+            if (await PasswordDialog.exists()) {
+                await PasswordDialog.setCredentials(connection);
+                await driver.wait(async () => {
+                    const editorSelectorExists = (await driver.findElements(editorSelectorLocator))
+                        .length > 0;
+                    const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
+
+                    return editorSelectorExists || existsNotebook;
+                }, constants.wait15seconds, `Could not connect to '${connection.caption}'`);
+            }
+
+            return ((await this.toolbar.editorSelector.getCurrentEditor()).label).match(/Script/) !== null;
+        });
+
+    };
+
+    /**
+     * Returns the last existing script result on the editor
+     *
+     * @returns A promise resolving with the script result
+     */
+    public getLastResult = async (): Promise<interfaces.ICommandResult> => {
+        const codeEditor = new E2ECodeEditor(this);
+        const commandResult = new CommandResult(codeEditor);
+        await commandResult.loadResult(true);
+
+        return commandResult;
+    };
 
 }

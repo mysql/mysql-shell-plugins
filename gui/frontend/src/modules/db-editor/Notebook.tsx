@@ -23,22 +23,25 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import loadNotebookIcon from "../../assets/images/toolbar/toolbar-load-editor.svg";
-import saveNotebookIcon from "../../assets/images/toolbar/toolbar-save-editor.svg";
 import historyBackIcon from "../../assets/images/toolbar/toolbar-history-back.svg";
 import historyForwardIcon from "../../assets/images/toolbar/toolbar-history-forward.svg";
+import loadNotebookIcon from "../../assets/images/toolbar/toolbar-load-editor.svg";
+import saveNotebookIcon from "../../assets/images/toolbar/toolbar-save-editor.svg";
 
 import { type IPosition } from "monaco-editor";
 import { ComponentChild, createRef } from "preact";
 
+import { ui } from "../../app-logic/UILayer.js";
+import type { ISqlEditorHistoryEntry } from "../../communication/ProtocolGui.js";
 import { Button } from "../../components/ui/Button/Button.js";
 import { CodeEditor, IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
 import { ICodeEditorViewState, IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
 import { ComponentBase, IComponentProperties } from "../../components/ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
+import { Divider } from "../../components/ui/Divider/Divider.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
 import { StatusBarAlignment, type IStatusBarItem } from "../../components/ui/Statusbar/StatusBarItem.js";
-import { StatusBar } from "../../components/ui/Statusbar/Statusbar.js";
+import type { ConnectionDataModelEntry } from "../../data-models/ConnectionDataModel.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../script-execution/PresentationInterface.js";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
@@ -47,18 +50,17 @@ import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType } from "../../supplement/ShellInterface/index.js";
-import { EditorLanguage } from "../../supplement/index.js";
-import { IOpenEditorState, IDBConnectionTabPersistentState } from "./DBConnectionTab.js";
+import type { EditorLanguage } from "../../supplement/index.js";
+import { IOpenDocumentState, type IConnectionPresentationState } from "./DBConnectionTab.js";
 import { DBEditorToolbar } from "./DBEditorToolbar.js";
 import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface.js";
-import { ISchemaTreeEntry, IToolbarItems } from "./index.js";
-import { Divider } from "../../components/ui/Divider/Divider.js";
+import { IToolbarItems } from "./index.js";
 
 interface INotebookProperties extends IComponentProperties {
     standaloneMode: boolean;
     toolbarItemsTemplate: IToolbarItems;
 
-    savedState: IDBConnectionTabPersistentState;
+    savedState: IConnectionPresentationState;
     backend?: ShellInterfaceSqlEditor;
 
     dbType: DBType;
@@ -80,8 +82,8 @@ interface INotebookProperties extends IComponentProperties {
 }
 
 export class Notebook extends ComponentBase<INotebookProperties> {
-
-    private editorRef = createRef<CodeEditor>();
+    #editorRef = createRef<CodeEditor>();
+    #toolbarRef = createRef<DBEditorToolbar>();
 
     #editorLanguageSbEntry!: IStatusBarItem;
     #editorEolSbEntry!: IStatusBarItem;
@@ -96,36 +98,14 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     }
 
     public override componentDidMount(): void {
-        requisitions.register("explorerDoubleClick", this.explorerDoubleClick);
+        requisitions.register("connectionItemDefaultAction", this.onConnectionItemDblClick);
+        requisitions.register("editorInsertText", this.doInsertText);
         requisitions.register("editorCaretMoved", this.handleCaretMove);
 
-        this.#editorPositionSbEntry = StatusBar.createStatusBarItem({
-            id: "editorPosition",
-            text: "",
-            priority: 990,
-            alignment: StatusBarAlignment.Right,
-        });
-
-        this.#editorIndentSbEntry = StatusBar.createStatusBarItem({
-            id: "editorIndent",
-            text: "",
-            priority: 985,
-            alignment: StatusBarAlignment.Right,
-        });
-
-        this.#editorEolSbEntry = StatusBar.createStatusBarItem({
-            id: "editorEOL",
-            text: "",
-            priority: 980,
-            alignment: StatusBarAlignment.Right,
-        });
-
-        this.#editorLanguageSbEntry = StatusBar.createStatusBarItem({
-            id: "editorLanguage",
-            text: "",
-            priority: 975,
-            alignment: StatusBarAlignment.Right,
-        });
+        this.#editorPositionSbEntry = ui.createStatusBarItem("editorPosition", StatusBarAlignment.Right, 990);
+        this.#editorIndentSbEntry = ui.createStatusBarItem("editorIndent", StatusBarAlignment.Right, 985);
+        this.#editorEolSbEntry = ui.createStatusBarItem("editorEOL", StatusBarAlignment.Right, 980);
+        this.#editorLanguageSbEntry = ui.createStatusBarItem("editorLanguage", StatusBarAlignment.Right, 975);
 
         this.initialSetup();
         this.updateStatusItems();
@@ -142,8 +122,9 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         this.#editorPositionSbEntry.dispose();
         this.#editorEolSbEntry.dispose();
 
-        requisitions.unregister("explorerDoubleClick", this.explorerDoubleClick);
+        requisitions.unregister("connectionItemDefaultAction", this.onConnectionItemDblClick);
         requisitions.unregister("editorCaretMoved", this.handleCaretMove);
+        requisitions.unregister("editorInsertText", this.doInsertText);
     }
 
     public render(): ComponentChild {
@@ -156,14 +137,14 @@ export class Notebook extends ComponentBase<INotebookProperties> {
 
         // Determine the editor to show from the editor state. There must always be at least a single editor.
         // If we cannot find the given active editor then pick the first one unconditionally.
-        let activeEditor = savedState.editors.find(
-            (entry: IOpenEditorState): boolean => {
-                return entry.id === savedState.activeEntry;
+        let activeEditor = savedState.documentStates.find(
+            (entry: IOpenDocumentState): boolean => {
+                return entry.document.id === savedState.activeEntry;
             },
         );
 
-        if (!activeEditor) {
-            activeEditor = savedState.editors[0];
+        if (!activeEditor && savedState.documentStates.length > 0) {
+            activeEditor = savedState.documentStates[0];
         }
 
         // Create a copy of the toolbar items from the template to allow for modifications.
@@ -212,7 +193,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                 key="editorNotebookHistoryBackButton"
                 data-tooltip="Recall the previous command"
                 imageOnly={true}
-                onClick={() => { void this.navigateHistory(); }}
+                onClick={this.navigateHistory.bind(this, true)}
                 disabled={!canGoBackInHistory}
             >
                 <Icon src={historyBackIcon} data-tooltip="inherit" />
@@ -221,7 +202,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                 key="editorNotebookHistoryForwardButton"
                 data-tooltip="Recall the next command"
                 imageOnly={true}
-                onClick={() => { void this.navigateHistory(false); }}
+                onClick={this.navigateHistory.bind(this, false)}
                 disabled={!canGoForwardInHistory}
             >
                 <Icon src={historyForwardIcon} data-tooltip="inherit" />
@@ -238,17 +219,18 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                 {...this.unhandledProperties}
             >
                 <DBEditorToolbar
+                    ref={this.#toolbarRef}
                     toolbarItems={toolbarItems}
                     language="msg"
-                    activeEditor={savedState.activeEntry}
+                    activeDocument={savedState.activeEntry}
                     heatWaveEnabled={savedState.heatWaveEnabled}
-                    editors={savedState.editors}
+                    documentState={savedState.documentStates}
                     backend={backend}
                 />
 
                 <CodeEditor
-                    ref={this.editorRef}
-                    savedState={activeEditor.state}
+                    ref={this.#editorRef}
+                    savedState={activeEditor?.state}
                     extraLibs={extraLibs}
                     language="msg"
                     allowedLanguages={["javascript", "typescript", "sql", "text"]}
@@ -301,11 +283,11 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     }
 
     public addOrUpdateExtraLib(content: string, filePath: string): number {
-        return this.editorRef.current?.addOrUpdateExtraLib(content, filePath) ?? 0;
+        return this.#editorRef.current?.addOrUpdateExtraLib(content, filePath) ?? 0;
     }
 
     public focus(): void {
-        this.editorRef.current?.focus();
+        this.#editorRef.current?.focus();
     }
 
     /**
@@ -317,29 +299,29 @@ export class Notebook extends ComponentBase<INotebookProperties> {
      * @param linkId The link ID, to connect the new execution context with the original text.
      */
     public async executeQueries(options: IScriptExecutionOptions, sql: string, linkId?: number): Promise<void> {
-        if (this.editorRef.current) {
+        if (this.#editorRef.current) {
             const { dbType } = this.props;
 
-            const lastBlock = this.editorRef.current.lastExecutionBlock;
+            const lastBlock = this.#editorRef.current.lastExecutionBlock;
             let currentBlock;
             if (!lastBlock || lastBlock.codeLength > 0 || !lastBlock.isSQLLike) {
-                currentBlock = this.editorRef.current.prepareNextExecutionBlock(-1,
+                currentBlock = this.#editorRef.current.prepareNextExecutionBlock(-1,
                     dbType === DBType.MySQL ? "mysql" : "sql");
             } else {
                 currentBlock = lastBlock;
             }
 
             if (currentBlock instanceof SQLExecutionContext) {
-                this.editorRef.current.appendText(sql);
+                this.#editorRef.current.appendText(sql);
                 currentBlock.linkId = linkId;
 
                 await currentBlock.splittingDone();
 
                 const { onScriptExecution } = this.props;
                 void onScriptExecution?.(currentBlock, options).then((executed) => {
-                    if (executed && this.editorRef.current) {
-                        this.editorRef.current.prepareNextExecutionBlock(-1, lastBlock?.language);
-                        this.editorRef.current.focus();
+                    if (executed && this.#editorRef.current) {
+                        this.#editorRef.current.prepareNextExecutionBlock(-1, lastBlock?.language);
+                        this.#editorRef.current.focus();
                     }
                 });
             }
@@ -354,21 +336,21 @@ export class Notebook extends ComponentBase<INotebookProperties> {
      * @param script The text to insert.
      */
     public insertScriptText(language: EditorLanguage, script: string): void {
-        if (this.editorRef.current) {
-            const lastBlock = this.editorRef.current.lastExecutionBlock;
+        if (this.#editorRef.current) {
+            const lastBlock = this.#editorRef.current.lastExecutionBlock;
             if (!lastBlock || lastBlock.codeLength > 0 || lastBlock.language !== language) {
-                this.editorRef.current.prepareNextExecutionBlock(-1, language);
+                this.#editorRef.current.prepareNextExecutionBlock(-1, language);
             }
 
-            this.editorRef.current.appendText(script);
-            this.editorRef.current.focus();
+            this.#editorRef.current.appendText(script);
+            this.#editorRef.current.focus();
         }
     }
 
     /** @returns the current view state of the underlying code editor to the caller. */
     public getViewState(): ICodeEditorViewState | null {
-        if (this.editorRef.current) {
-            return this.editorRef.current.backend?.saveViewState() ?? null;
+        if (this.#editorRef.current) {
+            return this.#editorRef.current.backend?.saveViewState() ?? null;
         }
 
         return null;
@@ -381,16 +363,41 @@ export class Notebook extends ComponentBase<INotebookProperties> {
      * @param content The notebook content to restore.
      */
     public restoreNotebook(content: INotebookFileFormat): void {
-        if (this.editorRef.current) {
+        if (this.#editorRef.current) {
             // At this point the result view data must be in the application DB.
             const editorState = this.getActiveEditorState();
             if (editorState?.model.executionContexts) {
-                void editorState.model.executionContexts.restoreFromStates(this.editorRef.current,
+                void editorState.model.executionContexts.restoreFromStates(this.#editorRef.current,
                     this.createPresentation, content.contexts);
             }
 
-            this.editorRef.current.backend?.restoreViewState(content.viewState);
+            this.#editorRef.current.backend?.restoreViewState(content.viewState);
         }
+    }
+
+    /**
+     * Changes the current block to the state of the given history entry.
+     *
+     * @param historyEntry The history entry with values to restore.
+     */
+    public restoreHistoryState(historyEntry: ISqlEditorHistoryEntry): void {
+        const { backend } = this.props;
+
+        if (backend && this.#editorRef.current) {
+            const currentBlock = this.#editorRef.current.currentBlock;
+            if (currentBlock) {
+                this.#editorRef.current.setExecutionBlockLanguageAndText(currentBlock, historyEntry.code,
+                    historyEntry.languageId);
+            }
+
+            this.#editorRef.current.focus();
+        }
+    }
+
+    public get currentContext(): ExecutionContext | undefined {
+        const currentBlock = this.#editorRef.current?.currentBlock;
+
+        return currentBlock;
     }
 
     private handleCaretMove = (position: { lineNumber: number; column: number; }): Promise<boolean> => {
@@ -399,9 +406,15 @@ export class Notebook extends ComponentBase<INotebookProperties> {
         return Promise.resolve(true);
     };
 
-    private explorerDoubleClick = (entry: ISchemaTreeEntry): Promise<boolean> => {
-        this.editorRef.current?.insertText(entry.caption);
-        this.editorRef.current?.focus();
+    private onConnectionItemDblClick = (entry: ConnectionDataModelEntry): Promise<boolean> => {
+        this.#editorRef.current?.insertText(entry.caption);
+        this.#editorRef.current?.focus();
+
+        return Promise.resolve(true);
+    };
+
+    private doInsertText = (text: string): Promise<boolean> => {
+        this.#editorRef.current?.insertText(text);
 
         return Promise.resolve(true);
     };
@@ -421,7 +434,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     };
 
     private updateStatusItems = (position?: IPosition): void => {
-        if (this.editorRef.current) {
+        if (this.#editorRef.current) {
             const { dbType } = this.props;
             const editorState = this.getActiveEditorState();
             if (editorState) {
@@ -457,7 +470,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
             if (version === 2 && showAbout) {
                 // If there was never a change in the editor so far it means that this is the first time it is shown.
                 // In this case we can run our one-time initialization.
-                this.editorRef.current?.executeText("\\about");
+                this.#editorRef.current?.executeText("\\about");
             }
         }
     }
@@ -517,53 +530,21 @@ export class Notebook extends ComponentBase<INotebookProperties> {
     private getActiveEditorState(): IEditorPersistentState | undefined {
         const { savedState } = this.props;
 
-        let activeEditor = savedState.editors.find(
-            (entry: IOpenEditorState): boolean => {
-                return entry.id === savedState.activeEntry;
-            },
-        );
+        let activeEditor = savedState.documentStates.find((entry: IOpenDocumentState): boolean => {
+            return entry.document.id === savedState.activeEntry;
+        });
 
-        if (!activeEditor) {
-            activeEditor = savedState.editors[0];
+        if (!activeEditor && savedState.documentStates.length > 0) {
+            activeEditor = savedState.documentStates[0];
         }
 
-        return activeEditor.state;
+        return activeEditor?.state;
     }
 
-    private navigateHistory = async (backwards = true): Promise<void> => {
-        const { onNavigateHistory, savedState, backend } = this.props;
+    private navigateHistory(backwards = true): void {
+        const { onNavigateHistory } = this.props;
 
-        if (backend) {
-            const newIndex = savedState.currentExecutionHistoryIndex + (backwards ? 1 : -1);
-
-            // Get history entry
-            const historyEntry = await backend.getExecutionHistoryEntry(savedState.connectionId, newIndex - 1);
-
-            // Set current execution block text
-            if (this.editorRef.current) {
-                const currentBlock = this.editorRef.current.currentBlock;
-                if (currentBlock) {
-                    // Store the unsaved current block code before moving back in history
-                    if (savedState.currentExecutionHistoryIndex === 0 && backwards) {
-                        savedState.executionHistoryUnsavedCode = currentBlock.code;
-                        savedState.executionHistoryUnsavedCodeLanguage = currentBlock.language;
-                    }
-
-                    // Restore unsaved current block code when the user moves forward to the current statement again
-                    if (savedState.currentExecutionHistoryIndex === 1 && !backwards) {
-                        this.editorRef.current.setExecutionBlockLanguageAndText(
-                            currentBlock, savedState.executionHistoryUnsavedCode ?? "",
-                            savedState.executionHistoryUnsavedCodeLanguage ?? "sql");
-                    } else {
-                        this.editorRef.current.setExecutionBlockLanguageAndText(
-                            currentBlock, historyEntry.code, historyEntry.languageId);
-                    }
-                }
-
-                this.editorRef.current.focus();
-            }
-
-            onNavigateHistory?.(backwards);
-        }
-    };
+        onNavigateHistory?.(backwards);
+        this.forceUpdate();
+    }
 }

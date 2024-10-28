@@ -87,9 +87,7 @@ export class JsonView extends ComponentBase<IJsonViewProps> {
         }
     }
 
-    public override componentDidUpdate(
-        previousProps: Readonly<IJsonViewProps>, _previousState: {}, _snapshot: unknown,
-    ): void {
+    public override componentDidUpdate(previousProps: Readonly<IJsonViewProps>): void {
         if (previousProps.json !== this.props.json) {
             const { json } = this.props;
 

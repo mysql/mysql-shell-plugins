@@ -2,8 +2,8 @@
 
 exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`] = `
 <DBEditorToolbar
-  activeEditor="DbEditor"
-  editors={[]}
+  activeDocument="DbEditor"
+  documentState={[]}
   heatWaveEnabled={true}
   language="js"
   toolbarItems={
@@ -325,8 +325,8 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
 
 exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
 <DBEditorToolbar
-  activeEditor="DbEditor"
-  editors={[]}
+  activeDocument="DbEditor"
+  documentState={[]}
   heatWaveEnabled={false}
   language="ts"
   toolbarItems={
@@ -548,8 +548,8 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
 
 exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation language=msg 1`] = `
 <DBEditorToolbar
-  activeEditor="DbEditor"
-  editors={[]}
+  activeDocument="DbEditor"
+  documentState={[]}
   heatWaveEnabled={false}
   language="msg"
   toolbarItems={

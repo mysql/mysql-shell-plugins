@@ -172,25 +172,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
       onItemClick={[Function]}
       orientation="column"
       placement="right-start"
-    >
-      <Popup
-        className="msg menu"
-        onClose={[Function]}
-        onKeyDown={[Function]}
-        onOpen={[Function]}
-        orientation="column"
-        pinned={false}
-        placement="right-start"
-        showArrow={false}
-      >
-        <Portal
-          className="popupPortal"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-        />
-      </Popup>
-    </Menu>
+    />
   </ValueEditDialog>
   <ConfirmDialog
     key="confirmDialog"
@@ -311,25 +293,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
         onItemClick={[Function]}
         orientation="column"
         placement="right-start"
-      >
-        <Popup
-          className="msg menu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="right-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </ValueEditDialog>
   </MdsHWClusterDialog>
   <MdsHWLoadDataDialog
@@ -400,25 +364,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
         onItemClick={[Function]}
         orientation="column"
         placement="right-start"
-      >
-        <Popup
-          className="msg menu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="right-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </ValueEditDialog>
   </MdsHWLoadDataDialog>
   <MdsEndpointDialog
@@ -489,25 +435,7 @@ exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
         onItemClick={[Function]}
         orientation="column"
         placement="right-start"
-      >
-        <Popup
-          className="msg menu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="right-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </ValueEditDialog>
   </MdsEndpointDialog>
 </DialogHost>

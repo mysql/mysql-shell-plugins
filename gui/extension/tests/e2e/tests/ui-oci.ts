@@ -462,10 +462,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await new OutputView().clearText();
             const treeBastion = await ociTreeSection.tree.getOciElementByType(constants.bastionType);
             await ociTreeSection.tree.openContextMenuAndSelect(treeBastion, constants.deleteBastion);
+            await Workbench.waitForOutputText("OCI profile 'E2ETESTS' loaded.", constants.wait25seconds);
             await tasksTreeSection.expand();
             await driver.wait(tasksTreeSection.tree.untilExists("Delete Bastion (running)"),
                 constants.wait5seconds);
-            await Workbench.waitForOutputText("OCI profile 'E2ETESTS' loaded.", constants.wait25seconds);
             const ntf = await Workbench.getNotification("Are you sure you want to delete", false);
             await Workbench.clickOnNotificationButton(ntf, "NO");
             await Workbench.waitForOutputText("Deletion aborted", constants.wait5seconds);

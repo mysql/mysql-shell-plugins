@@ -23,24 +23,19 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import type { ICdmEventEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 import { MrsDbObjectType } from "../../../../frontend/src/modules/mrs/types.js";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
+import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
 
-export class SchemaEventTreeItem extends ConnectionsTreeBaseItem {
+export class SchemaEventTreeItem extends ConnectionBaseTreeItem<ICdmEventEntry> {
     public override contextValue = "schemaEventItem";
 
-    public constructor(
-        name: string,
-        schema: string,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number,
-        hasChildren: boolean) {
-        super(name, schema, backend, connectionId, "schemaEvent.svg", hasChildren);
+    public constructor(dataModelEntry: ICdmEventEntry) {
+        super(dataModelEntry, "schemaEvent.svg", false);
     }
 
     public override get qualifiedName(): string {
-        return `\`${this.schema}\`.\`${this.name}\``;
+        return `\`${this.dataModelEntry.parent.parent.caption}\`.\`${this.dataModelEntry.caption}\``;
     }
 
     public override get dbType(): MrsDbObjectType {

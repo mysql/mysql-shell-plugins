@@ -40,7 +40,7 @@ export class RestObjectDialog {
      * @param restObject The object
      * @returns A promise resolving when the object is set and the dialog is closed
      */
-    public static set = async (restObject: interfaces.IRestObject): Promise<void> => {
+    public static set = async (restObject?: interfaces.IRestObject): Promise<interfaces.IRestObject> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
@@ -185,184 +185,191 @@ export class RestObjectDialog {
             }
         };
 
-        if (restObject.restServicePath) {
-            const inService = await dialog.findElement(locator.mrsDbObjectDialog.service);
-            const isDisabled = await inService.getAttribute("disabled")
-                .then(() => { return true; }).catch(() => { return false; });
-            if (!isDisabled) {
-                await inService.click();
-                const popup = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.serviceList),
-                    constants.wait5seconds, "Service list was not found");
-                await popup.findElement(By.id(restObject.restServicePath)).click();
-            }
-        }
+        if (restObject) {
 
-        if (restObject.restSchemaPath) {
-            const inSchema = await dialog.findElement(locator.mrsDbObjectDialog.schema);
-            const isDisabled = await inSchema.getAttribute("disabled")
-                .then(() => { return true; }).catch(() => { return false; });
-            if (!isDisabled) {
-                await inSchema.click();
-                const popup = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.schemaList),
-                    constants.wait5seconds, "Schema drop down list was not found");
-                await popup.findElement(By.id(restObject.restSchemaPath)).click();
-            }
-        }
-
-        if (restObject.restObjectPath) {
-            await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.requestPath, restObject.restObjectPath);
-        }
-
-        if (restObject.accessControl !== undefined) {
-            const inAccessControl = await dialog.findElement(locator.mrsDbObjectDialog.accessControl.exists);
-            await inAccessControl.click();
-            const popup = await driver.wait(until
-                .elementLocated(locator.mrsDbObjectDialog.accessControl.selectList.exists),
-                constants.wait5seconds, "Access control drop down list was not found");
-            if (restObject.accessControl === constants.accessControlEnabled) {
-                await popup.findElement(locator.mrsDbObjectDialog.accessControl.selectList.enabled).click();
-            } else if (restObject.accessControl === constants.accessControlDisabled) {
-                await popup.findElement(locator.mrsDbObjectDialog.accessControl.selectList.disabled).click();
-            } else {
-                await popup.findElement(locator.mrsDbObjectDialog.accessControl.selectList.private).click();
-            }
-        }
-
-        if (restObject.requiresAuth !== undefined) {
-            await DialogHelper.setCheckboxValue("requiresAuth", restObject.requiresAuth);
-        }
-
-        if (restObject.jsonRelDuality) {
-
-            if (restObject.jsonRelDuality.dbObject) {
-                await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.jsonDuality.dbObject,
-                    restObject.jsonRelDuality.dbObject);
-            }
-
-            if (restObject.jsonRelDuality.sdkLanguage) {
-                if (restObject.jsonRelDuality.sdkLanguage !== "SDK Language") {
-                    const inSdk = await dialog.findElement(locator.mrsDbObjectDialog.jsonDuality.sdkLanguage);
-                    await inSdk.click();
-                    const popup = await driver.wait(until
-                        .elementLocated(locator.mrsDbObjectDialog.jsonDuality.sdkLanguageList),
-                        constants.wait5seconds, "SDK Language drop down list was not found");
-                    await popup.findElement(By.id(restObject.jsonRelDuality.sdkLanguage)).click();
+            if (restObject.restServicePath) {
+                const inService = await dialog.findElement(locator.mrsDbObjectDialog.service);
+                const isDisabled = await inService.getAttribute("disabled")
+                    .then(() => { return true; }).catch(() => { return false; });
+                if (!isDisabled) {
+                    await inService.click();
+                    const popup = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.serviceList),
+                        constants.wait5seconds, "Service list was not found");
+                    await popup.findElement(By.id(restObject.restServicePath)).click();
                 }
             }
 
-            if (restObject.jsonRelDuality.columns) {
-                for (const column of restObject.jsonRelDuality.columns) {
-                    await processColumnActivation(column);
-                    const colKeys = Object.keys(column).splice(0);
-                    for (let i = 0; i <= colKeys.length - 1; i++) {
-                        if (i >= 2) {
-                            await processColumnOption(column.name,
-                                constants[colKeys[i]] as string, (column[colKeys[i]] as boolean));
-                        }
+            if (restObject.restSchemaPath) {
+                const inSchema = await dialog.findElement(locator.mrsDbObjectDialog.schema);
+                const isDisabled = await inSchema.getAttribute("disabled")
+                    .then(() => { return true; }).catch(() => { return false; });
+                if (!isDisabled) {
+                    await inSchema.click();
+                    const popup = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.schemaList),
+                        constants.wait5seconds, "Schema drop down list was not found");
+                    await popup.findElement(By.id(restObject.restSchemaPath)).click();
+                }
+            }
+
+            if (restObject.restObjectPath) {
+                await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.requestPath,
+                    restObject.restObjectPath);
+            }
+
+            if (restObject.accessControl !== undefined) {
+                const inAccessControl = await dialog.findElement(locator.mrsDbObjectDialog.accessControl.exists);
+                await inAccessControl.click();
+                const popup = await driver.wait(until
+                    .elementLocated(locator.mrsDbObjectDialog.accessControl.selectList.exists),
+                    constants.wait5seconds, "Access control drop down list was not found");
+                if (restObject.accessControl === constants.accessControlEnabled) {
+                    await popup.findElement(locator.mrsDbObjectDialog.accessControl.selectList.enabled).click();
+                } else if (restObject.accessControl === constants.accessControlDisabled) {
+                    await popup.findElement(locator.mrsDbObjectDialog.accessControl.selectList.disabled).click();
+                } else {
+                    await popup.findElement(locator.mrsDbObjectDialog.accessControl.selectList.private).click();
+                }
+            }
+
+            if (restObject.requiresAuth !== undefined) {
+                await DialogHelper.setCheckboxValue("requiresAuth", restObject.requiresAuth);
+            }
+
+            if (restObject.dataMapping) {
+
+                if (restObject.dataMapping.dbObject) {
+                    await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.jsonDuality.dbObject,
+                        restObject.dataMapping.dbObject);
+                }
+
+                if (restObject.dataMapping.sdkLanguage) {
+                    if (restObject.dataMapping.sdkLanguage !== "SDK Language") {
+                        const inSdk = await dialog.findElement(locator.mrsDbObjectDialog.jsonDuality.sdkLanguage);
+                        await inSdk.click();
+                        const popup = await driver.wait(until
+                            .elementLocated(locator.mrsDbObjectDialog.jsonDuality.sdkLanguageList),
+                            constants.wait5seconds, "SDK Language drop down list was not found");
+                        await popup.findElement(By.id(restObject.dataMapping.sdkLanguage)).click();
                     }
                 }
-            }
 
-            if (restObject.jsonRelDuality.crud) {
-                const processCrudItem = async (item: { name: string, value: boolean; }): Promise<void> => {
-                    const crudDivs = await dialog.findElements(locator.mrsDbObjectDialog.jsonDuality.crud);
-                    for (const crudDiv of crudDivs) {
-                        const isInactive = (await crudDiv.getAttribute("class")).includes("deactivated");
-                        const tooltip = await crudDiv.getAttribute("data-tooltip");
-                        if (tooltip.toLowerCase().includes(item.name)) {
-                            if (item.value === true) {
-                                if (isInactive) {
-                                    await crudDiv.click();
-                                    break;
-                                }
-                            } else {
-                                if (!isInactive) {
-                                    await crudDiv.click();
-                                    break;
-                                }
+                if (restObject.dataMapping.columns) {
+                    for (const column of restObject.dataMapping.columns) {
+                        await processColumnActivation(column);
+                        const colKeys = Object.keys(column).splice(0);
+                        for (let i = 0; i <= colKeys.length - 1; i++) {
+                            if (i >= 2) {
+                                await processColumnOption(column.name,
+                                    constants[colKeys[i]] as string, (column[colKeys[i]] as boolean));
                             }
                         }
                     }
-                };
+                }
 
-                for (const key of Object.keys(restObject.jsonRelDuality.crud)) {
-                    try {
-                        await processCrudItem({ name: key, value: restObject.jsonRelDuality.crud[key] });
-                    } catch (e) {
-                        if (!(errors.isStaleError(e as Error))) {
-                            throw e;
-                        } else {
-                            await processCrudItem({ name: key, value: restObject.jsonRelDuality.crud[key] });
+                if (restObject.dataMapping.crud) {
+                    const processCrudItem = async (item: { name: string, value: boolean; }): Promise<void> => {
+                        const crudDivs = await dialog.findElements(locator.mrsDbObjectDialog.jsonDuality.crud);
+                        for (const crudDiv of crudDivs) {
+                            const isInactive = (await crudDiv.getAttribute("class")).includes("deactivated");
+                            const tooltip = await crudDiv.getAttribute("data-tooltip");
+                            if (tooltip.toLowerCase().includes(item.name)) {
+                                if (item.value === true) {
+                                    if (isInactive) {
+                                        await crudDiv.click();
+                                        break;
+                                    }
+                                } else {
+                                    if (!isInactive) {
+                                        await crudDiv.click();
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    };
+
+                    for (const key of Object.keys(restObject.dataMapping.crud)) {
+                        try {
+                            await processCrudItem({ name: key, value: restObject.dataMapping.crud[key] });
+                        } catch (e) {
+                            if (!(errors.isStaleError(e as Error))) {
+                                throw e;
+                            } else {
+                                await processCrudItem({ name: key, value: restObject.dataMapping.crud[key] });
+                            }
                         }
                     }
                 }
             }
-        }
 
-        if (restObject.settings) {
-            await driver.wait(async () => {
-                await dialog.findElement(locator.mrsDbObjectDialog.settingsTab).click();
+            if (restObject.settings) {
+                await driver.wait(async () => {
+                    await dialog.findElement(locator.mrsDbObjectDialog.settingsTab).click();
 
-                return (await dialog.findElement(locator.mrsDbObjectDialog.settingsTab)
-                    .getAttribute("class")).includes("selected");
-            }, constants.wait5seconds, "Settings tab was not selected");
+                    return (await dialog.findElement(locator.mrsDbObjectDialog.settingsTab)
+                        .getAttribute("class")).includes("selected");
+                }, constants.wait5seconds, "Settings tab was not selected");
 
-            if (restObject.settings.resultFormat) {
-                const inResultFormat = await dialog
-                    .findElement(locator.mrsDbObjectDialog.settings.resultFormat);
-                await inResultFormat.click();
-                const popup = await driver.wait(until
-                    .elementLocated(locator.mrsDbObjectDialog.settings.resultFormatList),
-                    constants.wait5seconds, "#crudOperationFormatPopup not found");
-                await popup.findElement(By.id(restObject.settings.resultFormat)).click();
+                if (restObject.settings.resultFormat) {
+                    const inResultFormat = await dialog
+                        .findElement(locator.mrsDbObjectDialog.settings.resultFormat);
+                    await inResultFormat.click();
+                    const popup = await driver.wait(until
+                        .elementLocated(locator.mrsDbObjectDialog.settings.resultFormatList),
+                        constants.wait5seconds, "#crudOperationFormatPopup not found");
+                    await popup.findElement(By.id(restObject.settings.resultFormat)).click();
+                }
+
+                if (restObject.settings.itemsPerPage) {
+                    await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.settings.itemsPerPage,
+                        restObject.settings.itemsPerPage);
+                }
+
+                if (restObject.settings.comments) {
+                    await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.settings.comments,
+                        restObject.settings.comments);
+                }
+
+                if (restObject.settings.mediaType) {
+                    await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.settings.mediaType,
+                        restObject.settings.mediaType);
+                }
+
+                if (restObject.settings.autoDetectMediaType !== undefined) {
+                    await DialogHelper.setCheckboxValue("autoDetectMediaType", restObject.settings.autoDetectMediaType);
+                }
             }
 
-            if (restObject.settings.itemsPerPage) {
-                await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.settings.itemsPerPage,
-                    restObject.settings.itemsPerPage);
+            if (restObject.authorization) {
+                await driver.wait(async () => {
+                    await dialog.findElement(locator.mrsDbObjectDialog.authorizationTab).click();
+
+                    return (await dialog.findElement(locator.mrsDbObjectDialog.authorizationTab)
+                        .getAttribute("class")).includes("selected");
+                }, constants.wait5seconds, "Authorization tab was not selected");
+
+                if (restObject.authorization.authStoredProcedure) {
+                    const inStoredPrc = await dialog
+                        .findElement(locator.mrsDbObjectDialog.authorization.authStoredProcedure);
+                    await inStoredPrc.clear();
+                    await inStoredPrc.sendKeys(restObject.authorization.authStoredProcedure);
+                }
             }
 
-            if (restObject.settings.comments) {
-                await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.settings.comments,
-                    restObject.settings.comments);
+            if (restObject.options) {
+                await driver.wait(async () => {
+                    await dialog.findElement(locator.mrsDbObjectDialog.optionsTab).click();
+
+                    return (await dialog.findElement(locator.mrsDbObjectDialog.optionsTab)
+                        .getAttribute("class")).includes("selected");
+                }, constants.wait5seconds, "Options tab was not selected");
+
+                await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.options.options,
+                    restObject.options);
             }
 
-            if (restObject.settings.mediaType) {
-                await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.settings.mediaType,
-                    restObject.settings.mediaType);
-            }
-
-            if (restObject.settings.autoDetectMediaType !== undefined) {
-                await DialogHelper.setCheckboxValue("autoDetectMediaType", restObject.settings.autoDetectMediaType);
-            }
-        }
-
-        if (restObject.authorization) {
-            await driver.wait(async () => {
-                await dialog.findElement(locator.mrsDbObjectDialog.authorizationTab).click();
-
-                return (await dialog.findElement(locator.mrsDbObjectDialog.authorizationTab)
-                    .getAttribute("class")).includes("selected");
-            }, constants.wait5seconds, "Authorization tab was not selected");
-
-            if (restObject.authorization.authStoredProcedure) {
-                const inStoredPrc = await dialog
-                    .findElement(locator.mrsDbObjectDialog.authorization.authStoredProcedure);
-                await inStoredPrc.clear();
-                await inStoredPrc.sendKeys(restObject.authorization.authStoredProcedure);
-            }
-        }
-
-        if (restObject.options) {
-            await driver.wait(async () => {
-                await dialog.findElement(locator.mrsDbObjectDialog.optionsTab).click();
-
-                return (await dialog.findElement(locator.mrsDbObjectDialog.optionsTab)
-                    .getAttribute("class")).includes("selected");
-            }, constants.wait5seconds, "Options tab was not selected");
-
-            await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.options.options,
-                restObject.options);
+        } else {
+            restObject = await this.get(false);
         }
 
         await driver.wait(async () => {
@@ -370,13 +377,18 @@ export class RestObjectDialog {
 
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS Object dialog was not closed");
+
+        restObject.treeName = `${restObject.restObjectPath} (${restObject.dataMapping?.dbObject})`;
+
+        return restObject;
     };
 
     /**
      * Gets a Rest Object using the web view dialog
+     * @param closeDialog True to close the dialog, false otherwise
      * @returns A promise resolving with the object
      */
-    public static get = async (): Promise<interfaces.IRestObject> => {
+    public static get = async (closeDialog = true): Promise<interfaces.IRestObject> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
@@ -388,7 +400,7 @@ export class RestObjectDialog {
             restServicePath: await dialog.findElement(locator.mrsDbObjectDialog.serviceLabel).getText(),
             restSchemaPath: await dialog.findElement(locator.mrsDbObjectDialog.schemaLabel).getText(),
             restObjectPath: await DialogHelper.getFieldValue(dialog, locator.mrsDbObjectDialog.requestPath),
-            jsonRelDuality: {
+            dataMapping: {
                 dbObject: await DialogHelper.getFieldValue(dialog, locator.mrsDbObjectDialog.jsonDuality.dbObject),
                 sdkLanguage: await dialog.findElement(locator.mrsDbObjectDialog.jsonDuality.sdkLanguageLabel).getText(),
             },
@@ -441,7 +453,7 @@ export class RestObjectDialog {
             }
             restColumns.push(restObjectColumn);
         }
-        restObject.jsonRelDuality.columns = restColumns;
+        restObject.dataMapping.columns = restColumns;
 
         const restObjectCrud: interfaces.IRestObjectCrud = {
             insert: undefined,
@@ -460,7 +472,7 @@ export class RestObjectDialog {
                 }
             }
         }
-        restObject.jsonRelDuality.crud = restObjectCrud;
+        restObject.dataMapping.crud = restObjectCrud;
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsDbObjectDialog.settingsTab).click();
@@ -499,11 +511,15 @@ export class RestObjectDialog {
         restObject.options = (await dialog.findElement(locator.mrsDbObjectDialog.options.options).getAttribute("value"))
             .replace(/\r?\n|\r|\s+/gm, "").trim();
 
-        await driver.wait(async () => {
-            await dialog.findElement(locator.mrsDbObjectDialog.ok).click();
+        if (closeDialog) {
+            await driver.wait(async () => {
+                await dialog.findElement(locator.mrsDbObjectDialog.cancel).click();
 
-            return (await DialogHelper.existsDialog()) === false;
-        }, constants.wait10seconds, "The MRS Object dialog was not closed");
+                return (await DialogHelper.existsDialog()) === false;
+            }, constants.wait10seconds, "The MRS Object dialog was not closed");
+        }
+
+        restObject.treeName = `${restObject.restObjectPath} (${restObject.dataMapping?.dbObject})`;
 
         return restObject;
     };

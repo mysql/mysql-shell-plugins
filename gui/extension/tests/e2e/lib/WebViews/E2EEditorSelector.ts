@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until, WebElement } from "vscode-extension-tester";
+import { until, WebElement, error } from "vscode-extension-tester";
 import * as constants from "../constants";
 import * as locator from "../locators";
 import * as interfaces from "../interfaces";
@@ -82,62 +82,93 @@ export class E2EEditorSelector {
         await Misc.switchBackToTopFrame();
         await Misc.switchToFrame();
 
-        const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
-        await driver.executeScript("arguments[0].click()", selector);
-
-        const list = await driver.wait(until.elementLocated(locator.notebook.toolbar.editorSelector.list.exists),
-            constants.wait2seconds, "The editor list was not displayed");
-
         await driver.wait(async () => {
-            return (await list.findElements(locator.notebook.toolbar.editorSelector.list.item)).length >= 1;
-        }, constants.wait2seconds, "No elements located on editors dropdown list");
+            try {
+                const selector = await driver.findElement(locator.notebook.toolbar.editorSelector.exists);
+                await driver.executeScript("arguments[0].click()", selector);
 
-        let listItems = await driver.findElements(locator.notebook.toolbar.editorSelector.list.item);
+                const list = await driver.wait(until
+                    .elementLocated(locator.notebook.toolbar.editorSelector.list.exists),
+                    constants.wait2seconds, "The editor list was not displayed");
 
-        if (parentConnection) {
-            let startIndex: number;
-            let endIndex: number;
+                await driver.wait(async () => {
+                    return (await list.findElements(locator.notebook.toolbar.editorSelector.list.item)).length >= 1;
+                }, constants.wait2seconds, "No elements located on editors dropdown list");
 
-            for (let i = 0; i <= listItems.length - 1; i++) {
-                const isConnection = await listItems[i].getAttribute("id") !== "connections" &&
-                    await listItems[i].getAttribute("type") === null;
+                let listItems = await driver.findElements(locator.notebook.toolbar.editorSelector.list.item);
 
-                if (isConnection) {
-                    const label = await (await listItems[i].findElement(locator.htmlTag.label)).getText();
-                    if (label === parentConnection) {
+                const isConnection = async (item: WebElement): Promise<boolean> => {
+                    const icon = await item.findElements(locator.notebook.toolbar.editorSelector.currentValue.icon);
 
-                        startIndex = i;
-                        break;
+                    if (icon.length > 0) {
+                        return (await icon[0].getCssValue("mask-image")).includes("connection");
+                    }
+
+                    return false;
+                };
+
+                if (parentConnection) {
+                    let startIndex: number | undefined;
+                    let endIndex = listItems.length - 1;
+
+                    for (let i = 0; i <= listItems.length - 1; i++) {
+                        if (await isConnection(listItems[i])) {
+                            const label = await (await listItems[i].findElement(locator.htmlTag.label)).getText();
+                            if (label === parentConnection) {
+                                startIndex = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!startIndex) {
+                        throw new Error(`Could not find startIndex`);
+                    }
+
+                    for (let i = startIndex + 1; i <= listItems.length - 1; i++) {
+                        if (await isConnection(listItems[i])) {
+                            endIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (!endIndex) {
+                        throw new Error(`Could not find endIndex`);
+                    }
+
+                    if (endIndex - 1 !== startIndex) {
+                        listItems = listItems.slice(startIndex + 1, endIndex);
+                    }
+
+                    for (let i = 0; i <= listItems.length - 1; i++) {
+                        const label = await (listItems[i].findElement(locator.htmlTag.label)).getText();
+
+                        if (label.match(editorName) !== null) {
+                            await driver.executeScript("arguments[0].click()", listItems[i]);
+
+                            return true;
+                        }
+                    }
+                } else {
+                    for (const listItem of listItems) {
+                        const itemText = await (await listItem.findElement(locator.htmlTag.label)).getText();
+
+                        if (itemText.match(editorName) !== null) {
+                            await driver.executeScript("arguments[0].click()", listItem);
+
+                            return true;
+                        }
                     }
                 }
-            }
 
-            for (let i = startIndex + 1; i <= listItems.length - 1; i++) {
-                const isConnection = await listItems[i].getAttribute("id") !== "connections" &&
-                    await listItems[i].getAttribute("type") === null;
-
-                if (isConnection) {
-                    endIndex = i;
-                    break;
+                throw new Error(`Could not find editor name ${editorName}`);
+            } catch (e) {
+                console.log(e);
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
                 }
             }
-
-            listItems = listItems.slice(startIndex + 1, endIndex);
-
-            for (let i = 0; i <= listItems.length - 1; i++) {
-                const label = await (listItems[i].findElement(locator.htmlTag.label)).getText();
-                if (label.match(editorName) !== null) {
-                    await listItems[i].click();
-                    break;
-                }
-            }
-        } else {
-            await (listItems.find(async (item: WebElement) => {
-                const itemText = await (await item.findElement(locator.htmlTag.label)).getText();
-
-                return itemText.match(editorName) !== null;
-            })).click();
-        }
+        }, constants.wait5seconds, `Could not select ${editorName} from the select list`);
     };
 
 }

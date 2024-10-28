@@ -158,15 +158,14 @@ export class Portal extends ComponentBase<IPortalProperties, IPortalState> {
             const { onClose } = this.props;
             onClose?.(cancelled, this.props);
 
-            this.setState({ open: false, options: {} }, () => {
-                const index = Portal.portalStack.findIndex((portal) => {
-                    return portal === this;
-                });
-
-                if (index > -1) {
-                    Portal.portalStack.splice(index, 1);
-                }
+            this.setState({ open: false, options: {} });
+            const index = Portal.portalStack.findIndex((portal) => {
+                return portal === this;
             });
+
+            if (index > -1) {
+                Portal.portalStack.splice(index, 1);
+            }
         }
     };
 

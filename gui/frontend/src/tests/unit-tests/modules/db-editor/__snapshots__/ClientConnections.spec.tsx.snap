@@ -6,7 +6,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
 <ClientConnections
   backend={
     ShellInterfaceSqlEditor {
-      "mds": ShellInterfaceMds {},
+      "mhs": ShellInterfaceMhs {},
       "moduleSessionLookupId": "",
       "mrs": ShellInterfaceMrs {
         "moduleSessionLookupId": "",
@@ -252,17 +252,17 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <Icon
                   data-tooltip="inherit"
                   disabled={false}
-                  src="toolbar-background_threads-active.svg"
+                  src="toolbar-background-threads-active.svg"
                 >
                   <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
                       {
-                        "WebkitMaskImage": "url("toolbar-background_threads-active.svg")",
+                        "WebkitMaskImage": "url("toolbar-background-threads-active.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskImage": "url("toolbar-background_threads-active.svg")",
+                        "maskImage": "url("toolbar-background-threads-active.svg")",
                         "width": undefined,
                       }
                     }
@@ -348,17 +348,17 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <Icon
                   data-tooltip="inherit"
                   disabled={false}
-                  src="toolbar-show_details-inactive.svg"
+                  src="toolbar-show-details-inactive.svg"
                 >
                   <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
                       {
-                        "WebkitMaskImage": "url("toolbar-show_details-inactive.svg")",
+                        "WebkitMaskImage": "url("toolbar-show-details-inactive.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskImage": "url("toolbar-show_details-inactive.svg")",
+                        "maskImage": "url("toolbar-show-details-inactive.svg")",
                         "width": undefined,
                       }
                     }
@@ -706,7 +706,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
 <ClientConnections
   backend={
     ShellInterfaceSqlEditor {
-      "mds": ShellInterfaceMds {},
+      "mhs": ShellInterfaceMhs {},
       "moduleSessionLookupId": "",
       "mrs": ShellInterfaceMrs {
         "moduleSessionLookupId": "",
@@ -952,17 +952,17 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <Icon
                   data-tooltip="inherit"
                   disabled={false}
-                  src="toolbar-background_threads-active.svg"
+                  src="toolbar-background-threads-active.svg"
                 >
                   <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
                       {
-                        "WebkitMaskImage": "url("toolbar-background_threads-active.svg")",
+                        "WebkitMaskImage": "url("toolbar-background-threads-active.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskImage": "url("toolbar-background_threads-active.svg")",
+                        "maskImage": "url("toolbar-background-threads-active.svg")",
                         "width": undefined,
                       }
                     }
@@ -1048,17 +1048,17 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                 <Icon
                   data-tooltip="inherit"
                   disabled={false}
-                  src="toolbar-show_details-inactive.svg"
+                  src="toolbar-show-details-inactive.svg"
                 >
                   <div
                     className="msg icon"
                     data-tooltip="inherit"
                     style={
                       {
-                        "WebkitMaskImage": "url("toolbar-show_details-inactive.svg")",
+                        "WebkitMaskImage": "url("toolbar-show-details-inactive.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskImage": "url("toolbar-show_details-inactive.svg")",
+                        "maskImage": "url("toolbar-show-details-inactive.svg")",
                         "width": undefined,
                       }
                     }

@@ -51,7 +51,7 @@ interface IStatusBarState extends IComponentState {
  */
 export class StatusBar extends ComponentBase<{}, IStatusBarState> {
 
-    #scheduledTimers: Array<{ id: string, timer: ReturnType<typeof setTimeout>; }> = [];
+    #scheduledTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
 
     public constructor() {
         super({});
@@ -63,8 +63,6 @@ export class StatusBar extends ComponentBase<{}, IStatusBarState> {
 
     /**
      * Creates a status bar {@link StatusBarItem item}.
-     *
-     * Note: this method is here only temporarily, until the UILayer class is available.
      *
      * @param options The initial values for the new status bar item.
      *
@@ -119,10 +117,23 @@ export class StatusBar extends ComponentBase<{}, IStatusBarState> {
                 items.push(item);
             } else {
                 item.text = text;
+
+                // Is there a timer for this item? If so, remove it and set a new timer.
+                const timer = singleton.current.#scheduledTimers.get(item.id);
+                if (timer) {
+                    clearTimeout(timer);
+                    singleton.current.#scheduledTimers.delete(item.id);
+                }
             }
 
             if (timeoutOrPromise === undefined || typeof timeoutOrPromise === "number") {
-                item.timeout = timeoutOrPromise;
+                item.timeout = timeoutOrPromise ?? 5000;
+                if (item.timeout !== undefined) {
+                    const timer = setTimeout(() => {
+                        item.hide();
+                    }, item.timeout);
+                    singleton.current.#scheduledTimers.set(item.id, timer);
+                }
             } else {
                 timeoutOrPromise.then(() => {
                     item.hide();
@@ -130,6 +141,7 @@ export class StatusBar extends ComponentBase<{}, IStatusBarState> {
                     item.hide();
                 });
             }
+            singleton.current.setState({ items });
 
             return {
                 dispose: () => {
@@ -157,11 +169,11 @@ export class StatusBar extends ComponentBase<{}, IStatusBarState> {
 
     public override componentWillUnmount(): void {
         // Clear the timers before unmounting
-        if (this.#scheduledTimers.length > 0) {
-            this.#scheduledTimers.forEach((timer) => {
-                clearTimeout(timer.timer);
-            });
-            this.#scheduledTimers = [];
+        if (this.#scheduledTimers.size > 0) {
+            for (const [_, timer] of this.#scheduledTimers) {
+                clearTimeout(timer);
+            }
+            this.#scheduledTimers = new Map();
         }
     }
 
@@ -180,6 +192,7 @@ export class StatusBar extends ComponentBase<{}, IStatusBarState> {
         const leftItems = items.filter((item) => {
             return item.alignment === StatusBarAlignment.Left && item.visible;
         });
+
         const rightItems = items.filter((item) => {
             return item.alignment === StatusBarAlignment.Right && item.visible;
         });

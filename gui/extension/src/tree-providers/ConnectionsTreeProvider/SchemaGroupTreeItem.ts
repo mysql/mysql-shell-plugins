@@ -23,36 +23,42 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { SchemaItemGroupType } from "./SchemaIndex.js";
-import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
+import {
+    CdmEntityType, type CdmSchemaGroupMemberType, type ICdmSchemaGroupEntry,
+} from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
-export class SchemaGroupTreeItem extends ConnectionsTreeBaseItem {
+export class SchemaGroupTreeItem<T extends CdmSchemaGroupMemberType>
+    extends ConnectionBaseTreeItem<ICdmSchemaGroupEntry<T>> {
 
     public override contextValue = `${String(this.label)}GroupItem`;
 
-    public constructor(
-        schema: string,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number,
-        public groupType: SchemaItemGroupType) {
-        super(groupType, schema, backend, connectionId, SchemaGroupTreeItem.getIconName(groupType), true);
+    public constructor(dataModelEntry: ICdmSchemaGroupEntry<T>) {
+        super(dataModelEntry, SchemaGroupTreeItem.getIonName(dataModelEntry.subType), true);
     }
 
-    private static getIconName(groupType: SchemaItemGroupType): string {
-        switch (groupType) {
-            case SchemaItemGroupType.Tables: {
+    private static getIonName(type: CdmSchemaGroupMemberType): string {
+        switch (type) {
+            case CdmEntityType.Table: {
                 return "schemaTables.svg";
             }
-            case SchemaItemGroupType.Views: {
+
+            case CdmEntityType.View: {
                 return "schemaViews.svg";
             }
-            case SchemaItemGroupType.Routines: {
-                return "schemaRoutines.svg";
+
+            case CdmEntityType.StoredFunction: {
+                return "schemaFunctions.svg";
             }
-            case SchemaItemGroupType.Events: {
+
+            case CdmEntityType.StoredProcedure: {
+                return "schemaProcedures.svg";
+            }
+
+            case CdmEntityType.Event: {
                 return "schemaEvents.svg";
             }
+
             default: {
                 return "";
             }

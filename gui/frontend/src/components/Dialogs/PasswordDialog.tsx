@@ -28,7 +28,7 @@ import "./PasswordDialog.css";
 import { ComponentChild, createRef } from "preact";
 
 import { requisitions } from "../../supplement/Requisitions.js";
-import { IServicePasswordRequest } from "../../app-logic/Types.js";
+import { IServicePasswordRequest } from "../../app-logic/general-types.js";
 import { Button, IButtonProperties } from "../ui/Button/Button.js";
 import { Codicon } from "../ui/Codicon.js";
 import { IComponentState, ComponentBase } from "../ui/Component/ComponentBase.js";

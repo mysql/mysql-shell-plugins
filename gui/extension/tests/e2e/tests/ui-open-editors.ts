@@ -183,17 +183,12 @@ describe("OPEN EDITORS", () => {
 
         await openEditorsTreeSection.clickToolbarButton(constants.collapseAll);
         const treeVisibleItems = await (await openEditorsTreeSection.getWebElement()).getVisibleItems();
-        expect(treeVisibleItems.length, `The tree items were not collapsed`).to.equals(3);
-        expect(await treeVisibleItems[0].getLabel(), errors.doesNotExistOnTree(constants.dbConnectionsLabel))
-            .to.equals(constants.dbConnectionsLabel);
-        expect(await treeVisibleItems[1].getLabel(), errors.doesNotExistOnTree(globalConn.caption))
-            .to.equals(globalConn.caption);
-        expect(await treeVisibleItems[2].getLabel(), errors.doesNotExistOnTree(constants.mysqlShellConsoles))
-            .to.equals(constants.mysqlShellConsoles);
+        expect(treeVisibleItems.length, `The tree items were not collapsed`).to.equals(1);
     });
 
     it("Open DB Connection Overview", async () => {
 
+        await openEditorsTreeSection.tree.expandElement([constants.dbDefaultEditor]);
         await (await openEditorsTreeSection.tree.getElement(constants.dbConnectionsLabel)).click();
         await Misc.switchToFrame();
         expect(await driver.wait(until.elementLocated(locator.notebook.toolbar.editorSelector.exists),

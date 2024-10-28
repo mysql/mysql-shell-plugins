@@ -136,6 +136,15 @@ export interface IHeatWaveProfileHistory {
     chatBotOptions?: string;
 }
 
+export interface IOciProfileConfig {
+    name: string;
+    user?: string;
+    fingerprint?: string;
+    tenancy?: string;
+    region?: string;
+    keyFile?: string;
+}
+
 export interface IHeatWaveProfileMatchedDocument {
     title?: string;
     segment?: string;
@@ -201,6 +210,11 @@ export interface IConnAdvancedSqlite {
     params?: string;
 }
 
+export interface ITreeDBConnection {
+    name: string;
+    isMySQL: boolean;
+}
+
 export interface IResultGridCell {
     rowNumber?: number;
     columnName: string;
@@ -212,6 +226,138 @@ export interface INotification {
     type: string;
     message: string;
     webElement?: WebElement;
+}
+
+export interface IRestServiceSettings {
+    mrsAdminUser?: string;
+    mrsAdminPassword?: string;
+    comments?: string;
+    hostNameFilter?: string;
+}
+
+export interface IRestServiceAuthentication {
+    authenticationPath?: string;
+    redirectionUrl?: string;
+    redirectionUrlValid?: string;
+    authCompletedChangeCont?: string;
+}
+
+export interface IRestService {
+    treeName?: string;
+    servicePath: string;
+    enabled?: boolean;
+    default?: boolean;
+    published?: boolean;
+    settings?: IRestServiceSettings;
+    options?: string;
+    authentication?: IRestServiceAuthentication;
+    authenticationApps?: IRestAuthenticationApp[];
+    restSchemas?: IRestSchema[];
+}
+
+export interface IRestSchema {
+    treeName?: string;
+    restServicePath?: string;
+    restSchemaPath?: string;
+    accessControl?: string;
+    requiresAuth?: boolean;
+    settings?: IRestSchemaSettings;
+    options?: string;
+    restObjects?: IRestObject[];
+}
+
+export interface IRestSchemaSettings {
+    schemaName?: string;
+    itemsPerPage?: string;
+    comments?: string;
+}
+
+export interface IRestObject {
+    treeName?: string;
+    restServicePath?: string;
+    restSchemaPath?: string;
+    restObjectPath?: string;
+    accessControl?: string;
+    requiresAuth?: boolean;
+    jsonRelDuality?: IRestObjectJsonDual;
+    settings?: IRestObjectSettings;
+    authorization?: IRestObjectAuthorization;
+    options?: string;
+}
+
+export interface IRestObjectJsonDual {
+    dbObject?: string;
+    sdkLanguage?: string;
+    columns?: IRestObjectColumn[];
+    crud?: IRestObjectCrud;
+}
+
+export interface IRestObjectCrud {
+    insert?: boolean;
+    update?: boolean;
+    delete?: boolean;
+}
+
+export interface IRestObjectColumn {
+    name?: string;
+    isSelected?: boolean;
+    rowOwnership?: boolean;
+    allowSorting?: boolean;
+    preventFiltering?: boolean;
+    preventUpdates?: boolean;
+    excludeETAG?: boolean;
+}
+
+export interface IRestObjectSettings {
+    resultFormat?: string;
+    itemsPerPage?: string;
+    comments?: string;
+    mediaType?: string;
+    autoDetectMediaType?: boolean;
+}
+
+export interface IRestObjectAuthorization {
+    authStoredProcedure?: string;
+}
+
+export interface IRestAuthenticationApp {
+    treeName?: string;
+    vendor: string;
+    name: string;
+    enabled?: boolean;
+    limitToRegisteredUsers?: boolean;
+    settings: {
+        description?: string;
+        defaultRole?: string;
+    },
+    oauth2settings?: {
+        appId?: string;
+        appSecret?: string;
+        customURL?: string;
+        customURLforAccessToken?: string;
+    },
+    options?: string;
+    user?: IRestUser[];
+}
+
+export interface IExportMrsSdk {
+    directory: string;
+    url: string;
+    apiLanguage: string;
+    appBaseClass: string;
+    sdkFileHeader: string;
+}
+
+export interface IRestUser {
+    username: string;
+    password?: string;
+    authenticationApp?: string;
+    email?: string;
+    assignedRoles?: string;
+    userOptions?: string;
+    permitLogin?: boolean;
+    vendorUserId?: string;
+    mappedUserId?: string;
 }
 
 export const isMySQLConnection = (obj: unknown): obj is IConnBasicMySQL => {

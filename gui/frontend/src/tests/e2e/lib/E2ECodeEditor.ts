@@ -31,7 +31,7 @@ import { driver } from "./driver.js";
 import { Os } from "./os.js";
 import { CommandResult } from "./CommandResult.js";
 import { E2EScript } from "./E2EScript.js";
-import { E2EShellSession } from "./E2EShellSession.js";
+import { E2EShellConsole } from "./E2EShellConsole.js";
 
 /**
  * This class represents the code editor that exist on notebooks, scripts or shell consoles
@@ -39,12 +39,12 @@ import { E2EShellSession } from "./E2EShellSession.js";
 export class E2ECodeEditor {
 
     /** The page it belongs to (it can be a notebook, script or shell console)*/
-    public parent: E2ENotebook | E2EScript | E2EShellSession;
+    public parent: E2ENotebook | E2EScript | E2EShellConsole;
 
     /** Collection of command result ids */
     public resultIds: string[] = [];
 
-    public constructor(parent: E2ENotebook | E2EScript | E2EShellSession) {
+    public constructor(parent: E2ENotebook | E2EScript | E2EShellConsole) {
         this.parent = parent;
     }
 
@@ -92,6 +92,53 @@ export class E2ECodeEditor {
     };
 
     /**
+     * Verifies if a word in the last query in the editor is identified as keyword
+     * @returns A condition resolving to true when a keyword is found, false otherwise
+     */
+    public untilKeywordExists = (): Condition<boolean> => {
+        return new Condition("for keyword to be displayed on last editor line", async () => {
+            //const keywords = ["mtk17", "mtk36", "mtk11", "mtk56"];
+            let exists = false;
+
+            await driver.wait(async () => {
+                try {
+                    const notebookLines = await driver.findElements(locator.notebook.codeEditor.editor.editorPrompt);
+                    const lastLine = notebookLines[notebookLines.length - 1];
+                    const words = await lastLine.findElement(locator.htmlTag.span).findElements(locator.htmlTag.span);
+
+                    for (const word of words) {
+                        const wordText = await word.getText();
+                        const wordClass = await word.getAttribute("class");
+
+                        if (wordText !== "" && wordClass !== "") {
+                            console.log(`word: ${wordText} (class: ${wordClass})`);
+                            if (wordClass !== "mtk9") {
+                                console.log("is keyword!!! ---------");
+                                exists = true;
+                            }
+                            /*for (const keywordRef of keywords) {
+                                if (wordClass.includes(keywordRef)) {
+                                    exists = true;
+                                }
+                            }*/
+                        } else {
+                            exists = true; // empty line
+                        }
+                    }
+
+                    return true;
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
+                }
+            }, constants.wait5seconds, `Could not check if keyword exists on the last line of the editor`);
+
+            return exists;
+        });
+    };
+
+    /**
      * Writes a command on the editor
      *
      * @param cmd The command
@@ -99,6 +146,10 @@ export class E2ECodeEditor {
      * @returns A promise resolving when the command is written
      */
     public write = async (cmd: string, slowWriting?: boolean): Promise<void> => {
+
+        let startIndex: number;
+        const lines = cmd.split("\n");
+
         await driver.wait(async () => {
             try {
                 const textArea = await driver.wait(until.elementLocated(locator.notebook.codeEditor.textArea),
@@ -109,23 +160,48 @@ export class E2ECodeEditor {
                     await driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.currentLine),
                         constants.wait2seconds, "Current line was not found"),
                 );
-                const lines = cmd.split("\n");
+
+                if (!startIndex) {
+                    startIndex = 0;
+                }
+
                 if (slowWriting) {
-                    for (let i = 0; i <= lines.length - 1; i++) {
+                    for (let i = startIndex; i <= lines.length - 1; i++) {
                         lines[i] = lines[i].trim();
                         const letters = lines[i].split("");
                         for (const letter of letters) {
                             await textArea.sendKeys(letter);
                             await driver.sleep(10);
                         }
+
+                        try {
+                            await driver.wait(this.untilKeywordExists(), constants.wait3seconds);
+                        } catch (e) {
+                            console.log(e);
+                            startIndex = i;
+                            await Os.keyboardDeleteCurrentLine();
+
+                            return false;
+                        }
+
                         if (i !== lines.length - 1 && lines.length > 1) {
                             await this.setNewLine();
                         }
                     }
-
                 } else {
                     for (let i = 0; i <= lines.length - 1; i++) {
                         await textArea.sendKeys(lines[i].trim());
+
+                        try {
+                            await driver.wait(this.untilKeywordExists(), constants.wait3seconds);
+                        } catch (e) {
+                            console.log(e);
+                            startIndex = i;
+                            await Os.keyboardDeleteCurrentLine();
+
+                            return false;
+                        }
+
                         if (i !== lines.length - 1 && lines.length > 1) {
                             await this.setNewLine();
                         }
@@ -134,15 +210,13 @@ export class E2ECodeEditor {
 
                 return true;
             } catch (e) {
-                if (e instanceof error.ElementNotInteractableError) {
-                    await this.scrollDown();
-                    const editorLines = await driver.findElements(locator.notebook.codeEditor.editor.currentLine);
-                    await driver.executeScript("arguments[0].click()", editorLines[editorLines.length - 1]);
-                } else if (!(e instanceof error.StaleElementReferenceError)) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
+                } else {
+                    await Os.keyboardDeleteCurrentLine();
                 }
             }
-        }, constants.wait5seconds, "Text area was not interactable");
+        }, constants.wait10seconds, `Could not write text on the code editor (StaleElementReferenceError)`);
 
         await driver.wait(until.elementLocated(locator.suggestWidget.exists), constants.wait150MilliSeconds)
             .then(async () => {
@@ -189,7 +263,7 @@ export class E2ECodeEditor {
      * @returns A promise resolving when the command is executed
      */
     public deleteCredentials = async (): Promise<void> => {
-        if (this.parent instanceof E2EShellSession) {
+        if (this.parent instanceof E2EShellConsole) {
             const cmd = "shell.deleteAllCredentials()";
             await this.write(cmd, false);
             await this.exec();
@@ -388,7 +462,7 @@ export class E2ECodeEditor {
         await this.write(cmd, slowWriting);
         await this.exec();
 
-        if (this.parent instanceof E2EShellSession) {
+        if (this.parent instanceof E2EShellConsole) {
             const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
             const commandResult = new CommandResult(this, cmd, nextId);
             await commandResult.loadResult();

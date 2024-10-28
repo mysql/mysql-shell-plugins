@@ -30,7 +30,7 @@ import { Container, Orientation } from "../components/ui/Container/Container.js"
 import { Label } from "../components/ui/Label/Label.js";
 import { Message } from "../components/ui/Message/Message.js";
 
-import { MessageType } from "./Types.js";
+import { MessageType } from "./general-types.js";
 
 type IErrorBoundaryProperties = IComponentProperties;
 

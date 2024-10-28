@@ -27,7 +27,7 @@ import "./NotificationCenter.css";
 
 import { createRef, type ComponentChild, type RefObject } from "preact";
 
-import { type Resolver } from "../../../app-logic/Types.js";
+import { type Resolver } from "../../../app-logic/general-types.js";
 import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
 import type { EditorLanguage } from "../../../supplement/index.js";
 import { Button } from "../Button/Button.js";
@@ -51,7 +51,7 @@ export interface INotification {
     type: NotificationType;
 
     /** The text of the message. */
-    caption: string;
+    text: string;
 
     /** An optional language specifier. */
     language?: EditorLanguage | "ansi";
@@ -277,7 +277,7 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
                     <Icon src={NotificationCenter.#typeToIconMap.get(details.type)} />
                     <Label
                         key={index}
-                        caption={details.caption}
+                        caption={details.text}
                         language={details.language}
                     />
                     <Button
@@ -378,7 +378,7 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
                     <Icon src={NotificationCenter.#typeToIconMap.get(details.type)} />
                     <Label
                         key={index}
-                        caption={details.caption}
+                        caption={details.text}
                         language={details.language}
                     />
                     <Button
@@ -650,7 +650,7 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
 
         await this.showNotification({
             type: NotificationType.Information,
-            caption,
+            text: caption,
         });
 
         return true;
@@ -667,7 +667,7 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
 
         await this.showNotification({
             type: NotificationType.Warning,
-            caption: message,
+            text: message,
         });
 
         return true;
@@ -684,7 +684,7 @@ export class NotificationCenter extends ComponentBase<INotificationCenterProps, 
 
         await this.showNotification({
             type: NotificationType.Error,
-            caption: message,
+            text: message,
         });
 
         return true;

@@ -33,7 +33,7 @@ import { ShellInterfaceCore } from "../../../../supplement/ShellInterface/ShellI
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
 import { setupShellForTests } from "../../test-helpers.js";
 import { versionMatchesExpected } from "../../../../utilities/helpers.js";
-import { preferredShellVersion } from "../../../../app-logic/Types.js";
+import { preferredShellVersion } from "../../../../app-logic/general-types.js";
 
 describe("ShellInterfaceCore Tests", () => {
     let launcher: MySQLShellLauncher;

@@ -23,6 +23,7 @@
         ],
         "sourceType": "module",
         "implicitStrict": true,
+        "cache": false,
         "ecmaFeatures": {},
         "ecmaVersion": 2022
     },
@@ -215,7 +216,7 @@
             "error",
             "WithStatement",
             {
-                "selector": "SwitchCase:has(*.consequent[type!=\"BlockStatement\"])",
+                "selector": "SwitchCase:matches([consequent.length>1], [consequent.length=1][consequent.0.type!='BlockStatement'])",
                 "message": "Switch cases without blocks are disallowed."
             }
         ],

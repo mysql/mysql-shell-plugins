@@ -128,9 +128,7 @@ export const dbConnectionOverview = {
         moreActions: By.id("tileMoreActionsAction"),
         moreActionsMenu: {
             exists: By.css("#tileActionMenu > div.popup.visible"),
-            editConnection: By.id("edit"),
-            duplicateConnection: By.id("duplicate"),
-            removeConnection: By.id("remove"),
+            item: By.css(".menuItem label"),
         },
         newNotebook: By.id("tileNewNotebookAction"),
         newScript: By.id("tileNewScriptAction"),
@@ -267,6 +265,7 @@ export const errorDialog = {
 };
 
 export const shellConsole = {
+    openNewShellConsole: By.id("newConsoleMenuButton"),
     editor: By.id("shellEditorHost"),
     connectionTab: {
         server: By.id("server"),
@@ -306,7 +305,7 @@ export const notebook = {
         textArea: By.css("textarea"),
         editor: {
             exists: By.className("monaco-editor-background"),
-            line: By.css("#contentHost .editorHost .view-line"),
+            line: By.css(".editorHost .view-line"),
             linesContent: By.className("lines-content"),
             currentLine: By.className("current-line"),
             lineNumber: By.css(".margin-view-overlays .line-numbers"),
@@ -361,34 +360,9 @@ export const notebook = {
                             icon: By.css(".iconHost .icon"),
                             contextMenu: {
                                 exists: By.css("#cellContextMenu .popup.visible"),
-                                capitalize: By.id("capitalizeMenuItem"),
-                                lowerCase: By.id("lowerCaseMenuItem"),
-                                upperCase: By.id("upperCaseMenuItem"),
-                                toggleForDeletion: By.id("deleteRowMenuItem"),
-                                copySingleRow: {
-                                    exists: By.id("copyRowSubmenu"),
-                                    subMenu: {
-                                        exists: By.css("#copyRowSubmenu .popup.visible"),
-                                        copyRow: By.id("copyRowMenuItem1"),
-                                        copyRowWithNames: By.id("copyRowMenuItem2"),
-                                        copyRowUnquoted: By.id("copyRowMenuItem3"),
-                                        copyRowWithNamesUnquoted: By.id("copyRowMenuItem4"),
-                                        copyRowWithNamesTabSeparated: By.id("copyRowMenuItem5"),
-                                        copyRowTabSeparated: By.id("copyRowMenuItem6"),
-                                    },
-                                },
-                                copyAllRows: {
-                                    exists: By.id("copyRowsSubmenu"),
-                                    subMenu: {
-                                        exists: By.css("#copyRowsSubmenu .popup.visible"),
-                                        copyAllRows: By.id("copyRowsMenuItem1"),
-                                        copyAllRowsWithNames: By.id("copyRowsMenuItem2"),
-                                        copyAllRowsUnquoted: By.id("copyRowsMenuItem3"),
-                                        copyAllRowsWithNamesUnquoted: By.id("copyRowsMenuItem4"),
-                                        copyAllRowsWithNamesTabSeparated: By.id("copyRowsMenuItem5"),
-                                        copyAllRowsTabSeparated: By.id("copyRowsMenuItem6"),
-                                    },
-                                },
+                                item: By.css(".menuItem > label"),
+                                copySingleRowSubMenu: By.css("#copyRowSubmenu .popup.visible"),
+                                copyAllRowsSubMenu: By.css("#copyRowsSubmenu .popup.visible"),
                                 setFieldToNull: By.id("setNullMenuItem"),
                                 copyField: By.id("copyFieldMenuItem"),
                                 copyFieldUnquoted: By.id("copyFieldUnquotedMenuItem"),
@@ -528,10 +502,10 @@ export const notebook = {
                 },
 
             },
-            promptLine: By.css(".view-lines.monaco-mouse-cursor-text > div"),
-            editorLine: By.css(".view-lines.monaco-mouse-cursor-text > div > span"),
-            wordInSentence: By.css(".view-lines.monaco-mouse-cursor-text > div > span span"),
-            editorPrompt: By.css(".view-lines.monaco-mouse-cursor-text .view-line"),
+            promptLine: By.css("#appHostPaneHost .view-lines.monaco-mouse-cursor-text > div"),
+            editorLine: By.css("#appHostPaneHost .view-lines.monaco-mouse-cursor-text > div > span"),
+            wordInSentence: By.css("#appHostPaneHost .view-lines.monaco-mouse-cursor-text > div > span span"),
+            editorPrompt: By.css("#appHostPaneHost .view-lines.monaco-mouse-cursor-text .view-line"),
             statementStart: By.className("statementStart"),
             cursorLine: By.css(".view-overlays > div"),
         },
@@ -614,8 +588,27 @@ export const findWidget = {
     textAreaReplace: By.xpath(".//textarea[@aria-label='Replace']"),
 };
 
+export const mrsSdkDialog = {
+    exists: By.id("mrsSdkExportDialog"),
+    directory: By.id("directory"),
+    serviceUrl: By.id("serviceUrl"),
+    sdkLanguageList: By.css("#sdkLanguagePopup .popup.visible"),
+    sdkLanguage: By.id("sdkLanguage"),
+    appBaseClass: By.id("addAppBaseClass"),
+    appBaseClassList: By.css("#addAppBaseClassPopup .popup.visible"),
+    sdkFileHeader: By.id("header"),
+    ok: By.id("ok"),
+    cancel: By.id("cancel"),
+};
+
+export const mrsDocumentation = {
+    title: By.css("h1"),
+    restServiceProperties: By.id("rest-service-properties"),
+};
+
 export const htmlTag = {
     label: By.css("label"),
+    labelClass: By.className("label"),
     span: By.css("span"),
     div: By.css("div"),
     img: By.css("img"),
@@ -700,27 +693,20 @@ export const debuggerPage = {
 };
 
 export const settingsPage = {
-    exists: By.id("settingsHost"),
-    icon: By.id("settings"),
-    menuItem: By.css(".settingsTreeCell label"),
-    settingsList: {
-        exists: By.id("settingsValueList"),
-        currentTheme: By.id("theming.currentTheme"),
-        openThemeEditorButton: By.xpath("//div[contains(@caption, 'Click to Open the Theme Editor')]"),
-        wordWrap: By.id("editor.wordWrap"),
-        wordWrapColumn: {
-            exists: By.id("editor.wordWrapColumn"),
-            up: By.css("#editor\\.wordWrapColumn #up"),
+    toggle: By.id("statusBarItem.0"),
+    exists: By.id("settingsTreeHost"),
+    themeSettings: {
+        currentTheme: {
+            exists: By.id("theming.currentTheme"),
+            selectList: {
+                exists: By.css("#theming\\.currentThemePopup .popup.visible"),
+                item: (theme: string): By => {
+                    return By.id(theme);
+                },
+            },
         },
-        invisibleCharacters: By.id("editor.showHidden"),
-        mysqlDBVersion: By.id("editor.dbVersion"),
-        sqlMode: By.id("editor.sqlMode"),
-        stopOnErrors: By.id("editor.stopOnErrors"),
-        dbEditorShowGreeting: By.id("dbEditor.connectionBrowser.showGreeting"),
-        limitCount: By.id("sql.limitRowCount"),
-        limitRowCount: By.id("sql.limitRowCount"),
-        shellShowGreeting: By.id("shellSession.sessionBrowser.showGreeting"),
     },
+
 };
 
 export const aboutPage = {
@@ -866,7 +852,6 @@ export const lakeHouseNavigator = {
             path: By.id("uploadTargetPath"),
             button: By.css(".loadingTaskActionButtons .button"),
             file: By.css(".loadingTaskItem .itemCaption"),
-            fileSelect: By.id("fileSelect"),
         },
     },
     loadIntoLakeHouse: {
@@ -943,5 +928,239 @@ export const lakeHouseNavigator = {
             },
         },
     },
+};
+
+export const hwDialog = {
+    exists: By.css("#mdsHWLoadDataDialog .valueEditDialog"),
+    schemas: By.id("schemas"),
+    schemasList: By.css("#schemasPopup .popup.visible"),
+    mode: By.id("mode"),
+    modeList: By.css("#modePopup .popup.visible"),
+    output: By.id("output"),
+    outputList: By.css("#outputPopup .popup.visible"),
+    disableUnsupportedColumns: By.id("disableUnsupportedColumns"),
+    optimizeLoadParallelism: By.id("optimizeLoadParallelism"),
+    enableMemoryCheck: By.id("enableMemoryCheck"),
+    sqlMode: By.id("sqlMode"),
+    excludeList: By.id("excludeList"),
+    ok: By.id("ok"),
+};
+
+export const dbTreeSection = {
+    exists: By.id("connectionSectionHost"),
+    actions: {
+        exists: By.className("actions"),
+        createNewDatabaseConnection: By.id("msg.addConnection"),
+        refreshConnections: By.id("msg.refreshConnections"),
+        collapseAll: By.id("msg.collapseAll"),
+    },
+};
+export const openEditorsTreeSection = {
+    exists: By.id("documentSectionHost"),
+    actions: {
+        exists: By.className("actions"),
+        addConsole: By.id("addConsole"),
+    },
+};
+export const ociTreeSection = {
+    exists: By.id("ociSectionHost"),
+    actions: {
+        exists: By.className("actions"),
+        refreshOCIProfiles: By.id("msg.mds.refreshOciProfiles"),
+        configureOCIProfile: By.id("msg.mds.configureOciProfiles"),
+    },
+};
+
+export const section = {
+    toggle: By.css(".title .codicon"),
+    isExpanded: By.css(".title .codicon-chevron-down"),
+    tree: {
+        element: {
+            exists: By.className("tabulator-row"),
+            toggle: By.css(".treeToggle.codicon"),
+            isExpanded: By.css(".treeToggle.codicon-chevron-down"),
+            icon: {
+                exists: By.className("icon"),
+                redDot: By.css(".iconHost .overlay"),
+            },
+            dbTreeEntry: By.id("mainCaption"),
+            ociTreeEntry: By.className("ociTreeEntry"),
+            openEditorTreeEntry: By.className("documentTreeEntry"),
+            label: By.className("label"),
+            actions: {
+                openNewDatabaseConnection: By.xpath(".//div[@data-tooltip='Open New Database Connection on New Tab']"),
+                refreshConnection: By.xpath(".//div[@data-tooltip='Refresh Connection']"),
+                newMySQLScript: By.xpath(".//div[@data-tooltip='New MySQL Script']"),
+                loadSQLScriptFromDisk: By.xpath(".//div[@data-tooltip='Load SQL Script from Disk...']"),
+                closeEditor: By.xpath(".//div[@data-tooltip='Close Document']"),
+            },
+            contextMenu: {
+                exists: By.css(".popup.visible"),
+                item: By.css(".menuItem .label"),
+                subMenu: {
+                    exists: By.css("#Submenu .popup.visible"),
+                    item: By.css(".menuItem .label"),
+                },
+            },
+        },
+    },
+    loadingBar: By.className("sectionProgress"),
+};
+
+export const tab = {
+    exists: By.css(".tabArea .tabItem"),
+    label: By.css("label"),
+    close: By.className("closeButton"),
+};
+
+export const fileSelect = By.id("fileSelect");
+export const mysqlShellWorkbench = By.className("accordionContent");
+
+export const mrsServiceDialog = {
+    exists: By.id("mrsServiceDialog"),
+    servicePath: By.id("servicePath"),
+    settings: {
+        mrsAdminUser: By.id("mrsAdminUser"),
+        mrsAdminUserPassword: By.id("mrsAdminUserPassword"),
+        comments: By.id("comments"),
+        hostNameFilter: By.id("hostName"),
+    },
+    optionsTab: By.id("page1"),
+    options: {
+        options: By.id("options"),
+    },
+    authenticationTab: By.id("page2"),
+    authentication: {
+        authPath: By.id("authPath"),
+        authCompletedUrl: By.id("authCompletedUrl"),
+        authCompletedUrlValidation: By.id("authCompletedUrlValidation"),
+        authCompletedPageContent: By.id("authCompletedPageContent"),
+    },
+    authenticationAppsTab: By.id("page3"),
+    authenticationApps: {
+        vendorNameList: By.id("authApps.authVendorNamePopup"),
+        vendorName: By.id("authApps.authVendorName"),
+        authAppsName: By.id("authApps.name"),
+        authAppsDescription: By.id("authApps.description"),
+        authAppsId: By.id("authApps.appId"),
+        authAppsAccessToken: By.id("authApps.accessToken"),
+        authAppsUrl: By.id("authApps.url"),
+        authAppsUrlDirectAuth: By.id("authApps.urlDirectAuth"),
+    },
+    ok: By.id("ok"),
+    cancel: By.id("cancel"),
+};
+
+export const mrsSchemaDialog = {
+    exists: By.id("mrsSchemaDialog"),
+    service: By.id("service"),
+    serviceList: By.id("servicePopup"),
+    serviceLabel: By.css("#service label"),
+    requestPath: By.id("requestPath"),
+    accessControl: {
+        exists: By.id("enabled"),
+        selectList: {
+            exists: By.css("#enabledPopup .popup.visible"),
+            disabled: By.id("Access DISABLED"),
+            enabled: By.id("Access ENABLED"),
+            private: By.id("PRIVATE Access Only"),
+        },
+    },
+    settings: {
+        dbSchemaName: By.id("dbSchemaName"),
+        itemsPerPage: By.id("itemsPerPage"),
+        comments: By.id("comments"),
+    },
+    optionsTab: By.id("page1"),
+    options: {
+        options: By.id("options"),
+    },
+    ok: By.id("ok"),
+    cancel: By.id("cancel"),
+};
+
+export const mrsAuthenticationAppDialog = {
+    exists: By.id("mrsAuthenticationAppDialog"),
+    authVendorName: By.id("authVendorName"),
+    authVendorNameList: By.id("authVendorNamePopup"),
+    authAppName: By.id("name"),
+    description: By.id("description"),
+    accessToken: By.id("accessToken"),
+    authAppId: By.id("appId"),
+    authAppUrl: By.id("url"),
+    urlDirectAuth: By.id("urlDirectAuth"),
+    defaultRoleName: By.id("defaultRoleName"),
+    defaultRoleList: By.id("defaultRoleNamePopup"),
+    authVendorNameLabel: By.css("#authVendorName label"),
+    defaultRoleNameLabel: By.css("#defaultRoleName label"),
+    options: By.id("options"),
+    ok: By.id("ok"),
+    cancel: By.id("cancel"),
+    tab: By.css(".tabItem > label"),
+};
+
+export const mrsUserDialog = {
+    exists: By.id("mrsUserDialog"),
+    username: By.id("name"),
+    password: By.id("authString"),
+    authApp: By.id("authApp"),
+    authAppList: By.id("authAppPopup"),
+    email: By.id("email"),
+    roles: By.id("roles"),
+    appOptions: By.id("appOptions"),
+    vendorUserId: By.id("vendorUserId"),
+    mappedUserId: By.id("mappedUserId"),
+    rolesLabel: By.css("#roles label"),
+    rolesList: By.id("rolesPopup"),
+    ok: By.id("ok"),
+    cancel: By.id("cancel"),
+};
+
+export const mrsDbObjectDialog = {
+    exists: By.id("mrsDbObjectDialog"),
+    service: By.id("service"),
+    schema: By.id("schema"),
+    accessControl: {
+        exists: By.id("enabled"),
+        selectList: {
+            exists: By.css("#enabledPopup .popup.visible"),
+            disabled: By.id("Access DISABLED"),
+            enabled: By.id("Access ENABLED"),
+            private: By.id("PRIVATE Access Only"),
+        },
+    },
+    requestPath: By.id("requestPath"),
+    serviceLabel: By.css("#service label"),
+    schemaLabel: By.css("#schema label"),
+    schemaList: By.id("schemaPopup"),
+    serviceList: By.id("servicePopup"),
+    jsonDuality: {
+        dbObject: By.id("dbObject"),
+        sdkLanguage: By.id("sdkLanguage"),
+        sdkLanguageList: By.id("sdkLanguagePopup"),
+        crud: By.css(".crudDiv div"),
+        dbObjJsonField: By.css(".mrsObjectJsonFieldDiv.withoutChildren"),
+        fieldOptionIcon: By.css(".fieldOptions > .icon"),
+        sdkLanguageLabel: By.css("#sdkLanguage label"),
+    },
+    settingsTab: By.id("page1"),
+    settings: {
+        resultFormat: By.id("crudOperationFormat"),
+        selectedResultFormat: By.css("#crudOperationFormat label"),
+        resultFormatList: By.id("crudOperationFormatPopup"),
+        itemsPerPage: By.id("itemsPerPage"),
+        comments: By.id("comments"),
+        mediaType: By.id("mediaType"),
+    },
+    authorizationTab: By.id("page2"),
+    authorization: {
+        authStoredProcedure: By.id("authStoredProcedure"),
+    },
+    optionsTab: By.id("page3"),
+    options: {
+        options: By.id("options"),
+    },
+    ok: By.id("ok"),
+    cancel: By.id("cancel"),
 };
 

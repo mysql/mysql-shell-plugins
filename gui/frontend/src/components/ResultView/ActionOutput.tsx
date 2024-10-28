@@ -35,6 +35,14 @@ import { Icon } from "../ui/Icon/Icon.js";
 import { JsonView } from "../ui/JsonView/JsonView.js";
 import { Label } from "../ui/Label/Label.js";
 
+// Have to declare this here because the type definition is missing in the TypeScript standard library:
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+interface CaretPosition {
+    offsetNode: Node;
+    offset: number;
+}
+
 interface IActionOutputProperties extends IComponentProperties {
     /** The output to display. */
     output?: ITextResultEntry[];
@@ -228,10 +236,12 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
         const y = e.clientY;
 
         if ("caretPositionFromPoint" in document) {
-            // Firefox only.
-            // See https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/caretPositionFromPoint
-            // Need that cast because the type definition does not include the method declaration
-            range = (document.caretPositionFromPoint as (x: number, y: number) => globalThis.Range)(x, y);
+            // See https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/caretPositionFromPoint.
+            const caretPosition = (document.caretPositionFromPoint as (x: number, y: number) => CaretPosition)(x, y);
+
+            // Convert the caret position to a range.
+            range = document.createRange();
+            range.setStart(caretPosition.offsetNode, caretPosition.offset);
         } else {
             range = document.caretRangeFromPoint(x, y);
         }

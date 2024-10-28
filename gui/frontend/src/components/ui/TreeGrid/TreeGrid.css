@@ -43,6 +43,7 @@
     --handleWidth: 0px;
     --headerMargin: 4px;
 
+    font-size: 13px;
     background: none;
 }
 
@@ -251,7 +252,6 @@
 
 /* row element */
 .msg.treeGrid.tabulator .tabulator-row {
-    min-height: calc(1em + (var(--headerMargin) * 2));
     margin-bottom: 0;
     border: none;
 }
@@ -269,13 +269,17 @@
     background-color: var(--list-hoverBackground);
 }
 
-.msg.treeGrid.tabulator .tabulator-row.tabulator-selected .tabulator-cell {
+.msg.treeGrid.tabulator:focus-within .tabulator-row.tabulator-selected .tabulator-cell {
     background-color: var(--list-activeSelectionBackground);
     color: var(--list-activeSelectionForeground);
 }
 
-.msg.treeGrid.tabulator .tabulator-row.tabulator-selected:hover .tabulator-cell {
-    background-color: var(--list-activeSelectionBackground);
+.msg.treeGrid.tabulator .tabulator-row.tabulator-selected .tabulator-cell {
+    background-color: var(--list-inactiveSelectionBackground);
+    color: var(--list-activeSelectionForeground);
+}
+
+.msg.treeGrid.tabulator:not(:focus-within) .tabulator-row.tabulator-selected:hover .tabulator-cell {
     cursor: pointer;
     filter: brightness(90%);
 }
@@ -401,12 +405,24 @@
 .msg.treeGrid.tabulator .tabulator-row .tabulator-cell .tabulator-data-tree-branch-empty {
     /*
      * Keep the (hidden) tree branch element from automatic shrinking, as that creates an odd visual effect.
-     * Unfortunately, this element cannot be removed from the DOM, as it is used to determine the indentation.
+     * Additionally set its width to 0, otherwise it will mess up the layout.
      */
     flex: none;
     width: 0;
     height: 100%;
 }
+
+/* Hack: */
+
+.msg.treeGrid.tabulator .tabulator-row .tabulator-cell .tabulator-data-tree-branch-empty:not(:has(+ .treeToggle)) {
+    /*
+     * Rows with no tree toggle are not indented properly (as some of the indentation comes from the toggle).
+     * So we add some extra margin here, which is based on the tree toggle width (see `.treeToggle: :after` below)
+     */
+    margin-right: 32px;
+}
+
+/* End Hack: */
 
 /* row grouping element */
 .msg.treeGrid.tabulator .tabulator-row.tabulator-group {
@@ -431,29 +447,8 @@
 }
 
 .msg.treeGrid.tabulator .treeToggle {
-    display: inline-block;
+    display: flex;
     cursor: pointer;
     user-select: none;
-}
-
-.msg.treeGrid.tabulator .treeToggle::after {
-    display: block;
-    position: relative;
-    content: "";
-
-    margin-left: 0.2em;
-    margin-right: 0.6em;
-    width: 0.5em;
-    height: 0.5em;
-
-    border-right: 1px solid var(--icon-foreground);
-    border-bottom: 1px solid var(--icon-foreground);
-
-    transform: rotate(-45deg);
-    transition: transform 0.25s
-}
-
-.msg.treeGrid.tabulator .treeToggle.expanded::after {
-    transform: translateX(2px) translateY(-2px) rotate(45deg);
-    transition: transform 0.25s
+    padding: 0 6px 0 8px;
 }

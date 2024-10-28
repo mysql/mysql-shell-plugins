@@ -28,7 +28,7 @@ import * as fs from "fs";
 import { MySQLParsingServices } from "../../../../parsing/mysql/MySQLParsingServices.js";
 import { MySQLParseUnit } from "../../../../parsing/mysql/MySQLServiceTypes.js";
 import { StatementFinishState } from "../../../../parsing/parser-common.js";
-import { checkMinStatementVersion, fail } from "../../test-helpers.js";
+import { checkStatementVersion, fail } from "../../test-helpers.js";
 
 interface ITestFile {
     name: string;
@@ -57,7 +57,7 @@ const runParserTests = () => {
             const statement = sql.substring(range.span.start, end).trim();
 
             // The parser only supports syntax from 8.0 onwards. So we expect errors for older statements.
-            const checkResult = checkMinStatementVersion(statement, 80200);
+            const checkResult = checkStatementVersion(statement, 80200);
             if (checkResult.matched) {
                 const result = services.errorCheck(checkResult.statement, MySQLParseUnit.Generic,
                     checkResult.version, "ANSI_QUOTES");

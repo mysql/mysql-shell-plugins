@@ -23,59 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-.msg.connectionTabHost {
+.msg.dbModuleTabview,
+.msg#shellEditorHost {
     flex: 1 1 auto;
-}
-
-.msg.connectionTabHost .scriptingExplorer {
-    flex: 1 1 auto;
-}
-
-.msg.connectionTabHost .scriptingExplorer .image {
-    width: 16px;
-    height: 16px;
-}
-
-.msg.connectionTabHost .scriptingExplorer .marked {
-    font-weight: 900;
-}
-
-.msg.connectionTabHost .scriptingExplorer .tabulator-tableholder {
-    overflow-x: hidden;
-}
-
-.msg.connectionTabHost .scriptingExplorer .tabulator-row .tabulator-cell {
-    display: flex;
-}
-
-.msg.connectionTabHost .scriptingExplorer .tabulator-row.marked .tabulator-cell:first-child {
-    /* The first cell in a marked row needs a small adjustment to align properly with unmarked rows. */
-    padding-left: 1px;
-}
-
-.msg.connectionTabHost .scriptingExplorer .input {
-    margin-left: 40px;
-}
-
-.msg.connectionTabHost .scriptingExplorer .schemaTreeEntry {
-    display: flex;
-    flex-direction: row;
-    user-select: none;
-    align-items: center;
-    overflow: hidden;
-    height: 24px;
-    align-self: center;
-
-    /* Corresponds to the width of the tree toggle and is used when there are no children and hence no toggle. */
-    padding-left: 19px;
-}
-
-.msg.connectionTabHost .scriptingExplorer .treeToggle + .schemaTreeEntry {
-    padding-left: 0;
-}
-
-.msg.connectionTabHost .scriptingExplorer .schemaTreeEntry > .label {
-    user-select: none;
 }
 
 .msg.dbModuleTabview .closeButton {
@@ -85,6 +35,26 @@
 
     border: none;
     background: transparent;
+}
+
+.msg #mainSplitHost {
+    flex: 1 1 auto;
+
+    background-color: var(--background);
+}
+
+.msg #mainSplitHost .connectionBrowser {
+    flex: 1 1 auto;
+}
+
+.msg #mainSplitHost .sessionBrowser {
+    flex: 0 0 auto;
+    padding-bottom: 10px;
+}
+
+.msg.dbModuleTabview #overviewHost {
+    flex: 1;
+    align-self: stretch;
 }
 
 .msg.dbModuleTabview #loadingProgressIndicator {
@@ -101,19 +71,23 @@
 }
 
 .msg.connectionBrowser #connectionOverviewToolbar,
-.msg.connectionTabHost #dbEditorToolbar,
-.msg.connectionTabHost #serverStatusToolbar,
-.msg.connectionTabHost #clientConnectionToolbar,
-.msg.connectionTabHost #lakehouseNavigatorToolbar,
-.msg.connectionTabHost #dashboardToolbar {
+.msg.dbModuleTabview #dbEditorToolbar,
+.msg.dbModuleTabview #serverStatusToolbar,
+.msg.dbModuleTabview #clientConnectionToolbar,
+.msg.dbModuleTabview #dashboardToolbar,
+.msg.dbModuleTabview #simpleEditorToolbar {
     min-height: 36px;
     flex: 0 0 32px;
     margin: 0;
     padding: 4px 8px;
 }
 
-.msg.connectionTabHost #dbEditorToolbar #newScriptMenuButton {
+.msg.dbModuleTabview #dbEditorToolbar #newScriptMenuButton {
     margin-left: 4px;
+}
+
+.msg.connectionTabHost {
+    flex: 1 1 auto;
 }
 
 .msg.connectionTabHost #dbEditorToolbar #lakehouseNavigatorButton {
@@ -121,12 +95,12 @@
 }
 
 .msg.connectionBrowser .toolbar > .label,
-.msg.connectionTabHost .toolbar > .label {
+.msg.dbModuleTabview .toolbar > .label {
     white-space: nowrap;
 }
 
 .msg.connectionBrowser #documentSelector,
-.msg.connectionTabHost #documentSelector {
+.msg.dbModuleTabview #documentSelector {
     flex: 0 0 210px;
     margin: 0;
 }
@@ -145,7 +119,7 @@
 }
 
 .msg.connectionBrowser .toolbar .button,
-.msg.connectionTabHost .toolbar .button {
+.msg.dbModuleTabview .toolbar .button {
     flex: 0 0 auto;
 
     min-width: 0;
@@ -157,56 +131,56 @@
 }
 
 .msg.connectionBrowser .toolbar .button > .icon,
-.msg.connectionTabHost .toolbar .button > .icon {
+.msg.dbModuleTabview .toolbar .button > .icon {
     background-color: var(--titleBar-activeForeground);
 }
 
-.msg.connectionTabHost .editorHost .resultText,
-.msg.connectionTabHost .editorHost .resultText code {
+.msg.dbModuleTabview .editorHost .resultText,
+.msg.dbModuleTabview .editorHost .resultText code {
     font-family: var(--msg-monospace-font-family);
 }
 
-.msg.connectionTabHost .toolbar .divider {
+.msg.dbModuleTabview .toolbar .divider {
     flex: 0 0 2px;
     margin: 0 10px;
     background-color: var(--button-border);
 }
 
 /* Definitions for standalone editors. */
-.msg.connectionTabHost .standaloneScriptHost {
+.msg.dbModuleTabview .standaloneScriptHost {
     flex: 1;
 }
 
-.msg.connectionTabHost .resultHost {
+.msg.dbModuleTabview .resultHost {
     flex: 1;
     margin-top: 4px;
     margin-right: 4px;
 }
 
-.msg.connectionTabHost .resultHost .selectorItem .label {
+.msg.dbModuleTabview .resultHost .selectorItem .label {
     font-size: 0.7rem;
     font-weight: 300;
 }
 
-.msg.connectionTabHost .standaloneScriptHost .renderTarget {
+.msg.dbModuleTabview .standaloneScriptHost .renderTarget {
     flex: 1;
 }
 
-.msg.connectionTabHost .standaloneScriptHost .resultHost {
+.msg.dbModuleTabview .standaloneScriptHost .resultHost {
     border-radius: 0;
 }
 
-.msg.connectionTabHost #itemLoadButton .icon,
-.msg.connectionTabHost #itemSaveButton .icon {
+.msg.dbModuleTabview #itemLoadButton .icon,
+.msg.dbModuleTabview #itemSaveButton .icon {
     width: 16px;
     height: 16px;
 }
 
-.msg.connectionTabHost #itemCloseButton {
+.msg.dbModuleTabview #itemCloseButton {
     margin-left: 4px;
 }
 
-.msg.connectionTabHost #itemCloseButton .icon {
+.msg.dbModuleTabview #itemCloseButton .icon {
     width: 16px;
     height: 16px;
 }
@@ -514,4 +488,281 @@
 .msg.codeEditor.scriptingConsole .line-numbers {
     font-size: 12px;
     padding-right: 10px;
+}
+
+.msg#shellEditorHost #embeddedSessionToolbar {
+    padding: 4px 8px;
+}
+
+.msg#shellEditorHost #embeddedSessionToolbar #sessionSelector {
+    flex: 0 0 200px;
+    margin: 0 3px 0 6px;
+}
+
+.msg#shellEditorHost {
+    flex: 1 1 auto;
+}
+
+.msg#shellEditorHost .renderTarget .textHost {
+    flex: 1 1 auto;
+}
+
+.msg#shellEditorHost .renderTarget > .textHost > .label[data-lang] {
+    font-family: var(--msg-monospace-font-family);
+}
+
+.msg#shellEditorHost .renderTarget .textHost .resultText {
+    flex: 0 0 auto;
+    height: auto;
+    padding-left: 0;
+    white-space: pre-wrap;
+}
+
+.msg#shellEditorHost .resultText,
+.msg#shellEditorHost .resultText code {
+    font-family: var(--msg-monospace-font-family);
+}
+
+.msg#shellEditorHost .renderTarget .resultText {
+    background: none;
+
+    user-select: text;
+}
+
+.msg#shellEditorHost .renderTarget > .resultStatus > .message {
+    padding: 0 0 0 4px;
+    border: none;
+    border-radius: 0;
+    flex: 1 1 auto;
+}
+
+.msg#shellEditorHost .resultText .label,
+.msg#shellEditorHost .resultText .error {
+    white-space: pre-wrap;
+    height: 100%;
+
+    overflow: auto;
+    user-select: text;
+}
+
+.msg#shellEditorHost .resultText.error .label {
+    color: var(--errorForeground);
+}
+
+.msg#shellEditorHost .resultStatus {
+    background: none;
+}
+
+.msg#shellEditorHost .resultStatus .message {
+    user-select: text;
+}
+
+/* Colors for text with ANSI escape codes. */
+.msg#shellEditorHost .resultText .ansi-bold {
+    font-weight: 800;
+    color: var(--terminal-ansiWhite);
+}
+
+.msg#shellEditorHost .resultText .ansi-black-fg {
+    color: var(--terminal-ansiBlack);
+}
+
+.msg#shellEditorHost .resultText .ansi-red-fg {
+    color: var(--terminal-ansiRed);
+}
+
+.msg#shellEditorHost .resultText .ansi-green-fg {
+    color: var(--terminal-ansiGreen);
+}
+
+.msg#shellEditorHost .resultText .ansi-yellow-fg {
+    color: var(--terminal-ansiYellow);
+}
+
+.msg#shellEditorHost .resultText .ansi-blue-fg {
+    color: var(--terminal-ansiBlue);
+}
+
+.msg#shellEditorHost .resultText .ansi-magenta-fg {
+    color: var(--terminal-ansiMagenta);
+}
+
+.msg#shellEditorHost .resultText .ansi-cyan-fg {
+    color: var(--terminal-ansiCyan);
+}
+
+.msg#shellEditorHost .resultText .ansi-white-fg {
+    color: var(--terminal-ansiWhite);
+}
+
+.msg#shellEditorHost .resultText .ansi-bright-black-fg {
+    color: var(--terminal-ansiBrightBlack);
+}
+
+.msg#shellEditorHost .resultText .ansi-bright-red-fg {
+    color: var(--terminal-ansiBrightRed);
+}
+
+.msg#shellEditorHost .resultText .ansi-bright-green-fg {
+    color: var(--terminal-ansiBrightGreen);
+}
+
+.msg#shellEditorHost .resultText .ansi-bright-yellow-fg {
+    color: var(--terminal-ansiBrightYellow);
+}
+
+.msg#shellEditorHost .resultText .ansi-bright-blue-fg {
+    color: var(--terminal-ansiBrightBlue);
+}
+
+.msg#shellEditorHost .resultText .ansi-bright-magenta-fg {
+    color: var(--terminal-ansiBrightMagenta);
+}
+
+.msg#shellEditorHost .resultText .ansi-bright-cyan-fg {
+    color: var(--terminal-ansiBrightCyan);
+}
+
+.msg#shellEditorHost .resultText .ansi-bright-white-fg {
+    color: var(--terminal-ansiBrightWhite);
+}
+
+.msg#shellEditorHost .resultText .ansi-black-bg {
+    background: var(--terminal-ansiBlack);
+}
+
+.msg#shellEditorHost .resultText .ansi-red-bg {
+    background: var(--terminal-ansiRed);
+}
+
+.msg#shellEditorHost .resultText .ansi-green-bg {
+    background: var(--terminal-ansiGreen);
+}
+
+.msg#shellEditorHost .resultText .ansi-yellow-bg {
+    background: var(--terminal-ansiYellow);
+}
+
+.msg#shellEditorHost .resultText .ansi-blue-bg {
+    background: var(--terminal-ansiBlue);
+}
+
+.msg#shellEditorHost .resultText .ansi-magenta-bg {
+    background: var(--terminal-ansiMagenta);
+}
+
+.msg#shellEditorHost .resultText .ansi-cyan-bg {
+    background: var(--terminal-ansiCyan);
+}
+
+.msg#shellEditorHost .resultText .ansi-white-bg {
+    background: var(--terminal-ansiWhite);
+}
+
+/* Shell prompt */
+
+.msg#shellEditorHost .shellPrompt {
+    height: 22px;
+
+    font-family: var(--msg-monospace-font-family);
+    font-size: 1em;
+}
+
+.msg#shellEditorHost .shellPromptItem {
+    padding: 0 10px 0 20px;
+    margin-top: -1px;
+    overflow: visible;
+}
+
+.msg#shellEditorHost .shellPromptItem:first-child {
+    padding: 0 12px 0 12px;
+}
+
+.msg#shellEditorHost .shellPromptItem::after {
+    content: "";
+    display: inline-block;
+    position: absolute;
+
+    width: 11.7px;
+    height: 11.7px;
+
+    margin-top: 2px;
+
+    transform: rotate(135deg);
+}
+
+body[theme=dark] .msg#shellEditorHost .shellPromptItem#server {
+    background: hsl(0, 0%, 23%);
+}
+
+body[theme=light] .msg#shellEditorHost .shellPromptItem#server {
+    background: #A8A8A8;
+}
+
+body[theme=dark] .msg#shellEditorHost .shellPromptItem#server::after {
+    margin-left: 6px;
+
+    background: hsl(0, 0%, 23%);
+}
+
+body[theme=light] .msg#shellEditorHost .shellPromptItem#server::after {
+    margin-left: 6px;
+
+    background: #A8A8A8;
+}
+
+body[theme=dark] .msg#shellEditorHost .shellPromptItem#schema {
+    background: hsl(0, 0%, 42%);
+}
+
+body[theme=light] .msg#shellEditorHost .shellPromptItem#schema {
+    background: #D8D8D8;
+}
+
+body[theme=dark] .msg#shellEditorHost .shellPromptItem#schema::after {
+    margin-left: 4px;
+
+    background: hsl(0, 0%, 42%);
+}
+
+body[theme=light] .msg#shellEditorHost .shellPromptItem#schema::after {
+    margin-left: 3px;
+
+    background: #D8D8D8;
+}
+
+.msg.shellPromptSchemaMenu {
+    font-family: var(--msg-monospace-font-family);
+    font-size: 0.9rem;
+}
+
+.msg.shellPromptSchemaMenu .menuItem {
+    padding: 2px 4px;
+}
+
+.msg.portal#shellPromptDialog .valueEditDialog {
+    min-width: 600px;
+    left: auto;
+    right: 40px;
+    top: auto;
+    bottom: 40px;
+    transform: none;
+}
+
+.msg.portal#shellPromptDialog .valueEditDialog > .content {
+    padding: 0 32px 8px 32px;
+    margin-top: 0;
+}
+
+.msg#shellEditorHost #loadingProgressIndicator {
+    width: 100%;
+    position: absolute;
+    height: 100%;
+}
+
+.msg#shellEditorHost #progressMessageId {
+    width: 100%;
+    text-align: center;
+    top: calc(50% + 70px);
+    position: relative;
 }

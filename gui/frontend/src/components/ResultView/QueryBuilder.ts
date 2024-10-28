@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { DBDataType, IColumnInfo, defaultValues } from "../../app-logic/Types.js";
+import { DBDataType, IColumnInfo, defaultValues } from "../../app-logic/general-types.js";
 import { formatBase64ToHex } from "../../utilities/string-helpers.js";
 
 /**
@@ -43,7 +43,6 @@ export class QueryBuilder {
         this.#pkColumns = this.#columns.filter((column) => {
             return column.inPK;
         });
-
     }
 
     private static escapeControlChars(value: string): string {
@@ -135,8 +134,9 @@ export class QueryBuilder {
             if (!column.autoIncrement) {
                 insertColumns.push(column);
                 let value = newValues[index];
+
                 // Ensure to escape control chars of string values
-                if (typeof(value) === "string") {
+                if (typeof value === "string") {
                     value = QueryBuilder.escapeControlChars(value);
                 }
                 insertValues.push(value);
@@ -169,8 +169,9 @@ export class QueryBuilder {
         for (let i = 0; i < changedColumns.length; ++i) {
             const column = changedColumns[i];
             let value = mappedValues[i];
+
             // Ensure to escape control chars of string values
-            if (typeof(value) === "string") {
+            if (typeof value === "string") {
                 value = QueryBuilder.escapeControlChars(value);
             }
             changes.push(`${column} = ${value}`);

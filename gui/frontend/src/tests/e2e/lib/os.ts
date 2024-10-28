@@ -21,7 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+
 import { existsSync } from "fs";
+import { spawnSync } from "child_process";
 import { appendFile, readFile, writeFile } from "fs/promises";
 import { platform } from "os";
 import { join } from "path";
@@ -145,18 +147,22 @@ export class Os {
     };
 
     /**
+     * Verifies if the current os is linux
+     * @returns A promise resolving with true if the current os is macos, false otherwise
+     */
+    public static isLinux = (): boolean => {
+        return platform() === "linux";
+    };
+
+    /**
      * Presses CTRL+V
      * @param el The element to perform the action on
      * @returns A promise resolving when the command is executed
      */
     public static keyboardPaste = async (el?: WebElement): Promise<void> => {
-        if (Os.isMacOs()) {
-            await driver.executeScript("arguments[0].click()", el);
-            await el!.sendKeys(Key.chord(Key.COMMAND, "v"));
-        } else {
-            await driver.executeScript("arguments[0].click()", el);
-            await el!.sendKeys(Key.chord(Key.CONTROL, "v"));
-        }
+        await driver.executeScript("arguments[0].click()", el);
+        await driver.sleep(500);
+        await el!.sendKeys(Key.chord(Os.isMacOs() ? Key.COMMAND : Key.CONTROL, "v"));
     };
 
     /**
@@ -165,13 +171,9 @@ export class Os {
      * @returns A promise resolving when the command is executed
      */
     public static keyboardSelectAll = async (el: WebElement): Promise<void> => {
-        if (Os.isMacOs()) {
-            await driver.executeScript("arguments[0].click()", el);
-            await el.sendKeys(Key.chord(Key.COMMAND, "a"));
-        } else {
-            await driver.executeScript("arguments[0].click()", el);
-            await el.sendKeys(Key.chord(Key.CONTROL, "a"));
-        }
+        const key = Os.isMacOs() ? Key.COMMAND : Key.CONTROL;
+        await driver.executeScript("arguments[0].click()", el);
+        await el.sendKeys(Key.chord(key, "a"));
     };
 
     /**
@@ -180,17 +182,45 @@ export class Os {
      * @returns A promise resolving when the command is executed
      */
     public static keyboardCopy = async (el?: WebElement): Promise<void> => {
+        const key = Os.isMacOs() ? Key.COMMAND : Key.CONTROL;
+
         await driver.wait(async () => {
-            if (Os.isMacOs()) {
+            if (el) {
                 await driver.executeScript("arguments[0].click()", el);
-                await el!.sendKeys(Key.chord(Key.COMMAND, "c"));
+                await el.sendKeys(Key.chord(key, "c"));
             } else {
-                await driver.executeScript("arguments[0].click()", el);
-                await el!.sendKeys(Key.chord(Key.CONTROL, "c"));
+                await driver.actions().keyDown(key).sendKeys("c").keyUp(key).perform();
             }
 
             return (await this.readClipboard()) !== "";
         }, constants.wait5seconds, `The clipboard is empty`);
+    };
+
+    /**
+     * Selects and deletes the current line text
+     */
+    public static keyboardDeleteCurrentLine = async (): Promise<void> => {
+        if (Os.isMacOs()) {
+            await driver.actions()
+                .keyDown(Key.COMMAND)
+                .keyDown(Key.SHIFT)
+                .keyDown(Key.ARROW_LEFT)
+                .keyUp(Key.ARROW_LEFT)
+                .keyUp(Key.COMMAND)
+                .keyUp(Key.SHIFT)
+                .keyDown(Key.BACK_SPACE)
+                .keyUp(Key.BACK_SPACE)
+                .perform();
+        } else {
+            await driver.actions()
+                .keyDown(Key.SHIFT)
+                .keyDown(Key.END)
+                .keyUp(Key.END)
+                .keyUp(Key.SHIFT)
+                .keyDown(Key.BACK_SPACE)
+                .keyUp(Key.BACK_SPACE)
+                .perform();
+        }
     };
 
     /**
@@ -208,5 +238,15 @@ export class Os {
         }
     };
 
+    /**
+     * Deletes all credentials for database access using shell
+     */
+    public static deleteShellCredentials = (): void => {
+        const params = ["--js", "-e", "shell.deleteAllCredentials()"];
+        const response = spawnSync("mysqlsh", params);
 
+        if (response.status !== 0) {
+            throw response.error;
+        }
+    };
 }

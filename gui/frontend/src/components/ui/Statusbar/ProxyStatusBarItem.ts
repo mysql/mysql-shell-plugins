@@ -23,8 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import type { IAccessibilityInformation } from "../../../app-logic/Types.js";
-import { requisitions, type IUpdateStatusBarItem } from "../../../supplement/Requisitions.js";
+import type { IAccessibilityInformation } from "../../../app-logic/general-types.js";
+import type { IUpdateStatusBarItem } from "../../../supplement/RequisitionTypes.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
 import type { ThemeColor } from "../../Theming/ThemeColor.js";
 import { IStatusBarItem, IStatusBarItemOptions, StatusBarAlignment } from "./StatusBarItem.js";
 
@@ -52,7 +53,7 @@ export class ProxyStatusBarItem implements IStatusBarItem {
 
     public constructor(options: IStatusBarItemOptions) {
         this.#id = "msg." + (options.id ?? `statusBarItem.${ProxyStatusBarItem.#nextId++}`);
-        this.#text = options.text;
+        this.#text = options.text ?? "";
         this.#alignment = options.alignment ?? StatusBarAlignment.Left;
         this.#priority = options.priority;
         this.#timeout = options.timeout;

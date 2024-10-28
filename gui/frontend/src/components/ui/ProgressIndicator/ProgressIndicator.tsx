@@ -31,19 +31,23 @@ import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.
 import { Container, Orientation, ContentAlignment } from "../Container/Container.js";
 
 interface IProgressIndicatorProperties extends IComponentProperties {
-    // The opacity of the indicator host container (default: 1).
+    /** The opacity of the indicator host container (default: 1). */
     backgroundOpacity?: number;
 
-    // True for a linear indicator, false for a circular one (default: false).
+    /** True for a linear indicator, false for a circular one (default: false). */
     linear?: boolean;
 
-    // A value between 0 and 1 (inclusive, default: undefined).
-    // If no position is specified, the indicator will be indeterminate.
+    /**
+     * A value between 0 and 1 (inclusive, default: undefined).
+     * If no position is specified, the indicator will be indeterminate.
+     */
     position?: number;
 
-    // Manually specify a width and height value for the indicator itself (not the host).
-    // If not given default values are used, depending on the indicator style.
-    // For circular indicators both values should be equal.
+    /**
+     * Manually specify a width and height value for the indicator itself (not the host).
+     * If not given default values are used, depending on the indicator style.
+     * For circular indicators both values should be equal.
+     */
     indicatorWidth?: number;
     indicatorHeight?: number;
     stroke?: number;

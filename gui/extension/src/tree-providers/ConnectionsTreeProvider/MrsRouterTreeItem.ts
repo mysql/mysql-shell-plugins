@@ -24,34 +24,32 @@
  */
 
 import { IMrsRouterData } from "../../../../frontend/src/communication/ProtocolMrs.js";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import type { ICdmRestRouterEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
-export class MrsRouterTreeItem extends MrsTreeBaseItem {
+export class MrsRouterTreeItem extends MrsTreeBaseItem<ICdmRestRouterEntry> {
     public override contextValue = "mrsRouter";
 
-    public constructor(
-        label: string,
-        public value: IMrsRouterData,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number,
-        requiresUpgrade: boolean) {
-        super(label, backend, connectionId, MrsRouterTreeItem.getIconName(value, requiresUpgrade), true);
+    public constructor(dataModelEntry: ICdmRestRouterEntry) {
+        const value = dataModelEntry.details;
+        super(dataModelEntry, MrsRouterTreeItem.getIconName(value, dataModelEntry.requiresUpgrade), true);
 
         if (value.options && value.options.developer) {
             this.description = `[${String(value.options.developer)}] ${value.version}`;
         } else {
             this.description = value.version;
         }
-        this.tooltip = requiresUpgrade
+
+        this.tooltip = dataModelEntry.requiresUpgrade
             ? "This MySQL Router requires an upgrade."
-            : `MySQL Router ${value.version} - ${value.address}`;
+            : `MySQL Router ${dataModelEntry.details.version} - ${dataModelEntry.details.address}`;
     }
 
     private static getIconName = (value: IMrsRouterData, requiresUpgrade: boolean): string => {
         if (requiresUpgrade) {
             return "routerError.svg";
         }
+
         if (!value.active) {
             return "routerNotActive.svg";
         }

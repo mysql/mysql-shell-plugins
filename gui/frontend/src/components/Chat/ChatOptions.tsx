@@ -24,24 +24,24 @@
 import "./ChatOptions.css";
 
 import { ComponentChild, createRef, render } from "preact";
-import { ComponentBase, IComponentProperties, IComponentState } from "../ui/Component/ComponentBase.js";
-import { Container, ContentAlignment, Orientation } from "../ui/Container/Container.js";
-import { Label } from "../ui/Label/Label.js";
-import { Button } from "../ui/Button/Button.js";
-import { ITag, ITagInputProperties, TagInput } from "../ui/TagInput/TagInput.js";
-import { TreeGrid } from "../ui/TreeGrid/TreeGrid.js";
 import { CellComponent, RowComponent } from "tabulator-tables";
-import { Dropdown, IDropdownProperties } from "../ui/Dropdown/Dropdown.js";
-import { DropdownItem } from "../ui/Dropdown/DropdownItem.js";
-import { IInputChangeProperties, Input } from "../ui/Input/Input.js";
+import chatOptionsIcon from "../../assets/images/chatOptions.svg";
 import { IMdsChatData, IMdsChatStatus } from "../../communication/ProtocolMds.js";
 import { Accordion, IAccordionProperties } from "../ui/Accordion/Accordion.js";
-import chatOptionsIcon from "../../assets/images/chatOptions.svg";
-import { Icon } from "../ui/Icon/Icon.js";
-import { Toggle } from "../ui/Toggle/Toggle.js";
+import { Button } from "../ui/Button/Button.js";
 import { CheckState } from "../ui/Checkbox/Checkbox.js";
 import { Codicon } from "../ui/Codicon.js";
+import { ComponentBase, IComponentProperties, IComponentState } from "../ui/Component/ComponentBase.js";
+import { Container, ContentAlignment, Orientation } from "../ui/Container/Container.js";
 import { Dialog } from "../ui/Dialog/Dialog.js";
+import { Dropdown } from "../ui/Dropdown/Dropdown.js";
+import { DropdownItem } from "../ui/Dropdown/DropdownItem.js";
+import { Icon } from "../ui/Icon/Icon.js";
+import { IInputChangeProperties, Input } from "../ui/Input/Input.js";
+import { Label } from "../ui/Label/Label.js";
+import { ITag, ITagInputProperties, TagInput } from "../ui/TagInput/TagInput.js";
+import { Toggle } from "../ui/Toggle/Toggle.js";
+import { TreeGrid } from "../ui/TreeGrid/TreeGrid.js";
 
 export enum ChatOptionAction {
     SaveChatOptions,
@@ -636,7 +636,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
         onAction(ChatOptionAction.LoadChatOptions);
     };
 
-    private handleSchemaChange = (_accept: boolean, ids: Set<string>, _props: IDropdownProperties): void => {
+    private handleSchemaChange = (_accept: boolean, ids: Set<string>): void => {
         const { onChatOptionsStateChange, savedState } = this.props;
         const id = [...ids][0];
 
@@ -648,7 +648,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
         });
     };
 
-    private handleModelIdChange = (_accept: boolean, ids: Set<string>, _props: IDropdownProperties): void => {
+    private handleModelIdChange = (_accept: boolean, ids: Set<string>): void => {
         const { onChatOptionsStateChange, savedState } = this.props;
         const id = [...ids][0];
 
@@ -663,7 +663,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
         });
     };
 
-    private handleModelLanguageChange = (_accept: boolean, ids: Set<string>, _props: IDropdownProperties): void => {
+    private handleModelLanguageChange = (_accept: boolean, ids: Set<string>): void => {
         const { onChatOptionsStateChange, savedState } = this.props;
         const id = [...ids][0];
 
@@ -685,7 +685,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
         });
     };
 
-    private handleLanguageModelIdChange = (_accept: boolean, ids: Set<string>, _props: IDropdownProperties): void => {
+    private handleLanguageModelIdChange = (_accept: boolean, ids: Set<string>): void => {
         const { onChatOptionsStateChange, savedState } = this.props;
         const id = [...ids][0];
 
@@ -711,8 +711,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
         });
     };
 
-    private handleTranslationLanguageChange = (_accept: boolean, ids: Set<string>,
-        _props: IDropdownProperties): void => {
+    private handleTranslationLanguageChange = (_accept: boolean, ids: Set<string>): void => {
         const { onChatOptionsStateChange, savedState } = this.props;
         const id = [...ids][0];
 

@@ -23,12 +23,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import fixedColors from "./assets/fixed-colors.json";
-import darkModern from "./assets/dark-modern-color-theme.json";
 import darkAppColors from "./assets/dark-app-colors.json";
-import lightModern from "./assets/light-modern-color-theme.json";
-import lightAppColors from "./assets/light-app-colors.json";
+import darkModern from "./assets/dark-modern-color-theme.json";
+import fixedColors from "./assets/fixed-colors.json";
 import languagesColors from "./assets/languages-colors.json";
+import lightAppColors from "./assets/light-app-colors.json";
+import lightModern from "./assets/light-modern-color-theme.json";
 
 import darkAbyss from "./assets/themes/dark-abyss-color-theme.json";
 import darkHc from "./assets/themes/dark-hc-color-theme.json";
@@ -49,8 +49,9 @@ import lightVs from "./assets/themes/light-vs-color-theme.json";
 import Color from "color";
 import { ColorManipulator } from "../../utilities/ColorManipulator.js";
 
-import { Settings } from "../../supplement/Settings/Settings.js";
+import type { IHostThemeData } from "../../supplement/RequisitionTypes.js";
 import { appParameters, requisitions } from "../../supplement/Requisitions.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
 
 export interface IColors {
     [key: string]: string;
@@ -74,8 +75,6 @@ interface IFont {
     editorFontSize?: string;
     editorFontWeight?: string;
 }
-
-export interface IHostThemeData { css: string; themeClass: string; themeName: string; themeId: string; }
 
 /** This is the structure of a VS Code theme file. */
 export interface IThemeObject {
@@ -359,7 +358,7 @@ export class ThemeManager {
         return "--" + name.replace(/\./g, "-");
     }
 
-    public stylesToString(styles: {[key: string]: string}): string {
+    public stylesToString(styles: { [key: string]: string; }): string {
         return Object.entries(styles)
             .map(([key, value]) => {
                 return `\t${this.themeValueNameToCssVariable(key)}: ${value};\n`;
@@ -418,12 +417,12 @@ export class ThemeManager {
         return theme;
     }
 
-    public getFontVariables(font?: IFont): {[key: string]: string} {
+    public getFontVariables(font?: IFont): { [key: string]: string; } {
         if (!font) {
             font = {};
         }
 
-        const fontVariables: {[key: string]: string} = {};
+        const fontVariables: { [key: string]: string; } = {};
 
         fontVariables["msg-standard-font-family"] = font.fontFamily ?? "'Helvetica Neue', Helvetica, Arial, sans-serif";
         fontVariables["msg-standard-font-weight"] = font.fontWeight ?? "400";

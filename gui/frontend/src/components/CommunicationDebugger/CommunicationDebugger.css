@@ -31,6 +31,7 @@
     right: 0;
     top: 0;
     bottom: 0;
+    height: 100%;
 }
 
 .msg.debugger .stretch {
@@ -138,4 +139,12 @@
 
 .msg.debugger #inputAreaHost .toolbar {
     min-height: 36px;
+}
+
+.msg.debugger .tabArea .closeButton {
+    margin-left: 4px;
+    width: 16px;
+    height: 16px;
+    border: none;
+    background: transparent;
 }

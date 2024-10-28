@@ -38,7 +38,8 @@ import { ComponentChild, createRef, render } from "preact";
 
 import { CellComponent, EmptyCallback, RowComponent } from "tabulator-tables";
 import { DialogHost } from "../../app-logic/DialogHost.js";
-import { DialogResponseClosure, DialogType } from "../../app-logic/Types.js";
+import { ui } from "../../app-logic/UILayer.js";
+import { DialogResponseClosure, DialogType } from "../../app-logic/general-types.js";
 import { IBucketObjectSummary, IBucketSummary, ICompartment } from "../../communication/Oci.js";
 import { IMdsChatStatus, IMdsProfileData } from "../../communication/ProtocolMds.js";
 import { Button } from "../../components/ui/Button/Button.js";
@@ -49,7 +50,7 @@ import {
 } from "../../components/ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
 import { Divider } from "../../components/ui/Divider/Divider.js";
-import { Dropdown, IDropdownProperties } from "../../components/ui/Dropdown/Dropdown.js";
+import { Dropdown } from "../../components/ui/Dropdown/Dropdown.js";
 import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
 import { Image } from "../../components/ui/Image/Image.js";
@@ -61,13 +62,14 @@ import { Tabview } from "../../components/ui/Tabview/Tabview.js";
 import { Toggle } from "../../components/ui/Toggle/Toggle.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
 import { SetDataAction, TreeGrid } from "../../components/ui/TreeGrid/TreeGrid.js";
-import { IOpenFileDialogResult, appParameters, requisitions } from "../../supplement/Requisitions.js";
+import { IOpenFileDialogResult } from "../../supplement/RequisitionTypes.js";
+import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { selectFile, uuidBinary16Base64 } from "../../utilities/helpers.js";
 import { escapeSqlString, formatBytes, formatInteger } from "../../utilities/string-helpers.js";
 import { IToolbarItems } from "./index.js";
 
-export enum LakehouseNavigatorTabs {
+export enum LakehouseNavigatorTab {
     Overview = "overview",
     Upload = "upload",
     Load = "load",
@@ -91,7 +93,7 @@ export interface ILakehouseNavigatorState extends IComponentState {
 
     activeSchema?: string;
 
-    activeTabId?: string;
+    activeTabId: LakehouseNavigatorTab;
     activeProfile?: IMdsProfileData;
     profiles?: IMdsProfileData[];
     formats?: ILakehouseFormats[];
@@ -180,7 +182,7 @@ export interface ILakehouseTask {
     logTime?: string;
     estimatedCompletionTime?: string;
     estimatedRemainingTime?: number;
-    languageId?: string
+    languageId?: string;
 }
 
 enum ObjectStorageTreeItemType {
@@ -264,6 +266,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
         this.state = {
             autoRefreshTablesAndTasks: true,
+            activeTabId: LakehouseNavigatorTab.Overview,
         };
 
         this.#objTreeItems = props.savedState.objTreeItems;
@@ -318,9 +321,8 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         });
     };
 
-    public override componentDidUpdate(
-        prevProps: ILakehouseNavigatorProperties, prevState: ILakehouseNavigatorState,
-    ): void {
+    public override componentDidUpdate(prevProps: ILakehouseNavigatorProperties,
+        prevState: ILakehouseNavigatorState): void {
         const { backend } = this.props;
         const { activeProfile, formats, availableDatabaseSchemas } = this.state;
 
@@ -370,28 +372,28 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
         const pages = [
             {
-                id: LakehouseNavigatorTabs.Overview,
+                id: LakehouseNavigatorTab.Overview,
                 caption: "Overview",
                 tooltip: "Lakehouse Navigator Overview",
 
                 content: this.getOverviewTabContent(),
             },
             {
-                id: LakehouseNavigatorTabs.Upload,
+                id: LakehouseNavigatorTab.Upload,
                 caption: "Upload to Object Storage",
                 tooltip: "Upload local files to Object Storage",
 
                 content: this.getUploadTabContent(),
             },
             {
-                id: LakehouseNavigatorTabs.Load,
+                id: LakehouseNavigatorTab.Load,
                 caption: "Load into Lakehouse",
                 tooltip: "Load from Object Storage into Lakehouse",
 
                 content: this.getLoadTabContent(),
             },
             {
-                id: LakehouseNavigatorTabs.Manage,
+                id: LakehouseNavigatorTab.Manage,
                 caption: "Lakehouse Tables",
                 tooltip: "Lakehouse Tables and Loading Tasks",
 
@@ -1395,7 +1397,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
     }
 
     private handleSelectTab = (id: string): void => {
-        this.setState({ activeTabId: id });
+        this.setState({ activeTabId: id as LakehouseNavigatorTab });
     };
 
     private updateValues = async (): Promise<void> => {
@@ -1419,7 +1421,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         // TODO: Lookup the tenancy and region of the current MDS conn. and filter the list of profiles accordingly.
 
         if (profiles === undefined) {
-            const profiles = await backend.mds.getMdsConfigProfiles();
+            const profiles = await backend.mhs.getMdsConfigProfiles();
             this.setState({
                 profiles,
                 activeProfile: profiles.find((item) => { return item.isCurrent; }),
@@ -1428,18 +1430,18 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
     };
 
     private onStartUploadClick = (): void => {
-        this.setState({ activeTabId: LakehouseNavigatorTabs.Upload });
+        this.setState({ activeTabId: LakehouseNavigatorTab.Upload });
     };
 
     private onStartLoadClick = (): void => {
-        this.setState({ activeTabId: LakehouseNavigatorTabs.Load });
+        this.setState({ activeTabId: LakehouseNavigatorTab.Load });
     };
 
     private onManageClick = (): void => {
-        this.setState({ activeTabId: LakehouseNavigatorTabs.Manage });
+        this.setState({ activeTabId: LakehouseNavigatorTab.Manage });
     };
 
-    private handleProfileSelection = (_accept: boolean, ids: Set<string>, _props: IDropdownProperties): void => {
+    private handleProfileSelection = (_accept: boolean, ids: Set<string>): void => {
         const { profiles } = this.state;
         const id = [...ids][0];
 
@@ -1450,41 +1452,25 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         });
     };
 
-    private handleSchemaSelection = (_accept: boolean, ids: Set<string>, _props: IDropdownProperties): void => {
+    private handleSchemaSelection = (_accept: boolean, ids: Set<string>): void => {
         const { task } = this.state;
         const id = [...ids][0];
 
-        this.setState({
-            task: {
-                ...task,
-                schemaName: id,
-            },
-            activeSchema: id,
-        });
+        this.setState({ task: { ...task, schemaName: id }, activeSchema: id });
     };
 
-    private handleFormatSelection = (_accept: boolean, ids: Set<string>, _props: IDropdownProperties): void => {
+    private handleFormatSelection = (_accept: boolean, ids: Set<string>): void => {
         const { task } = this.state;
         const id = [...ids][0];
 
-        this.setState({
-            task: {
-                ...task,
-                activeFormat: id === "all" ? undefined : id,
-            },
-        });
+        this.setState({ task: { ...task, activeFormat: id === "all" ? undefined : id } });
     };
 
-    private handleLanguageSelection = (_accept: boolean, ids: Set<string>, _props: IDropdownProperties): void => {
+    private handleLanguageSelection = (_accept: boolean, ids: Set<string>): void => {
         const { task } = this.state;
         const id = [...ids][0];
 
-        this.setState({
-            task: {
-                ...task,
-                languageId: id === "en" ? undefined : id,
-            },
-        });
+        this.setState({ task: { ...task, languageId: id === "en" ? undefined : id } });
     };
 
     private refreshObjTreeItems = async (): Promise<void> => {
@@ -1506,9 +1492,9 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         let currentCompartment;
 
         try {
-            const currentCompartmentId = await backend.mds.getCurrentCompartmentId(activeProfile.profile);
+            const currentCompartmentId = await backend.mhs.getCurrentCompartmentId(activeProfile.profile);
             if (currentCompartmentId) {
-                currentCompartment = await backend.mds.getCompartmentById(
+                currentCompartment = await backend.mhs.getCompartmentById(
                     activeProfile.profile, currentCompartmentId);
             }
         } catch (e) {
@@ -1572,7 +1558,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             const parentData: ICompartment = parent.data as ICompartment;
 
             try {
-                const compartments = await backend.mds.getMdsCompartments(
+                const compartments = await backend.mhs.getMdsCompartments(
                     activeProfile.profile, parentData.id);
 
                 compartments.forEach((item) => {
@@ -1602,7 +1588,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             }
 
             try {
-                const buckets = await backend.mds.getMdsBuckets(
+                const buckets = await backend.mhs.getMdsBuckets(
                     activeProfile.profile, parentData.id);
 
                 buckets.forEach((item) => {
@@ -1654,7 +1640,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     prefix = bucketPrefix?.name;
                 }
 
-                const listObjects = await backend.mds.getMdsBucketObjects(
+                const listObjects = await backend.mhs.getMdsBucketObjects(
                     activeProfile.profile, compartmentId, bucketName,
                     undefined, prefix, "/");
 
@@ -1762,7 +1748,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         }
 
         let checkState = CheckState.Unchecked;
-        if (activeTabId === LakehouseNavigatorTabs.Load) {
+        if (activeTabId === LakehouseNavigatorTab.Load) {
             if (cellData.id &&
                 task?.items?.find((item) => { return item.id === cellData.id; }) !== undefined) {
                 checkState = CheckState.Checked;
@@ -1770,7 +1756,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 task?.items?.find((item) => { return item.id === cellData.parent?.id; }) !== undefined) {
                 checkState = CheckState.Indeterminate;
             }
-        } else if (activeTabId === LakehouseNavigatorTabs.Upload) {
+        } else if (activeTabId === LakehouseNavigatorTab.Upload) {
             if (uploadTarget !== undefined && uploadTarget === cellData) {
                 checkState = CheckState.Checked;
             }
@@ -1779,7 +1765,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         const content = (<>
             {(cellData.data.type === ObjectStorageTreeItemType.Bucket ||
                 cellData.data.type === ObjectStorageTreeItemType.Prefix ||
-                (activeTabId === LakehouseNavigatorTabs.Load &&
+                (activeTabId === LakehouseNavigatorTab.Load &&
                     cellData.data.type === ObjectStorageTreeItemType.File)) &&
                 <Checkbox
                     id={cellData.id + "CheckboxIcon"}
@@ -2158,13 +2144,13 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         const { task, activeSchema, activeTabId, uploadTarget } = this.state;
         const cellData = cell.getData() as IObjectStorageTreeItem;
 
-        if (activeTabId === LakehouseNavigatorTabs.Upload) {
+        if (activeTabId === LakehouseNavigatorTab.Upload) {
             if (uploadTarget === cellData) {
                 this.setState({ uploadTarget: undefined, fileUploadTargetPath: undefined });
             } else {
                 this.setState({ uploadTarget: cellData, fileUploadTargetPath: undefined });
             }
-        } else if (activeTabId === LakehouseNavigatorTabs.Load) {
+        } else if (activeTabId === LakehouseNavigatorTab.Load) {
             let theTask = task;
 
             if (theTask === undefined) {
@@ -2310,11 +2296,11 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             switch (cellData.data.type) {
                 case ObjectStorageTreeItemType.Prefix: {
                     // First, delete all files with the given Prefix
-                    await backend.mds.getMdsDeleteBucketObjects(activeProfile.profile, cellData.data.compartmentId,
+                    await backend.mhs.getMdsDeleteBucketObjects(activeProfile.profile, cellData.data.compartmentId,
                         cellData.data.bucketName, cellData.data.name + "*");
 
                     // Then, delete the prefix itself
-                    await backend.mds.getMdsDeleteBucketObjects(activeProfile.profile, cellData.data.compartmentId,
+                    await backend.mhs.getMdsDeleteBucketObjects(activeProfile.profile, cellData.data.compartmentId,
                         cellData.data.bucketName, cellData.data.name);
 
                     break;
@@ -2324,7 +2310,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     if (cellData.parent?.data.type === ObjectStorageTreeItemType.Bucket
                         || cellData.parent?.data.type === ObjectStorageTreeItemType.Prefix
                     ) {
-                        await backend.mds.getMdsDeleteBucketObjects(activeProfile.profile,
+                        await backend.mhs.getMdsDeleteBucketObjects(activeProfile.profile,
                             cellData.parent.data.compartmentId,
                             cellData.data.bucketName, cellData.data.name);
                     }
@@ -2489,10 +2475,10 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     languageSql + taskNameSql + taskTableName + formatsSql +
                     `'uris', JSON_ARRAY(${urisSql})))`;
                 await backend.execute(sql, params, undefined, (data) => {
-                        if (data.result.rows !== undefined && data.result.rows.length > 0) {
-                            taskId = String((data.result.rows[0] as string[])[0]);
-                        }
-                    });
+                    if (data.result.rows !== undefined && data.result.rows.length > 0) {
+                        taskId = String((data.result.rows[0] as string[])[0]);
+                    }
+                });
 
                 StatusBar.setStatusBarMessage(`Task scheduled successfully. Task Id: ${taskId}`);
 
@@ -2505,7 +2491,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
                 this.setState({
                     lastTaskId: taskId,
-                    activeTabId: LakehouseNavigatorTabs.Manage,
+                    activeTabId: LakehouseNavigatorTab.Manage,
                     task: undefined,
                 });
             } catch (e) {
@@ -2567,7 +2553,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             }
 
             // Get the lakehouse status. Pass the current mem values and hashes to only get data back when it changed.
-            const res = await backend.mds.getMdsGetLakehouseStatus(backend.moduleSessionId, activeSchema,
+            const res = await backend.mhs.getMdsGetLakehouseStatus(backend.moduleSessionId, activeSchema,
                 heatWaveMemoryUsed, heatWaveMemoryTotal, this.#lakehouseTablesHash, this.#lakehouseTasksHash);
 
             if (res.memoryStatus) {
@@ -2681,8 +2667,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         if (tables.length > 0) {
             let taskId = "";
             try {
-                await backend.execute(
-                    `CALL mysql_task_management.create_task(?, ?, NULL)`,
+                await backend.execute(`CALL mysql_task_management.create_task(?, ?, NULL)`,
                     [`Unload Lakehouse Table${tables.length > 1 ? "s" : ""}`, "GenAI_Load"], undefined, (data) => {
                         if (data.result.rows !== undefined && data.result.rows.length > 0) {
                             taskId = String((data.result.rows[0] as string[])[0]);
@@ -2723,12 +2708,11 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     throw new Error("Failed to create MySQL task.");
                 }
             } catch (e) {
-                StatusBar.setStatusBarMessage(
-                    `Error while unloading tables: ${String(e)}`);
+                ui.setStatusBarMessage(`Error while unloading tables: ${String(e)}`);
             }
 
         } else {
-            StatusBar.setStatusBarMessage("Please select tables that have already been loaded.");
+            ui.setStatusBarMessage("Please select tables that have already been loaded.");
         }
 
         void this.autoRefreshTrees();
@@ -2993,7 +2977,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 this.setState({ uploadRunning: true, uploadComplete: false });
                 try {
                     let error = 0;
-                    void await backend.mds.createMdsBucketObjects(
+                    void await backend.mhs.createMdsBucketObjects(
                         activeProfile.profile,
                         filesForUpload.map((file) => { return file.filePath; }),
                         prefix,

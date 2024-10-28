@@ -24,37 +24,40 @@
  */
 
 import { ComponentChild, createRef } from "preact";
-import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from "set-interval-async/dynamic";
+import { SetIntervalAsyncTimer, clearIntervalAsync, setIntervalAsync } from "set-interval-async/dynamic";
 
 import { ApplicationDB } from "../../app-logic/ApplicationDB.js";
 import {
-    IColumnInfo, MessageType, IDictionary, IServicePasswordRequest, IStatusInfo, uriPattern,
-} from "../../app-logic/Types.js";
+    IColumnInfo, IDictionary, IServicePasswordRequest, IStatusInfo, MessageType, uriPattern,
+} from "../../app-logic/general-types.js";
 
-import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
-import { IExecutionResult, ITextResultEntry, ResultTextLanguage } from "../../script-execution/index.js";
-import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices.js";
-import { convertRows, EditorLanguage, generateColumnInfo } from "../../supplement/index.js";
-import { requisitions } from "../../supplement/Requisitions.js";
-import { Settings } from "../../supplement/Settings/Settings.js";
-import { flattenObject, uuid } from "../../utilities/helpers.js";
-import { ShellConsole } from "./ShellConsole.js";
-import { ShellPrompt } from "./ShellPrompt.js";
-import { unquote } from "../../utilities/string-helpers.js";
 import { MySQLConnectionScheme } from "../../communication/MySQL.js";
-import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
-import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
 import {
-    IShellPromptValues, IShellResultType, IShellObjectResult, IShellValueResult, IShellSimpleResult, IShellDocumentData,
-    IShellColumnsMetaData, IShellRowData,
+    IShellColumnsMetaData, IShellDocumentData, IShellObjectResult, IShellPromptValues, IShellResultType, IShellRowData,
+    IShellSimpleResult, IShellValueResult,
 } from "../../communication/ProtocolGui.js";
-import { IComponentProperties, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
-import { Container, Orientation, ContentAlignment } from "../../components/ui/Container/Container.js";
-import { DBType } from "../../supplement/ShellInterface/index.js";
-import { ShellInterfaceDb } from "../../supplement/ShellInterface/ShellInterfaceDb.js";
-import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
+import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
+import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
+import { ComponentBase, IComponentProperties } from "../../components/ui/Component/ComponentBase.js";
+import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
+import type { IOdmShellSessionEntry } from "../../data-models/OpenDocumentDataModel.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
+import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices.js";
+import { IExecutionResult, ITextResultEntry, ResultTextLanguage } from "../../script-execution/index.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { ShellInterfaceDb } from "../../supplement/ShellInterface/ShellInterfaceDb.js";
+import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
+import { DBType } from "../../supplement/ShellInterface/index.js";
+import { EditorLanguage, convertRows, generateColumnInfo } from "../../supplement/index.js";
+import { flattenObject, uuid } from "../../utilities/helpers.js";
+import { unquote } from "../../utilities/string-helpers.js";
+import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
+import { DBEditorToolbar } from "../db-editor/DBEditorToolbar.js";
+import type { IToolbarItems } from "../db-editor/index.js";
+import { ShellConsole } from "./ShellConsole.js";
+import { ShellPrompt } from "./ShellPrompt.js";
 
 interface IResultTimer {
     timer: SetIntervalAsyncTimer<unknown[]>;
@@ -62,31 +65,36 @@ interface IResultTimer {
 }
 
 export interface IShellTabPersistentState extends IShellPromptValues {
+    dataModelEntry: IOdmShellSessionEntry;
+
     backend: ShellInterfaceShellSession;
 
-    // Assigned when a DB connection (a global session in MySQL Shell terms) was established.
+    /** Assigned when a DB connection (a global session in MySQL Shell terms) was established. */
     dbSession?: ShellInterfaceDb;
     schemaList?: string[];
 
     state: IEditorPersistentState;
 
-    // Informations about the connected backend (where supported).
+    /** Informations about the connected backend (where supported). */
     serverVersion: number;
     serverEdition: string;
     sqlMode: string;
 
-    // For DB session handling.
+    /** For DB session handling. */
     lastUserName?: string;
     lastPassword?: string;
     lastHost?: string;
     lastPort?: number;
 
-    // Last executed statement
+    /** Last executed statement */
     lastCommand?: string;
 }
 
 export interface IShellTabProperties extends IComponentProperties {
     savedState: IShellTabPersistentState;
+
+    /** Top level toolbar items, to be integrated with page specific ones. */
+    toolbarItemsTemplate: IToolbarItems;
 
     onQuit: (id: string) => void;
 }
@@ -117,6 +125,12 @@ Execute \\help or \\? for help; \\quit to close the session.`;
     // Timers to serialize asynchronously incoming results.
     private resultTimers = new Map<string, IResultTimer>();
 
+    public constructor(props: IShellTabProperties) {
+        super(props);
+
+        this.addHandledProperties("toolbarItemsTemplate", "savedState", "onQuit");
+    }
+
     public override componentDidMount(): void {
         this.initialSetup();
     }
@@ -130,30 +144,36 @@ Execute \\help or \\? for help; \\quit to close the session.`;
     }
 
     public render(): ComponentChild {
-        const { savedState } = this.props;
+        const { savedState, toolbarItemsTemplate } = this.props;
 
         return (
-            <>
-                <Container
-                    id="shellEditorHost"
-                    orientation={Orientation.TopDown}
-                    mainAlignment={ContentAlignment.Stretch}
-                >
-                    <ShellPrompt
-                        id="shellPrompt"
-                        values={savedState}
-                        getSchemas={this.listSchemas}
-                        onSelectSchema={this.activateSchema}
-                    />
+            <Container
+                id="shellEditorHost"
+                orientation={Orientation.TopDown}
+                mainAlignment={ContentAlignment.Stretch}
+            >
+                <DBEditorToolbar
+                    toolbarItems={toolbarItemsTemplate}
+                    language="msg"
+                    activeDocument={savedState.dataModelEntry.id}
+                    heatWaveEnabled={false}
+                    documentState={[]}
+                />
 
-                    <ShellConsole
-                        id="shellEditor"
-                        ref={this.consoleRef}
-                        editorState={savedState.state}
-                        onScriptExecution={this.handleExecution}
-                    />
-                </Container>
-            </>
+                <ShellPrompt
+                    id="shellPrompt"
+                    values={savedState}
+                    getSchemas={this.listSchemas}
+                    onSelectSchema={this.activateSchema}
+                />
+
+                <ShellConsole
+                    id="shellEditor"
+                    ref={this.consoleRef}
+                    editorState={savedState.state}
+                    onScriptExecution={this.handleExecution}
+                />
+            </Container>
         );
     }
 

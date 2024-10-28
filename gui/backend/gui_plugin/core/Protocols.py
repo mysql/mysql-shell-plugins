@@ -87,6 +87,15 @@ class Response:
                 "code": SYSTEM_GENERIC_ERROR
             })
         else:
+            # Check if we're getting a json/dictionary in the exception
+            # message and make sure we output in valid json
+            try:
+                e.args = (json.dumps(eval("{" + str(e).split("{", 1)[1])), )
+            except:
+                # This looked like a json response, but it's not. keep going with the
+                # standard handling
+                pass
+
             return Response.error(str(e), args, {
                 "source": "MSG",
                 "code": SYSTEM_GENERIC_ERROR

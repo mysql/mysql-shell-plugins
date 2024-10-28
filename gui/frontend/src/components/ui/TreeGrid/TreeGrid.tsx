@@ -27,18 +27,18 @@ import "tabulator-tables//dist/css/tabulator_simple.min.css";
 import "./TreeGrid.css";
 
 import {
-    Tabulator, DataTreeModule, SelectRowModule, ReactiveDataModule, MenuModule, ResizeTableModule,
-    ResizeColumnsModule, FormatModule, InteractionModule, EditModule, FilterModule, SortModule, ResizeRowsModule,
-    FrozenRowsModule, TooltipModule,
-    RowComponent, ColumnComponent, ColumnDefinition, CellComponent, Options, RowLookup,
-    RowRangeLookup,
+    CellComponent, ColumnComponent, ColumnDefinition, DataTreeModule, EditModule, FilterModule, FormatModule,
+    FrozenRowsModule, InteractionModule, MenuModule, Options, ReactiveDataModule, ResizeColumnsModule,
+    ResizeRowsModule, ResizeTableModule, RowComponent, SelectRowModule, SortModule, Tabulator, TooltipModule,
+    type RowLookup,
+    type RowRangeLookup,
 } from "tabulator-tables";
 
 import { ComponentChild, createRef } from "preact";
 
-import { waitFor } from "../../../utilities/helpers.js";
 import { appParameters } from "../../../supplement/Requisitions.js";
-import { SelectionType, IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { waitFor } from "../../../utilities/helpers.js";
+import { ComponentBase, IComponentProperties, SelectionType } from "../Component/ComponentBase.js";
 
 /** This type excludes methods from the Tabulator type, which are implemented in the TreeGrid. */
 export type TabulatorProxy = Omit<Tabulator, "setData" | "setColumns" | "getSelectedRows">;
@@ -144,7 +144,7 @@ interface ITreeGridProperties extends IComponentProperties {
      * then the numbers are interpreted as row indices. Indices are one-based!
      * Note that the specified selection mode might limit that list (no selection or single selection).
      *
-     * Important: The selection is only applied if initial data is set.
+     * Important: The selection is only applied if initial data is set and only for the top level items.
      */
     selectedRows?: string[] | number[] | RowComponent[];
     options?: ITreeGridOptions;
@@ -291,10 +291,6 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             this.#tabulator.on("cellEditing", this.handleCellEditing);
             this.#tabulator.on("cellEdited", this.handleCellEdited);
             this.#tabulator.on("cellEditCancelled", this.handleCellEditCancelled);
-            this.#tabulator.on("rangeAdded", (range) => {
-                //range - range component for the selected range
-                alert("The user has selected a new range containing " + range.getCells().length + " cells");
-            });
         }
     }
 
@@ -457,7 +453,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
     /**
      * @param rangeLookup Limit the rows that are returned based on a RowRangeLookup setting
-     * @returns all rows currently in the table.
+     *
+     * @returns all rows currently in the table, which match the given lookup value.
      */
     public getRows(rangeLookup?: RowRangeLookup): RowComponent[] {
         if (this.#tableReady && this.#tabulator) {
@@ -467,9 +464,14 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         return [];
     }
 
-    public getRow(row: RowLookup): RowComponent | undefined{
+    /**
+     * @returns a row that matches the given row selector.
+     *
+     * @param selector A value that identifies the row. It is compared to the index field in the data.
+     */
+    public getRow(selector: RowLookup): RowComponent | undefined {
         if (this.#tableReady && this.#tabulator) {
-            return this.#tabulator.getRow(row);
+            return this.#tabulator.getRow(selector);
         }
     }
 
@@ -491,7 +493,69 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         }
     }
 
-    public selectRow(lookup?: RowLookup[] | true): void {
+    /**
+     * This method is the recursive alternative to the Tabulator method `searchRows`, which only finds top level rows.
+     * It only supports the `=` filter type currently.
+     *
+     * @param field The field in the data to search.
+     * @param value The value to search for.
+     *
+     * @returns All rows that match the search criteria.
+     */
+    public searchAllRows(field: string, value: unknown): RowComponent[] {
+        const matchedRows: RowComponent[] = [];
+
+        const searchRows = (rows: RowComponent[]): void => {
+            for (const row of rows) {
+                if (row.getData()[field] === value) {
+                    matchedRows.push(row);
+                }
+
+                if (row.getTreeChildren().length) {
+                    searchRows(row.getTreeChildren());
+                }
+            }
+        };
+
+        searchRows(this.getRows());
+
+        return matchedRows;
+    }
+
+    /**
+     * @returns the row that matches the given index chain, which consists of zero-based values.
+     *
+     * @param index A list of indexes, each addressing a level in the tree.
+     */
+    public getRowFromIndex(index: number[]): RowComponent | undefined {
+        if (this.#tableReady && this.#tabulator) {
+
+            const rowFromIndex = (rows: RowComponent[]): RowComponent | undefined => {
+                const current = index.shift();
+                if (current === undefined) {
+                    return undefined;
+                }
+
+                if (current < 0 || current > rows.length) {
+                    return undefined;
+                }
+
+                if (index.length === 0) {
+                    return rows[current];
+                }
+
+                return rowFromIndex(rows[current].getTreeChildren());
+            };
+
+            const rows = this.#tabulator.getRows();
+
+            return rowFromIndex(rows);
+        }
+
+        return undefined;
+    }
+
+    public selectRow(lookup?: RowLookup[] | true | string): void {
         if (this.#tableReady && this.#tabulator) {
             this.#tabulator.selectRow(lookup);
         }
@@ -611,8 +675,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             dataTreeChildIndent: options?.treeChildIndent ?? 8,
             dataTreeChildField: options?.childKey ?? "children",
             dataTreeElementColumn: options?.treeColumn,
-            dataTreeExpandElement: "<span class='treeToggle' />",
-            dataTreeCollapseElement: "<span class='treeToggle expanded' />",
+            dataTreeExpandElement: "<span class='treeToggle codicon codicon-chevron-right' />",
+            dataTreeCollapseElement: "<span class='treeToggle expanded codicon codicon-chevron-down' />",
             dataTreeBranchElement: false,
             dataTreeStartExpanded: options?.expandedLevels ?? false,
 
@@ -699,7 +763,9 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                 // Toggle the selected row if this is actually a tree (after a delay to see if a double click follows).
                 this.#toggleTimeoutId = setTimeout(() => {
                     this.#toggleTimeoutId = null;
-                    row.treeToggle();
+                    if (!event.defaultPrevented) { // Allow click handlers to prevent the toggle.
+                        row.treeToggle();
+                    }
                 }, 200);
             } else {
                 row.treeToggle();

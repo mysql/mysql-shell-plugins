@@ -37,21 +37,21 @@ import {
     IMySQLConnectionOptions, MySQLConnectionScheme,
 } from "../../frontend/src/communication/MySQL.js";
 import { IMrsServiceData } from "../../frontend/src/communication/ProtocolMrs.js";
+import type {
+    ICdmConnectionEntry, ICdmRestAuthAppEntry, ICdmRestContentFileEntry, ICdmRestContentSetEntry, ICdmRestDbObjectEntry,
+    ICdmRestRootEntry, ICdmRestRouterEntry, ICdmRestSchemaEntry, ICdmRestServiceEntry, ICdmRestUserEntry,
+    ICdmSchemaEntry,
+} from "../../frontend/src/data-models/ConnectionDataModel.js";
 import { DBEditorModuleId } from "../../frontend/src/modules/ModuleInfo.js";
+import { getRouterPortForConnection } from "../../frontend/src/modules/mrs/mrs-helpers.js";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { findExecutable } from "../../frontend/src/utilities/file-utilities.js";
 import { MySQLShellLauncher } from "../../frontend/src/utilities/MySQLShellLauncher.js";
 import { convertPathToCamelCase } from "../../frontend/src/utilities/string-helpers.js";
 import { ExtensionHost } from "./ExtensionHost.js";
-import {
-    ICdmConnectionEntry,
-    ICdmRestAuthAppEntry, ICdmRestContentFileEntry, ICdmRestContentSetEntry, ICdmRestDbObjectEntry, ICdmRestRootEntry,
-    ICdmRestRouterEntry, ICdmRestSchemaEntry, ICdmRestServiceEntry, ICdmRestUserEntry, ICdmSchemaEntry,
-} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel.js";
+import { MrsScriptBlocks } from "./MrsScriptBlocks.js";
 import { showMessageWithTimeout, showModalDialog, switchVsCodeContext } from "./utilities.js";
 import { openSqlEditorConnection, openSqlEditorSessionAndConnection } from "./utilitiesShellGui.js";
-import { getRouterPortForConnection } from "../../frontend/src/modules/mrs/mrs-helpers.js";
-import { MrsScriptBlocks } from "./MrsScriptBlocks.js";
 
 export class MRSCommandHandler {
     #docsWebviewPanel?: WebviewPanel;
@@ -133,13 +133,12 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.deleteRouter",
             async (entry?: ICdmRestRouterEntry) => {
                 if (entry) {
-                    const item = entry.treeItem;
                     const answer = await window.showInformationMessage(
-                        `Are you sure the MRS router ${item.value.address} should be deleted?`, "Yes", "No");
+                        `Are you sure the MRS router ${entry.details.address} should be deleted?`, "Yes", "No");
 
                     if (answer === "Yes") {
                         try {
-                            await item.backend?.mrs.deleteRouter(item.value.id);
+                            await entry.connection.backend?.mrs.deleteRouter(entry.connection.details.id);
                             await commands.executeCommand("msg.refreshConnections");
                             showMessageWithTimeout("The MRS Router has been deleted successfully.");
                         } catch (error) {
@@ -152,8 +151,7 @@ export class MRSCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.addService", (entry?: ICdmRestRootEntry) => {
             if (entry) {
-                const item = entry.treeItem;
-                const connectionId = String(item.connectionId);
+                const connectionId = String(entry.connection.details.id);
                 const provider = this.#host.currentProvider;
                 if (provider) {
                     void provider.runCommand("job", [
@@ -168,14 +166,13 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.editService",
             (entry?: ICdmRestServiceEntry) => {
                 if (entry) {
-                    const item = entry.treeItem;
-                    const connectionId = String(item.connectionId);
+                    const connectionId = String(entry.connection.details.id);
                     const provider = this.#host.currentProvider;
                     if (provider) {
                         void provider.runCommand("job", [
                             { requestType: "showModule", parameter: DBEditorModuleId },
                             { requestType: "showPage", parameter: { module: DBEditorModuleId, page: connectionId } },
-                            { requestType: "showMrsServiceDialog", parameter: item.value },
+                            { requestType: "showMrsServiceDialog", parameter: entry.details },
                         ], "newConnection");
                     }
                 }
@@ -184,13 +181,13 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.deleteService",
             async (entry?: ICdmRestServiceEntry) => {
                 if (entry) {
-                    const item = entry.treeItem;
                     const answer = await window.showInformationMessage(
-                        `Are you sure the MRS service ${item.value.urlContextRoot} should be deleted?`, "Yes", "No");
+                        `Are you sure the MRS service ${entry.details.urlContextRoot} should be deleted?`, "Yes", "No");
 
                     if (answer === "Yes") {
                         try {
-                            await item.backend?.mrs.deleteService(item.value.id);
+                            const connection = entry.connection;
+                            await connection.backend?.mrs.deleteService(entry.details.id);
                             await commands.executeCommand("msg.refreshConnections");
                             showMessageWithTimeout("The MRS service has been deleted successfully.");
                         } catch (error) {
@@ -204,8 +201,8 @@ export class MRSCommandHandler {
             async (entry?: ICdmRestServiceEntry) => {
                 if (entry) {
                     try {
-                        const item = entry.treeItem;
-                        await item.backend?.mrs.setCurrentService(item.value.id);
+                        const connection = entry.connection;
+                        await connection.backend?.mrs.setCurrentService(entry.details.id);
                         await commands.executeCommand("msg.refreshConnections");
                         showMessageWithTimeout("The MRS service has been set as the new default service.");
 
@@ -225,8 +222,7 @@ export class MRSCommandHandler {
                 }
 
                 try {
-                    const item = entry.treeItem;
-                    const convertedUrl = convertPathToCamelCase(item.value.urlContextRoot);
+                    const convertedUrl = convertPathToCamelCase(entry.details.urlContextRoot);
                     const overwrite = true;
 
                     const value = await window.showSaveDialog({
@@ -239,8 +235,8 @@ export class MRSCommandHandler {
                         return;
                     }
 
-                    const result = await item.backend.mrs.dumpServiceCreateStatement(
-                        item.value.id, value.fsPath, overwrite);
+                    const result = await entry.connection.backend.mrs.dumpServiceCreateStatement(
+                        entry.details.id, value.fsPath, overwrite);
 
                     if (result) {
                         void window.showInformationMessage(`The REST Service SQL was exported`);
@@ -262,9 +258,8 @@ export class MRSCommandHandler {
                 }
 
                 try {
-                    const item = entry.treeItem;
-                    const convertedUrl = convertPathToCamelCase(item.value.requestPath) + "."
-                        + convertPathToCamelCase(item.value.hostCtx);
+                    const convertedUrl = convertPathToCamelCase(entry.details.requestPath) + "."
+                        + convertPathToCamelCase(entry.details.hostCtx);
                     const overwrite = true;
 
                     const value = await window.showSaveDialog({
@@ -277,8 +272,8 @@ export class MRSCommandHandler {
                         return;
                     }
 
-                    const result = await item.backend.mrs.dumpSchemaCreateStatement(
-                        item.value.id, value.fsPath, overwrite);
+                    const result = await entry.connection.backend.mrs.dumpSchemaCreateStatement(
+                        entry.details.id, value.fsPath, overwrite);
 
                     if (result) {
                         void window.showInformationMessage(`The REST Schema SQL was exported`);
@@ -300,17 +295,15 @@ export class MRSCommandHandler {
                 }
 
                 try {
-                    const item = entry.treeItem;
-                    if (item === undefined || item.value === undefined ||
-                        item.value.schemaRequestPath === undefined || item.value.hostCtx === undefined) {
+                    if (entry.details.schemaRequestPath === undefined || entry.details.hostCtx === undefined) {
                         void window.showErrorMessage(`Error creating the SQL for this REST DB Object`);
 
                         return;
                     }
 
-                    const convertedUrl = convertPathToCamelCase(item.value.requestPath) + "." +
-                        convertPathToCamelCase(item.value.schemaRequestPath) + "." +
-                        convertPathToCamelCase(item.value.hostCtx);
+                    const convertedUrl = convertPathToCamelCase(entry.details.requestPath) + "." +
+                        convertPathToCamelCase(entry.details.schemaRequestPath) + "." +
+                        convertPathToCamelCase(entry.details.hostCtx);
                     const overwrite = true;
 
                     const value = await window.showSaveDialog({
@@ -323,8 +316,8 @@ export class MRSCommandHandler {
                         return;
                     }
 
-                    const result = await item.backend.mrs.dumpDbObjectCreateStatement(
-                        item.value.id, value.fsPath, overwrite);
+                    const result = await entry.connection.backend.mrs.dumpDbObjectCreateStatement(
+                        entry.details.id, value.fsPath, overwrite);
 
                     if (result) {
                         void window.showInformationMessage(`The REST DB Object SQL was exported`);
@@ -347,15 +340,7 @@ export class MRSCommandHandler {
                 }
 
                 try {
-                    const item = entry.treeItem;
-                    if (item === undefined || item.value === undefined) {
-                        void window.showErrorMessage(`Error creating the SQL for this REST Service`);
-
-                        return;
-                    }
-
-                    const result = await item.backend.mrs.getServiceCreateStatement(
-                        item.value.id);
+                    const result = await entry.connection.backend.mrs.getServiceCreateStatement(entry.details.id);
 
                     void env.clipboard.writeText(result).then(() => {
                         showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
@@ -375,15 +360,7 @@ export class MRSCommandHandler {
                 }
 
                 try {
-                    const item = entry.treeItem;
-                    if (item === undefined || item.value === undefined) {
-                        void window.showErrorMessage(`Error creating the SQL for this REST Schema`);
-
-                        return;
-                    }
-
-                    const result = await item.backend.mrs.getSchemaCreateStatement(
-                        item.value.id);
+                    const result = await entry.connection.backend.mrs.getSchemaCreateStatement(entry.details.id);
 
                     void env.clipboard.writeText(result).then(() => {
                         showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
@@ -402,15 +379,7 @@ export class MRSCommandHandler {
                 }
 
                 try {
-                    const item = entry.treeItem;
-                    if (item === undefined || item.value === undefined) {
-                        void window.showErrorMessage(`Error creating the SQL for this REST DB Object`);
-
-                        return;
-                    }
-
-                    const result = await item.backend.mrs.getDbObjectCreateStatement(
-                        item.value.id);
+                    const result = await entry.connection.backend.mrs.getDbObjectCreateStatement(entry.details.id);
 
                     void env.clipboard.writeText(result).then(() => {
                         showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
@@ -430,15 +399,8 @@ export class MRSCommandHandler {
                 }
 
                 try {
-                    const item = entry.treeItem;
-                    if (item === undefined || item.value === undefined) {
-                        void window.showErrorMessage(`Error creating the SQL for this REST Content Set`);
-
-                        return;
-                    }
-
-                    const result = await item.backend.mrs.getContentSetCreateStatement(
-                        item.value.id);
+                    const result = await entry.connection.backend.mrs.getContentSetCreateStatement(
+                        entry.details.id);
 
                     void env.clipboard.writeText(result).then(() => {
                         showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
@@ -450,7 +412,7 @@ export class MRSCommandHandler {
             }));
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.openContentSetRequestPath",
-            async (entry?: ICdmRestDbObjectEntry) => {
+            async (entry?: ICdmRestContentSetEntry) => {
                 if (!entry) {
                     void window.showErrorMessage(`No tree item given when calling msg.mrs.openContentSetRequestPath`);
 
@@ -458,21 +420,16 @@ export class MRSCommandHandler {
                 }
 
                 try {
-                    const item = entry.treeItem;
-                    if (item.value) {
-                        const o = item.value;
-                        const port = getRouterPortForConnection(entry.treeItem.connectionId);
-                        let url = (o.hostCtx ?? "") + o.requestPath + "/";
+                    const port = getRouterPortForConnection(entry.connection.details.id);
+                    let url = (entry.details.hostCtx ?? "") + entry.details.requestPath + "/";
 
-                        if (url.startsWith("/")) {
-                            url = `https://localhost:${port}${url}`;
-                        } else {
-                            url = `https://${url}`;
-                        }
-
-                        await env.openExternal(Uri.parse(url));
+                    if (url.startsWith("/")) {
+                        url = `https://localhost:${port}${url}`;
+                    } else {
+                        url = `https://${url}`;
                     }
 
+                    await env.openExternal(Uri.parse(url));
                 } catch (reason) {
                     void window.showErrorMessage(
                         `An error occurred while opening the REST Content Set request path. ${String(reason)}`);
@@ -488,15 +445,7 @@ export class MRSCommandHandler {
                 }
 
                 try {
-                    const item = entry.treeItem;
-                    if (item === undefined || item.value === undefined) {
-                        void window.showErrorMessage(`Error creating the SQL for this REST Content File`);
-
-                        return;
-                    }
-
-                    const result = await item.backend.mrs.getContentFileCreateStatement(
-                        item.value.id);
+                    const result = await entry.connection.backend.mrs.getContentFileCreateStatement(entry.details.id);
 
                     void env.clipboard.writeText(result).then(() => {
                         showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
@@ -510,11 +459,9 @@ export class MRSCommandHandler {
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.exportServiceSdk",
             async (entry?: ICdmRestServiceEntry) => {
-                if (entry && entry.treeItem && entry.treeItem.value && this.#host.currentProvider) {
-                    const item = entry.treeItem;
-
+                if (entry && entry.details && this.#host.currentProvider) {
                     try {
-                        const convertedUrl = convertPathToCamelCase(item.value.urlContextRoot);
+                        const convertedUrl = convertPathToCamelCase(entry.details.urlContextRoot);
                         const value = await window.showSaveDialog({
                             title: "Export REST Service SDK Files...",
                             defaultUri: Uri.file(`${os.homedir()}/${convertedUrl}.mrs.sdk`),
@@ -522,7 +469,7 @@ export class MRSCommandHandler {
                         });
 
                         if (value !== undefined) {
-                            const connectionId = entry.parent.parent.id;
+                            const connectionId = entry.connection.details.id;
 
                             void this.#host.currentProvider.runCommand("job", [
                                 { requestType: "showModule", parameter: DBEditorModuleId },
@@ -533,10 +480,10 @@ export class MRSCommandHandler {
                                 },
                                 {
                                     requestType: "showMrsSdkExportDialog", parameter: {
-                                        serviceId: item.value.id,
+                                        serviceId: entry.details.id,
                                         routerPort: getRouterPortForConnection(connectionId),
                                         connectionId,
-                                        connectionDetails: entry.parent.parent.treeItem.details,
+                                        connectionDetails: entry.connection.details,
                                         directory: value.fsPath,
                                     },
                                 },
@@ -560,10 +507,10 @@ export class MRSCommandHandler {
                             statusbarItem.show();
 
                             statusbarItem.text = "$(loading~spin) Starting Database Session ...";
-                            await sqlEditor.startSession(String(connection.treeItem.details.id) + "MrsSdkGeneration");
+                            await sqlEditor.startSession(String(connection.details.id) + "MrsSdkGeneration");
 
                             statusbarItem.text = "$(loading~spin) Opening Database Connection ...";
-                            await openSqlEditorConnection(sqlEditor, connection.treeItem.details.id, (message) => {
+                            await openSqlEditorConnection(sqlEditor, connection.details.id, (message) => {
                                 statusbarItem.text = "$(loading~spin) " + message;
                             });
 
@@ -583,13 +530,13 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.deleteSchema",
             async (entry?: ICdmRestSchemaEntry) => {
                 if (entry) {
-                    const item = entry.treeItem;
+                    const connection = entry.connection;
                     const answer = await window.showInformationMessage(
-                        `Are you sure the MRS schema ${item.value.name} should be deleted?`, "Yes", "No");
+                        `Are you sure the MRS schema ${entry.details.name} should be deleted?`, "Yes", "No");
 
                     if (answer === "Yes") {
                         try {
-                            await entry.treeItem.backend.mrs.deleteSchema(item.value.id, item.value.serviceId);
+                            await connection.backend.mrs.deleteSchema(entry.details.id, entry.details.serviceId);
                             await commands.executeCommand("msg.refreshConnections");
                             showMessageWithTimeout("The MRS schema has been deleted successfully.");
                         } catch (error) {
@@ -602,8 +549,7 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.editSchema",
             (entry?: ICdmRestSchemaEntry) => {
                 if (entry) {
-                    const item = entry.treeItem;
-                    const connectionId = String(item.connectionId);
+                    const connectionId = String(entry.connection.details.id);
                     const provider = this.#host.currentProvider;
                     if (provider) {
                         void provider.runCommand("job", [
@@ -611,7 +557,7 @@ export class MRSCommandHandler {
                             { requestType: "showPage", parameter: { module: DBEditorModuleId, page: connectionId } },
                             {
                                 requestType: "showMrsSchemaDialog",
-                                parameter: { schemaName: item.value.name, schema: item.value },
+                                parameter: { schemaName: entry.details.name, schema: entry.details },
                             },
                         ], "newConnection");
                     }
@@ -621,12 +567,12 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.addSchema",
             async (entry?: ICdmSchemaEntry) => {
                 if (entry) {
-                    const item = entry.treeItem;
-                    const connectionId = String(item.connectionId);
+                    const connection = entry.parent;
+                    const connectionId = String(connection.details.id);
                     const provider = this.#host.currentProvider;
                     if (provider) {
                         // Check if there is at least one MRS Service
-                        const services = await item.backend.mrs.listServices();
+                        const services = await connection.backend.mrs.listServices();
 
                         if (services.length > 0) {
                             void provider.runCommand("job", [
@@ -638,7 +584,7 @@ export class MRSCommandHandler {
                                 },
                                 {
                                     requestType: "showMrsSchemaDialog",
-                                    parameter: { schemaName: item.schema },
+                                    parameter: { schemaName: entry.caption },
                                 },
                             ], "newConnection");
                         } else {
@@ -672,10 +618,10 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.openContentFileRequestPath",
             async (entry?: ICdmRestContentFileEntry) => {
                 if (entry) {
-                    const item = entry.treeItem;
-                    if (item.value) {
-                        const o = item.value;
-                        const port = getRouterPortForConnection(entry.treeItem.connectionId);
+                    if (entry.details) {
+                        const connection = entry.connection;
+                        const o = entry.details;
+                        const port = getRouterPortForConnection(connection.details.id);
                         let url = (o.hostCtx ?? "") + (o.contentSetRequestPath ?? "") + o.requestPath;
 
                         if (url.startsWith("/")) {
@@ -692,22 +638,20 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.deleteDbObject",
             async (entry?: ICdmRestDbObjectEntry) => {
                 if (entry) {
-                    const item = entry.treeItem;
-                    if (item.value) {
-                        const backend = item.backend;
-
+                    const connection = entry.connection;
+                    if (entry.details) {
                         const accepted = await showModalDialog(
-                            `Are you sure you want to delete the REST DB Object ${item.value.name}?`,
+                            `Are you sure you want to delete the REST DB Object ${entry.details.name}?`,
                             "Delete DB Object",
                             "This operation cannot be reverted!");
 
                         if (accepted) {
                             try {
-                                await backend.mrs.deleteDbObject(item.value.id);
+                                await connection.backend.mrs.deleteDbObject(entry.details.id);
 
                                 // TODO: refresh only the affected connection.
                                 void commands.executeCommand("msg.refreshConnections");
-                                showMessageWithTimeout(`The REST DB Object ${item.value.name} has been deleted.`);
+                                showMessageWithTimeout(`The REST DB Object ${entry.details.name} has been deleted.`);
                             } catch (reason) {
                                 void window.showErrorMessage(`Error deleting the REST DB Object: ${String(reason)}`);
                             }
@@ -719,14 +663,14 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.editAuthApp",
             (entry?: ICdmRestAuthAppEntry) => {
                 if (entry) {
-                    const item = entry.treeItem;
-                    const connectionId = String(item.connectionId);
+                    const connection = entry.connection;
+                    const connectionId = String(connection.details.id);
                     const provider = this.#host.currentProvider;
                     if (provider) {
                         void provider.runCommand("job", [
                             { requestType: "showModule", parameter: DBEditorModuleId },
                             { requestType: "showPage", parameter: { module: DBEditorModuleId, page: connectionId } },
-                            { requestType: "showMrsAuthAppDialog", parameter: { authApp: item.value } },
+                            { requestType: "showMrsAuthAppDialog", parameter: { authApp: entry.details } },
                         ], "newConnection");
                     }
                 }
@@ -737,9 +681,9 @@ export class MRSCommandHandler {
             (entry?: ICdmRestServiceEntry) => {
                 try {
                     if (entry) {
-                        const item = entry.treeItem;
-                        if (item.value) {
-                            const connectionId = String(item.connectionId);
+                        const connection = entry.connection;
+                        if (entry.details) {
+                            const connectionId = String(connection.details.id);
                             const provider = this.#host.currentProvider;
                             if (provider) {
                                 void provider.runCommand("job", [
@@ -748,7 +692,7 @@ export class MRSCommandHandler {
                                         requestType: "showPage",
                                         parameter: { module: DBEditorModuleId, page: connectionId },
                                     },
-                                    { requestType: "showMrsAuthAppDialog", parameter: { service: item.value } },
+                                    { requestType: "showMrsAuthAppDialog", parameter: { service: entry.details } },
                                 ], "newConnection");
                             }
                         }
@@ -759,27 +703,21 @@ export class MRSCommandHandler {
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.addContentSet",
-            (entry?: ICdmRestServiceEntry) => {
+            (entry?: ICdmRestContentSetEntry) => {
                 try {
                     if (entry) {
-                        const item = entry.treeItem;
-                        if (item.connectionId) {
-                            const connectionId = String(item.connectionId);
-                            const provider = this.#host.currentProvider;
-                            if (provider) {
-                                void provider.runCommand("job", [
-                                    { requestType: "showModule", parameter: DBEditorModuleId },
-                                    {
-                                        requestType: "showPage", parameter: {
-                                            module: DBEditorModuleId, page: connectionId,
-                                        },
+                        const connectionId = String(entry.connection.details.id);
+                        const provider = this.#host.currentProvider;
+                        if (provider) {
+                            void provider.runCommand("job", [
+                                { requestType: "showModule", parameter: DBEditorModuleId },
+                                {
+                                    requestType: "showPage", parameter: {
+                                        module: DBEditorModuleId, page: connectionId,
                                     },
-                                    {
-                                        requestType: "showMrsContentSetDialog", parameter: {
-                                        },
-                                    },
-                                ], "newConnection");
-                            }
+                                },
+                                { requestType: "showMrsContentSetDialog", parameter: {} },
+                            ], "newConnection");
                         }
                     }
                 } catch (reason) {
@@ -791,26 +729,23 @@ export class MRSCommandHandler {
             (entry?: ICdmRestServiceEntry) => {
                 try {
                     if (entry) {
-                        const item = entry.treeItem;
-                        if (item.connectionId) {
-                            const connectionId = String(item.connectionId);
-                            const provider = this.#host.currentProvider;
-                            if (provider) {
-                                void provider.runCommand("job", [
-                                    { requestType: "showModule", parameter: DBEditorModuleId },
-                                    {
-                                        requestType: "showPage", parameter: {
-                                            module: DBEditorModuleId, page: connectionId,
-                                        },
+                        const connectionId = String(entry.connection.details.id);
+                        const provider = this.#host.currentProvider;
+                        if (provider) {
+                            void provider.runCommand("job", [
+                                { requestType: "showModule", parameter: DBEditorModuleId },
+                                {
+                                    requestType: "showPage", parameter: {
+                                        module: DBEditorModuleId, page: connectionId,
                                     },
-                                    {
-                                        requestType: "showMrsContentSetDialog", parameter: {
-                                            directory: "$open-api-ui$",
-                                            requestPath: "/openApi-Ui",
-                                        },
+                                },
+                                {
+                                    requestType: "showMrsContentSetDialog", parameter: {
+                                        directory: "$open-api-ui$",
+                                        requestPath: "/openApi-Ui",
                                     },
-                                ], "newConnection");
-                            }
+                                },
+                            ], "newConnection");
                         }
                     }
                 } catch (reason) {
@@ -823,20 +758,18 @@ export class MRSCommandHandler {
             async (entry?: ICdmRestAuthAppEntry) => {
                 try {
                     if (entry) {
-                        const serviceId = entry.parent.treeItem.value.id;
-                        const item = entry.treeItem;
-                        if (item.value?.name !== undefined && serviceId) {
-                            const backend = item.backend;
+                        const connection = entry.connection;
+                        if (entry.details?.name) {
                             const answer = await window.showInformationMessage(
-                                `Are you sure the MRS authentication app ${item.value.name} should be deleted?`,
+                                `Are you sure the MRS authentication app ${entry.details.name} should be deleted?`,
                                 "Yes", "No");
 
                             if (answer === "Yes") {
-                                await backend.mrs.deleteAuthApp(serviceId, item.value.id!);
+                                await connection.backend.mrs.deleteAuthApp(entry.parent.details.id, entry.details.id!);
 
                                 // TODO: refresh only the affected connection.
                                 void commands.executeCommand("msg.refreshConnections");
-                                showMessageWithTimeout(`The MRS Authentication App ${item.value.name} ` +
+                                showMessageWithTimeout(`The MRS Authentication App ${entry.details.name} ` +
                                     `has been deleted.`);
                             }
                         } else {
@@ -854,20 +787,18 @@ export class MRSCommandHandler {
             async (entry?: ICdmRestUserEntry) => {
                 try {
                     if (entry) {
-                        const item = entry.treeItem;
-                        if (item.value.id && item.value.name) {
-                            const backend = item.backend;
-
+                        const connection = entry.connection;
+                        if (entry.details.id && entry.details.name) {
                             const answer = await window.showInformationMessage(
-                                `Are you sure the MRS user ${item.value.name ?? "unknown"} should be deleted?`,
+                                `Are you sure the MRS user ${entry.details.name ?? "unknown"} should be deleted?`,
                                 "Yes", "No");
 
                             if (answer === "Yes") {
-                                await backend.mrs.deleteUser(item.value.id);
+                                await connection.backend.mrs.deleteUser(entry.details.id);
 
                                 // TODO: refresh only the affected connection.
                                 void commands.executeCommand("msg.refreshConnections");
-                                showMessageWithTimeout(`The MRS User ${item.value.name} has been deleted.`);
+                                showMessageWithTimeout(`The MRS User ${entry.details.name} has been deleted.`);
                             }
                         }
                     }
@@ -880,50 +811,55 @@ export class MRSCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.addUser", (entry?: ICdmRestAuthAppEntry) => {
             if (entry) {
-                const item = entry.treeItem;
-                if (item.value) {
-                    const connectionId = String(item.connectionId);
+                const connection = entry.connection;
+                if (entry.details) {
+                    const connectionId = String(connection.details.id);
                     const provider = this.#host.currentProvider;
                     if (provider) {
                         void provider.runCommand("job", [
                             { requestType: "showModule", parameter: DBEditorModuleId },
                             { requestType: "showPage", parameter: { module: DBEditorModuleId, page: connectionId } },
-                            { requestType: "showMrsUserDialog", parameter: { authApp: item.value } },
+                            { requestType: "showMrsUserDialog", parameter: { authApp: entry.details } },
                         ], "newConnection");
                     }
                 }
             }
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.editUser", (entry?: ICdmRestUserEntry) => {
-            const item = entry?.treeItem;
-            const backend = item?.backend;
-            try {
-                if (backend && item.value && item.value.authAppId) {
-                    backend.mrs.getAuthApp(item.value.authAppId).then((authApp) => {
-                        if (authApp) {
-                            const connectionId = String(item.connectionId);
-                            const provider = this.#host.currentProvider;
-                            if (provider) {
-                                void provider.runCommand("job", [
-                                    { requestType: "showModule", parameter: DBEditorModuleId },
-                                    {
-                                        requestType: "showPage", parameter: {
-                                            module: DBEditorModuleId, page: connectionId,
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.editUser", (entry?: ICdmRestUserEntry) => {
+            if (entry) {
+                const connection = entry.connection;
+                try {
+                    if (entry.details && entry.details.authAppId) {
+                        connection.backend.mrs.getAuthApp(entry.details.authAppId).then((authApp) => {
+                            if (authApp) {
+                                const connectionId = String(connection.details.id);
+                                const provider = this.#host.currentProvider;
+                                if (provider) {
+                                    void provider.runCommand("job", [
+                                        { requestType: "showModule", parameter: DBEditorModuleId },
+                                        {
+                                            requestType: "showPage", parameter: {
+                                                module: DBEditorModuleId, page: connectionId,
+                                            },
                                         },
-                                    },
-                                    { requestType: "showMrsUserDialog", parameter: { authApp, user: item.value } },
-                                ], "newConnection");
+                                        {
+                                            requestType: "showMrsUserDialog", parameter: {
+                                                authApp, user: entry.details,
+                                            },
+                                        },
+                                    ], "newConnection");
+                                }
+                            } else {
+                                throw new Error("Unable to find authApp");
                             }
-                        } else {
-                            throw new Error("Unable to find authApp");
-                        }
-                    }).catch((reason) => {
-                        void window.showErrorMessage(`Error adding a new User: ${String(reason)}`);
-                    });
+                        }).catch((reason) => {
+                            void window.showErrorMessage(`Error adding a new User: ${String(reason)}`);
+                        });
+                    }
+                } catch (reason) {
+                    void window.showErrorMessage(`Error adding a new User: ${String(reason)}`);
                 }
-            } catch (reason) {
-                void window.showErrorMessage(`Error adding a new User: ${String(reason)}`);
             }
         }));
 
@@ -938,7 +874,7 @@ export class MRSCommandHandler {
                                 { requestType: "showModule", parameter: DBEditorModuleId },
                                 {
                                     requestType: "showPage", parameter: {
-                                        module: DBEditorModuleId, page: String(connection.treeItem.details.id),
+                                        module: DBEditorModuleId, page: String(connection.details.id),
                                     },
                                 },
                                 {
@@ -959,18 +895,16 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.deleteContentSet",
             async (entry?: ICdmRestContentSetEntry) => {
                 if (entry) {
-                    const item = entry.treeItem;
-                    if (item.value) {
-                        const backend = item.backend;
-
+                    const connection = entry.connection;
+                    if (entry.details) {
                         const accepted = await showModalDialog(
-                            `Are you sure you want to drop the static content set ${item.value.requestPath}?`,
+                            `Are you sure you want to drop the static content set ${entry.details.requestPath}?`,
                             "Delete Static Content Set",
                             "This operation cannot be reverted!");
 
                         if (accepted) {
                             try {
-                                await backend.mrs.deleteContentSet(item.value.id);
+                                await connection.backend.mrs.deleteContentSet(entry.details.id);
 
                                 void commands.executeCommand("msg.refreshConnections");
                                 showMessageWithTimeout(
@@ -987,11 +921,9 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.dumpSchemaToJSONFile",
             async (entry?: ICdmRestSchemaEntry) => {
                 if (entry) {
-                    const item = entry.treeItem;
-                    if (item.value) {
-                        const backend = item.backend;
-
-                        const convertedPath = convertPathToCamelCase(item.value.requestPath);
+                    const connection = entry.connection;
+                    if (entry.details) {
+                        const convertedPath = convertPathToCamelCase(entry.details.requestPath);
                         await window.showSaveDialog({
                             title: "REST Schema Dump...",
                             saveLabel: "Select the target file",
@@ -1004,7 +936,8 @@ export class MRSCommandHandler {
                             if (value !== undefined) {
                                 try {
                                     const path = value.fsPath;
-                                    await backend.mrs.dumpSchema(path, item.value.serviceId, undefined, item.value.id);
+                                    await connection.backend.mrs.dumpSchema(path, entry.details.serviceId, undefined,
+                                        entry.details.id);
                                     showMessageWithTimeout("The REST Schema has been dumped successfully.");
                                 } catch (error) {
                                     void window.showErrorMessage(
@@ -1019,14 +952,11 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.dumpObjectToJSONFile",
             async (entry?: ICdmRestDbObjectEntry) => {
                 if (entry) {
-                    const item = entry.treeItem;
-                    if (item.value) {
-                        const backend = item.backend;
-
+                    if (entry.details) {
                         await window.showSaveDialog({
                             title: "REST Database Object Dump...",
                             saveLabel: "Select the target file",
-                            defaultUri: Uri.file(`${os.homedir()}/${item.value.name}.mrs.json`),
+                            defaultUri: Uri.file(`${os.homedir()}/${entry.details.name}.mrs.json`),
                             filters: {
                                 // eslint-disable-next-line @typescript-eslint/naming-convention
                                 JSON: ["mrs.json"],
@@ -1035,8 +965,9 @@ export class MRSCommandHandler {
                             if (value !== undefined) {
                                 try {
                                     const path = value.fsPath;
-                                    await backend.mrs.dumpObject(path, item.value.serviceId, undefined,
-                                        item.value.dbSchemaId, undefined, item.value.id);
+                                    const connection = entry.connection;
+                                    await connection.backend.mrs.dumpObject(path, entry.details.serviceId, undefined,
+                                        entry.details.dbSchemaId, undefined, entry.details.id);
                                     showMessageWithTimeout("The REST Database Object has been dumped successfully.");
                                 } catch (error) {
                                     void window.showErrorMessage(
@@ -1055,11 +986,11 @@ export class MRSCommandHandler {
                 }
 
                 if (!(entry instanceof Uri)) {
-                    if (!entry.treeItem.value) {
+                    if (!entry.details) {
                         return;
                     }
 
-                    const backend = entry.treeItem.backend;
+                    const backend = entry.connection.backend;
 
                     await window.showOpenDialog({
                         title: "REST Schema Load...",
@@ -1079,7 +1010,7 @@ export class MRSCommandHandler {
                                 statusbarItem.show();
 
                                 const path = value[0].fsPath;
-                                await backend.mrs.loadSchema(path, entry.treeItem.value.id);
+                                await backend.mrs.loadSchema(path, entry.details.id);
                                 void commands.executeCommand("msg.refreshConnections");
                                 showMessageWithTimeout("The REST Schema has been loaded successfully.");
                             } catch (error) {
@@ -1100,10 +1031,10 @@ export class MRSCommandHandler {
                             statusbarItem.show();
 
                             statusbarItem.text = "$(loading~spin) Starting Database Session ...";
-                            await sqlEditor.startSession(String(connection.treeItem.details.id) + "MRSContentSetDlg");
+                            await sqlEditor.startSession(String(connection.details.id) + "MRSContentSetDlg");
 
                             statusbarItem.text = "$(loading~spin) Opening Database Connection ...";
-                            await openSqlEditorConnection(sqlEditor, connection.treeItem.details.id, (message) => {
+                            await openSqlEditorConnection(sqlEditor, connection.details.id, (message) => {
                                 statusbarItem.text = "$(loading~spin) " + message;
                             });
 
@@ -1153,9 +1084,8 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.loadObjectFromJSONFile",
             async (entry?: ICdmRestSchemaEntry) => {
                 if (entry) {
-                    const item = entry.treeItem;
-                    if (item.value) {
-                        const backend = item.backend;
+                    if (entry.details) {
+                        const backend = entry.connection.backend;
 
                         await window.showOpenDialog({
                             title: "REST Database Object Load...",
@@ -1171,7 +1101,8 @@ export class MRSCommandHandler {
                             if (value !== undefined) {
                                 try {
                                     const path = value[0].fsPath;
-                                    await backend.mrs.loadObject(path, item.value.serviceId, undefined, item.value.id);
+                                    await backend.mrs.loadObject(path, entry.details.serviceId, undefined,
+                                        entry.details.id);
                                     void commands.executeCommand("msg.refreshConnections");
                                     showMessageWithTimeout("The REST Database Object has been loaded successfully.");
                                 } catch (error) {
@@ -1268,7 +1199,7 @@ export class MRSCommandHandler {
         if (entry && answer === "Yes") {
             const sqlEditor = new ShellInterfaceSqlEditor();
             try {
-                await openSqlEditorSessionAndConnection(sqlEditor, entry.treeItem.details.id,
+                await openSqlEditorSessionAndConnection(sqlEditor, entry.details.id,
                     "msg.mrs.configureMySQLRestService");
 
                 const statusbarItem = window.createStatusBarItem();
@@ -1301,7 +1232,7 @@ export class MRSCommandHandler {
 
         return (process.env.MYSQL_ROUTER_CUSTOM_DIR !== undefined)
             ? process.env.MYSQL_ROUTER_CUSTOM_DIR
-            : path.join(routerConfigBaseDir, entry?.parent.id.toString() ?? "default", "mysqlrouter");
+            : path.join(routerConfigBaseDir, entry?.connection.details.id.toString() ?? "default", "mysqlrouter");
     };
 
     private getEmbeddedRouterBinPath = (context: ExtensionContext): string | undefined => {
@@ -1324,7 +1255,7 @@ export class MRSCommandHandler {
                     context.extensionMode === ExtensionMode.Development);
                 const certDir = path.join(shellConfDir, "plugin_data", "gui_plugin", "web_certs");
 
-                const mysqlConnOptions = entry.parent.treeItem.details.options as IMySQLConnectionOptions;
+                const mysqlConnOptions = entry.connection.details.options as IMySQLConnectionOptions;
                 if (mysqlConnOptions.scheme !== MySQLConnectionScheme.MySQL) {
                     void window.showErrorMessage(
                         "Only DB Connections using classic MySQL protocol can be used for bootstrapping.");
@@ -1371,8 +1302,8 @@ export class MRSCommandHandler {
                     term.show();
                     const routerBootstrapPath = routerBinDir !== undefined
                         ? join(routerBinDir, "mysqlrouter_bootstrap") : "mysqlrouter_bootstrap";
-                    const basePort = 6446 + (entry?.parent.id ?? 0) * 4;
-                    const httpPort = 8443 + (entry?.parent.id ?? 0);
+                    const basePort = 6446 + (entry?.connection.details.id ?? 0) * 4;
+                    const httpPort = 8443 + (entry?.connection.details.id ?? 0);
                     let bootstrapCommand =
                         `${routerBootstrapPath} ${connString} --mrs --directory "${routerConfigDir}" ` +
                         `"--conf-set-option=http_server.ssl_cert=${path.join(certDir, "server.crt")}" ` +
@@ -1380,6 +1311,7 @@ export class MRSCommandHandler {
                         `--conf-set-option=logger.level=INFO --conf-set-option=logger.sinks=consolelog ` +
                         `--conf-base-port=${basePort.toString()} ` +
                         `--conf-set-option=http_server.port=${httpPort.toString()}`;
+
                     // Add --mrs-developer option to set the development user for this router instance
                     if (mysqlConnOptions.user) {
                         bootstrapCommand += ` --mrs-developer "${mysqlConnOptions.user}"`;
@@ -1664,25 +1596,22 @@ export class MRSCommandHandler {
     };
 
     private buildDbObjectRequestPath = (entry: ICdmRestDbObjectEntry): Uri | undefined => {
-        const item = entry.treeItem;
-        if (item.value) {
-            try {
-                const o = item.value;
-                const port = getRouterPortForConnection(entry.treeItem.connectionId);
-                let url = (o.hostCtx ?? "") + (o.schemaRequestPath ?? "") + o.requestPath;
+        try {
+            const o = entry.details;
+            const port = getRouterPortForConnection(entry.connection.details.id);
+            let url = (o.hostCtx ?? "") + (o.schemaRequestPath ?? "") + o.requestPath;
 
-                if (url.startsWith("/")) {
-                    url = `https://localhost:${port}${url}`;
-                } else {
-                    url = `https://${url}`;
-                }
-
-                return Uri.parse(url);
-            } catch (error) {
-                let errorMsg = `An error occurred when trying to build the DB Object Path.`;
-                errorMsg += ` Error: ${error instanceof Error ? error.message : String(error)}`;
-                void window.showErrorMessage(errorMsg);
+            if (url.startsWith("/")) {
+                url = `https://localhost:${port}${url}`;
+            } else {
+                url = `https://${url}`;
             }
+
+            return Uri.parse(url);
+        } catch (error) {
+            let errorMsg = `An error occurred when trying to build the DB Object Path.`;
+            errorMsg += ` Error: ${error instanceof Error ? error.message : String(error)}`;
+            void window.showErrorMessage(errorMsg);
         }
     };
 }

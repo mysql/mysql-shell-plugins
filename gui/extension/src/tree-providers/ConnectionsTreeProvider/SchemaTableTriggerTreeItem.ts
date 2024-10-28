@@ -23,23 +23,18 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
+import type { ICdmTriggerEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
+import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
 
-export class SchemaTableTriggerTreeItem extends ConnectionsTreeBaseItem {
+export class SchemaTableTriggerTreeItem extends ConnectionBaseTreeItem<ICdmTriggerEntry> {
     public override contextValue = "schemaTableTriggerItem";
 
-    public constructor(
-        name: string,
-        schema: string,
-        public table: string,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number) {
-        super(name, schema, backend, connectionId, "schemaTableTrigger.svg", false);
+    public constructor(dataModelEntry: ICdmTriggerEntry) {
+        super(dataModelEntry, "schemaTableTrigger.svg", false);
     }
 
     public override get qualifiedName(): string {
-        return `\`${this.schema}\`.\`${this.name}\``;
+        return `\`${this.dataModelEntry.schema}\`.\`${this.dataModelEntry.caption}\``;
     }
 
     public override get dbType(): string {

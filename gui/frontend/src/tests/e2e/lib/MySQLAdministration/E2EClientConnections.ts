@@ -23,13 +23,17 @@
 
 import { WebElement, until } from "selenium-webdriver";
 import * as locator from "../locators.js";
-import { driver } from "../driver.js";
-import * as constants from "../constants.js";
+import { driver } from "../../lib/driver.js";
+import { E2EToolbar } from "../E2EToolbar.js";
+import { wait3seconds } from "../constants.js";
 
 /**
  * This class represents the Client Connections page and all its related functions
  */
 export class E2EClientConnections {
+
+    /** The toolbar*/
+    public toolbar = new E2EToolbar();
 
     /** The threads connected*/
     public threadsConnected: string | undefined;
@@ -71,46 +75,52 @@ export class E2EClientConnections {
     public create = async (): Promise<void> => {
 
         const clientConnectionsLocator = locator.mysqlAdministration.clientConnections;
-        await driver.wait(until.elementTextMatches(await driver.findElement(clientConnectionsLocator.threadsConnected),
-            /(\d+)/), constants.wait3seconds);
 
-        const [
-            threadsConnected,
-            threadsRunning,
-            threadsCreated,
-            threadsCached,
-            rejected,
-            totalConnections,
-            connectionLimit,
-            abortedClients,
-            abortedConnections,
-            errors,
-            connectionsList,
-        ] = await Promise.all([
-            await (await driver.findElement(clientConnectionsLocator.threadsConnected)).getText(),
-            await (await driver.findElement(clientConnectionsLocator.threadsRunning)).getText(),
-            await (await driver.findElement(clientConnectionsLocator.threadsCreated)).getText(),
-            await (await driver.findElement(clientConnectionsLocator.threadsCached)).getText(),
-            await (await driver.findElement(clientConnectionsLocator.rejected)).getText(),
-            await (await driver.findElement(clientConnectionsLocator.totalConnections)).getText(),
-            await (await driver.findElement(clientConnectionsLocator.connectionLimit)).getText(),
-            await (await driver.findElement(clientConnectionsLocator.abortedClients)).getText(),
-            await (await driver.findElement(clientConnectionsLocator.abortedConnections)).getText(),
-            await (await driver.findElement(clientConnectionsLocator.errors)).getText(),
-            await driver.findElement(clientConnectionsLocator.connectionsList),
-        ]);
+        const threadsConnected = await driver.findElement(clientConnectionsLocator.threadsConnected);
+        const threadsRunning = await driver.findElement(clientConnectionsLocator.threadsRunning);
+        const threadsCreated = await driver.findElement(clientConnectionsLocator.threadsCreated);
+        const threadsCached = await driver.findElement(clientConnectionsLocator.threadsCached);
+        const rejected = await driver.findElement(clientConnectionsLocator.rejected);
+        const totalConnections = await driver.findElement(clientConnectionsLocator.totalConnections);
+        const connectionLimit = await driver.findElement(clientConnectionsLocator.connectionLimit);
+        const abortedClients = await driver.findElement(clientConnectionsLocator.abortedClients);
+        const abortedConnections = await driver.findElement(clientConnectionsLocator.abortedConnections);
+        const errors = await driver.findElement(clientConnectionsLocator.errors);
+        const connectionsList = await driver.wait(until.elementLocated(clientConnectionsLocator.connectionsList),
+            wait3seconds, `Could not find the connections table`);
+
+        const isNotEmpty = /(.|\s)*\S(.|\s)*/;
+
+        await driver.wait(until.elementTextMatches(threadsConnected, isNotEmpty),
+            wait3seconds, `threadsConnected should not be empty`);
+        await driver.wait(until.elementTextMatches(threadsRunning, isNotEmpty),
+            wait3seconds, `threadsRunning should not be empty`);
+        await driver.wait(until.elementTextMatches(threadsCreated, isNotEmpty),
+            wait3seconds, `threadsCreated should not be empty`);
+        await driver.wait(until.elementTextMatches(rejected, isNotEmpty),
+            wait3seconds, `rejected should not be empty`);
+        await driver.wait(until.elementTextMatches(totalConnections, isNotEmpty),
+            wait3seconds, `totalConnections should not be empty`);
+        await driver.wait(until.elementTextMatches(connectionLimit, isNotEmpty),
+            wait3seconds, `connectionLimit should not be empty`);
+        await driver.wait(until.elementTextMatches(abortedClients, isNotEmpty),
+            wait3seconds, `abortedClients should not be empty`);
+        await driver.wait(until.elementTextMatches(abortedConnections, isNotEmpty),
+            wait3seconds, `abortedConnections should not be empty`);
+        await driver.wait(until.elementTextMatches(errors, isNotEmpty),
+            wait3seconds, `errors should not be empty`);
 
 
-        this.threadsConnected = threadsConnected;
-        this.threadsRunning = threadsRunning;
-        this.threadsCreated = threadsCreated;
-        this.threadsCached = threadsCached;
-        this.rejected = rejected;
-        this.totalConnections = totalConnections;
-        this.connectionLimit = connectionLimit;
-        this.abortedClients = abortedClients;
-        this.abortedConnections = abortedConnections;
-        this.errors = errors;
+        this.threadsConnected = await threadsConnected.getText();
+        this.threadsRunning = await threadsRunning.getText();
+        this.threadsCreated = await threadsCreated.getText();
+        this.threadsCached = await threadsCached.getText();
+        this.rejected = await rejected.getText();
+        this.totalConnections = await totalConnections.getText();
+        this.connectionLimit = await connectionLimit.getText();
+        this.abortedClients = await abortedClients.getText();
+        this.abortedConnections = await abortedConnections.getText();
+        this.errors = await errors.getText();
         this.connectionsList = connectionsList;
     };
 

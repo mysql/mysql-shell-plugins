@@ -26,6 +26,7 @@
 cwd=`dirname $0`
 
 node --no-warnings --loader ts-node/esm scripts/generate-mrs-grammar.ts
+node --no-warnings --loader ts-node/esm scripts/copy-oci-typings.ts
 
 # Generate parsers only if something in the source folder changed.
 source=`ls -t src/parsing/mysql/MySQL* | head -1`
@@ -46,5 +47,5 @@ fi
 bash $cwd/generate-mrs-sdk-resource-links.sh
 
 # We need lots of RAM when building with source maps. Without them 8GB are enough.
-export NODE_OPTIONS="--max-old-space-size=16000"
+export NODE_OPTIONS="--max-old-space-size=4096"
 SOURCE_MAPS=$1 node_modules/.bin/vite build

@@ -28,8 +28,8 @@ import { driver } from "./driver.js";
 import * as constants from "./constants.js";
 import * as interfaces from "./interfaces.js";
 import * as locator from "./locators.js";
-import { Misc } from "./misc.js";
 import { CommandResult } from "./CommandResult.js";
+import { ConfirmDialog } from "./Dialogs/ConfirmationDialog.js";
 
 const toolbarLocator = locator.notebook.codeEditor.editor.result.toolbar;
 
@@ -130,9 +130,8 @@ export class CommandResultToolbar implements interfaces.ICommandResultToolbar {
      */
     public rollbackChanges = async (): Promise<void> => {
         await this.result!.context!.findElement(toolbarLocator.rollbackButton).click();
-        const confirmDialog = await driver.wait(Misc.untilConfirmationDialogExists("for rollback"),
-            constants.wait5seconds, "Confirmation dialog was not found");
-        await confirmDialog!.findElement(locator.confirmDialog.accept).click();
+        const dialog = await new ConfirmDialog().untilExists();
+        await dialog.accept();
     };
 
     /**

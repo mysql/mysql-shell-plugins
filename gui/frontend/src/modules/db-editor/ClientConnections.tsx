@@ -23,50 +23,51 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import nullIcon from "../../assets/images/data-icons/data-null.svg";
 import mysqlIcon from "../../assets/images/admin/mysql-logo.svg";
+import nullIcon from "../../assets/images/data-icons/data-null.svg";
 
-import hideSleepConnectionsActiveIcon from "../../assets/images/toolbar/toolbar-sleeping_conns-active.svg";
-import hideSleepConnectionsInactiveIcon from "../../assets/images/toolbar/toolbar-sleeping_conns-inactive.svg";
+import hideBackgroundThreadsActiveIcon from "../../assets/images/toolbar/toolbar-background-threads-active.svg";
+import hideBackgroundThreadsInactiveIcon from "../../assets/images/toolbar/toolbar-background-threads-inactive.svg";
 import noFullInfoActiveIcon from "../../assets/images/toolbar/toolbar-info-active.svg";
 import noFullInfoInactiveIcon from "../../assets/images/toolbar/toolbar-info-inactive.svg";
-import hideBackgroundThreadsActiveIcon from "../../assets/images/toolbar/toolbar-background_threads-active.svg";
-import hideBackgroundThreadsInactiveIcon from "../../assets/images/toolbar/toolbar-background_threads-inactive.svg";
-import showDetailsActiveIcon from "../../assets/images/toolbar/toolbar-show_details-active.svg";
-import showDetailsInactiveIcon from "../../assets/images/toolbar/toolbar-show_details-inactive.svg";
 import killConnectionIcon from "../../assets/images/toolbar/toolbar-kill_connection.svg";
 import killQueryIcon from "../../assets/images/toolbar/toolbar-kill_query.svg";
+import showDetailsActiveIcon from "../../assets/images/toolbar/toolbar-show-details-active.svg";
+import showDetailsInactiveIcon from "../../assets/images/toolbar/toolbar-show-details-inactive.svg";
+import hideSleepConnectionsActiveIcon from "../../assets/images/toolbar/toolbar-sleeping_conns-active.svg";
+import hideSleepConnectionsInactiveIcon from "../../assets/images/toolbar/toolbar-sleeping_conns-inactive.svg";
 
 import { ComponentChild, createRef, render } from "preact";
 
 import { CellComponent, ColumnDefinition, Formatter, RowComponent } from "tabulator-tables";
 
-import { IToolbarItems } from "./index.js";
 import {
     DBDataType, DialogResponseClosure, DialogType, IColumnInfo, IDialogRequest, IDialogResponse, IDictionary,
-} from "../../app-logic/Types.js";
+} from "../../app-logic/general-types.js";
+import { IToolbarItems } from "./index.js";
 
-import { IResultSet } from "../../script-execution/index.js";
-import { DBType } from "../../supplement/ShellInterface/index.js";
-import { convertRows, generateColumnInfo } from "../../supplement/index.js";
-import { requisitions } from "../../supplement/Requisitions.js";
-import { uuid } from "../../utilities/helpers.js";
 import { IPromptReplyBackend } from "../../communication/Protocol.js";
+import { Button } from "../../components/ui/Button/Button.js";
 import {
-    IComponentProperties, IComponentState, ComponentBase, SelectionType,
+    ComponentBase, IComponentProperties, IComponentState, SelectionType,
 } from "../../components/ui/Component/ComponentBase.js";
-import { Container, Orientation, ContentAlignment, ContentWrap } from "../../components/ui/Container/Container.js";
+import { Container, ContentAlignment, ContentWrap, Orientation } from "../../components/ui/Container/Container.js";
 import { Divider } from "../../components/ui/Divider/Divider.js";
 import { Dropdown } from "../../components/ui/Dropdown/Dropdown.js";
+import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem.js";
 import { Grid } from "../../components/ui/Grid/Grid.js";
 import { GridCell } from "../../components/ui/Grid/GridCell.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
 import { Label } from "../../components/ui/Label/Label.js";
-import { Tabview, TabPosition } from "../../components/ui/Tabview/Tabview.js";
+import { TabPosition, Tabview } from "../../components/ui/Tabview/Tabview.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
-import { TreeGrid, ITreeGridOptions } from "../../components/ui/TreeGrid/TreeGrid.js";
+import { ITreeGridOptions, TreeGrid } from "../../components/ui/TreeGrid/TreeGrid.js";
+import { IResultSet } from "../../script-execution/index.js";
+import { requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { Button } from "../../components/ui/Button/Button.js";
+import { DBType } from "../../supplement/ShellInterface/index.js";
+import { convertRows, generateColumnInfo } from "../../supplement/index.js";
+import { uuid } from "../../utilities/helpers.js";
 
 interface IGlobalStatus {
     threadConnected?: number;
@@ -82,7 +83,7 @@ interface IGlobalStatus {
 }
 
 interface IClientConnectionsProperties extends IComponentProperties {
-    backend: ShellInterfaceSqlEditor;
+    backend?: ShellInterfaceSqlEditor;
 
     /** Top level toolbar items, to be integrated with page specific ones. */
     toolbarItems: IToolbarItems;
@@ -438,7 +439,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
         intervals.forEach((value: number) => {
             items.push(
-                <Dropdown.Item
+                <DropdownItem
                     id={`${value}`}
                     caption={value > 0 ? `${value} seconds` : `no refresh`}
                 />,
@@ -603,6 +604,10 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
     private checkIsPsAvailable = async (): Promise<boolean> => {
         const { backend } = this.props;
 
+        if (!backend) {
+            return false;
+        }
+
         const result = await backend.execute("select @@performance_schema");
         if (!result) {
             return false;
@@ -613,6 +618,10 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
     private updateProcessList = async (): Promise<void> => {
         const { backend } = this.props;
+        if (!backend) {
+            return Promise.resolve();
+        }
+
         const { globalStatus, version } = this.state;
 
         if (!version) {
@@ -754,6 +763,10 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
     private killConnection = async (): Promise<void> => {
         const { backend } = this.props;
+        if (!backend) {
+            return;
+        }
+
         const id = this.getSelectedRowValue("PROCESSLIST_ID");
         if (id) {
             try {
@@ -768,6 +781,10 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
     private killQuery = async (): Promise<void> => {
         const { backend } = this.props;
+        if (!backend) {
+            return;
+        }
+
         const id = this.getSelectedRowValue("PROCESSLIST_ID");
         if (id) {
             try {
@@ -817,6 +834,9 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
     private updateAttributes = async (id: string): Promise<void> => {
         const { backend } = this.props;
+        if (!backend) {
+            return;
+        }
 
         const resultId = uuid();
         const query = `SELECT * FROM performance_schema.session_connect_attrs` +
@@ -844,6 +864,9 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
     private updateLocks = async (id: number): Promise<void> => {
         const { backend } = this.props;
+        if (!backend) {
+            return;
+        }
 
         const query = `SELECT * FROM performance_schema.metadata_locks WHERE owner_thread_id = ${id}`;
         const result = await backend.execute(query);
@@ -891,6 +914,9 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
     private generatePendingLocksInfo = (subQuery: string, type: string, duration: string, objectName: string): void => {
         const { backend } = this.props;
+        if (!backend) {
+            return;
+        }
 
         const query = `SELECT OWNER_THREAD_ID as ownerThreadId FROM performance_schema.metadata_locks` +
             `WHERE ${subQuery} AND LOCK_STATUS = 'GRANTED'`;
@@ -917,6 +943,9 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
     private generateGrantedLocksInfo = (subQuery: string, type: string, duration: string,
         objectName: string): void => {
         const { backend } = this.props;
+        if (!backend) {
+            return;
+        }
 
         const resultId = uuid();
         const query = `SELECT OWNER_THREAD_ID as threadId, LOCK_TYPE as type, LOCK_DURATION as duration ` +

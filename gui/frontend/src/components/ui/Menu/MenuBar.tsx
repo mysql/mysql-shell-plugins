@@ -130,7 +130,7 @@ export class MenuBar extends ComponentBase<IMenuBarProperties, IMenuBarState> {
     };
 
     private handleSubMenuOpen = (props: IMenuItemProperties): void => {
-        this.setState({ activeMenuId: props.id || "", trackItems: true });
+        this.setState({ activeMenuId: props.id ?? "", trackItems: true });
     };
 
     private handleItemMouseEnter = (e: MouseEvent, props: IMenuItemProperties): void => {

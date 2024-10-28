@@ -31,7 +31,7 @@ import { Radiobutton, IRadiobuttonProperties } from "../../../../components/ui/R
 import { KeyboardKeys } from "../../../../utilities/helpers.js";
 
 import { nextProcessTick, sendKeyPress } from "../../test-helpers.js";
-import { mouseEventMock } from "../../__mocks__/MockEvents.js";
+import { mouseEventMock } from "../../__mocks__/EventMocks.js";
 
 describe("Radiobutton component tests", (): void => {
 

@@ -24,7 +24,7 @@
  */
 
 import Cocoa;
-import WebKit;
+@preconcurrency import WebKit;
 
 @main
 class AppDelegate: NSObject, AppProtocol, NSApplicationDelegate, WKNavigationDelegate, WKUIDelegate,

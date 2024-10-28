@@ -24,7 +24,7 @@
  */
 
 import { IThenableCallback } from "./index.js";
-import { IDictionary } from "../app-logic/Types.js";
+import { IDictionary } from "../app-logic/general-types.js";
 import { requisitions } from "./Requisitions.js";
 import { Settings } from "./Settings/Settings.js";
 import { WorkerCallback } from "./WorkerCallback.js";

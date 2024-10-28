@@ -23,27 +23,27 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import clientConnections from "../../assets/images/clientConnections.svg";
-import mysql from "../../assets/images/schemaMySQL.svg";
+import clientConnections from "../../assets/images/admin/clientConnections.svg";
 import innodb from "../../assets/images/databaseEngine.svg";
+import mysql from "../../assets/images/schemaMySQL.svg";
 
 import { ComponentChild } from "preact";
 
-import { ColorScheme, ISavedGraphData, IToolbarItems } from "./index.js";
 import { GraphHost } from "../../components/graphs/GraphHost.js";
+import { ColorScheme, ISavedGraphData, IToolbarItems } from "./index.js";
 
-import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem.js";
-import { formatBytes } from "../../utilities/string-helpers.js";
-import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
-import { Container, Orientation, ContentAlignment } from "../../components/ui/Container/Container.js";
+import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
+import { Container, ContentAlignment, Orientation } from "../../components/ui/Container/Container.js";
 import { Dropdown } from "../../components/ui/Dropdown/Dropdown.js";
+import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem.js";
 import { Grid } from "../../components/ui/Grid/Grid.js";
 import { GridCell } from "../../components/ui/Grid/GridCell.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
 import { Label } from "../../components/ui/Label/Label.js";
+import { Tabview } from "../../components/ui/Tabview/Tabview.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { Tabview } from "../../components/ui/Tabview/Tabview.js";
+import { formatBytes } from "../../utilities/string-helpers.js";
 
 enum MarkerType {
     None,
@@ -67,7 +67,7 @@ const colorSchemes = new Map<ColorScheme, string[]>([
 
 
 interface IPerformanceDashboardProperties extends IComponentProperties {
-    backend: ShellInterfaceSqlEditor;
+    backend?: ShellInterfaceSqlEditor;
 
     /** Top level toolbar items, to be integrated with page specific ones. */
     toolbarItems: IToolbarItems;
@@ -203,7 +203,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
 
         // Get the initial values to allow computing changes on each query step.
         // But first check if the user has access to the performance_schema.
-        props.backend.execute("select * from performance_schema.log_status").then(() => {
+        props.backend?.execute("select * from performance_schema.log_status").then(() => {
             this.hasPSAccess = true;
             void this.queryAndUpdate();
         }).catch(() => {
@@ -1152,6 +1152,9 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
 
     private async queryAndUpdate(): Promise<void> {
         const { backend } = this.props;
+        if (!backend) {
+            return;
+        }
 
         const list = this.variableNames.join("\",\"");
         try {
@@ -1160,7 +1163,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
             if (result && result.rows) {
                 const variables = result.rows as Array<[string, string]>;
                 try {
-                    if(mleMemoryMax && mleMemoryMax.rows) {
+                    if (mleMemoryMax && mleMemoryMax.rows) {
                         const mleMemoryMaxValue = mleMemoryMax.rows as Array<[[number]]>;
                         variables.push([
                           "mle_memory_max",
@@ -1417,7 +1420,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         const result = new Map<string, number>();
         this.variableNames.forEach((name) => {
             const value = Number(variables.get(name));
-            if(!isNaN(value)){
+            if (!isNaN(value)) {
                 result.set(name, parseInt(variables.get(name) ?? "0", 10));
             } else {
                 result.set(name, variables.get(name) as unknown as number);

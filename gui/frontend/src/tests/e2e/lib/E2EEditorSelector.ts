@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until, error } from "selenium-webdriver";
+import { until, error, WebElement } from "selenium-webdriver";
 import * as constants from "./constants.js";
 import * as locator from "./locators.js";
 import * as interfaces from "./interfaces.js";
@@ -91,15 +91,22 @@ export class E2EEditorSelector {
 
                 let listItems = await driver.findElements(locator.notebook.toolbar.editorSelector.list.item);
 
+                const isConnection = async (item: WebElement): Promise<boolean> => {
+                    const icon = await item.findElements(locator.notebook.toolbar.editorSelector.currentValue.icon);
+
+                    if (icon.length > 0) {
+                        return (await icon[0].getCssValue("mask-image")).includes("connection");
+                    }
+
+                    return false;
+                };
+
                 if (parentConnection) {
-                    let startIndex: number;
-                    let endIndex: number;
+                    let startIndex: number | undefined;
+                    let endIndex = listItems.length - 1;
 
                     for (let i = 0; i <= listItems.length - 1; i++) {
-                        const isConnection = await listItems[i].getAttribute("id") !== "connections" &&
-                            await listItems[i].getAttribute("type") === null;
-
-                        if (isConnection) {
+                        if (await isConnection(listItems[i])) {
                             const label = await (await listItems[i].findElement(locator.htmlTag.label)).getText();
                             if (label === parentConnection) {
 
@@ -109,23 +116,30 @@ export class E2EEditorSelector {
                         }
                     }
 
-                    for (let i = startIndex! + 1; i <= listItems.length - 1; i++) {
-                        const isConnection = await listItems[i].getAttribute("id") !== "connections" &&
-                            await listItems[i].getAttribute("type") === null;
+                    if (!startIndex) {
+                        throw new Error(`Could not find startIndex`);
+                    }
 
-                        if (isConnection) {
+                    for (let i = startIndex + 1; i <= listItems.length - 1; i++) {
+                        if (await isConnection(listItems[i])) {
                             endIndex = i;
                             break;
                         }
                     }
 
-                    listItems = listItems.slice(startIndex! + 1, endIndex!);
+                    if (!endIndex) {
+                        throw new Error(`Could not find endIndex`);
+                    }
+
+                    listItems = listItems.slice(startIndex + 1, endIndex);
 
                     for (let i = 0; i <= listItems.length - 1; i++) {
                         const label = await (listItems[i].findElement(locator.htmlTag.label)).getText();
+
                         if (label.match(editorName) !== null) {
                             await listItems[i].click();
-                            break;
+
+                            return true;
                         }
                     }
                 } else {
@@ -134,13 +148,15 @@ export class E2EEditorSelector {
 
                         if (itemText.match(editorName) !== null) {
                             await listItem.click();
-                            break;
+
+                            return true;
                         }
                     }
                 }
 
-                return true;
+                throw new Error(`Could not find editor name ${editorName}`);
             } catch (e) {
+                console.log(e);
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }

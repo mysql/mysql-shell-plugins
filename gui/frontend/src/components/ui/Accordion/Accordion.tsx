@@ -25,32 +25,57 @@
 
 import "./Accordion.css";
 
-import { ComponentChild, createRef } from "preact";
+import { ComponentChild, createRef, type RefObject } from "preact";
 
-import { AccordionItem } from "./AccordionItem.js";
-import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
+import type { Command } from "../../../data-models/data-model-types.js";
 import { Codicon } from "../Codicon.js";
-import { AccordionSection, IAccordionSectionProperties } from "./AccordionSection.js";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
 import { Label } from "../Label/Label.js";
-import { ISplitterPane, SplitContainer, ISplitterPaneSizeInfo } from "../SplitContainer/SplitContainer.js";
+import { ISplitterPane, ISplitterPaneSizeInfo, SplitContainer } from "../SplitContainer/SplitContainer.js";
+import { AccordionItem } from "./AccordionItem.js";
+import { AccordionSection, IAccordionSectionProperties } from "./AccordionSection.js";
 
 export interface IAccordionActionChoice {
-    id: string;
     icon: string | Codicon;
-    caption: string;
+    command: Command;
 }
 
-export interface IAccordionAction {
-    icon: Codicon;
-    tooltip?: string;
-    id: string;
+export type IAccordionAction =
+    | IAccordionActionWithCommand
+    | IAccordionActionWithChoices;
 
-    choices?: IAccordionActionChoice[];
+interface IAccordionActionBase {
+    /** The icon to show in the section title, for this command  */
+    icon: Codicon;
+}
+
+interface IAccordionActionWithCommand extends IAccordionActionBase {
+    /** The command to execute if this action has no other choices.  */
+    command: Command;
+
+    choices?: never;
+    tooltip?: never;
+}
+
+interface IAccordionActionWithChoices extends IAccordionActionBase {
+    /** Used to show a menu that opens on click of the action, for a list of additional actions. */
+    choices: IAccordionActionChoice[];
+
+    /** The tooltip for the action menu button. */
+    tooltip?: string;
+
+    command?: never;
 }
 
 export interface IAccordionSection {
+    /** A reference to the accordion section created for this specification. */
+    ref?: RefObject<AccordionSection>;
+
+    /** A unique id for the section. This must be a valid DOM identifier. */
     id: string;
+
+    /** The caption to show as section title. */
     caption: string;
 
     /** If true then the section stretches to take as much space as possible. */
@@ -88,7 +113,7 @@ export interface IAccordionProperties extends IComponentProperties {
 
     onSectionExpand?: (props: IAccordionProperties, sectionId: string, expanded: boolean) => void;
     onSectionResize?: (props: IAccordionProperties, info: ISplitterPaneSizeInfo[]) => void;
-    onSectionAction?: (props: IAccordionProperties, sectionId: string, actionId: string) => void;
+    onSectionAction?: (command?: Command) => void;
 }
 
 export class Accordion extends ComponentBase<IAccordionProperties> {
@@ -97,6 +122,9 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
     public static Item = AccordionItem;
 
     private containerRef = createRef<SplitContainer>();
+
+    /** The standard height of an accordion item. If you change this value, make sure to update the CSS as well. */
+    static #standardItemHeight = 22;
 
     public constructor(props: IAccordionProperties) {
         super(props);
@@ -111,17 +139,18 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
         const className = this.getEffectiveClassNames(["accordion"]);
 
         const panes = sections.map((section: IAccordionSection): ISplitterPane => {
-            const pane = {
+            const pane: ISplitterPane = {
                 id: section.id,
                 initialSize: section.initialSize,
-                minSize: section.minSize ?? sectionClosedSize ?? 28,
+                minSize: section.minSize ?? sectionClosedSize ?? Accordion.#standardItemHeight,
                 maxSize: section.maxSize,
                 snap: true,
                 stretch: section.stretch ?? false,
                 resizable: section.resizable ?? false,
-                expanded: section.expanded ?? true,
+                collapsed: !(section.expanded ?? true),
                 content: (
                     <AccordionSection
+                        ref={section.ref}
                         id={section.id}
                         caption={section.caption}
                         dimmed={section.dimmed ?? false}
@@ -136,9 +165,10 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
                 ),
             };
 
-            if (!pane.expanded) {
-                pane.minSize = sectionClosedSize ?? 28;
-                pane.maxSize = sectionClosedSize ?? 28;
+            if (pane.collapsed) {
+                pane.minSize = sectionClosedSize ?? Accordion.#standardItemHeight;
+                pane.maxSize = sectionClosedSize ?? Accordion.#standardItemHeight;
+                pane.initialSize = sectionClosedSize ?? Accordion.#standardItemHeight;
             }
 
             return pane;
@@ -175,10 +205,10 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
         onSectionExpand?.(this.props, props.id || "", !props.expanded);
     };
 
-    private handleSectionAction = (actionId: string, props: IAccordionSectionProperties): void => {
+    private handleSectionAction = (command?: Command): void => {
         const { onSectionAction } = this.props;
 
-        onSectionAction?.(this.props, props.id || "", actionId);
+        onSectionAction?.(command);
     };
 
     /**

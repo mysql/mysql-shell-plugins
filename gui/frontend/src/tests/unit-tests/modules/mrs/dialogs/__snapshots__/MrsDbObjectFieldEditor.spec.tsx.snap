@@ -70,25 +70,7 @@ exports[`MRS Object field editor tests Standard Rendering (snapshot) 1`] = `
         onItemClick={[Function]}
         orientation="column"
         placement="right-start"
-      >
-        <Popup
-          className="msg menu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="right-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </ValueEditDialog>
   </MrsServiceDialog>
   <MrsSchemaDialog
@@ -159,25 +141,7 @@ exports[`MRS Object field editor tests Standard Rendering (snapshot) 1`] = `
         onItemClick={[Function]}
         orientation="column"
         placement="right-start"
-      >
-        <Popup
-          className="msg menu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="right-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </ValueEditDialog>
   </MrsSchemaDialog>
   <MrsDbObjectDialog
@@ -248,25 +212,7 @@ exports[`MRS Object field editor tests Standard Rendering (snapshot) 1`] = `
         onItemClick={[Function]}
         orientation="column"
         placement="right-start"
-      >
-        <Popup
-          className="msg menu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="right-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </ValueEditDialog>
   </MrsDbObjectDialog>
   <MrsContentSetDialog
@@ -337,25 +283,7 @@ exports[`MRS Object field editor tests Standard Rendering (snapshot) 1`] = `
         onItemClick={[Function]}
         orientation="column"
         placement="right-start"
-      >
-        <Popup
-          className="msg menu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="right-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </ValueEditDialog>
   </MrsContentSetDialog>
   <MrsAuthenticationAppDialog
@@ -426,25 +354,7 @@ exports[`MRS Object field editor tests Standard Rendering (snapshot) 1`] = `
         onItemClick={[Function]}
         orientation="column"
         placement="right-start"
-      >
-        <Popup
-          className="msg menu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="right-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </ValueEditDialog>
   </MrsAuthenticationAppDialog>
   <MrsUserDialog
@@ -515,25 +425,7 @@ exports[`MRS Object field editor tests Standard Rendering (snapshot) 1`] = `
         onItemClick={[Function]}
         orientation="column"
         placement="right-start"
-      >
-        <Popup
-          className="msg menu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="right-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </ValueEditDialog>
   </MrsUserDialog>
   <MrsSdkExportDialog
@@ -604,25 +496,7 @@ exports[`MRS Object field editor tests Standard Rendering (snapshot) 1`] = `
         onItemClick={[Function]}
         orientation="column"
         placement="right-start"
-      >
-        <Popup
-          className="msg menu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="right-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </ValueEditDialog>
   </MrsSdkExportDialog>
 </MrsHub>

@@ -250,7 +250,7 @@ exports[`MRS Db Object dialog tests Show MRS DB Object Dialog (snapshot) and esc
               </div>
             </div>
             <div
-              class="msg container fixedScrollbar content"
+              class="msg container fixedScrollbar tabContent"
               style="flex-direction: column;"
             >
               <div
@@ -334,7 +334,6 @@ exports[`MRS Db Object dialog tests Show MRS DB Object Dialog (snapshot) and esc
                             class="msg container fixedScrollbar dropdown"
                             data-tooltip="Select a SDK language to display the specific interface names and datatypes"
                             id="sdkLanguage"
-                            placeholder="SDK Language"
                             style="flex-direction: row; align-items: center;"
                             tabindex="0"
                           >

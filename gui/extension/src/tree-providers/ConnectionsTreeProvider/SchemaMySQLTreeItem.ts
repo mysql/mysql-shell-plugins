@@ -25,21 +25,13 @@
 
 import { Command } from "vscode";
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { SchemaTreeItem } from "./SchemaTreeItem.js";
+import type { ICdmSchemaEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
 export class SchemaMySQLTreeItem extends SchemaTreeItem {
     public override contextValue = "schemaItemMySQL";
 
-    public constructor(
-        name: string,
-        schema: string,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number,
-        isCurrent: boolean,
-        hasChildren: boolean,
-        command?: Command) {
-        super(name, schema, backend, connectionId, isCurrent ? "schemaMySQLCurrent.svg" : "schemaMySQL.svg",
-            hasChildren, command);
+    public constructor(dataModelEntry: ICdmSchemaEntry, isCurrent: boolean, command?: Command) {
+        super(dataModelEntry, isCurrent ? "schemaMySQLCurrent.svg" : "schemaMySQL.svg", true, command);
     }
 }

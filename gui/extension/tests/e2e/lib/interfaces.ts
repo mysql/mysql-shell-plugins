@@ -139,19 +139,8 @@ export interface IRestServiceAuthentication {
     authCompletedChangeCont?: string;
 }
 
-export interface IRestServiceAuthApps {
-    vendor?: string;
-    name?: string;
-    description?: string;
-    enabled?: boolean;
-    limitToRegisteredUsers?: boolean;
-    appId?: string;
-    accessToken?: string;
-    customUrl?: string;
-    customUrlForAccessToken?: string;
-}
-
 export interface IRestService {
+    treeName?: string;
     servicePath: string;
     enabled?: boolean;
     default?: boolean;
@@ -159,10 +148,10 @@ export interface IRestService {
     settings?: IRestServiceSettings;
     options?: string;
     authentication?: IRestServiceAuthentication;
-    authenticationApps?: IRestServiceAuthApps;
 }
 
 export interface IRestSchema {
+    treeName?: string;
     restServicePath?: string;
     restSchemaPath?: string;
     accessControl?: string;
@@ -178,18 +167,19 @@ export interface IRestSchemaSettings {
 }
 
 export interface IRestObject {
+    treeName?: string;
     restServicePath?: string;
     restSchemaPath?: string;
     restObjectPath?: string;
     accessControl?: string;
     requiresAuth?: boolean;
-    jsonRelDuality?: IRestObjectJsonDual;
+    dataMapping?: IDataMapping;
     settings?: IRestObjectSettings;
     authorization?: IRestObjectAuthorization;
     options?: string;
 }
 
-export interface IRestObjectJsonDual {
+export interface IDataMapping {
     dbObject?: string;
     sdkLanguage?: string;
     columns?: IRestObjectColumn[];
@@ -225,21 +215,27 @@ export interface IRestObjectAuthorization {
 }
 
 export interface IRestAuthenticationApp {
+    treeName?: string;
     vendor: string;
     name: string;
-    description?: string;
-    accessToken?: string;
-    appId?: string;
-    customURL?: string;
-    customURLforAccessToken?: string;
-    defaultRole?: string;
     enabled?: boolean;
     limitToRegisteredUsers?: boolean;
+    settings: {
+        description?: string;
+        defaultRole?: string;
+    },
+    oauth2settings?: {
+        appId?: string;
+        appSecret?: string;
+        customURL?: string;
+        customURLforAccessToken?: string;
+    },
+    options?: string;
 }
 
 export interface IRestUser {
     username: string;
-    password: string;
+    password?: string;
     authenticationApp?: string;
     email?: string;
     assignedRoles?: string;

@@ -27,17 +27,18 @@ import "./Menu.css";
 
 import { cloneElement, ComponentChild, createRef } from "preact";
 
-import { IPortalOptions } from "../Portal/Portal.js";
+import type { Command } from "../../../data-models/data-model-types.js";
+import { KeyboardKeys } from "../../../utilities/helpers.js";
 import { collectVNodes } from "../../../utilities/preact-helpers.js";
-import { IComponentState, ComponentBase, ComponentPlacement } from "../Component/ComponentBase.js";
+import { ComponentBase, ComponentPlacement, IComponentState } from "../Component/ComponentBase.js";
 import { Orientation } from "../Container/Container.js";
 import { IPopupProperties, Popup } from "../Popup/Popup.js";
+import { IPortalOptions } from "../Portal/Portal.js";
 import { IMenuItemProperties, MenuItem } from "./MenuItem.js";
-import { KeyboardKeys } from "../../../utilities/helpers.js";
 
 export interface IMenuProperties extends IPopupProperties {
     /** Not used in the menu itself, but as the menu item title in a menu bar. */
-    title?: string;
+    caption?: string;
 
     /** Not used in the menu itself, but as the menu item icon in a menu bar. */
     icon?: string;
@@ -45,16 +46,32 @@ export interface IMenuProperties extends IPopupProperties {
     /** Vertical for normal menus, horizontal for menubars. */
     orientation?: Orientation;
 
+    /** Allows the owner of the menu to dynamically determine if a menu item is enabled or not. */
+    isItemDisabled?: (props: IMenuItemProperties, payload: unknown) => boolean;
+
+    /**
+     * Allows the owner of the menu to dynamically create a command for a menu item.
+     * The command also determines the title of the menu item.
+     *
+     * @returns The new command for the menu item or undefined if the command of the item should be used.
+     */
+    customCommand?: (props: IMenuItemProperties, payload: unknown) => Command | undefined;
+
     /** Called for all menu item clicks (even for nested items). Return true to close this menu afterwards. */
-    onItemClick?: (e: MouseEvent, props: IMenuItemProperties, payload: unknown) => boolean;
+    onItemClick?: (props: IMenuItemProperties, altActive: boolean, payload: unknown) => boolean;
 
     /** Called if the user decided to go back to the previous menu (if there's one). */
     onMenuBack?: () => void;
 }
 
 interface IMenuState extends IComponentState {
-    activeItemIndex: number; // The index of the item that is currently marked active.
-    payload: unknown;        // Data set by owner of the menu for item invocations.
+    /** The index of the item that is currently marked active. */
+    activeItemIndex: number;
+
+    /** Data set by owner of the menu for item invocations. */
+    payload: unknown;
+
+    open: boolean;
 }
 
 export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
@@ -76,9 +93,10 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
         this.state = {
             activeItemIndex: -1,
             payload: undefined,
+            open: false,
         };
 
-        this.addHandledProperties("title", "icon", "onMenuBack");
+        this.addHandledProperties("caption", "children", "icon", "onMenuBack");
         this.connectEvents("onKeyDown");
     }
 
@@ -86,6 +104,7 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
         document.body.addEventListener("click", Menu.handleDocumentClick);
         document.body.addEventListener("mousedown", Menu.handleMouseDown);
         document.body.addEventListener("keydown", Menu.handleDocumentKeyDown);
+        document.body.addEventListener("keyup", Menu.handleDocumentKeyUp);
     }
 
     private static handleDocumentKeyDown = (e: KeyboardEvent): void => {
@@ -96,11 +115,35 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
                     break;
                 }
 
+                case KeyboardKeys.Alt: {
+                    Menu.menuStack[0].itemRefs.forEach((ref): void => {
+                        ref.current?.setState({ altActive: true });
+                    });
+
+                    break;
+                }
+
                 default: {
                     const menu = Menu.menuStack[Menu.menuStack.length - 1];
                     menu.handleMenuKeyDown(e);
                     break;
                 }
+            }
+        }
+    };
+
+    private static handleDocumentKeyUp = (e: KeyboardEvent): void => {
+        if (Menu.menuStack.length > 0) {
+            switch (e.key) {
+                case KeyboardKeys.Alt: {
+                    Menu.menuStack[0].itemRefs.forEach((ref): void => {
+                        ref.current?.setState({ altActive: false });
+                    });
+
+                    break;
+                }
+
+                default:
             }
         }
     };
@@ -145,50 +188,61 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
     };
 
     public render(): ComponentChild {
-        const { children } = this.props;
-        const { activeItemIndex } = this.state;
+        const { children, isItemDisabled, customCommand } = this.props;
+        const { activeItemIndex, payload, open } = this.state;
 
-        const className = this.getEffectiveClassNames(["menu"]);
+        if (open) {
+            const className = this.getEffectiveClassNames(["menu"]);
 
-        this.itemRefs = [];
-        let itemIndex = 0;
-        const elements = collectVNodes<IMenuItemProperties>(children);
-        const content = elements.map((child): ComponentChild => {
-            const { title: childTitle, onClick: childOnClick } = child.props;
+            this.itemRefs = [];
+            let itemIndex = 0;
+            const elements = collectVNodes<IMenuItemProperties>(children);
+            const content = elements.map((child): ComponentChild => {
+                let { command } = child.props;
 
-            const itemRef = createRef<MenuItem>();
-            let active = false;
-            if (child.type === MenuItem && childTitle !== "-") {
-                // Only keep references for non-separator menu items.
-                // All other components must be handled by the owner.
-                this.itemRefs.push(itemRef);
-                active = itemIndex++ === activeItemIndex;
-            }
+                const itemRef = createRef<MenuItem>();
+                let active = false;
+                let disabled = false;
 
-            return cloneElement(child, {
-                ref: itemRef,
-                onMouseEnter: this.handleItemMouseEnter,
-                onClick: (e: MouseEvent, props: IMenuItemProperties): void => {
-                    childOnClick?.(e, props);
-                    this.handleItemClick(e, props);
-                },
-                active,
+                command = customCommand?.(child.props, payload) ?? command;
+                if (child.type === MenuItem && command.title !== "-") {
+                    // Only keep references for non-separator menu items.
+                    // All other components must be handled by the owner.
+                    this.itemRefs.push(itemRef);
+                    active = itemIndex++ === activeItemIndex;
+                    if (isItemDisabled) {
+                        disabled = isItemDisabled(child.props, payload);
+                    } else {
+                        disabled = child.props.disabled ?? false;
+                    }
+                }
+
+                return cloneElement(child, {
+                    ref: itemRef,
+                    onItemMouseEnter: this.handleItemMouseEnter,
+                    onItemClick: this.handleItemClick,
+                    active,
+                    disabled,
+                    command,
+                });
             });
-        });
 
-        return (
-            <Popup
-                ref={this.popupRef}
-                className={className}
-                showArrow={false}
-                pinned={false}
-                onClose={this.handleClose}
-                onOpen={this.handleOpen}
-                {...this.unhandledProperties}
-            >
-                {content}
-            </Popup>
-        );
+            return (
+                <Popup
+                    ref={this.popupRef}
+                    className={className}
+                    showArrow={false}
+                    pinned={false}
+                    onClose={this.handleClose}
+                    onOpen={this.handleOpen}
+                    {...this.unhandledProperties}
+                >
+                    {content}
+                </Popup>
+            );
+        } else {
+            return null;
+        }
     }
 
     public open(currentTarget: DOMRect, activateFirstEntry: boolean, options?: IPortalOptions,
@@ -198,18 +252,16 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
         } else {
             options = { blockMouseEvents: false };
         }
-        this.popupRef?.current?.open(currentTarget, options);
 
-        if (activateFirstEntry && this.itemRefs.length > 0) {
-            this.setState({ activeItemIndex: 0, payload });
-        } else {
-            this.setState({ activeItemIndex: -1, payload });
-
-        }
+        const activeItemIndex = activateFirstEntry && this.itemRefs.length > 0 ? 0 : -1;
+        this.setState({ activeItemIndex, payload, open: true }, () => {
+            this.popupRef?.current?.open(currentTarget, options);
+        });
     }
 
     public close(): void {
         this.popupRef?.current?.close(false);
+        this.setState({ activeItemIndex: -1, open: false });
     }
 
     public get clientRect(): DOMRect | undefined {
@@ -300,12 +352,12 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
         });
     };
 
-    private handleItemClick = (e: MouseEvent, props: IMenuItemProperties): void => {
+    private handleItemClick = (props: IMenuItemProperties, altActive: boolean): void => {
         const { onItemClick } = this.props;
         const { payload } = this.state;
 
         // Propagate the click up the parent chain.
-        if (onItemClick?.(e, props, payload)) {
+        if (onItemClick?.(props, altActive, payload)) {
             setTimeout(() => { this.close(); }, 0);
         }
     };

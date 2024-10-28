@@ -23,20 +23,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMrsAuthAppData } from "../../../../frontend/src/communication/ProtocolMrs.js";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import type { ICdmRestAuthAppEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
-export class MrsAuthAppTreeItem extends MrsTreeBaseItem {
+export class MrsAuthAppTreeItem extends MrsTreeBaseItem<ICdmRestAuthAppEntry> {
     public override contextValue = "mrsAuthApp";
 
-    public constructor(
-        label: string,
-        public value: IMrsAuthAppData,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number,
-    ) {
-        super(label, backend, connectionId, value.enabled ? "shield.svg" : "shieldDisabled.svg", true);
-        this.tooltip = value.description ?? label;
+    public constructor(dataModelEntry: ICdmRestAuthAppEntry) {
+        super(dataModelEntry, dataModelEntry.details.enabled ? "shield.svg" : "shieldDisabled.svg", true);
+        this.tooltip = dataModelEntry.details.description ?? dataModelEntry.caption;
     }
 }

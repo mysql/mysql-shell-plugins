@@ -44,17 +44,17 @@ import { OciDbSystemTreeItem } from "./tree-providers/OCITreeProvider/OciDbSyste
 import { OciLoadBalancerTreeItem } from "./tree-providers/OCITreeProvider/OciLoadBalancerTreeItem.js";
 import { OciConfigProfileTreeItem } from "./tree-providers/OCITreeProvider/OciProfileTreeItem.js";
 
-import { DialogResponseClosure, IDictionary, MdsDialogType } from "../../frontend/src/app-logic/Types.js";
+import { DialogResponseClosure, IDictionary, MdsDialogType } from "../../frontend/src/app-logic/general-types.js";
 import { DialogWebviewManager } from "./WebviewProviders/DialogWebviewProvider.js";
 import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem.js";
 import { IMdsProfileData } from "../../frontend/src/communication/ProtocolMds.js";
 import { ShellInterfaceShellSession } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession.js";
-import { ICdmSchemaEntry } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel.js";
 import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
 import { webSession } from "../../frontend/src/supplement/WebSession.js";
 import { requisitions } from "../../frontend/src/supplement/Requisitions.js";
 import { DBType } from "../../frontend/src/supplement/ShellInterface/index.js";
 import { MySQLConnCompression, MySQLConnectionScheme } from "../../frontend/src/communication/MySQL.js";
+import type { ICdmSchemaEntry } from "../../frontend/src/data-models/ConnectionDataModel.js";
 
 export class MDSCommandHandler {
     private dialogManager = new DialogWebviewManager();
@@ -136,7 +136,7 @@ export class MDSCommandHandler {
                 if (item && item.profile.profile) {
                     window.setStatusBarMessage(`Setting current config profile to ${item.profile.profile} ...`, 10000);
                     try {
-                        await this.shellSession.mds.setDefaultConfigProfile(item.profile.profile);
+                        await this.shellSession.mhs.setDefaultConfigProfile(item.profile.profile);
                         await commands.executeCommand("msg.mds.refreshOciProfiles");
                         window.setStatusBarMessage(`Default config profile set to ${item.profile.profile}.`, 5000);
                     } catch (reason) {
@@ -159,7 +159,7 @@ export class MDSCommandHandler {
                 if (item && item.compartment.id) {
                     window.setStatusBarMessage(`Setting current compartment to ${item.compartment.name} ...`, 10000);
                     try {
-                        await this.shellSession.mds.setCurrentCompartment({
+                        await this.shellSession.mhs.setCurrentCompartment({
                             compartmentId: item.compartment.id,
                             configProfile: item.profile.profile,
                             interactive: false,
@@ -178,7 +178,7 @@ export class MDSCommandHandler {
             async (item?: OciDbSystemTreeItem) => {
                 if (item?.dbSystem.id) {
                     try {
-                        const system = await this.shellSession.mds.getMdsMySQLDbSystem(item.profile.profile,
+                        const system = await this.shellSession.mhs.getMdsMySQLDbSystem(item.profile.profile,
                             item.dbSystem.id);
                         this.showNewJsonDocument(`${item.dbSystem.displayName ?? "<unknown>"} Info.json`,
                             JSON.stringify(system, null, 4));
@@ -367,7 +367,7 @@ export class MDSCommandHandler {
             async (item?: OciBastionTreeItem) => {
                 if (item && item.bastion.id) {
                     try {
-                        const bastion = await this.shellSession.mds.getMdsBastion(item.profile.profile,
+                        const bastion = await this.shellSession.mhs.getMdsBastion(item.profile.profile,
                             item.bastion.id);
                         this.showNewJsonDocument(`${bastion.name ?? "<unknown>"} Info.json`,
                             JSON.stringify(bastion, null, 4));
@@ -415,7 +415,7 @@ export class MDSCommandHandler {
                 if (item && item.bastion.id) {
                     window.setStatusBarMessage(`Setting current bastion to ${item.bastion.name} ...`, 10000);
                     try {
-                        await this.shellSession.mds.setCurrentBastion({
+                        await this.shellSession.mhs.setCurrentBastion({
                             bastionId: item.bastion.id,
                             configProfile: item.profile.profile,
                             interactive: false,
@@ -471,10 +471,10 @@ export class MDSCommandHandler {
 
         host.context.subscriptions.push(commands.registerCommand("msg.mds.openBastionSshSession",
             async (item?: OciComputeInstanceTreeItem) => {
-                if (item && item.shellSession && item.shellSession.mds && item.compute.id) {
+                if (item && item.shellSession && item.shellSession.mhs && item.compute.id) {
                     window.setStatusBarMessage("Opening Bastion Session ...", 10000);
                     try {
-                        const session = await item.shellSession.mds.createBastionSession(
+                        const session = await item.shellSession.mhs.createBastionSession(
                             item.profile.profile, item.compute.id, "MANAGED_SSH", item.compute.compartmentId, true,
                             (data: IDictionary) => {
                                 if (data.message) {
@@ -511,19 +511,19 @@ export class MDSCommandHandler {
                         items?.forEach((schema) => {
                             // Only consider SchemaMySQLTreeItems of the same connection
                             if (schema instanceof SchemaMySQLTreeItem
-                                && schema.parent.treeItem.details.caption === entry.parent.treeItem.details.caption) {
-                                schemas.push(schema.name);
+                                && schema.connection.details.caption === entry.connection.details.caption) {
+                                schemas.push(schema.caption);
                             }
                         });
                     } else {
-                        schemas.push(entry.treeItem.name);
+                        schemas.push(entry.caption);
                     }
 
                     if (schemas.length > 0) {
                         try {
-                            const allSchemas = await entry?.treeItem.backend.getCatalogObjects("Schema");
+                            const allSchemas = await entry?.parent.backend.getCatalogObjects("Schema");
                             if (allSchemas) {
-                                await this.showMdsHWLoadDataDialog(entry.treeItem.connectionId, schemas, allSchemas,
+                                await this.showMdsHWLoadDataDialog(entry.connection.details.id, schemas, allSchemas,
                                     host);
                             }
                         } catch (reason) {
@@ -543,7 +543,7 @@ export class MDSCommandHandler {
      */
     private showNewJsonDocument(title: string, text: string) {
         const path = `${homedir()}/${title}`;
-        const scheme = existsSync(path) ? "file" : "untitled";
+        const scheme = existsSync(path) ? "file" : "untitled"; // Must be lower case "untitled" to make the URI work.
         const uri = Uri.parse(`${scheme}:${path}`);
 
         workspace.openTextDocument(uri).then((doc: TextDocument) => {
@@ -582,7 +582,7 @@ export class MDSCommandHandler {
 
         try {
             // cSpell:ignore HEATWAVECLUSTER
-            const summaries = await this.shellSession.mds.listDbSystemShapes("HEATWAVECLUSTER", profile.profile,
+            const summaries = await this.shellSession.mhs.listDbSystemShapes("HEATWAVECLUSTER", profile.profile,
                 compartment.id);
 
             statusbarItem.hide();
@@ -736,7 +736,7 @@ export class MDSCommandHandler {
 
         try {
             // Get Shape
-            const shapes = await this.shellSession.mds.listComputeShapes(
+            const shapes = await this.shellSession.mhs.listComputeShapes(
                 profile.profile, dbSystem.compartmentId);
             const shapeList = shapes.map((shape, _i, _a) => {
                 return shape.shape;
@@ -846,7 +846,7 @@ export class MDSCommandHandler {
                     ShellInterface.dbConnections.addDbConnection(
                         webSession.currentProfileId, details, "").then((connectionId) => {
                             if (connectionId !== undefined) {
-                                void requisitions.broadcastRequest(undefined, "refreshConnections", undefined);
+                                void requisitions.broadcastRequest(undefined, "refreshConnection", undefined);
                             }
                         }).catch((event) => {
                             void window.showErrorMessage(

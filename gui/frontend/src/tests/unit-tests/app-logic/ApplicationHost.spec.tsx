@@ -26,10 +26,9 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 
 import { mount, shallow } from "enzyme";
-import { act } from "preact/test-utils";
 
 import { ApplicationHost } from "../../../app-logic/ApplicationHost.js";
-import { DialogResponseClosure, DialogType, IDialogResponse } from "../../../app-logic/Types.js";
+import { DialogResponseClosure, DialogType, IDialogResponse } from "../../../app-logic/general-types.js";
 import { DBEditorModuleId, ShellModuleId } from "../../../modules/ModuleInfo.js";
 import { ModuleRegistry } from "../../../modules/ModuleRegistry.js";
 import { DBEditorModule } from "../../../modules/db-editor/DBEditorModule.js";
@@ -37,18 +36,19 @@ import { ShellModule } from "../../../modules/shell/ShellModule.js";
 import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
 import { webSession } from "../../../supplement/WebSession.js";
 
-import { nextRunLoop, stateChange } from "../test-helpers.js";
+import { registerUiLayer } from "../../../app-logic/UILayer.js";
 import { CommunicationDebugger } from "../../../components/CommunicationDebugger/CommunicationDebugger.js";
-import { mouseEventMock } from "../__mocks__/MockEvents.js";
-import { IActivityBarItemProperties } from "../../../components/ui/ActivityBar/ActivityBarItem.js";
-import { IButtonProperties } from "../../../components/ui/Button/Button.js";
+import { uiLayerMock } from "../__mocks__/UILayerMock.js";
+import { nextRunLoop, stateChange } from "../test-helpers.js";
 
 const toggleOptions = (): void => { };
 
 describe("Application host tests", () => {
     beforeAll(() => {
         appParameters.launchWithDebugger = true;
+        registerUiLayer(uiLayerMock);
     });
+
 
     afterAll(() => {
         appParameters.launchWithDebugger = false;
@@ -240,75 +240,6 @@ describe("Application host tests", () => {
         component.unmount();
     });
 
-    it("Activity Item Click", async () => {
-        webSession.localUserMode = true;
-        appParameters.embedded = false;
-
-        ModuleRegistry.registerModule(ShellModule);
-        ModuleRegistry.registerModule(DBEditorModule);
-        ModuleRegistry.enableModule(ShellModuleId);
-        ModuleRegistry.enableModule(DBEditorModuleId);
-
-        let moduleToggleCount = 0;
-        const moduleToggled = (_id: string): Promise<boolean> => {
-            moduleToggleCount++;
-
-            return Promise.resolve(true);
-        };
-
-        requisitions.register("moduleToggle", moduleToggled);
-
-        const component = mount<ApplicationHost>(
-            <ApplicationHost
-                toggleOptions={toggleOptions}
-            />,
-        );
-
-        expect(component.state().debuggerVisible).toBe(false);
-
-        let wrapper = component.find(".activityBarItem#debugger");
-        expect(wrapper.length).toBe(2);
-
-        let onClick = (wrapper.at(0).props() as IActivityBarItemProperties).onClick;
-        await act(() => {
-            onClick?.(mouseEventMock, {});
-        });
-
-        expect(moduleToggleCount).toBe(0);
-        expect(component.state().debuggerVisible).toBe(true);
-        expect(component.state().settingsVisible).toBe(false);
-
-        wrapper = component.find(".activityBarItem#settings");
-        expect(wrapper.length).not.toBe(0);
-
-        onClick = (wrapper.at(0).props() as IActivityBarItemProperties).onClick;
-        await act(() => {
-            onClick?.(mouseEventMock, {});
-        });
-
-        expect(moduleToggleCount).toBe(0);
-        expect(component.state().debuggerVisible).toBe(false);
-        expect(component.state().settingsVisible).toBe(true);
-
-        // We cannot find elements with a dot in the ID (like our module buttons have).
-        // So we list all items and pick the right one manually.
-        wrapper = component.find(".activityBarItem");
-        expect(wrapper.length).not.toBe(0);
-
-        onClick = (wrapper.at(0).props() as IActivityBarItemProperties).onClick;
-        await act(() => {
-            onClick?.(mouseEventMock, {});
-        });
-
-        expect(component.state().debuggerVisible).toBe(false);
-        expect(component.state().settingsVisible).toBe(false);
-        expect(moduleToggleCount).toBe(1);
-
-        component.unmount();
-
-        requisitions.unregister("moduleToggle", moduleToggled);
-    });
-
     it("Debugger State Switches", async () => {
         webSession.localUserMode = true;
         appParameters.embedded = false;
@@ -335,17 +266,6 @@ describe("Application host tests", () => {
 
         element = debugComponent.getDOMNode();
         expect(element.parentElement?.classList.contains("stretch")).toBeTruthy();
-
-        const wrapper = component.find(".activityBarItem#debugger"); // Debugger activity bar item.
-        expect(wrapper.length).toBeGreaterThan(0);
-
-        const onClick = (wrapper.at(0).props() as IButtonProperties).onClick;
-        await act(() => {
-            onClick?.(mouseEventMock, {});
-        });
-
-        element = debugComponent.getDOMNode();
-        expect(element.parentElement?.classList.contains("stretch")).toBeFalsy();
 
         component.unmount();
     });

@@ -89,14 +89,20 @@ export class E2EToastNotification implements interfaces.INotification {
      * @returns The notification message as string
      */
     public close = async (): Promise<void> => {
-        try {
-            await driver.executeScript("arguments[0].click()",
-                await this.webElement?.findElement(locator.toastNotification.close));
-        } catch (e) {
-            if (!(e instanceof error.StaleElementReferenceError)) {
-                throw e;
+        const notificationMessage = this.message;
+        await driver.wait(async () => {
+            try {
+                await driver.executeScript("arguments[0].click()",
+                    await this.webElement?.findElement(locator.toastNotification.close));
+            } catch (e) {
+                if (e instanceof error.StaleElementReferenceError || e instanceof error.ElementNotInteractableError) {
+                    return true;
+                } else {
+                    throw e;
+                }
             }
-        }
+        }, constants.wait3seconds, `Could not close notification '${notificationMessage}'`);
+
     };
 
     /**

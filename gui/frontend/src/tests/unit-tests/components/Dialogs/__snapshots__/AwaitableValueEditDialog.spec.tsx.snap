@@ -67,25 +67,7 @@ exports[`Awaitable Value Edit Dialog Tests Render Test 1`] = `
       onItemClick={[Function]}
       orientation="column"
       placement="right-start"
-    >
-      <Popup
-        className="msg menu"
-        onClose={[Function]}
-        onKeyDown={[Function]}
-        onOpen={[Function]}
-        orientation="column"
-        pinned={false}
-        placement="right-start"
-        showArrow={false}
-      >
-        <Portal
-          className="popupPortal"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-        />
-      </Popup>
-    </Menu>
+    />
   </ValueEditDialog>
 </AwaitableValueEditDialog>
 `;

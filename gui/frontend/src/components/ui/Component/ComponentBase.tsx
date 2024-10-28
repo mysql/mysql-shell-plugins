@@ -28,7 +28,7 @@ import "./ComponentBase.css";
 import { Component, ComponentChildren } from "preact";
 import cx from "classnames";
 
-import { IDictionary } from "../../../app-logic/Types.js";
+import { IDictionary } from "../../../app-logic/general-types.js";
 import { CSSProperties } from "preact/compat";
 
 /**
@@ -156,7 +156,7 @@ export interface IComponentProperties {
     style?: CSSProperties;
     tabIndex?: number;
     draggable?: boolean;
-    disabled?: boolean | ((props: IComponentProperties) => boolean);
+    disabled?: boolean;
     role?: string;
 
     /** For OS style tooltips. */
@@ -257,7 +257,7 @@ export abstract class ComponentBase<P extends IComponentProperties = {}, S exten
     }
 
     /* Use to debug setState calls.
-    public setState<K extends keyof S>(
+    public override setState<K extends keyof S>(
         state:
             | ((
                 prevState: Readonly<S>,

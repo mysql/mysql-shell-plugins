@@ -25,20 +25,13 @@
 
 import { Command } from "vscode";
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
+import type { ICdmRestRootEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
+import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
-export class MrsTreeItem extends ConnectionsTreeBaseItem {
+export class MrsTreeItem extends MrsTreeBaseItem<ICdmRestRootEntry> {
     public override contextValue = "mrs";
 
-    public constructor(
-        name: string,
-        schema: string,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number,
-        hasChildren: boolean,
-        enabled: boolean,
-        command?: Command) {
-        super(name, schema, backend, connectionId, enabled ? "mrs.svg" : "mrsDisabled.svg", hasChildren, command);
+    public constructor(dataModelEntry: ICdmRestRootEntry, hasChildren: boolean, enabled: boolean, command?: Command) {
+        super(dataModelEntry, enabled ? "mrs.svg" : "mrsDisabled.svg", hasChildren, command);
     }
 }

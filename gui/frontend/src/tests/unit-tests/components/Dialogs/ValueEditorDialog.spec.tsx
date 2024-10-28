@@ -32,7 +32,7 @@ import {
 import {
     changeInputValue, nextProcessTick, sendBlurEvent, sendKeyPress,
 } from "../../test-helpers.js";
-import { IDictionary } from "../../../../app-logic/Types.js";
+import { IDictionary } from "../../../../app-logic/general-types.js";
 import { ICheckboxProperties, CheckState } from "../../../../components/ui/Checkbox/Checkbox.js";
 import { Label } from "../../../../components/ui/Label/Label.js";
 import { KeyboardKeys } from "../../../../utilities/helpers.js";

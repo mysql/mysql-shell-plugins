@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../../app-logic/Types.js";
+import { IDictionary } from "../../app-logic/general-types.js";
 
 /**
  * Define an own worker type to allow adding some private functionality.

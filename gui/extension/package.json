@@ -348,7 +348,7 @@
             },
             {
                 "command": "msg.refreshConnections",
-                "title": "Reload the connection list",
+                "title": "Reload the Connection List",
                 "icon": {
                     "dark": "images/dark/refresh.svg",
                     "light": "images/light/refresh.svg"
@@ -357,10 +357,7 @@
             {
                 "command": "msg.openConnection",
                 "title": "Open New Database Connection",
-                "icon": {
-                    "dark": "images/dark/openConnection.svg",
-                    "light": "images/light/openConnection.svg"
-                }
+                "icon": "$(play)"
             },
             {
                 "command": "msg.openConnectionNotebook",
@@ -381,10 +378,7 @@
             {
                 "command": "msg.openConnectionNewTab",
                 "title": "Open New Database Connection on New Tab",
-                "icon": {
-                    "dark": "images/dark/openConnection.svg",
-                    "light": "images/light/openConnection.svg"
-                }
+                "icon": "$(play)"
             },
             {
                 "command": "msg.refreshConnection",
@@ -448,28 +442,13 @@
                 "title": "Select Rows in DB Notebook"
             },
             {
-                "command": "msg.insertScript",
-                "title": "Insert Script Into Current Editor"
-            },
-            {
-                "command": "msg.openSessionBrowser",
-                "title": "Open MySQL Shell Console Browser",
-                "icon": {
-                    "dark": "images/dark/overviewPage.svg",
-                    "light": "images/light/overviewPage.svg"
-                }
-            },
-            {
                 "command": "msg.openSession",
                 "title": "Open this MySQL Shell Console"
             },
             {
                 "command": "msg.removeSession",
                 "title": "Close this MySQL Shell Console",
-                "icon": {
-                    "dark": "images/dark/close.svg",
-                    "light": "images/light/close.svg"
-                }
+                "icon": "$(close)"
             },
             {
                 "command": "msg.selectProfile",
@@ -573,11 +552,11 @@
             },
             {
                 "command": "msg.loadDumpFromDisk",
-                "title": "Load Dump from Disk"
+                "title": "Load Dump from Disk..."
             },
             {
                 "command": "msg.loadScriptFromDisk",
-                "title": "Load SQL Script from Disk",
+                "title": "Load SQL Script from Disk...",
                 "icon": {
                     "dark": "images/dark/loadScript.svg",
                     "light": "images/light/loadScript.svg"
@@ -614,18 +593,12 @@
             {
                 "command": "msg.closeEditor",
                 "title": "Close Editor",
-                "icon": {
-                    "dark": "images/dark/close.svg",
-                    "light": "images/light/close.svg"
-                }
+                "icon": "$(close)"
             },
             {
                 "command": "msg.openDBBrowser",
                 "title": "Open the DB Connection Browser",
-                "icon": {
-                    "dark": "images/dark/openConnection.svg",
-                    "light": "images/light/openConnection.svg"
-                }
+                "icon": "$(play)"
             },
             {
                 "command": "msg.newNotebookMysql",
@@ -682,6 +655,10 @@
                     "dark": "images/dark/file-icons/newScriptTs.svg",
                     "light": "images/light/file-icons/newScriptTs.svg"
                 }
+            },
+            {
+                "title": "Select Document",
+                "command": "msg.selectDocument"
             },
             {
                 "command": "msg.mrs.configureMySQLRestService",
@@ -853,7 +830,7 @@
             },
             {
                 "command": "msg.mrs.exportServiceSdk",
-                "title": "Export REST Service SDK Files ..."
+                "title": "Export REST Service SDK Files..."
             },
             {
                 "command": "msg.mrs.exportCreateServiceSql",
@@ -902,14 +879,6 @@
             {
                 "command": "msg.showTaskOutput",
                 "title": "Show Task Output"
-            },
-            {
-                "command": "msg.showNotebook",
-                "title": "Show Notebook"
-            },
-            {
-                "command": "msg.showScript",
-                "title": "Show Script"
             },
             {
                 "command": "msg.showServerStatus",
@@ -1303,17 +1272,17 @@
                 },
                 {
                     "command": "msg.createProcedure",
-                    "when": "view == msg.connections && viewItem == RoutinesGroupItem && !showsModalDialog",
+                    "when": "view == msg.connections && viewItem == ProceduresGroupItem && !showsModalDialog",
                     "group": "5_msg@2"
                 },
                 {
                     "command": "msg.createFunction",
-                    "when": "view == msg.connections && viewItem == RoutinesGroupItem && !showsModalDialog",
+                    "when": "view == msg.connections && viewItem == FunctionsGroupItem && !showsModalDialog",
                     "group": "5_msg@3"
                 },
                 {
                     "command": "msg.createFunctionJs",
-                    "when": "view == msg.connections && viewItem == RoutinesGroupItem && !showsModalDialog",
+                    "when": "view == msg.connections && viewItem == FunctionsGroupItem && !showsModalDialog",
                     "group": "6_msg@1"
                 },
                 {
@@ -1384,46 +1353,46 @@
                 {
                     "command": "msg.newScriptMysql",
                     "group": "inline@2",
-                    "when": "view == msg.openEditors && viewItem == editorConnectionMySQL"
+                    "when": "view == msg.openEditors && viewItem == connectionMySQL"
                 },
                 {
                     "command": "msg.loadScriptFromDisk",
                     "group": "inline@3",
-                    "when": "view == msg.openEditors && viewItem == editorConnectionMySQL"
+                    "when": "view == msg.openEditors && viewItem == connectionMySQL"
                 },
                 {
                     "command": "msg.newScriptMysql",
                     "group": "scripts@2",
-                    "when": "view == msg.openEditors && viewItem == editorConnectionMySQL"
+                    "when": "view == msg.openEditors && viewItem == connectionMySQL"
                 },
                 {
                     "command": "msg.newScriptSqlite",
                     "group": "inline@2",
-                    "when": "view == msg.openEditors && viewItem == editorConnectionSQLite"
+                    "when": "view == msg.openEditors && viewItem == connectionSQLite"
                 },
                 {
                     "command": "msg.newScriptSqlite",
                     "group": "scripts@2",
-                    "when": "view == msg.openEditors && viewItem == editorConnectionSQLite"
+                    "when": "view == msg.openEditors && viewItem == connectionSQLite"
                 },
                 {
                     "command": "msg.newScriptJs",
                     "group": "scripts@3",
-                    "when": "view == msg.openEditors && viewItem =~ /^editorConnection.*/"
+                    "when": "view == msg.openEditors && viewItem =~ /^connection.*/"
                 },
                 {
                     "command": "msg.newScriptTs",
                     "group": "scripts@4",
-                    "when": "view == msg.openEditors && viewItem =~ /^editorConnection.*/"
+                    "when": "view == msg.openEditors && viewItem =~ /^connection.*/"
                 },
                 {
                     "command": "msg.loadScriptFromDisk",
                     "group": "scripts2@1",
-                    "when": "view == msg.openEditors && viewItem =~ /^editorConnection.*/"
+                    "when": "view == msg.openEditors && viewItem =~ /^connection.*/"
                 },
                 {
                     "command": "msg.newSessionUsingConnection",
-                    "when": "view == msg.openEditors && viewItem =~ /^editorConnectionMySQL/",
+                    "when": "view == msg.openEditors && viewItem =~ /^connectionMySQL/",
                     "group": "sessions@1"
                 },
                 {
@@ -1807,11 +1776,6 @@
                     "command": "msg.mds.getLoadBalancer",
                     "when": "view == msg.oci && viewItem == mdsLoadBalancer",
                     "group": "1_msg@1"
-                },
-                {
-                    "command": "msg.insertScript",
-                    "when": "view == msg.scripts && viewItem == script",
-                    "group": "1_msg@2"
                 }
             ]
         },
@@ -1843,8 +1807,7 @@
                     "name": "MYSQL SHELL TASKS"
                 }
             ]
-        },
-        "viewsWelcome": []
+        }
     },
     "dependencies": {
         "anser": "2.1.1",

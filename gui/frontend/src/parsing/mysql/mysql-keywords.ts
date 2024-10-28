@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../../app-logic/Types.js";
+import { IDictionary } from "../../app-logic/general-types.js";
 
 export enum MySQLVersion {
     Unknown = "Unknown",
@@ -29,6 +29,7 @@ export enum MySQLVersion {
     MySQL81 = "MySQL81",
     MySQL82 = "MySQL82",
     MySQL83 = "MySQL83",
+    MySQL84 = "MySQL84",
 }
 
 export const mysqlKeywords = new Map<MySQLVersion, Set<string>>();

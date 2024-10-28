@@ -23,23 +23,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMrsRouterService } from "../../../../frontend/src/communication/ProtocolMrs.js";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import type {
+    ICdmRestRouterServiceEntry,
+} from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
-export class MrsRouterServiceTreeItem extends MrsTreeBaseItem {
+export class MrsRouterServiceTreeItem extends MrsTreeBaseItem<ICdmRestRouterServiceEntry> {
     public override contextValue = "mrsRouterService";
 
-    public constructor(
-        label: string,
-        public value: IMrsRouterService,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number) {
+    public constructor(dataModelEntry: ICdmRestRouterServiceEntry) {
+        const value = dataModelEntry.details;
         const iconName = value.inDevelopment?.developers ? "mrsServiceInDevelopment.svg" :
             (value.published ? "mrsServicePublished.svg" : "mrsService.svg");
 
 
-        super(label, backend, connectionId, iconName, true);
+        super(dataModelEntry, iconName, true);
 
         if (value.inDevelopment?.developers) {
             this.description = `In Development`;

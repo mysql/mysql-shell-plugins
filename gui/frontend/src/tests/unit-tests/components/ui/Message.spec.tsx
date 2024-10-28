@@ -25,7 +25,7 @@
 
 import { mount } from "enzyme";
 
-import { MessageType } from "../../../../app-logic/Types.js";
+import { MessageType } from "../../../../app-logic/general-types.js";
 import { Message } from "../../../../components/ui/Message/Message.js";
 
 describe("Message render testing", (): void => {

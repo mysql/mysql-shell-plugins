@@ -138,4 +138,4 @@ Configuration values can be injected in the tests by specifying them as globals 
 $ npm run e2e-test-run --globals "{\"baseUrl\": \"https://example.com\"}
 ```
 
-Copyright &copy; 2020, 2023, Oracle and/or its affiliates.
+Copyright &copy; 2020, 2024, Oracle and/or its affiliates.

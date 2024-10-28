@@ -35,11 +35,23 @@ import { IImageProperties } from "../Image/Image.js";
 import { Label } from "../Label/Label.js";
 
 export interface IDropdownItemProperties extends IComponentProperties {
+    /** The caption for this item. */
     caption?: string;
+
+    /** The picture in front of the caption. */
     picture?: VNode<IImageProperties | IIconProperties>;
+
+    /** An additional description which is displayed by the drop down in a separate area (if enabled). */
     description?: string;
+
+    /** True if this item should be enabled. */
     selected?: boolean;
-    checked?: boolean; // If given then a checkbox is shown (and checked/unchecked).
+
+    /** If given then a checkbox is shown (and checked/unchecked). */
+    checked?: boolean;
+
+    /** A value attached to this drop down item, for use in the drop down selection handler. */
+    payload?: unknown;
 }
 
 export class DropdownItem<T extends IDropdownItemProperties> extends ComponentBase<T> {
@@ -47,7 +59,7 @@ export class DropdownItem<T extends IDropdownItemProperties> extends ComponentBa
     public constructor(props: T) {
         super(props);
 
-        this.addHandledProperties("caption", "picture", "description", "checked");
+        this.addHandledProperties("caption", "picture", "description", "selected", "checked", "payload");
     }
 
     public render(): ComponentChild {

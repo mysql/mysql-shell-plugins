@@ -4,7 +4,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
 <ServerStatus
   backend={
     ShellInterfaceSqlEditor {
-      "mds": ShellInterfaceMds {},
+      "mhs": ShellInterfaceMhs {},
       "moduleSessionLookupId": "",
       "mrs": ShellInterfaceMrs {
         "moduleSessionLookupId": "",
@@ -2493,7 +2493,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
 <ServerStatus
   backend={
     ShellInterfaceSqlEditor {
-      "mds": ShellInterfaceMds {},
+      "mhs": ShellInterfaceMhs {},
       "moduleSessionLookupId": "",
       "mrs": ShellInterfaceMrs {
         "moduleSessionLookupId": "",

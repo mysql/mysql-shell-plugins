@@ -248,7 +248,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
               </div>
             </div>
             <div
-              class="msg container fixedScrollbar content"
+              class="msg container fixedScrollbar tabContent"
               style="flex-direction: column;"
             >
               <div
@@ -457,7 +457,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
               </div>
             </div>
             <div
-              class="msg container fixedScrollbar content"
+              class="msg container fixedScrollbar tabContent"
               style="flex-direction: column;"
             >
               <div
@@ -771,25 +771,7 @@ exports[`Value Edit Dialog Tests Render with Defaults Test 1`] = `
     onItemClick={[Function]}
     orientation="column"
     placement="right-start"
-  >
-    <Popup
-      className="msg menu"
-      onClose={[Function]}
-      onKeyDown={[Function]}
-      onOpen={[Function]}
-      orientation="column"
-      pinned={false}
-      placement="right-start"
-      showArrow={false}
-    >
-      <Portal
-        className="popupPortal"
-        onClose={[Function]}
-        onKeyDown={[Function]}
-        onOpen={[Function]}
-      />
-    </Popup>
-  </Menu>
+  />
 </ValueEditDialog>
 `;
 

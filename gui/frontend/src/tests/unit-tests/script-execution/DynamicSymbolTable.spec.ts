@@ -123,9 +123,7 @@ class MockShellInterfaceDb extends ShellInterfaceDb {
         }
     }
 
-    public override async getTableObjectNames(
-        schema: string, table: string, type: string, _filter?: string,
-    ): Promise<string[]> {
+    public override async getTableObjectNames(schema: string, table: string, type: string): Promise<string[]> {
         await nextProcessTick();
         switch (type) {
             case "Column": {

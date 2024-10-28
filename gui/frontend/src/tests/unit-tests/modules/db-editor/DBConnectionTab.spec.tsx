@@ -27,29 +27,33 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import { mount, shallow } from "enzyme";
-
 import { StoreType } from "../../../../app-logic/ApplicationDB.js";
-import { IServicePasswordRequest } from "../../../../app-logic/Types.js";
-import { IMdsChatData } from "../../../../communication/ProtocolMds.js";
+import { registerUiLayer } from "../../../../app-logic/UILayer.js";
+import type { IServicePasswordRequest } from "../../../../app-logic/general-types.js";
+import type { IMdsChatData } from "../../../../communication/ProtocolMds.js";
 import { ICodeEditorModel, IEditorPersistentState } from "../../../../components/ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco } from "../../../../components/ui/CodeEditor/index.js";
+import { ConnectionDataModel } from "../../../../data-models/ConnectionDataModel.js";
+import { OdmEntityType, OpenDocumentDataModel } from "../../../../data-models/OpenDocumentDataModel.js";
 import {
-    DBConnectionTab, IDBConnectionTabPersistentState, IOpenEditorState,
+    DBConnectionTab, IOpenDocumentState, type IConnectionPresentationState,
 } from "../../../../modules/db-editor/DBConnectionTab.js";
-import { Notebook } from "../../../../modules/db-editor/Notebook.js";
-import { ScriptEditor } from "../../../../modules/db-editor/ScriptEditor.js";
+import { LakehouseNavigatorTab } from "../../../../modules/db-editor/LakehouseNavigator.js";
+import type { ScriptEditor } from "../../../../modules/db-editor/ScriptEditor.js";
 import { ExecutionWorkerPool } from "../../../../modules/db-editor/execution/ExecutionWorkerPool.js";
-import { EntityType } from "../../../../modules/db-editor/index.js";
+import { DBEditorContext, type DBEditorContextType } from "../../../../modules/db-editor/index.js";
 import { ExecutionContexts } from "../../../../script-execution/ExecutionContexts.js";
 import { PresentationInterface } from "../../../../script-execution/PresentationInterface.js";
 import { SQLExecutionContext } from "../../../../script-execution/SQLExecutionContext.js";
-import * as services from "../../../../script-execution/ScriptingLanguageServices.js";
-import { appParameters, IEditorExtendedExecutionOptions, requisitions } from "../../../../supplement/Requisitions.js";
-import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
-import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { ScriptingLanguageServices } from "../../../../script-execution/ScriptingLanguageServices.js";
+import type { IEditorExtendedExecutionOptions } from "../../../../supplement/RequisitionTypes.js";
+import { appParameters, requisitions } from "../../../../supplement/Requisitions.js";
 import { DBType } from "../../../../supplement/ShellInterface/index.js";
-import { IScriptRequest, ISqlPageRequest } from "../../../../supplement/index.js";
+import type { IScriptRequest, ISqlPageRequest } from "../../../../supplement/index.js";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
+import { uuid } from "../../../../utilities/helpers.js";
+import { notebookDocumentMock } from "../../__mocks__/DBEditorModuleMocks.js";
+import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 import { nextProcessTick, setupShellForTests } from "../../test-helpers.js";
 
 jest.mock("../../../../components/ui/CodeEditor/CodeEditor");
@@ -81,6 +85,8 @@ describe("DBConnectionTab tests", (): void => {
     model.setValue(content);
 
     let launcher: MySQLShellLauncher;
+    const connectionsDataModel = new ConnectionDataModel(); // No need to initialize the data model.
+    const documentDataModel = new OpenDocumentDataModel();
 
     const wp = new ExecutionWorkerPool();
     const eps: IEditorPersistentState = {
@@ -89,36 +95,18 @@ describe("DBConnectionTab tests", (): void => {
         options: {},
     };
 
-    const edState: IOpenEditorState = {
+    const edState: IOpenDocumentState = {
+        document: notebookDocumentMock,
         state: eps,
         currentVersion: 0,
-        type: EntityType.Notebook,
-        id: "SQLEditor",
-        caption: "",
     };
 
-    const backend = new ShellInterfaceSqlEditor();
-    const savedState: IDBConnectionTabPersistentState = {
-        backend,
-        connectionId: 0,
-        dbType: DBType.MySQL,
-        serverVersion: 1,
-        serverEdition: "gpl",
+    const savedState: IConnectionPresentationState = {
         heatWaveEnabled: false,
-        sqlMode: "mode1",
-        editors: [edState],
-        scripts: [],
-        schemaTree: [],
-        explorerState: new Map([["state1", {}]]),
-        adminPageStates: {
-            lakehouseNavigatorState: {
-                autoRefreshTablesAndTasks: true,
-                activeTabId: "overview",
-            },
-        },
+        documents: [],
+        documentStates: [edState],
+        mleEnabled: false,
         activeEntry: "SQLEditor",
-        currentSchema: "myDb",
-        explorerWidth: 200,
         graphData: {
             timestamp: new Date().getTime(),
             activeColorScheme: "grays",
@@ -127,16 +115,30 @@ describe("DBConnectionTab tests", (): void => {
             computedValues: {},
             series: new Map(),
         },
+        adminPageStates: {
+            lakehouseNavigatorState: {
+                autoRefreshTablesAndTasks: true,
+                activeTabId: LakehouseNavigatorTab.Overview,
+            },
+        },
         chatOptionsState: {
             chatOptionsExpanded: false,
             chatOptionsWidth: -1,
         },
         executionHistory: [],
         currentExecutionHistoryIndex: 0,
-        mleEnabled: false,
     };
 
+    const connection = connectionsDataModel.createConnectionEntry({
+        id: 123,
+        dbType: DBType.MySQL,
+        caption: "details1",
+        description: "description1",
+        options: {},
+    });
+
     beforeAll(async () => {
+        registerUiLayer(uiLayerMock);
         launcher = await setupShellForTests(false, true);
     });
 
@@ -175,8 +177,7 @@ describe("DBConnectionTab tests", (): void => {
 
         const component = shallow<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -191,8 +192,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test DBConnectionTab instantiation", () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -201,8 +201,8 @@ describe("DBConnectionTab tests", (): void => {
         );
 
         const props = component.props();
-        expect(props.connectionId).toEqual(0);
-        expect(props.dbType).toEqual(DBType.MySQL);
+        expect(props.connection!.details.id).toEqual(123);
+        expect(props.connection!.details.dbType).toEqual(DBType.MySQL);
         expect(props.savedState).toEqual(savedState);
         expect(props.workerPool).toEqual(wp);
 
@@ -212,8 +212,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test editorStopExecution requisition function call", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -221,7 +220,7 @@ describe("DBConnectionTab tests", (): void => {
             />,
         );
 
-        const promise = backend.execute("SELECT 1", undefined, undefined, () => {
+        const promise = connection.backend.execute("SELECT 1", undefined, undefined, () => {
             expect(false).toBe(true);
         });
         const result = await requisitions.execute("editorStopExecution", undefined);
@@ -235,8 +234,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test editorCommit requisition function call", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -278,8 +276,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test editorRollback requisition function call", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -308,8 +305,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test editorLoadScript requisition function call", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -322,7 +318,8 @@ describe("DBConnectionTab tests", (): void => {
         component.setProps({ onLoadScript: onLoadScriptMock });
 
         const script: IScriptRequest = {
-            scriptId: "id2",
+            id: "id2",
+            caption: "",
             language: "python",
             content: `def test():
                           print("test function")
@@ -332,7 +329,7 @@ describe("DBConnectionTab tests", (): void => {
         const result = await requisitions.execute("editorLoadScript", script);
 
         expect(result).toBe(true);
-        expect(onLoadScriptMock).toHaveBeenCalledWith("", script.scriptId, script.content);
+        expect(onLoadScriptMock).toHaveBeenCalledWith("", script.id, script.content);
 
         component.unmount();
     });
@@ -340,8 +337,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test editorRenameScript requisition function call", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -354,19 +350,19 @@ describe("DBConnectionTab tests", (): void => {
         component.setProps({ onEditorRename: onEditorRenameMock });
 
         const script: IScriptRequest = {
-            scriptId: "id2",
+            id: "id2",
             language: "python",
             content: `def test():
                           print("test function")
 
                       test()`,
-            name: "testScript",
+            caption: "testScript",
         };
 
         const result = await requisitions.execute("editorRenameScript", script);
 
         expect(result).toBe(true);
-        expect(onEditorRenameMock).toHaveBeenCalledWith("", script.scriptId, script.name);
+        expect(onEditorRenameMock).toHaveBeenCalledWith("", script.id, script.caption);
 
         component.unmount();
     });
@@ -374,8 +370,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test acceptMrsAuthentication requisition function call", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -410,8 +405,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test cancelMrsAuthentication requisition function call", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -445,8 +439,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test refreshMrsServiceSdk requisition function call", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -465,8 +458,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test editorRunCode function call with active notebook", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -505,8 +497,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test editorRunCode function call without active notebook", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -532,8 +523,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test editorRunScript when scriptWaiting is false", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -544,7 +534,8 @@ describe("DBConnectionTab tests", (): void => {
         const instance: DBConnectionTab = component.instance();
 
         const script: IScriptRequest = {
-            scriptId: "id1",
+            id: "id1",
+            caption: "test",
             language: "javascript",
             content: `function editorRunScript() {
                           console.log("Hello, World!");
@@ -565,8 +556,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test editorRunScript when scriptWaiting is true and scriptRef is current", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -581,7 +571,8 @@ describe("DBConnectionTab tests", (): void => {
         } as unknown as ScriptEditor;
 
         const script: IScriptRequest = {
-            scriptId: "id1",
+            id: "id1",
+            caption: "test",
             language: "javascript",
             content: `function editorRunScript() {
                           console.log("Hello, World!");
@@ -604,8 +595,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test editorRunScript when scriptWaiting is true and scriptRef is not current", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -618,7 +608,8 @@ describe("DBConnectionTab tests", (): void => {
         instance["scriptRef"].current = null;
 
         const script: IScriptRequest = {
-            scriptId: "id1",
+            id: "id1",
+            caption: "test",
             language: "javascript",
             content: `function editorRunScript() {
                           console.log("Hello, World!");
@@ -636,40 +627,10 @@ describe("DBConnectionTab tests", (): void => {
         component.unmount();
     });
 
-    it("Test editorInsertUserScript with notebookRef", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
-                savedState={savedState}
-                workerPool={wp}
-                showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
-            />,
-        );
-
-        const mockInsertScriptText = jest.fn();
-        component.instance()["notebookRef"].current = { insertScriptText: mockInsertScriptText } as unknown as Notebook;
-
-        const data = { language: "python", resourceId: 1 };
-        const mockGetDataContent = jest
-            .spyOn(ShellInterface.modules, "getDataContent")
-            .mockResolvedValue("console.log('test');");
-
-        const result = await requisitions.execute("editorInsertUserScript", { language: "python", resourceId: 1 });
-
-        expect(mockGetDataContent).toHaveBeenCalledWith(data.resourceId);
-        expect(mockInsertScriptText).toHaveBeenCalledWith(data.language, "console.log('test');");
-        expect(result).toBe(true);
-
-        component.unmount();
-    });
-
     it("Test sqlShowDataAtPage requisition function call", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -692,12 +653,10 @@ describe("DBConnectionTab tests", (): void => {
             oldResultId: "oldResultId",
         };
 
-        const determineQueryTypeSpy = jest
-            .spyOn(
-                services.ScriptingLanguageServices.instance,
-                "determineQueryType" as never,
-            )
-            .mockImplementation();
+        const determineQueryTypeSpy = jest.spyOn(
+            ScriptingLanguageServices.instance,
+            "determineQueryType" as never,
+        ).mockImplementation();
 
         const result = await requisitions.execute("sqlShowDataAtPage", data);
 
@@ -708,42 +667,12 @@ describe("DBConnectionTab tests", (): void => {
         component.unmount();
     });
 
-    it("Test showPageSection requisition function call", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
-                savedState={savedState}
-                workerPool={wp}
-                showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
-            />,
-        );
-
-        const onSelectItemMock = jest.fn();
-
-        component.setProps({ onSelectItem: onSelectItemMock });
-
-        const result = await requisitions.execute("showPageSection", { id: "1", type: EntityType.Connections });
-
-        expect(result).toBe(true);
-        expect(onSelectItemMock).toHaveBeenCalledWith({
-            caption: undefined,
-            itemId: "1",
-            tabId: "",
-            type: EntityType.Connections,
-        });
-
-        component.unmount();
-    });
-
     it("Test editorSaveNotebook with openState", async () => {
         const originalEmbedded = appParameters.embedded;
         appParameters.embedded = true;
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -752,54 +681,74 @@ describe("DBConnectionTab tests", (): void => {
         );
 
         const instance = component.instance();
-        const openState = {
+        const document = documentDataModel.openDocument(undefined, {
+            type: OdmEntityType.Notebook,
+            parameters: {
+                pageId: "1",
+                id: uuid(),
+                connection: connection.details,
+                caption: "test",
+            },
+        })!;
+
+        const openState: IOpenDocumentState = {
             state: {
                 model: {
                     executionContexts: {
                         collectRawState: jest.fn().mockResolvedValue([]),
-                    },
+                    } as unknown as ExecutionContexts,
                     getValue: jest.fn().mockReturnValue("notebook content"),
-                },
+                } as unknown as ICodeEditorModel,
+                viewState: null,
                 options: {},
             },
-            caption: "Test Notebook",
+            document,
+            currentVersion: 0,
         };
         instance["findActiveEditor"] = jest.fn().mockReturnValue(openState);
 
         const result = await requisitions.execute("editorSaveNotebook", undefined);
         expect(result).toBe(true);
-        expect(openState.state.model.getValue).toHaveBeenCalled();
-        expect(openState.state.model.executionContexts.collectRawState).toHaveBeenCalled();
+        expect(openState.state?.model.getValue).toHaveBeenCalled();
+        expect(openState.state?.model.executionContexts?.collectRawState).toHaveBeenCalled();
 
         appParameters.embedded = originalEmbedded;
         component.unmount();
     });
 
     it("Test showLakehouseNavigator requisition function call", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
-                savedState={savedState}
-                workerPool={wp}
-                showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
-            />,
-        );
-
         const onSelectItemMock = jest.fn();
 
-        component.setProps({ onSelectItem: onSelectItemMock });
+        const component = mount<DBConnectionTab>(
+            <DBEditorContext.Provider
+                value={{
+                    connectionsDataModel,
+                    documentDataModel,
+                } as DBEditorContextType}>
+
+                <DBConnectionTab
+                    id="1"
+                    connection={connection}
+                    savedState={savedState}
+                    workerPool={wp}
+                    showAbout={false}
+                    toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                    onSelectItem={onSelectItemMock}
+                />
+            </DBEditorContext.Provider>,
+        );
 
         const result = await requisitions.execute("showLakehouseNavigator", undefined);
 
         expect(result).toBe(true);
-        expect(onSelectItemMock).toHaveBeenCalledWith({
-            caption: "Lakehouse Navigator",
-            itemId: "0",
-            tabId: "",
-            type: EntityType.LakehouseNavigator,
-        });
+        expect(onSelectItemMock).toHaveBeenCalledWith(expect.objectContaining({
+            tabId: "1",
+            document: expect.objectContaining({
+                type: OdmEntityType.AdminPage,
+                caption: "Lakehouse Navigator",
+                pageType: "lakehouseNavigator",
+            }),
+        }));
 
         component.unmount();
     });
@@ -807,8 +756,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test showChatOptions requisition function call", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -831,8 +779,7 @@ describe("DBConnectionTab tests", (): void => {
     it("Test selectFile requisition function call", async () => {
         const component = mount<DBConnectionTab>(
             <DBConnectionTab
-                connectionId={0}
-                dbType={DBType.MySQL}
+                connection={connection}
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
@@ -878,8 +825,10 @@ describe("DBConnectionTab tests", (): void => {
 
         const options: IMdsChatData = { schemaName: "testSchema" };
 
-        const saveMdsChatOptionsMock = jest.spyOn(backend.mds, "saveMdsChatOptions").mockResolvedValue(undefined);
-        const loadMdsChatOptionsMock = jest.spyOn(backend.mds, "loadMdsChatOptions").mockResolvedValue(options);
+        const saveMdsChatOptionsMock = jest.spyOn(connection.backend.mhs,
+            "saveMdsChatOptions").mockResolvedValue(undefined);
+        const loadMdsChatOptionsMock = jest.spyOn(connection.backend.mhs,
+            "loadMdsChatOptions").mockResolvedValue(options);
 
         let result = await requisitions.execute("selectFile", fileResultSaveValid);
         expect(result).toBe(true);

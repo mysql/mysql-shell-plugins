@@ -31,8 +31,6 @@ import { ScriptingLanguageServices } from "../../../../../script-execution/Scrip
 
 import { mockModel, position } from "../../../__mocks__/CodeEditorMocks.js";
 
-jest.mock("../../../../../script-execution/PresentationInterface");
-
 describe("RenameProvider tests", () => {
 
     it("Create instance and init", () => {

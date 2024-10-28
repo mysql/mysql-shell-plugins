@@ -27,7 +27,7 @@ import { mount } from "enzyme";
 
 import { changeInputValue, nextProcessTick, sendKeyPress } from "../../test-helpers.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
-import { IServicePasswordRequest } from "../../../../app-logic/Types.js";
+import { IServicePasswordRequest } from "../../../../app-logic/general-types.js";
 import { PasswordDialog } from "../../../../components/Dialogs/PasswordDialog.js";
 import { KeyboardKeys } from "../../../../utilities/helpers.js";
 

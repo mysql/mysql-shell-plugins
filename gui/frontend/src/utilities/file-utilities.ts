@@ -61,3 +61,28 @@ export const findExecutable = (program: string): string => {
 
     return "";
 };
+
+/**
+ * Enumerates all files in a directory and its subdirectories with a given file extension.
+ *
+ * @param dir The directory to search in.
+ * @param fileExtension The file extension to look for.
+ *
+ * @returns An array of all files with the given extension in the directory and its subdirectories.
+ */
+export const enumerateFiles = (dir: string, fileExtension: string): string[] => {
+    const files: string[] = [];
+
+    fs.readdirSync(dir).forEach((file) => {
+        const filePath = path.join(dir, file);
+        const stat = fs.statSync(filePath);
+
+        if (stat.isDirectory()) {
+            files.push(...enumerateFiles(filePath, fileExtension));
+        } else if (file.endsWith(fileExtension)) {
+            files.push(filePath);
+        }
+    });
+
+    return files;
+};

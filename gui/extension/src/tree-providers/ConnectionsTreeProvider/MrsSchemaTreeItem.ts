@@ -23,21 +23,15 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMrsSchemaData } from "../../../../frontend/src/communication/ProtocolMrs.js";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import type { IMrsSchemaData } from "../../../../frontend/src/communication/ProtocolMrs.js";
+import type { ICdmRestSchemaEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
-export class MrsSchemaTreeItem extends MrsTreeBaseItem {
+export class MrsSchemaTreeItem extends MrsTreeBaseItem<ICdmRestSchemaEntry> {
     public override contextValue = "mrsSchema";
 
-    public constructor(
-        label: string,
-        public value: IMrsSchemaData,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number) {
-        super(label, backend, connectionId, MrsSchemaTreeItem.getIconName(value), true);
-
-        this.description = `(${value.name})`;
+    public constructor(dataModelEntry: ICdmRestSchemaEntry) {
+        super(dataModelEntry, MrsSchemaTreeItem.getIconName(dataModelEntry.details), true);
     }
 
     private static getIconName = (value: IMrsSchemaData): string => {

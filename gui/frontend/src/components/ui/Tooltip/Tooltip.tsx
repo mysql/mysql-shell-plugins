@@ -128,8 +128,9 @@ export class TooltipProvider extends ComponentBase<ITooltipProviderProperties, I
                 bounds.width = width;
                 bounds.height = height;
 
-                // Ensure the tooltip's bounds stay within the document. 7 pixels: 6px tooltip padding + tooltip border.
-                [x, y] = clampToDocument(bounds, - 7 + paddingLeft, - 7 + paddingTop);
+                // Ensure the tooltip's bounds stay within the document.
+                // magic numbers: padding in CSS + 1 pixel for the border.
+                [x, y] = clampToDocument(bounds, -5 + paddingLeft, -2 + paddingTop);
             } else {
                 // A normal tooltip with fixed text given in the HTML element.
                 const { left, top } = computeContentPosition(ComponentPlacement.BottomLeft, this.innerRef.current,

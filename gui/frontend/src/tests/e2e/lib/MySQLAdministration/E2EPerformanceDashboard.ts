@@ -21,16 +21,20 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Condition, WebElement, until } from "selenium-webdriver";
+import { WebElement, until } from "selenium-webdriver";
 import * as locator from "../locators.js";
-import { driver } from "../driver.js";
-import { E2EEditorSelector } from "../E2EEditorSelector.js";
+import { driver } from "../../lib/driver.js";
 import * as constants from "../constants.js";
+import { E2EEditorSelector } from "../E2EEditorSelector.js";
+import { E2EToolbar } from "../E2EToolbar.js";
 
 /**
  * This class represents the Performance dashboard page and all its related functions
  */
 export class E2EPerformanceDashboard {
+
+    /** The toolbar*/
+    public toolbar = new E2EToolbar();
 
     /** The editor selector*/
     public editorSelector = new E2EEditorSelector();
@@ -236,21 +240,9 @@ export class E2EPerformanceDashboard {
      * @param tabName The tab name
      * @returns A promise resolving to true if the tab exists, false otherwise
      */
-    public untilTabExists = (tabName: string): Condition<boolean> => {
-        return new Condition(`for ${tabName} to exist`, async () => {
-            return this.tabExists(tabName);
-        });
-    };
-
-    /**
-     * Verifies if the tab exists
-     * @param tabName The tab name
-     * @returns A promise resolving to true if the tab exists, false otherwise
-     */
     public tabExists = async (tabName: string): Promise<boolean> => {
         if (tabName === constants.perfDashServerTab) {
-            return (await driver.findElements(locator.mysqlAdministration.performanceDashboard.serverTab))
-                .length > 0;
+            return (await driver.findElements(locator.mysqlAdministration.performanceDashboard.serverTab)).length > 0;
         } else if (tabName === constants.perfDashMLETab) {
             return (await driver.findElements(locator.mysqlAdministration.performanceDashboard.mleTab)).length > 0;
         } else {

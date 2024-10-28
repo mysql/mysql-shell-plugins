@@ -84,15 +84,6 @@ export type SemanticTokensLegend = languages.SemanticTokensLegend;
 
 export type ICodeEditorViewState = editor.ICodeEditorViewState;
 
-export interface ICodeEditorOptions {
-    tabSize?: number;
-    indentSize?: number;
-    insertSpaces?: boolean;
-
-    defaultEOL?: "LF" | "CRLF";
-    trimAutoWhitespace?: boolean;
-}
-
 export interface IExecutionContextState {
     /** The start line for this context. */
     start: number;

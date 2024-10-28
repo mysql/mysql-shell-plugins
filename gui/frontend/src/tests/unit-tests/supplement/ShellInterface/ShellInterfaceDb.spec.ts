@@ -61,7 +61,7 @@ describe("ShellInterfaceDb Tests", () => {
                 port: credentials.port,
             },
             useSSH: false,
-            useMDS: false,
+            useMHS: false,
 
         };
 

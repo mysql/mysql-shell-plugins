@@ -27,7 +27,7 @@ import "./ConfirmDialog.css";
 
 import { ComponentChild, createRef, VNode } from "preact";
 
-import { DialogResponseClosure, IDictionary } from "../../app-logic/Types.js";
+import { DialogResponseClosure, IDictionary } from "../../app-logic/general-types.js";
 import { Codicon } from "../ui/Codicon.js";
 import { IComponentProperties, IComponentState, ComponentBase } from "../ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../ui/Container/Container.js";

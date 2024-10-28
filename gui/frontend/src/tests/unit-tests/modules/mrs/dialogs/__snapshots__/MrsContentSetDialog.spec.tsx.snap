@@ -258,7 +258,7 @@ exports[`MRS Content Set dialog tests Show MRS Content Set Dialog (snapshot) and
               </div>
             </div>
             <div
-              class="msg container fixedScrollbar content"
+              class="msg container fixedScrollbar tabContent"
               style="flex-direction: column;"
             >
               <div

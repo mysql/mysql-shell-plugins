@@ -226,11 +226,11 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
               </div>
             </Container>
             <Container
-              className="content"
+              className="tabContent"
               innerRef={
                 {
                   "current": <div
-                    class="msg container fixedScrollbar content"
+                    class="msg container fixedScrollbar tabContent"
                     style="flex-direction: column;"
                   >
                     <div
@@ -285,7 +285,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
               orientation="column"
             >
               <div
-                className="msg container fixedScrollbar content"
+                className="msg container fixedScrollbar tabContent"
                 onDragEnter={[Function]}
                 onDragLeave={[Function]}
                 onDragOver={[Function]}
@@ -495,27 +495,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
         onItemClick={[Function]}
         orientation="column"
         placement="bottom-start"
-      >
-        <Popup
-          className="msg menu"
-          id="actionMenu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="bottom-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            id="actionMenu"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </div>
   </Container>
 </ResultTabView>
@@ -593,11 +573,11 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
             }
           >
             <Container
-              className="content"
+              className="tabContent"
               innerRef={
                 {
                   "current": <div
-                    class="msg container fixedScrollbar content"
+                    class="msg container fixedScrollbar tabContent"
                     style="flex-direction: column;"
                   />,
                 }
@@ -609,7 +589,7 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
               orientation="column"
             >
               <div
-                className="msg container fixedScrollbar content"
+                className="msg container fixedScrollbar tabContent"
                 onDragEnter={[Function]}
                 onDragLeave={[Function]}
                 onDragOver={[Function]}
@@ -632,27 +612,7 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
         onItemClick={[Function]}
         orientation="column"
         placement="bottom-start"
-      >
-        <Popup
-          className="msg menu"
-          id="actionMenu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="bottom-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            id="actionMenu"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </div>
   </Container>
 </ResultTabView>
@@ -746,7 +706,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
               "id": "output",
             },
             {
-              "auxillary": <Button
+              "auxiliary": <Button
                 data-tooltip="Maximize Result Tab"
                 id="toggleStateButton"
                 imageOnly={true}
@@ -790,7 +750,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
               "id": "123",
             },
             {
-              "auxillary": <Button
+              "auxiliary": <Button
                 data-tooltip="Maximize Result Tab"
                 id="toggleStateButton"
                 imageOnly={true}
@@ -1229,11 +1189,11 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
               </div>
             </Container>
             <Container
-              className="content"
+              className="tabContent"
               innerRef={
                 {
                   "current": <div
-                    class="msg container fixedScrollbar content"
+                    class="msg container fixedScrollbar tabContent"
                     style="flex-direction: column;"
                   >
                     <div
@@ -1255,7 +1215,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
               orientation="column"
             >
               <div
-                className="msg container fixedScrollbar content"
+                className="msg container fixedScrollbar tabContent"
                 onDragEnter={[Function]}
                 onDragLeave={[Function]}
                 onDragOver={[Function]}
@@ -1332,30 +1292,11 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                       </Container>
                       <Menu
                         id="cellContextMenu"
+                        isItemDisabled={[Function]}
                         onItemClick={[Function]}
                         orientation="column"
                         placement="bottom-start"
-                      >
-                        <Popup
-                          className="msg menu"
-                          id="cellContextMenu"
-                          onClose={[Function]}
-                          onKeyDown={[Function]}
-                          onOpen={[Function]}
-                          orientation="column"
-                          pinned={false}
-                          placement="bottom-start"
-                          showArrow={false}
-                        >
-                          <Portal
-                            className="popupPortal"
-                            id="cellContextMenu"
-                            onClose={[Function]}
-                            onKeyDown={[Function]}
-                            onOpen={[Function]}
-                          />
-                        </Popup>
-                      </Menu>
+                      />
                     </div>
                   </Container>
                 </ResultView>
@@ -1406,27 +1347,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
         onItemClick={[Function]}
         orientation="column"
         placement="bottom-start"
-      >
-        <Popup
-          className="msg menu"
-          id="actionMenu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="bottom-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            id="actionMenu"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </div>
   </Container>
 </ResultTabView>

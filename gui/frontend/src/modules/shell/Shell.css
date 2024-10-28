@@ -287,11 +287,6 @@ body[theme=light] .msg#shellModuleTabview .shellPromptItem#schema::after {
     padding: 2px 4px;
 }
 
-.msg.browserTile #actions .icon {
-    flex: 0 0 16px;
-    margin: 0;
-}
-
 .msg.portal#shellPromptDialog .valueEditDialog {
     min-width: 600px;
     left: auto;

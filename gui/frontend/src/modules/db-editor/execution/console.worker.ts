@@ -25,7 +25,7 @@
 
 /* eslint-disable no-restricted-globals */
 
-import { IDictionary } from "../../../app-logic/Types.js";
+import { IDictionary } from "../../../app-logic/general-types.js";
 import {
     PrivateWorker, ScriptingApi, IConsoleWorkerResultData, IConsoleWorkerTaskData,
 } from "../console.worker-types.js";

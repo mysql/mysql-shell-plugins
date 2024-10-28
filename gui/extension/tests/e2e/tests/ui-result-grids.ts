@@ -754,18 +754,6 @@ describe("RESULT GRIDS", () => {
                 }
             }, constants.wait10seconds, `Copy all rows with names tab separated failed`);
 
-            // Copy all rows tab separated.
-            await driver.wait(async () => {
-                const copy = await result.grid.copyAllRowsTabSeparated(row, column);
-                const clipboard = Os.getClipboardContent();
-
-                if (copy.toString() === clipboard.toString()) {
-                    return true;
-                } else {
-                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
-                }
-            }, constants.wait10seconds, `Copy all rows tab separated failed`);
-
         });
 
         it("Result grid context menu - Copy field, copy field unquoted, set field to null", async function () {

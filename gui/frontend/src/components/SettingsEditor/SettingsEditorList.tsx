@@ -26,19 +26,20 @@
 import { ComponentChild, createRef, render } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
-import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase.js";
-import { ThemeManager } from "../Theming/ThemeManager.js";
-import { Settings } from "../../supplement/Settings/Settings.js";
+import { IDictionary } from "../../app-logic/general-types.js";
 import { requisitions } from "../../supplement/Requisitions.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
 import { ISettingCategory, ISettingValue } from "../../supplement/Settings/SettingsRegistry.js";
-import { IDictionary } from "../../app-logic/Types.js";
-import { CheckState, Checkbox, ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
-import { Dropdown, IDropdownProperties } from "../ui/Dropdown/Dropdown.js";
-import { Input, IInputChangeProperties } from "../ui/Input/Input.js";
-import { Label } from "../ui/Label/Label.js";
-import { TreeGrid, ITreeGridOptions } from "../ui/TreeGrid/TreeGrid.js";
-import { UpDown, IUpDownProperties } from "../ui/UpDown/UpDown.js";
+import { ThemeManager } from "../Theming/ThemeManager.js";
 import { Button } from "../ui/Button/Button.js";
+import { CheckState, Checkbox, ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
+import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase.js";
+import { Dropdown } from "../ui/Dropdown/Dropdown.js";
+import { DropdownItem } from "../ui/Dropdown/DropdownItem.js";
+import { IInputChangeProperties, Input } from "../ui/Input/Input.js";
+import { Label } from "../ui/Label/Label.js";
+import { ITreeGridOptions, TreeGrid } from "../ui/TreeGrid/TreeGrid.js";
+import { IUpDownProperties, UpDown } from "../ui/UpDown/UpDown.js";
 
 interface ISettingsEditorListProperties extends IComponentProperties {
     settingsTree: ISettingCategory[];
@@ -316,11 +317,12 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
                                 hasDescriptions = true;
                             }
 
-                            return <Dropdown.Item
+                            return <DropdownItem
                                 caption={choice[0]}
                                 id={choice[1]}
                                 key={choice[1]}
                                 description={choice[2]}
+                                payload={data.id}
                             />;
 
                         });
@@ -401,9 +403,10 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
         this.setState({ settingsList: this.collectSettingsValues() });
     };
 
-    private handleDropDownChange = (accept: boolean, selectedIds: Set<string>, props: IDropdownProperties): void => {
+    private handleDropDownChange = (accept: boolean, selectedIds: Set<string>, payload: unknown): void => {
         // There's always at least one entry.
-        Settings.set(props.id!, [...selectedIds][0]);
+        const id = payload as string;
+        Settings.set(id, [...selectedIds][0]);
         this.setState({ settingsList: this.collectSettingsValues() });
     };
 

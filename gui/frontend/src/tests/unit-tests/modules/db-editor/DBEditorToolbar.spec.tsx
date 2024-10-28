@@ -25,26 +25,27 @@
 
 import { mount } from "enzyme";
 
+import { OdmEntityType } from "../../../../data-models/OpenDocumentDataModel.js";
+import type { IOpenDocumentState } from "../../../../modules/db-editor/DBConnectionTab.js";
 import { DBEditorToolbar } from "../../../../modules/db-editor/DBEditorToolbar.js";
-import { IOpenEditorState } from "../../../../modules/db-editor/DBConnectionTab.js";
-import { EntityType } from "../../../../modules/db-editor/index.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
+import { uuid } from "../../../../utilities/helpers.js";
 
 describe("DBEditorToolbar tests", (): void => {
     it("Test DBEditorToolbar instantiation", () => {
         const component = mount<DBEditorToolbar>(
             <DBEditorToolbar
                 language={"ts"}
-                activeEditor={"DbEditor"}
+                activeDocument={"DbEditor"}
                 heatWaveEnabled={false}
-                editors={[]}
+                documentState={[]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
             />,
         );
 
         const props = component.props();
         expect(props.language).toEqual("ts");
-        expect(props.activeEditor).toEqual("DbEditor");
+        expect(props.activeDocument).toEqual("DbEditor");
         expect(component).toMatchSnapshot();
         component.unmount();
     });
@@ -53,16 +54,16 @@ describe("DBEditorToolbar tests", (): void => {
         const component = mount<DBEditorToolbar>(
             <DBEditorToolbar
                 language={"js"}
-                activeEditor={"DbEditor"}
+                activeDocument={"DbEditor"}
                 heatWaveEnabled={true}
-                editors={[]}
+                documentState={[]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
             />,
         );
 
         const props = component.props();
         expect(props.language).toEqual("js");
-        expect(props.activeEditor).toEqual("DbEditor");
+        expect(props.activeDocument).toEqual("DbEditor");
         expect(component).toMatchSnapshot();
         component.unmount();
     });
@@ -71,16 +72,16 @@ describe("DBEditorToolbar tests", (): void => {
         const component = mount<DBEditorToolbar>(
             <DBEditorToolbar
                 language={"msg"}
-                activeEditor={"DbEditor"}
+                activeDocument={"DbEditor"}
                 heatWaveEnabled={false}
-                editors={[]}
+                documentState={[]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
             />,
         );
 
         const props = component.props();
         expect(props.language).toEqual("msg");
-        expect(props.activeEditor).toEqual("DbEditor");
+        expect(props.activeDocument).toEqual("DbEditor");
         expect(component).toMatchSnapshot();
         component.unmount();
     });
@@ -89,9 +90,9 @@ describe("DBEditorToolbar tests", (): void => {
         const component = mount<DBEditorToolbar>(
             <DBEditorToolbar
                 language={"msg"}
-                activeEditor={"DbEditor"}
+                activeDocument={"DbEditor"}
                 heatWaveEnabled={false}
-                editors={[]}
+                documentState={[]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
             />,
         );
@@ -109,9 +110,9 @@ describe("DBEditorToolbar tests", (): void => {
         const component = mount<DBEditorToolbar>(
             <DBEditorToolbar
                 language={"msg"}
-                activeEditor={"DbEditor"}
+                activeDocument={"DbEditor"}
                 heatWaveEnabled={false}
-                editors={[]}
+                documentState={[]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
             />,
         );
@@ -127,9 +128,9 @@ describe("DBEditorToolbar tests", (): void => {
         const component = mount<DBEditorToolbar>(
             <DBEditorToolbar
                 language={"msg"}
-                activeEditor={"DbEditor"}
+                activeDocument={"DbEditor"}
                 heatWaveEnabled={false}
-                editors={[]}
+                documentState={[]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
             />,
         );
@@ -143,9 +144,9 @@ describe("DBEditorToolbar tests", (): void => {
         const component = mount<DBEditorToolbar>(
             <DBEditorToolbar
                 language={"msg"}
-                activeEditor={"DbEditor"}
+                activeDocument={"DbEditor"}
                 heatWaveEnabled={false}
-                editors={[]}
+                documentState={[]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
             />,
         );
@@ -156,31 +157,35 @@ describe("DBEditorToolbar tests", (): void => {
     });
 
     it("Test DBEditorToolbar call componentDidUpdate", () => {
+        const testEditorState: IOpenDocumentState = {
+            document: {
+                type: OdmEntityType.Notebook,
+                id: uuid(),
+                state: {
+                    isLeaf: true,
+                    initialized: true,
+                    expanded: true,
+                    expandedOnce: true,
+                },
+                caption: "DbEditor1",
+            },
+            currentVersion: 1,
+        };
+
         const component = mount<DBEditorToolbar>(
             <DBEditorToolbar
-                language={"en"}
-                activeEditor={"DbEditor1"}
+                language={"msg"}
+                activeDocument={"DbEditor1"}
                 heatWaveEnabled={true}
-                editors={[]}
+                documentState={[testEditorState]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
             />,
         );
 
-        const testEditorState: IOpenEditorState = {
-            id: "DbEditor1",
-            type: EntityType.Notebook,
-            caption: "DbEditor1",
-            dbDataId: 123,
-            currentVersion: 1,
-        };
-
         const props = component.props();
-        expect(props.language).toEqual("en");
-        expect(props.activeEditor).toEqual("DbEditor1");
+        expect(props.language).toEqual("msg");
+        expect(props.activeDocument).toEqual("DbEditor1");
 
-        props.editors = [testEditorState];
-        component.setProps(props);
-        props.activeEditor = "DbEditor2";
         component.instance().componentDidUpdate(props);
 
         component.unmount();

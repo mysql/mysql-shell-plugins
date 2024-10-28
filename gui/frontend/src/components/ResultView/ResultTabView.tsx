@@ -23,48 +23,49 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import gridIcon from "../../assets/images/toolbar/toolbar-grid.svg";
 import commitIcon from "../../assets/images/toolbar/toolbar-commit.svg";
-import rollbackIcon from "../../assets/images/toolbar/toolbar-rollback.svg";
+import gridIcon from "../../assets/images/toolbar/toolbar-grid.svg";
 import maximizeIcon from "../../assets/images/toolbar/toolbar-maximize.svg";
-import normalizeIcon from "../../assets/images/toolbar/toolbar-normalize.svg";
 import menuIcon from "../../assets/images/toolbar/toolbar-menu.svg";
-import previousPageIcon from "../../assets/images/toolbar/toolbar-page_previous.svg";
+import normalizeIcon from "../../assets/images/toolbar/toolbar-normalize.svg";
 import nextPageIcon from "../../assets/images/toolbar/toolbar-page_next.svg";
+import previousPageIcon from "../../assets/images/toolbar/toolbar-page_previous.svg";
+import rollbackIcon from "../../assets/images/toolbar/toolbar-rollback.svg";
 
 import editIcon from "../../assets/images/toolbar/toolbar-edit.svg";
 import previewIcon from "../../assets/images/toolbar/toolbar-preview.svg";
 
 import { ComponentChild, createRef } from "preact";
 
-import { IResultSet, IResultSetRows, IResultSets } from "../../script-execution/index.js";
+import { DialogHost } from "../../app-logic/DialogHost.js";
 import {
     DialogResponseClosure, DialogType, IColumnInfo, IStatusInfo, MessageType, defaultValues, type ISqlUpdateResult,
-} from "../../app-logic/Types.js";
-import { ResultView, ResultRowChanges, IResultCellChange } from "./ResultView.js";
-import { ActionOutput } from "./ActionOutput.js";
+} from "../../app-logic/general-types.js";
+import { IResultSet, IResultSetRows, IResultSets } from "../../script-execution/index.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { IScriptRequest } from "../../supplement/index.js";
+import { uuid } from "../../utilities/helpers.js";
+import { formatWithNumber } from "../../utilities/string-helpers.js";
+import { Button } from "../ui/Button/Button.js";
 import {
-    IComponentProperties, IComponentState, ComponentBase, ComponentPlacement,
+    ComponentBase, ComponentPlacement, IComponentProperties, IComponentState,
 } from "../ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../ui/Container/Container.js";
 import { Divider } from "../ui/Divider/Divider.js";
 import { Dropdown } from "../ui/Dropdown/Dropdown.js";
+import { DropdownItem } from "../ui/Dropdown/DropdownItem.js";
 import { Icon } from "../ui/Icon/Icon.js";
-import { Menu } from "../ui/Menu/Menu.js";
-import { MenuItem, IMenuItemProperties } from "../ui/Menu/MenuItem.js";
-import { ITabviewPage, Tabview, TabPosition } from "../ui/Tabview/Tabview.js";
-import { Toolbar } from "../ui/Toolbar/Toolbar.js";
-import { Button } from "../ui/Button/Button.js";
-import { ResultStatus } from "./ResultStatus.js";
-import { requisitions } from "../../supplement/Requisitions.js";
-import { IScriptRequest } from "../../supplement/index.js";
-import { uuid } from "../../utilities/helpers.js";
 import { Label } from "../ui/Label/Label.js";
-import { QueryBuilder } from "./QueryBuilder.js";
+import { Menu } from "../ui/Menu/Menu.js";
+import { IMenuItemProperties, MenuItem } from "../ui/Menu/MenuItem.js";
 import { SQLPreview } from "../ui/SQLPreview/SQLPreview.js";
-import { DialogHost } from "../../app-logic/DialogHost.js";
-import { Settings } from "../../supplement/Settings/Settings.js";
-import { formatWithNumber } from "../../utilities/string-helpers.js";
+import { ITabviewPage, TabPosition, Tabview } from "../ui/Tabview/Tabview.js";
+import { Toolbar } from "../ui/Toolbar/Toolbar.js";
+import { ActionOutput } from "./ActionOutput.js";
+import { QueryBuilder } from "./QueryBuilder.js";
+import { ResultStatus } from "./ResultStatus.js";
+import { IResultCellChange, ResultRowChanges, ResultView } from "./ResultView.js";
 
 /** All the current changes for a result set. */
 interface IEditingInfo {
@@ -146,7 +147,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     private topRowIndexes = new Map<string, number>();
 
     /** The number of updated rows during the last commit action. */
-    #affectedRows:  Map<string, number> = new Map();
+    #affectedRows: Map<string, number> = new Map();
 
     /** All value changes per result set. */
     #editingInfo: Map<string, IEditingInfo> = new Map();
@@ -307,7 +308,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                 pages.push({
                     id: resultSet.resultId,
                     caption,
-                    auxillary: showMaximizeButton === "tab" && toggleStateButton,
+                    auxiliary: showMaximizeButton === "tab" && toggleStateButton,
                     content,
                 });
             }
@@ -364,12 +365,12 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                     data-tooltip="Select a View Section for the Result Set"
                                     onSelect={this.selectViewStyle}
                                 >
-                                    <Dropdown.Item
+                                    <DropdownItem
                                         id="grid"
                                         caption="Data Grid"
                                         picture={<Icon src={gridIcon} data-tooltip="inherit" />}
                                     />
-                                    <Dropdown.Item
+                                    <DropdownItem
                                         id="preview"
                                         caption="Preview Changes"
                                         picture={<Icon src={previewIcon} data-tooltip="inherit" />}
@@ -458,21 +459,21 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                 >
                     <MenuItem
                         id="closeMenuItem"
-                        caption="Close Result Set"
+                        command={{ title: "Close Result Set", command: "closeMenuItem" }}
                     />
                     <MenuItem
                         id="separator1"
-                        caption="-"
+                        command={{ title: "-", command: "" }}
                         disabled
                     />
                     <MenuItem
                         id="exportMenuItem"
-                        caption="Export Result Set"
+                        command={{ title: "Export Result Set", command: "exportMenuItem" }}
                         disabled
                     />
                     <MenuItem
                         id="importMenuItem"
-                        caption="Import Result Set"
+                        command={{ title: "Import Result Set", command: "importMenuItem" }}
                         disabled
                     />
                 </Menu>
@@ -577,8 +578,9 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         }
     };
 
-    private handleActionMenuItemClick = (e: MouseEvent, props: IMenuItemProperties): boolean => {
-        switch (props.id ?? "") {
+    private handleActionMenuItemClick = (props: IMenuItemProperties): boolean => {
+        const command = props.command.command;
+        switch (command) {
             case "closeMenuItem": {
                 const { onRemoveResult } = this.props;
                 const { currentResultSet } = this.state;
@@ -770,7 +772,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         const { onToggleResultPaneViewState, showMaximizeButton, showMaximized } = this.props;
         const { currentResultSet } = this.state;
 
-        // If showMaximized is not yet use it means we are in a notebook that needs to run the script
+        // If showMaximized is not yet used it means we are in a notebook that needs to run the script
         // to show a separate script editor.
         if (showMaximizeButton === "statusBar" && showMaximized === undefined) {
             if (currentResultSet) {
@@ -778,9 +780,9 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                 const name = `Result #${(currentResultSet.index ?? 0) + 1}`;
                 if (sql) {
                     const request: IScriptRequest = {
-                        scriptId: uuid(),
+                        id: uuid(),
                         language: "mysql",
-                        name,
+                        caption: name,
                         content: sql,
                     };
 

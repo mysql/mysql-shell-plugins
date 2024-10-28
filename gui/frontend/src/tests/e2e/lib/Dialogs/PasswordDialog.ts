@@ -28,6 +28,7 @@ import * as constants from "../constants.js";
 import * as interfaces from "../interfaces.js";
 import * as locator from "../locators.js";
 import { Os } from "../os.js";
+import { ConfirmDialog } from "./ConfirmationDialog.js";
 
 /**
  * This class aggregates the functions that perform password dialog related operations
@@ -45,13 +46,11 @@ export class PasswordDialog {
     /**
      * Sets the database credentials on the password dialog
      * @param data The credentials
-     * @param timeout The max number of time the function should wait until the connection is successful
      * @returns A promise resolving when the credentials are set
      */
-    public static setCredentials = async (data: interfaces.IDBConnection,
-        timeout?: number): Promise<void> => {
+    public static setCredentials = async (data: interfaces.IDBConnection): Promise<void> => {
         await this.setPassword(data);
-        await this.setConfirm("no", timeout);
+        await this.setConfirm("no");
     };
 
     /**
@@ -80,41 +79,39 @@ export class PasswordDialog {
     /**
      * Sets the database connection confirm dialog
      * @param value The value. (Y, N, A)
-     * @param timeoutDialog The time to wait for the confirm dialog
      * @returns A promise resolving when the password is set
      */
-    private static setConfirm = async (value: string,
-        timeoutDialog = constants.wait10seconds): Promise<void> => {
+    private static setConfirm = async (value: string): Promise<void> => {
 
         if (await Os.existsCredentialHelper()) {
-            const confirmDialog = await driver.wait(until.elementsLocated(locator.confirmDialog.exists),
-                timeoutDialog, "No confirm dialog was found");
+            const confirmDialog = await new ConfirmDialog().untilExists().catch(() => {
+                return undefined;
+            });
 
-            const noBtn = await confirmDialog[0].findElement(locator.confirmDialog.refuse);
-            const yesBtn = await confirmDialog[0].findElement(locator.confirmDialog.accept);
-            const neverBtn = await confirmDialog[0].findElement(locator.confirmDialog.alternative);
+            if (confirmDialog) {
 
-            switch (value) {
+                switch (value) {
 
-                case "yes": {
-                    await yesBtn.click();
-                    break;
+                    case "yes": {
+                        await confirmDialog.accept();
+                        break;
+                    }
+
+                    case "no": {
+                        await confirmDialog.refuse();
+                        break;
+                    }
+
+                    case "never": {
+                        await confirmDialog.alternative();
+                        break;
+                    }
+
+                    default: {
+                        break;
+                    }
+
                 }
-
-                case "no": {
-                    await noBtn.click();
-                    break;
-                }
-
-                case "never": {
-                    await neverBtn.click();
-                    break;
-                }
-
-                default: {
-                    break;
-                }
-
             }
         } else {
             await driver.wait(until.elementLocated(locator.errorPanel.close),

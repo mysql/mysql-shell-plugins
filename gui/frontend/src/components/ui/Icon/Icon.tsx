@@ -27,19 +27,31 @@ import "./Icon.css";
 
 import { ComponentChild } from "preact";
 
-import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 import { convertPropValue } from "../../../utilities/string-helpers.js";
 import { Codicon, iconNameMap } from "../Codicon.js";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 
 // Icons are images whose color can be set. Colors in the image itself are ignored.
 export interface IIconProperties extends IComponentProperties {
-    disabled?: boolean;
+    /** The URL of the main image. Can also be a codicon name. */
     src?: string | Codicon;
+
+    /** The URL of an overlay image. */
+    overlay?: string;
+
+    /**
+     * The URL of an image to be used to cut out a part of the main image. Usually used to make the overlay better
+     * visible. Specifying the mask without an overlay has no effect.
+     */
+    overlayMask?: string;
+
+    disabled?: boolean;
     width?: string | number;
     height?: string | number;
     color?: string;
 }
 
+/** Icons are images which can be themed, so their colors are ignored. */
 export class Icon extends ComponentBase<IIconProperties> {
     public static override defaultProps = {
         disabled: false,
@@ -48,23 +60,34 @@ export class Icon extends ComponentBase<IIconProperties> {
     public constructor(props: IIconProperties) {
         super(props);
 
-        this.addHandledProperties("disabled", "src", "style", "height", "width", "color");
+        this.addHandledProperties("src", "overlay", "overlayMask", "disabled", "style", "height",
+            "width", "color");
     }
 
     public render(): ComponentChild {
-        const { disabled, src, style, height, width, color } = this.props;
+        const { src, overlay, overlayMask, disabled, style, height, width, color } = this.props;
         let className = this.getEffectiveClassNames([
             "icon",
-            this.classFromProperty(disabled, "disabled"),
+            this.classFromProperty(disabled, "overlayDisabled"),
         ]);
+
+        let maskImage = `url("${src}")`;
+
+        if (overlay) {
+            className += " withOverlay";
+
+            if (overlayMask) {
+                maskImage += `, url("${overlayMask}")`;
+            }
+        }
 
         let newStyle;
         if (typeof src === "string") {
             // A path was given.
             newStyle = {
-                maskImage: `url("${src}")`,
+                maskImage,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                WebkitMaskImage: `url("${src}")`,
+                WebkitMaskImage: maskImage,
                 ...style,
                 width: convertPropValue(width),
                 height: convertPropValue(height),
@@ -76,13 +99,31 @@ export class Icon extends ComponentBase<IIconProperties> {
             className += " codicon codicon-" + iconNameMap.get(src)!;
         }
 
-        return (
-            <div
-                className={className}
-                style={newStyle}
-                {...this.unhandledProperties}
-            />
-        );
+        if (overlay) {
+            return (
+                <div
+                    className="iconHost"
+                >
+                    <div
+                        className={className}
+                        style={newStyle}
+                        {...this.unhandledProperties}
+                    />
+                    <div
+                        class="overlay"
+                        style={{ backgroundImage: `url("${overlay}")` }}
+                    />
+                </div>
+            );
+        } else {
+            return (
+                <div
+                    className={className}
+                    style={newStyle}
+                    {...this.unhandledProperties}
+                />
+            );
+        }
     }
 
 }

@@ -513,11 +513,18 @@ export class CommandResult implements interfaces.ICommandResult {
             return (await (this.context!.findElements(gridLocator.row.cell.exists))).length > 0;
         }, constants.wait2seconds, `Table cells were not loaded for cmd ${this.command}`).catch(async () => {
             this.context = await this.getResultContext(this.command, this.id);
-            const columnTitle = await this.context.findElement(gridLocator.columnTitle);
-            await driver.executeScript("arguments[0].click()", columnTitle);
+            const columnTitles = await this.context.findElements(gridLocator.columnTitle);
+            await driver.executeScript("arguments[0].click()", columnTitles[0]);
             await driver.wait(async () => {
                 return (await (this.context!.findElements(gridLocator.row.cell.exists))).length > 0;
-            }, constants.wait2seconds, `Table cells were not loaded for cmd ${this.command} for the second time`);
+            }, constants.wait2seconds, `Table cells were not loaded for cmd ${this.command} for the second time`)
+                .catch(async () => {
+                    await driver.executeScript("arguments[0].click()", columnTitles[1]);
+                    await driver.wait(async () => {
+                        return (await (this.context!.findElements(gridLocator.row.cell.exists))).length > 0;
+                    }, constants.wait2seconds,
+                        `Table cells were not loaded for cmd ${this.command} for the third time`);
+                });
         });
 
         await this.setToolbar();

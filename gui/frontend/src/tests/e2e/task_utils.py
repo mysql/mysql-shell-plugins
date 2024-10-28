@@ -470,7 +470,7 @@ class SetMySQLServerTask(ShellTask):
         """Runs the task"""
 
         if self.set_ssl_root_folder:
-            self.environment["SSL_ROOT_FOLDER"] = f"{self.dir_name}/{self.environment['DBPORT']}/sandboxdata"
+            self.environment["SSL_ROOT_FOLDER"] = f"{self.dir_name}/{self.environment['MYSQL_PORT']}/sandboxdata"
         existing_uri = ''
         if 'MYSQL_URI' in self.environment:
             existing_uri = self.environment['MYSQL_URI']
@@ -481,7 +481,7 @@ class SetMySQLServerTask(ShellTask):
             self.environment['SSL_ROOT_FOLDER'] = ssl_root_folder
 
         conn_string = (
-            f"{self.environment['DBUSERNAME']}:{self.environment['DBPASSWORD']}@localhost:{self.environment['DBPORT']}"
+            f"{self.environment['DBUSERNAME']}:{self.environment['DBPASSWORD']}@localhost:{self.environment['MYSQL_PORT']}"
         )
 
         if existing_uri == conn_string:
@@ -521,7 +521,7 @@ class SetMySQLServerTask(ShellTask):
         """
 
         conn_string = (
-            f"{self.environment['DBUSERNAME']}:{self.environment['DBPASSWORD']}@localhost:{self.environment['DBPORT']}"
+            f"{self.environment['DBUSERNAME']}:{self.environment['DBPASSWORD']}@localhost:{self.environment['MYSQL_PORT']}"
         )
         out = ""
         try:
@@ -543,13 +543,13 @@ class SetMySQLServerTask(ShellTask):
             ["--", 
              "dba", 
              "deploy-sandbox-instance", 
-             self.environment['DBPORT'], 
+             self.environment['MYSQL_PORT'], 
              f"--password={self.environment['DBPASSWORD']}", 
              f"--sandbox-dir={self.dir_name}"
             ])
 
         cert_path = pathlib.Path(
-            self.dir_name, f"{self.environment['DBPORT']}", "sandboxdata")
+            self.dir_name, f"{self.environment['MYSQL_PORT']}", "sandboxdata")
         
         if not cert_path.joinpath("ca.pem").exists():
             raise RuntimeError("Unable to find SSL certificates")
@@ -572,10 +572,10 @@ class SetMySQLServerTask(ShellTask):
         if self.sandbox_deployed:
             self.shell_command_execute_cli(
                 ["--", 
-                "dba", "kill-sandbox-instance", self.environment['DBPORT'], f"--sandbox-dir={self.dir_name}"])
+                "dba", "kill-sandbox-instance", self.environment['MYSQL_PORT'], f"--sandbox-dir={self.dir_name}"])
             Logger.success("Successfully stopped MySQL instance")
             
-            self.shell_command_execute_cli(["--", "dba", "delete-sandbox-instance", self.environment['DBPORT'], f"--sandbox-dir={self.dir_name}"])
+            self.shell_command_execute_cli(["--", "dba", "delete-sandbox-instance", self.environment['MYSQL_PORT'], f"--sandbox-dir={self.dir_name}"])
             Logger.success("Successfully deleted MySQL instance")
 
 class ClearCredentials(ShellTask):

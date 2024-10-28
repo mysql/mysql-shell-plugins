@@ -34,7 +34,7 @@
     height: fit-content;
     max-height: 500px;
 
-    padding: 6px;
+    padding: 1px 4px;
 
     color: var(--tooltip-foreground);
     border: 1px solid var(--tooltip-border);

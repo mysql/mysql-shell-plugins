@@ -83,24 +83,6 @@ exports[`Shell prompt tests ShellPrompt output test 1`] = `
     onItemClick={[Function]}
     orientation="column"
     placement="right-start"
-  >
-    <Popup
-      className="msg menu shellPromptSchemaMenu"
-      onClose={[Function]}
-      onKeyDown={[Function]}
-      onOpen={[Function]}
-      orientation="column"
-      pinned={false}
-      placement="right-start"
-      showArrow={false}
-    >
-      <Portal
-        className="popupPortal"
-        onClose={[Function]}
-        onKeyDown={[Function]}
-        onOpen={[Function]}
-      />
-    </Popup>
-  </Menu>
+  />
 </ShellPrompt>
 `;

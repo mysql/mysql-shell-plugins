@@ -50,7 +50,7 @@
 }
 
 .msg.frontPage #linksHost {
-    padding: 30px 0 50px 0;
+    padding: 30px 0 40px 0;
     overflow: hidden;
 }
 
@@ -61,14 +61,24 @@
 }
 
 .msg.frontPage #closeButton {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
 
     border: none;
 
     position: absolute;
     top: 18px;
     right: 18px;
+}
+
+.msg.frontPage #closeButton .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.msg.frontPage #contentTitle {
+    padding-top: 10px;
+    font-size: 110%;
 }
 
 .msg.frontPage #tilesHost {

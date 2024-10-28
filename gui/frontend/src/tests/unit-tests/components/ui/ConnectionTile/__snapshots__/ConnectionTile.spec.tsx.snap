@@ -5,15 +5,6 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
   caption="Tile 1"
   className="connectionTile"
   description="A description"
-  details={
-    {
-      "caption": "Tile 1",
-      "dbType": "MySQL",
-      "description": "A description",
-      "id": 1,
-      "options": {},
-    }
-  }
   icon="scriptMysql.svg"
   id="tile1"
   tileId={1}

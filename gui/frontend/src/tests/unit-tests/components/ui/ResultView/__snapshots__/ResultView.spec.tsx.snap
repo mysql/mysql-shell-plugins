@@ -603,53 +603,16 @@ exports[`Result View Tests Render with Columns 1`] = `
             onItemClick={[Function]}
             orientation="column"
             placement="right-start"
-          >
-            <Popup
-              className="msg menu"
-              onClose={[Function]}
-              onKeyDown={[Function]}
-              onOpen={[Function]}
-              orientation="column"
-              pinned={false}
-              placement="right-start"
-              showArrow={false}
-            >
-              <Portal
-                className="popupPortal"
-                onClose={[Function]}
-                onKeyDown={[Function]}
-                onOpen={[Function]}
-              />
-            </Popup>
-          </Menu>
+          />
         </ValueEditDialog>
       </FieldEditor>
       <Menu
         id="cellContextMenu"
+        isItemDisabled={[Function]}
         onItemClick={[Function]}
         orientation="column"
         placement="bottom-start"
-      >
-        <Popup
-          className="msg menu"
-          id="cellContextMenu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="bottom-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            id="cellContextMenu"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </div>
   </Container>
 </ResultView>
@@ -711,30 +674,11 @@ exports[`Result View Tests Render with Error/Response 1`] = `
       </Container>
       <Menu
         id="cellContextMenu"
+        isItemDisabled={[Function]}
         onItemClick={[Function]}
         orientation="column"
         placement="bottom-start"
-      >
-        <Popup
-          className="msg menu"
-          id="cellContextMenu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="bottom-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            id="cellContextMenu"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </div>
   </Container>
 </ResultView>
@@ -878,53 +822,16 @@ exports[`Result View Tests Standard Rendering 1`] = `
             onItemClick={[Function]}
             orientation="column"
             placement="right-start"
-          >
-            <Popup
-              className="msg menu"
-              onClose={[Function]}
-              onKeyDown={[Function]}
-              onOpen={[Function]}
-              orientation="column"
-              pinned={false}
-              placement="right-start"
-              showArrow={false}
-            >
-              <Portal
-                className="popupPortal"
-                onClose={[Function]}
-                onKeyDown={[Function]}
-                onOpen={[Function]}
-              />
-            </Popup>
-          </Menu>
+          />
         </ValueEditDialog>
       </FieldEditor>
       <Menu
         id="cellContextMenu"
+        isItemDisabled={[Function]}
         onItemClick={[Function]}
         orientation="column"
         placement="bottom-start"
-      >
-        <Popup
-          className="msg menu"
-          id="cellContextMenu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="bottom-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            id="cellContextMenu"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </div>
   </Container>
 </ResultView>

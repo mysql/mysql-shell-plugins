@@ -23,13 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Condition } from "selenium-webdriver";
-import { driver } from "../driver.js";
+import { driver } from "../../lib/driver.js";
 import * as locator from "../locators.js";
-import { E2EMySQLAdministration } from "./E2EMySQLAdministration.js";
-import * as constants from "../constants.js";
+import { Condition } from "selenium-webdriver";
 
-export class E2EOverview {
+export class Overview {
 
     /**
      * Verifies if the Overview tab is selected
@@ -47,25 +45,15 @@ export class E2EOverview {
      * Clicks on the Upload Files button
      * @returns A promise resolving when the Upload Files button is clicked
      */
-    public uploadFiles = async (): Promise<void> => {
-        await driver.wait(async () => {
-            try {
-                await driver.findElement(locator.lakeHouseNavigator.overview.uploadFiles).click();
-
-                return new E2EMySQLAdministration().lakeHouseNavigator.uploadToObjectStorage.isOpened();
-            } catch (e) {
-                // continue
-            }
-
-        }, constants.wait5seconds, "Upload files to Object Storage page was not opened");
-
+    public clickUploadFiles = async (): Promise<void> => {
+        await driver.findElement(locator.lakeHouseNavigator.overview.uploadFiles).click();
     };
 
     /**
      * Clicks on the Start Load button
      * @returns A promise resolving when the Start Load button is clicked
      */
-    public startLoad = async (): Promise<void> => {
+    public clickStartLoad = async (): Promise<void> => {
         await driver.findElement(locator.lakeHouseNavigator.overview.startLoad).click();
     };
 
@@ -73,7 +61,7 @@ export class E2EOverview {
      * Clicks on the Manage Lakehouse button
      * @returns A promise resolving when the Manage Lakehouse button is clicked
      */
-    public manageLakehouse = async (): Promise<void> => {
+    public clickManageLakehouse = async (): Promise<void> => {
         await driver.findElement(locator.lakeHouseNavigator.overview.manageLakeHouse).click();
     };
 }

@@ -23,7 +23,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ICodeEditorOptions } from "./CodeEditor/index.js";
+export interface ICodeEditorOptions {
+    tabSize?: number;
+    indentSize?: number;
+    insertSpaces?: boolean;
+
+    defaultEOL?: "LF" | "CRLF";
+    trimAutoWhitespace?: boolean;
+}
 
 export const defaultEditorOptions: ICodeEditorOptions = {
     tabSize: 4,

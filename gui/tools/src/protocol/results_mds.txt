@@ -305,7 +305,7 @@ export interface IProtocolMdsResults {
     [ShellAPIMds.MdsCreateHeatWaveCluster]: {};
     [ShellAPIMds.MdsUpdateHeatWaveCluster]: {};
     [ShellAPIMds.MdsDeleteHeatWaveCluster]: {};
-    [ShellAPIMds.MdsListLoadBalancers]: { result: ILoadBalancer[]; };
+    [ShellAPIMds.MdsListLoadBalancers]: { result: LoadBalancer[]; };
     [ShellAPIMds.MdsListBastions]: { result: IBastionSummary[]; };
     [ShellAPIMds.MdsGetBastion]: { result: IBastionSummary; };
     [ShellAPIMds.MdsCreateBastion]: { result: IBastionSummary; };

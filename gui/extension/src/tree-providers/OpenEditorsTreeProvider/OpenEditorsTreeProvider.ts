@@ -23,119 +23,55 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, Command } from "vscode";
-
-import { EntityType } from "../../../../frontend/src/modules/db-editor/index.js";
-import { EditorLanguage } from "../../../../frontend/src/supplement/index.js";
-
+import { Event, EventEmitter, TreeDataProvider, TreeItem, type ProviderResult } from "vscode";
 import {
-    IEditorOpenChangeData, IEditorCloseChangeData, requisitions, IRequestListEntry, IRequestTypeMap, IWebviewProvider,
-} from "../../../../frontend/src/supplement/Requisitions.js";
-import { DBType, IShellSessionDetails } from "../../../../frontend/src/supplement/ShellInterface/index.js";
-import { EditorOverviewTreeItem } from "./EditorOverviewTreeItem.js";
-import { EditorConnectionTreeItem } from "./EditorConnectionTreeItem.js";
-import { EditorTabTreeItem } from "./EditorTabTreeItem.js";
-import { EditorTreeItem } from "./EditorTreeItem.js";
+    OdmEntityType, OpenDocumentDataModel, type IOdmAdminEntry, type OpenDocumentDataModelEntry,
+} from "../../../../frontend/src/data-models/OpenDocumentDataModel.js";
+
+import type {
+    IDocumentCloseData, IDocumentOpenData, IRequestListEntry, IRequestTypeMap, IWebviewProvider,
+} from "../../../../frontend/src/supplement/RequisitionTypes.js";
+import { requisitions } from "../../../../frontend/src/supplement/Requisitions.js";
+import { IShellSessionDetails } from "../../../../frontend/src/supplement/ShellInterface/index.js";
+import { ShellConsoleSessionRootTreeItem } from "../ShellTreeProvider/ShellConsoleSessionRootTreeItem.js";
 import { ShellConsoleSessionTreeItem } from "../ShellTreeProvider/ShellConsoleSessionTreeItem.js";
-import { ConnectionTreeItem } from "../ConnectionsTreeProvider/ConnectionTreeItem.js";
-
-export interface IOpenEditorBaseEntry {
-    type: string;
-
-    caption: string;
-    treeItem: TreeItem;
-}
-
-export interface IOpenEditorEntry extends IOpenEditorBaseEntry {
-    type: "editor";
-
-    id: string;
-    language: EditorLanguage;
-    editorType: EntityType,
-
-    parent: IEditorConnectionEntry;
-    treeItem: EditorTreeItem;
-
-    /** Used in simple view mode */
-    alternativeCaption: string;
-}
-
-export interface IEditorConnectionOverviewEntry extends IOpenEditorBaseEntry {
-    type: "connectionOverview";
-
-    parent: IProviderEditorEntry | null;
-    treeItem: EditorOverviewTreeItem;
-}
-
-export interface IEditorConnectionEntry extends IOpenEditorBaseEntry {
-    type: "connection";
-
-    connectionId: number;
-    dbType: DBType;
-    editors: IOpenEditorEntry[];
-
-    parent: IProviderEditorEntry;
-    treeItem: EditorConnectionTreeItem;
-}
-
-export interface IProviderEditorEntry extends IOpenEditorBaseEntry {
-    type: "connectionProvider";
-
-    provider: IWebviewProvider;
-
-    connectionOverview?: IEditorConnectionOverviewEntry;
-    connections: IEditorConnectionEntry[];
-}
-
-export interface IShellSessionEntry extends IOpenEditorBaseEntry {
-    type: "shellSession";
-
-    details: IShellSessionDetails;
-    parent: IProviderSessionEntry;
-}
-
-export interface IProviderSessionEntry extends IOpenEditorBaseEntry {
-    type: "sessionProvider";
-
-    provider: IWebviewProvider;
-    sessions: IShellSessionEntry[];
-}
-
+import { ConnectionOverviewTreeItem } from "./ConnectionOverviewTreeItem.js";
+import { DocumentConnectionPageTreeItem } from "./DocumentConnectionPageTreeItem.js";
+import { DocumentProviderTreeItem } from "./DocumentProviderTreeItem.js";
+import { DocumentTreeItem } from "./DocumentTreeItem.js";
 
 /**
  * The provider for the open editors section in the extension.
  */
-export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditorBaseEntry> {
+export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumentDataModelEntry> {
 
-    #openProviders = new Map<IWebviewProvider, IProviderEditorEntry>();
-    #openSessions = new Map<IWebviewProvider, IProviderSessionEntry>();
+    #lastSelectedItems = new Map<IWebviewProvider, OpenDocumentDataModelEntry>();
+    #dataModel: OpenDocumentDataModel;
 
-    #lastSelectedItems = new Map<IWebviewProvider, IOpenEditorBaseEntry>();
+    #changeEvent = new EventEmitter<OpenDocumentDataModelEntry | undefined>();
+    #selectCallback: (item: OpenDocumentDataModelEntry | undefined) => void;
 
-    #changeEvent = new EventEmitter<IOpenEditorBaseEntry | undefined>();
-    #selectCallback: (item: IOpenEditorBaseEntry) => void;
-
-    // Standalone overview entry which is used if no provider exists.
-    #connectionOverview: IEditorConnectionOverviewEntry;
-
-    public get onDidChangeTreeData(): Event<IOpenEditorBaseEntry | undefined> {
-        return this.#changeEvent.event;
-    }
-
-    public set onSelect(callback: (item: IOpenEditorBaseEntry) => void) {
-        this.#selectCallback = callback;
-    }
-
-    public constructor() {
+    public constructor(dataModel: OpenDocumentDataModel) {
+        this.#dataModel = dataModel;
         requisitions.register("proxyRequest", this.proxyRequest);
         requisitions.register("editorSaved", this.editorSaved);
-
-        this.#connectionOverview = this.createOverviewItems(null);
     }
 
     public dispose(): void {
         requisitions.unregister("proxyRequest", this.proxyRequest);
         requisitions.unregister("editorSaved", this.editorSaved);
+    }
+
+    public get onDidChangeTreeData(): Event<OpenDocumentDataModelEntry | undefined> {
+        return this.#changeEvent.event;
+    }
+
+    public set onSelect(callback: (item: OpenDocumentDataModelEntry) => void) {
+        this.#selectCallback = callback;
+    }
+
+    public refresh(document?: OpenDocumentDataModelEntry): void {
+        this.#changeEvent.fire(document);
     }
 
     /**
@@ -146,34 +82,11 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
      * @returns True if the list of open providers is empty after the removal, false otherwise.
      */
     public clear(provider?: IWebviewProvider): boolean {
-        if (provider) {
-            this.#openProviders.delete(provider);
-        } else {
-            this.#openProviders.clear();
-        }
+        const result = this.#dataModel.closeProvider(provider);
 
         this.#changeEvent.fire(undefined);
 
-        return this.#openProviders.size === 0;
-    }
-
-    /**
-     * Checks if the connection represented by the given tree item is already open in any webview provider.
-     *
-     * @param item The item to check.
-     *
-     * @returns True if the connection is already open, false otherwise.
-     */
-    public isOpen(item: ConnectionTreeItem): boolean {
-        for (const [_, entry] of this.#openProviders.entries()) {
-            if (entry.connections.some((connection) => {
-                return connection.connectionId === item.details.id;
-            })) {
-                return true;
-            }
-        }
-
-        return false;
+        return result;
     }
 
     /**
@@ -183,281 +96,109 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
      */
     public currentConnectionId(provider: IWebviewProvider): number | null {
         const item = this.#lastSelectedItems.get(provider);
-        if (item && item.type === "editor") {
-            const parent = (item as IOpenEditorEntry).parent;
-
-            return parent.connectionId;
-        } else if (item && item.type === "connection") {
-            return (item as IEditorConnectionEntry).connectionId;
+        if (!item) {
+            return null;
         }
 
-        return null;
+        switch (item.type) {
+            case OdmEntityType.ConnectionPage: {
+                return item.details.id;
+            }
+
+            case OdmEntityType.Notebook:
+            case OdmEntityType.Script:
+            case OdmEntityType.AdminPage: {
+                return item.parent?.details.id ?? null;
+            }
+
+            default: {
+                return null;
+            }
+        }
+    }
+
+    public getTreeItem(entry: OpenDocumentDataModelEntry): TreeItem {
+        switch (entry.type) {
+            case OdmEntityType.AppProvider: {
+                return new DocumentProviderTreeItem(entry);
+            }
+
+            case OdmEntityType.Overview: {
+                return new ConnectionOverviewTreeItem(entry);
+            }
+
+            case OdmEntityType.ConnectionPage: {
+                return new DocumentConnectionPageTreeItem(entry);
+            }
+
+            case OdmEntityType.Notebook:
+            case OdmEntityType.Script:
+            case OdmEntityType.AdminPage: {
+                return new DocumentTreeItem(entry);
+            }
+
+            case OdmEntityType.ShellSession: {
+                return new ShellConsoleSessionTreeItem(entry);
+            }
+
+            case OdmEntityType.ShellSessionRoot: {
+                return new ShellConsoleSessionRootTreeItem(entry);
+            }
+
+            default: {
+                return new TreeItem("Invalid entry type");
+            }
+        }
+    }
+
+    public getParent(element: OpenDocumentDataModelEntry): OpenDocumentDataModelEntry | undefined {
+        if ("parent" in element) {
+            return element.parent as OpenDocumentDataModelEntry;
+        }
+
+        return undefined;
+    }
+
+    public getChildren(element?: OpenDocumentDataModelEntry): ProviderResult<OpenDocumentDataModelEntry[]> {
+        if (!element) {
+            return this.#dataModel.roots;
+        }
+
+        switch (element.type) {
+            case OdmEntityType.AppProvider: {
+                if (element.shellSessionRoot.sessions.length > 0) {
+                    return [element.connectionOverview, ...element.connectionPages, element.shellSessionRoot];
+                } else {
+                    return [element.connectionOverview, ...element.connectionPages];
+                }
+            }
+
+            case OdmEntityType.ShellSessionRoot: {
+                return element.sessions;
+            }
+
+            case OdmEntityType.ConnectionPage: {
+                return element.documents;
+            }
+
+            default: {
+                return null;
+            }
+        }
     }
 
     /**
-     * Creates a new caption for a new provider, based on the number of tabs already open.
+     * Looks up the corresponding open document for the given admin page entry.
      *
-     * @returns The new caption.
+     * @param provider The owning provider.
+     * @param connectionId The connection ID to search for.
+     *
+     * @returns The open document entry if found, undefined otherwise.
      */
-    public createUniqueCaption = (): string => {
-        if (this.#openProviders.size === 0) {
-            return "MySQL Shell";
-        }
-
-        let index = 2;
-        while (index < 100) {
-            const caption = `MySQL Shell (${index})`;
-            let found = false;
-            this.#openProviders.forEach((entry) => {
-                if (entry.caption === caption) {
-                    found = true;
-                }
-            });
-
-            if (!found) {
-                return caption;
-            }
-
-            ++index;
-        }
-
-        return "";
-    };
-
-    public getTreeItem(element: IOpenEditorBaseEntry): TreeItem {
-        return element.treeItem;
+    public findAdminDocument(provider: IWebviewProvider, connectionId: number): IOdmAdminEntry[] {
+        return this.#dataModel.findConnectionDocumentsByType(provider, connectionId,
+            OdmEntityType.AdminPage) as IOdmAdminEntry[];
     }
-
-    public getParent(element: IOpenEditorBaseEntry): ProviderResult<IOpenEditorBaseEntry> {
-        if (element.type === "editor") {
-            return (element as IOpenEditorEntry).parent;
-        }
-
-        if (element.type === "connection") {
-            return (element as IEditorConnectionEntry).parent;
-        }
-
-        return null;
-    }
-
-    public getChildren(element?: IOpenEditorBaseEntry): ProviderResult<IOpenEditorBaseEntry[]> {
-        if (!element) {
-            const connectionProviders = [...this.#openProviders.values()];
-            const sessionProviders = [...this.#openSessions.values()];
-
-            // If nothing is open currently, show the overview (and possible sessions).
-            if (connectionProviders.length === 0) {
-                return [this.#connectionOverview, ...sessionProviders.values()];
-            }
-
-            if (connectionProviders.length === 1) {
-                // If there's only one provider active, do not show the provider entry.
-                const provider = [...this.#openProviders.values()][0];
-
-                return [
-                    provider.connectionOverview!,
-                    ...provider.connections,
-                    ...sessionProviders.values(),
-                ];
-            }
-
-            return [...this.#openProviders.values(), ...sessionProviders.values()];
-        }
-
-        if (element.type === "connectionProvider") {
-            const provider = element as IProviderEditorEntry;
-
-            return [provider.connectionOverview!, ...provider.connections];
-        }
-
-        if (element.type === "sessionProvider") {
-            const provider = element as IProviderSessionEntry;
-
-            return [...provider.sessions];
-        }
-
-        if (element.type === "connection") {
-            return (element as IEditorConnectionEntry).editors;
-        }
-
-        return null;
-    }
-
-    private updateEditors = (provider: IWebviewProvider,
-        details: IEditorOpenChangeData | IEditorCloseChangeData): void => {
-
-        if (details.opened) {
-            let entry = this.#openProviders.get(provider);
-            if (!entry) {
-                entry = {
-                    type: "connectionProvider",
-                    provider,
-                    caption: provider.caption,
-                    treeItem: new EditorTabTreeItem(provider.caption),
-                    connections: [],
-                };
-
-                this.#openProviders.set(provider, entry);
-
-                entry.connectionOverview = this.createOverviewItems(provider);
-                entry.connectionOverview.parent = entry;
-            }
-
-            let connection = entry.connections.find((item) => {
-                return item.connectionId === details.connectionId;
-            });
-
-            const editorCommand: Command = {
-                title: "",
-                command: "",
-                arguments: [provider, details.connectionCaption, details.connectionId, details.editorId],
-            };
-
-            switch (details.editorType) {
-                case EntityType.Notebook: {
-                    editorCommand.command = "msg.showNotebook";
-
-                    break;
-                }
-
-                case EntityType.Script: {
-                    editorCommand.command = "msg.showScript";
-
-                    break;
-                }
-
-                case EntityType.Status: {
-                    editorCommand.command = "msg.showServerStatus";
-
-                    break;
-                }
-
-                case EntityType.Connections: {
-                    editorCommand.command = "msg.showClientConnections";
-
-                    break;
-                }
-
-                case EntityType.Dashboard: {
-                    editorCommand.command = "msg.showPerformanceDashboard";
-
-                    break;
-                }
-
-                case EntityType.LakehouseNavigator: {
-                    editorCommand.command = "msg.showLakehouseNavigator";
-
-                    break;
-                }
-
-                default:
-            }
-
-            if (connection) {
-                const alternativeCaption = `${details.editorCaption} (${details.connectionCaption})`;
-                connection.editors.push({
-                    type: "editor",
-                    caption: details.editorCaption,
-                    alternativeCaption,
-                    id: details.editorId,
-                    language: details.language,
-                    editorType: details.editorType,
-
-                    parent: connection,
-                    treeItem: new EditorTreeItem(details.editorCaption, alternativeCaption, details.language,
-                        details.editorType, editorCommand),
-                });
-            } else {
-                connection = {
-                    type: "connection",
-                    connectionId: details.connectionId,
-                    caption: details.connectionCaption,
-                    dbType: details.dbType,
-                    editors: [],
-
-                    parent: entry,
-                    treeItem: new EditorConnectionTreeItem(details.connectionCaption, details.dbType,
-                        details.connectionId),
-                };
-
-                const alternativeCaption = `${details.editorCaption} (${details.connectionCaption})`;
-                connection.editors.push({
-                    type: "editor",
-                    caption: details.editorCaption,
-                    alternativeCaption,
-                    id: details.editorId,
-                    language: details.language,
-                    editorType: details.editorType,
-
-                    parent: connection,
-                    treeItem: new EditorTreeItem(details.editorCaption, alternativeCaption, details.language,
-                        details.editorType, editorCommand),
-                });
-
-                entry.connections.push(connection);
-            }
-
-            const itemToSelect = connection.editors[connection.editors.length - 1];
-            this.#changeEvent.fire(undefined);
-
-            this.#lastSelectedItems.set(provider, itemToSelect);
-            if (itemToSelect.caption !== "DB Connection Overview") {
-                provider.caption = details.connectionCaption;
-            }
-        } else {
-            const entry = this.#openProviders.get(provider);
-            if (!entry) {
-                return;
-            }
-
-            const connectionIndex = entry.connections.findIndex((item) => {
-                return item.connectionId === details.connectionId;
-            });
-
-            if (connectionIndex > -1) {
-                const connection = entry.connections[connectionIndex];
-                if (details.editorId === undefined) {
-                    connection.editors = [];
-                } else {
-                    const editorIndex = connection.editors.findIndex((item) => {
-                        return item.id === details.editorId;
-                    });
-
-                    if (editorIndex !== -1) {
-                        connection.editors.splice(editorIndex, 1);
-                    }
-                }
-
-                if (connection.editors.length === 0) {
-                    entry.connections.splice(connectionIndex, 1);
-                }
-            }
-
-            if (entry.connections.length === 0) {
-                this.#openProviders.delete(provider);
-            }
-
-            this.#changeEvent.fire(undefined);
-        }
-    };
-
-    private createOverviewItems = (
-        provider: IWebviewProvider | null): IEditorConnectionOverviewEntry => {
-        const connectionCommand = {
-            command: "msg.openDBBrowser",
-            arguments: [provider],
-        } as Command;
-
-        const connectionOverview: IEditorConnectionOverviewEntry = {
-            type: "connectionOverview",
-            caption: "DB Connection Overview",
-            treeItem: new EditorOverviewTreeItem("DB Connection Overview", "Open the DB Connection Overview",
-                connectionCommand),
-            parent: null,
-        };
-
-        return connectionOverview;
-    };
 
     /**
      * Requests sent from one of the providers.
@@ -468,28 +209,65 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
      *
      * @returns A promise that resolves to true if the request was handled.
      */
-    private proxyRequest = (request: {
+    private proxyRequest = async (request: {
         provider: IWebviewProvider;
         original: IRequestListEntry<keyof IRequestTypeMap>;
     }): Promise<boolean> => {
         switch (request.original.requestType) {
-            case "editorsChanged": {
-                const response = request.original.parameter as IEditorOpenChangeData | IEditorCloseChangeData;
-                this.updateEditors(request.provider, response);
+            case "documentOpened": {
+                const response = request.original.parameter as IDocumentOpenData;
+                const dmProvider = this.#dataModel.findProvider(request.provider);
+
+                if (!response.connection) {
+                    break;
+                }
+
+                const connectionId = response.connection.id;
+                const document = this.#dataModel.openDocument(request.provider, {
+                    type: response.documentDetails.type,
+                    parameters: {
+                        ...response.documentDetails,
+                        pageId: response.pageId,
+                        connection: response.connection,
+                    },
+                });
+
+                if (!document) {
+                    break;
+                }
+
+                this.#changeEvent.fire(dmProvider);
+
+                if (OpenDocumentDataModel.isDocumentType(document.type, OdmEntityType.AdminPage,
+                    OdmEntityType.Notebook, OdmEntityType.Script)) {
+                    return this.selectItem(request.provider, connectionId, document.id);
+                }
 
                 return Promise.resolve(true);
             }
 
-            case "editorSelect": {
-                const response = request.original.parameter as { connectionId: number, editorId: string; };
+            case "documentClosed": {
+                const response = request.original.parameter as IDocumentCloseData;
+                this.#dataModel.closeDocument(request.provider, response);
+                this.#changeEvent.fire(undefined);
+                this.#selectCallback(undefined);
 
-                return this.selectItem(request.provider, response.connectionId, response.editorId);
+                return Promise.resolve(true);
+            }
+
+            case "selectDocument": {
+                const response = request.original.parameter as { connectionId: number, documentId: string; };
+                setTimeout(() => {
+                    void this.selectItem(request.provider, response.connectionId, response.documentId);
+                }, 100);
+
+                return Promise.resolve(true);
             }
 
             case "selectConnectionTab": {
-                const response = request.original.parameter as { connectionId: number, page: string; };
+                const response = request.original.parameter as { connectionId: number; };
 
-                return this.selectItem(request.provider, response.connectionId, response.page);
+                return this.selectItem(request.provider, response.connectionId);
             }
 
             case "refreshSessions": {
@@ -498,92 +276,85 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
                 return this.refreshSessions(request.provider, response);
             }
 
+            case "sessionAdded": {
+                const response = request.original.parameter as IShellSessionDetails;
+                this.#dataModel.addShellSession(request.provider, response);
+                this.refresh();
+
+                return Promise.resolve(true);
+            }
+
+            case "sessionRemoved": {
+                const response = request.original.parameter as IShellSessionDetails;
+                this.#dataModel.removeShellSession(request.provider, response.sessionId);
+                this.refresh();
+
+                return Promise.resolve(true);
+            }
+
             default:
         }
 
         return Promise.resolve(false);
     };
 
-    private selectItem = (provider: IWebviewProvider, connectionId: number, editorOrPage: string): Promise<boolean> => {
-        const entry = this.#openProviders.get(provider);
-        if (!entry) {
-            return Promise.resolve(false);
-        }
-
-        // If no connection was given or the editorId is empty then select the last active item
+    private selectItem = (provider: IWebviewProvider, connectionId: number, documentId?: string): Promise<boolean> => {
+        // If no connection was given and the document id is empty then select the last active item
         // for the given provider.
-        if (connectionId < 0 && editorOrPage.length === 0) {
+        if (connectionId < 0 && !documentId) {
             const lastItem = this.#lastSelectedItems.get(provider);
             if (lastItem) {
                 this.#selectCallback(lastItem);
+            } else {
+                // No last item found, so the provider is not open.
+                // We need to open the provider and select the connection overview.
+                let entry = this.#dataModel.findProvider(provider);
+                if (!entry) {
+                    entry = this.#dataModel.openProvider(provider);
+                    this.#changeEvent.fire(undefined);
+                }
+
+                if (entry) {
+                    this.#lastSelectedItems.set(provider, entry.connectionOverview);
+                    this.#selectCallback(entry.connectionOverview);
+                }
             }
 
             return Promise.resolve(true);
         }
 
-        const connection = entry.connections.find((item) => {
-            return item.connectionId === connectionId;
-        });
-
-        if (connection) {
-            const editor = connection.editors.find((item) => {
-                return item.id === editorOrPage;
-            }) ?? connection.editors[0];
-
-            if (editor) {
-                this.#lastSelectedItems.set(provider, editor);
-                this.#selectCallback(editor);
-            }
-            provider.caption = editor.alternativeCaption;
+        let document;
+        if (connectionId > -1) {
+            document = this.#dataModel.findConnectionDocument(provider, connectionId, documentId ?? "");
         } else {
-            this.#lastSelectedItems.set(provider, entry.connectionOverview!);
-            if (editorOrPage === "DB Connection Overview") {
-                provider.caption = entry.caption;
-            } else {
-                provider.caption = editorOrPage ?? entry.caption;
+            // Must be a shell session document.
+            document = this.#dataModel.findSessionDocument(provider, documentId!);
+        }
+
+        if (document) {
+            this.#lastSelectedItems.set(provider, document);
+            this.#selectCallback(document);
+            if (document.alternativeCaption) {
+                provider.caption = document.alternativeCaption;
             }
-            this.#selectCallback(entry.connectionOverview!);
+        } else {
+            const entry = this.#dataModel.findProvider(provider);
+            if (entry && entry.type === OdmEntityType.AppProvider) {
+                this.#lastSelectedItems.set(provider, entry.connectionOverview);
+
+                provider.caption = entry.caption;
+                this.#selectCallback(entry.connectionOverview);
+            }
         }
 
         return Promise.resolve(false);
     };
 
     private refreshSessions = (provider: IWebviewProvider, sessions: IShellSessionDetails[]): Promise<boolean> => {
-        if (sessions.length === 0) {
-            // No sessions means: remove the provider.
-            provider.close();
-            this.#openSessions.delete(provider);
-        } else {
-            let entry = this.#openSessions.get(provider);
-            if (!entry) {
-                entry = {
-                    type: "sessionProvider",
-                    provider,
-                    caption: provider.caption,
-                    treeItem: new EditorTabTreeItem(provider.caption),
-                    sessions: [],
-                };
+        this.#dataModel.updateSessions(provider, sessions);
 
-                this.#openSessions.set(provider, entry);
-            }
-
-            entry.sessions = sessions.map((details) => {
-                return {
-                    type: "shellSession",
-                    caption: details.caption,
-                    id: details.sessionId,
-                    parent: entry,
-                    details,
-                    treeItem: new ShellConsoleSessionTreeItem(details.caption ?? "Unknown", {
-                        title: "Open Shell GUI Console",
-                        command: "msg.openSession",
-                        arguments: [details],
-                    }),
-                } as IShellSessionEntry;
-            });
-        }
-
-        this.#changeEvent.fire(undefined);
+        const appProvider = this.#dataModel.findProvider(provider);
+        this.#changeEvent.fire(appProvider?.shellSessionRoot);
 
         return Promise.resolve(true);
     };
@@ -591,32 +362,14 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
     private editorSaved = (details: { id: string, newName: string, saved: boolean; }): Promise<boolean> => {
         // There's no information about which provider sent the request so we have to search for the
         // scriptId in all providers.
-        for (const entry of this.#openProviders.values()) {
-            for (const connection of entry.connections) {
-                for (const editor of connection.editors) {
-                    if (editor.id === details.id) {
-                        editor.caption = details.newName;
-                        editor.treeItem.label = details.newName;
-                        this.#changeEvent.fire(editor);
-                    }
-                }
-            }
+        // TODO: pass the provider reference in the request.
+        const document = this.#dataModel.findConnectionDocument(undefined, -1, details.id);
+        if (document) {
+            document.caption = details.newName;
+            this.#changeEvent.fire(document);
         }
 
         return Promise.resolve(true);
     };
 
-    /**
-     * Updates the caption of all editor tree items of a provider entry, depending on the view mode.
-     *
-     * @param provider The provider entry to update.
-     * @param simpleView True if the simple view is active, false otherwise.
-     */
-    private updateEditorItemCaptions = (provider: IProviderEditorEntry, simpleView: boolean): void => {
-        for (const connection of provider.connections) {
-            for (const editor of connection.editors) {
-                editor.treeItem.updateLabel(simpleView);
-            }
-        }
-    };
 }

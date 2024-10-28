@@ -29,16 +29,18 @@ import "./SettingsEditor.css";
 import { ComponentChild, createRef, render } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
-import { IDictionary } from "../../app-logic/Types.js";
-import { ISettingCategory, settingCategories } from "../../supplement/Settings/SettingsRegistry.js";
+import type { IDictionary } from "../../app-logic/general-types.js";
+import { settingCategories, type ISettingCategory } from "../../supplement/Settings/SettingsRegistry.js";
 import { AboutBox } from "../ui/AboutBox/AboutBox.js";
-import { CheckState, Checkbox, ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
-import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase.js";
+import { CheckState, Checkbox, type ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
+import {
+    ComponentBase, SelectionType, type IComponentProperties, type IComponentState,
+} from "../ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../ui/Container/Container.js";
 import { Label } from "../ui/Label/Label.js";
-import { ISearchProperties, ISearchValues, Search } from "../ui/Search/Search.js";
-import { ITabviewPage, Tabview } from "../ui/Tabview/Tabview.js";
-import { ITreeGridOptions, TreeGrid } from "../ui/TreeGrid/TreeGrid.js";
+import { Search, type ISearchProperties, type ISearchValues } from "../ui/Search/Search.js";
+import { Tabview, type ITabviewPage } from "../ui/Tabview/Tabview.js";
+import { TreeGrid, type ITreeGridOptions } from "../ui/TreeGrid/TreeGrid.js";
 import { SettingsEditorList } from "./SettingsEditorList.js";
 
 interface ISettingsEditorProperties extends IComponentProperties {

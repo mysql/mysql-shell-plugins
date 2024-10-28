@@ -24,14 +24,20 @@
  */
 
 import {
-    commands, ExtensionContext, OutputChannel, StatusBarAlignment, StatusBarItem, window, workspace, extensions, env,
-    Uri, ExtensionKind, ExtensionMode,
+    ExtensionContext,
+    ExtensionKind, ExtensionMode,
+    OutputChannel, StatusBarAlignment, StatusBarItem,
+    Uri,
+    commands,
+    env,
+    extensions,
+    window, workspace,
 } from "vscode";
 
 import * as childProcess from "child_process";
 import { existsSync, rmSync } from "fs";
+import { arch, platform } from "os";
 import { join } from "path";
-import { platform, arch } from "os";
 
 import { appParameters, requisitions } from "../../frontend/src/supplement/Requisitions.js";
 
@@ -39,11 +45,11 @@ import {
     IShellLaunchConfiguration, LogLevel, MySQLShellLauncher,
 } from "../../frontend/src/utilities/MySQLShellLauncher.js";
 
-import { ExtensionHost } from "./ExtensionHost.js";
-import { webSession } from "../../frontend/src/supplement/WebSession.js";
-import { checkVcRuntime, setupInitialWelcomeWebview } from "./WebviewProviders/WelcomeWebviewProvider.js";
-import { waitFor } from "../../frontend/src/utilities/helpers.js";
 import { MessageScheduler } from "../../frontend/src/communication/MessageScheduler.js";
+import { webSession } from "../../frontend/src/supplement/WebSession.js";
+import { waitFor } from "../../frontend/src/utilities/helpers.js";
+import { ExtensionHost } from "./ExtensionHost.js";
+import { checkVcRuntime, setupInitialWelcomeWebview } from "./WebviewProviders/WelcomeWebviewProvider.js";
 
 export let taskOutputChannel: OutputChannel;
 export let statusBarItem: StatusBarItem;
@@ -93,7 +99,7 @@ const handleShellOutput = (output: string): void => {
                 "not installed. Do you want to run the Welcome Wizard to install it?",
                 "Run Welcome Wizard", "Cancel")
                 .then((answer) => {
-                    if (answer !== "Cancel") {
+                    if (answer === "Run Welcome Wizard") {
                         void commands.executeCommand("msg.runWelcomeWizard");
                     }
                 });
@@ -104,7 +110,7 @@ const handleShellOutput = (output: string): void => {
                 "incorrectly installed. Do you want to run the Welcome Wizard to fix it?",
                 "Run Welcome Wizard", "Cancel")
                 .then((answer) => {
-                    if (answer !== "Cancel") {
+                    if (answer === "Run Welcome Wizard") {
                         void commands.executeCommand("msg.runWelcomeWizard");
                     }
                 });

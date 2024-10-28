@@ -27,7 +27,7 @@ import { webSession } from "../WebSession.js";
 import { ValueType } from "../index.js";
 import { requisitions } from "../Requisitions.js";
 import { categoryFromPath, registerSettings } from "./SettingsRegistry.js";
-import { IDictionary } from "../../app-logic/Types.js";
+import { IDictionary } from "../../app-logic/general-types.js";
 
 interface IUserSettings extends IDictionary {
     theming: {

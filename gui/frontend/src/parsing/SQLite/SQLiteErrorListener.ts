@@ -38,10 +38,9 @@ export class SQLiteErrorListener extends BaseErrorListener {
         super();
     }
 
-    public override syntaxError<S extends Token, T extends ATNSimulator>(
-        recognizer: Recognizer<T>, offendingSymbol: S | null,
-        line: number, charPositionInLine: number, msg: string, e: RecognitionException | null,
-    ): void {
+    public override syntaxError<S extends Token, T extends ATNSimulator>(recognizer: Recognizer<T>,
+        offendingSymbol: S | null, line: number, charPositionInLine: number, msg: string,
+        e: RecognitionException | null): void {
 
         let message = "";
 

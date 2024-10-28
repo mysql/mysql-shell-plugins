@@ -66,9 +66,12 @@ describe("Accordion component tests", (): void => {
                         caption: "SECOND SECTION",
                         actions: [
                             {
-                                id: "addConsole",
                                 icon: Codicon.NewFile,
-                                tooltip: "Add new console",
+                                command: {
+                                    title: "Add New Console",
+                                    command: "addConsole",
+                                    tooltip: "Add new console",
+                                },
                             },
                         ],
                         id: "second",

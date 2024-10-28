@@ -28,7 +28,7 @@ import { ComponentChild } from "preact";
 import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 import { Label } from "../Label/Label.js";
 import { Container, Orientation } from "../Container/Container.js";
-import { MessageType } from "../../../app-logic/Types.js";
+import { MessageType } from "../../../app-logic/general-types.js";
 
 export interface ISQLPreviewProperties extends IComponentProperties {
     /** The SQL statements to preview. This is a list of tuples: [statement-id, statement]. */

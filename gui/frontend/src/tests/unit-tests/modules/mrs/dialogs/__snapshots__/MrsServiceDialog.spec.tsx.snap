@@ -218,7 +218,7 @@ exports[`MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 
               </div>
             </div>
             <div
-              class="msg container fixedScrollbar content"
+              class="msg container fixedScrollbar tabContent"
               style="flex-direction: column;"
             >
               <div

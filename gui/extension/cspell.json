@@ -112,6 +112,7 @@
         "MULTILINESTRING",
         "MULTIPOINT",
         "MULTIPOLYGON",
+        "OCIO",
         "Polyg",
         "REPORTDIR",
         "REPORTFILENAME",

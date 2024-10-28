@@ -25,11 +25,12 @@
 
 import { ComponentChild, createRef } from "preact";
 
-import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types.js";
+import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/general-types.js";
 import { ValueDialogBase } from "../../../components/Dialogs/ValueDialogBase.js";
 import {
     ValueEditDialog, IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
 } from "../../../components/Dialogs/ValueEditDialog.js";
+import { appParameters } from "../../../supplement/Requisitions.js";
 
 export class MdsEndpointDialog extends ValueDialogBase {
     private dialogRef = createRef<ValueEditDialog>();
@@ -178,7 +179,7 @@ export class MdsEndpointDialog extends ValueDialogBase {
                 },
                 createDbConnection: {
                     type: "boolean",
-                    caption: "MySQL Shell GUI",
+                    caption: appParameters.embedded ? "MySQL Shell GUI" : "MySQL Shell Workbench",
                     label: "Create DB Connection",
                     description: "Create a DB Connection using this endpoint.",
                     value: true,

@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../../app-logic/Types.js";
+import { IDictionary } from "../../app-logic/general-types.js";
 import { deepEqual, strictEval, uuid } from "../../utilities/helpers.js";
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
 import { requisitions } from "../../supplement/Requisitions.js";

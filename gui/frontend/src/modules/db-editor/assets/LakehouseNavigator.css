@@ -215,6 +215,10 @@
     flex: 1 1 auto;
 }
 
+.msg.lakehouseNavigatorHost #lakehouseNavigatorToolbar {
+    padding: 4px 8px;
+}
+
 .msg.lakehouseNavigatorHost .panelToolbar {
     min-height: 32px;
     padding-bottom: 16px;
@@ -594,25 +598,6 @@ body[theme=dark] .msg.lakehouseNavigatorHost .tabulator-row.tabulator-row-even.n
     position: absolute;
     cursor: pointer;
 }
-
-/*.msg.lakehouseNavigatorHost .tabulator .tabulator-cell.folder .treeToggle:before {
-    content: '\ea83';
-    display: block;
-    color: var(--rowTextColor);
-    font-family: "codicon";
-    font-size: 16px;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    width: 16px;
-    height: 16px;
-    float: left;
-    margin: 0 4px 0 0;
-    padding-left: 20px;
-}*/
-
-/*.msg.lakehouseNavigatorHost .tabulator .tabulator-cell.folder .treeToggle::after {
-    margin-top: 4px;
-}*/
 
 .msg.lakehouseNavigatorHost .tabulator .schemaNameField:before {
     content: "";

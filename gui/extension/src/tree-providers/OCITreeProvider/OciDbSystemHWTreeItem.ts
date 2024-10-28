@@ -26,7 +26,7 @@
 import * as path from "path";
 import { TreeItemCollapsibleState } from "vscode";
 
-import { ICompartment, IMySQLDbSystem, DBSystem } from "../../../../frontend/src/communication/index.js";
+import { ICompartment, IMySQLDbSystem, DbSystem } from "../../../../frontend/src/communication/index.js";
 import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds.js";
 import { OciDbSystemTreeItem } from "./OciDbSystemTreeItem.js";
 
@@ -39,10 +39,10 @@ export class OciDbSystemHWTreeItem extends OciDbSystemTreeItem {
         public override dbSystem: IMySQLDbSystem) {
         super(profile, compartment, dbSystem, TreeItemCollapsibleState.Collapsed);
         let iconName = "ociDbSystemHWNotActive.svg";
-        if (dbSystem.lifecycleState === DBSystem.LifecycleState.Active) {
+        if (dbSystem.lifecycleState === DbSystem.LifecycleState.Active) {
             iconName = "ociDbSystemHW.svg";
-        } else if (dbSystem.lifecycleState === DBSystem.LifecycleState.Inactive ||
-            dbSystem.lifecycleState === DBSystem.LifecycleState.Failed) {
+        } else if (dbSystem.lifecycleState === DbSystem.LifecycleState.Inactive ||
+            dbSystem.lifecycleState === DbSystem.LifecycleState.Failed) {
             iconName = "ociDbSystemHWStopped.svg";
         }
 

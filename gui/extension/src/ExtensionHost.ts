@@ -36,15 +36,17 @@ import { DBType } from "../../frontend/src/supplement/ShellInterface/index.js";
 import { webSession } from "../../frontend/src/supplement/WebSession.js";
 
 import { printChannelOutput, taskOutputChannel } from "./extension.js";
-import { ScriptsTreeDataProvider } from "./tree-providers/ScriptsTreeProvider.js";
 import { ShellTasksTreeDataProvider } from "./tree-providers/ShellTreeProvider/ShellTasksTreeProvider.js";
 
-import { IShellModuleDataCategoriesEntry, IShellProfile } from "../../frontend/src/communication/ProtocolGui.js";
+import type { IShellModuleDataCategoriesEntry, IShellProfile } from "../../frontend/src/communication/ProtocolGui.js";
 import {
-    IEditorExtendedExecutionOptions,
-    IRequestListEntry, IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider, requisitions,
-    type IUpdateStatusBarItem,
-} from "../../frontend/src/supplement/Requisitions.js";
+    ConnectionDataModel, type ICdmConnectionEntry, type ICdmSchemaEntry,
+} from "../../frontend/src/data-models/ConnectionDataModel.js";
+import { requisitions } from "../../frontend/src/supplement/Requisitions.js";
+import type {
+    IEditorExtendedExecutionOptions, IRequestListEntry, IRequestTypeMap, IRequisitionCallbackValues,
+    IUpdateStatusBarItem, IWebviewProvider,
+} from "../../frontend/src/supplement/RequisitionTypes.js";
 import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
 import { NodeMessageScheduler } from "./communication/NodeMessageScheduler.js";
 import { DBEditorCommandHandler } from "./DBEditorCommandHandler.js";
@@ -52,9 +54,6 @@ import { NotebookEditorProvider } from "./editor-providers/NotebookEditorProvide
 import { MDSCommandHandler } from "./MDSCommandHandler.js";
 import { MRSCommandHandler } from "./MRSCommandHandler.js";
 import { ShellConsoleCommandHandler } from "./ShellConsoleCommandHandler.js";
-import {
-    ICdmConnectionEntry, ICdmSchemaEntry,
-} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeDataModel.js";
 import {
     ConnectionsTreeDataProvider,
 } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider.js";
@@ -73,9 +72,9 @@ export class ExtensionHost {
     private activeProfile?: IShellProfile;
     private updatingSettings = false;
 
-    private connectionsProvider = new ConnectionsTreeDataProvider();
+    private connectionsProvider: ConnectionsTreeDataProvider;
 
-    private dbEditorCommandHandler = new DBEditorCommandHandler(this.connectionsProvider);
+    private dbEditorCommandHandler: DBEditorCommandHandler;
     private shellConsoleCommandHandler = new ShellConsoleCommandHandler();
     private notebookProvider = new NotebookEditorProvider();
     private mrsCommandHandler = new MRSCommandHandler();
@@ -83,7 +82,6 @@ export class ExtensionHost {
 
     // Tree data providers for the extension's sidebar. The connection provider is managed in the DB editor
     // command handler.
-    private scriptsTreeDataProvider: ScriptsTreeDataProvider;
     private shellTasksTreeDataProvider: ShellTasksTreeDataProvider;
 
     // List of shell tasks
@@ -96,8 +94,15 @@ export class ExtensionHost {
 
     // Set when a status message was set, to allow disposing it before its timeout.
     #statusMessageDisposable?: Disposable;
+    #connectionsDataModel: ConnectionDataModel;
 
     public constructor(public context: ExtensionContext) {
+        this.#connectionsDataModel = new ConnectionDataModel();
+        void this.#connectionsDataModel.initialize(); // Async init, but don't wait.
+
+        this.connectionsProvider = new ConnectionsTreeDataProvider(this.#connectionsDataModel);
+        this.dbEditorCommandHandler = new DBEditorCommandHandler(this.connectionsProvider);
+
         this.setupEnvironment();
 
         requisitions.register("settingsChanged", this.updateVscodeSettings);
@@ -125,11 +130,6 @@ export class ExtensionHost {
 
         requisitions.register("connectedToUrl", this.connectedToUrl);
         requisitions.register("proxyRequest", this.proxyRequest);
-    }
-
-    /** @returns the currently loaded connection list. */
-    public get connections(): ICdmConnectionEntry[] {
-        return this.connectionsProvider.connections;
     }
 
     /**
@@ -170,15 +170,15 @@ export class ExtensionHost {
      * @returns A promise resolving to a connection entry or undefined if no entry was found.
      */
     public determineConnection = async (dbType?: DBType,
-        forcePicker?: boolean, showErrorMessages=true): Promise<ICdmConnectionEntry | undefined> => {
-        let connections = this.connectionsProvider.connections;
+        forcePicker?: boolean, showErrorMessages = true): Promise<ICdmConnectionEntry | undefined> => {
+        let connections = this.#connectionsDataModel.connections;
 
         let title = "Select a connection for SQL execution";
         if (!forcePicker) {
             const connectionName = workspace.getConfiguration("msg.editor").get<string>("defaultDbConnection");
             if (connectionName) {
                 const connection = connections.find((candidate) => {
-                    return candidate.treeItem.details.caption === connectionName;
+                    return candidate.details.caption === connectionName;
                 });
 
                 if (!connection) {
@@ -186,10 +186,10 @@ export class ExtensionHost {
                         void window.showErrorMessage(`The default Database Connection ${connectionName} is ` +
                             `not available anymore.`);
                     }
-                } else if (dbType && connection.treeItem.details.dbType !== dbType) {
+                } else if (dbType && connection.details.dbType !== dbType) {
                     if (showErrorMessages) {
                         void window.showErrorMessage(`The default Database Connection ${connectionName} is a ` +
-                            `${String(connection.treeItem.details.dbType)} connection. This function requires a ` +
+                            `${String(connection.details.dbType)} connection. This function requires a ` +
                             `${String(dbType)} connection.`);
                     }
                 } else {
@@ -203,7 +203,7 @@ export class ExtensionHost {
         // If a specific dbType was specified, filter connections by that DBType
         if (dbType) {
             connections = connections.filter((conn) => {
-                return conn.treeItem.details.dbType === dbType;
+                return conn.details.dbType === dbType;
             });
         }
 
@@ -224,7 +224,7 @@ export class ExtensionHost {
 
         // No default connection set. Show a picker.
         const items = connections.map((connection) => {
-            return connection.treeItem.details.caption;
+            return connection.details.caption;
         });
         const name = await window.showQuickPick(items, {
             title,
@@ -233,7 +233,7 @@ export class ExtensionHost {
         });
 
         const connection = connections.find((candidate) => {
-            return candidate.treeItem.details.caption === name;
+            return candidate.details.caption === name;
         });
 
         return connection;
@@ -286,10 +286,21 @@ export class ExtensionHost {
             provider.caption = caption;
             this.providers.push(provider);
 
+            this.dbEditorCommandHandler.providerOpened(provider);
+
             return provider;
         }
 
         return undefined;
+    }
+
+    /**
+     * @returns True if the given connection id corresponds to a valid (and hence open) connection.
+     *
+     * @param connectionId The id of the connection to check.
+     */
+    public isValidConnectionId(connectionId: number): boolean {
+        return this.#connectionsDataModel.isValidConnectionId(connectionId);
     }
 
     /**
@@ -337,36 +348,33 @@ export class ExtensionHost {
             await this.selectProfile();
         }));
 
-        this.context.subscriptions.push(commands.registerCommand("msg.dumpSchemaToDisk",
-            (entry?: ICdmSchemaEntry) => {
-                if (entry) {
-                    void window.showOpenDialog({
-                        title: "Select an output folder for the dump.",
-                        openLabel: "Select Dump Folder",
-                        canSelectFiles: false,
-                        canSelectFolders: true,
-                        canSelectMany: false,
-                    }).then((targetUri) => {
-                        const item = entry.treeItem;
-                        if (targetUri && targetUri.length === 1) {
-                            const shellArgs = [
-                                "--",
-                                "util",
-                                "dump-schemas",
-                                item.schema,
-                                "--outputUrl",
-                                targetUri[0].fsPath,
-                            ];
+        this.context.subscriptions.push(commands.registerCommand("msg.dumpSchemaToDisk", (entry?: ICdmSchemaEntry) => {
+            if (entry) {
+                void window.showOpenDialog({
+                    title: "Select an output folder for the dump.",
+                    openLabel: "Select Dump Folder",
+                    canSelectFiles: false,
+                    canSelectFolders: true,
+                    canSelectMany: false,
+                }).then((targetUri) => {
+                    if (targetUri && targetUri.length === 1) {
+                        const shellArgs = [
+                            "--",
+                            "util",
+                            "dump-schemas",
+                            entry.caption,
+                            "--outputUrl",
+                            targetUri[0].fsPath,
+                        ];
 
-                            void this.addNewShellTask(`Dump Schema ${item.schema} to Disk`, shellArgs,
-                                item.connectionId)
-                                .then(() => {
-                                    this.shellTasksTreeDataProvider.refresh();
-                                });
-                        }
-                    });
-                }
-            }));
+                        void this.addNewShellTask(`Dump Schema ${entry.caption} to Disk`, shellArgs,
+                            entry.connection.details.id).then(() => {
+                                this.shellTasksTreeDataProvider.refresh();
+                            });
+                    }
+                });
+            }
+        }));
 
         this.context.subscriptions.push(commands.registerCommand("msg.dumpSchemaToDiskForMds",
             (entry?: ICdmSchemaEntry) => {
@@ -378,13 +386,12 @@ export class ExtensionHost {
                         canSelectFolders: true,
                         canSelectMany: false,
                     }).then((targetUri) => {
-                        const item = entry.treeItem;
                         if (targetUri && targetUri.length === 1) {
                             const shellArgs = [
                                 "--",
                                 "util",
                                 "dump-schemas",
-                                item.schema,
+                                entry.caption,
                                 "--outputUrl",
                                 targetUri[0].fsPath,
                                 "--ocimds",
@@ -394,9 +401,8 @@ export class ExtensionHost {
                                 "strip_definers,strip_restricted_grants,strip_tablespaces",
                             ];
 
-                            void this.addNewShellTask(`Dump Schema ${item.schema} to Disk`, shellArgs,
-                                item.connectionId)
-                                .then(() => {
+                            void this.addNewShellTask(`Dump Schema ${entry.caption} to Disk`, shellArgs,
+                                entry.connection.details.id).then(() => {
                                     this.shellTasksTreeDataProvider.refresh();
                                 });
                         }
@@ -429,7 +435,7 @@ export class ExtensionHost {
                             }
 
                             void this.addNewShellTask(`Loading Dump ${folderName}from Disk`, shellArgs,
-                                entry.treeItem.details.id)
+                                entry.details.id)
                                 .then(() => {
                                     this.shellTasksTreeDataProvider.refresh();
                                     void commands.executeCommand("msg.refreshConnections");
@@ -663,7 +669,7 @@ export class ExtensionHost {
     private providerStateChanged = (provider: WebviewProvider, active: boolean): void => {
         if (active) {
             this.lastActiveProvider = provider as DBConnectionViewProvider;
-            this.lastActiveProvider.reselectLastItem();
+            this.lastActiveProvider.reselectLastDocument();
         }
 
         this.dbEditorCommandHandler.providerStateChanged(provider as DBConnectionViewProvider, active);
@@ -710,7 +716,7 @@ export class ExtensionHost {
             case "connectionAdded":
             case "connectionUpdated":
             case "connectionRemoved":
-            case "refreshConnections": {
+            case "refreshConnection": {
                 return new Promise((resolve) => {
                     void requisitions.broadcastRequest(request.provider, request.original.requestType,
                         request.original.parameter).then(() => {

@@ -24,7 +24,7 @@
  */
 
 import { mysqlInfo } from "../../../app-logic/RdbmsInfo.js";
-import { DBDataType, IColumnInfo } from "../../../app-logic/Types.js";
+import { DBDataType, IColumnInfo } from "../../../app-logic/general-types.js";
 import { convertRows, generateColumnInfo } from "../../../supplement/index.js";
 import { DBType } from "../../../supplement/ShellInterface/index.js";
 

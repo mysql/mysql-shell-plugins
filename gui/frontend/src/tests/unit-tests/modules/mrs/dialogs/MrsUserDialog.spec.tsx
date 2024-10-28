@@ -28,23 +28,17 @@
 import { createRef } from "preact";
 
 import { mount } from "enzyme";
+
+import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
 import { IShellDictionary } from "../../../../../communication/Protocol.js";
-import {
-    IMrsAuthAppData,
-    IMrsUserRoleData,
-} from "../../../../../communication/ProtocolMrs.js";
+import { IMrsAuthAppData, IMrsUserRoleData } from "../../../../../communication/ProtocolMrs.js";
 import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
 import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-
 import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
 import { KeyboardKeys } from "../../../../../utilities/helpers.js";
+import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
 import {
-    DialogHelper,
-    JestReactWrapper,
-    createBackend,
-    recreateMrsData,
-    sendKeyPress,
-    setupShellForTests,
+    DialogHelper, JestReactWrapper, createBackend, recreateMrsData, sendKeyPress, setupShellForTests,
 } from "../../../test-helpers.js";
 
 
@@ -57,6 +51,8 @@ describe("MRS User dialog tests", () => {
     let backend: ShellInterfaceSqlEditor;
 
     beforeAll(async () => {
+        registerUiLayer(uiLayerMock);
+
         launcher = await setupShellForTests(false, true, "DEBUG2");
 
         const result = await recreateMrsData();

@@ -24,7 +24,7 @@
  */
 
 import { IConnectionDetails } from "./index.js";
-import { IDictionary } from "../../app-logic/Types.js";
+import { IDictionary } from "../../app-logic/general-types.js";
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
 import { IShellDictionary } from "../../communication/Protocol.js";
 import { ShellAPIGui } from "../../communication/ProtocolGui.js";

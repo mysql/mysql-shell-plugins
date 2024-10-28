@@ -23,10 +23,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "./CommunicationDebugger.css";
 import closeButton from "../../assets/images/close2.svg";
 import connectedIcon from "../../assets/images/connected.svg";
 import disconnectedIcon from "../../assets/images/disconnected.svg";
+import "./CommunicationDebugger.css";
 
 import typings from "./debugger-runtime.d.ts?raw";
 
@@ -35,38 +35,31 @@ import { CellComponent } from "tabulator-tables";
 
 import { ComponentBase, IComponentProperties, IComponentState, SelectionType } from "../ui/Component/ComponentBase.js";
 
-import { CodeEditorMode, ICodeEditorOptions, Monaco } from "../ui/CodeEditor/index.js";
+import type { IDictionary } from "../../app-logic/general-types.js";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts.js";
+import type { IDebuggerData } from "../../supplement/RequisitionTypes.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import type { EditorLanguage } from "../../supplement/index.js";
 import { strictEval } from "../../utilities/helpers.js";
-import { IDebuggerData, requisitions } from "../../supplement/Requisitions.js";
-import { CodeEditor, ICodeEditorModel, IEditorPersistentState } from "../ui/CodeEditor/CodeEditor.js";
-import { IDictionary } from "../../app-logic/Types.js";
-import { EditorLanguage } from "../../supplement/index.js";
+import { CodeEditor, type ICodeEditorModel, type IEditorPersistentState } from "../ui/CodeEditor/CodeEditor.js";
+import { CodeEditorMode, Monaco } from "../ui/CodeEditor/index.js";
 import { CommunicationDebuggerEnvironment } from "./CommunicationDebuggerEnvironment.js";
 
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { Accordion } from "../ui/Accordion/Accordion.js";
+import { Button } from "../ui/Button/Button.js";
+import { CheckState, Checkbox } from "../ui/Checkbox/Checkbox.js";
 import { Codicon } from "../ui/Codicon.js";
-import { Orientation, Container } from "../ui/Container/Container.js";
+import { Container, Orientation } from "../ui/Container/Container.js";
 import { Divider } from "../ui/Divider/Divider.js";
 import { Icon } from "../ui/Icon/Icon.js";
 import { Label } from "../ui/Label/Label.js";
-import { SplitContainer, ISplitterPaneSizeInfo, ISplitterPane } from "../ui/SplitContainer/SplitContainer.js";
-import { ITabviewPage, Tabview } from "../ui/Tabview/Tabview.js";
+import { SplitContainer, type ISplitterPane, type ISplitterPaneSizeInfo } from "../ui/SplitContainer/SplitContainer.js";
+import { Tabview, type ITabviewPage } from "../ui/Tabview/Tabview.js";
 import { Toolbar } from "../ui/Toolbar/Toolbar.js";
-import { TreeGrid, ITreeGridOptions, SetDataAction } from "../ui/TreeGrid/TreeGrid.js";
-import { Button } from "../ui/Button/Button.js";
-import { Checkbox, CheckState } from "../ui/Checkbox/Checkbox.js";
-
-const defaultEditorOptions: ICodeEditorOptions = {
-    tabSize: 4,
-    indentSize: 4,
-    insertSpaces: true,
-
-    defaultEOL: "LF",
-    trimAutoWhitespace: true,
-};
+import { SetDataAction, TreeGrid, type ITreeGridOptions } from "../ui/TreeGrid/TreeGrid.js";
+import { defaultEditorOptions } from "../ui/index.js";
 
 enum ScriptTreeType {
     Folder,
@@ -176,7 +169,6 @@ export class CommunicationDebugger
                                 {
                                     id: "scriptSection",
                                     caption: "SCRIPTS",
-                                    //dimmed: !isNil(editing),
                                     expanded: true,
                                     stretch: true,
                                     minSize: 100,
@@ -184,8 +176,11 @@ export class CommunicationDebugger
                                     actions: [
                                         {
                                             icon: Codicon.Refresh,
-                                            tooltip: "Reload the scripts",
-                                            id: "refreshScriptList",
+                                            command: {
+                                                tooltip: "Reload the scripts",
+                                                command: "refreshScriptList",
+                                                title: "Reload the scripts",
+                                            },
                                         },
                                     ],
                                 },
@@ -441,7 +436,7 @@ export class CommunicationDebugger
                     id: name,
                     caption: name,
                     tooltip: scriptEntry.fullPath,
-                    auxillary: <Button
+                    auxiliary: <Button
                         id={name}
                         className="closeButton"
                         round={true}

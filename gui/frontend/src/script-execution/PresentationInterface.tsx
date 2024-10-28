@@ -26,25 +26,26 @@
 import { ComponentChild, createRef, render } from "preact";
 
 import { ResultTabView } from "../components/ResultView/ResultTabView.js";
+import { Monaco } from "../components/ui/CodeEditor/index.js";
+import { DiagnosticSeverity, IDiagnosticEntry, TextSpan } from "../parsing/parser-common.js";
+import { type IColumnDetails } from "../supplement/RequisitionTypes.js";
+import { requisitions } from "../supplement/Requisitions.js";
+import { EditorLanguage } from "../supplement/index.js";
+import { ExecutionContext } from "./ExecutionContext.js";
 import {
     IExecutionResult, IExecutionResultData, IPresentationOptions, IResponseDataOptions,
-    IResultSetRows, IResultSets, LoadingState, IResultSet,
+    IResultSet,
+    IResultSetRows, IResultSets, LoadingState,
 } from "./index.js";
-import { DiagnosticSeverity, IDiagnosticEntry, TextSpan } from "../parsing/parser-common.js";
-import { Monaco } from "../components/ui/CodeEditor/index.js";
-import { ExecutionContext } from "./ExecutionContext.js";
-import { requisitions, type IColumnDetails } from "../supplement/Requisitions.js";
-import { EditorLanguage } from "../supplement/index.js";
 
-import { GraphHost } from "../components/graphs/GraphHost.js";
+import { MessageType, type ISqlUpdateResult } from "../app-logic/general-types.js";
+import { AboutHost } from "../components/About/AboutHost.js";
+import { ChatAction, ChatHost } from "../components/Chat/ChatHost.js";
 import { ActionOutput } from "../components/ResultView/ActionOutput.js";
-import { MessageType, type ISqlUpdateResult } from "../app-logic/Types.js";
+import { ResultStatus } from "../components/ResultView/ResultStatus.js";
+import { GraphHost } from "../components/graphs/GraphHost.js";
 import { Container, Orientation } from "../components/ui/Container/Container.js";
 import { SQLExecutionContext } from "./SQLExecutionContext.js";
-import { ResultStatus } from "../components/ResultView/ResultStatus.js";
-import { ChatAction, ChatHost } from "../components/Chat/ChatHost.js";
-import { IMdsChatData } from "../communication/ProtocolMds.js";
-import { AboutHost } from "../components/About/AboutHost.js";
 
 /** Base class for handling of UI related elements like editor decorations and result display in execution contexts. */
 export class PresentationInterface {
@@ -1173,17 +1174,12 @@ export class PresentationInterface {
         return Promise.resolve(false);
     };
 
-    private handleChatAction = (action: ChatAction, _options?: IMdsChatData): void => {
+    private handleChatAction = (action: ChatAction): void => {
         switch (action) {
             case ChatAction.Execute: {
                 if (this.context) {
                     void requisitions.execute("editorExecute",
-                        {
-                            advance: false,
-                            forceSecondaryEngine: false,
-                            asText: false,
-                            context: this.context,
-                        });
+                        { advance: false, forceSecondaryEngine: false, asText: false, context: this.context });
                 }
 
                 break;

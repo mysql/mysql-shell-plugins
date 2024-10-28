@@ -24,21 +24,17 @@
  */
 
 import { IMrsDbObjectData } from "../../../../frontend/src/communication/ProtocolMrs.js";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import type { ICdmRestDbObjectEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 import { convertToPascalCase } from "../../../../frontend/src/utilities/string-helpers.js";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
-export class MrsDbObjectTreeItem extends MrsTreeBaseItem {
+export class MrsDbObjectTreeItem extends MrsTreeBaseItem<ICdmRestDbObjectEntry> {
     public override contextValue = "mrsDbObject";
 
-    public constructor(
-        label: string,
-        public value: IMrsDbObjectData,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number) {
-        super(label, backend, connectionId, MrsDbObjectTreeItem.getIconName(value), false);
+    public constructor(dataModelEntry: ICdmRestDbObjectEntry) {
+        super(dataModelEntry, MrsDbObjectTreeItem.getIconName(dataModelEntry.details), false);
 
-        this.description = `(${value.name})`;
+        this.description = `(${dataModelEntry.details.name})`;
     }
 
     private static getIconName = (value: IMrsDbObjectData): string => {

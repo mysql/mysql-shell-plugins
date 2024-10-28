@@ -25,13 +25,13 @@
 
 import { mount } from "enzyme";
 
-import { DBDataType, IColumnInfo, MessageType } from "../../../../../app-logic/Types.js";
+import { DBDataType, IColumnInfo, MessageType } from "../../../../../app-logic/general-types.js";
 import { ResultView } from "../../../../../components/ResultView/ResultView.js";
 import { Menu } from "../../../../../components/ui/Menu/Menu.js";
 import { TreeGrid } from "../../../../../components/ui/TreeGrid/TreeGrid.js";
 import { requisitions } from "../../../../../supplement/Requisitions.js";
 import { nextProcessTick } from "../../../test-helpers.js";
-import { MockCellComponent } from "../../../__mocks__/CellComponentMock.js";
+import { CellComponentMock } from "../../../__mocks__/CellComponentMock.js";
 
 describe("Result View Tests", (): void => {
 
@@ -607,7 +607,8 @@ describe("Result View Tests", (): void => {
             }
         });
 
-        const cell = new MockCellComponent();
+        const cell = new CellComponentMock();
+        wrapper.instance().setFakeCell(cell);
         menu.instance().open(rect, false);
         await nextProcessTick();
 
@@ -616,7 +617,7 @@ describe("Result View Tests", (): void => {
         expect(portals).toHaveLength(1);
 
         const elements = document.getElementsByClassName("menuItem");
-        expect(elements).toHaveLength(18);
+        expect(elements).toHaveLength(17);
 
         const clipboardSpy = jest.spyOn(requisitions, "writeToClipboard")
             .mockImplementation((_text: string) => {
@@ -626,21 +627,19 @@ describe("Result View Tests", (): void => {
         try {
             // @ts-ignore, finding the menu items via enzyme does not work, so we have to do it manually.
             const menuItems = menu.instance().itemRefs.map((item) => { return item.current; });
-            expect(elements.length).toEqual(menuItems.length);
+            expect(menuItems.length).toEqual(13); // There are four separator items without a ref.
 
-            for (let i = 0; i < menuItems.length; ++i) {
-                const element = elements[i] as HTMLElement;
-                const item = menuItems[i];
-                expect(item).not.toBeNull();
+            for (const item of menuItems) {
+                expect(item).toBeDefined();
 
-                if (item && item.props.caption !== "-") {
-                    expect(item.props.id).toEqual(element.id);
-                }
-
-                // Set the fake cell for each menu item, as it is reset when the action handler is called.
+                // Set the fake cell again on each round, as it is reset when the action handler is called.
                 wrapper.instance().setFakeCell(cell);
 
-                switch (element.id) {
+                // @ts-ignore, itemRef is private
+                const element = item!.itemRef.current!;
+
+                const command = item?.props.command.command;
+                switch (command) {
                     case "openValueMenuItem": {
                         expect(element.classList.contains("disabled")).toBe(true);
                         element.click();
@@ -847,7 +846,7 @@ describe("Result View Tests", (): void => {
                     }
 
                     case "copyFieldMenuItem": {
-                        expect(element.classList.contains("disabled")).toBe(true);
+                        expect(element.classList.contains("disabled")).toBe(false);
                         element.click();
 
                         expect(clipboardSpy).toHaveBeenLastCalledWith("'Animal'");
@@ -856,7 +855,7 @@ describe("Result View Tests", (): void => {
                     }
 
                     case "copyFieldUnquotedMenuItem": {
-                        expect(element.classList.contains("disabled")).toBe(true);
+                        expect(element.classList.contains("disabled")).toBe(false);
                         element.click();
 
                         expect(clipboardSpy).toHaveBeenLastCalledWith("Animal");
@@ -874,7 +873,7 @@ describe("Result View Tests", (): void => {
                     }
 
                     case "deleteRowMenuItem": {
-                        expect(element.classList.contains("disabled")).toBe(true);
+                        expect(element.classList.contains("disabled")).toBe(false);
 
                         // TODO: test handling, once implemented.
 
@@ -882,7 +881,7 @@ describe("Result View Tests", (): void => {
                     }
 
                     case "capitalizeMenuItem": { // Means: title case.
-                        expect(element.classList.contains("disabled")).toBe(true);
+                        expect(element.classList.contains("disabled")).toBe(false);
 
                         cell.setValue("animalsOrHumans");
                         element.click();
@@ -892,7 +891,7 @@ describe("Result View Tests", (): void => {
                     }
 
                     case "lowerCaseMenuItem": {
-                        expect(element.classList.contains("disabled")).toBe(true);
+                        expect(element.classList.contains("disabled")).toBe(false);
 
                         cell.setValue("AnimAL");
                         element.click();
@@ -902,7 +901,7 @@ describe("Result View Tests", (): void => {
                     }
 
                     case "upperCaseMenuItem": {
-                        expect(element.classList.contains("disabled")).toBe(true);
+                        expect(element.classList.contains("disabled")).toBe(false);
 
                         cell.setValue("animal");
                         element.click();
@@ -911,12 +910,17 @@ describe("Result View Tests", (): void => {
                         break;
                     }
 
-                    case "editValueMenuItem" : {
+                    case "editValueMenuItem": {
                         break;
                     }
 
                     default: {
-                        expect(element.classList.contains("divider")).toBe(true);
+                        // Sub menu or divider.
+                        if (element.id === "") {
+                            expect(element.classList.contains("divider")).toBe(true);
+                        } else {
+                            expect(item?.props.command.title.startsWith("Copy ")).toBe(true);
+                        }
                     }
                 }
             }

@@ -179,7 +179,6 @@ export const prepareWebviewContent = (panel: WebviewPanel, url: URL): void => {
   </script>
 </head>
 <body style="margin:0px;padding:0px;overflow:hidden;">
-<!-- Everything is larger in our iframe. Not sure who is to blame for this, but we need to scale it down. -->
 <iframe id="frame-msg" onload="hideWaitForContentDiv()" allow="clipboard-read; clipboard-write;"
     src="${url.toString()}"
     frameborder="0" style="overflow: hidden; overflow-x: hidden; overflow-y: hidden; height:100%;

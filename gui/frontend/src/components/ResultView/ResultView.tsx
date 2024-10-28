@@ -39,7 +39,7 @@ import {
     RowComponent, ValueBooleanCallback, ValueVoidCallback,
 } from "tabulator-tables";
 
-import { DBDataType, DialogType, IColumnInfo, MessageType } from "../../app-logic/Types.js";
+import { DBDataType, DialogType, IColumnInfo, MessageType } from "../../app-logic/general-types.js";
 import { IResultSet, IResultSetRows } from "../../script-execution/index.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
@@ -52,6 +52,7 @@ import {
 import { Container, Orientation } from "../ui/Container/Container.js";
 import { DateTime, IDateTimeChangeProperties, IDateTimeValueType } from "../ui/DataTime/DateTime.js";
 import { Dropdown } from "../ui/Dropdown/Dropdown.js";
+import { DropdownItem } from "../ui/Dropdown/DropdownItem.js";
 import { Icon } from "../ui/Icon/Icon.js";
 import { IInputChangeProperties, Input } from "../ui/Input/Input.js";
 import { TextAlignment } from "../ui/Label/Label.js";
@@ -265,156 +266,52 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     ref={this.cellContextMenuRef}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleCellContextMenuItemClick}
+                    isItemDisabled={this.handleCellMenuItemDisabled}
                 >
-                    <MenuItem
-                        id="editValueMenuItem"
-                        caption="Edit Value"
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
-                    <MenuItem
-                        id="setNullMenuItem"
-                        caption="Set Field to Null"
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
-                    <MenuItem
-                        id="openValueMenuItem"
-                        caption="Open Value in Editor"
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
-                    <MenuItem caption="-" disabled />
-                    <MenuItem
-                        id="saveToFileMenuItem"
-                        caption="Save Value to File..."
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
-                    <MenuItem
-                        id="loadFromFileMenuItem"
-                        caption="Load Value from File..."
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
-                    <MenuItem
-                        caption="-" disabled
-                    />
-                    <MenuItem id="copyRowSubmenu" caption="Copy Single Row">
+                    <MenuItem command={{ title: "Open Value in Editor", command: "openValueMenuItem" }} />
+                    <MenuItem command={{ title: "Set Field to Null", command: "setNullMenuItem" }} />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem command={{ title: "Save Value to File...", command: "saveToFileMenuItem" }} />
+                    <MenuItem command={{ title: "Load Value from File...", command: "loadFromFileMenuItem" }} />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem id="copyRowSubmenu" command={{ title: "Copy Single Row", command: "" }}>
+                        <MenuItem command={{ title: "Copy Row", command: "copyRowMenuItem1" }} />
+                        <MenuItem command={{ title: "Copy Row With Names", command: "copyRowMenuItem2" }} />
+                        <MenuItem command={{ title: "Copy Row Unquoted", command: "copyRowMenuItem3" }} />
+                        <MenuItem command={{ title: "Copy Row With Names, Unquoted", command: "copyRowMenuItem4" }} />
                         <MenuItem
-                            id="copyRowMenuItem1"
-                            caption="Copy Row"
-                            disabled={this.handleCellMenuItemDisabled}
+                            command={{ title: "Copy Row With Names, Tab Separated", command: "copyRowMenuItem5" }}
+                        />
+                        <MenuItem command={{ title: "Copy Row Tab Separated", command: "copyRowMenuItem6" }} />
+                    </MenuItem>
+                    <MenuItem id="copyRowsSubmenu" command={{ title: "Copy Multiple Rows", command: "" }}>
+                        <MenuItem command={{ title: "Copy All Rows", command: "copyRowsMenuItem1" }} />
+                        <MenuItem command={{ title: "Copy All Rows With Names", command: "copyRowsMenuItem2" }} />
+                        <MenuItem command={{ title: "Copy All Rows Unquoted", command: "copyRowsMenuItem3" }} />
+                        <MenuItem
+                            command={{ title: "Copy All Rows With Names, Unquoted", command: "copyRowsMenuItem4" }}
                         />
                         <MenuItem
-                            id="copyRowMenuItem2"
-                            caption="Copy Row With Names"
-                            disabled={this.handleCellMenuItemDisabled}
+                            command={{ title: "Copy All Rows With Names, Tab Separated", command: "copyRowsMenuItem5" }}
                         />
+                        <MenuItem command={{ title: "Copy All Rows Tab, Separated", command: "copyRowsMenuItem6" }} />
+                        <MenuItem command={{ title: "Copy Selected Rows", command: "copyRowsMenuItem7" }} />
                         <MenuItem
-                            id="copyRowMenuItem3"
-                            caption="Copy Row Unquoted"
-                            disabled={this.handleCellMenuItemDisabled}
-                        />
-                        <MenuItem
-                            id="copyRowMenuItem4"
-                            caption="Copy Row With Names, Unquoted"
-                            disabled={this.handleCellMenuItemDisabled}
-                        />
-                        <MenuItem
-                            id="copyRowMenuItem5"
-                            caption="Copy Row With Names, Tab Separated"
-                            disabled={this.handleCellMenuItemDisabled}
-                        />
-                        <MenuItem
-                            id="copyRowMenuItem6"
-                            caption="Copy Row Tab Separated"
-                            disabled={this.handleCellMenuItemDisabled}
+                            command={{ title: "Copy Selected Rows, Tab Separated", command: "copyRowsMenuItem8" }}
                         />
                     </MenuItem>
-                    <MenuItem id="copyRowsSubmenu" caption="Copy Multiple Rows">
-                        <MenuItem
-                            id="copyRowsMenuItem1"
-                            caption="Copy All Rows"
-                            disabled={this.handleCellMenuItemDisabled}
-                        />
-                        <MenuItem
-                            id="copyRowsMenuItem2"
-                            caption="Copy All Rows With Names"
-                            disabled={this.handleCellMenuItemDisabled}
-                        />
-                        <MenuItem
-                            id="copyRowsMenuItem3"
-                            caption="Copy All Rows Unquoted"
-                            disabled={this.handleCellMenuItemDisabled}
-                        />
-                        <MenuItem
-                            id="copyRowsMenuItem4"
-                            caption="Copy All Rows With Names, Unquoted"
-                            disabled={this.handleCellMenuItemDisabled}
-                        />
-                        <MenuItem
-                            id="copyRowsMenuItem5"
-                            caption="Copy All Rows With Names, Tab Separated"
-                            disabled={this.handleCellMenuItemDisabled}
-                        />
-                        <MenuItem
-                            id="copyRowsMenuItem6"
-                            caption="Copy All Rows Tab Separated"
-                            disabled={this.handleCellMenuItemDisabled}
-                        />
-                        <MenuItem
-                            id="copyRowsMenuItem7"
-                            caption="Copy Selected Rows"
-                            disabled={this.handleCellMenuItemDisabled}
-                        />
-                        <MenuItem
-                            id="copyRowsMenuItem8"
-                            caption="Copy All Selected Rows, Tab Separated"
-                            disabled={this.handleCellMenuItemDisabled}
-                        />
-                    </MenuItem>
-                    <MenuItem
-                        id="copyFieldMenuItem"
-                        caption="Copy Field"
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
-                    <MenuItem
-                        id="copyFieldUnquotedMenuItem"
-                        caption="Copy Field Unquoted"
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
-                    <MenuItem
-                        id="pasteRowMenuItem"
-                        caption="Paste Row"
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
-                    <MenuItem
-                        caption="-" disabled
-                    />
-
-                    <MenuItem
-                        id="deleteRowMenuItem"
-                        caption="Delete Row (Mark/Unmark)"
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
-                    <MenuItem
-                        caption="-" disabled
-                    />
-
-                    <MenuItem
-                        id="capitalizeMenuItem"
-                        caption="Capitalize Text"
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
-                    <MenuItem
-                        id="lowerCaseMenuItem"
-                        caption="Convert Text to Lower Case"
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
-                    <MenuItem
-                        id="upperCaseMenuItem"
-                        caption="Convert Text to Upper Case"
-                        disabled={this.handleCellMenuItemDisabled}
-                    />
+                    <MenuItem command={{ title: "Copy Field", command: "copyFieldMenuItem" }} />
+                    <MenuItem command={{ title: "Copy Field Unquoted", command: "copyFieldUnquotedMenuItem" }} />
+                    <MenuItem command={{ title: "Paste Row", command: "pasteRowMenuItem" }} />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem command={{ title: "Delete Row (Mark/Unmark)", command: "deleteRowMenuItem" }} />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem command={{ title: "Capitalize Text", command: "capitalizeMenuItem" }} />
+                    <MenuItem command={{ title: "Convert Text to Lower Case", command: "lowerCaseMenuItem" }} />
+                    <MenuItem command={{ title: "Convert Text to Upper Case", command: "upperCaseMenuItem" }} />
                 </Menu>
 
-            </Container>
+            </Container >
         );
     }
 
@@ -685,6 +582,11 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             return true;
         }
 
+        if (props.command.command === "") {
+            // Sub menus.
+            return false;
+        }
+
         // istanbul ignore next
         const selectCount = this.gridRef.current.getSelectedRows().length ?? 0;
 
@@ -719,7 +621,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             }
         }
 
-        switch (props.id!) {
+        const command = props.command.command;
+        switch (command) {
             case "editValueMenuItem": {
                 return !editable;
             }
@@ -959,7 +862,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         }
     };
 
-    private handleCellContextMenuItemClick = (e: MouseEvent, props: IMenuItemProperties): boolean => {
+    private handleCellContextMenuItemClick = (props: IMenuItemProperties): boolean => {
         if (this.selectedCell) {
             let dataType = DBDataType.String;
             const info = this.columnInfoFromCell(this.selectedCell);
@@ -967,7 +870,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 dataType = info.dataType.type;
             }
 
-            switch (props.id!) {
+            const command = props.command.command;
+            switch (command) {
                 case "openValueMenuItem": {
                     let typeString = "Blob";
                     switch (dataType) {
@@ -1110,7 +1014,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                 }
 
                 case "copyRowsMenuItem7": {
-                    this.copyRows(true, false, "\t", true);
+                    this.copyRows(true, false, "\t", false);
 
                     break;
                 }
@@ -1499,8 +1403,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                     }}
                     onBlur={this.handleBlurEvent.bind(this, cell, success, cancel)}
                 >
-                    <Dropdown.Item id="true" caption="true" />
-                    <Dropdown.Item id="false" caption="false" />
+                    <DropdownItem id="true" caption="true" />
+                    <DropdownItem id="false" caption="false" />
                 </Dropdown>;
                 break;
             }

@@ -48,7 +48,7 @@ import type { IStatusBarItem } from "../components/ui/Statusbar/StatusBarItem.js
 import { requisitions } from "../supplement/Requisitions.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
 import { webSession } from "../supplement/WebSession.js";
-import { DialogResponseClosure } from "./Types.js";
+import { DialogResponseClosure } from "./general-types.js";
 
 interface IProfileSelectorState extends IComponentState {
     menuItems: ComponentChild[];
@@ -115,23 +115,20 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                     onItemClick={this.handleMenuItemClick}
                 >
                     {menuItems}
-                    <MenuItem id="-" key="separator1" caption="-" />
+                    <MenuItem id="-" key="separator1" command={{ title: "-", command: "" }} />
                     <MenuItem
-                        id="add"
                         key="add"
-                        caption="Add Profile"
+                        command={{ title: "Add Profile", command: "add" }}
                         icon={addIcon}
                     />
                     <MenuItem
-                        id="edit"
                         key="edit"
-                        caption="Edit Profile"
+                        command={{ title: "Edit Profile", command: "edit" }}
                         icon={editIcon}
                     />
                     <MenuItem
-                        id="delete"
                         key="delete"
-                        caption="Delete Profile"
+                        command={{ title: "Delete Profile", command: "delete" }}
                         icon={deleteIcon}
                     />
                 </Menu>
@@ -213,7 +210,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                     <MenuItem
                         key={`profile${index}`}
                         id={value.id.toString()}
-                        caption={value.name}
+                        command={{ title: value.name, command: "" }}
                         icon={icon}
                         title={value.description}
                     ></MenuItem>
@@ -459,8 +456,7 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
             return <Label caption={item.name} id={id} key={id} />;
         });
 
-        const caption =
-            "Are you sure you want to delete the selected profile" +
+        const caption = "Are you sure you want to delete the selected profile" +
             (this.deleteList.length > 1 ? "s" : "");
         const content = (
             <Container orientation={Orientation.TopDown}>
@@ -636,11 +632,12 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
         // TODO: update statusbar entry.
     };
 
-    private handleMenuItemClick = (e: MouseEvent, props: IMenuItemProperties): boolean => {
+    private handleMenuItemClick = (props: IMenuItemProperties): boolean => {
         if (!props.children || Children.count(props.children) === 0) {
-            const value = parseInt(props.id ?? "", 10);
-            const action = isNaN(value) ? props.id : "current";
-            this.handleProfileAction(action || "", props.id || "");
+            const command = props.command.command;
+            const value = parseInt(command, 10);
+            const action = isNaN(value) ? command : "current";
+            this.handleProfileAction(action, command);
 
             return true;
         }

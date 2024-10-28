@@ -23,26 +23,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import * as path from "path";
+import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
+import type { ConnectionDataModelEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
+import type { Command } from "vscode";
 
-import { TreeItem, TreeItemCollapsibleState } from "vscode";
-
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-
-export class MrsTreeBaseItem extends TreeItem {
-
-    public constructor(
-        label: string,
-        public backend: ShellInterfaceSqlEditor,
-        public connectionId: number,
-        iconName: string,
-        hasChildren: boolean,
-    ) {
-        super(label, hasChildren ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None);
-
-        this.iconPath = {
-            light: path.join(__dirname, "..", "images", "light", iconName),
-            dark: path.join(__dirname, "..", "images", "dark", iconName),
-        };
+/** A common tree item for all MRS related nodes. Can potentially be removed. */
+export class MrsTreeBaseItem<T extends ConnectionDataModelEntry> extends ConnectionBaseTreeItem<T> {
+    public constructor(dataModelEntry: T, iconName: string, hasChildren: boolean,
+        command?: Command) {
+        super(dataModelEntry, iconName, hasChildren, command);
     }
 }

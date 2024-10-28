@@ -29,7 +29,7 @@ import { ComponentBase } from "../components/ui/Component/ComponentBase.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import {
     DialogResponseClosure, DialogType, IDialogRequest, IDialogResponse, IDictionary, MdsDialogType,
-} from "./Types.js";
+} from "./general-types.js";
 import { ConfirmDialog } from "../components/Dialogs/ConfirmDialog.js";
 import { PasswordDialog } from "../components/Dialogs/PasswordDialog.js";
 import { MrsAuthDialog } from "../modules/mrs/dialogs/MrsAuthDialog.js";

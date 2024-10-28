@@ -27,14 +27,13 @@ import "./FileSelector.css";
 
 import { ComponentChild } from "preact";
 
-import { Container, Orientation } from "../Container/Container.js";
+import { IOpenDialogFilters, IOpenFileDialogResult } from "../../../supplement/RequisitionTypes.js";
+import { requisitions, appParameters } from "../../../supplement/Requisitions.js";
 import { selectFile } from "../../../utilities/helpers.js";
-import {
-    appParameters, IOpenDialogFilters, IOpenFileDialogResult, requisitions,
-} from "../../../supplement/Requisitions.js";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
-import { Input, IInputChangeProperties } from "../Input/Input.js";
 import { Button } from "../Button/Button.js";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { Container, Orientation } from "../Container/Container.js";
+import { IInputChangeProperties, Input } from "../Input/Input.js";
 
 enum FileSelectorEntryType {
     File,

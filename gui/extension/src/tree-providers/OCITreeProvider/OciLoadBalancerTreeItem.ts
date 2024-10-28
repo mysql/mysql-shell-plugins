@@ -27,7 +27,7 @@ import * as path from "path";
 
 import { TreeItemCollapsibleState } from "vscode";
 
-import { ILoadBalancer, ICompartment, LoadBalancer } from "../../../../frontend/src/communication/index.js";
+import { ICompartment, LoadBalancer } from "../../../../frontend/src/communication/index.js";
 import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds.js";
 import { OciBaseTreeItem } from "./OciBaseTreeItem.js";
 
@@ -37,7 +37,7 @@ export class OciLoadBalancerTreeItem extends OciBaseTreeItem {
     public constructor(
         profile: IMdsProfileData,
         public compartment: ICompartment,
-        public loadBalancer: ILoadBalancer) {
+        public loadBalancer: LoadBalancer) {
         super(loadBalancer.displayName, profile, TreeItemCollapsibleState.None);
 
         let iconName = "ociLoadBalancer.svg";

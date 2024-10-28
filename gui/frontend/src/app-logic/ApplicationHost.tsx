@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import debuggerIcon from "../assets/images/debugger.svg";
-import settingIcon from "../assets/images/settings.svg";
 
 import { ComponentChild, createElement, createRef } from "preact";
 
@@ -35,12 +33,12 @@ import { SettingsEditor } from "../components/SettingsEditor/SettingsEditor.js";
 import { ModuleRegistry } from "../modules/ModuleRegistry.js";
 import { DialogHost } from "./DialogHost.js";
 
-import { ActivityBar } from "../components/ui/ActivityBar/ActivityBar.js";
-import { ActivityBarItem, IActivityBarItemProperties } from "../components/ui/ActivityBar/ActivityBarItem.js";
-import { ComponentBase, IComponentProperties } from "../components/ui/Component/ComponentBase.js";
-import { Container, Orientation } from "../components/ui/Container/Container.js";
-import { ISplitterPaneSizeInfo, SplitContainer } from "../components/ui/SplitContainer/SplitContainer.js";
 import { CommunicationDebugger } from "../components/CommunicationDebugger/CommunicationDebugger.js";
+import { ComponentBase, type IComponentProperties } from "../components/ui/Component/ComponentBase.js";
+import { Container, Orientation } from "../components/ui/Container/Container.js";
+import { SplitContainer, type ISplitterPaneSizeInfo } from "../components/ui/SplitContainer/SplitContainer.js";
+import { StatusBarAlignment, type IStatusBarItem } from "../components/ui/Statusbar/StatusBarItem.js";
+import { ui } from "./UILayer.js";
 
 interface IApplicationHostProperties extends IComponentProperties {
     toggleOptions: () => void;
@@ -61,6 +59,9 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
 
     private loadedModules = new Map<string, [ComponentChild, preact.RefObject<HTMLElement>]>();
 
+    #optionsStatusItem?: IStatusBarItem;
+    #debuggerStatusItem?: IStatusBarItem;
+
     public constructor(props: IApplicationHostProperties) {
         super(props);
 
@@ -70,14 +71,11 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
             debuggerVisible: false,
             debuggerMaximized: true,
         };
-
-        requisitions.register("showAbout", this.showAbout);
-        requisitions.register("showPreferences", this.showPreferences);
-        requisitions.register("showModule", this.showModule);
     }
 
     public override componentDidMount(): void {
         // Auto select the first module if no active module is given and we have a module to show actually.
+        // XXX: rework once the modules are gone.
         const modules = ModuleRegistry.enabledModules;
         if (modules.size > 0) {
             this.setState({ activeModule: modules.keys().next().value }, () => {
@@ -85,14 +83,34 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
             });
         }
 
+        requisitions.register("showAbout", this.showAbout);
+        requisitions.register("showPreferences", this.showPreferences);
+        requisitions.register("showModule", this.showModule);
+        requisitions.register("statusBarButtonClick", this.statusBarButtonClick);
+
+        if (!appParameters.embedded) {
+            this.#optionsStatusItem = ui.createStatusBarItem(StatusBarAlignment.Right, 9);
+            this.#optionsStatusItem.text = "$(gear)";
+            this.#optionsStatusItem.tooltip = "Toggle Preferences";
+            this.#optionsStatusItem.command = "application:togglePreferences";
+            this.#debuggerStatusItem = ui.createStatusBarItem(StatusBarAlignment.Right, 8);
+            this.#debuggerStatusItem.text = "$(debug)";
+            this.#debuggerStatusItem.tooltip = "Toggle Communication Debugger";
+            this.#debuggerStatusItem.command = "application:toggleDebugger";
+        }
+
         void requisitions.execute("applicationDidStart", undefined);
         requisitions.executeRemote("applicationDidStart", undefined);
     }
 
     public override componentWillUnmount(): void {
+        this.#optionsStatusItem?.dispose();
+        this.#debuggerStatusItem?.dispose();
+
         requisitions.unregister("showAbout", this.showAbout);
         requisitions.unregister("showPreferences", this.showPreferences);
         requisitions.unregister("showModule", this.showModule);
+        requisitions.unregister("statusBarButtonClick", this.statusBarButtonClick);
     }
 
     public override componentDidUpdate(prevProps: IApplicationHostProperties, prevState: IApplicationHostState): void {
@@ -106,26 +124,12 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
     public render(): ComponentChild {
         const { activeModule, settingsVisible, settingsPage, debuggerVisible, debuggerMaximized } = this.state;
 
-        const activityBarEntries: unknown[] = [];
         const pages: ComponentChild[] = [];
 
         // Mark an item only if the debugger or the settings are not shown full screen.
-        const markModuleItem = !settingsVisible && (!debuggerVisible || !debuggerMaximized);
         const modules = ModuleRegistry.enabledModules;
         modules.forEach((module, id): void => {
             const isActiveModule = activeModule === id;
-            activityBarEntries.push(
-                <ActivityBarItem
-                    key={id}
-                    id={id}
-                    active={markModuleItem && isActiveModule}
-                    onClick={this.handleActivityItemClick}
-                    //caption={module.moduleClass.info.title}
-                    image={module.moduleClass.info.icon}
-                    expand={false}
-                />,
-            );
-
             const info = this.loadedModules.get(id);
             if (info) {
                 pages.push(info[0]);
@@ -184,30 +188,6 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
 
         return (
             <Container className="applicationHost">
-                {!appParameters.embedded &&
-                    <ActivityBar id="mainActivityBar">
-                        <>
-                            {activityBarEntries}
-                            {allowDebugger && <ActivityBarItem
-                                key="debugger"
-                                id="debugger"
-                                active={debuggerVisible && debuggerMaximized}
-                                image={debuggerIcon}
-                                expand={true}
-                                onClick={this.handleActivityItemClick}
-                            />}
-                            <ActivityBarItem
-                                key="settings"
-                                id="settings"
-                                active={settingsVisible}
-                                image={settingIcon}
-                                expand={!allowDebugger}
-                                onClick={this.handleActivityItemClick}
-                            />
-                        </>
-                    </ActivityBar>
-                }
-
                 {content}
                 <DialogHost />
             </Container>
@@ -242,9 +222,9 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
         });
     };
 
-    private handleActivityItemClick = (e: unknown, props: IActivityBarItemProperties): void => {
-        switch (props.id) {
-            case "settings": {
+    private statusBarButtonClick = (values: { type: string; }): Promise<boolean> => {
+        switch (values.type) {
+            case "application:togglePreferences": {
                 const { settingsVisible } = this.state;
 
                 this.setState({ debuggerVisible: false, settingsVisible: !settingsVisible },
@@ -252,7 +232,7 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
                 break;
             }
 
-            case "debugger": {
+            case "application:toggleDebugger": {
                 const { debuggerVisible } = this.state;
 
                 this.setState({ debuggerVisible: !debuggerVisible, settingsVisible: false },
@@ -261,24 +241,10 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
                 break;
             }
 
-            default: {
-                const { activeModule, debuggerVisible, debuggerMaximized } = this.state;
-
-                this.setState({
-                    activeModule: props.id || "",
-                    debuggerVisible: debuggerVisible && !debuggerMaximized,
-                    settingsVisible: false,
-                }, () => { this.updateActiveHost(); });
-
-                if (props.id && activeModule === props.id) {
-                    // The same activity item was clicked. We use that as a signal to toggle things in modules
-                    // (e.g. sidebars).
-                    void requisitions.execute("moduleToggle", props.id);
-                }
-
-                break;
-            }
+            default:
         }
+
+        return Promise.resolve(false);
     };
 
     /**
@@ -287,15 +253,17 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
     private updateActiveHost(): void {
         const { activeModule, settingsVisible } = this.state;
 
-        this.loadedModules.forEach((value, key) => {
-            if (value[1].current) {
-                if (!settingsVisible && key === activeModule) {
-                    value[1].current.classList.add("active");
-                } else {
-                    value[1].current.classList.remove("active");
+        if (activeModule === "gui.sql_editor") { // Temporary block to allow only the DB editor module to become active.
+            this.loadedModules.forEach((value, key) => {
+                if (value[1].current) {
+                    if (!settingsVisible && key === activeModule) {
+                        value[1].current.classList.add("active");
+                    } else {
+                        value[1].current.classList.remove("active");
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     private embeddedDebuggerSplitterResize = (info: ISplitterPaneSizeInfo[]): void => {

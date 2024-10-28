@@ -29,7 +29,7 @@ import { CharsetSymbol, DBSymbolTable, SystemFunctionSymbol } from "../DBSymbolT
 import { RdbmsLanguageService } from "../worker/RdbmsLanguageService.js";
 import { LanguageWorkerPool } from "../worker/LanguageWorkerPool.js";
 import { sqliteInfo } from "../../app-logic/RdbmsInfo.js";
-import { DBDataType, ParameterFormatType } from "../../app-logic/Types.js";
+import { DBDataType, ParameterFormatType } from "../../app-logic/general-types.js";
 import { convertCamelToTitleCase } from "../../utilities/string-helpers.js";
 
 // The SQLite specialization of the RDBMS worker class.

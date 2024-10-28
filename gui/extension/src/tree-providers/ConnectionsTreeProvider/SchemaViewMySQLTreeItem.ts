@@ -23,18 +23,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import type { ICdmViewEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 import { SchemaViewTreeItem } from "./SchemaViewTreeItem.js";
 
 export class SchemaViewMySQLTreeItem extends SchemaViewTreeItem {
     public override contextValue = "schemaViewItemMySQL";
 
-    public constructor(
-        name: string,
-        schema: string,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number,
-        hasChildren: boolean) {
-        super(name, schema, backend, connectionId, "schemaView.svg", hasChildren);
+    public constructor(dataModelEntry: ICdmViewEntry) {
+        super(dataModelEntry, "schemaView.svg");
     }
 }
